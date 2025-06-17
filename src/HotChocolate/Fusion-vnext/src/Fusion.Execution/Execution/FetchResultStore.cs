@@ -1,247 +1,323 @@
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using HotChocolate.Transport;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
 // we must make this thread-safe
 public sealed class FetchResultStore
 {
-    private readonly Dictionary<SelectionPath, List<FetchResult>> _resultsBySelectionPath = [];
-    private readonly HashSet<SelectionPath> _selectionPaths = [];
+    private readonly ResultNode _root = new();
+    private readonly ISchemaDefinition _schema;
+    private ImmutableDictionary<string, IValueNode> _nodes = ImmutableDictionary<string, IValueNode>.Empty;
 
-    public void AddResult(FetchResult result)
+    public FetchResultStore(ISchemaDefinition schema)
     {
-        _selectionPaths.Add(result.Target);
+        ArgumentNullException.ThrowIfNull(schema);
 
-        if(!_resultsBySelectionPath.TryGetValue(result.Target, out var results))
+        _schema = schema;
+    }
+
+    public void Save(
+        Path path,
+        SelectionPath start,
+        OperationResult result)
+    {
+        if (path.IsRoot)
         {
-            results = [];
-            _resultsBySelectionPath.Add(result.Target, results);
+            _root.Results.Add(
+                new ResultInfo
+                {
+                    Start = start,
+                    StartElement = result.Data,
+                    Result = result
+                });
+            return;
         }
 
-        results.Add(result);
-    }
+        var pathStack = ToStack(path);
+        var nodes = new Queue<(ResultNode Node, ImmutableStack<Path> Path)>();
+        nodes.Enqueue((_root, pathStack));
 
-    public IEnumerable<FetchResult> GetRootResults()
-    {
-        throw new NotImplementedException();
-    }
-
-    public IEnumerable<FetchResult> GetResults(SelectionPath path)
-    {
-        foreach (var selectionPath in _selectionPaths)
+        while (nodes.TryDequeue(out var current))
         {
-            if (!selectionPath.IsParentOfOrSame(path))
+            foreach (var (startPath, data) in current.Node.Results)
             {
+                var currentPath = current.Path;
+                var startElement = GetStartElement(startPath, data);
+                if (TryResolvePath(startElement, ref currentPath, out var element))
+                {
+                    if (!current.Node.Nodes.TryGetValue(path, out var child))
+                    {
+                        child = new ResultNode();
+                        current.Node.Nodes[path] = child;
+                    }
+
+                    child.Results.Add(
+                        new ResultInfo
+                        {
+                            Start = start,
+                            StartElement = startElement,
+                            Result = result
+                        });
+                    return;
+                }
+                else if (current.Node.Nodes.TryGetValue(currentPath.Peek(), out var child))
+                {
+                    // we have a child node, so we continue to resolve the path
+                    nodes.Enqueue((child, currentPath));
+                }
+            }
+        }
+
+        throw new InvalidOperationException(
+            $"The path '{path}' could not be resolved in the result store.");
+    }
+
+    private static ImmutableStack<Path> ToStack(Path path)
+    {
+        var stack = ImmutableStack<Path>.Empty;
+        var current = path;
+
+        while (!current.IsRoot)
+        {
+            stack = stack.Push(current);
+            current = current.Parent;
+        }
+
+        return stack;
+    }
+
+    private static JsonElement GetStartElement(
+        SelectionPath start,
+        JsonElement data)
+    {
+        if (start.IsRoot)
+        {
+            return data;
+        }
+
+        var current = data;
+
+        for (var i = start.Segments.Length - 1; i >= 0; i--)
+        {
+            var segment = start.Segments[i];
+            if (current.ValueKind != JsonValueKind.Object ||
+                !current.TryGetProperty(segment.Name, out current))
+            {
+                throw new InvalidOperationException(
+                    $"The path segment '{segment.Name}' does not exist in the data.");
+            }
+        }
+
+        return current;
+    }
+
+    private static bool TryResolvePath(
+        JsonElement start,
+        ref ImmutableStack<Path> path,
+        [NotNullWhen(true)] out JsonElement? element)
+    {
+        var currentPath = path;
+        var currentElement = start;
+
+        while (!currentPath.IsEmpty)
+        {
+            var nextPath = currentPath.Pop(out var segment);
+
+            if (segment is IndexerPathSegment indexerSegment)
+            {
+                if (currentElement.ValueKind != JsonValueKind.Array)
+                {
+                    path = currentPath;
+                    element = null;
+                    return false;
+                }
+
+                currentElement = currentElement[indexerSegment.Index];
+            }
+            else if (segment is NamePathSegment nameSegment)
+            {
+                if (currentElement.ValueKind != JsonValueKind.Object
+                    || !currentElement.TryGetProperty(nameSegment.Name, out currentElement))
+                {
+                    path = currentPath;
+                    element = null;
+                    return false;
+                }
+            }
+            else
+            {
+                throw new NotSupportedException($"The path segment '{segment}' is not supported.");
+            }
+
+            currentPath = nextPath;
+        }
+
+        element = currentElement;
+        return true;
+    }
+
+    public IReadOnlyList<ObjectValueNode> GetData(
+        SelectionPath from,
+        params ReadOnlySpan<(string name, SelectionPath path)> segments)
+    {
+        var paths = Expand(from);
+
+        return Array.Empty<ObjectValueNode>();
+    }
+
+    private IEnumerable<(Path, ResultNode)> Expand(SelectionPath startPath)
+    {
+        var cursors = new List<(Path, ResultNode, JsonElement)>();
+        var next = new List<(Path, ResultNode, JsonElement)>();
+
+        foreach (var result in _root.Results)
+        {
+            cursors.Add((Path.Root, _root, result.Data));
+        }
+
+        for (var segmentIndex = 0; segmentIndex < startPath.Segments.Length; segmentIndex++)
+        {
+            var segment = startPath.Segments[segmentIndex];
+            next.Clear();
+
+            if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
+            {
+                var typeCondition = _schema.Types[segment.Name];
+
+                foreach (var (path, node, element) in cursors)
+                {
+                    if (element.ValueKind == JsonValueKind.Object
+                        && element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeName)
+                        && _schema.Types.TryGetType<IObjectTypeDefinition>(typeName.GetString()!, out var actualType)
+                        && typeCondition.IsAssignableFrom(actualType))
+                    {
+                        next.Add((path, node, element));
+                    }
+                }
+
+                if (next.Count == 0)
+                {
+                    return [];
+                }
+
+                (cursors, next) = (next, cursors);
                 continue;
             }
 
-            foreach (var result in _resultsBySelectionPath[selectionPath])
+            foreach (var (path, node, element) in cursors)
             {
-                yield return result;
+                if (element.ValueKind == JsonValueKind.Object)
+                {
+                    if (element.TryGetProperty(segment.Name, out var child))
+                    {
+                        if (child.ValueKind == JsonValueKind.Null)
+                        {
+                            continue;
+                        }
+
+                        if (child.ValueKind == JsonValueKind.Array)
+                        {
+                            UnrollArray(path.Append(segment.Name), node, child);
+                        }
+                        else
+                        {
+                            next.Add((path.Append(segment.Name), node, child));
+                        }
+                    }
+                    else if (node.Nodes.TryGetValue(path, out var resultNode))
+                    {
+                        foreach (var result in resultNode.Results)
+                        {
+                            var startElement = GetStartElement(result.Start, result.Data);
+                            if (startElement.TryGetProperty(segment.Name, out child))
+                            {
+                                if (child.ValueKind == JsonValueKind.Null)
+                                {
+                                    continue;
+                                }
+
+                                if (child.ValueKind == JsonValueKind.Array)
+                                {
+                                    UnrollArray(path.Append(segment.Name), node, child);
+                                }
+                                else
+                                {
+                                    next.Add((path.Append(segment.Name), node, child));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (next.Count == 0)
+            {
+                return [];
+            }
+
+            (cursors, next) = (next, cursors);
+        }
+
+        return cursors.Select(t => (t.Item1, t.Item2));
+
+        void UnrollArray(Path path, ResultNode node, JsonElement element)
+        {
+            for (var i = 0; i < element.GetArrayLength(); i++)
+            {
+                var item = element[i];
+
+                if (item.ValueKind == JsonValueKind.Array)
+                {
+                    UnrollArray(path.Append(i), node, item);
+                }
+                else
+                {
+                    next.Add((path.Append(i), node, item));
+                }
             }
         }
     }
 
-    public IEnumerable<(Path Path, List<ObjectFieldNode> Fields)> GetValues(
-        SelectionPath root,
-        ImmutableArray<(string Key, FieldPath Map)> requirements)
+    private sealed class ResultNode
     {
-        ArgumentNullException.ThrowIfNull(root);
+        public List<ResultInfo> Results { get; } = [];
 
-        var completed = new HashSet<Path>();
+        public Dictionary<Path, ResultNode> Nodes { get; } = [];
+    }
 
-        foreach (var result in GetResults(root))
+    private sealed class ResultInfo
+    {
+        public required SelectionPath Start { get; init; }
+        public required OperationResult Result { get; init; }
+        public required JsonElement StartElement { get; init; }
+        public JsonElement Data => Result.Data;
+
+        public void Deconstruct(out SelectionPath start, out JsonElement data)
         {
-            var relativeRoot = root.RelativeTo(result.Target);
-            var rootElement = result.GetFromSourceData();
-
-            if (rootElement.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-            {
-                continue;
-            }
-
-            var current = new List<(JsonElement, Path)> { (rootElement, result.Path) };
-            var next = new List<(JsonElement, Path)>();
-            var currentList = new List<(JsonElement, Path)>();
-            var nextList = new List<(JsonElement, Path)>();
-
-            if (FanOutLists(result.Path, rootElement, currentList, nextList, next))
-            {
-                (current, next) = (next, current);
-            }
-
-            foreach (var segment in relativeRoot.Segments)
-            {
-                next.Clear();
-
-                foreach (var (element, path) in current)
-                {
-                    if (element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-                    {
-                        continue;
-                    }
-
-                    if (segment.Kind == SelectionPathSegmentKind.InlineFragment)
-                    {
-                        // __typename discriminator
-                        if (element.ValueKind == JsonValueKind.Object
-                            && element.TryGetProperty("__typename", out var t)
-                            && t.ValueKind == JsonValueKind.String
-                            && t.ValueEquals(segment.Name))
-                        {
-                            next.Add((element, path));
-                        }
-
-                        continue;
-                    }
-
-                    if (element.ValueKind is not JsonValueKind.Object
-                        || !element.TryGetProperty(segment.Name, out var property)
-                        || property.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-                    {
-                        continue;
-                    }
-
-                    var nextPath = path.Append(segment.Name);
-
-                    if (!FanOutLists(nextPath, property, currentList, nextList, next))
-                    {
-                        next.Add((property, nextPath));
-                    }
-                }
-
-                (current, next) = (next, current);
-            }
-
-            foreach (var (element, path) in current)
-            {
-                if (!completed.Add(path)
-                    || element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-                {
-                    continue;
-                }
-
-                var fields = new List<ObjectFieldNode>();
-
-                foreach (var (key, map) in requirements)
-                {
-                    fields.Add(FieldPathExtractor.Extract(key, element, map));
-                }
-
-                yield return (path, fields);
-            }
-        }
-
-        static bool FanOutLists(
-            Path path,
-            JsonElement element,
-            List<(JsonElement, Path)> currentList,
-            List<(JsonElement, Path)> nextList,
-            List<(JsonElement, Path)> next)
-        {
-            if (element.ValueKind is not JsonValueKind.Array)
-            {
-                return false;
-            }
-
-            nextList.Clear();
-            nextList.Add((element, path));
-            var isList = false;
-
-            do
-            {
-                (currentList, nextList) = (nextList, currentList);
-                nextList.Clear();
-
-                var idx = 0;
-                foreach (var (listElement, listPath) in currentList)
-                {
-                    foreach (var item in listElement.EnumerateArray())
-                    {
-                        if(!isList && item.ValueKind == JsonValueKind.Array)
-                        {
-                            isList = true;
-                        }
-
-                        next.Add((item, listPath.Append(idx++)));
-                    }
-                }
-            }
-            while (isList);
-            return true;
+            start = Start;
+            data = Data;
         }
     }
 
-    private static class FieldPathExtractor
+    private sealed class WorkItem
     {
-        public static ObjectFieldNode Extract(string key, JsonElement element, FieldPath map)
-        {
-            var stack = map.Reverse().GetEnumerator();
+        public required ImmutableArray<ResultNode> Nodes { get; init; }
+        public required ImmutableStack<SelectionPath.Segment> Start { get; init; }
+        public required ImmutableList<Path> Paths { get; init; }
+    }
 
-            if (!stack.MoveNext())
-            {
-                throw new ArgumentException("The path must not be empty.", nameof(map));
-            }
+    private sealed class StartNode
+    {
+        public required Path Path { get; init; }
 
-            var value = Visit(stack, element);
-            return new ObjectFieldNode(key, value);
-        }
+        public required ResultNode Node { get; init; }
 
-        private static IValueNode Visit(IEnumerator<FieldPath> stack, JsonElement element)
-        {
-            var segment = stack.Current;
-
-            if (!element.TryGetProperty(segment.Name, out var property) ||
-                property.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-            {
-                return NullValueNode.Default;
-            }
-
-            if (stack.MoveNext())
-            {
-                var next = Visit(stack, property);
-                var field = new ObjectFieldNode(segment.Name, next);
-                return new ObjectValueNode(field);
-            }
-
-            return Visit(property);
-        }
-
-        private static IValueNode Visit(JsonElement element)
-        {
-            switch (element.ValueKind)
-            {
-                case JsonValueKind.String:
-                    return new StringValueNode(element.GetString()!);
-
-                case JsonValueKind.Number:
-                    #if NET9_0_OR_GREATER
-                    return Utf8GraphQLParser.Syntax.ParseValueLiteral(JsonMarshal.GetRawUtf8Value(element));
-                    #else
-                    return Utf8GraphQLParser.Syntax.ParseValueLiteral(element.GetRawText());
-                    #endif
-
-                case JsonValueKind.True:
-                    return BooleanValueNode.True;
-
-                case JsonValueKind.False:
-                    return BooleanValueNode.False;
-
-                case JsonValueKind.Array:
-                    var items = new List<IValueNode>();
-                    foreach (var item in element.EnumerateArray())
-                    {
-                        items.Add(Visit(item));
-                    }
-                    return new ListValueNode(items.ToImmutableArray());
-
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
+        public required JsonElement Data { get; init; }
     }
 }

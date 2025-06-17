@@ -45,29 +45,7 @@ public sealed class OperationPlanContext : IAsyncDisposable
         ImmutableArray<string> variables,
         ImmutableArray<OperationRequirement> requirements)
     {
-        if (variables.Length == 0 && requirements.Length == 0)
-        {
-            return ImmutableArray<VariableValues>.Empty;
-        }
-
-        var pathThroughVariables = GetPathThroughVariables(variables);
-
-        if (requirements.Length > 0)
-        {
-            ImmutableArray<VariableValues>.Builder? builder = null;
-
-            foreach (var (path, variableValues) in ResultStore.GetValues(currentPath, [.. requirements.Select(t => (t.Key, t.Map))]))
-            {
-                variableValues.AddRange(pathThroughVariables);
-                builder ??= ImmutableArray.CreateBuilder<VariableValues>(requirements.Length);
-                builder.Add(new VariableValues(path, new ObjectValueNode(variableValues)));
-            }
-
-            return builder?.ToImmutable() ?? null;
-        }
-
-        return ImmutableArray<VariableValues>.Empty.Add(
-            new VariableValues(Path.Root, new ObjectValueNode(pathThroughVariables)));
+        return ImmutableArray<VariableValues>.Empty;
     }
 
     private IReadOnlyList<ObjectFieldNode> GetPathThroughVariables(

@@ -107,15 +107,15 @@ public record OperationExecutionNode : ExecutionNode
             Variables = variables.Value
         };
 
-        var client = context.GetClient(SchemaName);
+        var client = context.GetClient(SchemaName, Operation.Operation);
         var response = await client.ExecuteAsync(request, cancellationToken);
 
         if (response.IsSuccessful)
         {
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {
-                var fetchResult = FetchResult.From(this, result);
-                context.ResultStore.AddResult(fetchResult);
+                // var fetchResult = FetchResult.From(this, result);
+                // context.ResultStore.AddResult(fetchResult);
             }
         }
 

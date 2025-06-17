@@ -36,18 +36,19 @@ public class QueryExecutor
             if (task.Result.IsSkipped)
             {
                 // if a node is skipped, all dependents are skipped as well
-                PurgeSkippedNodes(node, waitingToRun);
+                // PurgeSkippedNodes(node, waitingToRun);
             }
             else
             {
                 completed.Add(node);
-                EnqueueNextNodes(context, waitingToRun, completed, running, cancellationToken);
+                // EnqueueNextNodes(context, waitingToRun, completed, running, cancellationToken);
             }
         }
 
         // assemble the result
     }
 
+    /*
     private static void AssembleResult(
         OperationPlanContext context)
     {
@@ -233,6 +234,7 @@ public class QueryExecutor
             }
         }
     }
+    */
 }
 
 public sealed class SelectionVisitor

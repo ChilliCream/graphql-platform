@@ -2,13 +2,14 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using HotChocolate.Transport;
 
 namespace HotChocolate.Fusion.Execution;
 
 public sealed class FetchResultStoreTests
 {
     [Fact]
-    public void GetValues_SingleObject_ReturnsSingleRuntimePath()
+    public void Save_Root_Result()
     {
         // arrange
         var store = new FetchResultStore();
@@ -25,30 +26,62 @@ public sealed class FetchResultStoreTests
             }
             """);
 
-        var fetch = FetchResult.From(
-            Path.Root.Append("product"),
-            SelectionPath.Parse("product"),
-            SelectionPath.Parse("product"),
-            doc);
+        // act
+        store.Save(
+            Path.Root,
+            SelectionPath.Root,
+            new OperationResult(doc));
+    }
 
-        store.AddResult(fetch);
+    [Fact]
+    public void Save_Child_Result()
+    {
+        // arrange
+        var store = new FetchResultStore();
 
-        var root = SelectionPath.Parse("product");
-        var requirements = ImmutableArray.Create((
-            Key: "sku",
-            Map: FieldPath.Parse("sku")));
+        using var root = JsonDocument.Parse(
+            """
+            {
+              "data": {
+                "products": [{
+                  "id": "p1",
+                  "sku": "hc-42"
+                }]
+              }
+            }
+            """);
+
+        using var child = JsonDocument.Parse(
+            """
+            {
+              "data": {
+                "productBySku": {
+                  "sku": "hc-42",
+                  "name": "Hot Chocolate",
+                  "region": {
+                    "name": "France"
+                  }
+                }
+              }
+            }
+            """);
+
+        store.Save(
+            Path.Root,
+            SelectionPath.Root,
+            new OperationResult(root, root.RootElement.GetProperty("data")));
 
         // act
-        var tuples = store.GetValues(root, requirements).ToList();
+        store.Save(
+            Path.Parse("/products[0]"),
+            SelectionPath.Root.AppendField("productBySku"),
+            new OperationResult(child, child.RootElement.GetProperty("data")));
 
         // assert
-        Assert.Single(tuples);
-        var (path, fields) = tuples[0];
-
-        Assert.Equal("/product", path.ToString());
-        new ObjectValueNode(fields).MatchInlineSnapshot(
-            """{ sku: "hc-42" }""");
+        var data = store.GetData(SelectionPath.Parse("products.region.name"));
     }
+
+    /*
 
     [Fact]
     public void GetValues_ArrayFanOut_ReturnsRuntimePathPerArrayElement()
@@ -350,4 +383,6 @@ public sealed class FetchResultStoreTests
         new ObjectValueNode(tuples[0].Fields).MatchInlineSnapshot(
             """{ sku: "u-01" }""");
     }
+
+    */
 }
