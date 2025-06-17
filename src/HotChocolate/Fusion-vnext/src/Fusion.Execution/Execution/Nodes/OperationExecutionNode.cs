@@ -7,7 +7,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public record OperationExecutionNode : ExecutionNode
+public sealed record OperationExecutionNode : ExecutionNode
 {
     public OperationExecutionNode(
         int id,
@@ -93,9 +93,9 @@ public record OperationExecutionNode : ExecutionNode
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var variables = context.TryCreateVariables(Target, Variables, Requirements);
+        var variables = context.CreateVariableValueSets(Target, Variables, Requirements);
 
-        if (variables is null)
+        if (variables.Length == 0 && (Requirements.Length > 0 || Variables.Length > 0))
         {
             return new ExecutionStatus(Id, IsSkipped: true);
         }
@@ -104,7 +104,7 @@ public record OperationExecutionNode : ExecutionNode
         {
             OperationId = OperationId,
             Operation = Operation,
-            Variables = variables.Value
+            Variables = variables
         };
 
         var client = context.GetClient(SchemaName, Operation.Operation);
@@ -114,8 +114,7 @@ public record OperationExecutionNode : ExecutionNode
         {
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {
-                // var fetchResult = FetchResult.From(this, result);
-                // context.ResultStore.AddResult(fetchResult);
+                context.SaveResult(Source, result);
             }
         }
 

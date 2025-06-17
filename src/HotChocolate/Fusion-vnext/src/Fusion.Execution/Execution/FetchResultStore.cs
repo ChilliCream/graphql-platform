@@ -1,6 +1,9 @@
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Transport;
@@ -9,7 +12,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Fusion.Execution;
 
 // we must make this thread-safe
-public sealed class FetchResultStore
+internal sealed class FetchResultStore
 {
     private readonly ResultNode _root = new();
     private readonly ISchemaDefinition _schema;
@@ -25,7 +28,7 @@ public sealed class FetchResultStore
     public void Save(
         Path path,
         SelectionPath start,
-        OperationResult result)
+        SourceSchemaResult result)
     {
         if (path.IsRoot)
         {
@@ -162,16 +165,38 @@ public sealed class FetchResultStore
         return true;
     }
 
-    public IReadOnlyList<ObjectValueNode> GetData(
-        SelectionPath from,
-        params ReadOnlySpan<(string name, SelectionPath path)> segments)
+    public ImmutableArray<VariableValues> CreateVariableValueSets(
+        SelectionPath selectionSet,
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ImmutableArray<OperationRequirement> requiredData)
     {
-        var paths = Expand(from);
+        var paths = Expand(selectionSet);
 
-        return Array.Empty<ObjectValueNode>();
+        if(paths.Count == 0)
+        {
+            return [];
+        }
+
+        var variableValueSets = ImmutableArray.CreateBuilder<VariableValues>();
+
+        foreach (var requirement in paths)
+        {
+            var (path, node, element) = requirement;
+
+            if(element.ValueKind == JsonValueKind.Object)
+            {
+                var variableValues = new List<ObjectFieldNode>(requestVariables);
+
+                // build variables
+
+                variableValueSets.Add(new VariableValues(path, new ObjectValueNode(variableValues)));
+            }
+        }
+
+        return variableValueSets.ToImmutableArray();
     }
 
-    private IEnumerable<(Path, ResultNode)> Expand(SelectionPath startPath)
+    private List<(Path, ResultNode, JsonElement)> Expand(SelectionPath startPath)
     {
         var cursors = new List<(Path, ResultNode, JsonElement)>();
         var next = new List<(Path, ResultNode, JsonElement)>();
@@ -264,7 +289,7 @@ public sealed class FetchResultStore
             (cursors, next) = (next, cursors);
         }
 
-        return cursors.Select(t => (t.Item1, t.Item2));
+        return cursors;
 
         void UnrollArray(Path path, ResultNode node, JsonElement element)
         {
@@ -286,6 +311,8 @@ public sealed class FetchResultStore
 
     private sealed class ResultNode
     {
+        public required Path Path { get; init; }
+
         public List<ResultInfo> Results { get; } = [];
 
         public Dictionary<Path, ResultNode> Nodes { get; } = [];
@@ -294,7 +321,7 @@ public sealed class FetchResultStore
     private sealed class ResultInfo
     {
         public required SelectionPath Start { get; init; }
-        public required OperationResult Result { get; init; }
+        public required SourceSchemaResult Result { get; init; }
         public required JsonElement StartElement { get; init; }
         public JsonElement Data => Result.Data;
 
@@ -320,4 +347,104 @@ public sealed class FetchResultStore
 
         public required JsonElement Data { get; init; }
     }
+
+    private sealed class DefaultResultNavigator : IFetchResultStoreNavigator
+    {
+        private readonly List<Position> _stack = [];
+        private int _index;
+
+        public DefaultResultNavigator(ResultNode node, ResultInfo info, JsonElement element, Path path)
+        {
+            var position = new Position(node, info, node.Results.IndexOf(info), element, path, -1);
+            _stack.Push(position);
+            (_, _, _, Value, Path, _index) = position;
+        }
+
+        private DefaultResultNavigator(List<Position> state)
+        {
+            _stack.AddRange(state);
+
+            if (_stack.TryPeek(out var current))
+            {
+                (_, _, _, Value, Path, _index) = current;
+            }
+        }
+
+        public Path Path { get; private set; } = Path.Root;
+
+        public JsonElement Value { get; private set; }
+
+        public bool IsNull => Value.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null;
+
+        public bool MoveToFirstChild()
+        {
+            return false;
+        }
+
+        public bool MoveToNext()
+        {
+            return false;
+        }
+
+        public bool MoveToParent()
+        {
+            return false;
+        }
+
+        public bool MoveToProperty(string name)
+        {
+            if (Value.ValueKind == JsonValueKind.Object)
+            {
+                return false;
+            }
+
+            if (Value.TryGetProperty(name, out var child))
+            {
+                var position = _stack.Peek();
+                position = position with { Element = child, Path = position.Path.Append(name), Index = -1 };
+                _stack.Push(position);
+                Value = child;
+                Path = position.Path;
+                _index = -1;
+                return true;
+            }
+            else
+            {
+                _stack.Peek()
+
+            }
+
+            return true;
+        }
+
+        public IFetchResultStoreNavigator Clone()
+        {
+            return new DefaultResultNavigator(_stack);
+        }
+    }
+
+    private record struct Position(
+        ResultNode Node,
+        ResultInfo Info,
+        int InfoIndex,
+        JsonElement Element,
+        Path Path,
+        int Index);
+}
+
+public interface IFetchResultStoreNavigator
+{
+    JsonElement Value { get; }
+
+    bool IsNull { get; }
+
+    bool MoveToProperty(string name);
+
+    bool MoveToParent();
+
+    bool MoveToFirstChild();
+
+    bool MoveToNext();
+
+    IFetchResultStoreNavigator Clone();
 }

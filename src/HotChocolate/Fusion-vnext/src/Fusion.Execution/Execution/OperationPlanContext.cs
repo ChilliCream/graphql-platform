@@ -10,42 +10,66 @@ namespace HotChocolate.Fusion.Execution;
 
 public sealed class OperationPlanContext : IAsyncDisposable
 {
-    private readonly ISourceSchemaClientScope _clientScope;
+    private readonly FetchResultStore _resultStore;
     private bool _disposed;
 
     public OperationPlanContext(
         OperationExecutionPlan operationPlan,
-        IReadOnlyDictionary<string, IValueNode>? variables,
+        IReadOnlyDictionary<string, IValueNode> variables,
         RequestContext requestContext)
     {
         OperationPlan = operationPlan;
         RequestContext = requestContext;
         Variables = variables;
+        _resultStore = new FetchResultStore(requestContext.Schema);
 
         // create a client scope for the current request context.
         var clientScopeFactory = requestContext.RequestServices.GetRequiredService<ISourceSchemaClientScopeFactory>();
-        _clientScope = clientScopeFactory.CreateScope(requestContext.Schema);
+        ClientScope = clientScopeFactory.CreateScope(requestContext.Schema);
     }
 
     public OperationExecutionPlan OperationPlan { get; }
 
-    public IReadOnlyDictionary<string, IValueNode>? Variables { get; }
+    public IReadOnlyDictionary<string, IValueNode> Variables { get; }
 
     public ISchemaDefinition Schema => RequestContext.Schema;
 
     public RequestContext RequestContext { get; }
 
-    public FetchResultStore ResultStore { get; } = new();
+    public ISourceSchemaClientScope ClientScope { get; }
 
-    public ISourceSchemaClientScope ClientScope => _clientScope;
-
-    // NOTE: this version is too simple, we will rewrite it once we have implemented the SelectionSetMap.
-    public ImmutableArray<VariableValues>? TryCreateVariables(
-        SelectionPath currentPath,
-        ImmutableArray<string> variables,
-        ImmutableArray<OperationRequirement> requirements)
+    public ImmutableArray<VariableValues> CreateVariableValueSets(
+        SelectionPath selectionSet,
+        ImmutableArray<string> requiredVariables,
+        ImmutableArray<OperationRequirement> requiredData)
     {
-        return ImmutableArray<VariableValues>.Empty;
+        ArgumentNullException.ThrowIfNull(selectionSet);
+
+        if (requiredData.Length == 0)
+        {
+            if (requiredVariables.Length > 0)
+            {
+                var variableValues = GetPathThroughVariables(requiredVariables);
+                return [new VariableValues(Path.Root, new ObjectValueNode(variableValues))];
+            }
+            else
+            {
+                return [];
+            }
+        }
+        else
+        {
+            var variableValues = GetPathThroughVariables(requiredVariables);
+            return _resultStore.CreateVariableValueSets(selectionSet, variableValues, requiredData);
+        }
+    }
+
+    public void SaveResult(SelectionPath sourcePath, SourceSchemaResult result)
+    {
+        ArgumentNullException.ThrowIfNull(sourcePath);
+        ArgumentNullException.ThrowIfNull(result);
+
+        _resultStore.Save(result.Path, sourcePath, result);
     }
 
     private IReadOnlyList<ObjectFieldNode> GetPathThroughVariables(
@@ -78,7 +102,7 @@ public sealed class OperationPlanContext : IAsyncDisposable
     {
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
 
-        return _clientScope.GetClient(schemaName, operationType);
+        return ClientScope.GetClient(schemaName, operationType);
     }
 
     public async ValueTask DisposeAsync()
@@ -86,7 +110,7 @@ public sealed class OperationPlanContext : IAsyncDisposable
         if (!_disposed)
         {
             _disposed = true;
-            await _clientScope.DisposeAsync().ConfigureAwait(false);
+            await ClientScope.DisposeAsync().ConfigureAwait(false);
         }
     }
 }
