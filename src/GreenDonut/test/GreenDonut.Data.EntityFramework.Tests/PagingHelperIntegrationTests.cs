@@ -7,7 +7,7 @@ using Squadron;
 namespace GreenDonut.Data;
 
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
-public class IntegrationPagingHelperTests(PostgreSqlResource resource)
+public class PagingHelperIntegrationTests(PostgreSqlResource resource)
 {
     public PostgreSqlResource Resource { get; } = resource;
 

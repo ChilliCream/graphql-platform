@@ -5,7 +5,7 @@ using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Transport.WebSockets.Protocols;
 
-public class GraphQlWsProtocolTests
+public class GraphQLWebSocketProtocolTests
 {
     [Fact]
     public async Task Constructor_AllArgs_SubscribeToChanges()
