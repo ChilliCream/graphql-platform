@@ -1,5 +1,4 @@
 using HotChocolate.AspNetCore.Extensions;
-using HotChocolate.Execution;
 using HotChocolate.PersistedOperations;
 using HotChocolate.StarWars;
 using HotChocolate.Tests;
@@ -41,7 +40,6 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     .AddGraphQLServer()
                     .AddStarWarsTypes()
                     .AddTypeExtension<QueryExtension>()
-                    .AddTypeExtension<SubscriptionsExtensions>()
                     .AddType<Foo>()
                     .AddStarWarsRepositories()
                     .AddInMemorySubscriptions()
@@ -154,7 +152,6 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                 .AddGraphQLServer()
                 .AddStarWarsTypes()
                 .AddTypeExtension<QueryExtension>()
-                .AddTypeExtension<SubscriptionsExtensions>()
                 .AddStarWarsRepositories()
                 .ModifyOptions(
                     o =>
