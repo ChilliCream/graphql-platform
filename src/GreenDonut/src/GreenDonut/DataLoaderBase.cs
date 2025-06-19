@@ -259,20 +259,6 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     }
 
     /// <inheritdoc />
-    [Obsolete("Use SetCacheEntry instead.")]
-    public void Set(TKey key, Task<TValue?> value)
-    {
-        SetCacheEntry(key, value);
-    }
-
-    /// <inheritdoc />
-    [Obsolete("Use RemoveCacheEntry instead.")]
-    public void Remove(TKey key)
-    {
-        RemoveCacheEntry(key);
-    }
-
-    /// <inheritdoc />
     public IDataLoader Branch<TState>(
         string key,
         CreateDataLoaderBranch<TKey, TValue, TState> createBranch,
