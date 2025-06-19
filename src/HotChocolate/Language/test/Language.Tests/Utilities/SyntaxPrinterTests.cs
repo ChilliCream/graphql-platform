@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Language.Utilities;
 
 public class SyntaxPrinterTests
