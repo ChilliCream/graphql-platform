@@ -1,4 +1,3 @@
-using System.Reflection.Emit;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;

@@ -166,6 +166,8 @@ dotnet_diagnostic.CA1511.severity = warning
 dotnet_diagnostic.CA1512.severity = warning
 # Use ObjectDisposedException throw helper.
 dotnet_diagnostic.CA1513.severity = warning
+# Remove unnecessary using directives.
+dotnet_diagnostic.IDE0005.severity = warning
 # Use collection initializers or expressions.
 dotnet_diagnostic.IDE0028.severity = warning
 # Order modifiers.

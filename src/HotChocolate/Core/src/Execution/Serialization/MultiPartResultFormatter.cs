@@ -1,6 +1,5 @@
 using System.Buffers;
 using HotChocolate.Buffers;
-using HotChocolate.Utilities;
 using static HotChocolate.Execution.ExecutionResultKind;
 
 namespace HotChocolate.Execution.Serialization;

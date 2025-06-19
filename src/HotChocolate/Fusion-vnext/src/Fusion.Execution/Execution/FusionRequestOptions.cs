@@ -1,5 +1,4 @@
 using HotChocolate.Caching.Memory;
-using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 

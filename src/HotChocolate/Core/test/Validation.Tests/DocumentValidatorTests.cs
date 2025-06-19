@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using HotChocolate.StarWars;

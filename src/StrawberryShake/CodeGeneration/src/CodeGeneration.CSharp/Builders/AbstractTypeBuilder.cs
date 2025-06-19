@@ -1,5 +1,3 @@
-using StrawberryShake.Properties;
-
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public abstract class AbstractTypeBuilder : ITypeBuilder

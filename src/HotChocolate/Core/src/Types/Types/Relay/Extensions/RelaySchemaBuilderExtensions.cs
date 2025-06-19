@@ -1,5 +1,4 @@
 using HotChocolate.Types.Relay;
-using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
@@ -15,7 +14,7 @@ public static class RelaySchemaBuilderExtensions
         this ISchemaBuilder schemaBuilder)
     {
         ArgumentNullException.ThrowIfNull(schemaBuilder);
-        
+
         return AddGlobalObjectIdentification(schemaBuilder, true);
     }
 

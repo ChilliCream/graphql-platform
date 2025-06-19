@@ -1,5 +1,4 @@
 using System.Text.Json;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution;

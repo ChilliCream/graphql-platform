@@ -1,5 +1,3 @@
-using HotChocolate.Internal;
-
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types.Descriptors;
 

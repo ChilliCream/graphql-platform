@@ -1,7 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using static HotChocolate.Data.Sorting.Expressions.QueryableSortProvider;
 
 namespace HotChocolate.Data.Sorting;
 

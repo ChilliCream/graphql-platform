@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
