@@ -6,7 +6,7 @@ namespace HotChocolate.AspNetCore.Tests.Utilities;
 [ExtendObjectType(OperationTypeNames.Subscription)]
 public class SubscriptionsExtensions
 {
-    public static async IAsyncEnumerable<string> DelaySubscribe(
+    public async IAsyncEnumerable<string> DelaySubscribe(
         int delay,
         int count,
         [EnumeratorCancellation] CancellationToken cancellationToken)
