@@ -1,25 +1,24 @@
-using System.Collections;
+using System.Buffers;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
 // we must make this thread-safe
-internal sealed class FetchResultStore
+internal sealed class FetchResultStore : IDisposable
 {
-    private readonly ISchemaDefinition _schema;
     private readonly ResultPoolSession _resultPoolSession;
     private readonly ValueCompletion _valueCompletion;
     private readonly Operation _operation = default!;
     private readonly ObjectResult _root;
     private readonly uint _includeFlags;
+    private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
 
     public FetchResultStore(
         ISchemaDefinition schema,
@@ -31,7 +30,6 @@ internal sealed class FetchResultStore
         ArgumentNullException.ThrowIfNull(resultPoolSession);
         ArgumentNullException.ThrowIfNull(operation);
 
-        _schema = schema;
         _resultPoolSession = resultPoolSession;
         _valueCompletion = new ValueCompletion(schema, resultPoolSession, ErrorHandling.Propagate, 32, includeFlags);
         _operation = operation;
@@ -41,29 +39,88 @@ internal sealed class FetchResultStore
 
     public bool Save(
         SelectionPath sourcePath,
-        SourceSchemaResult result)
+        ReadOnlySpan<SourceSchemaResult> results)
     {
         ArgumentNullException.ThrowIfNull(sourcePath);
-        ArgumentNullException.ThrowIfNull(result);
 
-        if (result.Path.IsRoot)
+        if (results.Length == 0)
         {
-            var selectionSet = _operation.RootSelectionSet;
+            throw new ArgumentException(
+                "The results span must contain at least one result.",
+                nameof(results));
+        }
 
-            if (!_root.IsInitialized)
+        var startElements = ArrayPool<JsonElement>.Shared.Rent(results.Length);
+        var startElementsSpan = startElements.AsSpan()[..results.Length];
+
+        try
+        {
+            ref var result = ref MemoryMarshal.GetReference(results);
+            ref var startElement = ref MemoryMarshal.GetReference(startElements);
+            ref var end = ref Unsafe.Add(ref result, results.Length);
+
+            while (Unsafe.IsAddressLessThan(ref result, ref end))
             {
-                _root.Initialize(_resultPoolSession, selectionSet, _includeFlags);
+                startElement = GetStartElement(sourcePath, result.Data);
+                result = ref Unsafe.Add(ref result, 1)!;
+                startElement = ref Unsafe.Add(ref startElement, 1);
             }
 
-            var start = GetStartElement(sourcePath, result.Data);
-            return _valueCompletion.BuildResult(selectionSet, result, start, _root);
+            return SaveSafe(results, startElementsSpan);
         }
-        else
+        finally
         {
-            var start = GetStartElement(sourcePath, result.Data);
-            var startResult = GetStartObjectResult(result.Path);
-            return _valueCompletion.BuildResult(startResult.SelectionSet, result, start, startResult);
+            ArrayPool<JsonElement>.Shared.Return(startElements);
         }
+    }
+
+    private bool SaveSafe(
+        ReadOnlySpan<SourceSchemaResult> results,
+        ReadOnlySpan<JsonElement> startElements)
+    {
+        _lock.EnterWriteLock();
+
+        try
+        {
+            ref var result = ref MemoryMarshal.GetReference(results);
+            ref var startElement = ref MemoryMarshal.GetReference(startElements);
+            ref var end = ref Unsafe.Add(ref result, results.Length);
+
+            while (Unsafe.IsAddressLessThan(ref result, ref end))
+            {
+                if (result.Path.IsRoot)
+                {
+                    var selectionSet = _operation.RootSelectionSet;
+
+                    if (!_root.IsInitialized)
+                    {
+                        _root.Initialize(_resultPoolSession, selectionSet, _includeFlags);
+                    }
+
+                    if (!_valueCompletion.BuildResult(selectionSet, result, startElement, _root))
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    var startResult = GetStartObjectResult(result.Path);
+                    if (!_valueCompletion.BuildResult(startResult.SelectionSet, result, startElement, startResult))
+                    {
+                        return false;
+                    }
+                }
+
+                result = ref Unsafe.Add(ref result, 1)!;
+                startElement = ref Unsafe.Add(ref startElement, 1);
+            }
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+
+        return true;
     }
 
     public ImmutableArray<VariableValues> CreateVariableValueSets(
@@ -71,7 +128,17 @@ internal sealed class FetchResultStore
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ImmutableArray<OperationRequirement> requiredData)
     {
-        return [];
+        _lock.EnterReadLock();
+
+        try
+        {
+            // TODO: walk `_root` and build variable sets once implemented
+            return [];
+        }
+        finally
+        {
+            _lock.ExitReadLock();
+        }
     }
 
     private static JsonElement GetStartElement(SelectionPath sourcePath, JsonElement data)
@@ -140,5 +207,9 @@ internal sealed class FetchResultStore
 
         throw new InvalidOperationException(
             $"The path segment '{parent}' does not exist in the data.");
+    }
+    public void Dispose()
+    {
+        _lock.Dispose();
     }
 }

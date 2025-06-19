@@ -140,36 +140,25 @@ internal sealed class ValueCompletion
     {
         AssertDepthAllowed(ref depth);
 
-        // we need to validate the data and create a GraphQL error if its not an object.
         var elementType = type.ListType().ElementType;
         var isNullable = elementType.IsNullableType();
+        var isLeaf = elementType.IsLeafType();
+        var isNested = elementType.IsListType();
 
-        if (elementType.IsListType())
+        ResultData listResult = isNested
+            ? _resultPoolSession.RentNestedListResult()
+            : isLeaf
+                ? _resultPoolSession.RentLeafListResult()
+                : _resultPoolSession.RentObjectListResult();
+
+#if NET9_0_OR_GREATER
+        for (int i = 0, len = data.GetArrayLength(); i < len; ++i)
         {
-            return TryCompleteNestedList(selection, elementType, isNullable, sourceSchemaResult, data, depth, parent);
-        }
-
-        if (elementType.IsLeafType())
-        {
-            return TryCompleteLeafList(selection, elementType, isNullable, sourceSchemaResult, data, parent);
-        }
-
-        return TryCompleteObjectList(selection, elementType, isNullable, sourceSchemaResult, data, depth, parent);
-    }
-
-    private bool TryCompleteNestedList(
-        Selection selection,
-        IType elementType,
-        bool isNullable,
-        SourceSchemaResult sourceSchemaResult,
-        JsonElement data,
-        int depth,
-        ResultData parent)
-    {
-        var listResult = new NestedListResult();
-
+            var item = data[i];
+#else
         foreach (var item in data.EnumerateArray())
         {
+#endif
             if (item.IsNullOrUndefined())
             {
                 if (!isNullable && _errorHandling is ErrorHandling.Propagate)
@@ -178,79 +167,11 @@ internal sealed class ValueCompletion
                     return false;
                 }
 
-                listResult.Items.Add(null);
+                listResult.SetNextValueNull();
                 continue;
             }
 
-            if (!TryCompleteList(selection, elementType, sourceSchemaResult, item, depth, listResult)
-                && !isNullable)
-            {
-                parent.SetNextValueNull();
-                return false;
-            }
-        }
-
-        parent.SetNextValue(listResult);
-        return true;
-    }
-
-    private bool TryCompleteLeafList(
-        Selection selection,
-        IType elementType,
-        bool isNullable,
-        SourceSchemaResult sourceSchemaResult,
-        JsonElement data,
-        ResultData parent)
-    {
-        var listResult = _resultPoolSession.RentLeafListResult();
-
-        foreach (var item in data.EnumerateArray())
-        {
-            if (item.IsNullOrUndefined())
-            {
-                if (!isNullable && _errorHandling is ErrorHandling.Propagate)
-                {
-                    parent.SetNextValueNull();
-                    return false;
-                }
-
-                listResult.Items.Add(default);
-                continue;
-            }
-
-            listResult.Items.Add(item);
-        }
-
-        parent.SetNextValue(listResult);
-        return true;
-    }
-
-    private bool TryCompleteObjectList(
-        Selection selection,
-        IType elementType,
-        bool isNullable,
-        SourceSchemaResult sourceSchemaResult,
-        JsonElement data,
-        int depth,
-        ResultData parent)
-    {
-        var listResult = _resultPoolSession.RentObjectListResult();
-
-        foreach (var item in data.EnumerateArray())
-        {
-            if (item.IsNullOrUndefined())
-            {
-                if (!isNullable && _errorHandling is ErrorHandling.Propagate)
-                {
-                    parent.SetNextValueNull();
-                    return false;
-                }
-
-                listResult.Items.Add(null);
-                continue;
-            }
-
-            if (!TryCompleteObjectValue(selection, elementType, sourceSchemaResult, item, depth, listResult))
+            if (!HandleElement(item))
             {
                 if (!isNullable)
                 {
@@ -258,12 +179,29 @@ internal sealed class ValueCompletion
                     return false;
                 }
 
-                listResult.Items.Add(null);
+                listResult.SetNextValueNull();
             }
         }
 
         parent.SetNextValue(listResult);
         return true;
+
+        bool HandleElement(in JsonElement item)
+        {
+            if (isNested)
+            {
+                return TryCompleteList(selection, elementType, sourceSchemaResult, item, depth, listResult);
+            }
+            else if (isLeaf)
+            {
+                listResult.SetNextValue(item);
+                return true;
+            }
+            else
+            {
+                return TryCompleteObjectValue(selection, elementType, sourceSchemaResult, item, depth, listResult);
+            }
+        }
     }
 
     private bool TryCompleteObjectValue(

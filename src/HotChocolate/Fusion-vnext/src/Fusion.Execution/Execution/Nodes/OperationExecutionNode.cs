@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
@@ -29,7 +30,6 @@ public sealed record OperationExecutionNode : ExecutionNode
         // and optimize request serialization.
         Span<byte> hash = stackalloc byte[16];
         var length = MD5.HashData(Encoding.UTF8.GetBytes(operation.ToString()), hash);
-        hash = hash[..length];
         OperationId = Convert.ToHexString(hash);
 
         var variables = ImmutableArray.CreateBuilder<string>();
@@ -112,9 +112,36 @@ public sealed record OperationExecutionNode : ExecutionNode
 
         if (response.IsSuccessful)
         {
-            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
+            var index = 0;
+            var buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(variables.Length);
+
+            try
             {
-                context.SaveResult(Source, result);
+                await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
+                {
+                    buffer[index++] = result;
+                }
+
+                context.SaveResult(Source, buffer.AsSpan(0, index));
+            }
+            catch
+            {
+                // if there is an error we need to make sure that the pooled buffers for the JsonDocuments
+                // are returned to the pool.
+                foreach (var result in buffer.AsSpan(0, index))
+                {
+                    if (result is not null)
+                    {
+                        response.Dispose();
+                    }
+                }
+
+                throw;
+            }
+            finally
+            {
+                buffer.AsSpan(0, index).Clear();
+                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
             }
         }
 

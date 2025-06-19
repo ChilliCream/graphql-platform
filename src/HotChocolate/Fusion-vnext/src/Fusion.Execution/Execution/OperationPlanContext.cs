@@ -64,13 +64,8 @@ public sealed class OperationPlanContext : IAsyncDisposable
         }
     }
 
-    public void SaveResult(SelectionPath sourcePath, SourceSchemaResult result)
-    {
-        ArgumentNullException.ThrowIfNull(sourcePath);
-        ArgumentNullException.ThrowIfNull(result);
-
-        _resultStore.Save(result.Path, sourcePath, result);
-    }
+    public void SaveResult(SelectionPath sourcePath, ReadOnlySpan<SourceSchemaResult> results)
+        => _resultStore.Save(sourcePath, results);
 
     private IReadOnlyList<ObjectFieldNode> GetPathThroughVariables(
         ImmutableArray<string> requiredVariables)
