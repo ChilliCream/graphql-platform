@@ -40,6 +40,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     .AddGraphQLServer()
                     .AddStarWarsTypes()
                     .AddTypeExtension<QueryExtension>()
+                    .AddTypeExtension<SubscriptionsExtensions>()
                     .AddType<Foo>()
                     .AddStarWarsRepositories()
                     .AddInMemorySubscriptions()
@@ -152,6 +153,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                 .AddGraphQLServer()
                 .AddStarWarsTypes()
                 .AddTypeExtension<QueryExtension>()
+                .AddTypeExtension<SubscriptionsExtensions>()
                 .AddStarWarsRepositories()
                 .ModifyOptions(
                     o =>
