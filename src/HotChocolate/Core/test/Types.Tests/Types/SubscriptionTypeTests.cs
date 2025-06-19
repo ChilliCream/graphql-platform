@@ -569,7 +569,7 @@ public class SubscriptionTypeTests : TypeTestBase
         public bool WriteBoolean(
             string userId,
             bool message,
-            [Service] ITopicEventSender eventSender)
+            ITopicEventSender eventSender)
         {
             eventSender.SendAsync(userId, message);
             return message;
@@ -578,7 +578,7 @@ public class SubscriptionTypeTests : TypeTestBase
         public string WriteMessage(
             string userId,
             string message,
-            [Service] ITopicEventSender eventSender)
+            ITopicEventSender eventSender)
         {
             eventSender.SendAsync(userId, message);
             return message;
@@ -586,7 +586,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
         public string WriteSysMessage(
             string message,
-            [Service] ITopicEventSender eventSender)
+            ITopicEventSender eventSender)
         {
             eventSender.SendAsync("OnSysMessage", message);
             return message;
@@ -594,7 +594,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
         public string WriteFixedMessage(
             string message,
-            [Service] ITopicEventSender eventSender)
+            ITopicEventSender eventSender)
         {
             eventSender.SendAsync("Fixed", message);
             return message;
@@ -602,7 +602,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
         public string WriteOnInferTopic(
             string message,
-            [Service] ITopicEventSender eventSender)
+            ITopicEventSender eventSender)
         {
             eventSender.SendAsync("OnInferTopic", message);
             return message;
@@ -610,7 +610,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
         public string WriteOnExplicit(
             string message,
-            [Service] ITopicEventSender eventSender)
+            ITopicEventSender eventSender)
         {
             eventSender.SendAsync("explicit", message);
             return message;
@@ -644,7 +644,7 @@ public class SubscriptionTypeTests : TypeTestBase
             message;
 
         public ValueTask<ISourceStream<string>> SubscribeToOnExplicit(
-            [Service] ITopicEventReceiver eventReceiver) =>
+            ITopicEventReceiver eventReceiver) =>
             eventReceiver.SubscribeAsync<string>("explicit");
 
         [Subscribe(With = nameof(SubscribeToOnExplicit))]
@@ -653,7 +653,7 @@ public class SubscriptionTypeTests : TypeTestBase
             message;
 
         public ValueTask<ISourceStream> SubscribeToOnExplicitNonGeneric(
-            [Service] ITopicEventReceiver eventReceiver) =>
+            ITopicEventReceiver eventReceiver) =>
             default;
 
         [Subscribe(With = nameof(SubscribeToOnExplicitNonGeneric))]
@@ -662,7 +662,7 @@ public class SubscriptionTypeTests : TypeTestBase
             message;
 
         public ISourceStream SubscribeToOnExplicitNonGenericSync(
-            [Service] ITopicEventReceiver eventReceiver) =>
+            ITopicEventReceiver eventReceiver) =>
             null!;
 
         [Subscribe(With = nameof(SubscribeToOnExplicitNonGenericSync))]
@@ -671,7 +671,7 @@ public class SubscriptionTypeTests : TypeTestBase
             message;
 
         public ISourceStream<string> SubscribeToOnExplicitSync(
-            [Service] ITopicEventReceiver eventReceiver) =>
+            ITopicEventReceiver eventReceiver) =>
             null!;
 
         [Subscribe(With = nameof(SubscribeToOnExplicitSync))]
