@@ -1,7 +1,6 @@
 using System.Text.Json;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Types;
-using Xunit;
 
 namespace HotChocolate.Fusion.Execution;
 

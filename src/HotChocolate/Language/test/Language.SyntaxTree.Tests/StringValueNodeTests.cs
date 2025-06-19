@@ -1,5 +1,4 @@
 using System.Text;
-using Xunit;
 using static HotChocolate.Language.SyntaxComparison;
 
 namespace HotChocolate.Language.SyntaxTree;

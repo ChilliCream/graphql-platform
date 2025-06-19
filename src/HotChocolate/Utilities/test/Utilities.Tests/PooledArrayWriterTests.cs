@@ -1,5 +1,4 @@
 using HotChocolate.Buffers;
-using Xunit;
 
 namespace HotChocolate.Utilities;
 

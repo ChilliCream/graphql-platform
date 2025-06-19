@@ -1,5 +1,4 @@
 using HotChocolate.Language.Utilities;
-using Xunit;
 using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Language.Visitors;
