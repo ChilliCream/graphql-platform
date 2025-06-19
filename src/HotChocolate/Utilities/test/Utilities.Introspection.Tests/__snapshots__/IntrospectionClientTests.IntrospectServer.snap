@@ -25,6 +25,7 @@ type Mutation {
 
 type Subscription {
   onReview(episode: Episode!): Review!
+  delay(delay: Int! count: Int!): String!
 }
 
 type Human implements Character {

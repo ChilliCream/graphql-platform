@@ -2,12 +2,12 @@
 
 ```text
 Headers:
-ETag: "1-MpMUDRHUlitvsLGJtbuotsNkj/meSx7pNvub+eAVntQ="
+ETag: "1-9lT+j9S1VOCU5XKHoaNVEuxjYrB+yk/yPGmxKIktwoY="
 Cache-Control: public, must-revalidate, max-age=3600
 Content-Type: application/graphql; charset=utf-8
 Content-Disposition: attachment; filename="schema.graphql"
 Last-Modified: Fri, 01 Jan 2021 00:00:00 GMT
-Content-Length: 7424
+Content-Length: 7466
 -------------------------->
 Status Code: OK
 -------------------------->
@@ -109,6 +109,7 @@ type Starship {
 
 type Subscription {
   onReview(episode: Episode!): Review!
+  delay(delay: Int! count: Int!): String!
 }
 
 union SearchResult = Starship | Human | Droid
