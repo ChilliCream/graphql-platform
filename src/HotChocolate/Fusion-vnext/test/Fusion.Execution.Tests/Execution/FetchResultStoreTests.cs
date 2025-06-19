@@ -1,8 +1,10 @@
 using System.Collections.Immutable;
 using System.Text.Json;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Transport;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -12,7 +14,8 @@ public sealed class FetchResultStoreTests
     public void Save_Root_Result()
     {
         // arrange
-        var store = new FetchResultStore();
+        var schema = new MutableSchemaDefinition();
+        var store = new FetchResultStore(schema);
 
         using var doc = JsonDocument.Parse(
             """
@@ -30,14 +33,15 @@ public sealed class FetchResultStoreTests
         store.Save(
             Path.Root,
             SelectionPath.Root,
-            new OperationResult(doc));
+            new SourceSchemaResult(Path.Root, doc));
     }
 
     [Fact]
     public void Save_Child_Result()
     {
         // arrange
-        var store = new FetchResultStore();
+        var schema = new MutableSchemaDefinition();
+        var store = new FetchResultStore(schema);
 
         using var root = JsonDocument.Parse(
             """
@@ -69,16 +73,17 @@ public sealed class FetchResultStoreTests
         store.Save(
             Path.Root,
             SelectionPath.Root,
-            new OperationResult(root, root.RootElement.GetProperty("data")));
+            new SourceSchemaResult(Path.Root, root));
 
         // act
         store.Save(
             Path.Parse("/products[0]"),
             SelectionPath.Root.AppendField("productBySku"),
-            new OperationResult(child, child.RootElement.GetProperty("data")));
+            new SourceSchemaResult(Path.Parse("/products[0]"), child));
 
         // assert
-        var data = store.GetData(SelectionPath.Parse("products.region.name"));
+        var navigator = store.CreateNavigator();
+        var data = store.CreateVariableValueSets(SelectionPath.Parse("products.region.name"), [], []);
     }
 
     /*

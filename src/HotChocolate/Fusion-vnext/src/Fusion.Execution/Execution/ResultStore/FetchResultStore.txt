@@ -1,12 +1,11 @@
+using System.Collections;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
-using HotChocolate.Transport;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
@@ -14,7 +13,7 @@ namespace HotChocolate.Fusion.Execution;
 // we must make this thread-safe
 internal sealed class FetchResultStore
 {
-    private readonly ResultNode _root = new();
+    private readonly ResultNode _root = new() { Path = Path.Root };
     private readonly ISchemaDefinition _schema;
     private ImmutableDictionary<string, IValueNode> _nodes = ImmutableDictionary<string, IValueNode>.Empty;
 
@@ -24,6 +23,9 @@ internal sealed class FetchResultStore
 
         _schema = schema;
     }
+
+    public IFetchResultStoreNavigator CreateNavigator()
+        => new DefaultResultNavigator(_root);
 
     public void Save(
         Path path,
@@ -172,7 +174,7 @@ internal sealed class FetchResultStore
     {
         var paths = Expand(selectionSet);
 
-        if(paths.Count == 0)
+        if (paths.Count == 0)
         {
             return [];
         }
@@ -183,7 +185,7 @@ internal sealed class FetchResultStore
         {
             var (path, node, element) = requirement;
 
-            if(element.ValueKind == JsonValueKind.Object)
+            if (element.ValueKind == JsonValueKind.Object)
             {
                 var variableValues = new List<ObjectFieldNode>(requestVariables);
 
@@ -351,13 +353,20 @@ internal sealed class FetchResultStore
     private sealed class DefaultResultNavigator : IFetchResultStoreNavigator
     {
         private readonly List<Position> _stack = [];
+        private IEnumerator? _enumerator;
         private int _index;
 
-        public DefaultResultNavigator(ResultNode node, ResultInfo info, JsonElement element, Path path)
+        public DefaultResultNavigator(ResultNode node)
         {
-            var position = new Position(node, info, node.Results.IndexOf(info), element, path, -1);
+            var position = new Position(
+                node,
+                node.Results[0],
+                node.Results.IndexOf(node.Results[0]),
+                node.Results[0].Data,
+                null,
+                Path.Root);
             _stack.Push(position);
-            (_, _, _, Value, Path, _index) = position;
+            (_, _, _, Value, _, Path, _index) = position;
         }
 
         private DefaultResultNavigator(List<Position> state)
@@ -366,9 +375,11 @@ internal sealed class FetchResultStore
 
             if (_stack.TryPeek(out var current))
             {
-                (_, _, _, Value, Path, _index) = current;
+                (_, _, _, Value, _, Path, _index) = current;
             }
         }
+
+        public string? Name { get; private set; }
 
         public Path Path { get; private set; } = Path.Root;
 
@@ -378,11 +389,85 @@ internal sealed class FetchResultStore
 
         public bool MoveToFirstChild()
         {
+            if (Value.ValueKind == JsonValueKind.Object)
+            {
+                var enumerator = Value.EnumerateObject();
+                if (enumerator.MoveNext())
+                {
+                    _enumerator = enumerator;
+                    Value = enumerator.Current.Value;
+                    Name = enumerator.Current.Name;
+                    Path = Path.Append(Name);
+                    var parent = _stack.Peek();
+                    _stack.Push(
+                        parent with
+                        {
+                            Element = Value,
+                            Enumerator = _enumerator,
+                            Path = Path,
+                            Index = -1
+                        });
+                    return true;
+                }
+            }
+
+            if (Value.ValueKind == JsonValueKind.Array)
+            {
+                var enumerator = Value.EnumerateArray();
+                if (enumerator.MoveNext())
+                {
+                    _enumerator = enumerator;
+                    _index = 0;
+                    Value = enumerator.Current;
+                    Path = Path.Append(_index);
+                    var parent = _stack.Peek();
+                    _stack.Push(
+                        parent with
+                        {
+                            Element = Value,
+                            Enumerator = _enumerator,
+                            Path = Path,
+                            Index = _index
+                        });
+                    return true;
+                }
+            }
+
             return false;
         }
 
         public bool MoveToNext()
         {
+            if (_enumerator is null)
+            {
+                return false;
+            }
+
+            if (_enumerator.MoveNext())
+            {
+                switch (_enumerator.Current)
+                {
+                    case JsonProperty property:
+                        Value = property.Value;
+                        Path = Path.Parent.Append(property.Name);
+                        break;
+
+                    case JsonElement element:
+                        Value = element;
+                        Path = Path.Parent.Append(_index);
+                        _index++;
+                        break;
+                }
+
+                return true;
+            }
+
+            var position = _stack.Peek();
+            if (position.Node.Nodes.TryGetValue(position.Path, out var node))
+            {
+
+            }
+
             return false;
         }
 
@@ -423,16 +508,17 @@ internal sealed class FetchResultStore
         }
     }
 
-    private record struct Position(
+    private record Position(
         ResultNode Node,
         ResultInfo Info,
         int InfoIndex,
         JsonElement Element,
+        IEnumerator? Enumerator,
         Path Path,
-        int Index);
+        int Index = -1);
 }
 
-public interface IFetchResultStoreNavigator
+internal interface IFetchResultStoreNavigator
 {
     JsonElement Value { get; }
 
