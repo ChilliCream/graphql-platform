@@ -7,10 +7,11 @@ using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
-public class SourceSchemaHttpClient : ISourceSchemaClient
+public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 {
     private readonly GraphQLHttpClient _client;
     private readonly Cache<string> _operationStringCache;
+    private bool _disposed;
 
     public SourceSchemaHttpClient(
         GraphQLHttpClient client,
@@ -37,7 +38,7 @@ public class SourceSchemaHttpClient : ISourceSchemaClient
         var operationSourceText =
             _operationStringCache.GetOrCreate(
                 originalRequest.OperationId,
-                (_, o) => o.ToString(),
+                static (_, o) => o.ToString(),
                 originalRequest.Operation);
 
         switch (originalRequest.Variables.Length)
@@ -89,6 +90,19 @@ public class SourceSchemaHttpClient : ISourceSchemaClient
             operationName: null,
             variables: variables,
             extensions: null);
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        if (_disposed)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        _client.Dispose();
+        _disposed = true;
+
+        return ValueTask.CompletedTask;
     }
 
     private sealed class Response(
