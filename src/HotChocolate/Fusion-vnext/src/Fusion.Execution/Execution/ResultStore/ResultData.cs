@@ -42,6 +42,26 @@ public abstract class ResultData
         ParentIndex = index;
     }
 
+    public virtual void SetNextValueNull()
+    {
+        throw new NotSupportedException();
+    }
+
+    public virtual void SetNextValue(ResultData value)
+    {
+        throw new NotSupportedException();
+    }
+
+    public virtual void SetNextValue(JsonElement value)
+    {
+        throw new NotSupportedException();
+    }
+
+    public virtual bool TrySetValueNull(int index)
+    {
+        throw new NotSupportedException();
+    }
+
     /// <summary>
     /// Resets the parent and parent index.
     /// </summary>
@@ -50,151 +70,6 @@ public abstract class ResultData
         Parent = null;
         ParentIndex = -1;
     }
-}
-
-// Lis<List> / List<JsonElement> / List<Object>
-// Field<List> / Field<JsonElement> / Field<Object>
-
-public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, FieldResult>
-{
-    private readonly Dictionary<string, FieldResult> _fieldMap = [];
-    private FieldResult[] _buffer = new FieldResult[128];
-
-    public SelectionSet SelectionSet { get; private set; } = null!;
-
-    public bool IsInitialized { get; private set; }
-
-    public int Count => _fieldMap.Count;
-
-    public FieldResult this[string key] => _fieldMap[key];
-
-    public IEnumerable<string> Keys => _fieldMap.Keys;
-
-    public IEnumerable<FieldResult> Values => _fieldMap.Values;
-
-    public bool ContainsKey(string key) => _fieldMap.ContainsKey(key);
-
-    public bool TryGetValue(string key, [MaybeNullWhen(false)] out FieldResult value)
-        => _fieldMap.TryGetValue(key, out value);
-
-    public ReadOnlySpan<FieldResult> AsSpan() => _buffer.AsSpan();
-
-    public IEnumerator<KeyValuePair<string, FieldResult>> GetEnumerator()
-        => _fieldMap.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    public void Initialize(SelectionSet selectionSet, uint includeFlags)
-    {
-        ArgumentNullException.ThrowIfNull(selectionSet);
-
-        SelectionSet = selectionSet;
-        IsInitialized = true;
-
-        if (_buffer.Length < selectionSet.Selections.Length)
-        {
-            Array.Resize(ref _buffer, selectionSet.Selections.Length);
-        }
-
-        for (var i = 0; i < selectionSet.Selections.Length; i++)
-        {
-            var selection = selectionSet.Selections[i];
-
-            if (!selection.IsIncluded(includeFlags))
-            {
-                continue;
-            }
-
-            var field = CreateFieldResult(selection);
-            _buffer[i] = field;
-            _fieldMap.Add(selection.ResponseName, field);
-        }
-
-        static FieldResult CreateFieldResult(Selection selection)
-        {
-            FieldResult field;
-
-            if (selection.Field.Type.IsListType())
-            {
-                field = new ListFieldResult();
-            }
-            else if (selection.Field.Type.NamedType().IsLeafType())
-            {
-                field = new LeafFieldResult();
-            }
-            else
-            {
-                field = new ObjectFieldResult();
-            }
-
-            field.Initialize(selection);
-
-            return field;
-        }
-    }
-
-    public override void Reset()
-    {
-        SelectionSet = null!;
-        IsInitialized = false;
-
-        for (var i = 0; i < _buffer.Length; i++)
-        {
-            _buffer[i] = null!;
-        }
-
-        _fieldMap.Clear();
-
-        base.Reset();
-    }
-
-}
-
-public abstract class FieldResult : ResultData
-{
-    public Selection Selection { get; protected set; } = null!;
-
-    protected internal virtual void Initialize(Selection selection)
-    {
-        Selection = selection;
-    }
-
-    public override void Reset()
-    {
-        Selection = null!;
-    }
-}
-
-public class LeafFieldResult : FieldResult
-{
-    public JsonElement Value { get; set; }
-}
-
-public class ListFieldResult : FieldResult
-{
-    public ListResult? Value { get; set; }
-}
-
-public class ObjectFieldResult : FieldResult
-{
-    public ObjectResult? Value { get; set; }
-}
-
-public class ListResult : ResultData;
-
-public class ObjectListResult : ListResult
-{
-    public List<ObjectResult?> Items { get; } = [];
-}
-
-public class NestedListResult : ListResult
-{
-    public List<ListResult?> Items { get; } = [];
-}
-
-public class LeafListResult : ListResult
-{
-    public List<JsonElement> Items { get; } = [];
 }
 
 public sealed class Selection
