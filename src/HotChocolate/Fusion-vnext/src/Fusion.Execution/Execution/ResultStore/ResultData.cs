@@ -5,7 +5,9 @@ using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -70,50 +72,6 @@ public abstract class ResultData
         Parent = null;
         ParentIndex = -1;
     }
-}
-
-public sealed class Selection
-{
-    public uint Id { get; }
-
-    public string ResponseName { get; }
-
-    public int ResponseIndex { get; }
-
-    public IOutputFieldDefinition Field { get; }
-
-    public IType Type => Field.Type;
-
-    public SelectionSet DeclaringSelectionSet { get; }
-
-    public SelectionSetNode? SelectionSet { get; }
-
-    public bool IsIncluded(long includeFlags)
-        => throw new NotImplementedException();
-
-}
-
-public sealed class SelectionSet
-{
-    /// <summary>
-    /// Gets an operation unique selection-set identifier of this selection.
-    /// </summary>
-    public uint Id { get; }
-
-    /// <summary>
-    /// Defines if this list needs post-processing for skip and include.
-    /// </summary>
-    bool IsConditional { get; }
-
-    /// <summary>
-    /// Gets the selections that shall be executed.
-    /// </summary>
-    public ReadOnlySpan<Selection> Selections => throw new NotImplementedException();
-
-    /// <summary>
-    /// Gets the declaring operation.
-    /// </summary>
-    public Operation DeclaringOperation { get; }
 }
 
 public sealed class Operation
