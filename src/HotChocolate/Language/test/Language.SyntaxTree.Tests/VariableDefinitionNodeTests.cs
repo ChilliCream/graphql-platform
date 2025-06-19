@@ -343,6 +343,6 @@ public class VariableDefinitionNodeTests
         void Action() => variableDefinition.WithDirectives(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>((Action) Action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 }
