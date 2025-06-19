@@ -67,7 +67,7 @@ public class ClrTypeReferenceTests
             _typeInspector.GetType(typeof(string)));
 
         // act
-        var result = x.Equals((ExtendedTypeReference)null);
+        var result = x.Equals(null);
 
         // assert
         Assert.False(result);
@@ -81,7 +81,7 @@ public class ClrTypeReferenceTests
             _typeInspector.GetType(typeof(string)));
 
         // act
-        var xx = x.Equals((ExtendedTypeReference)x);
+        var xx = x.Equals(x);
 
         // assert
         Assert.True(xx);

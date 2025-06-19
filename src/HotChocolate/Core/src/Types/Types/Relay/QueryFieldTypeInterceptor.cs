@@ -32,7 +32,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
                 break;
 
             case OperationType.Mutation:
-                _mutationConfig = (ObjectTypeConfiguration)configuration;
+                _mutationConfig = configuration;
                 break;
         }
     }

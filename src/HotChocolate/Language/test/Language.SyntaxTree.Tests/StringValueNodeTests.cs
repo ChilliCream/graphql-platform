@@ -143,7 +143,7 @@ public class StringValueNodeTests
         var value = new StringValueNode(location, stringValue, true);
 
         // act
-        var equals = value.Equals((IValueNode)null!, Syntax);
+        var equals = value.Equals(null, Syntax);
 
         // assert
         Assert.False(equals);
@@ -158,7 +158,7 @@ public class StringValueNodeTests
         var value = new StringValueNode(location, stringValue, true);
 
         // act
-        var equals = value.Equals((IValueNode)value);
+        var equals = value.Equals(value);
 
         // assert
         Assert.True(equals);
@@ -175,7 +175,7 @@ public class StringValueNodeTests
         var value2 = new StringValueNode(location, value, true);
 
         // act
-        var equals = value1.Equals((IValueNode)value2, Syntax);
+        var equals = value1.Equals(value2, Syntax);
 
         // assert
         Assert.Equal(expected, equals);

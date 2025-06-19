@@ -117,9 +117,9 @@ public class FloatValueNodeTests
     public void EqualsFloatValueNode_Double()
     {
         // arrange
-        var a = new FloatValueNode((double)1.0);
-        var b = new FloatValueNode((double)1.0);
-        var c = new FloatValueNode((double)3.0);
+        var a = new FloatValueNode(1.0);
+        var b = new FloatValueNode(1.0);
+        var c = new FloatValueNode(3.0);
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);

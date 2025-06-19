@@ -388,7 +388,7 @@ public class SchemaBuilderTests
     {
         // arrange
         // act
-        void Action() => SchemaBuilder.New().Use(((FieldMiddleware)null)!);
+        void Action() => SchemaBuilder.New().Use(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -532,7 +532,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .AddDirectiveType((DirectiveType)null);
+            .AddDirectiveType(null);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

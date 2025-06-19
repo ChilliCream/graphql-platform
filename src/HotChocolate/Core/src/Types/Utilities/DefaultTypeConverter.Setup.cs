@@ -112,7 +112,7 @@ public partial class DefaultTypeConverter
         registry.Register<bool, string>(from => from.ToString(InvariantCulture));
         registry.Register<bool, short>(from => from ? (short)1 : (short)0);
         registry.Register<bool, int>(from => from ? 1 : 0);
-        registry.Register<bool, long>(from => from ? (long)1 : 0);
+        registry.Register<bool, long>(from => from ? 1 : 0);
     }
 
     private static void RegisterStringConversions(

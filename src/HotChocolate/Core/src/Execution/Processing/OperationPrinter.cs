@@ -61,7 +61,7 @@ internal static class OperationPrinter
 
         foreach (var objectType in context.SelectionVariants.GetPossibleTypes())
         {
-            var typeContext = (ObjectType)objectType;
+            var typeContext = objectType;
             var selectionSet = context.SelectionVariants.GetSelectionSet(typeContext);
             var selections = new List<ISelectionNode>();
 
