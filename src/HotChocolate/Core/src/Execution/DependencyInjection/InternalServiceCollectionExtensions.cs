@@ -4,7 +4,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.DependencyInjection;
-using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Tasks;

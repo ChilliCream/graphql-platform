@@ -1,8 +1,6 @@
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
-using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fetching;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;

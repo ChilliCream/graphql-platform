@@ -1,7 +1,6 @@
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Authorization;
 

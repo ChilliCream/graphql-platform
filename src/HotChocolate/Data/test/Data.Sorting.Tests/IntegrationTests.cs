@@ -1,7 +1,6 @@
 using GreenDonut.Data;
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Tests;

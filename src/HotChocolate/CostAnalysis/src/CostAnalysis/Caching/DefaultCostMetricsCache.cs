@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Caching.Memory;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.CostAnalysis.Caching;
 

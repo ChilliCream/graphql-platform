@@ -3,7 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
-using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 

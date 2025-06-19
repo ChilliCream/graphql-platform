@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
+#if NET9_0_OR_GREATER
 using System.Runtime.InteropServices;
+#endif
 using System.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;

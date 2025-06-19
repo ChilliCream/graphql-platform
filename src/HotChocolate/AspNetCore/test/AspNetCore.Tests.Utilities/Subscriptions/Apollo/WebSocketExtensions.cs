@@ -6,7 +6,6 @@ using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Transport.Sockets;
-using HotChocolate.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;

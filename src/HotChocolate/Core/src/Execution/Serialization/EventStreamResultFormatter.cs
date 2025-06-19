@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Diagnostics;
-using System.IO.Pipelines;
 using HotChocolate.Buffers;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.Serialization.EventStreamResultFormatterEventSource;

@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;

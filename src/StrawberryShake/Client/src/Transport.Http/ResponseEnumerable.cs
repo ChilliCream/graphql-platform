@@ -2,7 +2,6 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Transport.Http;
-using HotChocolate.Utilities;
 using StrawberryShake.Internal;
 using static StrawberryShake.Properties.Resources;
 

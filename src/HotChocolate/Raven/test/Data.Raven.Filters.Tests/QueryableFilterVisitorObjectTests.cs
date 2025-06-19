@@ -1,7 +1,6 @@
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Raven.Client.Documents;
-using Raven.Client.Documents.Linq;
 
 namespace HotChocolate.Data.Filters;
 

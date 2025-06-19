@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-
 namespace StrawberryShake.Tools.Configuration;
 
 public class FileContentsTests

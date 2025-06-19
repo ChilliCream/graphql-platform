@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using GreenDonut.Data.TestContext;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 
