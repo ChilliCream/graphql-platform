@@ -40,8 +40,6 @@ internal sealed class OperationCompiler
                 fields,
                 _schema.GetOperationType(operationDefinition.Operation),
                 ref lastId);
-
-
         }
         finally
         {
@@ -50,6 +48,7 @@ internal sealed class OperationCompiler
     }
 
     private void CollectFields(
+        ulong parentIncludeFlags,
         IReadOnlyList<ISelectionNode> selections,
         IObjectTypeDefinition typeContext,
         OrderedDictionary<string, List<FieldSelectionNode>> fields,
@@ -72,17 +71,9 @@ internal sealed class OperationCompiler
 
                 if (IncludeCondition.TryCreate(fieldNode, out var includeCondition))
                 {
-                    var index = 0;
-
-                    if (includeConditions.Add(includeCondition))
-                    {
-                        index = includeConditions.Count - 1;
-                    }
-                    else
-                    {
-                        index = includeConditions.IndexOf(includeCondition);
-                    }
-
+                    var index = includeConditions.Add(includeCondition)
+                        ? includeConditions.Count - 1
+                        : includeConditions.IndexOf(includeCondition);
                     includeFlags |= 1ul << index;
                 }
 
@@ -164,93 +155,4 @@ internal sealed class OperationCompiler
 
         return false;
     }
-}
-
-internal readonly struct IncludeCondition(string? skip, string? include)
-    : IEquatable<IncludeCondition>
-{
-    public string? Skip { get; } = skip;
-
-    public string? Include { get; } = include;
-
-    public bool Equals(IncludeCondition other)
-        => string.Equals(Skip, other.Skip, StringComparison.Ordinal)
-            && string.Equals(Include, other.Include, StringComparison.Ordinal);
-
-    public override bool Equals([NotNullWhen(true)] object? obj)
-        => obj is IncludeCondition other && Equals(other);
-
-    public override int GetHashCode()
-        => HashCode.Combine(Skip, Include);
-
-    public static bool TryCreate(FieldNode field, out IncludeCondition includeCondition)
-    {
-        string? skip = null;
-        string? include = null;
-
-        for (var i = 0; i < field.Directives.Count; i++)
-        {
-            var directive = field.Directives[i];
-            if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal)
-                && directive.Arguments.Count == 1
-                && directive.Arguments[0].Value is VariableNode skipVariable)
-            {
-                skip = skipVariable.Name.Value;
-            }
-            else if (directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal)
-                && directive.Arguments.Count == 1
-                && directive.Arguments[0].Value is VariableNode includeVariable)
-            {
-                include = includeVariable.Name.Value;
-            }
-
-            if (skip is not null && include is not null)
-            {
-                includeCondition = new IncludeCondition(skip, include);
-                return true;
-            }
-        }
-
-        includeCondition = default;
-        return false;
-    }
-}
-
-internal class IncludeConditionCollection : ICollection<IncludeCondition>
-{
-    private readonly OrderedDictionary<IncludeCondition, bool> _dictionary = [];
-
-    public IncludeCondition this[int index]
-        => _dictionary.GetAt(index).Key;
-
-    public int Count => _dictionary.Count;
-
-    public bool IsReadOnly => false;
-
-    public bool Add(IncludeCondition item)
-        => _dictionary.TryAdd(item, true);
-
-    void ICollection<IncludeCondition>.Add(IncludeCondition item)
-        => Add(item);
-
-    public bool Remove(IncludeCondition item)
-        => throw new InvalidOperationException("This is an add only collection.");
-
-    void ICollection<IncludeCondition>.Clear()
-        => throw new InvalidOperationException("This is an add only collection.");
-
-    public bool Contains(IncludeCondition item)
-        => _dictionary.ContainsKey(item);
-
-    public int IndexOf(IncludeCondition item)
-       => _dictionary.IndexOf(item);
-
-    public void CopyTo(IncludeCondition[] array, int arrayIndex)
-        => _dictionary.Keys.CopyTo(array, arrayIndex);
-
-    public IEnumerator<IncludeCondition> GetEnumerator()
-        => _dictionary.Keys.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator()
-        => GetEnumerator();
 }
