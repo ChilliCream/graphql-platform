@@ -6,14 +6,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
-public sealed class OperationPlanMiddleware
+internal sealed class OperationPlanMiddleware
 {
     private readonly OperationPlanner _planner;
+    private readonly InlineFragmentOperationRewriter _rewriter;
 
-    public OperationPlanMiddleware(OperationPlanner planner)
+    private OperationPlanMiddleware(ISchemaDefinition schema, OperationPlanner planner)
     {
         ArgumentNullException.ThrowIfNull(planner);
 
+        _rewriter = new InlineFragmentOperationRewriter(schema);
         _planner = planner;
     }
 
@@ -32,11 +34,8 @@ public sealed class OperationPlanMiddleware
             return next(context);
         }
 
-        // Before we can plan an operation, we must defragmentize it.
-        // Defragemntization is a process that removes fragment spreads
-        // and fragment definitions and inlines them into the operation definition.
-        var rewriter = new InlineFragmentOperationRewriter(context.Schema);
-        var rewritten = rewriter.RewriteDocument(operationDocumentInfo.Document, context.Request.OperationName);
+        // Before we can plan an operation, we must defragmentize it and remove statical include conditions.
+        var rewritten = _rewriter.RewriteDocument(operationDocumentInfo.Document, context.Request.OperationName);
         var operation = GetOperation(rewritten);
         var executionPlan = _planner.CreatePlan(operation);
         context.SetOperationExecutionPlan(executionPlan);
@@ -63,7 +62,7 @@ public sealed class OperationPlanMiddleware
         return static (fc, next) =>
         {
             var planner = fc.SchemaServices.GetRequiredService<OperationPlanner>();
-            var middleware = new OperationPlanMiddleware(planner);
+            var middleware = new OperationPlanMiddleware(fc.Schema, planner);
             return requestContext => middleware.InvokeAsync(requestContext, next);
         };
     }

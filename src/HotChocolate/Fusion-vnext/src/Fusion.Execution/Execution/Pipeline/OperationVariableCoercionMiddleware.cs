@@ -35,7 +35,7 @@ internal sealed class OperationVariableCoercionMiddleware
 
         return TryCoerceVariables(
             context,
-            operationExecutionPlan.Operation.VariableDefinitions,
+            operationExecutionPlan.VariableDefinitions,
             _diagnosticEvents)
             ? next(context)
             : default;

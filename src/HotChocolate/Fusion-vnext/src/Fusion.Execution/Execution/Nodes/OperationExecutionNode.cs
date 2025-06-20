@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -146,5 +147,19 @@ public sealed record OperationExecutionNode : ExecutionNode
         }
 
         return new ExecutionStatus(Id, IsSkipped: false);
+    }
+}
+
+internal class InternalOperationDefinitionBuilder
+{
+    public OperationDefinitionNode Build(
+        ISchemaDefinition schema,
+        OperationDefinitionNode operationDefinition,
+        ImmutableArray<OperationExecutionNode> rootNodes,
+        ImmutableArray<OperationExecutionNode> allNodes)
+    {
+       var rewriter = new InlineFragmentOperationRewriter(schema);
+
+
     }
 }

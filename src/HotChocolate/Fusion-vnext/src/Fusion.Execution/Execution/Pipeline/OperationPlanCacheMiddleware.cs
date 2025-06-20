@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
-public class OperationPlanCacheMiddleware(Cache<OperationExecutionPlan> cache)
+internal sealed class OperationPlanCacheMiddleware(Cache<OperationExecutionPlan> cache)
 {
     private readonly Cache<OperationExecutionPlan> _cache = cache ?? throw new ArgumentNullException(nameof(cache));
 
