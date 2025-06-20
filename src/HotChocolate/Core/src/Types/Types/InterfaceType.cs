@@ -54,7 +54,7 @@ public partial class InterfaceType
     , IInterfaceTypeDefinition
 {
     /// <summary>
-    /// Initializes a new  instance of <see cref="InterfaceType"/>.
+    /// Initializes a new instance of <see cref="InterfaceType"/>.
     /// </summary>
     protected InterfaceType()
     {
@@ -62,7 +62,7 @@ public partial class InterfaceType
     }
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="InterfaceType"/>.
+    /// Initializes a new instance of <see cref="InterfaceType"/>.
     /// </summary>
     /// <param name="configure">
     /// A delegate to specify the properties of this type.

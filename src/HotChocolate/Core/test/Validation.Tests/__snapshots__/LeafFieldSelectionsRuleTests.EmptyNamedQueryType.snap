@@ -1,6 +1,6 @@
 [
   {
-    "Message": "Operation `Foo` has a empty selection set. Root types without subfields are disallowed.",
+    "Message": "Operation `Foo` has an empty selection set. Root types without subfields are disallowed.",
     "Code": null,
     "Path": null,
     "Locations": [

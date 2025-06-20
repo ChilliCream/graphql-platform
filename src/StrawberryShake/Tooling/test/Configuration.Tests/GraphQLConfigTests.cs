@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace StrawberryShake.Tools.Configuration;
 
 public class GraphQLConfigTests

@@ -45,7 +45,7 @@ public static class HotChocolateExecutionSelectionExtensions
         // if we do not have an expression we need to create one.
         // we first check what kind of field selection we have,
         // connection, collection or single field.
-        var flags = ((ObjectField)selection.Field).Flags;
+        var flags = selection.Field.Flags;
 
         if ((flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection)
         {

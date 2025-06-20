@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 

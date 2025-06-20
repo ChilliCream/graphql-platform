@@ -1,8 +1,4 @@
-using HotChocolate.Features;
 using HotChocolate.Language;
-using HotChocolate.Types;
-using HotChocolate.Validation.Options;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;
 

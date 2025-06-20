@@ -159,7 +159,7 @@ namespace HotChocolate.Validation.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified directive is not valid the current location..
+        ///   Looks up a localized string similar to The specified directive is not valid in the current location..
         /// </summary>
         internal static string ErrorHelper_DirectiveNotValidInLocation {
             get {
@@ -330,7 +330,7 @@ namespace HotChocolate.Validation.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Operation `{0}` has a empty selection set. Root types without subfields are disallowed..
+        ///   Looks up a localized string similar to Operation `{0}` has an empty selection set. Root types without subfields are disallowed..
         /// </summary>
         internal static string ErrorHelper_NoSelectionOnRootType {
             get {

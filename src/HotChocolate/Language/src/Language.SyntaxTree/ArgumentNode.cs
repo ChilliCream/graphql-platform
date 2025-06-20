@@ -3,7 +3,7 @@ using HotChocolate.Language.Utilities;
 namespace HotChocolate.Language;
 
 /// <summary>
-/// This syntax node represents a argument value of a <see cref="FieldNode"/>.
+/// This syntax node represents an argument value of a <see cref="FieldNode"/>.
 /// </summary>
 public sealed class ArgumentNode : ISyntaxNode
 {

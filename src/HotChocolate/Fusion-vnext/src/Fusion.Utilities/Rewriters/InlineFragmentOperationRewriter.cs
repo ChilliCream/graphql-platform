@@ -24,6 +24,7 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
         var newOperation = new OperationDefinitionNode(
             null,
             operation.Name,
+            operation.Description,
             operation.Operation,
             operation.VariableDefinitions,
             RewriteDirectives(operation.Directives),

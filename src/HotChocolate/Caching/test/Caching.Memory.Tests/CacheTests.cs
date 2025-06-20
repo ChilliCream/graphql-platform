@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Caching.Memory;
 
 public class CacheTests

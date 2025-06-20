@@ -23,6 +23,11 @@ public sealed class OperationDocumentInfo : RequestFeature
     public OperationDocumentHash Hash { get; set; }
 
     /// <summary>
+    /// Gets the number of operation definitions in the document.
+    /// </summary>
+    public int OperationCount => Document?.Definitions.Count(d => d.Kind == SyntaxKind.OperationDefinition) ?? 0;
+
+    /// <summary>
     /// Defines that the document was retrieved from the cache.
     /// </summary>
     public bool IsCached { get; set; }

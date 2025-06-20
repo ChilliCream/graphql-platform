@@ -14,7 +14,7 @@ public sealed class OrField
     {
     }
 
-    public new FilterInputType DeclaringType => (FilterInputType)base.DeclaringType;
+    public new FilterInputType DeclaringType => base.DeclaringType;
 
     IFilterInputType IOrField.DeclaringType => DeclaringType;
 

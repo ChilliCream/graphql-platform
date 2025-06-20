@@ -50,7 +50,7 @@ public class DirectivesAreDefinedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The specified directive is not valid the " +
+                "The specified directive is not valid in the " +
                 "current location.", t.Message));
     }
 

@@ -1,4 +1,3 @@
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Features;
 using HotChocolate.Language;

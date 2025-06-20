@@ -6,7 +6,7 @@ namespace HotChocolate.Internal;
 
 /// <summary>
 /// This base interface is used by the resolver compiler to determine
-/// if a expression builder or context builder can be applied to a parameter.
+/// if an expression builder or context builder can be applied to a parameter.
 /// </summary>
 public interface IParameterHandler
 {

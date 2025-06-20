@@ -3,7 +3,6 @@ using System.Reflection;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.Features;
-using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;

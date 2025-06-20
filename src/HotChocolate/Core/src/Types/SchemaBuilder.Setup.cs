@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Validation;
-using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;

@@ -1,5 +1,4 @@
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Pipeline;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 

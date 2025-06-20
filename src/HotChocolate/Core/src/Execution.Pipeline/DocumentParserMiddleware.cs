@@ -116,9 +116,9 @@ internal sealed class DocumentParserMiddleware
             (core, next) =>
             {
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
-                var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
+                var documentHashProvider = core.SchemaServices.GetRequiredService<IDocumentHashProvider>();
                 var errorHandler = core.SchemaServices.GetRequiredService<IErrorHandler>();
-                var parserOptions = core.Services.GetRequiredService<ParserOptions>();
+                var parserOptions = core.SchemaServices.GetRequiredService<ParserOptions>();
                 var middleware = Create(next, diagnosticEvents, documentHashProvider, errorHandler, parserOptions);
                 return context => middleware.InvokeAsync(context);
             },

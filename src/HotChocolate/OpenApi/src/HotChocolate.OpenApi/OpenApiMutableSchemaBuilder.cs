@@ -24,7 +24,7 @@ internal sealed class OpenApiMutableSchemaBuilder
 
     private static readonly MutableScalarTypeDefinition s_jsonType = new(ScalarNames.JSON);
 
-    private readonly MutableSchemaDefinition _skimmedSchema = new();
+    private readonly MutableSchemaDefinition _schema = new();
     private readonly Dictionary<string, OpenApiOperationWrapper> _wrappedOperations = [];
 
     private readonly OpenApiDocument _openApiDocument;
@@ -58,10 +58,10 @@ internal sealed class OpenApiMutableSchemaBuilder
     {
         WrapOperations();
 
-        _skimmedSchema.QueryType = CreateQueryType();
-        _skimmedSchema.MutationType = CreateMutationType();
+        _schema.QueryType = CreateQueryType();
+        _schema.MutationType = CreateMutationType();
 
-        return _skimmedSchema;
+        return _schema;
     }
 
     private void WrapOperations()
@@ -213,7 +213,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             payloadType.Fields.Add(payloadErrorsField);
         }
 
-        _skimmedSchema.Types.Add(payloadType);
+        _schema.Types.Add(payloadType);
 
         return new NonNullType(payloadType);
     }
@@ -232,7 +232,7 @@ internal sealed class OpenApiMutableSchemaBuilder
         string name)
     {
         // Return existing union type when available.
-        if (_skimmedSchema.Types.TryGetType(name, out var existingType) &&
+        if (_schema.Types.TryGetType(name, out var existingType) &&
             existingType is MutableUnionTypeDefinition existingUnionType)
         {
             return existingUnionType;
@@ -249,7 +249,7 @@ internal sealed class OpenApiMutableSchemaBuilder
 
         unionType.SetTypeMap(memberTypesMap.ToDictionary(t => t.Key, t => t.Value.Name));
 
-        _skimmedSchema.Types.Add(unionType);
+        _schema.Types.Add(unionType);
 
         return unionType;
     }
@@ -264,7 +264,7 @@ internal sealed class OpenApiMutableSchemaBuilder
         var objectTypeName = GraphQLNamingHelper.CreateObjectWrapperTypeName(type);
 
         // Return existing object type when available.
-        if (_skimmedSchema.Types.TryGetType(objectTypeName, out var existingType) &&
+        if (_schema.Types.TryGetType(objectTypeName, out var existingType) &&
             existingType is MutableObjectTypeDefinition existingObjectType)
         {
             return existingObjectType;
@@ -277,7 +277,7 @@ internal sealed class OpenApiMutableSchemaBuilder
         field.SetUseParentResult(true);
         objectType.Fields.Add(field);
 
-        _skimmedSchema.Types.Add(objectType);
+        _schema.Types.Add(objectType);
 
         return objectType;
     }
@@ -435,7 +435,7 @@ internal sealed class OpenApiMutableSchemaBuilder
         typeName ??= GetGraphQLTypeName(openApiSchema, schemaTitle);
 
         // Return existing type when available.
-        if (_skimmedSchema.Types.TryGetType(typeName, out var existingType))
+        if (_schema.Types.TryGetType(typeName, out var existingType))
         {
             return openApiSchema.Nullable ? existingType : new NonNullType(existingType);
         }
@@ -481,7 +481,7 @@ internal sealed class OpenApiMutableSchemaBuilder
                             required: openApiSchema.Required.Contains(propertyName)));
                 }
 
-                _skimmedSchema.Types.Add(inputObjectType);
+                _schema.Types.Add(inputObjectType);
 
                 type = inputObjectType;
                 break;
@@ -502,7 +502,7 @@ internal sealed class OpenApiMutableSchemaBuilder
                             required: openApiSchema.Required.Contains(propertyName)));
                 }
 
-                _skimmedSchema.Types.Add(objectType);
+                _schema.Types.Add(objectType);
 
                 type = objectType;
                 break;

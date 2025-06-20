@@ -111,8 +111,8 @@ internal sealed class DocumentCacheMiddleware
             (factoryContext, next) =>
             {
                 var diagnosticEvents = factoryContext.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
-                var documentCache = factoryContext.Services.GetRequiredService<IDocumentCache>();
-                var documentHashProvider = factoryContext.Services.GetRequiredService<IDocumentHashProvider>();
+                var documentCache = factoryContext.SchemaServices.GetRequiredService<IDocumentCache>();
+                var documentHashProvider = factoryContext.SchemaServices.GetRequiredService<IDocumentHashProvider>();
                 var middleware = Create(next, diagnosticEvents, documentCache, documentHashProvider);
                 return context => middleware.InvokeAsync(context);
             },

@@ -1,6 +1,6 @@
 [
   {
-    "Message": "The specified directive is not valid the current location.",
+    "Message": "The specified directive is not valid in the current location.",
     "Code": null,
     "Path": {
       "Name": "name",

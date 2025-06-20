@@ -77,6 +77,10 @@ partial class Build
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "MongoDb" / "HotChocolate.MongoDb.sln"));
 
+    Target TestHotChocolateMutable => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Mutable" / "HotChocolate.Types.Mutable.sln"));
+
     Target TestHotChocolateOpenApi => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "OpenApi" / "HotChocolate.OpenApi.sln"));
@@ -88,10 +92,6 @@ partial class Build
     Target TestHotChocolateRaven => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Raven" / "HotChocolate.Raven.sln"));
-
-    Target TestHotChocolateSkimmed => _ => _
-        .Produces(TestResultDirectory / "*.trx")
-        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Skimmed" / "HotChocolate.Skimmed.sln"));
 
     Target TestHotChocolateSpatial => _ => _
         .Produces(TestResultDirectory / "*.trx")

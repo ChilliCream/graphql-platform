@@ -5,7 +5,6 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
-using static HotChocolate.DirectiveNames;
 
 #nullable enable
 

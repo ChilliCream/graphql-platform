@@ -10,8 +10,5 @@ public interface ISelectionVisitorContext
 
     Stack<ITypeDefinition?> ResolvedType { get; }
 
-    [Obsolete("Use ResolverContext")]
-    IResolverContext Context => ResolverContext;
-
     IResolverContext ResolverContext { get; }
 }

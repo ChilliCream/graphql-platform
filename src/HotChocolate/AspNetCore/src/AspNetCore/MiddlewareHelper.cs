@@ -15,7 +15,7 @@ internal static class MiddlewareHelper
         IHttpResponseFormatter responseFormatter,
         IServerDiagnosticEvents diagnosticEvents)
     {
-        // first  we will inspect the accept headers and determine if we can execute this request.
+        // first we will inspect the accept headers and determine if we can execute this request.
         var headerResult = HeaderUtilities.GetAcceptHeader(context.Request);
 
         // if we cannot parse all media types that the user provided we will fail the request
