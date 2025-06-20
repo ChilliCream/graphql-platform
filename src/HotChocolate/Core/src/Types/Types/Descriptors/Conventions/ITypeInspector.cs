@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Descriptors;
 public interface ITypeInspector : IConvention
 {
     /// <summary>
-    /// Gets the relevant members of a object or input object.
+    /// Gets the relevant members of an object or input object.
     /// </summary>
     /// <param name="type">
     /// The type that represents the object type.
@@ -28,7 +28,7 @@ public interface ITypeInspector : IConvention
     /// Specifies if object is allowed as parameter or return type without a type attribute.
     /// </param>
     /// <returns>
-    /// Returns the relevant members of a object or input object.
+    /// Returns the relevant members of an object or input object.
     /// </returns>
     ReadOnlySpan<MemberInfo> GetMembers(
         Type type,

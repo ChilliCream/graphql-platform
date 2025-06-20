@@ -68,6 +68,7 @@ internal static class IntrospectionQueryBuilder
                 new OperationDefinitionNode(
                     null,
                     new NameNode("IntrospectionQuery"),
+                    description: null,
                     OperationType.Query,
                     Array.Empty<VariableDefinitionNode>(),
                     Array.Empty<DirectiveNode>(),
@@ -151,6 +152,7 @@ internal static class IntrospectionQueryBuilder
         => new FragmentDefinitionNode(
             null,
             new NameNode("FullType"),
+            description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("__Type"),
             Array.Empty<DirectiveNode>(),
@@ -346,6 +348,7 @@ internal static class IntrospectionQueryBuilder
         return new FragmentDefinitionNode(
             null,
             new NameNode("TypeRef"),
+            description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("__Type"),
             Array.Empty<DirectiveNode>(),

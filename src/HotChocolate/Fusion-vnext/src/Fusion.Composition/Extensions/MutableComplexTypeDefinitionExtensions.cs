@@ -1,7 +1,6 @@
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
-using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.Extensions;
 

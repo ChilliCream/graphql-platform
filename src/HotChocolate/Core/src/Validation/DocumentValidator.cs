@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;

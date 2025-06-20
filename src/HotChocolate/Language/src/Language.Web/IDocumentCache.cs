@@ -3,26 +3,25 @@ using System.Diagnostics.CodeAnalysis;
 namespace HotChocolate.Language;
 
 /// <summary>
-/// The document cache is ues to cache parsed syntax trees.
+/// The document cache is used to cache parsed GraphQL syntax trees.
 /// </summary>
 public interface IDocumentCache
 {
     /// <summary>
-    /// Gets maximum amount of GraphQL syntax trees that can be cached. The default
-    /// value is <c>100</c>. The minimum allowed value is <c>10</c>.
+    /// Gets the maximum number of GraphQL syntax trees that can be cached.
     /// </summary>
     int Capacity { get; }
 
     /// <summary>
-    /// Gets the amount of compiled queries residing in the cache.
+    /// Gets the number of GraphQL syntax trees residing in the cache.
     /// </summary>
     int Count { get; }
 
     /// <summary>
-    /// Tries to get a cached GraphQL syntax tree by its internal <paramref name="documentId"/>.
+    /// Tries to get a cached GraphQL syntax tree by its <paramref name="documentId"/>.
     /// </summary>
     /// <param name="documentId">
-    /// The internal document id.
+    /// The document id.
     /// </param>
     /// <param name="document">
     /// The GraphQL syntax tree.

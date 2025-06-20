@@ -1,3 +1,6 @@
+using System.Collections.Immutable;
+using System.Runtime.InteropServices;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 
@@ -6,50 +9,50 @@ namespace HotChocolate.Execution.Pipeline;
 internal static class PipelineTools
 {
     private static readonly Dictionary<string, object?> s_empty = [];
-
-    private static readonly IReadOnlyList<VariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
+    private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
 
     public static string CreateOperationId(string documentId, string? operationName)
         => operationName is null
             ? documentId
             : $"{documentId}+{operationName}";
 
-    public static string CreateCacheId(this IRequestContext context)
+    public static string CreateCacheId(this RequestContext context)
     {
-        var documentId = context.DocumentId!.Value.Value;
+        var documentId = context.GetOperationDocumentId();
         var operationName = context.Request.OperationName;
 
-        if (string.IsNullOrEmpty(documentId))
+        if (documentId.IsEmpty)
         {
             throw new ArgumentException(
                 "The request context must have a valid document ID "
                 + "in order to create a cache ID.");
         }
 
-        var operationId = CreateOperationId(documentId, operationName);
+        var operationId = CreateOperationId(documentId.Value, operationName);
 
         return $"{context.Schema.Name}-{context.ExecutorVersion}-{operationId}";
     }
 
     public static IReadOnlyList<IVariableValueCollection> CoerceVariables(
-        IRequestContext context,
+        RequestContext context,
         VariableCoercionHelper coercionHelper,
-        IReadOnlyList<VariableDefinitionNode> variableDefinitions)
+        IReadOnlyList<VariableDefinitionNode> variableDefinitions,
+        IExecutionDiagnosticEvents diagnosticEvents)
     {
-        if (context.Variables is not null)
+        if (context.VariableValues.Length > 0)
         {
-            return context.Variables;
+            return context.VariableValues;
         }
 
         if (variableDefinitions.Count == 0)
         {
-            context.Variables = s_noVariables;
+            context.VariableValues = s_noVariables;
             return s_noVariables;
         }
 
         if (context.Request is OperationRequest operationRequest)
         {
-            using (context.DiagnosticEvents.CoerceVariables(context))
+            using (diagnosticEvents.CoerceVariables(context))
             {
                 var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
@@ -59,14 +62,14 @@ internal static class PipelineTools
                     operationRequest.VariableValues ?? s_empty,
                     coercedValues);
 
-                context.Variables = new[] { new VariableValueCollection(coercedValues) };
-                return context.Variables;
+                context.VariableValues = [new VariableValueCollection(coercedValues)];
+                return context.VariableValues;
             }
         }
 
         if (context.Request is VariableBatchRequest variableBatchRequest)
         {
-            using (context.DiagnosticEvents.CoerceVariables(context))
+            using (diagnosticEvents.CoerceVariables(context))
             {
                 var schema = context.Schema;
                 var variableSetCount = variableBatchRequest.VariableValues?.Count ?? 0;
@@ -86,8 +89,8 @@ internal static class PipelineTools
                     variableSet[i] = new VariableValueCollection(coercedValues);
                 }
 
-                context.Variables = variableSet;
-                return context.Variables;
+                context.VariableValues = ImmutableCollectionsMarshal.AsImmutableArray(variableSet);
+                return context.VariableValues;
             }
         }
 

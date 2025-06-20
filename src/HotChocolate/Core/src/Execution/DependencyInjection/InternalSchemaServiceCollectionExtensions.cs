@@ -1,4 +1,5 @@
 using HotChocolate;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Utilities;
@@ -21,6 +22,7 @@ public static class InternalSchemaServiceCollectionExtensions
             sp => new SubscriptionExecutor(
                 sp.GetRootServiceProvider().GetRequiredService<ObjectPool<OperationContext>>(),
                 sp.GetRequiredService<QueryExecutor>(),
+                sp.GetRequiredService<IErrorHandler>(),
                 sp.GetRequiredService<IExecutionDiagnosticEvents>()));
         return services;
     }
@@ -38,6 +40,10 @@ public static class InternalSchemaServiceCollectionExtensions
                 _ => new AggregateExecutionDiagnosticEvents(listeners)
             };
         });
+
+        services.TryAddSingleton<ICoreExecutionDiagnosticEvents>(
+            sp => sp.GetRequiredService<IExecutionDiagnosticEvents>());
+
         return services;
     }
 

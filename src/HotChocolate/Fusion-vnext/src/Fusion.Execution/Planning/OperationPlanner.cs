@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Reactive.Disposables;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
@@ -14,7 +13,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
     private readonly MergeSelectionSetRewriter _mergeRewriter = new(schema);
     private readonly SelectionSetPartitioner _partitioner = new(schema);
 
-    public OperationPlan CreatePlan(OperationDefinitionNode operationDefinition)
+    public OperationExecutionPlan CreatePlan(OperationDefinitionNode operationDefinition)
     {
         ArgumentNullException.ThrowIfNull(operationDefinition);
 

@@ -5,7 +5,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Tests;
 
-public class SortInputTypeTest : SortTestBase
+public class SortInputTypeTests : SortTestBase
 {
     [Fact]
     public void SortInputType_DynamicName()

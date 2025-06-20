@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using Xunit;
 
 namespace HotChocolate.Caching.Tests;
 

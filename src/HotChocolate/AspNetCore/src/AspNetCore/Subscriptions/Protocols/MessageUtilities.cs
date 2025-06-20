@@ -1,7 +1,6 @@
 using System.Text.Json;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.Buffers;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
 

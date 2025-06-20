@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Utilities;
 using static HotChocolate.Execution.Serialization.JsonNullIgnoreCondition;
 using static HotChocolate.Execution.ThrowHelper;
 

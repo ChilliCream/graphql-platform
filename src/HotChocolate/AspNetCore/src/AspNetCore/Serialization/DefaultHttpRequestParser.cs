@@ -29,15 +29,14 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         int maxRequestSize,
         ParserOptions parserOptions)
     {
-        _documentCache = documentCache ??
-            throw new ArgumentNullException(nameof(documentCache));
-        _documentHashProvider = documentHashProvider ??
-            throw new ArgumentNullException(nameof(documentHashProvider));
-        _maxRequestSize = maxRequestSize < MinRequestSize
-            ? MinRequestSize
-            : maxRequestSize;
-        _parserOptions = parserOptions ??
-            throw new ArgumentNullException(nameof(parserOptions));
+        ArgumentNullException.ThrowIfNull(documentCache);
+        ArgumentNullException.ThrowIfNull(documentHashProvider);
+        ArgumentNullException.ThrowIfNull(parserOptions);
+
+        _documentCache = documentCache;
+        _documentHashProvider = documentHashProvider;
+        _maxRequestSize = maxRequestSize < MinRequestSize ? MinRequestSize : maxRequestSize;
+        _parserOptions = parserOptions;
     }
 
     public ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestAsync(
@@ -46,17 +45,17 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         => ReadAsync(requestBody, cancellationToken);
 
     public async ValueTask<GraphQLRequest> ParsePersistedOperationRequestAsync(
-        string operationId,
+        string documentId,
         string? operationName,
         Stream requestBody,
         CancellationToken cancellationToken)
     {
-        EnsureValidQueryId(operationId);
+        EnsureValidDocumentId(documentId);
 
         try
         {
             GraphQLRequest Parse(byte[] buffer, int length)
-                => ParsePersistedOperationRequest(buffer, length, operationId, operationName);
+                => ParsePersistedOperationRequest(buffer, length, documentId, operationName);
 
             return await BufferHelper.ReadAsync(
                 requestBody,
@@ -90,50 +89,50 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
     public GraphQLRequest ParseRequestFromParams(IQueryCollection parameters)
     {
-        // next we deserialize the GET request with the query request builder ...
+        // next, we deserialize the GET request with the query request builder ...
         string? query = parameters[QueryKey];
         string? queryId = parameters[QueryIdKey];
         string? operationName = parameters[OperationNameKey];
         IReadOnlyDictionary<string, object?>? extensions = null;
 
-        // if we have no query or query id we cannot execute anything.
+        // if we have no query or query id, we cannot execute anything.
         if (string.IsNullOrWhiteSpace(query) && string.IsNullOrWhiteSpace(queryId))
         {
-            // so, if we do not find a top-level query or top-level id we will try to parse
-            // the extensions and look in the extensions for Apollo`s active persisted
+            // so, if we do not find a top-level query or top-level id, we will try to parse
+            // the extensions and look in the extensions for Apollo's active persisted
             // query extensions.
             if ((string?)parameters[ExtensionsKey] is { Length: > 0 } se)
             {
                 extensions = ParseJsonObject(se);
             }
 
-            // we will use the request parser utils to extract the has from the extensions.
+            // we will use the request parser utils to extract the hash from the extensions.
             if (!TryExtractHash(extensions, _documentHashProvider, out var hash))
             {
-                // if we cannot find any query hash in the extensions or if the extensions are
-                // null we are unable to execute and will throw a request error.
+                // if we cannot find any query hash in the extensions, or if the extensions are
+                // null, we are unable to execute and will throw a request error.
                 throw DefaultHttpRequestParser_QueryAndIdMissing();
             }
 
-            // if we however found a query hash we will use it as a query id and move on
+            // if we however found a query hash, we will use it as a query id and move on
             // to execute the query.
             queryId = hash;
         }
 
         if (!string.IsNullOrWhiteSpace(queryId))
         {
-            EnsureValidQueryId(queryId);
+            EnsureValidDocumentId(queryId);
         }
 
         try
         {
-            string? queryHash = null;
+            OperationDocumentHash? documentHash = null;
             DocumentNode? document = null;
 
-            if (query is { Length: > 0 })
+            if (query?.Length > 0)
             {
                 var result = ParseQueryString(query);
-                queryHash = result.QueryHash;
+                documentHash = result.DocumentHash;
                 document = result.Document;
             }
 
@@ -152,7 +151,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             return new GraphQLRequest(
                 document,
                 queryId,
-                queryHash,
+                documentHash,
                 operationName,
                 variableSet,
                 extensions);
@@ -173,7 +172,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         IQueryCollection parameters)
     {
         operationName ??= parameters[OperationNameKey];
-        EnsureValidQueryId(operationId);
+        EnsureValidDocumentId(operationId);
 
         try
         {
@@ -208,7 +207,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         }
     }
 
-    private (string QueryHash, DocumentNode Document) ParseQueryString(string sourceText)
+    private (OperationDocumentHash DocumentHash, DocumentNode Document) ParseQueryString(string sourceText)
     {
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
@@ -219,7 +218,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
         Utf8GraphQLParser.ConvertToBytes(sourceText, ref sourceSpan);
         var document = Utf8GraphQLParser.Parse(sourceSpan, _parserOptions);
-        var queryHash = _documentHashProvider.ComputeHash(sourceSpan);
+        var documentHash = _documentHashProvider.ComputeHash(sourceSpan);
 
         if (source != null)
         {
@@ -227,12 +226,21 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             ArrayPool<byte>.Shared.Return(source);
         }
 
-        return (queryHash, document);
+        return (documentHash, document);
     }
 
     public IReadOnlyList<GraphQLRequest> ParseRequest(
-        string operations)
-        => EnsureValidQueryId(Parse(operations, _parserOptions, _documentCache, _documentHashProvider));
+        string sourceText)
+    {
+        try
+        {
+            return Parse(sourceText, _parserOptions, _documentCache, _documentHashProvider);
+        }
+        catch (OperationIdFormatException)
+        {
+            throw ErrorHelper.InvalidOperationIdFormat();
+        }
+    }
 
     private async ValueTask<IReadOnlyList<GraphQLRequest>> ReadAsync(
         Stream stream,
@@ -285,13 +293,13 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             _documentCache,
             _documentHashProvider);
 
-        return EnsureValidQueryId(requestParser.Parse());
+        return requestParser.Parse();
     }
 
     private GraphQLRequest ParsePersistedOperationRequest(
         byte[] buffer,
         int bytesBuffered,
-        string operationId,
+        string documentId,
         string? operationName)
     {
         var graphQLData = new ReadOnlySpan<byte>(buffer);
@@ -303,36 +311,14 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             _documentCache,
             _documentHashProvider);
 
-        return requestParser.ParsePersistedOperation(operationId, operationName);
+        return requestParser.ParsePersistedOperation(documentId, operationName);
     }
 
-    internal static IReadOnlyList<GraphQLRequest> EnsureValidQueryId(IReadOnlyList<GraphQLRequest> requests)
+    private static void EnsureValidDocumentId(string documentId)
     {
-        if (requests.Count == 1)
+        if (!OperationDocumentId.IsValidId(documentId))
         {
-            var request = requests[0];
-            if (!string.IsNullOrWhiteSpace(request.QueryId))
-            {
-                EnsureValidQueryId(request.QueryId);
-            }
-            return requests;
-        }
-
-        foreach (var request in requests)
-        {
-            if (!string.IsNullOrWhiteSpace(request.QueryId))
-            {
-                EnsureValidQueryId(request.QueryId);
-            }
-        }
-        return requests;
-    }
-
-    private static void EnsureValidQueryId(string queryId)
-    {
-        if (!OperationDocumentId.IsValidId(queryId))
-        {
-            throw ErrorHelper.InvalidQueryIdFormat();
+            throw ErrorHelper.InvalidOperationIdFormat();
         }
     }
 }

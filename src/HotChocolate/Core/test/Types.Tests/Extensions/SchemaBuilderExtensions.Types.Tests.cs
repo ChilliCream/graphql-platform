@@ -611,7 +611,7 @@ public class SchemaBuilderExtensionsTypeTests
 
         // act
         Action action = () =>
-            SchemaBuilderExtensions.AddDirectiveType(builder, (Type)null);
+            SchemaBuilderExtensions.AddDirectiveType(builder, null);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

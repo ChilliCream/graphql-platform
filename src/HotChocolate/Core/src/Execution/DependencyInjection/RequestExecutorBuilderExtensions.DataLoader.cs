@@ -1,7 +1,6 @@
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Fetching;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;

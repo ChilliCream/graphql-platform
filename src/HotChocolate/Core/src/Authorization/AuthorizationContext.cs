@@ -1,4 +1,3 @@
-using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Language;
 
@@ -19,7 +18,7 @@ public sealed class AuthorizationContext : IFeatureProvider
     /// <param name="document">The GraphQL request document.</param>
     /// <param name="documentId">A unique string identifying the GraphQL document</param>
     public AuthorizationContext(
-        Schema schema,
+        ISchemaDefinition schema,
         IServiceProvider services,
         IDictionary<string, object?> contextData,
         IFeatureCollection features,
@@ -37,7 +36,7 @@ public sealed class AuthorizationContext : IFeatureProvider
     /// <summary>
     /// Gets the GraphQL schema.
     /// </summary>
-    public Schema Schema { get; }
+    public ISchemaDefinition Schema { get; }
 
     /// <summary>
     /// Gets the application services.

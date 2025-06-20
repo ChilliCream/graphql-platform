@@ -66,7 +66,7 @@ internal ref struct GraphQLWebSocketMessageParser
     /// </summary>
     /// <returns></returns>
     /// <exception cref="SerializationException">
-    /// Thrown when a invalid token, a unknown field or the type is not specified
+    /// Thrown when an invalid token, an unknown field or the type is not specified
     /// </exception>
     private GraphQLWebSocketMessage ParseMessage()
     {
@@ -231,7 +231,7 @@ internal ref struct GraphQLWebSocketMessageParser
     /// The sequence of bytes containing the data of the message
     /// </param>
     /// <exception cref="SerializationException">
-    /// Thrown when a invalid token, a unknown field or the type is not specified
+    /// Thrown when an invalid token, an unknown field or the type is not specified
     /// </exception>
     /// <returns>The parsed message</returns>
     public static GraphQLWebSocketMessage Parse(ReadOnlySequence<byte> messageData)

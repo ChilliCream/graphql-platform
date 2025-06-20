@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 namespace HotChocolate.Data.MongoDb;
 
 /// <summary>
-/// Is the base class for a executable for the MongoDb.
+/// Is the base class for an executable for the MongoDb.
 /// </summary>
 public abstract class MongoDbExecutable<T> : IExecutable<T>, IMongoDbExecutable
 {

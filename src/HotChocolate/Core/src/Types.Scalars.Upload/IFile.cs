@@ -1,7 +1,7 @@
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Represents a uploaded file.
+/// Represents an uploaded file.
 /// </summary>
 public interface IFile
 {

@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation;
@@ -7,39 +8,39 @@ internal sealed class NoopExecutionDiagnosticEvents
     : IExecutionDiagnosticEvents
     , IDisposable
 {
-    public IDisposable ExecuteRequest(IRequestContext context) => this;
+    public IDisposable ExecuteRequest(RequestContext context) => this;
 
-    public void RequestError(IRequestContext context, Exception exception)
+    public void RequestError(RequestContext context, Exception exception)
     {
     }
 
-    public IDisposable ParseDocument(IRequestContext context) => this;
+    public IDisposable ParseDocument(RequestContext context) => this;
 
-    public void SyntaxError(IRequestContext context, IError error)
+    public void SyntaxError(RequestContext context, IError error)
     {
     }
 
-    public IDisposable ValidateDocument(IRequestContext context) => this;
+    public IDisposable ValidateDocument(RequestContext context) => this;
 
-    public void ValidationErrors(IRequestContext context, IReadOnlyList<IError> errors)
+    public void ValidationErrors(RequestContext context, IReadOnlyList<IError> errors)
     {
     }
 
-    public IDisposable AnalyzeOperationCost(IRequestContext context) => this;
+    public IDisposable AnalyzeOperationCost(RequestContext context) => this;
 
-    public void OperationComplexityAnalyzerCompiled(IRequestContext context)
+    public void OperationComplexityAnalyzerCompiled(RequestContext context)
     {
     }
 
-    public void OperationCost(IRequestContext context, double fieldCost, double typeCost)
+    public void OperationCost(RequestContext context, double fieldCost, double typeCost)
     {
     }
 
-    public IDisposable CoerceVariables(IRequestContext context) => this;
+    public IDisposable CoerceVariables(RequestContext context) => this;
 
-    public IDisposable CompileOperation(IRequestContext context) => this;
+    public IDisposable CompileOperation(RequestContext context) => this;
 
-    public IDisposable ExecuteOperation(IRequestContext context) => this;
+    public IDisposable ExecuteOperation(RequestContext context) => this;
 
     public IDisposable ExecuteStream(IOperation operation) => this;
 
@@ -47,73 +48,53 @@ internal sealed class NoopExecutionDiagnosticEvents
 
     public IDisposable ResolveFieldValue(IMiddlewareContext context) => this;
 
-    public void ResolverError(IMiddlewareContext context, IError error)
-    {
-    }
-
-    public void ResolverError(IRequestContext context, ISelection selection, IError error)
-    {
-    }
-
     public IDisposable RunTask(IExecutionTask task) => this;
 
-    public void TaskError(IExecutionTask task, IError error)
+    public void StartProcessing(RequestContext context)
     {
     }
 
-    public void StartProcessing(IRequestContext context)
+    public void StopProcessing(RequestContext context)
     {
     }
 
-    public void StopProcessing(IRequestContext context)
+    public IDisposable ExecuteSubscription(RequestContext context) => this;
+
+    public IDisposable OnSubscriptionEvent(RequestContext context) => this;
+
+    public void ExecutionError(
+        RequestContext context,
+        ErrorKind kind,
+        IReadOnlyList<IError> errors,
+        object? state)
     {
     }
 
-    public IDisposable ExecuteSubscription(ISubscription subscription) => this;
-
-    public IDisposable OnSubscriptionEvent(SubscriptionEventContext context) => this;
-
-    public void SubscriptionEventResult(SubscriptionEventContext context, IOperationResult result)
+    public void AddedDocumentToCache(RequestContext context)
     {
     }
 
-    public void SubscriptionEventError(SubscriptionEventContext context, Exception exception)
+    public void RetrievedDocumentFromCache(RequestContext context)
     {
     }
 
-    public void SubscriptionEventError(ISubscription subscription, Exception exception)
+    public void RetrievedDocumentFromStorage(RequestContext context)
     {
     }
 
-    public void SubscriptionTransportError(ISubscription subscription, Exception exception)
+    public void DocumentNotFoundInStorage(RequestContext context, OperationDocumentId documentId)
     {
     }
 
-    public void AddedDocumentToCache(IRequestContext context)
+    public void AddedOperationToCache(RequestContext context)
     {
     }
 
-    public void RetrievedDocumentFromCache(IRequestContext context)
+    public void RetrievedOperationFromCache(RequestContext context)
     {
     }
 
-    public void RetrievedDocumentFromStorage(IRequestContext context)
-    {
-    }
-
-    public void DocumentNotFoundInStorage(IRequestContext context, OperationDocumentId documentId)
-    {
-    }
-
-    public void AddedOperationToCache(IRequestContext context)
-    {
-    }
-
-    public void RetrievedOperationFromCache(IRequestContext context)
-    {
-    }
-
-    public IDisposable DispatchBatch(IRequestContext context) => this;
+    public IDisposable DispatchBatch(RequestContext context) => this;
 
     public void ExecutorCreated(string name, IRequestExecutor executor)
     {

@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Reflection;
 using System.Text;
-using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate;

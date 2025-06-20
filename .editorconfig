@@ -124,7 +124,6 @@ resharper_enforce_if_statement_braces_highlighting = error
 resharper_enforce_lock_statement_braces_highlighting = error
 resharper_enforce_using_statement_braces_highlighting = error
 resharper_enforce_while_statement_braces_highlighting = error
-resharper_prefer_concrete_value_over_default_highlighting = error
 
 # ReSharper properties
 resharper_align_multiline_binary_expressions_chain = false
@@ -167,6 +166,10 @@ dotnet_diagnostic.CA1511.severity = warning
 dotnet_diagnostic.CA1512.severity = warning
 # Use ObjectDisposedException throw helper.
 dotnet_diagnostic.CA1513.severity = warning
+# Remove unnecessary cast.
+dotnet_diagnostic.IDE0004.severity = warning
+# Remove unnecessary using directives.
+dotnet_diagnostic.IDE0005.severity = warning
 # Use collection initializers or expressions.
 dotnet_diagnostic.IDE0028.severity = warning
 # Order modifiers.

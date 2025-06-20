@@ -67,7 +67,7 @@ public partial class Schema
     /// <summary>
     /// Gets the global schema services.
     /// </summary>
-    public IServiceProvider Services { get; private set; } = null!;
+    public IServiceProvider Services { get; internal set; } = null!;
 
     /// <summary>
     /// Specifies the time the schema was created.

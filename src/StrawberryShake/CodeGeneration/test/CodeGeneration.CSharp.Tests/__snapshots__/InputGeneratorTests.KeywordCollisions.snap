@@ -390,7 +390,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Readonly GraphQL operation
     /// <code>
-    /// query Readonly($input: abstract!) {
+    /// query Readonly(
+    ///   $input: abstract!
+    /// ) {
     ///   readonly(readonly: $input) {
     ///     __typename
     ///     abstract
@@ -593,7 +595,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Readonly GraphQL operation
     /// <code>
-    /// query Readonly($input: abstract!) {
+    /// query Readonly(
+    ///   $input: abstract!
+    /// ) {
     ///   readonly(readonly: $input) {
     ///     __typename
     ///     abstract
@@ -694,7 +698,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Readonly GraphQL operation
     /// <code>
-    /// query Readonly($input: abstract!) {
+    /// query Readonly(
+    ///   $input: abstract!
+    /// ) {
     ///   readonly(readonly: $input) {
     ///     __typename
     ///     abstract

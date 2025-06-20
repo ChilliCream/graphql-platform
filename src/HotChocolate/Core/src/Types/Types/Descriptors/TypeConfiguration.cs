@@ -1,7 +1,3 @@
-using System.Collections.Concurrent;
-using System.ComponentModel;
-using HotChocolate.Types;
-
 namespace HotChocolate.Types.Descriptors;
 
 /// <summary>

@@ -5,7 +5,6 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 #nullable enable
 

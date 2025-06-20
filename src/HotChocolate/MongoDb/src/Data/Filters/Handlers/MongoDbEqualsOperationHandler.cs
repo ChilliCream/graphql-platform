@@ -7,7 +7,7 @@ using MongoDB.Driver;
 namespace HotChocolate.Data.MongoDb.Filters;
 
 /// <summary>
-/// This filter operation handler maps a Equals operation field to a
+/// This filter operation handler maps an Equals operation field to a
 /// <see cref="FilterDefinition{TDocument}"/>
 /// </summary>
 public class MongoDbEqualsOperationHandler

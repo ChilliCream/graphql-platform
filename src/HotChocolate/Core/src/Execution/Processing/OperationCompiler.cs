@@ -508,7 +508,7 @@ public sealed partial class OperationCompiler
         long includeCondition)
     {
         if (typeCondition is null
-            || (context.Schema.TryGetTypeFromAst(typeCondition, out IType typeCon)
+            || (context.Schema.Types.TryGetType(typeCondition, out IType? typeCon)
                 && DoesTypeApply(typeCon, context.Type)))
         {
             includeCondition = GetSelectionIncludeCondition(selection, includeCondition);
