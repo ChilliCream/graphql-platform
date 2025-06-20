@@ -42,6 +42,8 @@ public sealed class Operation
         _compiler = compiler;
         _includeConditions = includeConditions;
         _lastId = lastId;
+
+        rootSelectionSet.Seal(this);
     }
 
     /// <summary>
@@ -110,6 +112,7 @@ public sealed class Operation
                             typeContext,
                             _includeConditions,
                             ref _lastId);
+                    selectionSet.Seal(this);
                 }
             }
         }

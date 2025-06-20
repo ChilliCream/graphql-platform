@@ -32,7 +32,7 @@ public sealed class SelectionSet
     /// <summary>
     /// Gets the selections that shall be executed.
     /// </summary>
-    public ReadOnlySpan<Selection> Selections => throw new NotImplementedException();
+    public ReadOnlySpan<Selection> Selections => _selections;
 
     /// <summary>
     /// Gets the declaring operation.

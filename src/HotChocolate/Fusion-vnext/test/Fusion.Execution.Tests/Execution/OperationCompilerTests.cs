@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 using Microsoft.Extensions.ObjectPool;
@@ -38,9 +39,22 @@ public class OperationCompilerTests
         Assert.Equal(schema.GetOperationType(OperationType.Query), operation.RootType);
         Assert.Equal(schema, operation.Schema);
 
-        Assert.Equal(1, operation.RootSelectionSet.Selections.Length);
-        Assert.Equal("product", operation.RootSelectionSet.Selections[0].Field.Name);
-        Assert.True(operation.RootSelectionSet.Selections[0].IsIncluded(0));
+        var root = operation.RootSelectionSet;
+        Assert.Equal(1, root.Selections.Length);
+
+        var product = root.Selections[0];
+        Assert.Equal("product", product.Field.Name);
+        Assert.True(product.IsIncluded(0));
+
+        var productSelectionSet =
+            operation.GetSelectionSet(
+                product,
+                product.Type.NamedType<IObjectTypeDefinition>());
+        Assert.Equal(1, productSelectionSet.Selections.Length);
+
+        var id = productSelectionSet.Selections[0];
+        Assert.Equal("id", id.Field.Name);
+        Assert.True(id.IsIncluded(0));
     }
 
     public static ISchemaDefinition CreateSchema()
