@@ -5,7 +5,7 @@
       "locations": [
         {
           "line": 1,
-          "column": 18
+          "column": 47
         }
       ],
       "path": [
@@ -15,22 +15,6 @@
         "type": "ExampleInput",
         "specifiedBy": "https://spec.graphql.org/draft/#sec-All-Variable-Usages-Are-Allowed",
         "rfc": "https://github.com/graphql/graphql-spec/pull/825"
-      }
-    },
-    {
-      "message": "The specified input object field `c` does not exist.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 28
-        }
-      ],
-      "path": [
-        "example"
-      ],
-      "extensions": {
-        "field": "c",
-        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
       }
     }
   ]

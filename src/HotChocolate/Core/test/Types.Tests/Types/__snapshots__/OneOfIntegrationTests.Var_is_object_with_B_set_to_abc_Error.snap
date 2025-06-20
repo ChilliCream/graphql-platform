@@ -1,0 +1,15 @@
+{
+  "errors": [
+    {
+      "message": "Int cannot parse the given literal of type `StringValueNode`.",
+      "path": [
+        "var",
+        "b"
+      ],
+      "extensions": {
+        "fieldCoordinate": "ExampleInput.b",
+        "fieldType": "Int"
+      }
+    }
+  ]
+}
