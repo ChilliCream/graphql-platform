@@ -36,7 +36,7 @@ public ref partial struct Utf8GraphQLRequestParser
             return new GraphQLRequest
             (
                 null,
-                request.QueryId,
+                request.DocumentId,
                 null,
                 operationName ?? request.OperationName,
                 request.Variables,
@@ -119,15 +119,15 @@ public ref partial struct Utf8GraphQLRequestParser
         return new GraphQLRequest
         (
             request.Document,
-            request.QueryId,
-            request.QueryHash,
+            request.DocumentId,
+            request.DocumentHash,
             request.OperationName,
             request.Variables,
             request.Extensions
         );
     }
 
-    private Request ParseMutableRequest(string? operationId = null)
+    private Request ParseMutableRequest(string? documentId = null)
     {
         var request = new Request();
 
@@ -138,16 +138,17 @@ public ref partial struct Utf8GraphQLRequestParser
             ParseRequestProperty(ref request);
         }
 
-        if (operationId is not null)
+        if (documentId is not null)
         {
-            request.QueryId = operationId;
+            request.DocumentId = documentId;
         }
 
-        if (!request.HasQuery && request.QueryId is null)
+        if (!request.ContainsDocument && request.DocumentId is null)
         {
             if (_useCache && TryExtractHash(request.Extensions, _hashProvider, out var hash))
             {
-                request.QueryId = hash;
+                request.DocumentId = hash;
+                request.DocumentHash = new OperationDocumentHash(hash, _hashProvider!.Name, _hashProvider.Format);
             }
             else
             {
@@ -155,12 +156,12 @@ public ref partial struct Utf8GraphQLRequestParser
             }
         }
 
-        if (request.HasQuery)
+        if (request.ContainsDocument)
         {
-            ParseQuery(ref request);
+            ParseDocument(ref request);
         }
 
-        if (request.Document is null && request.QueryId is null)
+        if (request.Document is null && request.DocumentId is null)
         {
             throw ThrowHelper.NoIdAndNoQuery(_reader);
         }
@@ -175,44 +176,52 @@ public ref partial struct Utf8GraphQLRequestParser
 
         switch (fieldName[0])
         {
+            case I:
+                if (fieldName.SequenceEqual(IdProperty))
+                {
+                    request.DocumentId = ParseOperationId(_reader);
+                }
+                break;
+
+            case D:
+                if (fieldName.SequenceEqual(DocumentIdProperty))
+                {
+                    request.DocumentId = ParseOperationId(_reader);
+                }
+                break;
+
+            case Q:
+                if (fieldName.SequenceEqual(QueryProperty))
+                {
+                    var isNullOrEmpty = IsNullToken() || _reader.Value.Length == 0;
+                    request.ContainsDocument = !isNullOrEmpty;
+
+                    if (request.ContainsDocument && _reader.Kind != TokenKind.String)
+                    {
+                        throw ThrowHelper.QueryMustBeStringOrNull(_reader);
+                    }
+
+                    request.DocumentBody = _reader.Value;
+                    _reader.MoveNext();
+                }
+                break;
+
             case O:
-                if (fieldName.SequenceEqual(OperationName))
+                if (fieldName.SequenceEqual(OperationNameProperty))
                 {
                     request.OperationName = ParseStringOrNull();
                 }
                 break;
 
-            case I:
-                if (fieldName.SequenceEqual(Id))
-                {
-                    request.QueryId = ParseStringOrNull();
-                }
-                break;
-
-            case Q:
-                if (fieldName.SequenceEqual(Query))
-                {
-                    request.HasQuery = !IsNullToken();
-
-                    if (request.HasQuery && _reader.Kind != TokenKind.String)
-                    {
-                        throw ThrowHelper.QueryMustBeStringOrNull(_reader);
-                    }
-
-                    request.Query = _reader.Value;
-                    _reader.MoveNext();
-                }
-                break;
-
             case V:
-                if (fieldName.SequenceEqual(Variables))
+                if (fieldName.SequenceEqual(VariablesProperty))
                 {
                     request.Variables = ParseVariables();
                 }
                 break;
 
             case E:
-                if (fieldName.SequenceEqual(Extensions))
+                if (fieldName.SequenceEqual(ExtensionsProperty))
                 {
                     request.Extensions = ParseObjectOrNull();
                 }
@@ -232,21 +241,21 @@ public ref partial struct Utf8GraphQLRequestParser
         switch (fieldName[0])
         {
             case T:
-                if (fieldName.SequenceEqual(Type))
+                if (fieldName.SequenceEqual(TypeProperty))
                 {
                     message.Type = ParseStringOrNull();
                 }
                 break;
 
             case I:
-                if (fieldName.SequenceEqual(Id))
+                if (fieldName.SequenceEqual(IdProperty))
                 {
                     message.Id = ParseStringOrNull();
                 }
                 break;
 
             case P:
-                if (fieldName.SequenceEqual(Payload))
+                if (fieldName.SequenceEqual(PayloadProperty))
                 {
                     var start = _reader.Start;
                     var hasPayload = !IsNullToken();
@@ -262,9 +271,9 @@ public ref partial struct Utf8GraphQLRequestParser
         }
     }
 
-    private void ParseQuery(ref Request request)
+    private void ParseDocument(ref Request request)
     {
-        var length = request.Query.Length;
+        var length = request.DocumentBody.Length;
 
         byte[]? unescapedArray = null;
 
@@ -274,25 +283,34 @@ public ref partial struct Utf8GraphQLRequestParser
 
         try
         {
-            Utf8Helper.Unescape(request.Query, ref unescapedSpan, false);
-            var queryId = request.QueryId;
+            Utf8Helper.Unescape(request.DocumentBody, ref unescapedSpan, false);
             DocumentNode? document;
 
             if (_useCache)
             {
-                queryId ??= request.QueryHash = _hashProvider!.ComputeHash(unescapedSpan);
-
-                if (_cache!.TryGetDocument(queryId, out var cachedDocument))
+                if (request.DocumentId.HasValue
+                    && _cache!.TryGetDocument(request.DocumentId.Value.Value, out var cachedDocument))
                 {
                     document = cachedDocument.Body;
+                    request.DocumentHash = cachedDocument.Hash;
                 }
                 else
                 {
-                    document = unescapedSpan.Length == 0
-                        ? null
-                        : Utf8GraphQLParser.Parse(unescapedSpan, _options);
+                    var hash = _hashProvider!.ComputeHash(unescapedSpan);
+                    request.DocumentHash = hash;
+                    if (_cache!.TryGetDocument(hash.Value, out cachedDocument))
+                    {
+                        document = cachedDocument.Body;
+                    }
+                    else
+                    {
+                        document = unescapedSpan.Length == 0 ? null : Utf8GraphQLParser.Parse(unescapedSpan, _options);
+                    }
 
-                    request.QueryHash ??= _hashProvider!.ComputeHash(unescapedSpan);
+                    if (!request.DocumentId.HasValue)
+                    {
+                        request.DocumentId = hash.Value;
+                    }
                 }
             }
             else
@@ -303,10 +321,6 @@ public ref partial struct Utf8GraphQLRequestParser
             if (document is not null)
             {
                 request.Document = document;
-                if (queryId is not null && request.QueryId is null)
-                {
-                    request.QueryId = queryId;
-                }
             }
         }
         finally

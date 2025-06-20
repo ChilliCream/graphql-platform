@@ -1,4 +1,3 @@
-using Xunit;
 using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Language;

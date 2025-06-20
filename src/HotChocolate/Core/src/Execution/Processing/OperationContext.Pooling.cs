@@ -18,7 +18,7 @@ internal sealed partial class OperationContext
     private readonly DeferredWorkScheduler _deferredWorkScheduler;
     private readonly ResultBuilder _resultBuilder;
     private readonly AggregateServiceScopeInitializer _serviceScopeInitializer;
-    private IRequestContext _requestContext = null!;
+    private RequestContext _requestContext = null!;
     private Schema _schema = null!;
     private IErrorHandler _errorHandler = null!;
     private ResolverProvider _resolvers = null!;
@@ -31,7 +31,7 @@ internal sealed partial class OperationContext
     private Func<object?> _resolveQueryRootValue = null!;
     private IBatchDispatcher _batchDispatcher = null!;
     private InputParser _inputParser = null!;
-    private int? _variableIndex;
+    private int _variableIndex;
     private object? _rootValue;
     private bool _isInitialized;
 
@@ -52,20 +52,20 @@ internal sealed partial class OperationContext
     public bool IsInitialized => _isInitialized;
 
     public void Initialize(
-        IRequestContext requestContext,
+        RequestContext requestContext,
         IServiceProvider scopedServices,
         IBatchDispatcher batchDispatcher,
         IOperation operation,
         IVariableValueCollection variables,
         object? rootValue,
         Func<object?> resolveQueryRootValue,
-        int? variableIndex = null)
+        int variableIndex = -1)
     {
         _requestContext = requestContext;
-        _schema = requestContext.Schema;
-        _errorHandler = requestContext.ErrorHandler;
+        _schema = Unsafe.As<Schema>(requestContext.Schema);
+        _errorHandler = _schema.Services.GetRequiredService<IErrorHandler>();
         _resolvers = scopedServices.GetRequiredService<ResolverProvider>();
-        _diagnosticEvents = requestContext.DiagnosticEvents;
+        _diagnosticEvents = _schema.Services.GetRequiredService<IExecutionDiagnosticEvents>();
         _contextData = requestContext.ContextData;
         _requestAborted = requestContext.RequestAborted;
         _operation = operation;
@@ -83,14 +83,14 @@ internal sealed partial class OperationContext
         _deferredWorkScheduler.Initialize(this);
         _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
 
-        if (requestContext.RequestIndex.HasValue)
+        if (requestContext.RequestIndex != -1)
         {
-            _resultBuilder.SetRequestIndex(requestContext.RequestIndex.Value);
+            _resultBuilder.SetRequestIndex(requestContext.RequestIndex);
         }
 
-        if (variableIndex.HasValue)
+        if (variableIndex != -1)
         {
-            _resultBuilder.SetVariableIndex(variableIndex.Value);
+            _resultBuilder.SetVariableIndex(variableIndex);
         }
     }
 
@@ -117,14 +117,14 @@ internal sealed partial class OperationContext
         _deferredWorkScheduler.InitializeFrom(this, context._deferredWorkScheduler);
         _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
 
-        if (context._requestContext.RequestIndex.HasValue)
+        if (context._requestContext.RequestIndex != -1)
         {
-            _resultBuilder.SetRequestIndex(context._requestContext.RequestIndex.Value);
+            _resultBuilder.SetRequestIndex(context._requestContext.RequestIndex);
         }
 
-        if (context._variableIndex.HasValue)
+        if (context._variableIndex != -1)
         {
-            _resultBuilder.SetVariableIndex(context._variableIndex.Value);
+            _resultBuilder.SetVariableIndex(context._variableIndex);
         }
     }
 

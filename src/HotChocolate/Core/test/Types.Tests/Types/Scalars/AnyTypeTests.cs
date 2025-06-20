@@ -968,7 +968,7 @@ public class AnyTypeTests
 
     [InlineData("abc", typeof(StringValueNode))]
     [InlineData((short)1, typeof(IntValueNode))]
-    [InlineData((int)1, typeof(IntValueNode))]
+    [InlineData(1, typeof(IntValueNode))]
     [InlineData((long)1, typeof(IntValueNode))]
     [InlineData((float)1, typeof(FloatValueNode))]
     [InlineData((double)1, typeof(FloatValueNode))]

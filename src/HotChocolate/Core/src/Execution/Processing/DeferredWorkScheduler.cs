@@ -67,7 +67,7 @@ internal sealed class DeferredWorkScheduler
         // shall be patched into.
         var patchId = StateOwner.State.AssignPatchId(parentResult);
 
-        // for the spawned execution we need a operation context which we will initialize
+        // for the spawned execution we need an operation context which we will initialize
         // from the current operation context.
         var taskContextOwner = _operationContextFactory.Create();
         taskContextOwner.OperationContext.InitializeFrom(_parentContext);

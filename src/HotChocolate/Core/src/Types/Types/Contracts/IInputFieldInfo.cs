@@ -5,7 +5,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// This interface aggregates the most important attributes of a input value definition.
+/// This interface aggregates the most important attributes of an input value definition.
 /// </summary>
 public interface IInputValueInfo : INameProvider, ISchemaCoordinateProvider, IHasRuntimeType
 {

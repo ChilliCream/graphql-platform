@@ -456,7 +456,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        // if the type is a ITypeDefinition, we shortcut the type traversal
+        // if the type is an ITypeDefinition, we shortcut the type traversal
         // and simply return the name of the type.
         if (type is ITypeDefinition namedType)
         {
@@ -501,7 +501,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
 
         if (type is ITypeDefinition namedType)
         {
-            if(buffer.Length < namedType.Name.Length)
+            if (buffer.Length < namedType.Name.Length)
             {
                 written = 0;
                 return false;
@@ -514,7 +514,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
 
         if (type is ListType listType)
         {
-            if(!FullTypeName(listType.ElementType, currentDepth + 1, buffer, out written))
+            if (!FullTypeName(listType.ElementType, currentDepth + 1, buffer, out written))
             {
                 return false;
             }
@@ -534,7 +534,7 @@ public static class HotChocolateTypesAbstractionsTypeExtensions
 
         if (type is NonNullType nonNullType)
         {
-            if(!FullTypeName(nonNullType.NullableType, currentDepth + 1, buffer, out written))
+            if (!FullTypeName(nonNullType.NullableType, currentDepth + 1, buffer, out written))
             {
                 return false;
             }

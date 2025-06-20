@@ -6,7 +6,7 @@ namespace HotChocolate.Resolvers;
 
 /// <summary>
 /// This delegates describes the subscribe resolver interface that the execution engine
-/// uses to subscribe to a event stream.
+/// uses to subscribe to an event stream.
 /// </summary>
 /// <param name="context">The resolver context.</param>
 /// <returns>

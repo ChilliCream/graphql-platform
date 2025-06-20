@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Net.Http.Headers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Utilities;

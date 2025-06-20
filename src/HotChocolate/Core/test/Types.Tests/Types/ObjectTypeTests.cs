@@ -11,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using static HotChocolate.Types.FieldBindingFlags;
 using static HotChocolate.WellKnownContextData;
-using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 
 namespace HotChocolate.Types;
 

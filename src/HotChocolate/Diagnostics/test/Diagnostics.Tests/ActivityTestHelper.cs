@@ -1,7 +1,4 @@
 using System.Diagnostics;
-#if NET8_0
-using HotChocolate.Execution;
-#endif
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Diagnostics;

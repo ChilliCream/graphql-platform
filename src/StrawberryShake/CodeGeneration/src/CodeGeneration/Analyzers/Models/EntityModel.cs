@@ -5,7 +5,7 @@ using StrawberryShake.CodeGeneration.Extensions;
 namespace StrawberryShake.CodeGeneration.Analyzers.Models;
 
 /// <summary>
-/// Represents a entity that is used by a GraphQL client.
+/// Represents an entity that is used by a GraphQL client.
 /// </summary>
 public class EntityModel : ITypeModel
 {

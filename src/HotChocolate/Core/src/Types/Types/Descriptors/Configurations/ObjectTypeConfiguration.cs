@@ -78,7 +78,7 @@ public class ObjectTypeConfiguration
     public IsOfType? IsOfType { get; set; }
 
     /// <summary>
-    /// Defines if this type definition represents a object type extension.
+    /// Defines if this type definition represents an object type extension.
     /// </summary>
     public bool IsExtension { get; set; }
 

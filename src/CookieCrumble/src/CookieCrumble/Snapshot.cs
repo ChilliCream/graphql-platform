@@ -644,7 +644,7 @@ public class Snapshot
         throw new Exception(
             "The snapshot full name could not be evaluated. " +
             "This error can occur, if you use the snapshot match " +
-            "within a async test helper child method. To solve this issue, " +
+            "within an async test helper child method. To solve this issue, " +
             "use the Snapshot.FullName directly in the unit test to " +
             "get the snapshot name, then reach this name to your " +
             "Snapshot.Match method.");
@@ -677,7 +677,7 @@ public class Snapshot
         throw new Exception(
             "The snapshot full name could not be evaluated. " +
             "This error can occur, if you use the snapshot match " +
-            "within a async test helper child method. To solve this issue, " +
+            "within an async test helper child method. To solve this issue, " +
             "use the Snapshot.FullName directly in the unit test to " +
             "get the snapshot name, then reach this name to your " +
             "Snapshot.Match method.");

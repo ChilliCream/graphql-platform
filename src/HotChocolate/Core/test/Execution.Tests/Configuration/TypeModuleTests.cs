@@ -93,9 +93,7 @@ public class TypeModuleTests
             await warmupService.StartAsync(CancellationToken.None);
         }, cts.Token);
 
-        var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
-
-        await resolver.GetRequestExecutorAsync();
+        await provider.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
 
         // act
         // assert

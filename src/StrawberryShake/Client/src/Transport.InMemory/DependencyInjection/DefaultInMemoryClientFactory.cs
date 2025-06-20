@@ -6,20 +6,20 @@ namespace StrawberryShake.Transport.InMemory;
 /// <inheritdoc />
 public class DefaultInMemoryClientFactory : IInMemoryClientFactory
 {
-    private readonly IRequestExecutorResolver _executorProvider;
+    private readonly IRequestExecutorProvider _executorProvider;
     private readonly IOptionsMonitor<InMemoryClientFactoryOptions> _optionsMonitor;
 
     /// <summary>
     /// Initializes a new instance of <see cref="DefaultInMemoryClientFactory"/>
     /// </summary>
     /// <param name="executorProvider">
-    /// The <see cref="RequestExecutorResolver"/> that should be used to resolve the schemas
+    /// The <see cref="IRequestExecutorProvider"/> that should be used to resolve the schemas
     /// </param>
     /// <param name="optionsMonitor">
     /// The options monitor for the factory options
     /// </param>
     public DefaultInMemoryClientFactory(
-        IRequestExecutorResolver executorProvider,
+        IRequestExecutorProvider executorProvider,
         IOptionsMonitor<InMemoryClientFactoryOptions> optionsMonitor)
     {
         ArgumentNullException.ThrowIfNull(executorProvider);
@@ -50,7 +50,7 @@ public class DefaultInMemoryClientFactory : IInMemoryClientFactory
         }
         else
         {
-            client.Executor = await _executorProvider.GetRequestExecutorAsync(client.SchemaName, cancellationToken);
+            client.Executor = await _executorProvider.GetExecutorAsync(client.SchemaName, cancellationToken);
         }
 
         return client;

@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Filters.Expressions;
 /// <summary>
 /// The base of a <see cref="IQueryable{T}"/> operation handler specific for
 /// <see cref="IComparableOperationFilterInputType "/>
-/// If the <see cref="FilterTypeInterceptor"/> encounters a operation field that implements
+/// If the <see cref="FilterTypeInterceptor"/> encounters an operation field that implements
 /// <see cref="IComparableOperationFilterInputType "/> and matches the operation identifier
 /// defined in <see cref="QueryableComparableOperationHandler.Operation"/> the handler is bound
 /// to the field

@@ -1,5 +1,3 @@
-using HotChocolate.Types.Descriptors.Configurations;
-
 namespace HotChocolate.Types;
 
 /// <summary>

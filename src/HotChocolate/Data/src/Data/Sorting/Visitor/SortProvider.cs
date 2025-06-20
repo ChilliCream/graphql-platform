@@ -9,7 +9,7 @@ using static Microsoft.Extensions.DependencyInjection.ActivatorUtilities;
 namespace HotChocolate.Data.Sorting;
 
 /// <summary>
-/// A <see cref="SortProvider{TContext}"/> translates a incoming query to another
+/// A <see cref="SortProvider{TContext}"/> translates an incoming query to another
 /// object structure at runtime
 /// </summary>
 /// <typeparam name="TContext">The type of the context</typeparam>

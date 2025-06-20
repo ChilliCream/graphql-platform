@@ -58,7 +58,8 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
         }
         else if (Skip.Kind is SyntaxKind.Variable)
         {
-            skip = variables.GetVariable<bool>(Unsafe.As<VariableNode>(Skip).Name.Value);
+            var variable = Unsafe.As<VariableNode>(Skip);
+            skip = variables.GetValue<BooleanValueNode>(variable.Name.Value).Value;
         }
 
         var include = true;
@@ -69,7 +70,8 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
         }
         else if (Include.Kind is SyntaxKind.Variable)
         {
-            include = variables.GetVariable<bool>(Unsafe.As<VariableNode>(Include).Name.Value);
+            var variable = Unsafe.As<VariableNode>(Include);
+            include = variables.GetValue<BooleanValueNode>(variable.Name.Value).Value;
         }
 
         return !skip && include;

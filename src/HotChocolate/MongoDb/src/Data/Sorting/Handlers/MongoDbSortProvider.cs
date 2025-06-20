@@ -22,7 +22,7 @@ public class MongoDbSortProvider : SortProvider<MongoDbSortVisitorContext>
     }
 
     /// <summary>
-    /// The visitor thar will traverse a incoming query and execute the sorting handlers
+    /// The visitor thar will traverse an incoming query and execute the sorting handlers
     /// </summary>
     protected virtual SortVisitor<MongoDbSortVisitorContext, MongoDbSortDefinition> Visitor { get; } = new();
 

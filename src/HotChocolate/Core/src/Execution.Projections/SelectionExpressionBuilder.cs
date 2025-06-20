@@ -208,7 +208,7 @@ internal sealed class SelectionExpressionBuilder
             return;
         }
 
-        var flags = ((ObjectField)selection.Field).Flags;
+        var flags = selection.Field.Flags;
         if ((flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection
             || (flags & CoreFieldFlags.CollectionSegment) == CoreFieldFlags.CollectionSegment)
         {

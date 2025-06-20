@@ -4,7 +4,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class ResultBuilder
 {
-    private IRequestContext _context = null!;
+    private RequestContext _context = null!;
     private IExecutionDiagnosticEvents _diagnosticEvents = null!;
 
     public ResultBuilder(ResultPool resultPool)
@@ -14,7 +14,7 @@ internal sealed partial class ResultBuilder
     }
 
     public void Initialize(
-        IRequestContext context,
+        RequestContext context,
         IExecutionDiagnosticEvents diagnosticEvents)
     {
         _context = context;

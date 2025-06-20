@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -12,31 +14,40 @@ internal sealed class OperationResolverMiddleware
     private readonly RequestDelegate _next;
     private readonly ObjectPool<OperationCompiler> _operationCompilerPool;
     private readonly OperationCompilerOptimizers _operationCompilerOptimizers;
+    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
     private OperationResolverMiddleware(
         RequestDelegate next,
         ObjectPool<OperationCompiler> operationCompilerPool,
-        OperationCompilerOptimizers operationCompilerOptimizer)
+        OperationCompilerOptimizers operationCompilerOptimizer,
+        IExecutionDiagnosticEvents diagnosticEvents)
     {
-        _next = next ?? throw new ArgumentNullException(nameof(next));
-        _operationCompilerPool =
-            operationCompilerPool ?? throw new ArgumentNullException(nameof(operationCompilerPool));
-        _operationCompilerOptimizers = operationCompilerOptimizer
-            ?? throw new ArgumentNullException(nameof(operationCompilerOptimizer));
+        ArgumentNullException.ThrowIfNull(next);
+        ArgumentNullException.ThrowIfNull(operationCompilerPool);
+        ArgumentNullException.ThrowIfNull(operationCompilerOptimizer);
+        ArgumentNullException.ThrowIfNull(diagnosticEvents);
+
+        _next = next;
+        _operationCompilerPool = operationCompilerPool;
+        _operationCompilerOptimizers = operationCompilerOptimizer;
+        _diagnosticEvents = diagnosticEvents;
     }
 
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
-        if (context.Operation is not null)
+        if (context.TryGetOperation(out var operation, out var operationId))
         {
             await _next(context).ConfigureAwait(false);
+            return;
         }
-        else if (context.Document is not null && context.IsValidDocument)
+
+        var documentInfo = context.OperationDocumentInfo;
+        if (documentInfo.Document is not null && documentInfo.IsValidated)
         {
-            using (context.DiagnosticEvents.CompileOperation(context))
+            using (_diagnosticEvents.CompileOperation(context))
             {
-                var operationDef = context.Document.GetOperation(context.Request.OperationName);
-                var operationType = ResolveOperationType(operationDef.Operation, context.Schema);
+                var operationDef = documentInfo.Document.GetOperation(context.Request.OperationName);
+                var operationType = ResolveOperationType(operationDef.Operation, Unsafe.As<Schema>(context.Schema));
 
                 if (operationType is null)
                 {
@@ -44,34 +55,36 @@ internal sealed class OperationResolverMiddleware
                     return;
                 }
 
-                context.Operation = CompileOperation(
-                    context,
-                    context.OperationId ?? Guid.NewGuid().ToString("N"),
+                operation = CompileOperation(
+                    documentInfo.Document,
                     operationDef,
-                    operationType);
-                context.OperationId = context.Operation.Id;
+                    operationType,
+                    operationId ?? Guid.NewGuid().ToString("N"),
+                    context.Schema);
+
+                context.SetOperation(operation);
             }
 
             await _next(context).ConfigureAwait(false);
+            return;
         }
-        else
-        {
-            context.Result = StateInvalidForOperationResolver();
-        }
+
+        context.Result = StateInvalidForOperationResolver();
     }
 
     private IOperation CompileOperation(
-        IRequestContext context,
-        string operationId,
+        DocumentNode document,
         OperationDefinitionNode operationDefinition,
-        ObjectType operationType)
+        ObjectType operationType,
+        string operationId,
+        ISchemaDefinition schema)
     {
         var request = new OperationCompilerRequest(
             operationId,
-            context.Document!,
+            document,
             operationDefinition,
             operationType,
-            context.Schema,
+            schema,
             _operationCompilerOptimizers.OperationOptimizers,
             _operationCompilerOptimizers.SelectionSetOptimizers);
 
@@ -93,13 +106,18 @@ internal sealed class OperationResolverMiddleware
             _ => throw ThrowHelper.RootTypeNotSupported(operationType)
         };
 
-    public static RequestCoreMiddlewareConfiguration Create()
-        => new RequestCoreMiddlewareConfiguration(
+    public static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
             (core, next) =>
             {
                 var operationCompilerPool = core.Services.GetRequiredService<ObjectPool<OperationCompiler>>();
                 var optimizers = core.SchemaServices.GetRequiredService<OperationCompilerOptimizers>();
-                var middleware = new OperationResolverMiddleware(next, operationCompilerPool, optimizers);
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var middleware = new OperationResolverMiddleware(
+                    next,
+                    operationCompilerPool,
+                    optimizers,
+                    diagnosticEvents);
                 return context => middleware.InvokeAsync(context);
             },
             nameof(OperationResolverMiddleware));

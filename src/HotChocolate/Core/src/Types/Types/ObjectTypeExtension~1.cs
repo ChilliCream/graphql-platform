@@ -21,7 +21,7 @@ public class ObjectTypeExtension<T> : ObjectTypeExtension
     private Action<IObjectTypeDescriptor<T>>? _configure;
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="ObjectTypeExtension{T}"/>.
+    /// Initializes a new instance of <see cref="ObjectTypeExtension{T}"/>.
     /// </summary>
     public ObjectTypeExtension(Action<IObjectTypeDescriptor<T>> configure)
     {
@@ -30,7 +30,7 @@ public class ObjectTypeExtension<T> : ObjectTypeExtension
     }
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="ObjectType{T}"/>.
+    /// Initializes a new instance of <see cref="ObjectType{T}"/>.
     /// </summary>
     [ActivatorUtilitiesConstructor]
     public ObjectTypeExtension()

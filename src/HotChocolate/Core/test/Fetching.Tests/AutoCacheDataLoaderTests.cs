@@ -1,4 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
 using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Types;
