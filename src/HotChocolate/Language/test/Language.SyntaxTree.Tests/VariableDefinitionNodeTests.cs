@@ -9,18 +9,21 @@ public class VariableDefinitionNodeTests
         var a = new VariableDefinitionNode(
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("aa"),
             null,
             new List<DirectiveNode>(0));
         var b = new VariableDefinitionNode(
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("aa"),
             null,
             new List<DirectiveNode>(0));
         var c = new VariableDefinitionNode(
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("bb"),
             null,
             new List<DirectiveNode>(0));
@@ -45,18 +48,21 @@ public class VariableDefinitionNodeTests
         var a = new VariableDefinitionNode(
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("aa"),
             null,
             new List<DirectiveNode>(0));
         var b = new VariableDefinitionNode(
             new Location(2, 2, 2, 2),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("aa"),
             null,
             new List<DirectiveNode>(0));
         var c = new VariableDefinitionNode(
             new Location(3, 3, 3, 3),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("bb"),
             null,
             new List<DirectiveNode>(0));
@@ -81,24 +87,28 @@ public class VariableDefinitionNodeTests
         var a = new VariableDefinitionNode(
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("aa"),
             null,
             new List<DirectiveNode>(0));
         var b = new VariableDefinitionNode(
             new Location(2, 2, 2, 2),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("aa"),
             null,
             new List<DirectiveNode>(0));
         var c = new VariableDefinitionNode(
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("bb"),
             null,
             new List<DirectiveNode>(0));
         var d = new VariableDefinitionNode(
             new Location(2, 2, 2, 2),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("bb"),
             null,
             new List<DirectiveNode>(0));
@@ -125,6 +135,7 @@ public class VariableDefinitionNodeTests
             => new VariableDefinitionNode(
                 new Location(1, 1, 1, 1),
                 null!,
+                description: null,
                 new NamedTypeNode(new NameNode("foo")),
                 new StringValueNode("Foo"),
                 new List<DirectiveNode>());
@@ -142,6 +153,7 @@ public class VariableDefinitionNodeTests
             => new VariableDefinitionNode(
                 new Location(1, 1, 1, 1),
                 new VariableNode(new NameNode("foo")),
+                description: null,
                 null!,
                 new StringValueNode("Foo"),
                 new List<DirectiveNode>());
@@ -159,6 +171,7 @@ public class VariableDefinitionNodeTests
             => new VariableDefinitionNode(
                 new Location(1, 1, 1, 1),
                 new VariableNode(new NameNode("foo")),
+                description: null,
                 new NamedTypeNode(new NameNode("foo")),
                 new StringValueNode("Foo"),
                 null!);
@@ -175,6 +188,7 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
             new List<DirectiveNode> { new("qux") });
@@ -190,6 +204,7 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
             new List<DirectiveNode> { new("qux") });
@@ -210,6 +225,7 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
             new List<DirectiveNode>
@@ -233,6 +249,7 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
             new List<DirectiveNode>
@@ -254,6 +271,7 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
             new List<DirectiveNode> { new("qux") });
@@ -274,6 +292,7 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
             new List<DirectiveNode>
@@ -295,6 +314,7 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
             new List<DirectiveNode> { new("qux") });
@@ -315,6 +335,7 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
             new List<DirectiveNode> { new("qux") });
@@ -335,6 +356,7 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
             new List<DirectiveNode> { new("qux") });

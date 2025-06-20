@@ -10,6 +10,7 @@ public class DocumentNodeTests
 
         var fragment = new FragmentDefinitionNode(
             null, new NameNode("foo"),
+            description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("foo"),
             Array.Empty<DirectiveNode>(),
@@ -30,6 +31,7 @@ public class DocumentNodeTests
         // arrange
         var fragment = new FragmentDefinitionNode(
             null, new NameNode("foo"),
+            description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("foo"),
             Array.Empty<DirectiveNode>(),
@@ -52,6 +54,7 @@ public class DocumentNodeTests
 
         var fragment = new FragmentDefinitionNode(
             null, new NameNode("foo"),
+            description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("foo"),
             Array.Empty<DirectiveNode>(),
@@ -74,6 +77,7 @@ public class DocumentNodeTests
 
         var fragment = new FragmentDefinitionNode(
             null, new NameNode("foo"),
+            description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("foo"),
             Array.Empty<DirectiveNode>(),
@@ -96,6 +100,7 @@ public class DocumentNodeTests
 
         var fragment = new FragmentDefinitionNode(
             null, new NameNode("foo"),
+            description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("foo"),
             Array.Empty<DirectiveNode>(),
@@ -116,6 +121,7 @@ public class DocumentNodeTests
         // arrange
         var fragment = new FragmentDefinitionNode(
             null, new NameNode("foo"),
+            description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("foo"),
             Array.Empty<DirectiveNode>(),

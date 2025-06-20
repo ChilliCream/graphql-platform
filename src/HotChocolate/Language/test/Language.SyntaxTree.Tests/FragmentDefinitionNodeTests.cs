@@ -9,6 +9,7 @@ public class FragmentDefinitionNodeTests
         var a = new FragmentDefinitionNode(
             new Location(1, 1, 1, 1),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("cc"),
             new List<DirectiveNode>(),
@@ -16,6 +17,7 @@ public class FragmentDefinitionNodeTests
         var b = new FragmentDefinitionNode(
             new Location(1, 1, 1, 1),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("cc"),
             new List<DirectiveNode>(),
@@ -23,6 +25,7 @@ public class FragmentDefinitionNodeTests
         var c = new FragmentDefinitionNode(
             new Location(1, 1, 1, 1),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("dd"),
             new List<DirectiveNode>(),
@@ -48,6 +51,7 @@ public class FragmentDefinitionNodeTests
         var a = new FragmentDefinitionNode(
             new Location(1, 1, 1, 1),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("cc"),
             new List<DirectiveNode>(),
@@ -55,6 +59,7 @@ public class FragmentDefinitionNodeTests
         var b = new FragmentDefinitionNode(
             new Location(2, 2, 2, 2),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("cc"),
             new List<DirectiveNode>(),
@@ -62,6 +67,7 @@ public class FragmentDefinitionNodeTests
         var c = new FragmentDefinitionNode(
             new Location(3, 3, 3, 3),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("dd"),
             new List<DirectiveNode>(),
@@ -87,6 +93,7 @@ public class FragmentDefinitionNodeTests
         var a = new FragmentDefinitionNode(
             new Location(1, 1, 1, 1),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("cc"),
             new List<DirectiveNode>(),
@@ -94,6 +101,7 @@ public class FragmentDefinitionNodeTests
         var b = new FragmentDefinitionNode(
             new Location(2, 2, 2, 2),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("cc"),
             new List<DirectiveNode>(),
@@ -101,6 +109,7 @@ public class FragmentDefinitionNodeTests
         var c = new FragmentDefinitionNode(
             new Location(1, 1, 1, 1),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("dd"),
             new List<DirectiveNode>(),
@@ -108,6 +117,7 @@ public class FragmentDefinitionNodeTests
         var d = new FragmentDefinitionNode(
             new Location(2, 2, 2, 2),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("dd"),
             new List<DirectiveNode>(),

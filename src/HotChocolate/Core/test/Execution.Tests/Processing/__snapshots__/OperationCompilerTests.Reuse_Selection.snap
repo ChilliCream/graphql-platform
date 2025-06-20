@@ -1,4 +1,7 @@
-﻿query Hero($episode: Episode, $withFriends: Boolean!) {
+query Hero(
+  $episode: Episode
+  $withFriends: Boolean!
+) {
   hero(episode: $episode) {
     name
     friends @include(if: $withFriends) {
@@ -11,7 +14,10 @@
 
 ---------------------------------------------------------
 
-query Hero($episode: Episode, $withFriends: Boolean!) @includeCondition(flag: 2) {
+query Hero(
+  $episode: Episode
+  $withFriends: Boolean!
+) @includeCondition(flag: 2) {
   ... on Query {
     hero(episode: $episode) @__execute(id: 0, kind: PURE, type: COMPOSITE) {
       ... on Droid {
