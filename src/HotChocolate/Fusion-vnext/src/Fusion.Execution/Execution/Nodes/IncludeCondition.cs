@@ -90,11 +90,6 @@ internal readonly struct IncludeCondition : IEquatable<IncludeCondition>
         if (directives.Count == 2)
         {
             TryParseDirective(directives[0], ref skip, ref include);
-            if (TryCreateIncludeCondition(out includeCondition))
-            {
-                return true;
-            }
-
             TryParseDirective(directives[1], ref skip, ref include);
             return TryCreateIncludeCondition(out includeCondition);
         }
@@ -102,14 +97,11 @@ internal readonly struct IncludeCondition : IEquatable<IncludeCondition>
         if (directives.Count == 3)
         {
             TryParseDirective(directives[0], ref skip, ref include);
-            if (TryCreateIncludeCondition(out includeCondition))
-            {
-                return true;
-            }
-
             TryParseDirective(directives[1], ref skip, ref include);
-            if (TryCreateIncludeCondition(out includeCondition))
+
+            if (skip is not null && include is not null)
             {
+                includeCondition = new IncludeCondition(skip, include);
                 return true;
             }
 
@@ -121,7 +113,7 @@ internal readonly struct IncludeCondition : IEquatable<IncludeCondition>
         {
             TryParseDirective(directives[i], ref skip, ref include);
 
-            if (skip is not null || include is not null)
+            if (skip is not null && include is not null)
             {
                 includeCondition = new IncludeCondition(skip, include);
                 return true;
