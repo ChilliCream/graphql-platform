@@ -889,6 +889,9 @@ Type: `{0}`</value>
   <data name="ErrorHelper_RequiredArgumentCannotBeDeprecated" xml:space="preserve">
     <value>Required argument {0} cannot be deprecated.</value>
   </data>
+  <data name="ErrorHelper_ArgumentDefaultValueMustBeCompatible" xml:space="preserve">
+    <value>Argument {0} must have a compatible default value.</value>
+  </data>
   <data name="ErrorHelper_RequiredFieldCannotBeDeprecated" xml:space="preserve">
     <value>Required input field {0} cannot be deprecated.</value>
   </data>
