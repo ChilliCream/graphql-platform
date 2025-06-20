@@ -196,7 +196,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 }
 
                 executionStep.AllSelections.Add(selection);
-                executionStep.RootSelections.Add(new RootSelection(selection, resolver));
+                var rootSelection = new RootSelection(selection, resolver);
+                executionStep.RootSelections.Add(rootSelection);
 
                 if (resolver is not null)
                 {
@@ -205,7 +206,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
                 if (selection.SelectionSet is not null)
                 {
-                    CollectNestedSelections(
+                    var couldPlanChildSelections = CollectNestedSelections(
                         context,
                         backlog,
                         operation,
@@ -216,6 +217,15 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                         preferBatching,
                         context.ParentSelections,
                         subgraphsInContext);
+
+                    if (!couldPlanChildSelections)
+                    {
+                        executionStep.AllSelections.Remove(selection);
+                        executionStep.RootSelections.Remove(rootSelection);
+                        executionStep.SelectionResolvers.Remove(selection);
+
+                        (leftovers ??=[]).Add(selection);
+                    }
                 }
 
                 path.RemoveAt(pathIndex);
@@ -295,7 +305,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         }
     }
 
-    private void CollectNestedSelections(
+    private bool CollectNestedSelections(
         QueryPlanContext context,
         Queue<BacklogItem> backlog,
         IOperation operation,
@@ -312,9 +322,10 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             preferBatching = parentSelection.Type.IsListType();
         }
 
+        var overallCouldPlanSelections = false;
         foreach (var possibleType in operation.GetPossibleTypes(parentSelection))
         {
-            CollectNestedSelections(
+            var couldPlanSelections = CollectNestedSelections(
                 context,
                 backlog,
                 operation,
@@ -326,10 +337,17 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 preferBatching,
                 parentSelectionLookup,
                 subgraphsInContext);
+
+            if (couldPlanSelections)
+            {
+                overallCouldPlanSelections = true;
+            }
         }
+
+        return overallCouldPlanSelections;
     }
 
-    private void CollectNestedSelections(
+    private bool CollectNestedSelections(
         QueryPlanContext context,
         Queue<BacklogItem> backlog,
         IOperation operation,
@@ -399,7 +417,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
                 if (selection.SelectionSet is not null)
                 {
-                    CollectNestedSelections(
+                    var couldPlanChildSelections = CollectNestedSelections(
                         context,
                         backlog,
                         operation,
@@ -410,6 +428,14 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                         preferBatching,
                         parentSelectionLookup,
                         subgraphsInContext);
+
+                    if (!couldPlanChildSelections)
+                    {
+                        executionStep.AllSelections.Remove(selection);
+                        executionStep.SelectionResolvers.Remove(selection);
+
+                        (leftovers ??=[]).Add(selection);
+                    }
                 }
             }
             else
@@ -422,6 +448,16 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
         if (leftovers is not null)
         {
+            var isTypeResolvableFromOtherSubgraph = declaringType.Resolvers
+                .Any(r => r.SubgraphName != executionStep.SubgraphName);
+
+            var couldNotResolveAnySelections = leftovers.Count == selectionSet.Selections.Count;
+
+            if (couldNotResolveAnySelections && !isTypeResolvableFromOtherSubgraph)
+            {
+                return false;
+            }
+
             var selectionSetPath = CreateSelectionPath(rootSelectionPath, path);
 
             if (selectionSetPath is not null)
@@ -444,6 +480,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 preferBatching
             );
         }
+
+        return true;
     }
 
     private static void TryEnqueueBacklogItem(
@@ -644,7 +682,6 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         string subgraph,
         SelectionExecutionStep executionStep,
         HashSet<string> subgraphsInContext)
-
     {
         if (parentSelection is null || !selectionSetTypeMetadata.Resolvers.ContainsResolvers(subgraph))
         {
