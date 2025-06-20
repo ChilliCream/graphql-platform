@@ -14,7 +14,15 @@ internal class IncludeConditionCollection : ICollection<IncludeCondition>
     public bool IsReadOnly => false;
 
     public bool Add(IncludeCondition item)
-        => _dictionary.TryAdd(item, true);
+    {
+        if (_dictionary.Count == 64)
+        {
+            throw new InvalidOperationException(
+                "The maximum number of include conditions has been reached.");
+        }
+
+        return _dictionary.TryAdd(item, true);
+    }
 
     void ICollection<IncludeCondition>.Add(IncludeCondition item)
         => Add(item);

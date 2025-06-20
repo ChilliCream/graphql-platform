@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography.X509Certificates;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.ObjectPool;
@@ -30,11 +31,15 @@ internal sealed class OperationCompiler
         try
         {
             var lastId = 0u;
+            var parentIncludeFlags = 0ul;
+            var includeConditions = new IncludeConditionCollection();
 
             CollectFields(
+                parentIncludeFlags,
                 operationDefinition.SelectionSet.Selections,
                 _schema.GetOperationType(operationDefinition.Operation),
-                fields);
+                fields,
+                includeConditions);
 
             var selectionSet = BuildSelectionSet(
                 fields,
@@ -61,12 +66,12 @@ internal sealed class OperationCompiler
             if (selection is FieldNode fieldNode)
             {
                 var responseName = fieldNode.Alias?.Value ?? fieldNode.Name.Value;
-                var includeFlags = 0ul;
+                var pathIncludeFlags = parentIncludeFlags;
 
-                if (!fields.TryGetValue(responseName, out var builder))
+                if (!fields.TryGetValue(responseName, out var nodes))
                 {
-                    builder = [];
-                    fields.Add(responseName, builder);
+                    nodes = [];
+                    fields.Add(responseName, nodes);
                 }
 
                 if (IncludeCondition.TryCreate(fieldNode, out var includeCondition))
@@ -74,19 +79,31 @@ internal sealed class OperationCompiler
                     var index = includeConditions.Add(includeCondition)
                         ? includeConditions.Count - 1
                         : includeConditions.IndexOf(includeCondition);
-                    includeFlags |= 1ul << index;
+                    pathIncludeFlags |= 1ul << index;
                 }
 
-                builder.Add(new FieldSelectionNode(fieldNode, includeFlags));
+                nodes.Add(new FieldSelectionNode(fieldNode, pathIncludeFlags));
             }
 
             if (selection is InlineFragmentNode inlineFragmentNode
                 && DoesTypeApply(inlineFragmentNode.TypeCondition, typeContext))
             {
+                var pathIncludeFlags = parentIncludeFlags;
+
+                if (IncludeCondition.TryCreate(inlineFragmentNode, out var includeCondition))
+                {
+                    var index = includeConditions.Add(includeCondition)
+                        ? includeConditions.Count - 1
+                        : includeConditions.IndexOf(includeCondition);
+                    pathIncludeFlags |= 1ul << index;
+                }
+
                 CollectFields(
+                    pathIncludeFlags,
                     inlineFragmentNode.SelectionSet.Selections,
                     typeContext,
-                    fields);
+                    fields,
+                    includeConditions);
             }
         }
     }
@@ -99,41 +116,111 @@ internal sealed class OperationCompiler
         var i = 0;
         var selections = new Selection[fieldMap.Count];
         var isConditional = false;
+        var includeFlags = new List<ulong>();
 
-        foreach (var (responseName, syntaxNodes) in fieldMap)
+        foreach (var (responseName, nodes) in fieldMap)
         {
-            var firstNode = syntaxNodes[0].Node;
-            var includeFlags = syntaxNodes[0].IncludeFlags;
+            includeFlags.Clear();
 
-            if (syntaxNodes.Count > 1)
+            var first = nodes[0];
+
+            if (first.PathIncludeFlags > 0)
             {
-                for (var j = 1; j < syntaxNodes.Count; j++)
+                includeFlags.Add(first.PathIncludeFlags);
+            }
+
+            if (nodes.Count > 1)
+            {
+                for (var j = 1; j < nodes.Count; j++)
                 {
-                    includeFlags |= syntaxNodes[j].IncludeFlags;
-                    if (!firstNode.Name.Value.Equals(syntaxNodes[j].Node.Name.Value, StringComparison.Ordinal))
+                    var next = nodes[j];
+
+                    if (!first.Node.Name.Value.Equals(next.Node.Name.Value, StringComparison.Ordinal))
                     {
                         throw new InvalidOperationException(
                             $"The syntax nodes for the response name {responseName} are not all the same.");
                     }
+
+                    if (next.PathIncludeFlags > 0)
+                    {
+                        includeFlags.Add(next.PathIncludeFlags);
+                    }
                 }
             }
 
-            var field = typeContext.Fields[syntaxNodes[0].Node.Name.Value];
+            if (includeFlags.Count > 1)
+            {
+                CollapseIncludeFlags(includeFlags);
+            }
+
+            var field = typeContext.Fields[first.Node.Name.Value];
 
             selections[i++] = new Selection(
                 ++lastId,
                 responseName,
                 field,
-                syntaxNodes.ToArray(),
-                includeFlags);
+                nodes.ToArray(),
+                includeFlags.ToArray());
 
-            if (includeFlags is not 0)
+            if (includeFlags.Count > 1)
             {
                 isConditional = true;
             }
         }
 
         return new SelectionSet(++lastId, selections, isConditional);
+    }
+
+    private static void CollapseIncludeFlags(List<ulong> includeFlags)
+    {
+        // we sort the include flags to improve early elimination and stability
+        includeFlags.Sort();
+
+        var write = 0;
+
+        for (var read = 0; read < includeFlags.Count; read++)
+        {
+            var candidate = includeFlags[read];
+            var covered = false;
+
+            // we check if the candidate is already covered
+            for (var i = 0; i < write; i++)
+            {
+                if ((candidate & includeFlags[i]) == includeFlags[i])
+                {
+                    covered = true;
+                    break;
+                }
+            }
+
+            if (!covered)
+            {
+                // lastly we remove more restrictive flags from the already written range
+                for (var i = 0; i < write;)
+                {
+                    if ((includeFlags[i] & candidate) == candidate)
+                    {
+                        includeFlags[i] = includeFlags[--write];
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                }
+
+                if (write < read)
+                {
+                    includeFlags[write] = candidate;
+                }
+                write++;
+            }
+        }
+
+        // we trim the list to the collapsed set
+        if (write < includeFlags.Count)
+        {
+            includeFlags.RemoveRange(write, includeFlags.Count - write);
+        }
     }
 
     private bool DoesTypeApply(NamedTypeNode? typeCondition, IObjectTypeDefinition typeContext)

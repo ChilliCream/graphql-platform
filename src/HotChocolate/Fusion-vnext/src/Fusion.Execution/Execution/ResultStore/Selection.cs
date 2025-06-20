@@ -1,4 +1,3 @@
-using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
@@ -6,7 +5,8 @@ namespace HotChocolate.Fusion.Execution;
 public sealed class Selection
 {
     private readonly FieldSelectionNode[] _syntaxNodes;
-    private readonly ulong _includeFlags;
+    private readonly ulong[] _includeFlags;
+
     private bool _isSealed;
 
     public Selection(
@@ -14,7 +14,7 @@ public sealed class Selection
         string responseName,
         IOutputFieldDefinition field,
         FieldSelectionNode[] syntaxNodes,
-        ulong includeFlags)
+        ulong[] includeFlags)
     {
         ArgumentNullException.ThrowIfNull(field);
 
@@ -46,12 +46,46 @@ public sealed class Selection
 
     public bool IsIncluded(ulong includeFlags)
     {
-        if (includeFlags == 0 || _includeFlags == 0)
+        if (_includeFlags.Length == 0)
         {
             return true;
         }
 
-        return (_includeFlags & includeFlags) != 0;
+        if (_includeFlags.Length == 1)
+        {
+            var flags1 = _includeFlags[0];
+            return (flags1 & includeFlags) == flags1;
+        }
+
+        if (_includeFlags.Length == 2)
+        {
+            var flags1 = _includeFlags[0];
+            var flags2 = _includeFlags[1];
+            return (flags1 & includeFlags) == flags1
+                || (flags2 & includeFlags) == flags2;
+        }
+
+        if (_includeFlags.Length == 3)
+        {
+            var flags1 = _includeFlags[0];
+            var flags2 = _includeFlags[1];
+            var flags3 = _includeFlags[2];
+            return (flags1 & includeFlags) == flags1
+                || (flags2 & includeFlags) == flags2
+                || (flags3 & includeFlags) == flags3;
+        }
+
+        var span = _includeFlags.AsSpan();
+
+        for (var i = 0; i < span.Length; i++)
+        {
+            if ((span[i] & includeFlags) == span[i])
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     internal void Seal(SelectionSet selectionSet)
@@ -65,5 +99,3 @@ public sealed class Selection
         DeclaringSelectionSet = selectionSet;
     }
 }
-
-public sealed record FieldSelectionNode(FieldNode Node, ulong IncludeFlags);
