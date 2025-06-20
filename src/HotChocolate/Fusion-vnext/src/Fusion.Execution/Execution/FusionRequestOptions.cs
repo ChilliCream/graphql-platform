@@ -13,7 +13,7 @@ public sealed class FusionRequestOptions : ICloneable
 
     /// <summary>
     /// Gets or sets the execution timeout.
-    /// By default, the execution timeout is set to 30 seconds;
+    /// By default, the execution timeout is set to 30 seconds.
     /// </summary>
     public TimeSpan ExecutionTimeout
     {
@@ -92,10 +92,13 @@ public sealed class FusionRequestOptions : ICloneable
     /// </returns>
     public FusionRequestOptions Clone()
     {
-        var clone = new FusionRequestOptions();
-        clone._executionTimeout = _executionTimeout;
-        clone._operationExecutionPlanCacheSize = _operationExecutionPlanCacheSize;
-        clone._operationExecutionPlanCacheDiagnostics = _operationExecutionPlanCacheDiagnostics;
+        var clone = new FusionRequestOptions
+        {
+            _executionTimeout = _executionTimeout,
+            _operationExecutionPlanCacheSize = _operationExecutionPlanCacheSize,
+            _operationDocumentCacheSize = _operationDocumentCacheSize,
+            _operationExecutionPlanCacheDiagnostics = _operationExecutionPlanCacheDiagnostics
+        };
         return clone;
     }
 

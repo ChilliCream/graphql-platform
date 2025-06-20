@@ -170,12 +170,26 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
         }
     }
 
+    /// <summary>
+    /// Splits a field node into resolvable and unresolvable parts.
+    /// </summary>
+    /// <returns>
+    /// A tuple of (resolvable field nodes, unresolvable field nodes).
+    /// </returns>
     private (FieldNode?, FieldNode?) RewriteFieldNode(
         Context context,
         FusionComplexTypeDefinition complexType,
         FieldNode fieldNode,
         FieldNode? providedFieldNode)
     {
+        // We need to check for the __typename field first,
+        // since in the union case the complexType is null
+        // and the field access below would fail.
+        if (fieldNode.Name.Value == "__typename")
+        {
+            return (fieldNode, null);
+        }
+
         var field = complexType.Fields[fieldNode.Name.Value];
 
         if (providedFieldNode is null)
@@ -234,6 +248,12 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
         return (fieldNode, null);
     }
 
+    /// <summary>
+    /// Splits an inline fragment node into resolvable and unresolvable parts.
+    /// </summary>
+    /// <returns>
+    /// A tuple of (inline fragment with resolvable selections, inline fragment with unresolvable selections).
+    /// </returns>
     private (InlineFragmentNode?, InlineFragmentNode?) RewriteFragmentNode(
         Context context,
         ITypeDefinition type,

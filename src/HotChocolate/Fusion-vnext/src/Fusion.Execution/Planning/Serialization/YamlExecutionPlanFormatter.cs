@@ -15,13 +15,33 @@ public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
 
         foreach (var node in plan.AllNodes)
         {
-            if(node is OperationExecutionNode operationNode)
+            if (node is OperationExecutionNode operationNode)
             {
                 WriteNode(operationNode, writer);
+            }
+            else if (node is IntrospectionExecutionNode introspectionNode)
+            {
+                WriteNode(introspectionNode, writer);
             }
         }
 
         return sb.ToString();
+    }
+
+    private static void WriteNode(IntrospectionExecutionNode node, CodeWriter writer)
+    {
+        writer.WriteLine("- id: " + node.Id);
+        writer.Indent();
+        writer.WriteLine("type: INTROSPECTION");
+        writer.WriteLine("operation: >-");
+        writer.Indent();
+        var reader = new StringReader(node.Operation.ToString());
+        var line = reader.ReadLine();
+        while (line != null)
+        {
+            writer.WriteLine(line);
+            line = reader.ReadLine();
+        }
     }
 
     private static void WriteNode(OperationExecutionNode node, CodeWriter writer)
@@ -38,6 +58,7 @@ public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
             writer.WriteLine(line);
             line = reader.ReadLine();
         }
+
         writer.Unindent();
 
         if (node.Requirements.Any())

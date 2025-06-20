@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Runtime;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Directives;
@@ -36,6 +37,8 @@ internal static class CompositeSchemaBuilder
         var typeDefinitions = ImmutableDictionary.CreateBuilder<string, ITypeDefinitionNode>();
         var directiveTypes = ImmutableArray.CreateBuilder<FusionDirectiveDefinition>();
         var directiveDefinitions = ImmutableDictionary.CreateBuilder<string, DirectiveDefinitionNode>();
+
+        // AddIntrospectionTypes(types, typeDefinitions);
 
         foreach (var definition in schema.Definitions)
         {
@@ -158,7 +161,7 @@ internal static class CompositeSchemaBuilder
     private static FusionOutputFieldDefinitionCollection CreateOutputFields(
         IReadOnlyList<FieldDefinitionNode> fields)
     {
-        var sourceFields = new FusionOutputFieldDefinition[fields.Count];
+        var sourceFields = new FusionOutputFieldDefinition[fields.Count + 1 /* __typename */];
 
         for (var i = 0; i < fields.Count; i++)
         {
@@ -172,6 +175,13 @@ internal static class CompositeSchemaBuilder
                 deprecated?.Reason,
                 CreateOutputFieldArguments(field.Arguments));
         }
+
+        sourceFields[^1] = new FusionOutputFieldDefinition(
+            "__typename",
+            null,
+            false,
+            null,
+            FusionInputFieldDefinitionCollection.Empty);
 
         return new FusionOutputFieldDefinitionCollection(sourceFields);
     }
@@ -311,9 +321,14 @@ internal static class CompositeSchemaBuilder
                 ? schemaContext.GetType<FusionObjectTypeDefinition>(schemaContext.SubscriptionType)
                 : null,
             directives,
-            new FusionTypeDefinitionCollection(AsArray(schemaContext.TypeDefinitions)!),
+            new FusionTypeDefinitionCollection([..schemaContext.TypeDefinitions, ..CreateIntrospectionTypes()]),
             new FusionDirectiveDefinitionCollection(AsArray(schemaContext.DirectiveDefinitions)!),
             schemaContext.Features);
+    }
+
+    private static FusionObjectTypeDefinition[] CreateIntrospectionTypes()
+    {
+        return [];
     }
 
     private static void CompleteObjectType(

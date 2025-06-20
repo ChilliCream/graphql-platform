@@ -26,7 +26,13 @@ public class IntrospectionTests : FusionTestBase
         MatchInline(
             plan,
             """
-            NOT SUPPORTED
+            nodes:
+            - id: 1
+              type: INTROSPECTION
+              operation: >-
+                query testQuery_1 {
+                  __typename
+                }
             """);
     }
 
@@ -54,7 +60,13 @@ public class IntrospectionTests : FusionTestBase
         MatchInline(
             plan,
             """
-            NOT SUPPORTED
+            nodes:
+            - id: 1
+              type: INTROSPECTION
+              operation: >-
+                query testQuery_1 {
+                  alias: __typename
+                }
             """);
     }
 
@@ -214,8 +226,8 @@ public class IntrospectionTests : FusionTestBase
         var plan = PlanOperation(
             schema,
             """
-            query testQuery {
-              __type(name: "Object1") {
+            query testQuery($typename: String!) {
+              __type(name: $typename) {
                 name
               }
             }
@@ -225,7 +237,15 @@ public class IntrospectionTests : FusionTestBase
         MatchInline(
             plan,
             """
-            NOT SUPPORTED
+            nodes:
+            - id: 1
+              type: INTROSPECTION
+              operation: >-
+                query testQuery_1($typename: String!) {
+                  __type(name: $typename) {
+                    name
+                  }
+                }
             """);
     }
 
@@ -274,7 +294,25 @@ public class IntrospectionTests : FusionTestBase
         MatchInline(
             plan,
             """
-            NOT SUPPORTED
+            nodes:
+            - id: 1
+              type: INTROSPECTION
+              operation: >-
+                query testQuery_1 {
+                  typeA: __type(name: "Object1") {
+                    name
+                  }
+                  typeB: __type(name: "Object2") {
+                    name
+                    fields {
+                      name
+                      type {
+                        name
+                        kind
+                      }
+                    }
+                  }
+                }
             """);
     }
 

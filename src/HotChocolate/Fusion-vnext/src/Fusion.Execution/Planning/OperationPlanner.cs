@@ -992,6 +992,12 @@ file static class Extensions
                 switch (selection)
                 {
                     case FieldNode fieldNode:
+                        if (fieldNode.Name.Value.StartsWith("__"))
+                        {
+                            // We skip introspection fields in the weighting process.
+                            continue;
+                        }
+
                         foreach (var schemaName in complexType!.Fields[fieldNode.Name.Value].Sources.Schemas)
                         {
                             TrackSchema(possibleSchemas, schemaName);
