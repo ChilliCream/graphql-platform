@@ -1,14 +1,54 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
-internal readonly struct IncludeCondition(string? skip, string? include)
-    : IEquatable<IncludeCondition>
+internal readonly struct IncludeCondition : IEquatable<IncludeCondition>
 {
-    public string? Skip { get; } = skip;
+    private readonly string? _skip;
+    private readonly string? _include;
 
-    public string? Include { get; } = include;
+    public IncludeCondition(string? skip, string? include)
+    {
+        _skip = skip;
+        _include = include;
+    }
+
+    public string? Skip => _skip;
+
+    public string? Include => _include;
+
+    public bool IsIncluded(IVariableValueCollection variableValues)
+    {
+        if (_skip is not null)
+        {
+            if (!variableValues.TryGetValue<BooleanValueNode>(_skip, out var value))
+            {
+                throw new InvalidOperationException($"The variable {_skip} has an invalid value.");
+            }
+
+            if (value.Value)
+            {
+                return false;
+            }
+        }
+
+        if (_include is not null)
+        {
+            if (!variableValues.TryGetValue<BooleanValueNode>(_include, out var value))
+            {
+                throw new InvalidOperationException($"The variable {_include} has an invalid value.");
+            }
+
+            if (!value.Value)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     public bool Equals(IncludeCondition other)
         => string.Equals(Skip, other.Skip, StringComparison.Ordinal)

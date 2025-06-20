@@ -1,10 +1,10 @@
 using System.Collections;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 internal class IncludeConditionCollection : ICollection<IncludeCondition>
 {
-    private readonly OrderedDictionary<IncludeCondition, bool> _dictionary = [];
+    private readonly OrderedDictionary<IncludeCondition, int> _dictionary = [];
 
     public IncludeCondition this[int index]
         => _dictionary.GetAt(index).Key;
@@ -21,7 +21,7 @@ internal class IncludeConditionCollection : ICollection<IncludeCondition>
                 "The maximum number of include conditions has been reached.");
         }
 
-        return _dictionary.TryAdd(item, true);
+        return _dictionary.TryAdd(item, _dictionary.Count);
     }
 
     void ICollection<IncludeCondition>.Add(IncludeCondition item)
@@ -37,7 +37,14 @@ internal class IncludeConditionCollection : ICollection<IncludeCondition>
         => _dictionary.ContainsKey(item);
 
     public int IndexOf(IncludeCondition item)
-       => _dictionary.IndexOf(item);
+    {
+        if (_dictionary.TryGetValue(item, out var index))
+        {
+            return index;
+        }
+
+        return -1;
+    }
 
     public void CopyTo(IncludeCondition[] array, int arrayIndex)
         => _dictionary.Keys.CopyTo(array, arrayIndex);

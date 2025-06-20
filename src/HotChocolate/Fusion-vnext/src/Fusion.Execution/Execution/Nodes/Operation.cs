@@ -1,27 +1,33 @@
-using System.ComponentModel;
+using System.Collections.Concurrent;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed class Operation
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
+    private readonly object _sync = new();
+#endif
+    private readonly ConcurrentDictionary<(ulong, string), SelectionSet> _selectionSets = [];
+    private readonly OperationCompiler _compiler;
     private readonly IncludeConditionCollection _includeConditions;
-    private readonly ulong _lastId;
+    private uint _lastId;
 
     internal Operation(
         string id,
-        DocumentNode document,
         OperationDefinitionNode definition,
         IObjectTypeDefinition rootType,
         ISchemaDefinition schema,
         SelectionSet rootSelectionSet,
+        OperationCompiler compiler,
         IncludeConditionCollection includeConditions,
-        ulong lastId)
+        uint lastId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
-        ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(definition);
         ArgumentNullException.ThrowIfNull(rootType);
         ArgumentNullException.ThrowIfNull(schema);
@@ -29,11 +35,11 @@ public sealed class Operation
         ArgumentNullException.ThrowIfNull(includeConditions);
 
         Id = id;
-        Document = document;
         Definition = definition;
         RootType = rootType;
         Schema = schema;
         RootSelectionSet = rootSelectionSet;
+        _compiler = compiler;
         _includeConditions = includeConditions;
         _lastId = lastId;
     }
@@ -47,12 +53,6 @@ public sealed class Operation
     /// Gets the name of the operation.
     /// </summary>
     public string? Name => Definition.Name?.Value;
-
-    /// <summary>
-    /// Gets the parsed query document that contains the
-    /// operation-<see cref="Definition" />.
-    /// </summary>
-    public DocumentNode Document { get; }
 
     /// <summary>
     /// Gets the syntax node representing the operation definition.
@@ -96,7 +96,25 @@ public sealed class Operation
     /// </exception>
     public SelectionSet GetSelectionSet(Selection selection, IObjectTypeDefinition typeContext)
     {
-        throw new NotImplementedException();
+        var key = (selection.Id, typeContext.Name);
+
+        if (!_selectionSets.TryGetValue(key, out var selectionSet))
+        {
+            lock (_sync)
+            {
+                if (!_selectionSets.TryGetValue(key, out selectionSet))
+                {
+                    selectionSet =
+                        _compiler.CompileSelectionSet(
+                            selection,
+                            typeContext,
+                            _includeConditions,
+                            ref _lastId);
+                }
+            }
+        }
+
+        return selectionSet;
     }
 
     /// <summary>
@@ -127,8 +145,19 @@ public sealed class Operation
     /// <returns>
     /// Returns the include flags for the specified variable values.
     /// </returns>
-    public long CreateIncludeFlags(IVariableValueCollection variables)
+    public ulong CreateIncludeFlags(IVariableValueCollection variables)
     {
-        throw new NotImplementedException();
+        var index = 0;
+        var includeFlags = 0ul;
+
+        foreach (var includeCondition in _includeConditions)
+        {
+            if (includeCondition.IsIncluded(variables))
+            {
+                includeFlags |= 1ul << index++;
+            }
+        }
+
+        return includeFlags;
     }
 }

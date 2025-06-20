@@ -1,12 +1,9 @@
-using System.Collections;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography.X509Certificates;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 internal sealed class OperationCompiler
 {
@@ -24,27 +21,85 @@ internal sealed class OperationCompiler
         _fieldsPool = fieldsPool;
     }
 
-    public void Compile(OperationDefinitionNode operationDefinition)
+    public Operation Compile(string id, OperationDefinitionNode operationDefinition)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentNullException.ThrowIfNull(operationDefinition);
+
+        var includeConditions = new IncludeConditionCollection();
+        IncludeConditionVisitor.Instance.Visit(operationDefinition, includeConditions);
         var fields = _fieldsPool.Get();
 
         try
         {
             var lastId = 0u;
-            var parentIncludeFlags = 0ul;
-            var includeConditions = new IncludeConditionCollection();
+            const ulong parentIncludeFlags = 0ul;
+            var rootType = _schema.GetOperationType(operationDefinition.Operation);
 
             CollectFields(
                 parentIncludeFlags,
                 operationDefinition.SelectionSet.Selections,
-                _schema.GetOperationType(operationDefinition.Operation),
+                rootType,
                 fields,
                 includeConditions);
 
             var selectionSet = BuildSelectionSet(
                 fields,
-                _schema.GetOperationType(operationDefinition.Operation),
+                rootType,
                 ref lastId);
+
+            return new Operation(
+                id,
+                operationDefinition,
+                rootType,
+                _schema,
+                selectionSet,
+                this,
+                includeConditions,
+                lastId);
+        }
+        finally
+        {
+            _fieldsPool.Return(fields);
+        }
+    }
+
+    internal SelectionSet CompileSelectionSet(
+        Selection selection,
+        IObjectTypeDefinition objectType,
+        IncludeConditionCollection includeConditions,
+        ref uint lastId)
+    {
+        var fields = _fieldsPool.Get();
+
+        try
+        {
+            var nodes = selection.SyntaxNodes;
+            var first = nodes[0];
+
+            CollectFields(
+                first.PathIncludeFlags,
+                first.Node.SelectionSet!.Selections,
+                objectType,
+                fields,
+                includeConditions);
+
+            if (nodes.Length > 1)
+            {
+                for (var i = 1; i < nodes.Length; i++)
+                {
+                    var node = nodes[i];
+
+                    CollectFields(
+                        node.PathIncludeFlags,
+                        node.Node.SelectionSet!.Selections,
+                        objectType,
+                        fields,
+                        includeConditions);
+                }
+            }
+
+            return BuildSelectionSet(fields, objectType, ref lastId);
         }
         finally
         {
@@ -76,9 +131,7 @@ internal sealed class OperationCompiler
 
                 if (IncludeCondition.TryCreate(fieldNode, out var includeCondition))
                 {
-                    var index = includeConditions.Add(includeCondition)
-                        ? includeConditions.Count - 1
-                        : includeConditions.IndexOf(includeCondition);
+                    var index = includeConditions.IndexOf(includeCondition);
                     pathIncludeFlags |= 1ul << index;
                 }
 
@@ -92,9 +145,7 @@ internal sealed class OperationCompiler
 
                 if (IncludeCondition.TryCreate(inlineFragmentNode, out var includeCondition))
                 {
-                    var index = includeConditions.Add(includeCondition)
-                        ? includeConditions.Count - 1
-                        : includeConditions.IndexOf(includeCondition);
+                    var index = includeConditions.IndexOf(includeCondition);
                     pathIncludeFlags |= 1ul << index;
                 }
 
@@ -108,7 +159,7 @@ internal sealed class OperationCompiler
         }
     }
 
-    public SelectionSet BuildSelectionSet(
+    private SelectionSet BuildSelectionSet(
         OrderedDictionary<string, List<FieldSelectionNode>> fieldMap,
         IObjectTypeDefinition typeContext,
         ref uint lastId)
@@ -123,6 +174,7 @@ internal sealed class OperationCompiler
             includeFlags.Clear();
 
             var first = nodes[0];
+            var isInternal = IsInternal(first.Node);
 
             if (first.PathIncludeFlags > 0)
             {
@@ -145,6 +197,11 @@ internal sealed class OperationCompiler
                     {
                         includeFlags.Add(next.PathIncludeFlags);
                     }
+
+                    if (!isInternal)
+                    {
+                        isInternal = IsInternal(next.Node);
+                    }
                 }
             }
 
@@ -160,7 +217,8 @@ internal sealed class OperationCompiler
                 responseName,
                 field,
                 nodes.ToArray(),
-                includeFlags.ToArray());
+                includeFlags.ToArray(),
+                isInternal);
 
             if (includeFlags.Count > 1)
             {
@@ -241,5 +299,75 @@ internal sealed class OperationCompiler
         }
 
         return false;
+    }
+
+    private bool IsInternal(FieldNode fieldNode)
+    {
+        const string isInternal = "fusion_internal";
+        var directives = fieldNode.Directives;
+
+        if (directives.Count == 0)
+        {
+            return false;
+        }
+
+        if (directives.Count == 1)
+        {
+            return directives[0].Name.Value.Equals(isInternal, StringComparison.Ordinal);
+        }
+
+        if (directives.Count == 2)
+        {
+            return directives[0].Name.Value.Equals(isInternal, StringComparison.Ordinal)
+                || directives[1].Name.Value.Equals(isInternal, StringComparison.Ordinal);
+        }
+
+        if (directives.Count == 3)
+        {
+            return directives[0].Name.Value.Equals(isInternal, StringComparison.Ordinal)
+                || directives[1].Name.Value.Equals(isInternal, StringComparison.Ordinal)
+                || directives[2].Name.Value.Equals(isInternal, StringComparison.Ordinal);
+        }
+
+        for (var i = 0; i < directives.Count; i++)
+        {
+            var directive = directives[i];
+
+            if (directive.Name.Value.Equals(isInternal, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private class IncludeConditionVisitor : SyntaxWalker<IncludeConditionCollection>
+    {
+        public static readonly IncludeConditionVisitor Instance = new();
+
+        protected override ISyntaxVisitorAction Enter(
+            FieldNode node,
+            IncludeConditionCollection context)
+        {
+            if (IncludeCondition.TryCreate(node, out var condition))
+            {
+                context.Add(condition);
+            }
+
+            return base.Enter(node, context);
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            InlineFragmentNode node,
+            IncludeConditionCollection context)
+        {
+            if (IncludeCondition.TryCreate(node, out var condition))
+            {
+                context.Add(condition);
+            }
+
+            return base.Enter(node, context);
+        }
     }
 }

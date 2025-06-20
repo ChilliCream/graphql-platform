@@ -21,7 +21,7 @@ public sealed class OperationPlanContext : IAsyncDisposable
         OperationPlan = operationPlan;
         RequestContext = requestContext;
         Variables = variables;
-        _resultStore = new FetchResultStore(requestContext.Schema);
+        _resultStore =  null!; // new FetchResultStore(requestContext.Schema);
 
         // create a client scope for the current request context.
         var clientScopeFactory = requestContext.RequestServices.GetRequiredService<ISourceSchemaClientScopeFactory>();

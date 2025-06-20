@@ -1,20 +1,20 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed class Selection
 {
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
-
-    private bool _isSealed;
+    private Flags _flags;
 
     public Selection(
         uint id,
         string responseName,
         IOutputFieldDefinition field,
         FieldSelectionNode[] syntaxNodes,
-        ulong[] includeFlags)
+        ulong[] includeFlags,
+        bool isInternal)
     {
         ArgumentNullException.ThrowIfNull(field);
 
@@ -30,6 +30,7 @@ public sealed class Selection
         Field = field;
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
+        _flags = isInternal ? Flags.Internal : Flags.None;
     }
 
     public uint Id { get; }
@@ -90,12 +91,20 @@ public sealed class Selection
 
     internal void Seal(SelectionSet selectionSet)
     {
-        if (_isSealed)
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
             throw new InvalidOperationException("Selection is already sealed.");
         }
 
-        _isSealed = true;
+        _flags |= Flags.Sealed;
         DeclaringSelectionSet = selectionSet;
+    }
+
+    [Flags]
+    private enum Flags
+    {
+        None = 0,
+        Internal = 1,
+        Sealed = 2
     }
 }

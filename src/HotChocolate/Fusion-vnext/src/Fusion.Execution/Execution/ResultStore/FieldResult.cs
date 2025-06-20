@@ -1,3 +1,5 @@
+using HotChocolate.Fusion.Execution.Nodes;
+
 namespace HotChocolate.Fusion.Execution;
 
 public abstract class FieldResult : ResultData
