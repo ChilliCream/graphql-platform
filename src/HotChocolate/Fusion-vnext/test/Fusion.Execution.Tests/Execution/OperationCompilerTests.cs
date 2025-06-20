@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -57,6 +58,61 @@ public class OperationCompilerTests
         Assert.True(id.IsIncluded(0));
     }
 
+    [Fact]
+    public void Query_NoName_With_Skip_No_Include_No_Internal()
+    {
+        // arrange
+        const string sourceText =
+            """
+            query ($if1: Boolean!) {
+                product @skip(if: $if1) {
+                    id
+                }
+            }
+            """;
+
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
+        var schema = CreateSchema();
+
+        var booleanType = schema.Types.GetType<IScalarTypeDefinition>("Boolean");
+        var nonNullBooleanType = new NonNullType(booleanType);
+
+        var variableValues = new VariableValueCollection(
+            new Dictionary<string, VariableValue>
+            {
+                { "if1", new VariableValue("if1", nonNullBooleanType, BooleanValueNode.True) }
+            });
+
+        // act
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+        var operation = compiler.Compile("1", operationDefinition);
+        var flags = operation.CreateIncludeFlags(variableValues);
+
+        // assert
+        Assert.Equal("1", operation.Id);
+        Assert.Equal(OperationType.Query, operation.Definition.Operation);
+        Assert.Equal(schema.GetOperationType(OperationType.Query), operation.RootType);
+        Assert.Equal(schema, operation.Schema);
+
+        var root = operation.RootSelectionSet;
+        Assert.Equal(1, root.Selections.Length);
+
+        var product = root.Selections[0];
+        Assert.Equal("product", product.Field.Name);
+        Assert.False(product.IsIncluded(flags));
+
+        var productSelectionSet =
+            operation.GetSelectionSet(
+                product,
+                product.Type.NamedType<IObjectTypeDefinition>());
+        Assert.Equal(1, productSelectionSet.Selections.Length);
+
+        var id = productSelectionSet.Selections[0];
+        Assert.Equal("id", id.Field.Name);
+        Assert.False(id.IsIncluded(flags));
+    }
+
     public static ISchemaDefinition CreateSchema()
     {
         const string sourceText =
@@ -68,6 +124,8 @@ public class OperationCompilerTests
             type Product {
                 id: ID
             }
+
+            scalar Boolean
             """;
 
         return SchemaParser.Parse(sourceText);

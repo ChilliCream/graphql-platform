@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography.X509Certificates;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 
@@ -61,27 +62,66 @@ internal readonly struct IncludeCondition : IEquatable<IncludeCondition>
         => HashCode.Combine(Skip, Include);
 
     public static bool TryCreate(FieldNode field, out IncludeCondition includeCondition)
+        => TryCreate(field.Directives, out includeCondition);
+
+    public static bool TryCreate(InlineFragmentNode inlineFragment, out IncludeCondition includeCondition)
+        => TryCreate(inlineFragment.Directives, out includeCondition);
+
+    private static bool TryCreate(IReadOnlyList<DirectiveNode> directives, out IncludeCondition includeCondition)
     {
         string? skip = null;
         string? include = null;
 
-        for (var i = 0; i < field.Directives.Count; i++)
+        if (directives.Count == 0)
         {
-            var directive = field.Directives[i];
-            if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal)
-                && directive.Arguments.Count == 1
-                && directive.Arguments[0].Value is VariableNode skipVariable)
+            includeCondition = default;
+            return false;
+        }
+
+        if (directives.Count == 1)
+        {
+            TryParseDirective(directives[0], ref skip, ref include);
+            if (TryCreateIncludeCondition(out includeCondition))
             {
-                skip = skipVariable.Name.Value;
+                return true;
             }
-            else if (directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal)
-                && directive.Arguments.Count == 1
-                && directive.Arguments[0].Value is VariableNode includeVariable)
+        }
+
+        if (directives.Count == 2)
+        {
+            TryParseDirective(directives[0], ref skip, ref include);
+            if (TryCreateIncludeCondition(out includeCondition))
             {
-                include = includeVariable.Name.Value;
+                return true;
             }
 
-            if (skip is not null && include is not null)
+            TryParseDirective(directives[1], ref skip, ref include);
+            return TryCreateIncludeCondition(out includeCondition);
+        }
+
+        if (directives.Count == 3)
+        {
+            TryParseDirective(directives[0], ref skip, ref include);
+            if (TryCreateIncludeCondition(out includeCondition))
+            {
+                return true;
+            }
+
+            TryParseDirective(directives[1], ref skip, ref include);
+            if (TryCreateIncludeCondition(out includeCondition))
+            {
+                return true;
+            }
+
+            TryParseDirective(directives[2], ref skip, ref include);
+            return TryCreateIncludeCondition(out includeCondition);
+        }
+
+        for (var i = 0; i < directives.Count; i++)
+        {
+            TryParseDirective(directives[i], ref skip, ref include);
+
+            if (skip is not null || include is not null)
             {
                 includeCondition = new IncludeCondition(skip, include);
                 return true;
@@ -90,37 +130,33 @@ internal readonly struct IncludeCondition : IEquatable<IncludeCondition>
 
         includeCondition = default;
         return false;
+
+        bool TryCreateIncludeCondition(out IncludeCondition includeCondition)
+        {
+            if (skip is not null || include is not null)
+            {
+                includeCondition = new IncludeCondition(skip, include);
+                return true;
+            }
+
+            includeCondition = default;
+            return false;
+        }
     }
 
-    public static bool TryCreate(InlineFragmentNode field, out IncludeCondition includeCondition)
+    private static void TryParseDirective(DirectiveNode directive, ref string? skip, ref string? include)
     {
-        string? skip = null;
-        string? include = null;
-
-        for (var i = 0; i < field.Directives.Count; i++)
+        if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal)
+            && directive.Arguments.Count == 1
+            && directive.Arguments[0].Value is VariableNode skipVariable)
         {
-            var directive = field.Directives[i];
-            if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal)
-                && directive.Arguments.Count == 1
-                && directive.Arguments[0].Value is VariableNode skipVariable)
-            {
-                skip = skipVariable.Name.Value;
-            }
-            else if (directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal)
-                && directive.Arguments.Count == 1
-                && directive.Arguments[0].Value is VariableNode includeVariable)
-            {
-                include = includeVariable.Name.Value;
-            }
-
-            if (skip is not null && include is not null)
-            {
-                includeCondition = new IncludeCondition(skip, include);
-                return true;
-            }
+            skip = skipVariable.Name.Value;
         }
-
-        includeCondition = default;
-        return false;
+        else if (directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal)
+            && directive.Arguments.Count == 1
+            && directive.Arguments[0].Value is VariableNode includeVariable)
+        {
+            include = includeVariable.Name.Value;
+        }
     }
 }
