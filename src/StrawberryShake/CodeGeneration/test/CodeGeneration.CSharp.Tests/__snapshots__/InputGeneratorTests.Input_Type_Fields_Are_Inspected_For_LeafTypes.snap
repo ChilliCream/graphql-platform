@@ -402,7 +402,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the ChangeHomePlanet GraphQL operation
     /// <code>
-    /// mutation ChangeHomePlanet($input: ChangeHomePlanetInput!) {
+    /// mutation ChangeHomePlanet(
+    ///   $input: ChangeHomePlanetInput!
+    /// ) {
     ///   changeHomePlanet(input: $input) {
     ///     __typename
     ///     human {
@@ -604,7 +606,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the ChangeHomePlanet GraphQL operation
     /// <code>
-    /// mutation ChangeHomePlanet($input: ChangeHomePlanetInput!) {
+    /// mutation ChangeHomePlanet(
+    ///   $input: ChangeHomePlanetInput!
+    /// ) {
     ///   changeHomePlanet(input: $input) {
     ///     __typename
     ///     human {
@@ -703,7 +707,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the ChangeHomePlanet GraphQL operation
     /// <code>
-    /// mutation ChangeHomePlanet($input: ChangeHomePlanetInput!) {
+    /// mutation ChangeHomePlanet(
+    ///   $input: ChangeHomePlanetInput!
+    /// ) {
     ///   changeHomePlanet(input: $input) {
     ///     __typename
     ///     human {

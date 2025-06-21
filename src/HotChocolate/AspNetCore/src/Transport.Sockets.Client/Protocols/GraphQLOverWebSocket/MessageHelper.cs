@@ -2,7 +2,6 @@ using System.Net.WebSockets;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Transport.Serialization;
-using HotChocolate.Utilities;
 using static System.Net.WebSockets.WebSocketMessageType;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;

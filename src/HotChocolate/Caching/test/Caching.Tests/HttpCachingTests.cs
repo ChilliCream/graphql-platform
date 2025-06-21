@@ -2,7 +2,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Caching.Http.Tests;
 

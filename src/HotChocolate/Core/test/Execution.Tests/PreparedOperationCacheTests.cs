@@ -17,11 +17,11 @@ public class PreparedOperationCacheTests
             .AddGraphQL()
             .AddQueryType(d => d.Field("foo").Resolve(""));
         var provider = services.BuildServiceProvider();
-        var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
+        var resolver = provider.GetRequiredService<IRequestExecutorProvider>();
 
         // act
-        var executor = await resolver.GetRequestExecutorAsync();
-        var operationCache = executor.Services.GetCombinedServices()
+        var executor = await resolver.GetExecutorAsync();
+        var operationCache = executor.Schema.Services.GetCombinedServices()
             .GetRequiredService<IPreparedOperationCache>();
 
         // assert

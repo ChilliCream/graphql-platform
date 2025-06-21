@@ -6,7 +6,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
 public sealed class ConnectionStatus
 {
     private static readonly ConnectionStatus s_defaultAccepted =
-        new(true, "You connection was accepted.", null);
+        new(true, "Your connection was accepted.", null);
     private static readonly ConnectionStatus s_defaultRejected =
         new(false, "Your connection was rejected.", null);
 

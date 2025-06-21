@@ -138,7 +138,7 @@ public readonly struct FieldResult<TResult> : IFieldResult
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
     [MemberNotNullWhen(true, nameof(Errors))]
     public bool IsError { get; }
@@ -313,7 +313,7 @@ public readonly struct FieldResult<TResult, TError> : IFieldResult
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
     [MemberNotNullWhen(true, nameof(Errors))]
     public bool IsError { get; }
@@ -691,7 +691,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
     [MemberNotNullWhen(true, nameof(Errors))]
     public bool IsError { get; }
@@ -1202,7 +1202,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
     [MemberNotNullWhen(true, nameof(Errors))]
     public bool IsError { get; }
@@ -1845,7 +1845,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
     [MemberNotNullWhen(true, nameof(Errors))]
     public bool IsError { get; }
@@ -2620,7 +2620,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
     [MemberNotNullWhen(true, nameof(Errors))]
     public bool IsError { get; }

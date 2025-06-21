@@ -64,7 +64,7 @@ public class SchemaTypeReferenceTests
         var x = TypeReference.Create(type);
 
         // act
-        var result = x.Equals((SchemaTypeReference)null);
+        var result = x.Equals(null);
 
         // assert
         Assert.False(result);
@@ -78,7 +78,7 @@ public class SchemaTypeReferenceTests
         var x = TypeReference.Create(type);
 
         // act
-        var xx = x.Equals((SchemaTypeReference)x);
+        var xx = x.Equals(x);
 
         // assert
         Assert.True(xx);
@@ -506,7 +506,7 @@ public class SchemaTypeReferenceTests
     {
         // arrange
         // act
-        var context = SchemaTypeReference.InferTypeContext((object)"foo");
+        var context = SchemaTypeReference.InferTypeContext("foo");
 
         // assert
         Assert.Equal(TypeContext.None, context);

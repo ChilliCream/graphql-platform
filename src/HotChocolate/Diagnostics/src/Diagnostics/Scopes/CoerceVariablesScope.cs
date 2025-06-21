@@ -8,7 +8,7 @@ internal sealed class CoerceVariablesScope : RequestScopeBase
 {
     public CoerceVariablesScope(
         ActivityEnricher enricher,
-        IRequestContext context,
+        RequestContext context,
         Activity activity)
         : base(enricher, context, activity)
     {
@@ -19,7 +19,7 @@ internal sealed class CoerceVariablesScope : RequestScopeBase
 
     protected override void SetStatus()
     {
-        if (Context.Variables is not null)
+        if (Context.VariableValues.Length > 0)
         {
             Activity.SetStatus(Status.Ok);
             Activity.SetStatus(ActivityStatusCode.Ok);

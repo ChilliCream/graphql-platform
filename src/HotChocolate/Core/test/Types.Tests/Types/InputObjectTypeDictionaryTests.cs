@@ -4,7 +4,7 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Types;
 
-public class InputObjectTypeNonNullTests
+public class InputObjectTypeDictionaryTests
     : TypeTestBase
 {
     [Fact]

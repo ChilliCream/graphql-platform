@@ -192,7 +192,7 @@ public abstract class FloatTypeBase<TRuntimeType>
 
     /// <summary>
     /// Creates the exception that will be thrown when <see cref="ParseValue(object?)"/>
-    /// encountered a invalid runtime value.
+    /// encountered an invalid runtime value.
     /// </summary>
     /// <param name="runtimeValue">
     /// The runtime value.

@@ -4,7 +4,7 @@ using MongoDB.Driver;
 namespace HotChocolate.Data.MongoDb;
 
 /// <summary>
-/// A executable that is based on <see cref="IFindFluent{TInput,TResult}"/>
+/// An executable that is based on <see cref="IFindFluent{TInput,TResult}"/>
 /// </summary>
 /// <typeparam name="T">The entity type</typeparam>
 public class MongoDbFindFluentExecutable<T>(IFindFluent<T, T> findFluent) : MongoDbExecutable<T>

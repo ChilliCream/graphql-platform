@@ -6,7 +6,6 @@ using GreenDonut;
 using HotChocolate.Language;
 using HotChocolate.OpenApi.Helpers;
 using HotChocolate.Resolvers;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;

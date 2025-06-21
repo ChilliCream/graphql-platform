@@ -16,7 +16,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.StringUtilities;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
-using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 using TypeNames = HotChocolate.Fusion.WellKnownTypeNames;
 
 namespace HotChocolate.Fusion;

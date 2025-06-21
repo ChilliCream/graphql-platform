@@ -4,7 +4,7 @@ using HotChocolate.Language.Utilities;
 namespace HotChocolate.Language;
 
 /// <summary>
-/// <para>Represents a enum value literal.</para>
+/// <para>Represents an enum value literal.</para>
 /// <para>http://facebook.github.io/graphql/June2018/#sec-Enum-Value</para>
 /// </summary>
 public sealed class EnumValueNode : IValueNode<string>

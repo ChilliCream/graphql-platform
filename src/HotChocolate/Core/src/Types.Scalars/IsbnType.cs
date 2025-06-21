@@ -4,7 +4,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The `ISBN` scalar type is a ISBN-10 or ISBN-13 number:
+/// The `ISBN` scalar type is an ISBN-10 or ISBN-13 number:
 /// <a>https://en.wikipedia.org/wiki/International_Standard_Book_Number</a>.
 /// </summary>
 public partial class IsbnType : RegexType

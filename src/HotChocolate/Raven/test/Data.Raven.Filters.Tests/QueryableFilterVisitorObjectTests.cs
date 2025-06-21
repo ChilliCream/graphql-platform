@@ -1,7 +1,6 @@
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Raven.Client.Documents;
-using Raven.Client.Documents.Linq;
 
 namespace HotChocolate.Data.Filters;
 
@@ -594,8 +593,8 @@ public class QueryableFilterVisitorObjectTests
     {
         // arrange
         var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
-        using var session =
-            tester.Services.GetRootServiceProvider().GetRequiredService<IDocumentStore>().OpenAsyncSession();
+        using var session = tester.Schema.Services.GetRootServiceProvider()
+            .GetRequiredService<IDocumentStore>().OpenAsyncSession();
 
         // act
         var res1 = await tester.ExecuteAsync(

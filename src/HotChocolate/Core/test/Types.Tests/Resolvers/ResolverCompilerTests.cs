@@ -558,6 +558,7 @@ public class ResolverCompilerTests
             new OperationDefinitionNode(
                 null,
                 null,
+                null,
                 OperationType.Query,
                 Array.Empty<VariableDefinitionNode>(),
                 Array.Empty<DirectiveNode>(),

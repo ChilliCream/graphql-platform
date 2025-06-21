@@ -1,7 +1,5 @@
 // ReSharper disable InconsistentNaming
 
-using System.Reflection.Metadata;
-
 namespace GreenDonut;
 
 public class DataLoaderExtensionsTests

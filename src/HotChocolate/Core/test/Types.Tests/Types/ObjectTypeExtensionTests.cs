@@ -8,7 +8,6 @@ using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 using static HotChocolate.Types.FieldBindingFlags;
 
 #nullable enable

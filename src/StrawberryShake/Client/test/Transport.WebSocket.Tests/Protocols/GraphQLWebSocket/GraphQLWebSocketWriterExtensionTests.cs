@@ -2,7 +2,7 @@ using System.Text;
 
 namespace StrawberryShake.Transport.WebSockets.Protocols;
 
-public class GraphQlWsSocketWriterExtensionTests
+public class GraphQLWebSocketWriterExtensionTests
 {
     [Fact]
     public async Task WriteStartOperationMessage_WithOperation_IsMatch()

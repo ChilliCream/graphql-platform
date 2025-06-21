@@ -12,11 +12,12 @@ public sealed class WebSocketSubscriptionMiddleware : MiddlewareBase
 
     public WebSocketSubscriptionMiddleware(
         RequestDelegate next,
-        IRequestExecutorResolver executorResolver,
+        IRequestExecutorProvider executorResolver,
+        IRequestExecutorEvents executorEvents,
         IHttpResponseFormatter responseFormatter,
         IServerDiagnosticEvents diagnosticEvents,
         string schemaName)
-        : base(next, executorResolver, responseFormatter, schemaName)
+        : base(next, executorResolver, executorEvents, responseFormatter, schemaName)
     {
         _diagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));

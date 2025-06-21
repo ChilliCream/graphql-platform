@@ -201,4 +201,13 @@ public sealed class ErrorBuilder
             _locations = locations
         };
     }
+
+    public static ErrorBuilder FromException(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+
+        return New()
+            .SetMessage("Unexpected Execution Error")
+            .SetException(exception);
+    }
 }

@@ -17,6 +17,7 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -63,6 +64,7 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -90,6 +92,7 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -118,6 +121,7 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -153,6 +157,7 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 null,
                 Array.Empty<DirectiveNode>())
@@ -181,6 +186,7 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -220,6 +226,7 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -259,6 +266,7 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -297,6 +305,7 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -335,6 +344,7 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("ReviewInput"),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -373,6 +383,7 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("ReviewInput"),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -411,6 +422,7 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("ReviewInput"),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -449,6 +461,7 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NonNullTypeNode(new NamedTypeNode("String")),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -481,6 +494,7 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NonNullTypeNode(new NamedTypeNode("String")),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -513,6 +527,7 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -547,6 +562,7 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -578,6 +594,7 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("Human"),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -609,6 +626,7 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("ReviewInput"),
                 new StringValueNode("def"),
                 Array.Empty<DirectiveNode>())
@@ -659,6 +677,7 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new ListTypeNode(new NamedTypeNode("FooInput")),
                 null,
                 Array.Empty<DirectiveNode>())
@@ -720,6 +739,7 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new ListTypeNode(new NamedTypeNode("FooInput")),
                 null,
                 Array.Empty<DirectiveNode>())
@@ -782,6 +802,7 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("FooInput"),
                 null,
                 Array.Empty<DirectiveNode>())
@@ -840,6 +861,7 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("FooInput"),
                 null,
                 Array.Empty<DirectiveNode>())
@@ -898,6 +920,7 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("FooInput"),
                 null,
                 Array.Empty<DirectiveNode>())
@@ -965,6 +988,7 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new ListTypeNode(new NamedTypeNode("FooInput")),
                 null,
                 Array.Empty<DirectiveNode>())
@@ -1013,6 +1037,7 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 null,
                 Array.Empty<DirectiveNode>())

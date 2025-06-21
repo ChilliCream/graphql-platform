@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -510,7 +509,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             return list;
         }
 
-        protected internal override void OnInitialize(DocumentValidatorContext context)
+        protected internal override void Initialize(DocumentValidatorContext context)
             => NonNullString = new NonNullType(context.Schema.Types.GetType<IScalarTypeDefinition>("String"));
 
         protected internal override void Reset()

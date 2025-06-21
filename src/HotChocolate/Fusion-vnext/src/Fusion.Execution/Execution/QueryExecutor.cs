@@ -1,11 +1,12 @@
+#if NET9_0_OR_GREATER
 using System.Runtime.InteropServices;
+#endif
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Execution;
 

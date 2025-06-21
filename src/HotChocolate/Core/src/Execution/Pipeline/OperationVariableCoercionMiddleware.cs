@@ -1,3 +1,4 @@
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.Pipeline.PipelineTools;
@@ -8,24 +9,31 @@ internal sealed class OperationVariableCoercionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly VariableCoercionHelper _coercionHelper;
+    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
-    private OperationVariableCoercionMiddleware(RequestDelegate next,
-        VariableCoercionHelper coercionHelper)
+    private OperationVariableCoercionMiddleware(
+        RequestDelegate next,
+        VariableCoercionHelper coercionHelper,
+        IExecutionDiagnosticEvents diagnosticEvents)
     {
-        _next = next ??
-            throw new ArgumentNullException(nameof(next));
-        _coercionHelper = coercionHelper ??
-            throw new ArgumentNullException(nameof(coercionHelper));
+        ArgumentNullException.ThrowIfNull(next);
+        ArgumentNullException.ThrowIfNull(coercionHelper);
+        ArgumentNullException.ThrowIfNull(diagnosticEvents);
+
+        _next = next;
+        _coercionHelper = coercionHelper;
+        _diagnosticEvents = diagnosticEvents;
     }
 
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
-        if (context.Operation is not null)
+        if (context.TryGetOperation(out var operation))
         {
             CoerceVariables(
                 context,
                 _coercionHelper,
-                context.Operation.Definition.VariableDefinitions);
+                operation.Definition.VariableDefinitions,
+                _diagnosticEvents);
 
             await _next(context).ConfigureAwait(false);
         }
@@ -35,12 +43,13 @@ internal sealed class OperationVariableCoercionMiddleware
         }
     }
 
-    public static RequestCoreMiddlewareConfiguration Create()
-        => new RequestCoreMiddlewareConfiguration(
+    public static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
             (core, next) =>
             {
                 var coercionHelper = core.Services.GetRequiredService<VariableCoercionHelper>();
-                var middleware = new OperationVariableCoercionMiddleware(next, coercionHelper);
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+                var middleware = new OperationVariableCoercionMiddleware(next, coercionHelper, diagnosticEvents);
                 return context => middleware.InvokeAsync(context);
             },
             nameof(OperationVariableCoercionMiddleware));

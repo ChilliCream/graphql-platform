@@ -2,7 +2,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -389,7 +388,7 @@ public class SchemaBuilderTests
     {
         // arrange
         // act
-        void Action() => SchemaBuilder.New().Use(((FieldMiddleware)null)!);
+        void Action() => SchemaBuilder.New().Use(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -533,7 +532,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .AddDirectiveType((DirectiveType)null);
+            .AddDirectiveType(null);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
