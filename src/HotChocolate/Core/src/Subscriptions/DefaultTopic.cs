@@ -38,7 +38,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
-            FullMode = (BoundedChannelFullMode) (int) fullMode
+            FullMode = ConvertFullMode(fullMode)
         };
         _incoming = CreateUnbounded<TMessage>();
         _diagnosticEvents = diagnosticEvents;
@@ -54,7 +54,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
-            FullMode = (BoundedChannelFullMode) (int) fullMode
+            FullMode = ConvertFullMode(fullMode)
         };
         _incoming = incomingMessages;
         _diagnosticEvents = diagnosticEvents;
@@ -389,6 +389,14 @@ public abstract class DefaultTopic<TMessage> : ITopic
     /// </summary>
     private void RaiseClosedEvent()
         => Closed?.Invoke(this, EventArgs.Empty);
+
+    private static BoundedChannelFullMode ConvertFullMode(TopicBufferFullMode fullMode) => fullMode switch
+    {
+        TopicBufferFullMode.DropNewest => BoundedChannelFullMode.DropNewest,
+        TopicBufferFullMode.DropOldest => BoundedChannelFullMode.DropOldest,
+        TopicBufferFullMode.DropWrite => BoundedChannelFullMode.DropWrite,
+        _ => throw new ArgumentOutOfRangeException(nameof(fullMode))
+    };
 
     ~DefaultTopic()
     {
