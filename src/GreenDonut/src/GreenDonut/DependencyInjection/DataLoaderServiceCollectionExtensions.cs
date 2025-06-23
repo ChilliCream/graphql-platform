@@ -88,6 +88,9 @@ public static class DataLoaderServiceCollectionExtensions
         where TService : class, IDataLoader
         where TImplementation : class, TService
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(factory);
+
         services.TryAddDataLoaderCore();
         services.AddSingleton(new DataLoaderRegistration(typeof(TService), typeof(TImplementation), sp => factory(sp)));
         services.TryAddScoped(sp => sp.GetDataLoader<TImplementation>());
@@ -103,6 +106,8 @@ public static class DataLoaderServiceCollectionExtensions
     public static IServiceCollection TryAddDataLoaderCore(
         this IServiceCollection services)
     {
+        ArgumentNullException.ThrowIfNull(services);
+
         services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
 
         services.TryAddSingleton<DataLoaderRegistrar>();
