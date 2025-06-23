@@ -395,7 +395,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         TopicBufferFullMode.DropNewest => BoundedChannelFullMode.DropNewest,
         TopicBufferFullMode.DropOldest => BoundedChannelFullMode.DropOldest,
         TopicBufferFullMode.DropWrite => BoundedChannelFullMode.DropWrite,
-        _ => throw new ArgumentOutOfRangeException(nameof(fullMode))
+        _ => throw new ArgumentOutOfRangeException(nameof(fullMode), fullMode)
     };
 
     ~DefaultTopic()
