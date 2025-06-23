@@ -9,7 +9,6 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
-using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
@@ -17,6 +16,7 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 
@@ -239,6 +239,12 @@ internal sealed class FusionRequestExecutorManager
 
     private static void AddOperationPlanner(IServiceCollection services)
     {
+        services.TryAddSingleton<ObjectPoolProvider>(
+            static _ => new DefaultObjectPoolProvider());
+
+        services.AddSingleton(
+            static sp => sp.GetRequiredService<ObjectPoolProvider>().CreateFieldMapPool());
+
         services.AddSingleton(
             static sp =>
             {
@@ -248,7 +254,15 @@ internal sealed class FusionRequestExecutorManager
                     options.OperationExecutionPlanCacheDiagnostics);
             });
 
-        services.AddSingleton(static sp => new OperationPlanner(sp.GetRequiredService<FusionSchemaDefinition>()));
+        services.AddSingleton(
+            static sp => new OperationCompiler(
+                sp.GetRequiredService<FusionSchemaDefinition>(),
+                sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>()));
+
+        services.AddSingleton(
+            static sp => new OperationPlanner(
+                sp.GetRequiredService<FusionSchemaDefinition>(),
+                sp.GetRequiredService<OperationCompiler>()));
     }
 
     private static void AddParserServices(IServiceCollection services)

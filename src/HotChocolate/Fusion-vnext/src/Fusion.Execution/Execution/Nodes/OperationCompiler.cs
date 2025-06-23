@@ -5,7 +5,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-internal sealed class OperationCompiler
+public sealed class OperationCompiler
 {
     private readonly ISchemaDefinition _schema;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
@@ -174,7 +174,12 @@ internal sealed class OperationCompiler
             includeFlags.Clear();
 
             var first = nodes[0];
-            var isInternal = IsInternal(first.Node);
+            var isInternal = true;
+
+            if (!IsInternal(first.Node))
+            {
+                isInternal = false;
+            }
 
             if (first.PathIncludeFlags > 0)
             {
@@ -198,7 +203,7 @@ internal sealed class OperationCompiler
                         includeFlags.Add(next.PathIncludeFlags);
                     }
 
-                    if (!isInternal)
+                    if (isInternal)
                     {
                         isInternal = IsInternal(next.Node);
                     }

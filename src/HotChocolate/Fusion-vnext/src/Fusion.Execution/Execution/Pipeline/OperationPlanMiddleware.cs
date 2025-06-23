@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Rewriters;
@@ -29,19 +30,21 @@ internal sealed class OperationPlanMiddleware
                 "The operation document info is not available in the context.");
         }
 
-        if (context.GetOperationExecutionPlan() is not null)
+        if (context.GetOperationPlan() is not null)
         {
             return next(context);
         }
 
         // Before we can plan an operation, we must defragmentize it and remove statical include conditions.
+        var operationId = context.GetOperationId();
         var rewritten = _rewriter.RewriteDocument(operationDocumentInfo.Document, context.Request.OperationName);
         var operation = GetOperation(rewritten);
-        var executionPlan = _planner.CreatePlan(operation);
-        context.SetOperationExecutionPlan(executionPlan);
+        var executionPlan = _planner.CreatePlan(operationId, operation);
+        context.SetOperationPlan(executionPlan);
 
         return next(context);
 
+        // TODO: this algorithm is wrong and will fail with multiple operations.
         static OperationDefinitionNode GetOperation(DocumentNode document)
         {
             for (var i = 0; i < document.Definitions.Count; i++)

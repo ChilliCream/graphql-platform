@@ -1,11 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion;
 
@@ -44,14 +45,18 @@ public abstract class FusionTestBase
         FusionSchemaDefinition schema,
         [StringSyntax("graphql")] string operationText)
     {
+        var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+
         var operationDoc = Utf8GraphQLParser.Parse(operationText);
 
         var rewriter = new InlineFragmentOperationRewriter(schema);
         var rewritten = rewriter.RewriteDocument(operationDoc, null);
         var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
 
-        var planner = new OperationPlanner(schema);
-        return planner.CreatePlan(operation);
+        var compiler = new OperationCompiler(schema, pool);
+        var planner = new OperationPlanner(schema, compiler);
+        return planner.CreatePlan("123", operation);
     }
 
     protected static void MatchInline(

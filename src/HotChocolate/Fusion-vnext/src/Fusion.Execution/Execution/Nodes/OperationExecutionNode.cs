@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
 using HotChocolate.Fusion.Execution.Clients;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -158,8 +157,7 @@ internal class InternalOperationDefinitionBuilder
         ImmutableArray<OperationExecutionNode> rootNodes,
         ImmutableArray<OperationExecutionNode> allNodes)
     {
-       var rewriter = new InlineFragmentOperationRewriter(schema);
-
-
+        // var rewriter = new InlineFragmentOperationRewriter(schema);
+        throw new NotImplementedException();
     }
 }

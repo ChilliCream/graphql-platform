@@ -19,15 +19,16 @@ internal sealed class OperationPlanCacheMiddleware(Cache<OperationExecutionPlan>
             return;
         }
 
-        var planKey = documentInfo.OperationCount == 1
+        var operationId = documentInfo.OperationCount == 1
             ? documentInfo.Hash.Value
             : $"{documentInfo.Hash.Value}.{context.Request.OperationName ?? "Default"}";
+        context.SetOperationId(operationId);
 
         var isPlanCached = false;
 
-        if (_cache.TryGet(planKey, out var plan))
+        if (_cache.TryGet(operationId, out var plan))
         {
-            context.SetOperationExecutionPlan(plan);
+            context.SetOperationPlan(plan);
             isPlanCached = true;
         }
 
@@ -39,11 +40,11 @@ internal sealed class OperationPlanCacheMiddleware(Cache<OperationExecutionPlan>
             // If there is no execution plan, we can exit early as something must have
             // gone wrong in the pipeline. If we get, however, an execution plan,
             // we try to cache it.
-            var executionPlan = context.GetOperationExecutionPlan();
+            var executionPlan = context.GetOperationPlan();
 
             if (executionPlan is not null)
             {
-                _cache.TryAdd(planKey, executionPlan);
+                _cache.TryAdd(operationId, executionPlan);
             }
         }
     }

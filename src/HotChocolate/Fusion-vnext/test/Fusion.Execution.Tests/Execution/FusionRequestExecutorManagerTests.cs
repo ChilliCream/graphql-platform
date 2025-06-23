@@ -71,7 +71,7 @@ public class FusionRequestExecutorManagerTests
                     {
                         return async context =>
                         {
-                            var plan = context.GetOperationExecutionPlan();
+                            var plan = context.GetOperationPlan();
                             context.Result =
                                 OperationResultBuilder.New()
                                     .SetData(

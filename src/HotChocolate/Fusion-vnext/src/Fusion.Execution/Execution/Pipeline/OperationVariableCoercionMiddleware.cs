@@ -25,7 +25,7 @@ internal sealed class OperationVariableCoercionMiddleware
         RequestContext context,
         RequestDelegate next)
     {
-        var operationExecutionPlan = context.GetOperationExecutionPlan();
+        var operationExecutionPlan = context.GetOperationPlan();
 
         if (operationExecutionPlan is null)
         {

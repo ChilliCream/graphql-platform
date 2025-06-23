@@ -37,6 +37,8 @@ public sealed class Selection
 
     public string ResponseName { get; }
 
+    public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
+
     public IOutputFieldDefinition Field { get; }
 
     public IType Type => Field.Type;

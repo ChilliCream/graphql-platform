@@ -2,7 +2,6 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 using Microsoft.Extensions.ObjectPool;
 
@@ -113,6 +112,54 @@ public class OperationCompilerTests
         Assert.False(id.IsIncluded(flags));
     }
 
+    [Fact]
+    public void Query_NoName_With_Internal_Id()
+    {
+        // arrange
+        const string sourceText =
+            """
+            query {
+                product {
+                    id @fusion_internal
+                    name
+                }
+            }
+            """;
+
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
+        var schema = CreateSchema();
+
+        var variableValues = new VariableValueCollection([]);
+
+        // act
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+        var operation = compiler.Compile("1", operationDefinition);
+        var flags = operation.CreateIncludeFlags(variableValues);
+
+        // assert
+        Assert.Equal("1", operation.Id);
+        Assert.Equal(OperationType.Query, operation.Definition.Operation);
+        Assert.Equal(schema.GetOperationType(OperationType.Query), operation.RootType);
+        Assert.Equal(schema, operation.Schema);
+
+        var root = operation.RootSelectionSet;
+        Assert.Equal(1, root.Selections.Length);
+
+        var product = root.Selections[0];
+        Assert.Equal("product", product.Field.Name);
+        Assert.True(product.IsIncluded(flags));
+
+        var productSelectionSet =
+            operation.GetSelectionSet(
+                product,
+                product.Type.NamedType<IObjectTypeDefinition>());
+        Assert.Equal(2, productSelectionSet.Selections.Length);
+
+        var id = productSelectionSet.Selections[0];
+        Assert.True(id.IsInternal);
+    }
+
     public static ISchemaDefinition CreateSchema()
     {
         const string sourceText =
@@ -123,6 +170,7 @@ public class OperationCompilerTests
 
             type Product {
                 id: ID
+                name: String
             }
 
             scalar Boolean
