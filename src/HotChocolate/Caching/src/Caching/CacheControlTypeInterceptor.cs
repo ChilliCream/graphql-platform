@@ -3,7 +3,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Caching;
@@ -131,7 +131,7 @@ internal sealed class CacheControlTypeInterceptor(
             return true;
         }
 
-        if (directive.Type is ExtendedTypeDirectiveReference { Type.Type: { } type, } &&
+        if (directive.Type is ExtendedTypeDirectiveReference { Type.Type: { } type } &&
             type == typeof(CacheControlDirective))
         {
             return true;

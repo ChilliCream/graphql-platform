@@ -4,7 +4,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.DependencyInjection;
-using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Tasks;
@@ -153,9 +152,10 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddRequestExecutorResolver(
         this IServiceCollection services)
     {
-        services.TryAddSingleton<RequestExecutorResolver>();
-        services.TryAddSingleton<IRequestExecutorResolver>(sp => sp.GetRequiredService<RequestExecutorResolver>());
-        services.TryAddSingleton<IRequestExecutorWarmup>(sp => sp.GetRequiredService<RequestExecutorResolver>());
+        services.TryAddSingleton<RequestExecutorManager>();
+        services.TryAddSingleton<IRequestExecutorProvider>(sp => sp.GetRequiredService<RequestExecutorManager>());
+        services.TryAddSingleton<IRequestExecutorWarmup>(sp => sp.GetRequiredService<RequestExecutorManager>());
+        services.TryAddSingleton<IRequestExecutorEvents>(sp => sp.GetRequiredService<RequestExecutorManager>());
         return services;
     }
 

@@ -85,16 +85,16 @@ public class PaginationTests
     {
         public string? FirstName { get; set; }
 
-        public List<User> Parents { get; set; } = default!;
+        public List<User> Parents { get; set; } = null!;
 
-        public List<Group> Groups { get; set; } = default!;
+        public List<Group> Groups { get; set; } = null!;
     }
 
     public class Group
     {
         public string? FirstName { get; set; }
 
-        public List<User> Members { get; set; } = default!;
+        public List<User> Members { get; set; } = null!;
     }
 
     public class UserType : ObjectType<User>
@@ -107,8 +107,8 @@ public class PaginationTests
                 .Resolve(
                     () => new[]
                     {
-                        new User { FirstName = "Mother", },
-                        new User { FirstName = "Father", },
+                        new User { FirstName = "Mother" },
+                        new User { FirstName = "Father" }
                     });
 
             descriptor
@@ -117,7 +117,7 @@ public class PaginationTests
                 .Resolve(
                     () => new[]
                     {
-                        new Group { FirstName = "Admin", },
+                        new Group { FirstName = "Admin" }
                     });
         }
     }
@@ -132,15 +132,15 @@ public class PaginationTests
                 .Resolve(
                     () => new[]
                     {
-                        new User { FirstName = "Mother", },
-                        new User { FirstName = "Father", },
+                        new User { FirstName = "Mother" },
+                        new User { FirstName = "Father" }
                     });
         }
     }
 
     public class Query
     {
-        public List<User> Users => [new User(),];
+        public List<User> Users => [new User()];
     }
 
     public class QueryType : ObjectType<Query>

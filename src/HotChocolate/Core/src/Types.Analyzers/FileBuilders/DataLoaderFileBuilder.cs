@@ -448,8 +448,8 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 kind is DataLoaderKind.Group ? "[]" : string.Empty,
                 value.IsValueType ? string.Empty : "?");
             _writer.WriteIndentedLine(
-                "global::{0} resultMap)",
-                ExtractMapType(method.ReturnType));
+                "{0} resultMap)",
+                ExtractMapType(method.ReturnType).ToFullyQualifiedWithNullRefQualifier());
         }
 
         _writer.WriteIndentedLine("{");
@@ -673,7 +673,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
     private static ITypeSymbol ExtractMapType(ITypeSymbol returnType)
     {
-        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1, } namedType
+        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1 } namedType
             && namedType.TypeArguments[0] is INamedTypeSymbol { TypeArguments.Length: 2 } dict)
         {
             return dict;
@@ -696,8 +696,8 @@ public sealed class DataLoaderFileBuilder : IDisposable
         }
 
         PooledObjects.Return(_sb);
-        _sb = default!;
-        _writer = default!;
+        _sb = null!;
+        _writer = null!;
         _disposed = true;
     }
 }

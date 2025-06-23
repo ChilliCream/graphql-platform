@@ -193,6 +193,6 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         Next,
         Error,
         Complete,
-        ConnectionAccept,
+        ConnectionAccept
     }
 }

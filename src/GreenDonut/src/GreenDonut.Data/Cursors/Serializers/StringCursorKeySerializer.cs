@@ -1,12 +1,11 @@
-using System.Reflection;
 using System.Text;
 
 namespace GreenDonut.Data.Cursors.Serializers;
 
 internal sealed class StringCursorKeySerializer : ICursorKeySerializer
 {
-    private static readonly Encoding _encoding = Encoding.UTF8;
-    private static readonly CursorKeyCompareMethod _compareTo = CompareToResolver.GetCompareToMethod<string>();
+    private static readonly Encoding s_encoding = Encoding.UTF8;
+    private static readonly CursorKeyCompareMethod s_compareTo = CompareToResolver.GetCompareToMethod<string>();
 
     public bool IsSupported(Type type)
         => type == typeof(string);
@@ -15,13 +14,13 @@ internal sealed class StringCursorKeySerializer : ICursorKeySerializer
         => false;
 
     public CursorKeyCompareMethod GetCompareToMethod(Type type)
-        => _compareTo;
+        => s_compareTo;
 
     public object Parse(ReadOnlySpan<byte> formattedKey)
-        => _encoding.GetString(formattedKey);
+        => s_encoding.GetString(formattedKey);
 
     public bool TryFormat(object key, Span<byte> buffer, out int written)
     {
-        return _encoding.TryGetBytes((string)key, buffer, out written);
+        return s_encoding.TryGetBytes((string)key, buffer, out written);
     }
 }

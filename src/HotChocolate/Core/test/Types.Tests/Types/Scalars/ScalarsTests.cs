@@ -5,7 +5,7 @@ public class ScalarsTests
     [InlineData(Foo.Bar, ValueKind.Enum)]
     [InlineData("foo", ValueKind.String)]
     [InlineData((short)1, ValueKind.Integer)]
-    [InlineData((int)1, ValueKind.Integer)]
+    [InlineData(1, ValueKind.Integer)]
     [InlineData((long)1, ValueKind.Integer)]
     [InlineData((ushort)1, ValueKind.Integer)]
     [InlineData((uint)1, ValueKind.Integer)]
@@ -27,7 +27,7 @@ public class ScalarsTests
 
     [InlineData(Foo.Bar, ValueKind.Enum)]
     [InlineData((short)1, ValueKind.Integer)]
-    [InlineData((int)1, ValueKind.Integer)]
+    [InlineData(1, ValueKind.Integer)]
     [InlineData((long)1, ValueKind.Integer)]
     [InlineData((ushort)1, ValueKind.Integer)]
     [InlineData((uint)1, ValueKind.Integer)]
@@ -42,8 +42,8 @@ public class ScalarsTests
         // arrange
         var type = typeof(Nullable<>).MakeGenericType(value.GetType());
         var constructor =
-            type.GetConstructor([value.GetType(),]);
-        var nullableValue = constructor!.Invoke([value,]);
+            type.GetConstructor([value.GetType()]);
+        var nullableValue = constructor!.Invoke([value]);
 
         // act
         var isScalar = Scalars.TryGetKind(
@@ -139,6 +139,6 @@ public class ScalarsTests
 
     public enum Foo
     {
-        Bar,
+        Bar
     }
 }

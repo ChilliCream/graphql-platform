@@ -20,7 +20,7 @@ public static class DataLoaderAttributeHelper
         var groupNamesBuilder = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
         AddGroupNames(groupNamesBuilder, methodSymbol.GetAttributes());
         AddGroupNames(groupNamesBuilder, methodSymbol.ContainingType.GetAttributes());
-        return groupNamesBuilder.Count == 0 ? ImmutableHashSet<string>.Empty : groupNamesBuilder.ToImmutable();
+        return groupNamesBuilder.Count == 0 ? [] : groupNamesBuilder.ToImmutable();
 
         static void AddGroupNames(ImmutableHashSet<string>.Builder builder, IEnumerable<AttributeData> attributes)
         {

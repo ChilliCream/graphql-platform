@@ -26,7 +26,7 @@ public struct JsonResultFormatterOptions
     public JsonNullIgnoreCondition NullIgnoreCondition { get; set; }
 
     /// <summary>
-    /// Gets or sets the encoder to use when escaping strings, or null to use the default encoder.
+    /// Gets or sets the encoder to use when escaping strings or null to use the default encoder.
     /// </summary>
     public JavaScriptEncoder? Encoder { get; set; }
 
@@ -34,7 +34,7 @@ public struct JsonResultFormatterOptions
         => new()
         {
             Indented = Indented,
-            Encoder = Encoder ?? JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            Encoder = Encoder ?? JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
     internal JsonSerializerOptions CreateSerializerOptions()
@@ -45,6 +45,6 @@ public struct JsonResultFormatterOptions
             DefaultIgnoreCondition =
                 NullIgnoreCondition is Fields or All
                     ? WhenWritingNull
-                    : default,
+                    : default
         };
 }

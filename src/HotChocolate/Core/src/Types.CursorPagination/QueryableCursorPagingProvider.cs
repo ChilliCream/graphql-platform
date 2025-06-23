@@ -9,10 +9,10 @@ namespace HotChocolate.Types.Pagination;
 /// </summary>
 public class QueryableCursorPagingProvider : CursorPagingProvider
 {
-    private static readonly ConcurrentDictionary<Type, MethodInfo> _factoryCache = new();
+    private static readonly ConcurrentDictionary<Type, MethodInfo> s_factoryCache = new();
     private readonly bool? _inlineTotalCount;
 
-    private static readonly MethodInfo _createHandler =
+    private static readonly MethodInfo s_createHandler =
         typeof(QueryableCursorPagingProvider).GetMethod(
             nameof(CreateHandlerInternal),
             BindingFlags.Static | BindingFlags.NonPublic)!;
@@ -27,10 +27,7 @@ public class QueryableCursorPagingProvider : CursorPagingProvider
     /// <inheritdoc />
     public override bool CanHandle(IExtendedType source)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
         return source.IsArrayOrList;
     }
@@ -40,13 +37,10 @@ public class QueryableCursorPagingProvider : CursorPagingProvider
         IExtendedType source,
         PagingOptions options)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
         var key = source.ElementType?.Source ?? source.Source;
-        var factory = _factoryCache.GetOrAdd(key, static type => _createHandler.MakeGenericMethod(type));
+        var factory = s_factoryCache.GetOrAdd(key, static type => s_createHandler.MakeGenericMethod(type));
         return (CursorPagingHandler)factory.Invoke(null, [options, _inlineTotalCount])!;
     }
 

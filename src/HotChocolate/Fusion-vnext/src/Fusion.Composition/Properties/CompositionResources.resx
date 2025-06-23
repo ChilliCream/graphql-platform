@@ -24,6 +24,9 @@
   <data name="ErrorHelper_PreMergeValidationFailed" xml:space="preserve">
     <value>Pre-merge validation failed.</value>
   </data>
+  <data name="ErrorHelper_SatisfiabilityValidationFailed" xml:space="preserve">
+    <value>Satisfiability validation failed.</value>
+  </data>
   <data name="ErrorHelper_SourceSchemaParsingFailed" xml:space="preserve">
     <value>Source schema parsing failed.</value>
   </data>
@@ -327,11 +330,53 @@
   <data name="ProvidesMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @provides directive indicates that a field can provide certain subfields of its return type from the same source schema, without requiring an additional resolution step elsewhere.</value>
   </data>
+  <data name="RequirementsValidator_CycleDetected" xml:space="preserve">
+    <value>Cycle detected in requirement: {0} -&gt; {1}.</value>
+  </data>
+  <data name="RequirementsValidator_FieldDoesNotExistOnType" xml:space="preserve">
+    <value>The field '{0}' does not exist on the type '{1}'.</value>
+  </data>
+  <data name="RequirementsValidator_NoLookupsFoundForType" xml:space="preserve">
+    <value>No lookups found for type '{0}' in schema '{1}'.</value>
+  </data>
+  <data name="RequirementsValidator_NoOtherSchemasContainField" xml:space="preserve">
+    <value>No other schemas contain the field '{0}.{1}'.</value>
+  </data>
+  <data name="RequirementsValidator_UnableToAccessFieldOnPath" xml:space="preserve">
+    <value>Unable to access the required field '{0}.{1}' on path '{2}'.</value>
+  </data>
+  <data name="RequirementsValidator_UnableToSatisfyRequirement" xml:space="preserve">
+    <value>Unable to satisfy the requirement '{0}'.</value>
+  </data>
+  <data name="RequirementsValidator_UnableToSatisfyRequirementForLookup" xml:space="preserve">
+    <value>Unable to satisfy the requirement '{0}' for lookup '{1}' in schema '{2}'.</value>
+  </data>
+  <data name="RequirementsValidator_UnableToTransitionBetweenSchemas" xml:space="preserve">
+    <value>Unable to transition between schemas '{0}' and '{1}' for access to required field '{2}'.</value>
+  </data>
   <data name="RequireMutableDirectiveDefinition_Argument_Field_Description" xml:space="preserve">
     <value>Represents a selection path map syntax.</value>
   </data>
   <data name="RequireMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @require directive is used to express data requirements with other source schemas.</value>
+  </data>
+  <data name="SatisfiabilityValidator_CycleDetected" xml:space="preserve">
+    <value>Cycle detected: {0} -&gt; {1}.</value>
+  </data>
+  <data name="SatisfiabilityValidator_NoLookupsFoundForType" xml:space="preserve">
+    <value>No lookups found for type '{0}' in schema '{1}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToAccessFieldOnPath" xml:space="preserve">
+    <value>Unable to access the field '{0}.{1}' on path '{2}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToSatisfyRequirement" xml:space="preserve">
+    <value>Unable to satisfy the requirement '{0}' on field '{1}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToSatisfyRequirementForLookup" xml:space="preserve">
+    <value>Unable to satisfy the requirement '{0}' for lookup '{1}' in schema '{2}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToTransitionBetweenSchemas" xml:space="preserve">
+    <value>Unable to transition between schemas '{0}' and '{1}' for access to field '{2}'.</value>
   </data>
   <data name="SchemaNameMutableDirectiveDefinition_Argument_Value_Description" xml:space="preserve">
     <value>The name of the source schema.</value>

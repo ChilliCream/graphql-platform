@@ -3,8 +3,8 @@ using System.Collections;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Utilities;
 using static HotChocolate.Execution.Serialization.JsonNullIgnoreCondition;
 using static HotChocolate.Execution.ThrowHelper;
 
@@ -73,12 +73,9 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
     /// </exception>
     public unsafe string Format(IOperationResult result)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
+        ArgumentNullException.ThrowIfNull(result);
 
-        using var buffer = new ArrayWriter();
+        using var buffer = new PooledArrayWriter();
 
         Format(result, buffer);
 
@@ -103,15 +100,8 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
     /// </exception>
     public void Format(IOperationResult result, Utf8JsonWriter writer)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(writer);
 
         WriteResult(writer, result);
     }
@@ -131,15 +121,8 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
     /// </exception>
     public void FormatError(IError error, Utf8JsonWriter writer)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
-
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(error);
+        ArgumentNullException.ThrowIfNull(writer);
 
         WriteError(writer, error);
     }
@@ -159,15 +142,8 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
     /// </exception>
     public void FormatErrors(IReadOnlyList<IError> errors, Utf8JsonWriter writer)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
-
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
+        ArgumentNullException.ThrowIfNull(writer);
 
         writer.WriteStartArray();
 
@@ -182,15 +158,8 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
     /// <inheritdoc cref="IOperationResultFormatter.Format"/>
     public void Format(IOperationResult result, IBufferWriter<byte> writer)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(writer);
 
         FormatInternal(result, writer);
     }
@@ -208,15 +177,8 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        if (outputStream is null)
-        {
-            throw new ArgumentNullException(nameof(outputStream));
-        }
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(outputStream);
 
         return FormatInternalAsync(result, outputStream, cancellationToken);
     }
@@ -226,7 +188,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        using var buffer = new ArrayWriter();
+        using var buffer = new PooledArrayWriter();
         FormatInternal(result, buffer);
 
         await outputStream
@@ -241,7 +203,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        using var buffer = new ArrayWriter();
+        using var buffer = new PooledArrayWriter();
 
         foreach (var result in resultBatch.Results)
         {
@@ -283,7 +245,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        using var buffer = new ArrayWriter();
+        using var buffer = new PooledArrayWriter();
 
         await foreach (var partialResult in batchResult.ReadResultsAsync()
             .WithCancellation(cancellationToken)
@@ -385,7 +347,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
 
     private void WriteItems(Utf8JsonWriter writer, IReadOnlyList<object?>? items)
     {
-        if (items is { Count: > 0, })
+        if (items is { Count: > 0 })
         {
             writer.WritePropertyName(Items);
 
@@ -402,7 +364,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
 
     private void WriteErrors(Utf8JsonWriter writer, IReadOnlyList<IError>? errors)
     {
-        if (errors is { Count: > 0, })
+        if (errors is { Count: > 0 })
         {
             writer.WritePropertyName(Errors);
 
@@ -432,7 +394,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
 
     private static void WriteLocations(Utf8JsonWriter writer, IReadOnlyList<Location>? locations)
     {
-        if (locations is { Count: > 0, })
+        if (locations is { Count: > 0 })
         {
             writer.WritePropertyName(Locations);
 
@@ -510,7 +472,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         Utf8JsonWriter writer,
         IReadOnlyDictionary<string, object?>? dict)
     {
-        if (dict is { Count: > 0, })
+        if (dict is { Count: > 0 })
         {
             writer.WritePropertyName(Extensions);
             WriteDictionary(writer, dict);
@@ -519,7 +481,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
 
     private void WriteIncremental(Utf8JsonWriter writer, IReadOnlyList<IOperationResult>? patches)
     {
-        if (patches is { Count: > 0, })
+        if (patches is { Count: > 0 })
         {
             writer.WritePropertyName(Incremental);
 

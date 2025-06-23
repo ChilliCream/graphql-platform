@@ -6,7 +6,7 @@ namespace HotChocolate.Execution;
 public interface IExecutionResultFormatter
 {
     /// <summary>
-    /// Formats a execution result and writes the formatted result to
+    /// Formats an execution result and writes the formatted result to
     /// the given <paramref name="outputStream"/>.
     /// </summary>
     /// <param name="result">

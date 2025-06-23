@@ -2,8 +2,8 @@ using System.Net.WebSockets;
 using System.Text;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
+using HotChocolate.Buffers;
 using HotChocolate.Transport.Sockets;
-using HotChocolate.Utilities;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
@@ -20,7 +20,7 @@ public static class WebSocketExtensions
         Dictionary<string, object?>? payload,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionInitialize, payload);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
@@ -58,7 +58,7 @@ public static class WebSocketExtensions
             map["extensions"] = payload.Extensions;
         }
 
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.Subscribe, map, subscriptionId);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
@@ -68,7 +68,7 @@ public static class WebSocketExtensions
         string subscriptionId,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.Complete, id: subscriptionId);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
@@ -83,7 +83,7 @@ public static class WebSocketExtensions
         Dictionary<string, object?>? payload,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.Ping, payload);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
@@ -98,7 +98,7 @@ public static class WebSocketExtensions
         Dictionary<string, object?>? payload,
         CancellationToken cancellationToken)
     {
-        using var writer = new ArrayWriter();
+        using var writer = new PooledArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.Pong, payload);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }

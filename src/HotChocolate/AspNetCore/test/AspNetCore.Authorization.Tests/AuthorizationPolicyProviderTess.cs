@@ -36,9 +36,9 @@ public class AuthorizationPolicyProviderTess(TestServerFactory serverFactory) : 
 
         // act
         var result1 =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ bar }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ bar }" });
         var result2 =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ bar }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ bar }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result1.StatusCode);
@@ -71,9 +71,9 @@ public class AuthorizationPolicyProviderTess(TestServerFactory serverFactory) : 
 
         // act
         var result1 =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ bar }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ bar }" });
         var result2 =
-            await server.PostAsync(new ClientQueryRequest { Query = "{ bar }", });
+            await server.PostAsync(new ClientQueryRequest { Query = "{ bar }" });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result1.StatusCode);

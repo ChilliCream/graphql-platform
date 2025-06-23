@@ -10,7 +10,7 @@ internal static class GraphQLKeywords
         (byte)'h',
         (byte)'e',
         (byte)'m',
-        (byte)'a',
+        (byte)'a'
     ];
 
     public static ReadOnlySpan<byte> Scalar =>
@@ -20,7 +20,7 @@ internal static class GraphQLKeywords
         (byte)'a',
         (byte)'l',
         (byte)'a',
-        (byte)'r',
+        (byte)'r'
     ];
 
     public static ReadOnlySpan<byte> Type =>
@@ -28,7 +28,7 @@ internal static class GraphQLKeywords
         (byte)'t',
         (byte)'y',
         (byte)'p',
-        (byte)'e',
+        (byte)'e'
     ];
 
     public static ReadOnlySpan<byte> Interface =>
@@ -41,7 +41,7 @@ internal static class GraphQLKeywords
         (byte)'f',
         (byte)'a',
         (byte)'c',
-        (byte)'e',
+        (byte)'e'
     ];
 
     public static ReadOnlySpan<byte> Union =>
@@ -50,7 +50,7 @@ internal static class GraphQLKeywords
         (byte)'n',
         (byte)'i',
         (byte)'o',
-        (byte)'n',
+        (byte)'n'
     ];
 
     public static ReadOnlySpan<byte> Enum =>
@@ -58,7 +58,7 @@ internal static class GraphQLKeywords
         (byte)'e',
         (byte)'n',
         (byte)'u',
-        (byte)'m',
+        (byte)'m'
     ];
 
     public static ReadOnlySpan<byte> Input =>
@@ -67,7 +67,7 @@ internal static class GraphQLKeywords
         (byte)'n',
         (byte)'p',
         (byte)'u',
-        (byte)'t',
+        (byte)'t'
     ];
 
     public static ReadOnlySpan<byte> Extend =>
@@ -77,7 +77,7 @@ internal static class GraphQLKeywords
         (byte)'t',
         (byte)'e',
         (byte)'n',
-        (byte)'d',
+        (byte)'d'
     ];
 
     public static ReadOnlySpan<byte> Implements =>
@@ -91,7 +91,7 @@ internal static class GraphQLKeywords
         (byte)'e',
         (byte)'n',
         (byte)'t',
-        (byte)'s',
+        (byte)'s'
     ];
 
     public static ReadOnlySpan<byte> Repeatable =>
@@ -105,7 +105,7 @@ internal static class GraphQLKeywords
         (byte)'a',
         (byte)'b',
         (byte)'l',
-        (byte)'e',
+        (byte)'e'
     ];
 
     public static ReadOnlySpan<byte> Directive =>
@@ -118,7 +118,7 @@ internal static class GraphQLKeywords
         (byte)'t',
         (byte)'i',
         (byte)'v',
-        (byte)'e',
+        (byte)'e'
     ];
 
     // query
@@ -128,7 +128,7 @@ internal static class GraphQLKeywords
         (byte)'u',
         (byte)'e',
         (byte)'r',
-        (byte)'y',
+        (byte)'y'
     ];
 
     public static ReadOnlySpan<byte> Mutation =>
@@ -140,7 +140,7 @@ internal static class GraphQLKeywords
         (byte)'t',
         (byte)'i',
         (byte)'o',
-        (byte)'n',
+        (byte)'n'
     ];
 
     public static ReadOnlySpan<byte> Subscription =>
@@ -156,7 +156,7 @@ internal static class GraphQLKeywords
         (byte)'t',
         (byte)'i',
         (byte)'o',
-        (byte)'n',
+        (byte)'n'
     ];
 
     public static ReadOnlySpan<byte> Fragment =>
@@ -168,14 +168,14 @@ internal static class GraphQLKeywords
         (byte)'m',
         (byte)'e',
         (byte)'n',
-        (byte)'t',
+        (byte)'t'
     ];
 
     // general
     public static ReadOnlySpan<byte> On =>
     [
         (byte)'o',
-        (byte)'n',
+        (byte)'n'
     ];
 
     public static ReadOnlySpan<byte> True =>
@@ -183,7 +183,7 @@ internal static class GraphQLKeywords
         (byte)'t',
         (byte)'r',
         (byte)'u',
-        (byte)'e',
+        (byte)'e'
     ];
 
     public static ReadOnlySpan<byte> False =>
@@ -192,7 +192,7 @@ internal static class GraphQLKeywords
         (byte)'a',
         (byte)'l',
         (byte)'s',
-        (byte)'e',
+        (byte)'e'
     ];
 
     public static ReadOnlySpan<byte> Null =>
@@ -200,6 +200,6 @@ internal static class GraphQLKeywords
         (byte)'n',
         (byte)'u',
         (byte)'l',
-        (byte)'l',
+        (byte)'l'
     ];
 }

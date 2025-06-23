@@ -10,7 +10,7 @@ namespace HotChocolate.Configuration;
 
 internal sealed class TypeReferenceResolver
 {
-    private readonly Dictionary<TypeId, IType> _typeCache = new();
+    private readonly Dictionary<TypeId, IType> _typeCache = [];
     private readonly ITypeInspector _typeInspector;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
@@ -36,10 +36,7 @@ internal sealed class TypeReferenceResolver
 
     public TypeReference GetNamedTypeReference(TypeReference typeRef)
     {
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
+        ArgumentNullException.ThrowIfNull(typeRef);
 
         if (_typeLookup.TryNormalizeReference(typeRef, out var namedTypeRef))
         {
@@ -51,10 +48,7 @@ internal sealed class TypeReferenceResolver
 
     public bool TryGetType(TypeReference typeRef, [NotNullWhen(true)] out IType? type)
     {
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
+        ArgumentNullException.ThrowIfNull(typeRef);
 
         if (typeRef is SchemaTypeReference { Type: IType schemaType })
         {
@@ -75,28 +69,26 @@ internal sealed class TypeReferenceResolver
         }
 
         if (!_typeRegistry.TryGetType(namedTypeRef, out var registeredType) ||
-            registeredType.Type is not INamedType)
+            registeredType.Type is not ITypeDefinition typeDefinition)
         {
             type = null;
             return false;
         }
 
-        var namedType = (INamedType)registeredType.Type;
-
         switch (typeRef)
         {
             case ExtendedTypeReference r:
                 var typeFactory = _typeInspector.CreateTypeFactory(r.Type);
-                type = typeFactory.CreateType(namedType);
+                type = typeFactory.CreateType(typeDefinition);
                 _typeCache[typeId] = type;
                 return true;
 
             case SyntaxTypeReference r:
-                type = CreateType(namedType, r.Type);
+                type = CreateType(typeDefinition, r.Type);
                 return true;
 
             case DependantFactoryTypeReference:
-                type = namedType;
+                type = typeDefinition;
                 return true;
 
             default:
@@ -108,10 +100,7 @@ internal sealed class TypeReferenceResolver
         TypeReference typeRef,
         [NotNullWhen(true)] out DirectiveType? directiveType)
     {
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
+        ArgumentNullException.ThrowIfNull(typeRef);
 
         if (!_typeLookup.TryNormalizeReference(typeRef, out var namedTypeRef))
         {

@@ -1,7 +1,6 @@
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Authorization;
 
@@ -79,7 +78,7 @@ public class AuthorizeAttribute : DescriptorAttribute
         {
             if (Apply is ApplyPolicy.Validation)
             {
-                field.Extend().Context.ContextData[AuthorizationRequestPolicy] = true;
+                field.Extend().Context.ModifyAuthorizationFieldOptions(o => o with { AuthorizeAtRequestLevel = true });
             }
 
             field.Directive(CreateDirective());

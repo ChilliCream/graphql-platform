@@ -1,10 +1,8 @@
-using HotChocolate.Features;
-
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
-public class SchemaTypeConfiguration : TypeSystemConfiguration, IFeatureProvider
+public class SchemaTypeConfiguration : TypeSystemConfiguration
 {
     private List<DirectiveConfiguration>? _directives;
 
@@ -18,8 +16,6 @@ public class SchemaTypeConfiguration : TypeSystemConfiguration, IFeatureProvider
     /// Specifies if this schema has directives.
     /// </summary>
     internal bool HasDirectives => _directives is { Count: > 0 };
-
-    public IFeatureCollection Features { get; } = new FeatureCollection();
 
     /// <summary>
     /// Gets the list of directives that are annotated to this schema.

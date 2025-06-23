@@ -16,8 +16,11 @@ public class DefaultTransactionScope : ITransactionScope
     /// <param name="transaction">
     /// The mutation transaction scope.
     /// </param>
-    public DefaultTransactionScope(IRequestContext context, TransactionScope transaction)
+    public DefaultTransactionScope(RequestContext context, TransactionScope transaction)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(transaction);
+
         Context = context;
         Transaction = transaction;
     }
@@ -25,7 +28,7 @@ public class DefaultTransactionScope : ITransactionScope
     /// <summary>
     /// Gets GraphQL request context.
     /// </summary>
-    protected IRequestContext Context { get; }
+    protected RequestContext Context { get; }
 
     /// <summary>
     /// Gets the mutation transaction scope.
@@ -37,7 +40,7 @@ public class DefaultTransactionScope : ITransactionScope
     /// </summary>
     public void Complete()
     {
-        if (Context.Result is OperationResult { Data: not null, Errors: null or { Count: 0, }, })
+        if (Context.Result is OperationResult { Data: not null, Errors: null or { Count: 0 } })
         {
             Transaction.Complete();
         }

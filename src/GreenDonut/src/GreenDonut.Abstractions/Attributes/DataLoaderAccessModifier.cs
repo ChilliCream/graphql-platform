@@ -23,5 +23,5 @@ public enum DataLoaderAccessModifier
     /// <summary>
     /// Generates an internal DataLoader class and an internal DataLoader interface.
     /// </summary>
-    Internal = 3,
+    Internal = 3
 }

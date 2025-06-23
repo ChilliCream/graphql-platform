@@ -1,5 +1,4 @@
 using System.Text;
-using Xunit;
 
 namespace HotChocolate.Language;
 
@@ -178,7 +177,7 @@ public class ReaderTests
                 (byte)191,
                 (byte)'a',
                 (byte)'b',
-                (byte)'c',
+                (byte)'c'
         };
 
         var tokens = new List<SyntaxTokenInfo>();

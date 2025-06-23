@@ -1,17 +1,16 @@
 using System.Buffers;
 using System.Globalization;
-using System.Reflection;
 using System.Text.Unicode;
 
 namespace GreenDonut.Data.Cursors.Serializers;
 
 internal sealed class DateTimeOffsetCursorKeySerializer : ICursorKeySerializer
 {
-    private static readonly CursorKeyCompareMethod _compareTo =
+    private static readonly CursorKeyCompareMethod s_compareTo =
         CompareToResolver.GetCompareToMethod<DateTimeOffset>();
 
-    private const string _dateTimeFormat = "yyyyMMddHHmmssfffffff";
-    private const string _offsetFormat = "hhmm";
+    private const string DateTimeFormat = "yyyyMMddHHmmssfffffff";
+    private const string OffsetFormat = "hhmm";
 
     public bool IsSupported(Type type)
         => type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?);
@@ -20,12 +19,12 @@ internal sealed class DateTimeOffsetCursorKeySerializer : ICursorKeySerializer
         => type == typeof(DateTimeOffset?);
 
     public CursorKeyCompareMethod GetCompareToMethod(Type type)
-        => _compareTo;
+        => s_compareTo;
 
     public object Parse(ReadOnlySpan<byte> formattedKey)
     {
-        var dateTimeBytes = formattedKey[.._dateTimeFormat.Length];
-        Span<char> dateTimeChars = stackalloc char[_dateTimeFormat.Length];
+        var dateTimeBytes = formattedKey[..DateTimeFormat.Length];
+        Span<char> dateTimeChars = stackalloc char[DateTimeFormat.Length];
 
         if (Utf8.ToUtf16(dateTimeBytes, dateTimeChars, out var read, out _) != OperationStatus.Done)
         {
@@ -33,13 +32,13 @@ internal sealed class DateTimeOffsetCursorKeySerializer : ICursorKeySerializer
         }
 
         // Parse date and time.
-        var dateTime = DateTime.ParseExact(dateTimeChars, _dateTimeFormat, null);
+        var dateTime = DateTime.ParseExact(dateTimeChars, DateTimeFormat, null);
 
         // Parse offset sign (- or +).
         var offsetSign = formattedKey[read++];
 
         var offsetBytes = formattedKey[read..];
-        Span<char> offsetChars = stackalloc char[_offsetFormat.Length];
+        Span<char> offsetChars = stackalloc char[OffsetFormat.Length];
 
         if (Utf8.ToUtf16(offsetBytes, offsetChars, out _, out _) != OperationStatus.Done)
         {
@@ -49,7 +48,7 @@ internal sealed class DateTimeOffsetCursorKeySerializer : ICursorKeySerializer
         // Parse offset.
         var offset = TimeSpan.ParseExact(
             offsetChars,
-            _offsetFormat,
+            OffsetFormat,
             null,
             offsetSign == '-' ? TimeSpanStyles.AssumeNegative : TimeSpanStyles.None);
 
@@ -59,10 +58,10 @@ internal sealed class DateTimeOffsetCursorKeySerializer : ICursorKeySerializer
     public bool TryFormat(object key, Span<byte> buffer, out int written)
     {
         var dateTimeOffset = (DateTimeOffset)key;
-        Span<char> characters = stackalloc char[_dateTimeFormat.Length + 1 + _offsetFormat.Length];
+        Span<char> characters = stackalloc char[DateTimeFormat.Length + 1 + OffsetFormat.Length];
 
         // Format date and time.
-        if (!dateTimeOffset.TryFormat(characters, out var charsWritten, _dateTimeFormat))
+        if (!dateTimeOffset.TryFormat(characters, out var charsWritten, DateTimeFormat))
         {
             written = 0;
             return false;
@@ -72,7 +71,7 @@ internal sealed class DateTimeOffsetCursorKeySerializer : ICursorKeySerializer
         characters[charsWritten++] = dateTimeOffset.Offset < TimeSpan.Zero ? '-' : '+';
 
         // Format offset.
-        if (!dateTimeOffset.Offset.TryFormat(characters[charsWritten..], out _, _offsetFormat))
+        if (!dateTimeOffset.Offset.TryFormat(characters[charsWritten..], out _, OffsetFormat))
         {
             written = 0;
             return false;

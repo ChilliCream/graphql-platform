@@ -25,10 +25,7 @@ public class WebSocketConnection : IWebSocketConnection
     /// <inheritdoc />
     public IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(OperationRequest request)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         return new ResponseStream(_sessionFactory, request);
     }

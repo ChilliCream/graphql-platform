@@ -81,7 +81,7 @@ internal static class LookupDirectiveParser
                 "The `map` argument is required on the @lookup directive.");
         }
 
-        return new LookupDirective(schemaName, key, field, map.Value, path ?? ImmutableArray<string>.Empty);
+        return new LookupDirective(schemaName, key, field, map.Value, path ?? []);
     }
 
     private static ImmutableArray<string> ParseMap(IValueNode value)
@@ -122,7 +122,7 @@ internal static class LookupDirectiveParser
             }
         }
 
-        return temp?.ToImmutable() ?? ImmutableArray<LookupDirective>.Empty;
+        return temp?.ToImmutable() ?? [];
     }
 
     public static bool TryParse(

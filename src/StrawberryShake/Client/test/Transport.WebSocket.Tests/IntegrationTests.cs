@@ -132,7 +132,7 @@ public class IntegrationTests : ServerTestBase
             .Create(
                 async (snapshot, ct) =>
                 {
-                    var payload = new Dictionary<string, object> { ["Key"] = "Value", };
+                    var payload = new Dictionary<string, object> { ["Key"] = "Value" };
                     var sessionInterceptor = new StubSessionInterceptor();
                     using var host = TestServerHelper.CreateServer(
                         builder => builder
@@ -241,7 +241,7 @@ public class IntegrationTests : ServerTestBase
                             {
                                 results.AddOrUpdate(
                                     id,
-                                    _ => [response.Body,],
+                                    _ => [response.Body],
                                     (_, l) =>
                                     {
                                         l.Add(response.Body);
@@ -274,18 +274,6 @@ public class IntegrationTests : ServerTestBase
             }
 
             return payload;
-        }
-
-#pragma warning disable CS0618
-        [SubscribeAndResolve]
-#pragma warning restore CS0618
-        public async IAsyncEnumerable<int> CountUp()
-        {
-            for (var i = 0; i < 100; i++)
-            {
-                await Task.Delay(1);
-                yield return i;
-            }
         }
     }
 

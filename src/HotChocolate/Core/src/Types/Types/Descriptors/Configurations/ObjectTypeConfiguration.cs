@@ -4,7 +4,7 @@ using HotChocolate.Utilities;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// Defines the properties of a GraphQL object type.
@@ -58,7 +58,7 @@ public class ObjectTypeConfiguration
     /// <summary>
     /// Gets the type that can provide attributes to this type.
     /// </summary>
-    public ImmutableArray<Type> AttributeBindingTypes { get; set; } = ImmutableArray<Type>.Empty;
+    public ImmutableArray<Type> AttributeBindingTypes { get; set; } = [];
 
     /// <summary>
     /// Runtime types that also represent this GraphQL type.
@@ -78,7 +78,7 @@ public class ObjectTypeConfiguration
     public IsOfType? IsOfType { get; set; }
 
     /// <summary>
-    /// Defines if this type definition represents a object type extension.
+    /// Defines if this type definition represents an object type extension.
     /// </summary>
     public bool IsExtension { get; set; }
 
@@ -250,7 +250,7 @@ public class ObjectTypeConfiguration
             var targetField = field switch
             {
                 { BindToField: { Type: ObjectFieldBindingType.Property } bindTo } =>
-                    target.Fields.FirstOrDefault(t => bindTo.Name.EqualsOrdinal(t.Member?.Name!)),
+                    target.Fields.FirstOrDefault(t => bindTo.Name.EqualsOrdinal(t.Member?.Name)),
                 { BindToField: { Type: ObjectFieldBindingType.Field } bindTo } =>
                     target.Fields.FirstOrDefault(t => bindTo.Name.EqualsOrdinal(t.Name)),
                 _ => target.Fields.FirstOrDefault(t => field.Name.EqualsOrdinal(t.Name))

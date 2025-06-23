@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Utilities;
 
@@ -23,7 +23,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
     private bool? _enableRelativeCursors;
 
     /// <summary>
-    /// Overrides the global paging options for the annotated  field.
+    /// Overrides the global paging options for the annotated field.
     /// </summary>
     /// <param name="order">
     /// The explicit order priority for this attribute.
@@ -127,14 +127,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
             var definition = fieldDesc.Extend().Configuration;
             definition.Tasks.Add(
                 new OnCreateTypeSystemConfigurationTask(
-                    (_, d) =>
-                    {
-                        ((ObjectFieldConfiguration)d).State =
-                            ((ObjectFieldConfiguration)d).State.SetItem(
-                                WellKnownContextData.PagingOptions,
-                                options);
-                    },
-                    definition));
+                    (_, d) => d.Features.Set(options), definition));
             definition.Tasks.Add(
                 new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                     (c, d) => ApplyPagingOptions(c.DescriptorContext, d, options),
@@ -148,7 +141,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
             PagingOptions options)
         {
             options = context.GetPagingOptions(options);
-            definition.ContextData[WellKnownContextData.PagingOptions] = options;
+            definition.Features.Set(options);
 
             if (options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination)
             {

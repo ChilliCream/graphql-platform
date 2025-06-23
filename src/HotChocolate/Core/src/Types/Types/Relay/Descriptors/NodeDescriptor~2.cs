@@ -3,7 +3,7 @@ using System.Reflection;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -11,7 +11,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types.Relay.Descriptors;
 
 /// <summary>
-/// The node descriptor allows to configure a node type.
+/// The node descriptor allows configuring a node type.
 /// </summary>
 /// <typeparam name="TNode">
 /// The node runtime type.
@@ -74,10 +74,7 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
     public IObjectFieldDescriptor ResolveNodeWith<TResolver>(
         Expression<Func<TResolver, object?>> method)
     {
-        if (method is null)
-        {
-            throw new ArgumentNullException(nameof(method));
-        }
+        ArgumentNullException.ThrowIfNull(method);
 
         var member = method.TryExtractMember();
 
@@ -96,10 +93,7 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
 
     public IObjectFieldDescriptor ResolveNodeWith(MethodInfo method)
     {
-        if (method is null)
-        {
-            throw new ArgumentNullException(nameof(method));
-        }
+        ArgumentNullException.ThrowIfNull(method);
 
         Configuration.ResolverField ??= new ObjectFieldConfiguration();
         Configuration.ResolverField.Member = method;

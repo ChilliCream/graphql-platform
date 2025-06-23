@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public class Selection : ISelection
 {
-    private static readonly ArgumentMap _emptyArguments = ArgumentMap.Empty;
+    private static readonly ArgumentMap s_emptyArguments = ArgumentMap.Empty;
     private long[] _includeConditions;
     private long _streamIfCondition;
     private Flags _flags;
@@ -20,8 +20,8 @@ public class Selection : ISelection
 
     public Selection(
         int id,
-        IObjectType declaringType,
-        IObjectField field,
+        ObjectType declaringType,
+        ObjectField field,
         IType type,
         FieldNode syntaxNode,
         string responseName,
@@ -39,7 +39,7 @@ public class Selection : ISelection
         _syntaxNode = syntaxNode;
         _syntaxNodes = [syntaxNode];
         ResponseName = responseName;
-        Arguments = arguments ?? _emptyArguments;
+        Arguments = arguments ?? s_emptyArguments;
         ResolverPipeline = resolverPipeline;
         PureResolver = pureResolver;
         Strategy = InferStrategy(!isParallelExecutable, pureResolver is not null);
@@ -50,7 +50,7 @@ public class Selection : ISelection
             ? Flags.Internal
             : Flags.None;
 
-        if (Type.IsType(TypeKind.List))
+        if (Type.IsListType())
         {
             _flags |= Flags.List;
         }
@@ -58,10 +58,7 @@ public class Selection : ISelection
 
     protected Selection(Selection selection)
     {
-        if (selection is null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
+        ArgumentNullException.ThrowIfNull(selection);
 
         Id = selection.Id;
         Strategy = selection.Strategy;
@@ -91,15 +88,15 @@ public class Selection : ISelection
     public SelectionExecutionStrategy Strategy { get; private set; }
 
     /// <inheritdoc />
-    public IObjectType DeclaringType { get; }
+    public ObjectType DeclaringType { get; }
 
     /// <inheritdoc />
-    public ISelectionSet DeclaringSelectionSet { get; private set; } = default!;
+    public ISelectionSet DeclaringSelectionSet { get; private set; } = null!;
 
-    public IOperation DeclaringOperation { get; private set; } = default!;
+    public IOperation DeclaringOperation { get; private set; } = null!;
 
     /// <inheritdoc />
-    public IObjectField Field { get; }
+    public ObjectField Field { get; }
 
     /// <inheritdoc />
     public IType Type { get; }
@@ -402,15 +399,15 @@ public class Selection : ISelection
         Option4 = 8,
         Option5 = 16,
         Option6 = 32,
-        Option7 = 64,
+        Option7 = 64
     }
 
     internal sealed class Sealed : Selection
     {
         public Sealed(
             int id,
-            IObjectType declaringType,
-            IObjectField field,
+            ObjectType declaringType,
+            ObjectField field,
             IType type,
             FieldNode syntaxNode,
             string responseName,

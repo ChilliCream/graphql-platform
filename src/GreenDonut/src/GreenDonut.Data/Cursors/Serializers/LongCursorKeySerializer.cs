@@ -1,11 +1,10 @@
 using System.Buffers.Text;
-using System.Reflection;
 
 namespace GreenDonut.Data.Cursors.Serializers;
 
 internal sealed class LongCursorKeySerializer : ICursorKeySerializer
 {
-    private static readonly CursorKeyCompareMethod _compareTo = CompareToResolver.GetCompareToMethod<long>();
+    private static readonly CursorKeyCompareMethod s_compareTo = CompareToResolver.GetCompareToMethod<long>();
 
     public bool IsSupported(Type type)
         => type == typeof(long) || type == typeof(long?);
@@ -14,7 +13,7 @@ internal sealed class LongCursorKeySerializer : ICursorKeySerializer
         => type == typeof(long?);
 
     public CursorKeyCompareMethod GetCompareToMethod(Type type)
-        => _compareTo;
+        => s_compareTo;
 
     public object Parse(ReadOnlySpan<byte> formattedKey)
     {

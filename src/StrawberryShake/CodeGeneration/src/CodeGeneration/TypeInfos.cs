@@ -402,7 +402,7 @@ public sealed class TypeInfos
         {
             TypeNames.TimeSpanSerializer,
             new RuntimeTypeInfo(TypeNames.TimeSpanSerializer)
-        },
+        }
     };
 
     public RuntimeTypeInfo GetOrAdd(string fullTypeName, bool valueType = false) =>

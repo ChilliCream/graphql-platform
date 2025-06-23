@@ -10,10 +10,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where T : class, IOperationCompilerOptimizer
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.ConfigureSchemaServices(s => s.AddSingleton<IOperationCompilerOptimizer, T>());
         return builder;
@@ -24,10 +21,7 @@ public static partial class RequestExecutorBuilderExtensions
         Func<IServiceProvider, T> factory)
         where T : class, IOperationCompilerOptimizer
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.ConfigureSchemaServices(
             sc => sc.AddSingleton<IOperationCompilerOptimizer>(

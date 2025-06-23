@@ -611,7 +611,7 @@ public class SchemaBuilderExtensionsTypeTests
 
         // act
         Action action = () =>
-            SchemaBuilderExtensions.AddDirectiveType(builder, (Type)null);
+            SchemaBuilderExtensions.AddDirectiveType(builder, null);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -1115,9 +1115,7 @@ public class SchemaBuilderExtensionsTypeTests
     }
 
     public class BarType
-        : ObjectType<Bar>
-    {
-    }
+        : ObjectType<Bar>;
 
     public class Foo
     {
@@ -1149,13 +1147,11 @@ public class SchemaBuilderExtensionsTypeTests
         }
     }
 
-    public interface IMyInterface
-    {
-    }
+    public interface IMyInterface;
 
     public enum MyEnum
     {
         A,
-        B,
+        B
     }
 }

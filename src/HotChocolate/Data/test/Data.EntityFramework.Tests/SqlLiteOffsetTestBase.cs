@@ -61,14 +61,14 @@ public class SqlLiteOffsetTestBase
                         })
                     .UseOffsetPaging<ObjectType<TEntity>>(options: new()
                     {
-                        IncludeTotalCount = true,
+                        IncludeTotalCount = true
                     }));
 
         var schema = builder.Create();
 
         return new ServiceCollection()
             .Configure<RequestExecutorSetup>(
-                Schema.DefaultName,
+                ISchemaDefinition.DefaultName,
                 o => o.Schema = schema)
             .AddDbContextPool<DatabaseContext<TEntity>>(
                 b => b.UseSqlite($"Data Source={Guid.NewGuid():N}.db"))
@@ -76,8 +76,8 @@ public class SqlLiteOffsetTestBase
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync()
             .Result;
     }
 }

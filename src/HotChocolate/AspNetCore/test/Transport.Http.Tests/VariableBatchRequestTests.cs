@@ -20,13 +20,13 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
                 new Dictionary<string, object?>
                 {
                     ["abc"] = "def",
-                    ["hij"] = null,
+                    ["hij"] = null
                 },
                 new Dictionary<string, object?>
                 {
                     ["abc"] = "xyz",
-                    ["hij"] = null,
-                },
+                    ["hij"] = null
+                }
             ]);
 
         using var memory = new MemoryStream();
@@ -77,12 +77,12 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
 
         var variables1 = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI",
+            ["episode"] = "JEDI"
         };
 
         var variables2 = new Dictionary<string, object?>
         {
-            ["episode"] = "EMPIRE",
+            ["episode"] = "EMPIRE"
         };
 
         var requestUri = new Uri(CreateUrl("/graphql"));
@@ -97,7 +97,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         // assert
         var snapshot = new Snapshot();
 
-        await foreach(var result in response.ReadAsResultStreamAsync(cts.Token))
+        await foreach(var result in response.ReadAsResultStreamAsync().WithCancellation(cts.Token))
         {
             snapshot.Add(result);
         }
@@ -137,12 +137,12 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
 
         var variables1 = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI",
+            ["episode"] = "JEDI"
         };
 
         var variables2 = new Dictionary<string, object?>
         {
-            ["episode"] = "EMPIRE",
+            ["episode"] = "EMPIRE"
         };
 
         var requestUri = new Uri(CreateUrl("/graphql"));
@@ -150,7 +150,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         // act
         var nestedVariableBatchRequest = new VariableBatchRequest(
             query,
-            variables: new[] { variables1, variables2 });
+            variables: [variables1, variables2]);
 
         var nestedSingleRequest = new OperationRequest(
             """
@@ -168,7 +168,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
 
         var sortedResults = new SortedList<(int?, int?), OperationResult>();
 
-        await foreach(var result in response.ReadAsResultStreamAsync(cts.Token))
+        await foreach(var result in response.ReadAsResultStreamAsync().WithCancellation(cts.Token))
         {
             sortedResults.Add((result.RequestIndex, result.VariableIndex), result);
         }
@@ -222,12 +222,12 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
 
         var variables1 = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI",
+            ["episode"] = "JEDI"
         };
 
         var variables2 = new Dictionary<string, object?>
         {
-            ["episode"] = "EMPIRE",
+            ["episode"] = "EMPIRE"
         };
 
         var requestUri = new Uri(CreateUrl("/graphql"));
@@ -257,7 +257,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
 
         var sortedResults = new SortedList<(int?, int?), OperationResult>();
 
-        await foreach(var result in response.ReadAsResultStreamAsync(cts.Token))
+        await foreach(var result in response.ReadAsResultStreamAsync().WithCancellation(cts.Token))
         {
             sortedResults.Add((result.RequestIndex, result.VariableIndex), result);
         }

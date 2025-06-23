@@ -2,7 +2,7 @@ using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -111,10 +111,7 @@ public static class PagingObjectFieldDescriptorExtensions
         string? connectionName = null,
         PagingOptions? options = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         resolvePagingProvider ??= ResolvePagingProvider;
 
@@ -130,8 +127,8 @@ public static class PagingObjectFieldDescriptorExtensions
             {
                 var pagingOptions = c.GetPagingOptions(options);
                 var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
-                d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
-                d.Flags |= FieldFlags.Connection;
+                d.Features.Set(pagingOptions);
+                d.Flags |= CoreFieldFlags.Connection;
 
                 CreatePagingArguments(d.Arguments, backward);
 
@@ -205,10 +202,7 @@ public static class PagingObjectFieldDescriptorExtensions
         string? connectionName = null,
         PagingOptions? options = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor
             .Extend()
@@ -216,8 +210,8 @@ public static class PagingObjectFieldDescriptorExtensions
             {
                 var pagingOptions = c.GetPagingOptions(options);
                 var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
-                d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
-                d.Flags |= FieldFlags.Connection;
+                d.Features.Set(pagingOptions);
+                d.Flags |= CoreFieldFlags.Connection;
 
                 CreatePagingArguments(d.Arguments, backward);
 
@@ -255,10 +249,7 @@ public static class PagingObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         bool allowBackwardPagination)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         CreatePagingArguments(
             descriptor.Extend().Configuration.Arguments,
@@ -275,10 +266,7 @@ public static class PagingObjectFieldDescriptorExtensions
         this IInterfaceFieldDescriptor descriptor,
         bool allowBackwardPagination)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         CreatePagingArguments(
             descriptor.Extend().Configuration.Arguments,
@@ -375,7 +363,7 @@ public static class PagingObjectFieldDescriptorExtensions
             PagingProviderEntry? defaultEntry = null;
 
             // if we find an application service provider we will prefer that one.
-            var applicationServices = services.GetService<IApplicationServiceProvider>();
+            var applicationServices = services.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
 
             if (applicationServices is not null)
             {
@@ -442,5 +430,5 @@ public static class PagingObjectFieldDescriptorExtensions
     private static string EnsureConnectionNameCasing(string connectionName)
         => char.IsUpper(connectionName[0])
             ? connectionName
-            : string.Concat(char.ToUpperInvariant(connectionName[0]), connectionName.Substring(1));
+            : string.Concat(char.ToUpperInvariant(connectionName[0]), connectionName[1..]);
 }

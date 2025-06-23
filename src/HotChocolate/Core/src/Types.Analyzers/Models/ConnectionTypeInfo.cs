@@ -154,7 +154,7 @@ public sealed class ConnectionTypeInfo
                             connectionName,
                             property,
                             ResolverResultKind.Pure,
-                            ImmutableArray<ResolverParameter>.Empty,
+                            [],
                             GetMemberBindings(member),
                             flags: flags));
                     break;

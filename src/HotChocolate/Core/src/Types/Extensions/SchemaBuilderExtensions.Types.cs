@@ -1,5 +1,7 @@
 #nullable enable
 
+using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -14,15 +16,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         Action<IObjectTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return AddQueryType(builder, new ObjectType(configure));
     }
@@ -31,15 +26,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         Action<IObjectTypeDescriptor<T>> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return AddQueryType(builder, new ObjectType<T>(configure));
     }
@@ -48,15 +36,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         Type type)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(type);
 
         return builder.AddRootType(type, OperationType.Query);
     }
@@ -65,15 +46,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         ObjectType queryType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (queryType is null)
-        {
-            throw new ArgumentNullException(nameof(queryType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(queryType);
 
         return builder.AddRootType(queryType, OperationType.Query);
     }
@@ -82,10 +56,7 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder)
         where TQuery : class
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.AddRootType(typeof(TQuery), OperationType.Query);
     }
@@ -94,15 +65,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         Action<IObjectTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return AddMutationType(builder, new ObjectType(configure));
     }
@@ -111,15 +75,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         Action<IObjectTypeDescriptor<T>> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return AddMutationType(builder, new ObjectType<T>(configure));
     }
@@ -128,15 +85,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         Type type)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(type);
 
         return builder.AddRootType(type, OperationType.Mutation);
     }
@@ -145,15 +95,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         ObjectType queryType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (queryType is null)
-        {
-            throw new ArgumentNullException(nameof(queryType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(queryType);
 
         return builder.AddRootType(queryType, OperationType.Mutation);
     }
@@ -162,10 +105,7 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder)
         where TMutation : class
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.AddRootType(
             typeof(TMutation),
@@ -176,15 +116,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         Action<IObjectTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return AddSubscriptionType(builder, new ObjectType(configure));
     }
@@ -193,15 +126,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         Action<IObjectTypeDescriptor<T>> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return AddSubscriptionType(builder, new ObjectType<T>(configure));
     }
@@ -210,15 +136,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         Type type)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(type);
 
         return builder.AddRootType(type, OperationType.Subscription);
     }
@@ -227,15 +146,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         ObjectType queryType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (queryType is null)
-        {
-            throw new ArgumentNullException(nameof(queryType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(queryType);
 
         return builder.AddRootType(queryType, OperationType.Subscription);
     }
@@ -244,10 +156,7 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder)
         where TSubscription : class
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.AddRootType(
             typeof(TSubscription),
@@ -258,15 +167,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         Action<IObjectTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.AddType(new ObjectType(configure));
     }
@@ -274,10 +176,7 @@ public static partial class SchemaBuilderExtensions
     public static ISchemaBuilder AddObjectType<T>(
         this ISchemaBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
         {
@@ -294,15 +193,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         Action<IObjectTypeDescriptor<T>> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
         {
@@ -319,15 +211,8 @@ public static partial class SchemaBuilderExtensions
        this ISchemaBuilder builder,
        Action<IUnionTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.AddType(new UnionType(configure));
     }
@@ -335,10 +220,7 @@ public static partial class SchemaBuilderExtensions
     public static ISchemaBuilder AddUnionType<T>(
         this ISchemaBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
         {
@@ -355,15 +237,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         Action<IUnionTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
         {
@@ -380,15 +255,8 @@ public static partial class SchemaBuilderExtensions
        this ISchemaBuilder builder,
        Action<IEnumTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.AddType(new EnumType(configure));
     }
@@ -396,10 +264,7 @@ public static partial class SchemaBuilderExtensions
     public static ISchemaBuilder AddEnumType<T>(
         this ISchemaBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
         {
@@ -416,15 +281,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         Action<IEnumTypeDescriptor<T>> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
         {
@@ -441,15 +299,8 @@ public static partial class SchemaBuilderExtensions
        this ISchemaBuilder builder,
        Action<IInterfaceTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.AddType(new InterfaceType(configure));
     }
@@ -457,10 +308,7 @@ public static partial class SchemaBuilderExtensions
     public static ISchemaBuilder AddInterfaceType<T>(
         this ISchemaBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
         {
@@ -477,15 +325,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         Action<IInterfaceTypeDescriptor<T>> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
         {
@@ -502,15 +343,8 @@ public static partial class SchemaBuilderExtensions
        this ISchemaBuilder builder,
        Action<IInputObjectTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.AddType(new InputObjectType(configure));
     }
@@ -518,10 +352,7 @@ public static partial class SchemaBuilderExtensions
     public static ISchemaBuilder AddInputObjectType<T>(
         this ISchemaBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
         {
@@ -538,15 +369,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         Action<IInputObjectTypeDescriptor<T>> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
         {
@@ -562,32 +386,23 @@ public static partial class SchemaBuilderExtensions
     public static ISchemaBuilder AddType<T>(
         this ISchemaBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.AddType(typeof(T));
     }
 
     public static ISchemaBuilder AddTypes(
         this ISchemaBuilder builder,
-        params INamedType[] types)
+        params ITypeDefinition[] types)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (types is null)
-        {
-            throw new ArgumentNullException(nameof(types));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(types);
 
         foreach (var type in types)
         {
             builder.AddType(type);
         }
+
         return builder;
     }
 
@@ -595,20 +410,14 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         params Type[] types)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (types is null)
-        {
-            throw new ArgumentNullException(nameof(types));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(types);
 
         foreach (var type in types)
         {
             builder.AddType(type);
         }
+
         return builder;
     }
 
@@ -616,15 +425,8 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder,
         Type directiveType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (directiveType is null)
-        {
-            throw new ArgumentNullException(nameof(directiveType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(directiveType);
 
         bool IsDirectiveBaseType()
         {
@@ -663,46 +465,81 @@ public static partial class SchemaBuilderExtensions
         this ISchemaBuilder builder)
         where TDirective : DirectiveType
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return AddDirectiveType(builder, typeof(TDirective));
     }
 
     public static ISchemaBuilder SetSchema<TSchema>(
         this ISchemaBuilder builder)
-        where TSchema : ISchema
+        where TSchema : Schema
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.SetSchema(typeof(TSchema));
     }
 
     public static ISchemaBuilder BindRuntimeType<TRuntimeType, TSchemaType>(
         this ISchemaBuilder builder)
-        where TSchemaType : INamedType
+        where TSchemaType : ITypeDefinition
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.BindRuntimeType(typeof(TRuntimeType), typeof(TSchemaType));
+    }
+
+    /// <summary>
+    /// Binds a .NET runtime type to a corresponding GraphQL schema type,
+    /// allowing the schema builder to infer and apply the correct type mapping.
+    /// </summary>
+    /// <param name="builder">
+    /// The schema builder instance.
+    /// </param>
+    /// <param name="runtimeType">
+    /// The .NET type used at runtime (e.g., a CLR class or struct).
+    /// </param>
+    /// <param name="schemaType">
+    /// The GraphQL type to bind to the specified runtime type (must implement <see cref="ITypeDefinition"/>).
+    /// </param>
+    /// <returns>
+    /// The schema builder instance.
+    /// </returns>
+    public static ISchemaBuilder BindRuntimeType(
+        this ISchemaBuilder builder,
+        Type runtimeType,
+        Type schemaType)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(runtimeType);
+        ArgumentNullException.ThrowIfNull(schemaType);
+
+        if (runtimeType == typeof(object))
+        {
+            throw new ArgumentException(
+                TypeResources.SchemaBuilder_BindRuntimeType_ObjectNotAllowed,
+                nameof(runtimeType));
+        }
+
+        if (!schemaType.IsSchemaType())
+        {
+            throw new ArgumentException(
+                TypeResources.SchemaBuilder_MustBeSchemaType,
+                nameof(schemaType));
+        }
+
+        var context = SchemaTypeReference.InferTypeContext(schemaType);
+        var binding = new RuntimeTypeBinding(runtimeType, schemaType, context);
+        var feature = builder.Features.GetOrSet<TypeSystemFeature>();
+        feature.RuntimeTypeBindings = feature.RuntimeTypeBindings.Add(runtimeType, binding);
+
+        return builder;
     }
 
     public static ISchemaBuilder BindRuntimeType<TRuntimeType>(
         this ISchemaBuilder builder,
         string? typeName = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         typeName ??= typeof(TRuntimeType).Name;
         return BindRuntimeTypeInternal(builder, typeName, typeof(TRuntimeType));
@@ -713,15 +550,8 @@ public static partial class SchemaBuilderExtensions
         Type runtimeType,
         string? typeName = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (runtimeType is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeType));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(runtimeType);
 
         typeName ??= runtimeType.Name;
         return BindRuntimeTypeInternal(builder, typeName, runtimeType);
@@ -732,26 +562,21 @@ public static partial class SchemaBuilderExtensions
         string typeName,
         Type runtimeType)
     {
-        if (context is null)
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
+        ArgumentNullException.ThrowIfNull(runtimeType);
+
+        var binding = new RuntimeTypeNameBinding(runtimeType, typeName);
+        var feature = context.Features.GetOrSet<TypeSystemFeature>();
+
+        if (feature.RuntimeTypeNameBindings.ContainsKey(runtimeType)
+            || feature.NameRuntimeTypeBinding.ContainsKey(typeName))
         {
-            throw new ArgumentNullException(nameof(context));
+            return;
         }
 
-        if (runtimeType is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeType));
-        }
-
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
-
-        if (context.ContextData.TryGetValue(WellKnownContextData.RuntimeTypes, out var o) &&
-            o is Dictionary<string, Type> runtimeTypes)
-        {
-            runtimeTypes[typeName] = runtimeType;
-        }
+        feature.RuntimeTypeNameBindings = feature.RuntimeTypeNameBindings.Add(runtimeType, binding);
+        feature.NameRuntimeTypeBinding = feature.NameRuntimeTypeBinding.Add(typeName, binding);
     }
 
     private static ISchemaBuilder BindRuntimeTypeInternal(
@@ -761,11 +586,11 @@ public static partial class SchemaBuilderExtensions
     {
         InitializeResolverTypeInterceptor(builder);
 
-        if (builder.ContextData.TryGetValue(WellKnownContextData.RuntimeTypes, out var o) &&
-            o is Dictionary<string, Type> runtimeTypes)
-        {
-            runtimeTypes[typeName] = runtimeType;
-        }
+        var binding = new RuntimeTypeNameBinding(runtimeType, typeName);
+        var feature = builder.Features.GetOrSet<TypeSystemFeature>();
+
+        feature.RuntimeTypeNameBindings = feature.RuntimeTypeNameBindings.Add(runtimeType, binding);
+        feature.NameRuntimeTypeBinding = feature.NameRuntimeTypeBinding.Add(typeName, binding);
 
         return builder;
     }

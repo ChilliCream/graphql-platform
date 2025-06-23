@@ -1,7 +1,7 @@
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -93,9 +93,7 @@ public class TypeModuleTests
             await warmupService.StartAsync(CancellationToken.None);
         }, cts.Token);
 
-        var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
-
-        await resolver.GetRequestExecutorAsync();
+        await provider.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
 
         // act
         // assert

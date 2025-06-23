@@ -11,9 +11,9 @@ namespace HotChocolate.Execution.Processing;
 internal sealed class DeferredWorkScheduler
 {
     private readonly object _stateSync = new();
-    private IFactory<OperationContextOwner> _operationContextFactory = default!;
-    private IFactory<DeferredWorkStateOwner> _deferredWorkStateFactory = default!;
-    private OperationContext _parentContext = default!;
+    private IFactory<OperationContextOwner> _operationContextFactory = null!;
+    private IFactory<DeferredWorkStateOwner> _deferredWorkStateFactory = null!;
+    private OperationContext _parentContext = null!;
     private DeferredWorkStateOwner? _stateOwner;
 
     private DeferredWorkStateOwner StateOwner
@@ -67,7 +67,7 @@ internal sealed class DeferredWorkScheduler
         // shall be patched into.
         var patchId = StateOwner.State.AssignPatchId(parentResult);
 
-        // for the spawned execution we need a operation context which we will initialize
+        // for the spawned execution we need an operation context which we will initialize
         // from the current operation context.
         var taskContextOwner = _operationContextFactory.Create();
         taskContextOwner.OperationContext.InitializeFrom(_parentContext);
@@ -102,9 +102,9 @@ internal sealed class DeferredWorkScheduler
     public void Clear()
     {
         _stateOwner = null;
-        _operationContextFactory = default!;
-        _deferredWorkStateFactory = default!;
-        _parentContext = default!;
+        _operationContextFactory = null!;
+        _deferredWorkStateFactory = null!;
+        _parentContext = null!;
     }
 
     private class DeferredResultStream : IAsyncEnumerable<IOperationResult>

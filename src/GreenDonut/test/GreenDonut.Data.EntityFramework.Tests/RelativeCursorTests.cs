@@ -42,35 +42,10 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         6. Futurova
         */
 
-        Snapshot.Create()
+        Snapshot.Create(postFix: TestEnvironment.TargetFramework)
             .Add(new { Page = second.Index, second.TotalCount, Items = second.Items.Select(t => t.Name).ToArray() })
             .AddSql(capture)
-            .MatchInline(
-                """
-                ---------------
-                {
-                  "Page": 2,
-                  "TotalCount": 20,
-                  "Items": [
-                    "Celestara",
-                    "Dynamova"
-                  ]
-                }
-                ---------------
-
-                SQL 0
-                ---------------
-                -- @__value_0='Brightex'
-                -- @__value_1='2'
-                -- @__p_2='3'
-                SELECT b."Id", b."CreatedOn", b."GroupId", b."ModifiedOn", b."Name"
-                FROM "Brands" AS b
-                WHERE b."Name" >= @__value_0 AND (b."Name" > @__value_0 OR b."Id" > @__value_1)
-                ORDER BY b."Name", b."Id"
-                LIMIT @__p_2
-                ---------------
-
-                """);
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -158,11 +133,11 @@ public class RelativeCursorTests(PostgreSqlResource resource)
 
         /*
         1. Aetherix
-        2. Brightex     
-        3. Celestara    
-        4. Evolvance    <- Cursor  
-        5. Futurova     
-        6. Glacient     
+        2. Brightex
+        3. Celestara
+        4. Evolvance    <- Cursor
+        5. Futurova
+        6. Glacient
         7. Innovexa     <- Page 4 - Item 1
         8. Joventra     <- Page 4 - Item 2
         */
@@ -230,46 +205,10 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         6. Futurova
         */
 
-        Snapshot.Create()
+        Snapshot.Create(postFix: TestEnvironment.TargetFramework)
             .Add(new { Page = second.Index, second.TotalCount, Items = second.Items.Select(t => t.Name).ToArray() })
             .AddSql(capture)
-            .MatchInline(
-                """
-                ---------------
-                {
-                  "Page": 2,
-                  "TotalCount": 20,
-                  "Items": [
-                    "Celestara",
-                    "Dynamova"
-                  ]
-                }
-                ---------------
-
-                SQL 0
-                ---------------
-                -- @__value_0='Brightex'
-                -- @__value_1='2'
-                SELECT b1."GroupId", b3."Id", b3."CreatedOn", b3."GroupId", b3."ModifiedOn", b3."Name"
-                FROM (
-                    SELECT b."GroupId"
-                    FROM "Brands" AS b
-                    WHERE b."GroupId" = 1
-                    GROUP BY b."GroupId"
-                ) AS b1
-                LEFT JOIN (
-                    SELECT b2."Id", b2."CreatedOn", b2."GroupId", b2."ModifiedOn", b2."Name"
-                    FROM (
-                        SELECT b0."Id", b0."CreatedOn", b0."GroupId", b0."ModifiedOn", b0."Name", ROW_NUMBER() OVER(PARTITION BY b0."GroupId" ORDER BY b0."Name", b0."Id") AS row
-                        FROM "Brands" AS b0
-                        WHERE b0."GroupId" = 1 AND b0."Name" >= @__value_0 AND (b0."Name" > @__value_0 OR b0."Id" > @__value_1)
-                    ) AS b2
-                    WHERE b2.row <= 3
-                ) AS b3 ON b1."GroupId" = b3."GroupId"
-                ORDER BY b1."GroupId", b3."GroupId", b3."Name", b3."Id"
-                ---------------
-
-                """);
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -375,36 +314,10 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         6. Futurova     <- Page 3 - Item 2
         */
 
-        Snapshot.Create()
+        Snapshot.Create(postFix: TestEnvironment.TargetFramework)
             .Add(new { Page = second.Index, second.TotalCount, Items = second.Items.Select(t => t.Name).ToArray() })
             .AddSql(capture)
-            .MatchInline(
-                """
-                ---------------
-                {
-                  "Page": 3,
-                  "TotalCount": 20,
-                  "Items": [
-                    "Evolvance",
-                    "Futurova"
-                  ]
-                }
-                ---------------
-
-                SQL 0
-                ---------------
-                -- @__value_0='Brightex'
-                -- @__value_1='2'
-                -- @__p_3='3'
-                -- @__p_2='2'
-                SELECT b."Id", b."CreatedOn", b."GroupId", b."ModifiedOn", b."Name"
-                FROM "Brands" AS b
-                WHERE b."Name" >= @__value_0 AND (b."Name" > @__value_0 OR b."Id" > @__value_1)
-                ORDER BY b."Name", b."Id"
-                LIMIT @__p_3 OFFSET @__p_2
-                ---------------
-
-                """);
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -500,46 +413,10 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         6. Futurova     <- Page 3 - Item 2
         */
 
-        Snapshot.Create()
+        Snapshot.Create(postFix: TestEnvironment.TargetFramework)
             .Add(new { Page = second.Index, second.TotalCount, Items = second.Items.Select(t => t.Name).ToArray() })
             .AddSql(capture)
-            .MatchInline(
-                """
-                ---------------
-                {
-                  "Page": 3,
-                  "TotalCount": 20,
-                  "Items": [
-                    "Evolvance",
-                    "Futurova"
-                  ]
-                }
-                ---------------
-
-                SQL 0
-                ---------------
-                -- @__value_0='Brightex'
-                -- @__value_1='2'
-                SELECT b1."GroupId", b3."Id", b3."CreatedOn", b3."GroupId", b3."ModifiedOn", b3."Name"
-                FROM (
-                    SELECT b."GroupId"
-                    FROM "Brands" AS b
-                    WHERE b."GroupId" = 1
-                    GROUP BY b."GroupId"
-                ) AS b1
-                LEFT JOIN (
-                    SELECT b2."Id", b2."CreatedOn", b2."GroupId", b2."ModifiedOn", b2."Name"
-                    FROM (
-                        SELECT b0."Id", b0."CreatedOn", b0."GroupId", b0."ModifiedOn", b0."Name", ROW_NUMBER() OVER(PARTITION BY b0."GroupId" ORDER BY b0."Name", b0."Id") AS row
-                        FROM "Brands" AS b0
-                        WHERE b0."GroupId" = 1 AND b0."Name" >= @__value_0 AND (b0."Name" > @__value_0 OR b0."Id" > @__value_1)
-                    ) AS b2
-                    WHERE 2 < b2.row AND b2.row <= 5
-                ) AS b3 ON b1."GroupId" = b3."GroupId"
-                ORDER BY b1."GroupId", b3."GroupId", b3."Name", b3."Id"
-                ---------------
-
-                """);
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -649,36 +526,10 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         8. Hyperionix   <- Page 4 - Item 2
         */
 
-        Snapshot.Create()
+        Snapshot.Create(postFix: TestEnvironment.TargetFramework)
             .Add(new { Page = fourth.Index, fourth.TotalCount, Items = fourth.Items.Select(t => t.Name).ToArray() })
             .AddSql(capture)
-            .MatchInline(
-                """
-                ---------------
-                {
-                  "Page": 4,
-                  "TotalCount": 20,
-                  "Items": [
-                    "Glacient",
-                    "Hyperionix"
-                  ]
-                }
-                ---------------
-
-                SQL 0
-                ---------------
-                -- @__value_0='Dynamova'
-                -- @__value_1='4'
-                -- @__p_3='3'
-                -- @__p_2='2'
-                SELECT b."Id", b."CreatedOn", b."GroupId", b."ModifiedOn", b."Name"
-                FROM "Brands" AS b
-                WHERE b."Name" >= @__value_0 AND (b."Name" > @__value_0 OR b."Id" > @__value_1)
-                ORDER BY b."Name", b."Id"
-                LIMIT @__p_3 OFFSET @__p_2
-                ---------------
-
-                """);
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -781,46 +632,10 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         8. Hyperionix   <- Page 4 - Item 2
         */
 
-        Snapshot.Create()
+        Snapshot.Create(postFix: TestEnvironment.TargetFramework)
             .Add(new { Page = fourth.Index, fourth.TotalCount, Items = fourth.Items.Select(t => t.Name).ToArray() })
             .AddSql(capture)
-            .MatchInline(
-                """
-                ---------------
-                {
-                  "Page": 4,
-                  "TotalCount": 20,
-                  "Items": [
-                    "Glacient",
-                    "Hyperionix"
-                  ]
-                }
-                ---------------
-
-                SQL 0
-                ---------------
-                -- @__value_0='Dynamova'
-                -- @__value_1='4'
-                SELECT b1."GroupId", b3."Id", b3."CreatedOn", b3."GroupId", b3."ModifiedOn", b3."Name"
-                FROM (
-                    SELECT b."GroupId"
-                    FROM "Brands" AS b
-                    WHERE b."GroupId" = 1
-                    GROUP BY b."GroupId"
-                ) AS b1
-                LEFT JOIN (
-                    SELECT b2."Id", b2."CreatedOn", b2."GroupId", b2."ModifiedOn", b2."Name"
-                    FROM (
-                        SELECT b0."Id", b0."CreatedOn", b0."GroupId", b0."ModifiedOn", b0."Name", ROW_NUMBER() OVER(PARTITION BY b0."GroupId" ORDER BY b0."Name", b0."Id") AS row
-                        FROM "Brands" AS b0
-                        WHERE b0."GroupId" = 1 AND b0."Name" >= @__value_0 AND (b0."Name" > @__value_0 OR b0."Id" > @__value_1)
-                    ) AS b2
-                    WHERE 2 < b2.row AND b2.row <= 5
-                ) AS b3 ON b1."GroupId" = b3."GroupId"
-                ORDER BY b1."GroupId", b3."GroupId", b3."Name", b3."Id"
-                ---------------
-
-                """);
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -931,36 +746,10 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         8. Hyperionix   <- Page 4 - Item 2
         */
 
-        Snapshot.Create()
+        Snapshot.Create(postFix: TestEnvironment.TargetFramework)
             .Add(new { Page = fourth.Index, fourth.TotalCount, Items = fourth.Items.Select(t => t.Name).ToArray() })
             .AddSql(capture)
-            .MatchInline(
-                """
-                ---------------
-                {
-                  "Page": 4,
-                  "TotalCount": 20,
-                  "Items": [
-                    "Glacient",
-                    "Hyperionix"
-                  ]
-                }
-                ---------------
-
-                SQL 0
-                ---------------
-                -- @__value_0='Brightex'
-                -- @__value_1='2'
-                -- @__p_3='3'
-                -- @__p_2='4'
-                SELECT b."Id", b."CreatedOn", b."GroupId", b."ModifiedOn", b."Name"
-                FROM "Brands" AS b
-                WHERE b."Name" >= @__value_0 AND (b."Name" > @__value_0 OR b."Id" > @__value_1)
-                ORDER BY b."Name", b."Id"
-                LIMIT @__p_3 OFFSET @__p_2
-                ---------------
-
-                """);
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -990,7 +779,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         14. Nebularis   <- Selected - Item 4
         15. Omniflex    <- Selected - Item 5
         16. Pulsarix    <- NULL Cursor
-        17. Quantumis   
+        17. Quantumis
         18. Radiantum
         19. Synerflux
         20. Vertexis
@@ -1132,46 +921,10 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         8. Hyperionix   <- Page 4 - Item 2
         */
 
-        Snapshot.Create()
+        Snapshot.Create(postFix: TestEnvironment.TargetFramework)
             .Add(new { Page = fourth.Index, fourth.TotalCount, Items = fourth.Items.Select(t => t.Name).ToArray() })
             .AddSql(capture)
-            .MatchInline(
-                """
-                ---------------
-                {
-                  "Page": 4,
-                  "TotalCount": 20,
-                  "Items": [
-                    "Glacient",
-                    "Hyperionix"
-                  ]
-                }
-                ---------------
-
-                SQL 0
-                ---------------
-                -- @__value_0='Brightex'
-                -- @__value_1='2'
-                SELECT b1."GroupId", b3."Id", b3."CreatedOn", b3."GroupId", b3."ModifiedOn", b3."Name"
-                FROM (
-                    SELECT b."GroupId"
-                    FROM "Brands" AS b
-                    WHERE b."GroupId" = 1
-                    GROUP BY b."GroupId"
-                ) AS b1
-                LEFT JOIN (
-                    SELECT b2."Id", b2."CreatedOn", b2."GroupId", b2."ModifiedOn", b2."Name"
-                    FROM (
-                        SELECT b0."Id", b0."CreatedOn", b0."GroupId", b0."ModifiedOn", b0."Name", ROW_NUMBER() OVER(PARTITION BY b0."GroupId" ORDER BY b0."Name", b0."Id") AS row
-                        FROM "Brands" AS b0
-                        WHERE b0."GroupId" = 1 AND b0."Name" >= @__value_0 AND (b0."Name" > @__value_0 OR b0."Id" > @__value_1)
-                    ) AS b2
-                    WHERE 4 < b2.row AND b2.row <= 7
-                ) AS b3 ON b1."GroupId" = b3."GroupId"
-                ORDER BY b1."GroupId", b3."GroupId", b3."Name", b3."Id"
-                ---------------
-
-                """);
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -1280,7 +1033,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         20. Vertexis
         */
 
-        Snapshot.Create()
+        Snapshot.Create(postFix: TestEnvironment.TargetFramework)
             .Add(new
             {
                 Page = secondToLast.Index,
@@ -1288,32 +1041,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
                 Items = secondToLast.Items.Select(t => t.Name).ToArray()
             })
             .AddSql(capture)
-            .MatchInline(
-                """
-                ---------------
-                {
-                  "Page": 9,
-                  "TotalCount": 20,
-                  "Items": [
-                    "Quantumis",
-                    "Radiantum"
-                  ]
-                }
-                ---------------
-
-                SQL 0
-                ---------------
-                -- @__value_0='Synerflux'
-                -- @__value_1='19'
-                -- @__p_2='3'
-                SELECT b."Id", b."CreatedOn", b."GroupId", b."ModifiedOn", b."Name"
-                FROM "Brands" AS b
-                WHERE b."Name" <= @__value_0 AND (b."Name" < @__value_0 OR b."Id" < @__value_1)
-                ORDER BY b."Name" DESC, b."Id" DESC
-                LIMIT @__p_2
-                ---------------
-
-                """);
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -1415,7 +1143,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         20. Vertexis
         */
 
-        Snapshot.Create()
+        Snapshot.Create(postFix: TestEnvironment.TargetFramework)
             .Add(new
             {
                 Page = secondToLast.Index,
@@ -1423,43 +1151,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
                 Items = secondToLast.Items.Select(t => t.Name).ToArray()
             })
             .AddSql(capture)
-            .MatchInline(
-                """
-                ---------------
-                {
-                  "Page": 9,
-                  "TotalCount": 20,
-                  "Items": [
-                    "Quantumis",
-                    "Radiantum"
-                  ]
-                }
-                ---------------
-
-                SQL 0
-                ---------------
-                -- @__value_0='Synerflux'
-                -- @__value_1='19'
-                SELECT b1."GroupId", b3."Id", b3."CreatedOn", b3."GroupId", b3."ModifiedOn", b3."Name"
-                FROM (
-                    SELECT b."GroupId"
-                    FROM "Brands" AS b
-                    WHERE b."GroupId" = 2
-                    GROUP BY b."GroupId"
-                ) AS b1
-                LEFT JOIN (
-                    SELECT b2."Id", b2."CreatedOn", b2."GroupId", b2."ModifiedOn", b2."Name"
-                    FROM (
-                        SELECT b0."Id", b0."CreatedOn", b0."GroupId", b0."ModifiedOn", b0."Name", ROW_NUMBER() OVER(PARTITION BY b0."GroupId" ORDER BY b0."Name" DESC, b0."Id" DESC) AS row
-                        FROM "Brands" AS b0
-                        WHERE b0."GroupId" = 2 AND b0."Name" <= @__value_0 AND (b0."Name" < @__value_0 OR b0."Id" < @__value_1)
-                    ) AS b2
-                    WHERE b2.row <= 3
-                ) AS b3 ON b1."GroupId" = b3."GroupId"
-                ORDER BY b1."GroupId", b3."GroupId", b3."Name" DESC, b3."Id" DESC
-                ---------------
-
-                """);
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -1572,7 +1264,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         20. Vertexis
         */
 
-        Snapshot.Create()
+        Snapshot.Create(postFix: TestEnvironment.TargetFramework)
             .Add(new
             {
                 Page = thirdToLast.Index,
@@ -1580,33 +1272,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
                 Items = thirdToLast.Items.Select(t => t.Name).ToArray()
             })
             .AddSql(capture)
-            .MatchInline(
-                """
-                ---------------
-                {
-                  "Page": 8,
-                  "TotalCount": 20,
-                  "Items": [
-                    "Omniflex",
-                    "Pulsarix"
-                  ]
-                }
-                ---------------
-
-                SQL 0
-                ---------------
-                -- @__value_0='Synerflux'
-                -- @__value_1='19'
-                -- @__p_3='3'
-                -- @__p_2='2'
-                SELECT b."Id", b."CreatedOn", b."GroupId", b."ModifiedOn", b."Name"
-                FROM "Brands" AS b
-                WHERE b."Name" <= @__value_0 AND (b."Name" < @__value_0 OR b."Id" < @__value_1)
-                ORDER BY b."Name" DESC, b."Id" DESC
-                LIMIT @__p_3 OFFSET @__p_2
-                ---------------
-
-                """);
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -1780,7 +1446,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         20. Vertexis
         */
 
-        Snapshot.Create()
+        Snapshot.Create(postFix: TestEnvironment.TargetFramework)
             .Add(new
             {
                 Page = thirdToLast.Index,
@@ -1788,43 +1454,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
                 Items = thirdToLast.Items.Select(t => t.Name).ToArray()
             })
             .AddSql(capture)
-            .MatchInline(
-                """
-                ---------------
-                {
-                  "Page": 8,
-                  "TotalCount": 20,
-                  "Items": [
-                    "Omniflex",
-                    "Pulsarix"
-                  ]
-                }
-                ---------------
-
-                SQL 0
-                ---------------
-                -- @__value_0='Synerflux'
-                -- @__value_1='19'
-                SELECT b1."GroupId", b3."Id", b3."CreatedOn", b3."GroupId", b3."ModifiedOn", b3."Name"
-                FROM (
-                    SELECT b."GroupId"
-                    FROM "Brands" AS b
-                    WHERE b."GroupId" = 2
-                    GROUP BY b."GroupId"
-                ) AS b1
-                LEFT JOIN (
-                    SELECT b2."Id", b2."CreatedOn", b2."GroupId", b2."ModifiedOn", b2."Name"
-                    FROM (
-                        SELECT b0."Id", b0."CreatedOn", b0."GroupId", b0."ModifiedOn", b0."Name", ROW_NUMBER() OVER(PARTITION BY b0."GroupId" ORDER BY b0."Name" DESC, b0."Id" DESC) AS row
-                        FROM "Brands" AS b0
-                        WHERE b0."GroupId" = 2 AND b0."Name" <= @__value_0 AND (b0."Name" < @__value_0 OR b0."Id" < @__value_1)
-                    ) AS b2
-                    WHERE 2 < b2.row AND b2.row <= 5
-                ) AS b3 ON b1."GroupId" = b3."GroupId"
-                ORDER BY b1."GroupId", b3."GroupId", b3."Name" DESC, b3."Id" DESC
-                ---------------
-
-                """);
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -1940,7 +1570,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         20. Vertexis
         */
 
-        Snapshot.Create()
+        Snapshot.Create(postFix: TestEnvironment.TargetFramework)
             .Add(new
             {
                 Page = thirdToLast.Index,
@@ -1948,33 +1578,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
                 Items = thirdToLast.Items.Select(t => t.Name).ToArray()
             })
             .AddSql(capture)
-            .MatchInline(
-                """
-                ---------------
-                {
-                  "Page": 7,
-                  "TotalCount": 20,
-                  "Items": [
-                    "Momentumix",
-                    "Nebularis"
-                  ]
-                }
-                ---------------
-
-                SQL 0
-                ---------------
-                -- @__value_0='Synerflux'
-                -- @__value_1='19'
-                -- @__p_3='3'
-                -- @__p_2='4'
-                SELECT b."Id", b."CreatedOn", b."GroupId", b."ModifiedOn", b."Name"
-                FROM "Brands" AS b
-                WHERE b."Name" <= @__value_0 AND (b."Name" < @__value_0 OR b."Id" < @__value_1)
-                ORDER BY b."Name" DESC, b."Id" DESC
-                LIMIT @__p_3 OFFSET @__p_2
-                ---------------
-
-                """);
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -2012,7 +1616,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         20. Vertexis
         */
 
-        Snapshot.Create()
+        Snapshot.Create(postFix: TestEnvironment.TargetFramework)
             .Add(new
             {
                 Page = thirdToLast.Index,
@@ -2020,43 +1624,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
                 Items = thirdToLast.Items.Select(t => t.Name).ToArray()
             })
             .AddSql(capture)
-            .MatchInline(
-                """
-                ---------------
-                {
-                  "Page": 7,
-                  "TotalCount": 20,
-                  "Items": [
-                    "Momentumix",
-                    "Nebularis"
-                  ]
-                }
-                ---------------
-
-                SQL 0
-                ---------------
-                -- @__value_0='Synerflux'
-                -- @__value_1='19'
-                SELECT b1."GroupId", b3."Id", b3."CreatedOn", b3."GroupId", b3."ModifiedOn", b3."Name"
-                FROM (
-                    SELECT b."GroupId"
-                    FROM "Brands" AS b
-                    WHERE b."GroupId" = 2
-                    GROUP BY b."GroupId"
-                ) AS b1
-                LEFT JOIN (
-                    SELECT b2."Id", b2."CreatedOn", b2."GroupId", b2."ModifiedOn", b2."Name"
-                    FROM (
-                        SELECT b0."Id", b0."CreatedOn", b0."GroupId", b0."ModifiedOn", b0."Name", ROW_NUMBER() OVER(PARTITION BY b0."GroupId" ORDER BY b0."Name" DESC, b0."Id" DESC) AS row
-                        FROM "Brands" AS b0
-                        WHERE b0."GroupId" = 2 AND b0."Name" <= @__value_0 AND (b0."Name" < @__value_0 OR b0."Id" < @__value_1)
-                    ) AS b2
-                    WHERE 4 < b2.row AND b2.row <= 7
-                ) AS b3 ON b1."GroupId" = b3."GroupId"
-                ORDER BY b1."GroupId", b3."GroupId", b3."Name" DESC, b3."Id" DESC
-                ---------------
-
-                """);
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -2094,7 +1662,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         20. Vertexis
         */
 
-        Snapshot.Create()
+        Snapshot.Create(postFix: TestEnvironment.TargetFramework)
             .Add(new
             {
                 Page = fourthToLast.Index,
@@ -2102,33 +1670,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
                 Items = fourthToLast.Items.Select(t => t.Name).ToArray()
             })
             .AddSql(capture)
-            .MatchInline(
-                """
-                ---------------
-                {
-                  "Page": 7,
-                  "TotalCount": 20,
-                  "Items": [
-                    "Momentumix",
-                    "Nebularis"
-                  ]
-                }
-                ---------------
-
-                SQL 0
-                ---------------
-                -- @__value_0='Quantumis'
-                -- @__value_1='17'
-                -- @__p_3='3'
-                -- @__p_2='2'
-                SELECT b."Id", b."CreatedOn", b."GroupId", b."ModifiedOn", b."Name"
-                FROM "Brands" AS b
-                WHERE b."Name" <= @__value_0 AND (b."Name" < @__value_0 OR b."Id" < @__value_1)
-                ORDER BY b."Name" DESC, b."Id" DESC
-                LIMIT @__p_3 OFFSET @__p_2
-                ---------------
-
-                """);
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -2168,7 +1710,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         20. Vertexis
         */
 
-        Snapshot.Create()
+        Snapshot.Create(postFix: TestEnvironment.TargetFramework)
             .Add(new
             {
                 Page = fourthToLast.Index,
@@ -2176,43 +1718,7 @@ public class RelativeCursorTests(PostgreSqlResource resource)
                 Items = fourthToLast.Items.Select(t => t.Name).ToArray()
             })
             .AddSql(capture)
-            .MatchInline(
-                """
-                ---------------
-                {
-                  "Page": 7,
-                  "TotalCount": 20,
-                  "Items": [
-                    "Momentumix",
-                    "Nebularis"
-                  ]
-                }
-                ---------------
-
-                SQL 0
-                ---------------
-                -- @__value_0='Quantumis'
-                -- @__value_1='17'
-                SELECT b1."GroupId", b3."Id", b3."CreatedOn", b3."GroupId", b3."ModifiedOn", b3."Name"
-                FROM (
-                    SELECT b."GroupId"
-                    FROM "Brands" AS b
-                    WHERE b."GroupId" = 2
-                    GROUP BY b."GroupId"
-                ) AS b1
-                LEFT JOIN (
-                    SELECT b2."Id", b2."CreatedOn", b2."GroupId", b2."ModifiedOn", b2."Name"
-                    FROM (
-                        SELECT b0."Id", b0."CreatedOn", b0."GroupId", b0."ModifiedOn", b0."Name", ROW_NUMBER() OVER(PARTITION BY b0."GroupId" ORDER BY b0."Name" DESC, b0."Id" DESC) AS row
-                        FROM "Brands" AS b0
-                        WHERE b0."GroupId" = 2 AND b0."Name" <= @__value_0 AND (b0."Name" < @__value_0 OR b0."Id" < @__value_1)
-                    ) AS b2
-                    WHERE 2 < b2.row AND b2.row <= 5
-                ) AS b3 ON b1."GroupId" = b3."GroupId"
-                ORDER BY b1."GroupId", b3."GroupId", b3."Name" DESC, b3."Id" DESC
-                ---------------
-
-                """);
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -2276,6 +1782,23 @@ public class RelativeCursorTests(PostgreSqlResource resource)
         // Assert
 
         await Assert.ThrowsAsync<ArgumentException>(Error);
+    }
+
+    [Fact]
+    public async Task RequestedSize_Not_Evenly_Divisible_By_TotalCount()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+        await using var context = new TestContext(connectionString);
+        var arguments = new PagingArguments(12) { EnableRelativeCursors = true };
+
+        // Act
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
+
+        // Assert
+        Assert.Equal(20, first.TotalCount);
+        Assert.Single(first.CreateRelativeForwardCursors());
     }
 
     [Fact]

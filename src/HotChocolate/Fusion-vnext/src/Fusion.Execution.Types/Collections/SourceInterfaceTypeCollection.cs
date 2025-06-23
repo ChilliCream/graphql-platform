@@ -22,7 +22,6 @@ public class SourceInterfaceTypeCollection
     ImmutableArray<ISourceComplexType> ISourceComplexTypeCollection<ISourceComplexType>.Types
         => [..Members];
 
-
     public bool TryGetType(string schemaName, [NotNullWhen(true)] out SourceInterfaceType? type)
         => TryGetMember(schemaName, out type);
 

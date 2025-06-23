@@ -72,7 +72,7 @@ public abstract class SubscriptionIntegrationTestBase
         var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
 
         // assert
-        await sender.SendAsync("OnMessage", new Foo { Bar = "Hello", }, cts.Token);
+        await sender.SendAsync("OnMessage", new Foo { Bar = "Hello" }, cts.Token);
         await sender.CompleteAsync("OnMessage");
 
         var snapshot = new Snapshot();
@@ -404,6 +404,6 @@ public abstract class SubscriptionIntegrationTestBase
 
     public enum FooEnum
     {
-        Bar,
+        Bar
     }
 }

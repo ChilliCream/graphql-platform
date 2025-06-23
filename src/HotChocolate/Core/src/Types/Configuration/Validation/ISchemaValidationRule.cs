@@ -8,6 +8,6 @@ internal interface ISchemaValidationRule
 {
     void Validate(
         IDescriptorContext context,
-        ISchema schema,
+        ISchemaDefinition schema,
         ICollection<ISchemaError> errors);
 }

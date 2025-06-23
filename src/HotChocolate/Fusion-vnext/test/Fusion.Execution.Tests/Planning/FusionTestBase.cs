@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion;
@@ -13,14 +13,14 @@ public abstract class FusionTestBase
     protected static FusionSchemaDefinition CreateSchema()
     {
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
-        return CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        return FusionSchemaDefinition.Create(compositeSchemaDoc);
     }
 
     protected static FusionSchemaDefinition CreateSchema(
         [StringSyntax("graphql")] string schema)
     {
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(schema);
-        return CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        return FusionSchemaDefinition.Create(compositeSchemaDoc);
     }
 
     protected static FusionSchemaDefinition ComposeSchema(
@@ -36,10 +36,10 @@ public abstract class FusionTestBase
         }
 
         var compositeSchemaDoc = result.Value.ToSyntaxNode();
-        return CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        return FusionSchemaDefinition.Create(compositeSchemaDoc);
     }
 
-     protected static ExecutionPlan PlanOperation(
+     protected static OperationExecutionPlan PlanOperation(
         FusionSchemaDefinition schema,
         [StringSyntax("graphql")] string operationText)
     {
@@ -54,7 +54,7 @@ public abstract class FusionTestBase
     }
 
     protected static void MatchInline(
-        ExecutionPlan plan,
+        OperationExecutionPlan plan,
         [StringSyntax("yaml")] string expected)
     {
         var formatter = new YamlExecutionPlanFormatter();

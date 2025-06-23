@@ -6,7 +6,7 @@
     <TargetFrameworks>$(ExtendedTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
-  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0')) OR $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))">
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0')) OR $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0')) OR $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 

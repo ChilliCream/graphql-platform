@@ -534,7 +534,7 @@ public class ResolverCompilerTests
             .Use(next => next)
             .Create();
 
-        var queryType = schema.GetType<ObjectType>("Query");
+        var queryType = schema.Types.GetType<ObjectType>("Query");
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
         context.SetupGet(t => t.ObjectType).Returns(queryType);
@@ -556,6 +556,7 @@ public class ResolverCompilerTests
         // assert
         var operationDefinition =
             new OperationDefinitionNode(
+                null,
                 null,
                 null,
                 OperationType.Query,
@@ -592,7 +593,7 @@ public class ResolverCompilerTests
             .Use(next => next)
             .Create();
 
-        var queryType = schema.GetType<ObjectType>("Query");
+        var queryType = schema.Types.GetType<ObjectType>("Query");
 
         var selection = new Mock<ISelection>();
         selection.SetupGet(t => t.Field).Returns(queryType.Fields.First());
@@ -622,7 +623,7 @@ public class ResolverCompilerTests
             .Use(next => next)
             .Create();
 
-        var queryType = schema.GetType<ObjectType>("Query");
+        var queryType = schema.Types.GetType<ObjectType>("Query");
 
         var selection = new Mock<ISelection>();
         selection.SetupGet(t => t.Field).Returns(queryType.Fields.First());
@@ -709,7 +710,7 @@ public class ResolverCompilerTests
         // arrange
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetGlobalStateWithKey))!;
-        var contextData = new Dictionary<string, object?> { { "foo", "bar" }, };
+        var contextData = new Dictionary<string, object?> { { "foo", "bar" } };
 
         // act
         var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
@@ -729,7 +730,7 @@ public class ResolverCompilerTests
         // arrange
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetGlobalState))!;
-        var contextData = new Dictionary<string, object?> { { "foo", "bar" }, };
+        var contextData = new Dictionary<string, object?> { { "foo", "bar" } };
 
         // act
         var compiler = new DefaultResolverCompiler(EmptyServiceProvider.Instance, _empty);
@@ -874,7 +875,7 @@ public class ResolverCompilerTests
         // arrange
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetScopedStateWithKey))!;
-        var contextData = new Dictionary<string, object?> { { "foo", "bar" }, }
+        var contextData = new Dictionary<string, object?> { { "foo", "bar" } }
             .ToImmutableDictionary();
 
         // act
@@ -896,7 +897,7 @@ public class ResolverCompilerTests
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetScopedState))!;
 
-        var contextData = new Dictionary<string, object?>{ { "foo", "bar" }, }
+        var contextData = new Dictionary<string, object?>{ { "foo", "bar" } }
             .ToImmutableDictionary();
 
         // act
@@ -1056,7 +1057,7 @@ public class ResolverCompilerTests
         // arrange
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetLocalStateWithKey))!;
-        var contextData = new Dictionary<string, object?> { { "foo", "bar" }, }
+        var contextData = new Dictionary<string, object?> { { "foo", "bar" } }
             .ToImmutableDictionary();
 
         // act
@@ -1077,7 +1078,7 @@ public class ResolverCompilerTests
         // arrange
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetLocalState))!;
-        var contextData = new Dictionary<string, object?> { { "foo", "bar" }, }
+        var contextData = new Dictionary<string, object?> { { "foo", "bar" } }
             .ToImmutableDictionary();
 
         // act
@@ -1216,7 +1217,7 @@ public class ResolverCompilerTests
 
         var contextData = new Dictionary<string, object?>
         {
-            { nameof(ClaimsPrincipal), new ClaimsPrincipal() },
+            { nameof(ClaimsPrincipal), new ClaimsPrincipal() }
         };
 
         // act
@@ -1402,7 +1403,7 @@ public class ResolverCompilerTests
             objectField != null!;
 
         public bool ResolverWithOutputField(
-            IOutputField outputField) =>
+            IOutputFieldDefinition outputField) =>
             outputField != null!;
 
         public bool ResolverWithDocument(
@@ -1410,7 +1411,7 @@ public class ResolverCompilerTests
             document != null!;
 
         public bool ResolverWithSchema(
-            ISchema schema) =>
+            ISchemaDefinition schema) =>
             schema != null!;
 
         public bool ResolverWithService(
@@ -1431,7 +1432,7 @@ public class ResolverCompilerTests
 
         public string? GetGlobalStateWithDefault(
             [GlobalState]
-            string? foo = default) => foo;
+            string? foo = null) => foo;
 
         public string GetGlobalStateNullable(
             [GlobalState]
@@ -1467,7 +1468,7 @@ public class ResolverCompilerTests
 
         public string? GetScopedStateWithDefault(
             [ScopedState]
-            string? foo = default) => foo;
+            string? foo = null) => foo;
 
         public string GetScopedStateNullable(
             [ScopedState]
@@ -1503,7 +1504,7 @@ public class ResolverCompilerTests
 
         public string? GetLocalStateWithDefault(
             [LocalState]
-            string? foo = default) => foo;
+            string? foo = null) => foo;
 
         public string SetLocalStateGeneric(
             [LocalState]
@@ -1554,7 +1555,7 @@ public class ResolverCompilerTests
 
             descriptor.Extend().Configuration.ParameterExpressionBuilders.Add(
                 new CustomParameterExpressionBuilder<SomeState>(
-                    t => t.GetLocalState<SomeState>("foo")!));
+                    t => t.GetLocalState<SomeState>("foo")));
         }
     }
 }

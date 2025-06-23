@@ -1,5 +1,4 @@
 using HotChocolate.Resolvers;
-using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Types;
 

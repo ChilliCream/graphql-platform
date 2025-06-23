@@ -35,7 +35,7 @@ internal sealed class ComposeCommand : Command
 
         var sourceSchemaFileOption = new Option<List<string>>("--source-schema-file")
         {
-            Description = ComposeCommand_SourceSchemaFile_Description,
+            Description = ComposeCommand_SourceSchemaFile_Description
         };
         sourceSchemaFileOption.AddAlias("-s");
         sourceSchemaFileOption.LegalFilePathsOnly();

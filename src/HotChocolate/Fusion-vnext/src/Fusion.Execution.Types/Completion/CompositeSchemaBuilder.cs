@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Fusion.Utilities;
@@ -8,16 +9,25 @@ using static System.Runtime.InteropServices.ImmutableCollectionsMarshal;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
-public static class CompositeSchemaBuilder
+internal static class CompositeSchemaBuilder
 {
-    public static FusionSchemaDefinition Create(DocumentNode documentNode)
+    public static FusionSchemaDefinition Create(
+        string name,
+        DocumentNode documentNode,
+        IServiceProvider? services = null,
+        IFeatureCollection? features = null)
     {
-        var context = CreateTypes(documentNode);
+        var context = CreateTypes(name, documentNode, services, features);
         return CompleteTypes(context);
     }
 
-    private static CompositeSchemaContext CreateTypes(DocumentNode schema)
+    private static CompositeSchemaContext CreateTypes(
+        string name,
+        DocumentNode schema,
+        IServiceProvider? services,
+        IFeatureCollection? features)
     {
+        string? description = null;
         string? queryType = null;
         string? mutationType = null;
         string? subscriptionType = null;
@@ -48,6 +58,16 @@ public static class CompositeSchemaBuilder
                     typeDefinitions.Add(interfaceType.Name.Value, interfaceType);
                     break;
 
+                case UnionTypeDefinitionNode unionType:
+                    types.Add(CreateUnionType(unionType));
+                    typeDefinitions.Add(unionType.Name.Value, unionType);
+                    break;
+
+                case InputObjectTypeDefinitionNode inputObjectType:
+                    types.Add(CreateInputObjectType(inputObjectType));
+                    typeDefinitions.Add(inputObjectType.Name.Value, inputObjectType);
+                    break;
+
                 case ScalarTypeDefinitionNode scalarType:
                     types.Add(CreateScalarType(scalarType));
                     typeDefinitions.Add(scalarType.Name.Value, scalarType);
@@ -59,7 +79,8 @@ public static class CompositeSchemaBuilder
                     break;
 
                 case SchemaDefinitionNode schemaDefinition:
-                    directives = [..schemaDefinition.Directives];
+                    description = schemaDefinition.Description?.Value;
+                    directives = [.. schemaDefinition.Directives];
 
                     foreach (var operationType in schemaDefinition.OperationTypes)
                     {
@@ -82,7 +103,12 @@ public static class CompositeSchemaBuilder
             }
         }
 
+        features ??= FeatureCollection.Empty;
+
         return new CompositeSchemaContext(
+            name,
+            description,
+            services ?? EmptyServiceProvider.Instance,
             queryType ?? "Query",
             mutationType,
             subscriptionType,
@@ -90,7 +116,8 @@ public static class CompositeSchemaBuilder
             types.ToImmutable(),
             typeDefinitions.ToImmutable(),
             directiveTypes.ToImmutable(),
-            directiveDefinitions.ToImmutable());
+            directiveDefinitions.ToImmutable(),
+            features.ToReadOnly());
     }
 
     private static FusionObjectTypeDefinition CreateObjectType(
@@ -109,6 +136,23 @@ public static class CompositeSchemaBuilder
             definition.Name.Value,
             definition.Description?.Value,
             CreateOutputFields(definition.Fields));
+    }
+
+    private static FusionUnionTypeDefinition CreateUnionType(
+        UnionTypeDefinitionNode definition)
+    {
+        return new FusionUnionTypeDefinition(
+            definition.Name.Value,
+            definition.Description?.Value);
+    }
+
+    private static FusionInputObjectTypeDefinition CreateInputObjectType(
+        InputObjectTypeDefinitionNode definition)
+    {
+        return new FusionInputObjectTypeDefinition(
+            definition.Name.Value,
+            definition.Description?.Value,
+            CreateInputFields(definition.Fields));
     }
 
     private static FusionOutputFieldDefinitionCollection CreateOutputFields(
@@ -222,6 +266,20 @@ public static class CompositeSchemaBuilder
                         schemaContext);
                     break;
 
+                case FusionUnionTypeDefinition unionType:
+                    CompleteUnionType(
+                        unionType,
+                        schemaContext.GetTypeDefinition<UnionTypeDefinitionNode>(unionType.Name),
+                        schemaContext);
+                    break;
+
+                case FusionInputObjectTypeDefinition inputObjectType:
+                    CompleteInputObjectType(
+                        inputObjectType,
+                        schemaContext.GetTypeDefinition<InputObjectTypeDefinitionNode>(inputObjectType.Name),
+                        schemaContext);
+                    break;
+
                 case FusionScalarTypeDefinition scalarType:
                     CompleteScalarType(
                         scalarType,
@@ -242,8 +300,9 @@ public static class CompositeSchemaBuilder
         var directives = CompletionTools.CreateDirectiveCollection(schemaContext.Directives, schemaContext);
 
         return new FusionSchemaDefinition(
-            "Default",
-            null,
+            schemaContext.Name,
+            schemaContext.Description,
+            schemaContext.Services,
             schemaContext.GetType<FusionObjectTypeDefinition>(schemaContext.QueryType),
             schemaContext.MutationType is not null
                 ? schemaContext.GetType<FusionObjectTypeDefinition>(schemaContext.MutationType)
@@ -253,7 +312,8 @@ public static class CompositeSchemaBuilder
                 : null,
             directives,
             new FusionTypeDefinitionCollection(AsArray(schemaContext.TypeDefinitions)!),
-            new FusionDirectiveDefinitionCollection(AsArray(schemaContext.DirectiveDefinitions)!));
+            new FusionDirectiveDefinitionCollection(AsArray(schemaContext.DirectiveDefinitions)!),
+            schemaContext.Features);
     }
 
     private static void CompleteObjectType(
@@ -269,7 +329,13 @@ public static class CompositeSchemaBuilder
         var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, schemaContext);
         var interfaces = CompletionTools.CreateInterfaceTypeCollection(typeDef.Interfaces, schemaContext);
         var sources = CompletionTools.CreateSourceObjectTypeCollection(typeDef, schemaContext);
-        type.Complete(new CompositeObjectTypeCompletionContext(directives, interfaces, sources));
+
+        type.Complete(
+            new CompositeObjectTypeCompletionContext(
+                directives,
+                interfaces,
+                sources,
+                FeatureCollection.Empty));
     }
 
     private static void CompleteInterfaceType(
@@ -285,7 +351,23 @@ public static class CompositeSchemaBuilder
         var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, schemaContext);
         var interfaces = CompletionTools.CreateInterfaceTypeCollection(typeDef.Interfaces, schemaContext);
         var sources = CompletionTools.CreateSourceInterfaceTypeCollection(typeDef, schemaContext);
-        type.Complete(new CompositeInterfaceTypeCompletionContext(directives, interfaces, sources));
+
+        type.Complete(
+            new CompositeInterfaceTypeCompletionContext(
+                directives,
+                interfaces,
+                sources,
+                FeatureCollection.Empty));
+    }
+
+    private static void CompleteUnionType(
+        FusionUnionTypeDefinition type,
+        UnionTypeDefinitionNode typeDef,
+        CompositeSchemaContext schemaContext)
+    {
+        var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, schemaContext);
+        var types = CompletionTools.CreateObjectTypeCollection(typeDef.Types, schemaContext);
+        type.Complete(new CompositeUnionTypeCompletionContext(types, directives, FeatureCollection.Empty));
     }
 
     private static void CompleteOutputField(
@@ -296,13 +378,24 @@ public static class CompositeSchemaBuilder
     {
         foreach (var argumentDef in fieldDef.Arguments)
         {
-            CompleteInputField(fieldDefinition.Arguments[argumentDef.Name.Value], argumentDef, schemaContext);
+            CompleteInputField(
+                fieldDefinition,
+                fieldDefinition.Arguments[argumentDef.Name.Value],
+                argumentDef,
+                schemaContext);
         }
 
         var directives = CompletionTools.CreateDirectiveCollection(fieldDef.Directives, schemaContext);
-        var type = schemaContext.GetType(fieldDef.Type);
+        var type = schemaContext.GetType(fieldDef.Type).ExpectOutputType();
         var sources = BuildSourceObjectFieldCollection(fieldDefinition, fieldDef, schemaContext);
-        fieldDefinition.Complete(new CompositeObjectFieldCompletionContext(declaringType, directives, type, sources));
+
+        fieldDefinition.Complete(
+            new CompositeObjectFieldCompletionContext(
+                declaringType,
+                directives,
+                type,
+                sources,
+                FeatureCollection.Empty));
     }
 
     private static SourceObjectFieldCollection BuildSourceObjectFieldCollection(
@@ -369,33 +462,65 @@ public static class CompositeSchemaBuilder
         }
     }
 
+    private static void CompleteInputObjectType(
+        FusionInputObjectTypeDefinition inputObjectType,
+        InputObjectTypeDefinitionNode inputObjectTypeDef,
+        CompositeSchemaContext schemaContext)
+    {
+        foreach (var fieldDef in inputObjectTypeDef.Fields)
+        {
+            CompleteInputField(inputObjectType, inputObjectType.Fields[fieldDef.Name.Value], fieldDef, schemaContext);
+        }
+
+        var directives = CompletionTools.CreateDirectiveCollection(inputObjectTypeDef.Directives, schemaContext);
+        inputObjectType.Complete(new CompositeInputObjectTypeCompletionContext(directives, FeatureCollection.Empty));
+    }
+
     private static void CompleteInputField(
-        FusionInputFieldDefinition argument,
+        ITypeSystemMember declaringMember,
+        FusionInputFieldDefinition inputField,
         InputValueDefinitionNode argumentDef,
         CompositeSchemaContext schemaContext)
     {
         var directives = CompletionTools.CreateDirectiveCollection(argumentDef.Directives, schemaContext);
-        var type = schemaContext.GetType(argumentDef.Type);
-        argument.Complete(new CompositeInputFieldCompletionContext(directives, type));
+        var type = schemaContext.GetType(argumentDef.Type).ExpectInputType();
+
+        inputField.Complete(
+            new CompositeInputFieldCompletionContext(
+                declaringMember,
+                directives,
+                type,
+                FeatureCollection.Empty));
     }
 
     private static void CompleteScalarType(
-        FusionScalarTypeDefinition type,
-        ScalarTypeDefinitionNode typeDef,
+        FusionScalarTypeDefinition typeDefinition,
+        ScalarTypeDefinitionNode typeDefinitionNode,
         CompositeSchemaContext schemaContext)
     {
-        var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, schemaContext);
-        type.Complete(new CompositeScalarTypeCompletionContext(directives));
+        var directives = CompletionTools.CreateDirectiveCollection(typeDefinitionNode.Directives, schemaContext);
+        typeDefinition.Complete(new CompositeScalarTypeCompletionContext(default, directives));
     }
 
     private static void CompleteDirectiveType(
-        FusionDirectiveDefinition definition,
-        DirectiveDefinitionNode typeDef,
+        FusionDirectiveDefinition directiveDefinition,
+        DirectiveDefinitionNode directiveDefinitionNode,
         CompositeSchemaContext schemaContext)
     {
-        foreach (var argumentDef in typeDef.Arguments)
+        foreach (var argumentDef in directiveDefinitionNode.Arguments)
         {
-            CompleteInputField(definition.Arguments[argumentDef.Name.Value], argumentDef, schemaContext);
+            CompleteInputField(
+                directiveDefinition,
+                directiveDefinition.Arguments[argumentDef.Name.Value],
+                argumentDef,
+                schemaContext);
         }
+    }
+
+    private sealed class EmptyServiceProvider : IServiceProvider
+    {
+        public object? GetService(Type serviceType) => null;
+
+        public static EmptyServiceProvider Instance { get; } = new();
     }
 }

@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -12,10 +11,10 @@ namespace GreenDonut.Data.Expressions;
 /// </summary>
 internal static class ExpressionHelpers
 {
-    private static readonly MethodInfo _createAndConvert = typeof(ExpressionHelpers)
+    private static readonly MethodInfo s_createAndConvert = typeof(ExpressionHelpers)
         .GetMethod(nameof(CreateAndConvertParameter), BindingFlags.NonPublic | BindingFlags.Static)!;
 
-    private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> _cachedConverters = new();
+    private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> s_cachedConverters = new();
 
     /// <summary>
     /// Builds a where expression that can be used to slice a dataset.
@@ -84,7 +83,7 @@ internal static class ExpressionHelpers
                     throw new ArgumentException("The last key must be non-nullable.", nameof(keys));
                 }
 
-                // To avoid skipping any rows, NULL values are significant for the primary sorting condition. 
+                // To avoid skipping any rows, NULL values are significant for the primary sorting condition.
                 // For all secondary sorting conditions, NULL values are treated as last,
                 // ensuring consistent behavior across different databases.
                 if (i == 0 && cursor.NullsFirst)
@@ -98,7 +97,7 @@ internal static class ExpressionHelpers
             }
             else
             {
-                expression = BuildNonNullExpression(expression!, cursor.Values[i], keyExpr, cursorExpr[i], greaterThan, key.CompareMethod.MethodInfo);
+                expression = BuildNonNullExpression(expression, cursor.Values[i], keyExpr, cursorExpr[i], greaterThan, key.CompareMethod.MethodInfo);
             }
         }
 
@@ -249,7 +248,6 @@ internal static class ExpressionHelpers
                 Expression.AndAlso(secondaryKeyExpr, Expression.OrElse(mainKeyExpr, previousExpr));
         }
     }
-
 
     /// <summary>
     /// Build the select expression for a batch paging expression that uses grouping.
@@ -403,10 +401,7 @@ internal static class ExpressionHelpers
     /// <exception cref="ArgumentNullException"></exception>
     public static OrderRewriterResult ExtractAndRemoveOrder(Expression expression)
     {
-        if (expression is null)
-        {
-            throw new ArgumentNullException(nameof(expression));
-        }
+        ArgumentNullException.ThrowIfNull(expression);
 
         var rewriter = new OrderByRemovalRewriter();
         var (result, orderExpressions, orderMethods) = rewriter.Rewrite(expression);
@@ -415,11 +410,11 @@ internal static class ExpressionHelpers
 
     private static Expression CreateParameter(object? value, Type type)
     {
-        var converter = _cachedConverters.GetOrAdd(
+        var converter = s_cachedConverters.GetOrAdd(
             type,
             t =>
             {
-                var method = _createAndConvert.MakeGenericMethod(t);
+                var method = s_createAndConvert.MakeGenericMethod(t);
                 return v => (Expression)method.Invoke(null, [v])!;
             });
 
@@ -519,8 +514,8 @@ internal static class ExpressionHelpers
                 var nullCheckLambda = Expression.Lambda(nullCheck, parameter);
 
                 orderedExpression = orderedExpression == null
-                    ? Expression.Call(typeof(Queryable), "OrderBy", new Type[] { typeof(T), typeof(bool) }, expression, nullCheckLambda)
-                    : Expression.Call(typeof(Queryable), "ThenBy", new Type[] { typeof(T), typeof(bool) }, orderedExpression, nullCheckLambda);
+                    ? Expression.Call(typeof(Queryable), "OrderBy", [typeof(T), typeof(bool)], expression, nullCheckLambda)
+                    : Expression.Call(typeof(Queryable), "ThenBy", [typeof(T), typeof(bool)], orderedExpression, nullCheckLambda);
             }
 
             var methodName = key.Direction == CursorKeyDirection.Ascending ? "OrderBy" : "OrderByDescending";
@@ -557,7 +552,7 @@ internal static class ExpressionHelpers
     {
         public TKey Key { get; set; } = default!;
 
-        public List<TValue> Items { get; set; } = default!;
+        public List<TValue> Items { get; set; } = null!;
     }
 
     public readonly struct OrderRewriterResult(
@@ -574,8 +569,8 @@ internal static class ExpressionHelpers
 
     private sealed class OrderByRemovalRewriter : ExpressionVisitor
     {
-        private readonly List<LambdaExpression> _orderExpressions = new();
-        private readonly List<string> _orderMethods = new();
+        private readonly List<LambdaExpression> _orderExpressions = [];
+        private readonly List<string> _orderMethods = [];
         private bool _insideSelectProjection;
 
         public (Expression, List<LambdaExpression>, List<string>) Rewrite(Expression expression)

@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Types.Helpers.CompleteInterfacesHelper;
@@ -12,10 +12,10 @@ namespace HotChocolate.Types;
 
 public partial class InterfaceType
 {
-    private InterfaceType[] _implements = [];
+    private InterfaceTypeCollection _implements = InterfaceTypeCollection.Empty;
     private Action<IInterfaceTypeDescriptor>? _configure;
     private ResolveAbstractType? _resolveAbstractType;
-    private ISchema _schema = default!;
+    private Schema _schema = null!;
 
     protected override InterfaceTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
@@ -97,11 +97,16 @@ public partial class InterfaceType
         }
     }
 
-    protected virtual FieldCollection<InterfaceField> OnCompleteFields(
+    protected virtual InterfaceFieldCollection OnCompleteFields(
         ITypeCompletionContext context,
         InterfaceTypeConfiguration definition)
     {
-        return CompleteFields(context, this, definition.Fields, CreateField);
+        return new InterfaceFieldCollection(
+            CompleteFields(
+                context,
+                this,
+                definition.Fields,
+                CreateField));
         static InterfaceField CreateField(InterfaceFieldConfiguration fieldDef, int index)
             => new(fieldDef, index);
     }

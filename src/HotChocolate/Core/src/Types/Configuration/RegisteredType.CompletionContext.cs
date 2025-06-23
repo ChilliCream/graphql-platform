@@ -73,10 +73,7 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
     /// <inheritdoc />
     public T GetType<T>(TypeReference typeRef) where T : IType
     {
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
+        ArgumentNullException.ThrowIfNull(typeRef);
 
         if (!TryGetType(typeRef, out T? type))
         {

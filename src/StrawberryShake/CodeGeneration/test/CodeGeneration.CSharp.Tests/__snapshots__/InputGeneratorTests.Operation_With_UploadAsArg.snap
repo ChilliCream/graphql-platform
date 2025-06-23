@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -94,7 +95,14 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test($upload: Upload!, $uploadNullable: Upload, $list: [Upload!]!, $listNullable: [Upload!], $nestedList: [[Upload!]!]!, $nestedListNullable: [[Upload!]]) {
+    /// query Test(
+    ///   $upload: Upload!
+    ///   $uploadNullable: Upload
+    ///   $list: [Upload!]!
+    ///   $listNullable: [Upload!]
+    ///   $nestedList: [[Upload!]!]!
+    ///   $nestedListNullable: [[Upload!]]
+    /// ) {
     ///   foo(upload: $upload, uploadNullable: $uploadNullable, list: $list, listNullable: $listNullable, nestedList: $nestedList, nestedListNullable: $nestedListNullable)
     /// }
     /// </code>
@@ -453,7 +461,14 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test($upload: Upload!, $uploadNullable: Upload, $list: [Upload!]!, $listNullable: [Upload!], $nestedList: [[Upload!]!]!, $nestedListNullable: [[Upload!]]) {
+    /// query Test(
+    ///   $upload: Upload!
+    ///   $uploadNullable: Upload
+    ///   $list: [Upload!]!
+    ///   $listNullable: [Upload!]
+    ///   $nestedList: [[Upload!]!]!
+    ///   $nestedListNullable: [[Upload!]]
+    /// ) {
     ///   foo(upload: $upload, uploadNullable: $uploadNullable, list: $list, listNullable: $listNullable, nestedList: $nestedList, nestedListNullable: $nestedListNullable)
     /// }
     /// </code>
@@ -463,17 +478,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<ITestResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _uploadFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public TestQuery(global::StrawberryShake.IOperationExecutor<ITestResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _uploadFormatter = serializerResolver.GetInputValueFormatter("Upload");
         }
 
+        private TestQuery(global::StrawberryShake.IOperationExecutor<ITestResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter uploadFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _uploadFormatter = uploadFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ITestResult);
+
+        public global::Foo.Bar.ITestQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.TestQuery(_operationExecutor, _configure.Add(configure), _uploadFormatter);
+        }
+
+        public global::Foo.Bar.ITestQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.ITestQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestResult>> ExecuteAsync(global::StrawberryShake.Upload upload, global::StrawberryShake.Upload? uploadNullable, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload> list, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>? listNullable, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>> nestedList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>?>? nestedListNullable, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(upload, uploadNullable, list, listNullable, nestedList, nestedListNullable);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -689,7 +732,14 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test($upload: Upload!, $uploadNullable: Upload, $list: [Upload!]!, $listNullable: [Upload!], $nestedList: [[Upload!]!]!, $nestedListNullable: [[Upload!]]) {
+    /// query Test(
+    ///   $upload: Upload!
+    ///   $uploadNullable: Upload
+    ///   $list: [Upload!]!
+    ///   $listNullable: [Upload!]
+    ///   $nestedList: [[Upload!]!]!
+    ///   $nestedListNullable: [[Upload!]]
+    /// ) {
     ///   foo(upload: $upload, uploadNullable: $uploadNullable, list: $list, listNullable: $listNullable, nestedList: $nestedList, nestedListNullable: $nestedListNullable)
     /// }
     /// </code>
@@ -697,6 +747,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ITestQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.ITestQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.ITestQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.ITestQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestResult>> ExecuteAsync(global::StrawberryShake.Upload upload, global::StrawberryShake.Upload? uploadNullable, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload> list, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>? listNullable, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>> nestedList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>?>? nestedListNullable, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ITestResult>> Watch(global::StrawberryShake.Upload upload, global::StrawberryShake.Upload? uploadNullable, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload> list, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>? listNullable, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>> nestedList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>?>? nestedListNullable, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

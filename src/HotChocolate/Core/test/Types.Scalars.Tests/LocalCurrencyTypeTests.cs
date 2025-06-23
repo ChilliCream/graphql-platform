@@ -375,7 +375,7 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
 
     public class DefaultLocalCurrency
     {
-        public decimal Test => new();
+        public decimal Test => 0;
     }
 
     public class DefaultLocalCurrencyType : ObjectType<DefaultLocalCurrency>

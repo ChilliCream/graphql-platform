@@ -34,10 +34,7 @@ public sealed class ConfigureRequestExecutorSetup : IConfigureRequestExecutorSet
 
     public void Configure(RequestExecutorSetup options)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         _configure(options);
     }

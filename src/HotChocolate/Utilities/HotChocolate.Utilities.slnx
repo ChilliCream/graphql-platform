@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Utilities.DependencyInjection/HotChocolate.Utilities.DependencyInjection.csproj" />
+    <Project Path="src/Utilities.Introspection/HotChocolate.Utilities.Introspection.csproj" />
+    <Project Path="src/Utilities/HotChocolate.Utilities.csproj" />
+  </Folder>
+  <Folder Name="/src/Utilities.Buffers/">
+    <Project Path="src/Utilities.Buffers/HotChocolate.Utilities.Buffers.csproj" />
+  </Folder>
+  <Folder Name="/src/Utilities.Tasks/">
+    <Project Path="src/Utilities.Tasks/HotChocolate.Utilities.Tasks.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Utilities.Introspection.Tests/HotChocolate.Utilities.Introspection.Tests.csproj" />
+    <Project Path="test/Utilities.Tests/HotChocolate.Utilities.Tests.csproj" />
+  </Folder>
+</Solution>

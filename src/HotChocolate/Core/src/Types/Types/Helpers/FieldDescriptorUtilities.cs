@@ -1,7 +1,7 @@
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -100,10 +100,7 @@ public static class FieldDescriptorUtilities
         ParameterInfo[] parameters,
         IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders)
     {
-        if (arguments is null)
-        {
-            throw new ArgumentNullException(nameof(arguments));
-        }
+        ArgumentNullException.ThrowIfNull(arguments);
 
         if (member is MethodInfo)
         {

@@ -81,14 +81,8 @@
   <data name="DataStartMessageHandler_Not_A_SubscriptionResult" xml:space="preserve">
     <value>The specified result object is not a valid subscription result.</value>
   </data>
-  <data name="OperationMessage_TypeCannotBeNullOrEmpty" xml:space="preserve">
-    <value>The message type cannot be null or empty.</value>
-  </data>
   <data name="TerminateConnectionMessageHandler_Message" xml:space="preserve">
     <value>Connection terminated by user.</value>
-  </data>
-  <data name="OperationManager_Register_SessionIdNullOrEmpty" xml:space="preserve">
-    <value>The sessionId mustn't be null or empty.</value>
   </data>
   <data name="Apollo_OnReceive_MessageMustBeJson" xml:space="preserve">
     <value>A message must be a json object.</value>
@@ -109,9 +103,6 @@
     <value>Invalid message type.</value>
   </data>
   <data name="ConnectionStatus_Reject_Message_cannot_be_null_or_empty_" xml:space="preserve">
-    <value>Message cannot be null or empty.</value>
-  </data>
-  <data name="ConnectionStatus_Reject_MessageCannotBeNullOrEmpty" xml:space="preserve">
     <value>Message cannot be null or empty.</value>
   </data>
   <data name="ErrorHelper_NoSupportedAcceptMediaType" xml:space="preserve">

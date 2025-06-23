@@ -12,15 +12,8 @@ public static class ObjectTypeDescriptorExtensions
         this IObjectTypeDescriptor<T> descriptor,
         Expression<Func<T, object>> propertyOrMethod)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         descriptor.Field(propertyOrMethod).Ignore();
         return descriptor;

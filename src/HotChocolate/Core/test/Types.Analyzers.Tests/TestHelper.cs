@@ -8,16 +8,20 @@ using Basic.Reference.Assemblies;
 using GreenDonut;
 using GreenDonut.Data;
 using HotChocolate.Data.Filters;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Types.Analyzers;
 using HotChocolate.Types.Pagination;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
 internal static partial class TestHelper
 {
-    private static HashSet<string> _ignoreCodes = ["CS8652", "CS8632", "CS5001", "CS8019"];
+    private static HashSet<string> s_ignoreCodes = ["CS8652", "CS8632", "CS5001", "CS8019"];
 
     public static Snapshot GetGeneratedSourceSnapshot([StringSyntax("csharp")] string sourceText)
     {
@@ -32,7 +36,15 @@ internal static partial class TestHelper
             .. Net80.References.All,
 #elif NET9_0
             .. Net90.References.All,
+#elif NET10_0
+            .. Net100.References.All,
 #endif
+            // HotChocolate.Execution
+            MetadataReference.CreateFromFile(typeof(RequestDelegate).Assembly.Location),
+
+            // HotChocolate.Execution.Abstractions
+            MetadataReference.CreateFromFile(typeof(IRequestExecutorBuilder).Assembly.Location),
+
             // HotChocolate.Types
             MetadataReference.CreateFromFile(typeof(ObjectTypeAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Connection).Assembly.Location),
@@ -40,6 +52,10 @@ internal static partial class TestHelper
 
             // HotChocolate.Abstractions
             MetadataReference.CreateFromFile(typeof(ParentAttribute).Assembly.Location),
+
+            // HotChocolate.AspNetCore
+            MetadataReference.CreateFromFile(
+                typeof(HotChocolateAspNetCoreServiceCollectionExtensions).Assembly.Location),
 
             // GreenDonut
             MetadataReference.CreateFromFile(typeof(DataLoaderBase<,>).Assembly.Location),
@@ -50,7 +66,13 @@ internal static partial class TestHelper
             MetadataReference.CreateFromFile(typeof(IPredicateBuilder).Assembly.Location),
 
             // HotChocolate.Data
-            MetadataReference.CreateFromFile(typeof(IFilterContext).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(IFilterContext).Assembly.Location),
+
+            // Microsoft.AspNetCore
+            MetadataReference.CreateFromFile(typeof(WebApplication).Assembly.Location),
+
+            // Microsoft.Extensions.DependencyInjection.Abstractions
+            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location)
         ];
 
         // Create a Roslyn compilation for the syntax tree.
@@ -132,7 +154,7 @@ internal static partial class TestHelper
 
         foreach (var diagnostic in diagnostics)
         {
-            if(_ignoreCodes.Contains(diagnostic.Id))
+            if(s_ignoreCodes.Contains(diagnostic.Id))
             {
                 continue;
             }

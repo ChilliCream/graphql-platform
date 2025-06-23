@@ -42,7 +42,7 @@ public static class UploadSchemaHelpers
         {
             if (single is not null)
             {
-                return single?.ReadContents() ?? "null";
+                return single.ReadContents();
             }
 
             if (list is not null)
@@ -58,7 +58,7 @@ public static class UploadSchemaHelpers
 
             if (objectSingle is not null)
             {
-                return objectSingle.Bar!.Baz!.File!.ReadContents() ?? "null";
+                return objectSingle.Bar!.Baz!.File!.ReadContents();
             }
 
             if (objectList is not null)

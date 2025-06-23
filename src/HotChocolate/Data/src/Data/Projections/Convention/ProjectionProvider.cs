@@ -9,7 +9,7 @@ using static Microsoft.Extensions.DependencyInjection.ActivatorUtilities;
 namespace HotChocolate.Data.Projections;
 
 /// <summary>
-/// A <see cref="ProjectionProvider"/> translates a incoming query to another
+/// A <see cref="ProjectionProvider"/> translates an incoming query to another
 /// object structure at runtime
 /// </summary>
 public abstract class ProjectionProvider
@@ -18,16 +18,9 @@ public abstract class ProjectionProvider
     , IProjectionProviderConvention
 {
     private Action<IProjectionProviderDescriptor>? _configure;
-
-    private readonly IList<IProjectionFieldHandler> _fieldHandlers =
-        new List<IProjectionFieldHandler>();
-
-    private readonly IList<IProjectionFieldInterceptor> _fieldInterceptors =
-        new List<IProjectionFieldInterceptor>();
-
-    private readonly IList<IProjectionOptimizer> _optimizer = new List<IProjectionOptimizer>();
-
-    public const string ProjectionContextIdentifier = "ProjectionMiddleware";
+    private readonly IList<IProjectionFieldHandler> _fieldHandlers = [];
+    private readonly IList<IProjectionFieldInterceptor> _fieldInterceptors = [];
+    private readonly IList<IProjectionOptimizer> _optimizer = [];
 
     protected ProjectionProvider()
     {

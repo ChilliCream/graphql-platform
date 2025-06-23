@@ -1,5 +1,5 @@
 using System.Buffers;
-using HotChocolate.Utilities;
+using HotChocolate.Buffers;
 using static HotChocolate.Execution.ExecutionResultKind;
 
 namespace HotChocolate.Execution.Serialization;
@@ -64,15 +64,8 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        if (result == null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
-        if (outputStream == null)
-        {
-            throw new ArgumentNullException(nameof(outputStream));
-        }
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(outputStream);
 
         if (result.Kind == SubscriptionResult)
         {
@@ -97,7 +90,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct = default)
     {
-        using var buffer = new ArrayWriter();
+        using var buffer = new PooledArrayWriter();
         MessageHelper.WriteNext(buffer);
 
         // First we write the header of the part.
@@ -118,13 +111,13 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct = default)
     {
-        ArrayWriter? buffer = null;
+        PooledArrayWriter? buffer = null;
         foreach (var result in resultBatch.Results)
         {
             switch (result)
             {
                 case IOperationResult operationResult:
-                    buffer ??= new ArrayWriter();
+                    buffer ??= new PooledArrayWriter();
                     MessageHelper.WriteNext(buffer);
                     MessageHelper.WriteResultHeader(buffer);
                     MessageHelper.WritePayload(buffer, operationResult, _payloadFormatter);
@@ -148,7 +141,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         CancellationToken ct = default)
     {
         // first we create the iterator.
-        using var buffer = new ArrayWriter();
+        using var buffer = new PooledArrayWriter();
         await using var enumerator = responseStream.ReadResultsAsync().GetAsyncEnumerator(ct);
         var first = true;
 

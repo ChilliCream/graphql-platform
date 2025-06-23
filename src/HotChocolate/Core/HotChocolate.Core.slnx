@@ -1,30 +1,11 @@
 <Solution>
-  <Configurations>
-    <Platform Name="Any CPU" />
-    <Platform Name="x64" />
-    <Platform Name="x86" />
-  </Configurations>
-  <Folder Name="/.referenced/">
-    <Project Path="../../CookieCrumble/src/CookieCrumble/CookieCrumble.csproj" />
-    <Project Path="../../GreenDonut/src/GreenDonut/GreenDonut.csproj" />
-    <Project Path="../AspNetCore/src/AspNetCore/HotChocolate.AspNetCore.csproj" />
-    <Project Path="../AspNetCore/src/Transport.Abstractions/HotChocolate.Transport.Abstractions.csproj" />
-    <Project Path="../AspNetCore/src/Transport.Http/HotChocolate.Transport.Http.csproj" />
-    <Project Path="../AspNetCore/src/Transport.Sockets.Client/HotChocolate.Transport.Sockets.Client.csproj" />
-    <Project Path="../AspNetCore/src/Transport.Sockets/HotChocolate.Transport.Sockets.csproj" />
-    <Project Path="../Language/src/Language.SyntaxTree/HotChocolate.Language.SyntaxTree.csproj" />
-    <Project Path="../Language/src/Language.Utf8/HotChocolate.Language.Utf8.csproj" />
-    <Project Path="../Language/src/Language.Visitors/HotChocolate.Language.Visitors.csproj" />
-    <Project Path="../Language/src/Language.Web/HotChocolate.Language.Web.csproj" />
-    <Project Path="../Language/src/Language/HotChocolate.Language.csproj" />
-    <Project Path="../Utilities/src/Utilities.Introspection/HotChocolate.Utilities.Introspection.csproj" />
-    <Project Path="../Utilities/src/Utilities/HotChocolate.Utilities.csproj" />
-  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Abstractions/HotChocolate.Abstractions.csproj" />
     <Project Path="src/Authorization/HotChocolate.Authorization.csproj" />
     <Project Path="src/Core/HotChocolate.Core.csproj" />
     <Project Path="src/Execution.Abstractions/HotChocolate.Execution.Abstractions.csproj" />
+    <Project Path="src/Execution.Configuration.Abstractions/HotChocolate.Execution.Configuration.Abstractions.csproj" />
+    <Project Path="src/Execution.Pipeline/HotChocolate.Execution.Pipeline.csproj" />
     <Project Path="src/Execution.Projections/HotChocolate.Execution.Projections.csproj" />
     <Project Path="src/Execution/HotChocolate.Execution.csproj" />
     <Project Path="src/Features/HotChocolate.Features.csproj" />
@@ -38,6 +19,7 @@
     <Project Path="src/Subscriptions/HotChocolate.Subscriptions.csproj" />
     <Project Path="src/Types.Abstractions/HotChocolate.Types.Abstractions.csproj" />
     <Project Path="src/Types.Analyzers/HotChocolate.Types.Analyzers.csproj" />
+    <Project Path="src/Types.CursorPagination.Extensions/HotChocolate.Types.CursorPagination.Extensions.csproj" />
     <Project Path="src/Types.CursorPagination/HotChocolate.Types.CursorPagination.csproj" />
     <Project Path="src/Types.Errors/HotChocolate.Types.Errors.csproj" />
     <Project Path="src/Types.Json/HotChocolate.Types.Json.csproj" />
@@ -51,12 +33,10 @@
     <Project Path="src/Types/HotChocolate.Types.csproj" />
     <Project Path="src/Validation/HotChocolate.Validation.csproj" />
   </Folder>
-  <Folder Name="/src/Types.CursorPagination.Extensions/">
-    <Project Path="src/Types.CursorPagination.Extensions/HotChocolate.Types.CursorPagination.Extensions.csproj" />
-  </Folder>
   <Folder Name="/test/">
     <Project Path="test/Abstractions.Tests/HotChocolate.Abstractions.Tests.csproj" />
     <Project Path="test/Authorization.Tests/HotChocolate.Authorization.Tests.csproj" />
+    <Project Path="test/Execution.Abstractions.Tests/HotChocolate.Execution.Abstractions.Tests.csproj" />
     <Project Path="test/Execution.Tests/HotChocolate.Execution.Tests.csproj" />
     <Project Path="test/Features.Tests/HotChocolate.Features.Tests.csproj" />
     <Project Path="test/Fetching.Tests/HotChocolate.Fetching.Tests.csproj" />
@@ -67,6 +47,7 @@
     <Project Path="test/Subscriptions.RabbitMQ.Tests/HotChocolate.Subscriptions.RabbitMQ.Tests.csproj" />
     <Project Path="test/Subscriptions.Redis.Tests/HotChocolate.Subscriptions.Redis.Tests.csproj" />
     <Project Path="test/Subscriptions.Tests/HotChocolate.Subscriptions.Tests.csproj" />
+    <Project Path="test/Types.Analyzers.Integration.Tests/HotChocolate.Types.Analyzers.Integration.Tests.csproj" />
     <Project Path="test/Types.Analyzers.Tests/HotChocolate.Types.Analyzers.Tests.csproj" />
     <Project Path="test/Types.CursorPagination.Tests/HotChocolate.Types.CursorPagination.Tests.csproj" />
     <Project Path="test/Types.Json.Tests/HotChocolate.Types.Json.Tests.csproj" />
@@ -80,8 +61,5 @@
     <Project Path="test/Types.Tests/HotChocolate.Types.Tests.csproj" />
     <Project Path="test/Utilities/HotChocolate.Tests.Utilities.csproj" />
     <Project Path="test/Validation.Tests/HotChocolate.Validation.Tests.csproj" />
-  </Folder>
-  <Folder Name="/test/Types.Analyzer.Integration.Tests/">
-    <Project Path="test/Types.Analyzer.Integration.Tests/HotChocolate.Types.Analyzers.Tests.csproj" />
   </Folder>
 </Solution>

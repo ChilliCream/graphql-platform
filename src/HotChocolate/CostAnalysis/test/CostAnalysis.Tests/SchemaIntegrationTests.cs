@@ -1,8 +1,6 @@
-using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate.CostAnalysis;
 
@@ -44,7 +42,7 @@ public sealed class SchemaIntegrationTests
             """);
 
         // act
-        var result = schema.ToDocument();
+        var result = schema.ToSyntaxNode();
 
         // assert
         result.MatchSnapshot();
@@ -84,13 +82,13 @@ public sealed class SchemaIntegrationTests
             """);
 
         // act
-        var result = schema.ToDocument();
+        var result = schema.ToSyntaxNode();
 
         // assert
         result.MatchSnapshot();
     }
 
-    private static async Task<ISchema> CreateSchemaAsync(string sourceText)
+    private static async Task<Schema> CreateSchemaAsync(string sourceText)
         => await new ServiceCollection()
             .AddGraphQLServer()
             .AddType<Scalar>()

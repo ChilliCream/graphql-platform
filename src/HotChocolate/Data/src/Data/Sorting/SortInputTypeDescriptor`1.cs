@@ -3,7 +3,7 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
@@ -52,9 +52,10 @@ public class SortInputTypeDescriptor<T>
                     .CreateConfiguration(),
                 fields,
                 handledProperties,
-                include: (_, member) => member is PropertyInfo &&
+                include: (_, member) => member is PropertyInfo p &&
                     !handledProperties.Contains(member) &&
-                    !Context.TypeInspector.GetReturnType(member).IsArrayOrList);
+                    !Context.TypeInspector.GetReturnType(member).IsArrayOrList &&
+                    !typeof(IFieldResult).IsAssignableFrom(p.PropertyType));
         }
 
         base.OnCompleteFields(fields, handledProperties);

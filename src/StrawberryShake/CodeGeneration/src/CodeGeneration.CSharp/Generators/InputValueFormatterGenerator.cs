@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescriptor>
 {
-    private static readonly string _keyValuePair =
+    private static readonly string s_keyValuePair =
         TypeNames.KeyValuePair.WithGeneric(
             TypeNames.String,
             TypeNames.Object.MakeNullable());
@@ -114,7 +114,7 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
 
         codeBlock
             .AddAssignment($"var {fields}")
-            .SetRightHandSide($"new {TypeNames.List.WithGeneric(_keyValuePair)}()");
+            .SetRightHandSide($"new {TypeNames.List.WithGeneric(s_keyValuePair)}()");
 
         codeBlock.AddEmptyLine();
 
@@ -155,7 +155,7 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
                         MethodCallBuilder
                             .Inline()
                             .SetNew()
-                            .SetMethodName(_keyValuePair)
+                            .SetMethodName(s_keyValuePair)
                             .AddArgument(property.FieldName.AsStringToken())
                             .AddArgument(MethodCallBuilder
                                 .Inline()
@@ -243,7 +243,7 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
                                 assignment == @return
                                     ? $"return {variable}_list;"
                                     : $"{assignment}.Add({variable}_list);")),
-                _ => throw new InvalidOperationException(),
+                _ => throw new InvalidOperationException()
             };
 
             if (isNullable && currentType is not NonNullTypeDescriptor)

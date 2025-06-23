@@ -46,7 +46,7 @@ internal sealed class PostgresPubSub : DefaultPubSub
         var envelope = PostgresMessageEnvelope
             .Create(formattedTopic, _serializer.CompleteMessage, _maxMessagePayloadSize);
 
-        await _channel.SendAsync(envelope, cancellationToken: default);
+        await _channel.SendAsync(envelope, cancellationToken: CancellationToken.None);
     }
 
     /// <inheritdoc />

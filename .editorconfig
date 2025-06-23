@@ -139,3 +139,79 @@ resharper_csharp_braces_for_while = required
 resharper_csharp_braces_for_using = required
 resharper_csharp_braces_for_lock = required
 resharper_csharp_braces_for_fixed = required
+
+# Name all constant fields using PascalCase
+dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = warning
+dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols = constant_fields
+dotnet_naming_rule.constant_fields_should_be_pascal_case.style = pascal_case_style
+dotnet_naming_symbols.constant_fields.applicable_kinds = field
+dotnet_naming_symbols.constant_fields.required_modifiers = const
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+# Static fields should have s_ prefix
+dotnet_naming_rule.static_fields_should_have_prefix.severity = warning
+dotnet_naming_rule.static_fields_should_have_prefix.symbols = static_fields
+dotnet_naming_rule.static_fields_should_have_prefix.style = static_prefix_style
+dotnet_naming_symbols.static_fields.applicable_kinds = field
+dotnet_naming_symbols.static_fields.required_modifiers = static
+dotnet_naming_symbols.static_fields.applicable_accessibilities = private, internal, private_protected
+dotnet_naming_style.static_prefix_style.required_prefix = s_
+dotnet_naming_style.static_prefix_style.capitalization = camel_case
+
+# Use ArgumentNullException throw helper.
+dotnet_diagnostic.CA1510.severity = warning
+# Use ArgumentException throw helper.
+dotnet_diagnostic.CA1511.severity = warning
+# Use ArgumentOutOfRangeException throw helper.
+dotnet_diagnostic.CA1512.severity = warning
+# Use ObjectDisposedException throw helper.
+dotnet_diagnostic.CA1513.severity = warning
+# Remove unnecessary cast.
+dotnet_diagnostic.IDE0004.severity = warning
+# Remove unnecessary using directives.
+dotnet_diagnostic.IDE0005.severity = warning
+# Use collection initializers or expressions.
+dotnet_diagnostic.IDE0028.severity = warning
+# Order modifiers.
+dotnet_diagnostic.IDE0036.severity = warning
+# Use range operator.
+dotnet_diagnostic.IDE0057.severity = warning
+# Use pattern matching (not operator).
+dotnet_diagnostic.IDE0083.severity = warning
+# Use collection expression for array.
+dotnet_diagnostic.IDE0300.severity = warning
+# Use collection expression for empty.
+dotnet_diagnostic.IDE0301.severity = warning
+# Use collection expression for stackalloc.
+dotnet_diagnostic.IDE0302.severity = warning
+# Use collection expression for Create().
+dotnet_diagnostic.IDE0303.severity = warning
+# Use collection expression for builder.
+dotnet_diagnostic.IDE0304.severity = warning
+# Use collection expression for fluent.
+dotnet_diagnostic.IDE0305.severity = silent # see https://github.com/dotnet/roslyn/issues/70833
+# Use collection expression for new.
+dotnet_diagnostic.IDE0306.severity = warning
+dotnet_style_prefer_collection_expression = when_types_exactly_match
+# Remove unnecessary blank line.
+dotnet_diagnostic.RCS0063.severity = warning
+dotnet_diagnostic.RCS1036.severity = none # see https://github.com/dotnet/roslynator/issues/1632
+# Remove redundant 'ToString' call.
+dotnet_diagnostic.RCS1097.severity = warning
+# Unnecessary null-forgiving operator.
+dotnet_diagnostic.RCS1249.severity = warning
+# Remove unnecessary braces.
+dotnet_diagnostic.RCS1251.severity = warning
+# Add/remove trailing comma.
+dotnet_diagnostic.RCS1260.severity = warning
+roslynator_trailing_comma_style = omit
+# Unnecessary conditional access.
+dotnet_diagnostic.RCS9003.severity = warning
+
+# netstandard2.0
+[src/HotChocolate/{Core/src/Types.Analyzers,Language}/**/*.cs]
+dotnet_diagnostic.CA1510.severity = none
+dotnet_diagnostic.CA1511.severity = none
+dotnet_diagnostic.CA1512.severity = none
+dotnet_diagnostic.CA1513.severity = none
+dotnet_diagnostic.IDE0057.severity = none

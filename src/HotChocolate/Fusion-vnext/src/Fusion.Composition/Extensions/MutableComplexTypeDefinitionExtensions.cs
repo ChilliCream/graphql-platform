@@ -1,7 +1,6 @@
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
-using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.Extensions;
 
@@ -11,7 +10,7 @@ internal static class MutableComplexTypeDefinitionExtensions
     {
         var fieldsArgument = new ArgumentAssignment(ArgumentNames.Fields, string.Join(" ", fields));
         var keyDirective =
-            new Directive(new MutableDirectiveDefinition(DirectiveNames.Key), fieldsArgument);
+            new Directive(new MutableDirectiveDefinition(WellKnownDirectiveNames.Key), fieldsArgument);
 
         type.Directives.Add(keyDirective);
     }

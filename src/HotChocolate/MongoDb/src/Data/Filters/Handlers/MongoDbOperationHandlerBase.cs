@@ -8,7 +8,7 @@ namespace HotChocolate.Data.MongoDb.Filters;
 
 /// <summary>
 /// The base of a mongodb operation handler that can be bound to a
-/// <see cref="FilterOperationField"/>. The is executed during the visitation of a input object.
+/// <see cref="FilterOperationField"/>. The is executed during the visitation of an input object.
 /// This base is optimized to handle filter operations for mongodb
 /// </summary>
 public abstract class MongoDbOperationHandlerBase
@@ -63,7 +63,7 @@ public abstract class MongoDbOperationHandlerBase
     protected bool CanBeNull { get; set; } = true;
 
     /// <summary>
-    /// Maps a operation field to a provider specific result.
+    /// Maps an operation field to a provider specific result.
     /// This method is called when the <see cref="FilterVisitor{TContext,T}"/> enters a
     /// field
     /// </summary>

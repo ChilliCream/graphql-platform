@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors;
@@ -14,7 +15,6 @@ public class DescriptorContextTests
             new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver(),
                 new NoOpStringBuilderPool()));
-        var conventions = new Dictionary<(Type, string), List<CreateConvention>>();
         var services = new DictionaryServiceProvider(
             typeof(INamingConventions),
             namingConventions);
@@ -23,8 +23,7 @@ public class DescriptorContextTests
         var context = DescriptorContext.Create(
             options,
             services,
-            conventions,
-            new Dictionary<string, object>(),
+            new FeatureCollection(),
             new SchemaBuilder.LazySchema(),
             new AggregateTypeInterceptor());
 
@@ -43,19 +42,19 @@ public class DescriptorContextTests
             new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver(),
                 new NoOpStringBuilderPool()));
-        var conventions = new Dictionary<(Type, string), List<CreateConvention>>
-        {
-            {
-                (typeof(INamingConventions), null), [_ => naming,]
-            },
-        };
+
+        var namingConventionKey =new ConventionKey(typeof(INamingConventions), null);
+        var conventionRegistration = new ConventionRegistration(namingConventionKey, _ => naming);
+
+        var features = new FeatureCollection();
+        var feature = features.GetOrSet<TypeSystemConventionFeature>();
+        feature.Conventions = feature.Conventions.Add(namingConventionKey, [conventionRegistration]);
 
         // act
         var context = DescriptorContext.Create(
             options,
             EmptyServiceProvider.Instance,
-            conventions,
-            new Dictionary<string, object>(),
+            features,
             new SchemaBuilder.LazySchema(),
             new AggregateTypeInterceptor());
 
@@ -71,7 +70,6 @@ public class DescriptorContextTests
         // arrange
         var options = new SchemaOptions();
         var inspector = new DefaultTypeInspector();
-        var conventions = new Dictionary<(Type, string), List<CreateConvention>>();
         var services = new DictionaryServiceProvider(
             typeof(ITypeInspector),
             inspector);
@@ -80,8 +78,7 @@ public class DescriptorContextTests
         var context = DescriptorContext.Create(
             options,
             services,
-            conventions,
-            new Dictionary<string, object>(),
+            new FeatureCollection(),
             new SchemaBuilder.LazySchema(),
             new AggregateTypeInterceptor());
 

@@ -53,7 +53,6 @@ internal static class PropertyTreeBuilder
                         SchemaErrorBuilder.New()
                             .SetMessage("Field aliases in the requirements syntax.")
                             .Build());
-
                 }
 
                 var fieldPath = path.Append(field.Name.Value);

@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Fetching.Properties;
@@ -68,10 +67,7 @@ internal sealed class ExecutionDataLoaderScope(
 
         public object? GetService(Type serviceType)
         {
-            if (serviceType is null)
-            {
-                throw new ArgumentNullException(nameof(serviceType));
-            }
+            ArgumentNullException.ThrowIfNull(serviceType);
 
             if (serviceType == typeof(IServiceProviderIsService))
             {

@@ -1,4 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
 using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -88,8 +87,8 @@ public static class AutoCacheDataLoaderTests
 
     public static class CounterStore
     {
-        private static int _catCounter = 0;
+        private static int s_catCounter = 0;
 
-        public static int GetNextCatCount() => Interlocked.Increment(ref _catCounter);
+        public static int GetNextCatCount() => Interlocked.Increment(ref s_catCounter);
     }
 }

@@ -1,8 +1,10 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Internal.FieldInitHelper;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 #nullable enable
 
@@ -11,9 +13,9 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a field or directive argument.
 /// </summary>
-public class Argument : FieldBase, IInputField
+public class Argument : FieldBase, IInputValueDefinition, IInputValueInfo
 {
-    private Type _runtimeType = default!;
+    private Type _runtimeType = null!;
 
     /// <summary>
     /// Initializes a new <see cref="Argument"/>.
@@ -43,29 +45,22 @@ public class Argument : FieldBase, IInputField
         {
             Formatter = new AggregateInputValueFormatter(formatters);
         }
-
-        IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
-        DeprecationReason = definition.DeprecationReason;
     }
 
     /// <summary>
-    /// Gets the type system member that declares this argument.
+    /// Gets the type that declares the field to which this argument belongs to.
     /// </summary>
-    public ITypeSystemMember DeclaringMember { get; private set; } = default!;
+    public new IOutputTypeDefinition DeclaringType => Unsafe.As<IOutputTypeDefinition>(base.DeclaringType);
 
-    /// <inheritdoc />
-    public IInputType Type { get; private set; } = default!;
-
-    /// <inheritdoc />
-    public bool IsDeprecated { get; }
-
-    /// <inheritdoc />
-    public string? DeprecationReason { get; }
+    /// <summary>
+    /// Gets the type of this field.
+    /// </summary>
+    public new IInputType Type => Unsafe.As<IInputType>(base.Type);
 
     /// <inheritdoc />
     public override Type RuntimeType => _runtimeType;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IInputValueDefinition.DefaultValue" />
     public IValueNode? DefaultValue { get; private set; }
 
     /// <inheritdoc />
@@ -100,11 +95,9 @@ public class Argument : FieldBase, IInputField
 
         base.OnCompleteField(context, declaringMember, definition);
 
-        Type = context.GetType<IInputType>(definition.Type!).EnsureInputType();
         _runtimeType = definition.GetRuntimeType()!;
         _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
         IsOptional = isOptional;
-        DeclaringMember = declaringMember;
     }
 
     protected sealed override void OnCompleteMetadata(
@@ -146,11 +139,7 @@ public class Argument : FieldBase, IInputField
         ArgumentConfiguration definition) =>
         base.OnFinalizeField(context, declaringMember, definition);
 
-    /// <summary>
-    /// Returns a string that represents the current argument.
-    /// </summary>
-    /// <returns>
-    /// A string that represents the current argument.
-    /// </returns>
-    public override string ToString() => $"{Name}:{Type.Print()}";
+    public InputValueDefinitionNode ToSyntaxNode() => Format(this);
+
+    protected override ISyntaxNode FormatField() => ToSyntaxNode();
 }

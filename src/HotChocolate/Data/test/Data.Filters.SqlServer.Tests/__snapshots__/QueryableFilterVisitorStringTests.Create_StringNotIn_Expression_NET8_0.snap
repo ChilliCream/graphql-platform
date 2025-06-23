@@ -13,10 +13,10 @@ testatestAndtestb SQL:
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE NOT (COALESCE("d"."Bar" IN (
+WHERE "d"."Bar" NOT IN (
     SELECT "p"."value"
     FROM json_each(@__p_0) AS "p"
-), 0))
+)
 ---------------
 
 testbtestAndNull
@@ -66,8 +66,8 @@ testatest SQL:
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE NOT (COALESCE("d"."Bar" IN (
+WHERE "d"."Bar" NOT IN (
     SELECT "p"."value"
     FROM json_each(@__p_0) AS "p"
-), 0))
+)
 ---------------

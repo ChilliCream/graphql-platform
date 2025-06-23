@@ -248,7 +248,7 @@ public class DefaultNodeIdSerializerTests
     public void Parse_Small_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
@@ -262,7 +262,7 @@ public class DefaultNodeIdSerializerTests
     public void Parse_480_Byte_Long_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
@@ -411,7 +411,7 @@ public class DefaultNodeIdSerializerTests
     public void Parse_Empty_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
@@ -447,7 +447,7 @@ public class DefaultNodeIdSerializerTests
     public void Parse_Small_Legacy_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
@@ -507,6 +507,24 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
+    public void Parse_CompositeId_With_Escaping()
+    {
+        var compositeId =
+            new CompositeId(
+                ":foo:bar:",
+                42,
+                // The bytes of this GUID contain a part separator (colon).
+                new Guid("3bc83a67-b494-4c0c-a31a-d1921b077a32"),
+                true);
+        var serializer = CreateSerializer(new CompositeIdNodeIdValueSerializer());
+        var id = serializer.Format("Foo", compositeId);
+
+        var parsed = serializer.Parse(id, typeof(CompositeId));
+
+        Assert.Equal(compositeId, parsed.InternalId);
+    }
+
+    [Fact]
     public void Parse_Legacy_StronglyTypedId()
     {
         var stronglyTypedId = new StronglyTypedId(123, 456);
@@ -531,7 +549,7 @@ public class DefaultNodeIdSerializerTests
     public void ParseOnRuntimeLookup_Throws_NodeIdInvalidFormatException_On_InvalidBase64Input()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
         var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
         Assert.Throws<NodeIdInvalidFormatException>(
@@ -615,7 +633,7 @@ public class DefaultNodeIdSerializerTests
             "UUID,Upload";
 
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(null)).Returns(default(Type));
 
         var names = new HashSet<string>(namesString.Split(','));
         var stringValueSerializer = new StringNodeIdValueSerializer();
@@ -663,9 +681,9 @@ public class DefaultNodeIdSerializerTests
         protected override NodeIdFormatterResult Format(Span<byte> buffer, CompositeId value, out int written)
         {
             if (TryFormatIdPart(buffer, value.A, out var a) &&
-                TryFormatIdPart(buffer.Slice(a), value.B, out var b) &&
-                TryFormatIdPart(buffer.Slice(a + b), value.C, out var c) &&
-                TryFormatIdPart(buffer.Slice(a + b + c), value.D, out var d))
+                TryFormatIdPart(buffer[a..], value.B, out var b) &&
+                TryFormatIdPart(buffer[(a + b)..], value.C, out var c) &&
+                TryFormatIdPart(buffer[(a + b + c)..], value.D, out var d))
             {
                 written = a + b + c + d;
                 return NodeIdFormatterResult.Success;
@@ -678,9 +696,9 @@ public class DefaultNodeIdSerializerTests
         protected override bool TryParse(ReadOnlySpan<byte> buffer, out CompositeId value)
         {
             if(TryParseIdPart(buffer, out string a, out var ac) &&
-                TryParseIdPart(buffer.Slice(ac), out int b, out var bc) &&
-                TryParseIdPart(buffer.Slice(ac + bc), out Guid c, out var cc) &&
-                TryParseIdPart(buffer.Slice(ac + bc + cc), out bool d, out _))
+                TryParseIdPart(buffer[ac..], out int b, out var bc) &&
+                TryParseIdPart(buffer[(ac + bc)..], out Guid c, out var cc) &&
+                TryParseIdPart(buffer[(ac + bc + cc)..], out bool d, out _))
             {
                 value = new CompositeId(a, b, c, d);
                 return true;

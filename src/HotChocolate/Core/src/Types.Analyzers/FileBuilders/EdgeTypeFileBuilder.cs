@@ -22,7 +22,7 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
         if (type is not EdgeTypeInfo edgeType)
         {
             throw new InvalidOperationException(
-                "The specified type is not a edge type.");
+                "The specified type is not an edge type.");
         }
 
         Writer.WriteIndentedLine(

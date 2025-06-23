@@ -17,11 +17,11 @@ internal sealed class ParentParameterExpressionBuilder
     , IParameterBindingFactory
     , IParameterBinding
 {
-    private const string _parent = nameof(IResolverContext.Parent);
-    private static readonly MethodInfo _getParentMethod = ContextType.GetMethods().First(IsParentMethod);
+    private const string Parent = nameof(IResolverContext.Parent);
+    private static readonly MethodInfo s_getParentMethod = ContextType.GetMethods().First(IsParentMethod);
 
     private static bool IsParentMethod(MethodInfo method)
-        => method.Name.Equals(_parent, StringComparison.Ordinal) &&
+        => method.Name.Equals(Parent, StringComparison.Ordinal) &&
            method.IsGenericMethod;
 
     public ArgumentKind Kind => ArgumentKind.Source;
@@ -36,7 +36,7 @@ internal sealed class ParentParameterExpressionBuilder
     public Expression Build(ParameterExpressionBuilderContext context)
     {
         var parameterType = context.Parameter.ParameterType;
-        var argumentMethod = _getParentMethod.MakeGenericMethod(parameterType);
+        var argumentMethod = s_getParentMethod.MakeGenericMethod(parameterType);
         return Expression.Call(context.ResolverContext, argumentMethod);
     }
 

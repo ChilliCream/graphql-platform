@@ -25,10 +25,7 @@ public static class CoreSubscriptionsServiceCollectionExtensions
     public static IRequestExecutorBuilder AddSubscriptionDiagnostics(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.AddSubscriptionDiagnostics();
 
@@ -50,10 +47,7 @@ public static class CoreSubscriptionsServiceCollectionExtensions
     public static IServiceCollection AddSubscriptionDiagnostics(
         this IServiceCollection services)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.TryAddSingleton<ISubscriptionDiagnosticEvents>(
             sp =>

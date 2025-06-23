@@ -8,6 +8,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 using ErrorHelper = HotChocolate.CostAnalysis.Utilities.ErrorHelper;
 
 namespace HotChocolate.CostAnalysis;
@@ -15,24 +16,24 @@ namespace HotChocolate.CostAnalysis;
 internal sealed class CostAnalyzerMiddleware(
     RequestDelegate next,
     [SchemaService] RequestCostOptions options,
-    DocumentValidatorContextPool contextPool,
-    ICostMetricsCache cache,
+    ObjectPool<DocumentValidatorContext> contextPool,
+    [SchemaService] ICostMetricsCache cache,
     [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
 {
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
-        if (context.Document is null || OperationDocumentId.IsNullOrEmpty(context.DocumentId))
+        if (!context.TryGetOperationDocument(out var document, out var documentId)
+            || documentId.IsEmpty)
         {
             context.Result = ResultHelper.StateInvalidForCostAnalysis();
             return;
         }
 
-        // we check if the operation id is already set and if not we create one.
-        var operationId = context.OperationId;
-        if (operationId is null)
+        // we check if the operation id is already set and if not, we create one.
+        if (!context.TryGetOperationId(out var operationId))
         {
             operationId = context.CreateCacheId();
-            context.OperationId = operationId;
+            context.SetOperationId(operationId);
         }
 
         var requestOptions = context.TryGetCostOptions() ?? options;
@@ -44,9 +45,9 @@ internal sealed class CostAnalyzerMiddleware(
             return;
         }
 
-        if (!TryAnalyze(context, requestOptions, mode, context.Document, operationId, out var costMetrics))
+        if (!TryAnalyze(context, requestOptions, mode, document, documentId, operationId, out var costMetrics))
         {
-            // a error happened during the analysis and the error is already set.
+            // an error happened during the analysis and the error is already set.
             return;
         }
 
@@ -65,10 +66,11 @@ internal sealed class CostAnalyzerMiddleware(
     }
 
     private bool TryAnalyze(
-        IRequestContext context,
+        RequestContext context,
         RequestCostOptions requestOptions,
         CostAnalyzerMode mode,
         DocumentNode document,
+        OperationDocumentId documentId,
         string operationId,
         [NotNullWhen(true)] out CostMetrics? costMetrics)
     {
@@ -81,19 +83,26 @@ internal sealed class CostAnalyzerMiddleware(
             {
                 // we check if the operation was already resolved by another middleware,
                 // if not we resolve the operation.
-                var operationDefinition =
-                    context.Operation?.Definition
-                        ?? document.GetOperation(context.Request.OperationName);
+                if (!context.TryGetOperationDefinition(out var operationDefinition))
+                {
+                    operationDefinition = document.GetOperation(context.Request.OperationName);
+                    context.SetOperationDefinition(operationDefinition);
+                }
 
                 validatorContext = contextPool.Get();
-                PrepareContext(context, document, validatorContext);
+                validatorContext.Initialize(
+                    context.Schema,
+                    documentId,
+                    document,
+                    maxAllowedErrors: 1,
+                    context.Features);
 
                 var analyzer = new CostAnalyzer(requestOptions);
                 costMetrics = analyzer.Analyze(operationDefinition, validatorContext);
                 cache.TryAddCostMetrics(operationId, costMetrics);
             }
 
-            context.ContextData.Add(WellKnownContextData.CostMetrics, costMetrics);
+            context.SetCostMetrics(costMetrics);
             diagnosticEvents.OperationCost(context, costMetrics.FieldCost, costMetrics.TypeCost);
 
             if ((mode & CostAnalyzerMode.Enforce) == CostAnalyzerMode.Enforce)
@@ -135,42 +144,26 @@ internal sealed class CostAnalyzerMiddleware(
         }
     }
 
-    private static void PrepareContext(
-        IRequestContext requestContext,
-        DocumentNode document,
-        DocumentValidatorContext validatorContext)
+    public static RequestMiddlewareConfiguration Create()
     {
-        validatorContext.Schema = requestContext.Schema;
-
-        foreach (var definitionNode in document.Definitions)
-        {
-            if (definitionNode is FragmentDefinitionNode fragmentDefinition)
+        return new RequestMiddlewareConfiguration(
+            (core, next) =>
             {
-                validatorContext.Fragments[fragmentDefinition.Name.Value] = fragmentDefinition;
-            }
-        }
+                // this needs to be a schema service
+                var options = core.SchemaServices.GetRequiredService<RequestCostOptions>();
+                var contextPool = core.Services.GetRequiredService<ObjectPool<DocumentValidatorContext>>();
+                var cache = core.SchemaServices.GetRequiredService<ICostMetricsCache>();
+                var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
 
-        validatorContext.ContextData = requestContext.ContextData;
-    }
+                var middleware = new CostAnalyzerMiddleware(
+                    next,
+                    options,
+                    contextPool,
+                    cache,
+                    diagnosticEvents);
 
-    public static RequestCoreMiddleware Create()
-    {
-        return (core, next) =>
-        {
-            // this needs to be a schema service
-            var options = core.SchemaServices.GetRequiredService<RequestCostOptions>();
-            var contextPool = core.Services.GetRequiredService<DocumentValidatorContextPool>();
-            var cache = core.Services.GetRequiredService<ICostMetricsCache>();
-            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-
-            var middleware = new CostAnalyzerMiddleware(
-                next,
-                options,
-                contextPool,
-                cache,
-                diagnosticEvents);
-
-            return context => middleware.InvokeAsync(context);
-        };
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(CostAnalyzerMiddleware));
     }
 }

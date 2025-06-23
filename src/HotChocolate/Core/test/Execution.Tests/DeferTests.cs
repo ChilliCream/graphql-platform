@@ -114,7 +114,7 @@ public class DeferTests
                 .SetVariableValues(
                     new Dictionary<string, object?>
                     {
-                        { "defer", false },
+                        { "defer", false }
                     })
                 .Build());
 
@@ -241,7 +241,7 @@ public class DeferTests
                 .SetVariableValues(
                     new Dictionary<string, object?>
                     {
-                        { "defer", false },
+                        { "defer", false }
                     })
                 .Build());
 
