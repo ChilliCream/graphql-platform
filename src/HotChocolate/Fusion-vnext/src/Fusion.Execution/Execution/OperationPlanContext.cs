@@ -15,7 +15,7 @@ public sealed class OperationPlanContext : IAsyncDisposable
 
     public OperationPlanContext(
         OperationExecutionPlan operationPlan,
-        IReadOnlyDictionary<string, IValueNode> variables,
+        IVariableValueCollection variables,
         RequestContext requestContext)
     {
         OperationPlan = operationPlan;
@@ -30,7 +30,7 @@ public sealed class OperationPlanContext : IAsyncDisposable
 
     public OperationExecutionPlan OperationPlan { get; }
 
-    public IReadOnlyDictionary<string, IValueNode> Variables { get; }
+    public IVariableValueCollection Variables { get; }
 
     public ISchemaDefinition Schema => RequestContext.Schema;
 
@@ -75,11 +75,11 @@ public sealed class OperationPlanContext : IAsyncDisposable
             return [];
         }
 
-        var variables = new List<ObjectFieldNode>(Variables.Count);
+        var variables = new List<ObjectFieldNode>();
 
         foreach (var variableName in requiredVariables)
         {
-            if (Variables.TryGetValue(variableName, out var variableValue))
+            if (Variables.TryGetValue<IValueNode>(variableName, out var variableValue))
             {
                 variables.Add(new ObjectFieldNode(variableName, variableValue));
             }

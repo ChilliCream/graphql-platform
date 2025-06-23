@@ -641,9 +641,18 @@ public sealed partial class OperationPlanner
     {
         var field = workItem.Selection.Field;
         var fieldSource = field.Sources[current.SchemaName];
-        // todo: we need a deep copy of this selection set or there might be problems if a requirement
+
+        // TODO: we need a deep copy of this selection set or there might be problems if a requirement
         // is used on different parts of the operation.
         var requirements = fieldSource.Requirements!.SelectionSet;
+
+        var internalOperation = InlineSelections(
+            current.InternalOperationDefinition,
+            index,
+            workItem.Selection.Field.DeclaringType,
+            workItem.Selection.SelectionSetId,
+            requirements,
+            inlineInternal: true);
 
         foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
         {

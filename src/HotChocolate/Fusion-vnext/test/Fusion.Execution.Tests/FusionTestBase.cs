@@ -41,9 +41,24 @@ public abstract class FusionTestBase
         return FusionSchemaDefinition.Create(compositeSchemaDoc);
     }
 
+    protected static DocumentNode ComposeSchemaDocument(
+        [StringSyntax("graphql")] params string[] schemas)
+    {
+        var compositionLog = new CompositionLog();
+        var composer = new SchemaComposer(schemas, compositionLog);
+        var result = composer.Compose();
+
+        if (!result.IsSuccess)
+        {
+            throw new InvalidOperationException(result.Errors[0].Message);
+        }
+
+        return result.Value.ToSyntaxNode();
+    }
+
      protected static OperationExecutionPlan PlanOperation(
-        FusionSchemaDefinition schema,
-        [StringSyntax("graphql")] string operationText)
+      FusionSchemaDefinition schema,
+      [StringSyntax("graphql")] string operationText)
     {
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());

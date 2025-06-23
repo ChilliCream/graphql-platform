@@ -41,7 +41,7 @@ public static class HotChocolateFusionServiceCollectionExtensions
     {
         services.TryAddSingleton<ISourceSchemaClientScopeFactory>(
             static sp => new DefaultSourceSchemaClientScopeFactory(
-                sp.GetRequiredRootService<IHttpClientFactory>()));
+                sp.GetRequiredService<IHttpClientFactory>()));
     }
 
     private static DefaultFusionGatewayBuilder CreateBuilder(
