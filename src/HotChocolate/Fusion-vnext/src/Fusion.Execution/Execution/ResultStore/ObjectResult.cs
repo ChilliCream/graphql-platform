@@ -35,7 +35,7 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, Field
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public void Initialize(ResultPoolSession resultPoolSession, SelectionSet selectionSet, uint includeFlags)
+    public void Initialize(ResultPoolSession resultPoolSession, SelectionSet selectionSet, ulong includeFlags)
     {
         ArgumentNullException.ThrowIfNull(resultPoolSession);
         ArgumentNullException.ThrowIfNull(selectionSet);

@@ -13,14 +13,14 @@ internal sealed class ValueCompletion
     private readonly ResultPoolSession _resultPoolSession;
     private readonly ErrorHandling _errorHandling;
     private readonly int _maxDepth;
-    private readonly uint _includeFlags;
+    private readonly ulong _includeFlags;
 
     public ValueCompletion(
         ISchemaDefinition schema,
         ResultPoolSession resultPoolSession,
         ErrorHandling errorHandling,
         int maxDepth,
-        uint includeFlags)
+        ulong includeFlags)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(resultPoolSession);
@@ -46,11 +46,13 @@ internal sealed class ValueCompletion
                 continue;
             }
 
+            var fieldResult = objectResult[selection.ResponseName];
+
             if (data.TryGetProperty(selection.ResponseName, out var element)
-                && !TryCompleteValue(selection, selection.Type, sourceSchemaResult, element, 0, objectResult))
+                && !TryCompleteValue(selection, selection.Type, sourceSchemaResult, element, 0, fieldResult))
             {
-                var parentIndex = objectResult.ParentIndex;
-                var parent = objectResult.Parent;
+                var parentIndex = fieldResult.ParentIndex;
+                var parent = fieldResult.Parent;
 
                 if (_errorHandling is ErrorHandling.Propagate)
                 {
@@ -74,7 +76,7 @@ internal sealed class ValueCompletion
                 }
                 else
                 {
-                    parent?.TrySetValueNull(parentIndex);
+                    fieldResult?.TrySetValueNull(parentIndex);
                 }
             }
         }

@@ -1,5 +1,10 @@
+using HotChocolate.Types;
 using HotChocolate.Execution;
+using HotChocolate.Language;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Fusion;
 
@@ -9,43 +14,108 @@ public class IntegrationTests : FusionTestBase
     public async Task Foo()
     {
         // arrange
+        var server1 = CreateSourceSchema(
+            services =>
+            {
+                services
+                    .AddGraphQLServer()
+                    .AddQueryType(d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolve("foo"))
+                    .SetSchema(c => c
+                        .Directive(
+                            new DirectiveNode(
+                                "schemaName",
+                                new ArgumentNode("value", new StringValueNode("A")))))
+                    .AddDirectiveType(
+                        new DirectiveType(
+                            d => d.Name("schemaName")
+                                .Location(DirectiveLocation.Schema)
+                                .Argument("value")
+                                .Type<NonNullType<StringType>>()));
+            });
+
+        var server2 = CreateSourceSchema(
+            services =>
+            {
+                services
+                    .AddGraphQLServer()
+                    .AddQueryType(d => d
+                        .Name("Query")
+                        .Field("bar")
+                        .Resolve("bar"))
+                    .SetSchema(c => c
+                        .Directive(
+                            new DirectiveNode(
+                                "schemaName",
+                                new ArgumentNode("value", new StringValueNode("B")))))
+                    .AddDirectiveType(
+                        new DirectiveType(
+                            d => d.Name("schemaName")
+                                .Location(DirectiveLocation.Schema)
+                                .Argument("value")
+                                .Type<NonNullType<StringType>>()));
+            });
+
+        var schema1 = await server1.Services.GetSchemaAsync();
+
+        var schema2 = await server2.Services.GetSchemaAsync();
+
         var schema = ComposeSchemaDocument(
-            """
-            schema @schemaName(value: "A") {
-              query: Query
-            }
-
-            type Query {
-              foo: String
-            }
-
-            directive @schemaName(value: String!) on SCHEMA
-            """,
-            """
-            schema @schemaName(value: "B") {
-              query: Query
-            }
-
-            type Query {
-              bar: String
-            }
-
-            directive @schemaName(value: String!) on SCHEMA
-            """);
+            schema1.ToString(),
+            schema2.ToString());
 
         var services =
             new ServiceCollection()
-                .AddHttpClient()
+                .AddHttpClient("A", server1)
+                .AddHttpClient("B", server2)
                 .AddGraphQLGateway()
                 .AddInMemoryConfiguration(schema)
+                .AddHttpClientConfiguration("A", new Uri("http://localhost:5000/graphql"))
+                .AddHttpClientConfiguration("B", new Uri("http://localhost:5000/graphql"))
                 .Services
                 .BuildServiceProvider();
 
-        var executorProvider = services.GetRequiredService<IRequestExecutorProvider>();
-        var executor = await executorProvider.GetExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync();
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .Build());
     }
+}
+
+file static class Extensions
+{
+    public static IServiceCollection AddHttpClient(
+        this IServiceCollection services,
+        string name,
+        TestServer server)
+    {
+        services.TryAddSingleton<IHttpClientFactory, Factory>();
+        return services.AddSingleton(new TestServerRegistration(name, server));
+    }
+
+    private class Factory : IHttpClientFactory
+    {
+        private readonly Dictionary<string, TestServerRegistration> _registrations;
+
+        public Factory(IEnumerable<TestServerRegistration> registrations)
+        {
+            _registrations = registrations.ToDictionary(r => r.Name, r => r);
+        }
+
+        public HttpClient CreateClient(string name)
+        {
+            if (_registrations.TryGetValue(name, out var registration))
+            {
+                return registration.Server.CreateClient();
+            }
+
+            throw new InvalidOperationException(
+                $"No test server registered with the name: {name}");
+        }
+    }
+
+    private record TestServerRegistration(string Name, TestServer Server);
 }

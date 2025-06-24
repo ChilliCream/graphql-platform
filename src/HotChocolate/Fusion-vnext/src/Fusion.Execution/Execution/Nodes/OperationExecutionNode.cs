@@ -108,12 +108,13 @@ public sealed record OperationExecutionNode : ExecutionNode
         };
 
         var client = context.GetClient(SchemaName, Operation.Operation);
-        var response = await client.ExecuteAsync(request, cancellationToken);
+        var response = await client.ExecuteAsync(context, request, cancellationToken);
 
         if (response.IsSuccessful)
         {
             var index = 0;
-            var buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(variables.Length);
+            var bufferLength = variables.Length > 1 ? variables.Length : 1;
+            var buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
 
             try
             {

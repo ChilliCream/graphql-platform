@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using HotChocolate.Caching.Memory;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Transport.Http;
@@ -8,9 +9,11 @@ namespace HotChocolate.Fusion.Execution.Clients;
 
 public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
 {
+    private readonly object _sync = new();
+    private readonly ConcurrentDictionary<(string Name, OperationType Type), ISourceSchemaClient> _clients = [];
     private readonly FusionSchemaDefinition _schemaDefinition;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ConcurrentDictionary<(string Name, OperationType Type), ISourceSchemaClient> _clients = [];
+    private readonly SourceSchemaClientConfigurations _configurations;
     private readonly Cache<string> _operationStringCache;
     private bool _disposed;
 
@@ -25,22 +28,51 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
 
         _schemaDefinition = schemaDefinition;
         _httpClientFactory = httpClientFactory;
+        _configurations = schemaDefinition.Features.GetRequired<SourceSchemaClientConfigurations>();
         _operationStringCache = operationStringCache;
     }
 
-    public ISourceSchemaClient GetClient(string name, OperationType type)
+    public ISourceSchemaClient GetClient(string name, OperationType operationType)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
 
-        return _clients.GetOrAdd(
-            (name, type),
-            static (key, state) =>
+        var key = (name, operationType);
+
+        if (!_clients.TryGetValue(key, out var sourceSchemaClient))
+        {
+            lock (_sync)
             {
-                var httpClient = state._httpClientFactory.CreateClient(key.Name);
-                var graphqlHttpClient = GraphQLHttpClient.Create(httpClient, disposeHttpClient: true);
-                return new SourceSchemaHttpClient(graphqlHttpClient, state._operationStringCache);
-            },
-            (_httpClientFactory, _operationStringCache));
+                if (!_clients.TryGetValue(key, out sourceSchemaClient))
+                {
+                    if (!_configurations.TryGet(name, operationType, out var config))
+                    {
+                        throw new InvalidOperationException(
+                            $"No client configuration found for schema {name} and operation type {operationType}.");
+                    }
+
+                    switch (config)
+                    {
+                        case SourceSchemaHttpClientConfiguration httpClientConfig:
+                            var httpClient = _httpClientFactory.CreateClient(httpClientConfig.HttpClientName);
+                            httpClient.BaseAddress = httpClientConfig.BaseAddress;
+
+                            sourceSchemaClient = new SourceSchemaHttpClient(
+                                GraphQLHttpClient.Create(httpClient, disposeHttpClient: true),
+                                httpClientConfig,
+                                _operationStringCache);
+
+                            _clients.TryAdd(key, sourceSchemaClient);
+                            break;
+
+                        default:
+                            throw new NotSupportedException(
+                                $"Unsupported client configuration type: {config.GetType().Name}.");
+                    }
+                }
+            }
+        }
+
+        return sourceSchemaClient;
     }
 
     public async ValueTask DisposeAsync()

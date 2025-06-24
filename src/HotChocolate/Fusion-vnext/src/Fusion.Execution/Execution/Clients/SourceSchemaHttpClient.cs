@@ -10,24 +10,47 @@ namespace HotChocolate.Fusion.Execution.Clients;
 public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 {
     private readonly GraphQLHttpClient _client;
+    private readonly SourceSchemaHttpClientConfiguration _configuration;
     private readonly Cache<string> _operationStringCache;
     private bool _disposed;
 
     public SourceSchemaHttpClient(
         GraphQLHttpClient client,
+        SourceSchemaHttpClientConfiguration configuration,
         Cache<string> operationStringCache)
     {
-        _client = client
-            ?? throw new ArgumentNullException(nameof(client));
-        _operationStringCache = operationStringCache
-            ?? throw new ArgumentNullException(nameof(operationStringCache));
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(operationStringCache);
+
+        _client = client;
+        _configuration = configuration;
+        _operationStringCache = operationStringCache;
     }
 
     public async ValueTask<SourceSchemaClientResponse> ExecuteAsync(
+        OperationPlanContext context,
         SourceSchemaClientRequest request,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(request);
+
         var httpRequest = CreateHttpRequest(request);
+        httpRequest.State = (context, _configuration);
+
+        httpRequest.OnMessageCreated += static (_, requestMessage, state) =>
+        {
+            var (context, configuration) = ((OperationPlanContext, SourceSchemaHttpClientConfiguration))state!;
+            configuration.OnBeforeSend(context, requestMessage);
+        };
+
+        httpRequest.OnMessageReceived += static (_, responseMessage, state) =>
+        {
+            var (context, configuration) = ((OperationPlanContext, SourceSchemaHttpClientConfiguration))state!;
+            configuration.OnAfterReceive(context, responseMessage);
+        };
+
         var httpResponse = await _client.SendAsync(httpRequest, cancellationToken);
         return new Response(httpResponse, request.Variables);
     }

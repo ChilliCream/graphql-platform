@@ -15,16 +15,16 @@ internal sealed class FetchResultStore : IDisposable
 {
     private readonly ResultPoolSession _resultPoolSession;
     private readonly ValueCompletion _valueCompletion;
-    private readonly Operation _operation = default!;
+    private readonly Operation _operation;
     private readonly ObjectResult _root;
-    private readonly uint _includeFlags;
+    private readonly ulong _includeFlags;
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
 
     public FetchResultStore(
         ISchemaDefinition schema,
         ResultPoolSession resultPoolSession,
         Operation operation,
-        uint includeFlags)
+        ulong includeFlags)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(resultPoolSession);

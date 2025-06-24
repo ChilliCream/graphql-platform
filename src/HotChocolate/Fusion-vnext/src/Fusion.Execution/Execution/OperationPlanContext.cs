@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
@@ -8,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
-public sealed class OperationPlanContext : IAsyncDisposable
+public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 {
     private readonly FetchResultStore _resultStore;
     private bool _disposed;
@@ -21,7 +22,13 @@ public sealed class OperationPlanContext : IAsyncDisposable
         OperationPlan = operationPlan;
         RequestContext = requestContext;
         Variables = variables;
-        _resultStore =  null!; // new FetchResultStore(requestContext.Schema);
+
+        // TODO : fully implement and inject ResultPoolSession
+        _resultStore = new FetchResultStore(
+            RequestContext.Schema,
+            new ResultPoolSession(),
+            operationPlan.Operation,
+            operationPlan.Operation.CreateIncludeFlags(variables));
 
         // create a client scope for the current request context.
         var clientScopeFactory = requestContext.RequestServices.GetRequiredService<ISourceSchemaClientScopeFactory>();
@@ -37,6 +44,8 @@ public sealed class OperationPlanContext : IAsyncDisposable
     public RequestContext RequestContext { get; }
 
     public ISourceSchemaClientScope ClientScope { get; }
+
+    public IFeatureCollection Features => RequestContext.Features;
 
     public ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,

@@ -9,6 +9,7 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
@@ -110,7 +111,8 @@ internal sealed class FusionRequestExecutorManager
 
         var requestOptions = CreateRequestOptions(setup);
         var parserOptions = CreateParserOptions(setup);
-        var features = CreateSchemaFeatures(setup, requestOptions, parserOptions);
+        var clientConfigurations = CreateClientConfigurations(setup);
+        var features = CreateSchemaFeatures(setup, requestOptions, parserOptions, clientConfigurations);
         var schemaServices = CreateSchemaServices(setup);
 
         var schema = CreateSchema(schemaName, document, schemaServices, features);
@@ -179,15 +181,29 @@ internal sealed class FusionRequestExecutorManager
             maxAllowedFields: options.MaxAllowedFields);
     }
 
+    private SourceSchemaClientConfigurations CreateClientConfigurations(FusionGatewaySetup setup)
+    {
+        var configurations = new List<ISourceSchemaClientConfiguration>();
+
+        foreach (var configure in setup.ClientConfigurationModifiers)
+        {
+            configurations.Add(configure.Invoke(_applicationServices));
+        }
+
+        return new SourceSchemaClientConfigurations(configurations);
+    }
+
     private FeatureCollection CreateSchemaFeatures(
         FusionGatewaySetup setup,
         FusionRequestOptions requestOptions,
-        ParserOptions parserOptions)
+        ParserOptions parserOptions,
+        SourceSchemaClientConfigurations clientConfigurations)
     {
         var features = new FeatureCollection();
 
         features.Set(requestOptions);
         features.Set(parserOptions);
+        features.Set(clientConfigurations);
 
         foreach (var configure in setup.SchemaFeaturesModifiers)
         {

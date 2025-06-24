@@ -6,7 +6,7 @@ public class OperationPlannerTests : FusionTestBase
     public void Plan_Simple_Operation_1_Source_Schema()
     {
         // arrange
-        var schema = CreateSchema();
+        var schema = CreateCompositeSchema();
 
         // act
         var plan = PlanOperation(
@@ -52,7 +52,7 @@ public class OperationPlannerTests : FusionTestBase
     public void Plan_Simple_Operation_2_Source_Schema()
     {
         // arrange
-        var compositeSchema = CreateSchema();
+        var compositeSchema = CreateCompositeSchema();
 
         // act
         var plan = PlanOperation(
@@ -125,7 +125,7 @@ public class OperationPlannerTests : FusionTestBase
     public void Plan_Simple_Operation_3_Source_Schema()
     {
         // arrange
-        var compositeSchema = CreateSchema();
+        var compositeSchema = CreateCompositeSchema();
 
         // act
         var plan = PlanOperation(

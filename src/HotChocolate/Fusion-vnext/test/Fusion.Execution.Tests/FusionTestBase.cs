@@ -6,19 +6,25 @@ using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion;
 
-public abstract class FusionTestBase
+public abstract class FusionTestBase : IDisposable
 {
-    protected static FusionSchemaDefinition CreateSchema()
+    private readonly TestServerSession _testServerSession = new();
+    private bool _disposed;
+
+    protected static FusionSchemaDefinition CreateCompositeSchema()
     {
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
         return FusionSchemaDefinition.Create(compositeSchemaDoc);
     }
 
-    protected static FusionSchemaDefinition CreateSchema(
+    protected static FusionSchemaDefinition CreateCompositeSchema(
         [StringSyntax("graphql")] string schema)
     {
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(schema);
@@ -56,9 +62,30 @@ public abstract class FusionTestBase
         return result.Value.ToSyntaxNode();
     }
 
-     protected static OperationExecutionPlan PlanOperation(
-      FusionSchemaDefinition schema,
-      [StringSyntax("graphql")] string operationText)
+    public TestServer CreateSourceSchema(
+        Action<IServiceCollection> configureServices,
+        Action<IApplicationBuilder>? configureApplication = null)
+    {
+        configureApplication ??=
+            app =>
+            {
+                app.UseWebSockets();
+                app.UseRouting();
+                app.UseEndpoints(endpoint => endpoint.MapGraphQL());
+            };
+
+        return _testServerSession.CreateServer(
+            services =>
+            {
+                services.AddRouting();
+                configureServices(services);
+            },
+            configureApplication);
+    }
+
+    protected static OperationExecutionPlan PlanOperation(
+        FusionSchemaDefinition schema,
+        [StringSyntax("graphql")] string operationText)
     {
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
@@ -81,5 +108,25 @@ public abstract class FusionTestBase
         var formatter = new YamlExecutionPlanFormatter();
         var actual = formatter.Format(plan);
         actual.MatchInlineSnapshot(expected + Environment.NewLine);
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _testServerSession.Dispose();
+        }
     }
 }
