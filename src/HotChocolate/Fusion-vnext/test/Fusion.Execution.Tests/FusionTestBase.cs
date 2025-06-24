@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Logging;
@@ -63,7 +64,9 @@ public abstract class FusionTestBase : IDisposable
     }
 
     public TestServer CreateSourceSchema(
-        Action<IServiceCollection> configureServices,
+        string schemaName,
+        Action<IRequestExecutorBuilder> configureBuilder,
+        Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null)
     {
         configureApplication ??=
@@ -71,14 +74,16 @@ public abstract class FusionTestBase : IDisposable
             {
                 app.UseWebSockets();
                 app.UseRouting();
-                app.UseEndpoints(endpoint => endpoint.MapGraphQL());
+                app.UseEndpoints(endpoint => endpoint.MapGraphQL(schemaName: schemaName));
             };
 
         return _testServerSession.CreateServer(
             services =>
             {
                 services.AddRouting();
-                configureServices(services);
+                var builder = services.AddGraphQLServer(schemaName);
+                configureBuilder(builder);
+                configureServices?.Invoke(services);
             },
             configureApplication);
     }

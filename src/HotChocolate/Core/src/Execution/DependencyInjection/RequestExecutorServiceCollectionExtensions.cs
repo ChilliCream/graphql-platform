@@ -158,6 +158,11 @@ public static class RequestExecutorServiceCollectionExtensions
         builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();
         builder.TryAddTypeInterceptor<RequirementsTypeInterceptor>();
 
+        if(!ISchemaDefinition.DefaultName.Equals(schemaName, StringComparison.OrdinalIgnoreCase))
+        {
+            builder.TryAddTypeInterceptor(new SchemaNameTypeInterceptor(schemaName));
+        }
+
         return builder;
     }
 

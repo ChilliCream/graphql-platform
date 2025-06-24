@@ -123,7 +123,7 @@ public sealed record OperationExecutionNode : ExecutionNode
                     buffer[index++] = result;
                 }
 
-                context.SaveResult(Source, buffer.AsSpan(0, index));
+                context.AddResults(Source, buffer.AsSpan(0, index));
             }
             catch
             {

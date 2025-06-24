@@ -37,7 +37,7 @@ internal sealed class FetchResultStore : IDisposable
         _includeFlags = includeFlags;
     }
 
-    public bool Save(
+    public bool AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results)
     {

@@ -1,10 +1,8 @@
 #nullable enable
 
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Validation;
-using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -17,6 +15,7 @@ using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate;
 
@@ -243,7 +242,7 @@ public partial class SchemaBuilder
                 initializer.GlobalComponents.Add(component);
             }
 
-            if(builder.Features.Get<TypeSystemFeature>()?.RuntimeTypeBindings is { Count: > 0 } bindings)
+            if (builder.Features.Get<TypeSystemFeature>()?.RuntimeTypeBindings is { Count: > 0 } bindings)
             {
                 foreach (var binding in bindings.Values)
                 {

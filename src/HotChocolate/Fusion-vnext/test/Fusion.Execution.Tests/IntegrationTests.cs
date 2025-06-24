@@ -15,52 +15,23 @@ public class IntegrationTests : FusionTestBase
     {
         // arrange
         var server1 = CreateSourceSchema(
-            services =>
-            {
-                services
-                    .AddGraphQLServer()
-                    .AddQueryType(d => d
-                        .Name("Query")
-                        .Field("foo")
-                        .Resolve("foo"))
-                    .SetSchema(c => c
-                        .Directive(
-                            new DirectiveNode(
-                                "schemaName",
-                                new ArgumentNode("value", new StringValueNode("A")))))
-                    .AddDirectiveType(
-                        new DirectiveType(
-                            d => d.Name("schemaName")
-                                .Location(DirectiveLocation.Schema)
-                                .Argument("value")
-                                .Type<NonNullType<StringType>>()));
-            });
+            "A",
+            b => b.AddQueryType(
+                d => d.Name("Query")
+                    .Field("foo")
+                    .Resolve("foo"))
+        );
 
         var server2 = CreateSourceSchema(
-            services =>
-            {
-                services
-                    .AddGraphQLServer()
-                    .AddQueryType(d => d
-                        .Name("Query")
-                        .Field("bar")
-                        .Resolve("bar"))
-                    .SetSchema(c => c
-                        .Directive(
-                            new DirectiveNode(
-                                "schemaName",
-                                new ArgumentNode("value", new StringValueNode("B")))))
-                    .AddDirectiveType(
-                        new DirectiveType(
-                            d => d.Name("schemaName")
-                                .Location(DirectiveLocation.Schema)
-                                .Argument("value")
-                                .Type<NonNullType<StringType>>()));
-            });
+            "B",
+            b => b.AddQueryType(
+                d => d.Name("Query")
+                    .Field("bar")
+                    .Resolve("bar")));
 
-        var schema1 = await server1.Services.GetSchemaAsync();
+        var schema1 = await server1.Services.GetSchemaAsync("A");
 
-        var schema2 = await server2.Services.GetSchemaAsync();
+        var schema2 = await server2.Services.GetSchemaAsync("B");
 
         var schema = ComposeSchemaDocument(
             schema1.ToString(),

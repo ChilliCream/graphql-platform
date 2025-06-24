@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Clients;
@@ -56,15 +57,13 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
         if (requiredData.Length == 0)
         {
-            if (requiredVariables.Length > 0)
-            {
-                var variableValues = GetPathThroughVariables(requiredVariables);
-                return [new VariableValues(Path.Root, new ObjectValueNode(variableValues))];
-            }
-            else
+            if (requiredVariables.Length == 0)
             {
                 return [];
             }
+
+            var variableValues = GetPathThroughVariables(requiredVariables);
+            return [new VariableValues(Path.Root, new ObjectValueNode(variableValues))];
         }
         else
         {
@@ -73,13 +72,19 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    public void SaveResult(SelectionPath sourcePath, ReadOnlySpan<SourceSchemaResult> results)
-        => _resultStore.Save(sourcePath, results);
+    public void AddPartialResults(SelectionPath sourcePath, ReadOnlySpan<SourceSchemaResult> results)
+        => _resultStore.AddPartialResults(sourcePath, results);
 
-    private IReadOnlyList<ObjectFieldNode> GetPathThroughVariables(
+    internal OperationResult CreateFinalResult()
+    {
+        // _resultStore.CreateVariableValueSets()
+        throw new NotImplementedException();
+    }
+
+    private List<ObjectFieldNode> GetPathThroughVariables(
         ImmutableArray<string> requiredVariables)
     {
-        if (Variables is null || requiredVariables.Length == 0)
+        if (Variables.IsEmpty || requiredVariables.Length == 0)
         {
             return [];
         }
