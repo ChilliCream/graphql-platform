@@ -10,7 +10,7 @@ public class CommentTokenReaderTests
     [InlineData("     \n# my comment foo bar")]
     [InlineData("     \n# my comment foo bar\n    ")]
     [Theory]
-    private void ReadToken(string sourceText)
+    public void ReadToken(string sourceText)
     {
         // arrange
         var source = Encoding.UTF8.GetBytes(sourceText);
@@ -25,7 +25,7 @@ public class CommentTokenReaderTests
     }
 
     [Fact]
-    private void EmptyComment()
+    public void EmptyComment()
     {
         // arrange
         var source = Encoding.UTF8.GetBytes("#\n");

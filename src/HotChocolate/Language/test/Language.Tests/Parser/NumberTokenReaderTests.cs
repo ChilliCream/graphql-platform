@@ -11,7 +11,7 @@ public class NumberTokenReaderTests
     [InlineData("1e50", true)]
     [InlineData("6.0221413e23", true)]
     [Theory]
-    private void ReadToken(string sourceBody, bool isFloat)
+    public void ReadToken(string sourceBody, bool isFloat)
     {
         // arrange
         var source = Encoding.UTF8.GetBytes(sourceBody);
