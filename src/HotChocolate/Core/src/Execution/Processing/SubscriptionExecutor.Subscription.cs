@@ -109,7 +109,6 @@ internal sealed partial class SubscriptionExecutor
                 _requestContext,
                 _sourceStream,
                 OnEvent,
-                this,
                 _diagnosticEvents,
                 _errorHandler);
 
@@ -322,7 +321,6 @@ internal sealed partial class SubscriptionExecutor
         private readonly RequestContext _requestContext;
         private readonly ISourceStream _sourceStream;
         private readonly Func<object, Task<IOperationResult>> _onEvent;
-        private readonly Subscription _subscription;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private readonly IErrorHandler _errorHandler;
 
@@ -330,14 +328,12 @@ internal sealed partial class SubscriptionExecutor
             RequestContext requestContext,
             ISourceStream sourceStream,
             Func<object, Task<IOperationResult>> onEvent,
-            Subscription subscription,
             IExecutionDiagnosticEvents diagnosticEvents,
             IErrorHandler errorHandler)
         {
             _requestContext = requestContext;
             _sourceStream = sourceStream;
             _onEvent = onEvent;
-            _subscription = subscription;
             _diagnosticEvents = diagnosticEvents;
             _errorHandler = errorHandler;
         }
@@ -355,7 +351,6 @@ internal sealed partial class SubscriptionExecutor
                     _requestContext,
                     eventStreamEnumerator,
                     _onEvent,
-                    _subscription,
                     _diagnosticEvents,
                     _errorHandler,
                     cancellationToken);
@@ -374,7 +369,6 @@ internal sealed partial class SubscriptionExecutor
         private readonly RequestContext _requestContext;
         private readonly IAsyncEnumerator<object?> _eventEnumerator;
         private readonly Func<object, Task<IOperationResult>> _onEvent;
-        private readonly Subscription _subscription;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private readonly IErrorHandler _errorHandler;
         private readonly CancellationToken _requestAborted;
@@ -385,7 +379,6 @@ internal sealed partial class SubscriptionExecutor
             RequestContext requestContext,
             IAsyncEnumerator<object?> eventEnumerator,
             Func<object, Task<IOperationResult>> onEvent,
-            Subscription subscription,
             IExecutionDiagnosticEvents diagnosticEvents,
             IErrorHandler errorHandler,
             CancellationToken requestAborted)
@@ -393,7 +386,6 @@ internal sealed partial class SubscriptionExecutor
             _requestContext = requestContext;
             _eventEnumerator = eventEnumerator;
             _onEvent = onEvent;
-            _subscription = subscription;
             _diagnosticEvents = diagnosticEvents;
             _errorHandler = errorHandler;
             _requestAborted = requestAborted;
