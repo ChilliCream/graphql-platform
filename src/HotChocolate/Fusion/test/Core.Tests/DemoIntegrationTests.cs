@@ -134,21 +134,21 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
         var executor = await subgraphs.GetExecutorAsync();
         var request = Parse("""
-                      query {
-                        productsA {
-                          id
-                          name
-                          price
-                          reviewCount
-                        }
-                        productsB {
-                          id
-                          name
-                          price
-                          reviewCount
-                        }
-                      }
-                      """);
+                            query {
+                              productsA {
+                                id
+                                name
+                                price
+                                reviewCount
+                              }
+                              productsB {
+                                id
+                                name
+                                price
+                                reviewCount
+                              }
+                            }
+                            """);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -260,10 +260,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory)
             .ComposeAsync(
-                [
-                    demoProject.Reviews2.ToConfiguration(Reviews2ExtensionWithCostSdl),
-                    demoProject.Accounts.ToConfiguration(AccountsExtensionWithCostSdl)
-                ]);
+            [
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionWithCostSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionWithCostSdl)
+            ]);
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
@@ -1656,11 +1656,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
                 .New()
                 .SetDocument(request)
                 .SetVariableValues(
-                    new Dictionary<string, object?>
-                    {
-                        { "id", "UHJvZHVjdDox" },
-                        { "first", 1 },
-                    })
+                    new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
 
         // assert
@@ -2028,10 +2024,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
-            new[]
-            {
-                demoProject.Appointment.ToConfiguration(),
-            },
+            new[] { demoProject.Appointment.ToConfiguration(), },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
@@ -2233,6 +2226,114 @@ public class DemoIntegrationTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public async Task BatchExecutionState_With_Multiple_Variable_Values_Some_Items_Null()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              id: ID!
+              displayName: String!
+            }
+            """);
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]! @null(atIndex: 1)
+              userBySlug(slug: String!): User
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              relativeUrl: String!
+              id: ID!
+            }
+            """);
+        var subgraphC = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              id: ID!
+              feedbacks: FeedbacksConnection
+            }
+
+            type FeedbacksConnection {
+              edges: [FeedbacksEdge!]
+            }
+
+            type FeedbacksEdge {
+              node: ResaleFeedback!
+            }
+
+            type ResaleFeedback implements Node {
+              feedback: ResaleSurveyFeedback
+              id: ID!
+            }
+
+            type ResaleSurveyFeedback {
+              buyer: User
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB, subgraphC]);
+        var executor = await subgraphs.GetExecutorAsync();
+
+        var request = Parse(
+            """
+            query {
+              userBySlug(slug: "me") {
+                feedbacks {
+                  edges {
+                    node {
+                      feedback {
+                        buyer {
+                          relativeUrl
+                          displayName
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task BatchExecutionState_With_Multiple_Variable_Values_And_Forwarded_Variable()
     {
         // arrange
@@ -2341,7 +2442,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         await snapshot.MatchMarkdownAsync();
     }
 
-    [Fact(Skip = "Fix this test in the new planner")]
+    [Fact]
     public async Task Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node()
     {
         // arrange
@@ -2401,10 +2502,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
                   }
                 }
                 """)
-            .SetVariableValues(new Dictionary<string, object?>
-            {
-                ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk="
-            })
+            .SetVariableValues(new Dictionary<string, object?> { ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk=" })
             .Build();
 
         // act
@@ -2478,10 +2576,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
                   }
                 }
                 """)
-            .SetVariableValues(new Dictionary<string, object?>
-            {
-                ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk="
-            })
+            .SetVariableValues(new Dictionary<string, object?> { ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk=" })
             .Build();
 
         // act
@@ -2559,10 +2654,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
                   }
                 }
                 """)
-            .SetVariableValues(new Dictionary<string, object?>
-            {
-                ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk="
-            })
+            .SetVariableValues(new Dictionary<string, object?> { ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk=" })
             .Build();
 
         // act
@@ -2573,6 +2665,132 @@ public class DemoIntegrationTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public async Task Viewer_Bug_1()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              exclusiveSubgraphA: ExclusiveSubgraphA
+              viewer: Viewer
+            }
+
+            type ExclusiveSubgraphA {
+              id: ID!
+            }
+
+            type Viewer {
+              name: String
+            }
+            """);
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              exclusiveSubgraphB: String
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+
+        var request = Parse(
+            """
+            query testQuery {
+              exclusiveSubgraphA {
+                __typename
+              }
+              viewer {
+                exclusiveSubgraphB
+              }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Viewer_Bug_2()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              exclusiveSubgraphA: ExclusiveSubgraphA
+              viewer: Viewer
+            }
+
+            type ExclusiveSubgraphA {
+              id: ID!
+            }
+
+            type Viewer {
+              subType: SubType
+            }
+
+            type SubType {
+              subgraphA: String
+            }
+            """);
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              subType: SubType
+            }
+
+            type SubType {
+              subgraphB: String
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB]);
+        var executor = await subgraphs.GetExecutorAsync();
+
+        var request = Parse(
+            """
+            query testQuery {
+              exclusiveSubgraphA {
+                __typename
+              }
+              viewer {
+                subType {
+                  subgraphB
+                }
+              }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task Two_Arguments_Differing_Nullability_Does_Not_Duplicate_Forwarded_Variables()
     {
         // arrange
@@ -2580,10 +2798,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
-            new[]
-            {
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
-            });
+            new[] { demoProject.Accounts.ToConfiguration(AccountsExtensionSdl) });
 
         var executor = await new ServiceCollection()
             .AddSingleton(demoProject.HttpClientFactory)
