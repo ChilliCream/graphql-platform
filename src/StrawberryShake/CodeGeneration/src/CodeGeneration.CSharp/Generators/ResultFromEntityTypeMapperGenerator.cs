@@ -116,7 +116,7 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
             createModelCall.AddArgument(
                 MethodCallBuilder
                     .Inline()
-                    .SetMethodName($"{Map}{deferred.Class.RuntimeType.Name}")
+                    .SetMethodName(Map + deferred.Class.RuntimeType.Name)
                     .AddArgument(Entity)
                     .AddArgument(Snapshot));
 
