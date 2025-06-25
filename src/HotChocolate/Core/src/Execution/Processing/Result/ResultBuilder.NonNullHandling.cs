@@ -32,7 +32,7 @@ internal sealed partial class ResultBuilder
             }
 
             var error = NonNullOutputFieldViolation(violation.Path, violation.Selection.SyntaxNode);
-            error =  errorHandler.Handle(error);
+            error = errorHandler.Handle(error);
             _diagnosticEvents.ExecutionError(_context, ErrorKind.FieldError, [error], null);
             errors.Add(error);
         }

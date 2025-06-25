@@ -177,7 +177,7 @@ public static class RequestExecutorServiceCollectionExtensions
     {
         services.RemoveAll<PreparedOperationCacheOptions>();
         services.AddSingleton<PreparedOperationCacheOptions>(
-            _ => new PreparedOperationCacheOptions{ Capacity = capacity });
+            _ => new PreparedOperationCacheOptions { Capacity = capacity });
         return services;
     }
 

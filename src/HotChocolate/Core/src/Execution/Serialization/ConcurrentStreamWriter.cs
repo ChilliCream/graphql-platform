@@ -56,9 +56,9 @@ internal sealed class ConcurrentStreamWriter : IAsyncDisposable
 
     public PooledArrayWriter Begin()
     {
-        var buffer =  Interlocked.Exchange(ref _firstBuffer, null);
+        var buffer = Interlocked.Exchange(ref _firstBuffer, null);
 
-        if( buffer is not null)
+        if (buffer is not null)
         {
             return buffer;
         }

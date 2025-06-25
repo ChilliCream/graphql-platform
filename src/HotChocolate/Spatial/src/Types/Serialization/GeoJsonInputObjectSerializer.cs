@@ -211,19 +211,19 @@ internal abstract class GeoJsonInputObjectSerializer<T>
                     return true;
 
                 case IReadOnlyDictionary<string, object> dict:
+                {
+                    (var geometryType, var coordinates, var crs) =
+                        ParseFields(type, dict);
+
+                    if (geometryType != _geometryType)
                     {
-                        (var geometryType, var coordinates, var crs) =
-                            ParseFields(type, dict);
-
-                        if (geometryType != _geometryType)
-                        {
-                            runtimeValue = null;
-                            return false;
-                        }
-
-                        runtimeValue = CreateGeometry(type, coordinates, crs);
-                        return true;
+                        runtimeValue = null;
+                        return false;
                     }
+
+                    runtimeValue = CreateGeometry(type, coordinates, crs);
+                    return true;
+                }
 
                 case T:
                     runtimeValue = resultValue;

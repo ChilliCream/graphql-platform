@@ -93,7 +93,7 @@ public sealed class Directive : IDirective
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => ToSyntaxNode(removeDefaults: true);
 
-     /// <summary>
+    /// <summary>
     /// Gets the syntax node representation of the directive.
     /// </summary>
     /// <param name="removeDefaults">

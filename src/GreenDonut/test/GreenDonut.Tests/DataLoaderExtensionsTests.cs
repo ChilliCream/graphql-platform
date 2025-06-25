@@ -66,7 +66,7 @@ public class DataLoaderExtensionsTests
             });
 
         const string key = "Foo";
-        const string  value = "Bar";
+        const string value = "Bar";
 
         // act
         loader.SetCacheEntry(key, value);

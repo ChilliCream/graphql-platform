@@ -34,7 +34,7 @@ public class OffsetDateTimeTypeGeneralIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31T18:30:13+02" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T18:30:13+02" } })
                 .Build());
         Assert.Equal("2020-12-31T18:40:13+02", result.ExpectOperationResult().Data!["test"]);
     }
@@ -45,7 +45,7 @@ public class OffsetDateTimeTypeGeneralIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31T18:30:13+02:35" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T18:30:13+02:35" } })
                 .Build());
         Assert.Equal("2020-12-31T18:40:13+02:35", result.ExpectOperationResult().Data!["test"]);
     }
@@ -56,7 +56,7 @@ public class OffsetDateTimeTypeGeneralIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31T18:30:13" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T18:30:13" } })
                 .Build());
         Assert.Null(result.ExpectOperationResult().Data);
         Assert.Single(result.ExpectOperationResult().Errors!);

@@ -115,7 +115,7 @@ internal sealed class Operation : IOperation
 
     public bool TryGetState<TState>(string key, out TState? state)
     {
-        if(_contextData.TryGetValue(key, out var value)
+        if (_contextData.TryGetValue(key, out var value)
             && value is TState casted)
         {
             state = casted;
@@ -134,11 +134,11 @@ internal sealed class Operation : IOperation
         var key = typeof(TState).FullName ?? throw new InvalidOperationException();
 
         // ReSharper disable once InconsistentlySynchronizedField
-        if(!_contextData.TryGetValue(key, out var state))
+        if (!_contextData.TryGetValue(key, out var state))
         {
             lock (_writeLock)
             {
-                if(!_contextData.TryGetValue(key, out state))
+                if (!_contextData.TryGetValue(key, out state))
                 {
                     var newState = createState(context);
                     _contextData = _contextData.SetItem(key, newState);
@@ -161,11 +161,11 @@ internal sealed class Operation : IOperation
         TContext context)
     {
         // ReSharper disable once InconsistentlySynchronizedField
-        if(!_contextData.TryGetValue(key, out var state))
+        if (!_contextData.TryGetValue(key, out var state))
         {
             lock (_writeLock)
             {
-                if(!_contextData.TryGetValue(key, out state))
+                if (!_contextData.TryGetValue(key, out state))
                 {
                     var newState = createState(key, context);
                     _contextData = _contextData.SetItem(key, newState);

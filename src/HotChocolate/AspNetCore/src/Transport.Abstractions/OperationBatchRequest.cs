@@ -50,7 +50,7 @@ public readonly struct OperationBatchRequest(
     /// </returns>
     public bool Equals(OperationBatchRequest other)
     {
-        if(Requests.Count != other.Requests.Count)
+        if (Requests.Count != other.Requests.Count)
         {
             return false;
         }

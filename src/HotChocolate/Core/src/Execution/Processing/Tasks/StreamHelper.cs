@@ -60,7 +60,7 @@ internal static class StreamHelper
                         return new ResultTypeInfo(arguments[0], true);
                     }
 
-                    if(elementType is null && typeDefinition == typeof(IEnumerable<>))
+                    if (elementType is null && typeDefinition == typeof(IEnumerable<>))
                     {
                         elementType = arguments[0];
                     }

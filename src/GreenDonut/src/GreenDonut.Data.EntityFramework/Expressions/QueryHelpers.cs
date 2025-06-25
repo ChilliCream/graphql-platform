@@ -14,7 +14,7 @@ internal static class QueryHelpers
         }
 
         var orderByProperties = ExtractOrderProperties(query);
-        if(orderByProperties.Count == 0)
+        if (orderByProperties.Count == 0)
         {
             return query;
         }

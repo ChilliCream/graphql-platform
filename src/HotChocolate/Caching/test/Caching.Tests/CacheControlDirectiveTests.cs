@@ -44,7 +44,7 @@ public class CacheControlDirectiveTests
     [Theory]
     [InlineData(null)]
     [InlineData([new string[0]])]
-    [InlineData([new[] {"a", "b"}])]
+    [InlineData([new[] { "a", "b" }])]
     public void ValidVary(string[]? vary)
     {
         var cacheControl = new CacheControlDirective(0, vary: vary?.ToImmutableArray());

@@ -26,7 +26,7 @@ public sealed class CostOptions
         get => _enforceCostLimits;
         set
         {
-            if(value)
+            if (value)
             {
                 SkipAnalyzer = false;
             }
@@ -43,7 +43,7 @@ public sealed class CostOptions
         get => _skipAnalyzer;
         set
         {
-            if(value)
+            if (value)
             {
                 EnforceCostLimits = false;
             }

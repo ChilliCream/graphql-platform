@@ -1,6 +1,6 @@
 namespace HotChocolate.Types.Analyzers.Models;
 
-public enum MemberBindingKind 
+public enum MemberBindingKind
 {
     Field,
     Property

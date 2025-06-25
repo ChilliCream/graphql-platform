@@ -149,7 +149,7 @@ public static class CursorKeySerializerHelperTests
 
         // act
         CursorKeySerializerHelper.TryFormat(key, s_serializer, buffer, out var written);
-        var parsedString =CursorKeySerializerHelper.Parse(buffer[..written], s_serializer);
+        var parsedString = CursorKeySerializerHelper.Parse(buffer[..written], s_serializer);
 
         // assert
         Assert.Equal(key, parsedString);

@@ -8,7 +8,7 @@ internal static class DirectiveTools
     public static IImmutableList<DirectiveNode> GetUserDirectives(
         IReadOnlyList<DirectiveNode> directiveNodes)
     {
-        if(directiveNodes.Count == 0)
+        if (directiveNodes.Count == 0)
         {
             return ImmutableArray<DirectiveNode>.Empty;
         }

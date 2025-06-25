@@ -15,7 +15,7 @@ public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
 
         foreach (var node in plan.AllNodes)
         {
-            if(node is OperationExecutionNode operationNode)
+            if (node is OperationExecutionNode operationNode)
             {
                 WriteNode(operationNode, writer);
             }

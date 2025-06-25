@@ -81,7 +81,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
 
         if (_urlSafeBase64)
         {
-            for(var i = 0; i < span.Length; i++)
+            for (var i = 0; i < span.Length; i++)
             {
                 if (span[i] == (byte)'-')
                 {
@@ -168,7 +168,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
 
         if (_urlSafeBase64)
         {
-            for(var i = 0; i < span.Length; i++)
+            for (var i = 0; i < span.Length; i++)
             {
                 if (span[i] == (byte)'-')
                 {

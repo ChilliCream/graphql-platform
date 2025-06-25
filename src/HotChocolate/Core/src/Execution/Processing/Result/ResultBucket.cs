@@ -36,7 +36,7 @@ internal sealed class ResultBucket<T> where T : class
         {
             var buffered = _buffer[nextIndex];
 
-            if(!ReferenceEquals(buffered, null))
+            if (!ReferenceEquals(buffered, null))
             {
                 obj = buffered;
                 return true;

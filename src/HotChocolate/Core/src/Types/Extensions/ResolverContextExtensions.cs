@@ -760,7 +760,7 @@ public static class ResolverContextExtensions
                 nameof(fieldName2));
         }
 
-        if(string.IsNullOrWhiteSpace(fieldName3))
+        if (string.IsNullOrWhiteSpace(fieldName3))
         {
             throw new ArgumentException(
                 ResolverContextExtensions_IsSelected_FieldNameEmpty,

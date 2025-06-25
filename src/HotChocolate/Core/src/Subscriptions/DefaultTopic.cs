@@ -38,7 +38,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
-            FullMode = (BoundedChannelFullMode) (int) fullMode
+            FullMode = (BoundedChannelFullMode)(int)fullMode
         };
         _incoming = CreateUnbounded<TMessage>();
         _diagnosticEvents = diagnosticEvents;
@@ -54,7 +54,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
-            FullMode = (BoundedChannelFullMode) (int) fullMode
+            FullMode = (BoundedChannelFullMode)(int)fullMode
         };
         _incoming = incomingMessages;
         _diagnosticEvents = diagnosticEvents;
@@ -352,7 +352,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         {
             Complete();
         }
-        else if(envelope.Body is { } body)
+        else if (envelope.Body is { } body)
         {
             Publish(body);
         }
@@ -364,7 +364,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         {
             return serializer.Deserialize<TMessage>(serializedMessage);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _diagnosticEvents.MessageProcessingError(Name, ex);
             throw;

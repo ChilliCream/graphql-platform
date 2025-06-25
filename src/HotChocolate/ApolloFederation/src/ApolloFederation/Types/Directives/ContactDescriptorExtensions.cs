@@ -170,7 +170,7 @@ public static class ContactDescriptorExtensions
                     return;
                 }
 
-               if (sb.Features.TryGet(out ContactMarker? _))
+                if (sb.Features.TryGet(out ContactMarker? _))
                 {
                     throw ThrowHelper.Contact_Not_Repeatable();
                 }

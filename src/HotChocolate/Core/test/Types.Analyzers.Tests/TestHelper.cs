@@ -120,7 +120,7 @@ internal static partial class TestHelper
 
             // Add diagnostics.
             var diagnostics = compilation.GetDiagnostics();
-            if(diagnostics.Length > 0)
+            if (diagnostics.Length > 0)
             {
                 AddDiagnosticsToSnapshot(snapshot, diagnostics, "Compilation Diagnostics");
             }
@@ -154,7 +154,7 @@ internal static partial class TestHelper
 
         foreach (var diagnostic in diagnostics)
         {
-            if(s_ignoreCodes.Contains(diagnostic.Id))
+            if (s_ignoreCodes.Contains(diagnostic.Id))
             {
                 continue;
             }
