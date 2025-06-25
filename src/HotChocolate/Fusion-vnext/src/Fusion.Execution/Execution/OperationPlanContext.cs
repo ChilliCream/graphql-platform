@@ -39,7 +39,7 @@ public sealed class OperationPlanContext
         ImmutableArray<string> variables,
         ImmutableArray<OperationRequirement> requirements)
     {
-        if(variables.Length == 0 && requirements.Length == 0)
+        if (variables.Length == 0 && requirements.Length == 0)
         {
             return ImmutableArray<VariableValues>.Empty;
         }
@@ -50,7 +50,7 @@ public sealed class OperationPlanContext
         {
             ImmutableArray<VariableValues>.Builder? builder = null;
 
-            foreach (var (path, variableValues) in ResultStore.GetValues(currentPath, [..requirements.Select(t => (t.Key, t.Map))]))
+            foreach (var (path, variableValues) in ResultStore.GetValues(currentPath, [.. requirements.Select(t => (t.Key, t.Map))]))
             {
                 variableValues.AddRange(pathThroughVariables);
                 builder ??= ImmutableArray.CreateBuilder<VariableValues>(requirements.Length);

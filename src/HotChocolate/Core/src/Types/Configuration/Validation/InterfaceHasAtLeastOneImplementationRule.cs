@@ -22,7 +22,7 @@ internal sealed class InterfaceHasAtLeastOneImplementationRule : ISchemaValidati
         // first we get all interface types and add them to the interface type list.
         // we will strike from this list all the items that we find being implemented by
         // object types.
-        foreach(var type in schema.Types)
+        foreach (var type in schema.Types)
         {
             if (type is InterfaceType interfaceType)
             {
@@ -32,7 +32,7 @@ internal sealed class InterfaceHasAtLeastOneImplementationRule : ISchemaValidati
 
         // next we go through all the object types and strike the interfaces from the interface
         // list that we find being implemented.
-        foreach(var type in schema.Types)
+        foreach (var type in schema.Types)
         {
             if (type is ObjectType objectType)
             {

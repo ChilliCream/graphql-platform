@@ -40,7 +40,7 @@ public class TypeInitializationOrderTests
                 .Resolve(
                     new Word[] { new() { Value = "Hello" }, new() { Value = "World" } })
                 .Extend()
-                .OnBeforeCreate((c,d) =>
+                .OnBeforeCreate((c, d) =>
                 {
                     var reference =
                         c.TypeInspector.GetTypeRef(typeof(Word), TypeContext.Output);

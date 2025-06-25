@@ -44,7 +44,7 @@ public sealed class CatalogContextSeed : IDbSeeder<CatalogContext>
                     ImageFileName = $"images/{source.Id}.webp"
                 }));
 
-            for(var i = 0; i < 100; i++)
+            for (var i = 0; i < 100; i++)
             {
                 await context.SingleProperties.AddAsync(
                     new SingleProperty

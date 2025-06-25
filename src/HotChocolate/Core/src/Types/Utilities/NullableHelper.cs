@@ -40,12 +40,6 @@ internal readonly struct NullableHelper
         return GetContext(attribute);
     }
 
-    private bool? GetContext(ParameterInfo parameter)
-    {
-        var attribute = GetNullableContextAttribute(parameter);
-        return GetContext(attribute, GetContext(parameter.Member));
-    }
-
     private bool? GetContext(NullableContextAttribute? attribute)
     {
         return GetContext(attribute, _context);
@@ -104,10 +98,6 @@ internal readonly struct NullableHelper
 
     private static NullableContextAttribute? GetNullableContextAttribute(
         MemberInfo member) =>
-        GetNullableContextAttribute(member.GetCustomAttributesData());
-
-    private static NullableContextAttribute? GetNullableContextAttribute(
-        ParameterInfo member) =>
         GetNullableContextAttribute(member.GetCustomAttributesData());
 
     private static NullableContextAttribute? GetNullableContextAttribute(

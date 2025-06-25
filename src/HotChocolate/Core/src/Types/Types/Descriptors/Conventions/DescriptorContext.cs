@@ -66,17 +66,14 @@ public sealed partial class DescriptorContext : IDescriptorContext
     {
         get
         {
-            if (_naming is null)
-            {
-                _naming = GetConventionOrDefault<INamingConventions>(() => Options.UseXmlDocumentation
-                    ? new DefaultNamingConventions(
-                        new XmlDocumentationProvider(
-                            new XmlDocumentationFileResolver(
-                                Options.ResolveXmlDocumentationFileName),
-                            _serviceHelper.GetStringBuilderPool()))
-                    : new DefaultNamingConventions(
-                        new NoopDocumentationProvider()));
-            }
+            _naming ??= GetConventionOrDefault<INamingConventions>(() => Options.UseXmlDocumentation
+                ? new DefaultNamingConventions(
+                    new XmlDocumentationProvider(
+                        new XmlDocumentationFileResolver(
+                            Options.ResolveXmlDocumentationFileName),
+                        _serviceHelper.GetStringBuilderPool()))
+                : new DefaultNamingConventions(
+                    new NoopDocumentationProvider()));
 
             return _naming;
         }
@@ -87,11 +84,8 @@ public sealed partial class DescriptorContext : IDescriptorContext
     {
         get
         {
-            if (_inspector is null)
-            {
-                _inspector = this.GetConventionOrDefault<ITypeInspector>(
-                    new DefaultTypeInspector());
-            }
+            _inspector ??= this.GetConventionOrDefault<ITypeInspector>(
+                new DefaultTypeInspector());
 
             return _inspector;
         }

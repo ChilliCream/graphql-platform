@@ -37,7 +37,7 @@ public static class WriterExtensions
         const byte hyphen = (byte)'-';
         var span = snapshot.GetSpan(15);
 
-        for(var i = 0; i < 15; i++)
+        for (var i = 0; i < 15; i++)
         {
             span[i] = hyphen;
         }

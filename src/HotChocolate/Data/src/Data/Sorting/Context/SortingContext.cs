@@ -114,7 +114,7 @@ public class SortingContext : ISortingContext
 
     public SortDefinition<T>? AsSortDefinition<T>()
     {
-        if(_valueNode.Kind == SyntaxKind.NullValue
+        if (_valueNode.Kind == SyntaxKind.NullValue
             || _valueNode is ListValueNode { Items.Count: 0 }
             || _valueNode is ObjectValueNode { Fields.Count: 0 })
         {

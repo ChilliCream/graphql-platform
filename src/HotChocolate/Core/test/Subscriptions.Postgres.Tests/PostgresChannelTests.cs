@@ -22,11 +22,12 @@ public class PostgresChannelTests
         _channelName = $"channel_{Guid.NewGuid():N}";
         _options = new PostgresSubscriptionOptions
         {
-            ConnectionFactory = ConnectionFactory, ChannelName = _channelName
+            ConnectionFactory = ConnectionFactory,
+            ChannelName = _channelName
         };
     }
 
-    private PostgresSubscriptionOptions _options;
+    private readonly PostgresSubscriptionOptions _options;
 
     [Fact]
     public async Task Subscribe_Should_ReceiveMessage_When_MessageIsSent()

@@ -36,7 +36,7 @@ public class GraphQLConfig
 
         var config = JsonConvert.DeserializeObject<GraphQLConfig>(json, CreateJsonSettings());
 
-        if(config is null)
+        if (config is null)
         {
             throw new InvalidOperationException("The Strawberry Shake configuration is null.");
         }

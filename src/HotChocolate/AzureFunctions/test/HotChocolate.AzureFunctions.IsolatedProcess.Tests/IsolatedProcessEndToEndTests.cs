@@ -43,7 +43,7 @@ public class IsolatedProcessEndToEndTests
 
         dynamic json = JObject.Parse(resultContent);
         Assert.Null(json.errors);
-        Assert.Equal("Luke Skywalker",json.data.person.ToString());
+        Assert.Equal("Luke Skywalker", json.data.person.ToString());
     }
 
     [Fact]

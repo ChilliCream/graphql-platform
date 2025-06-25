@@ -53,7 +53,7 @@ public sealed class TypeDefinitionCollection
     [return: NotNull]
     public T GetType<T>(string typeName) where T : ITypeDefinition
     {
-        if(_types[typeName] is T type)
+        if (_types[typeName] is T type)
         {
             return type;
         }
@@ -121,7 +121,7 @@ public sealed class TypeDefinitionCollection
     {
         ArgumentNullException.ThrowIfNull(definition);
 
-        if(_types.TryGetValue(definition.Name, out var existing))
+        if (_types.TryGetValue(definition.Name, out var existing))
         {
             if (ReferenceEquals(existing, definition))
             {

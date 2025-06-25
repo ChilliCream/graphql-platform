@@ -202,7 +202,7 @@ public class ScalarExecutionErrorTests
 
         public override bool TryDeserialize(
             object? resultValue,
-            out object?runtimeValue)
+            out object? runtimeValue)
         {
             if (resultValue is null)
             {

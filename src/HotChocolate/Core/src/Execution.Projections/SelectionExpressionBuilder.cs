@@ -11,7 +11,6 @@ namespace HotChocolate.Execution.Projections;
 
 internal sealed class SelectionExpressionBuilder
 {
-    private static readonly NullabilityInfoContext s_nullabilityInfoContext = new();
     private static readonly HashSet<Type> s_runtimeLeafTypes =
     [
         typeof(string),

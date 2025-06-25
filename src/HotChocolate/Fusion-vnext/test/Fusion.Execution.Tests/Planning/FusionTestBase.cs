@@ -39,7 +39,7 @@ public abstract class FusionTestBase
         return FusionSchemaDefinition.Create(compositeSchemaDoc);
     }
 
-     protected static OperationExecutionPlan PlanOperation(
+    protected static OperationExecutionPlan PlanOperation(
         FusionSchemaDefinition schema,
         [StringSyntax("graphql")] string operationText)
     {

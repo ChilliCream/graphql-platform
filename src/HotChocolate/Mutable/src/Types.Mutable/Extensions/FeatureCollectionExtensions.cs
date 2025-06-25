@@ -9,7 +9,7 @@ public static class FeatureCollectionExtensions
     {
         var metadata = type.Features.Get<TypeMetadata>();
 
-        if(metadata is null)
+        if (metadata is null)
         {
             metadata = new TypeMetadata();
             type.Features.Set(metadata);

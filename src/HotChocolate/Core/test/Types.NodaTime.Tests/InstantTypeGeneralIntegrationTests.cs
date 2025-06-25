@@ -28,7 +28,7 @@ public class InstantTypeGeneralIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Instant!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-21T17:42:59Z" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-21T17:42:59Z" } })
                 .Build());
 
         Assert.Equal("2020-02-21T17:52:59Z", result.ExpectOperationResult().Data!["test"]);
@@ -40,7 +40,7 @@ public class InstantTypeGeneralIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Instant!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-20T17:42:59" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-20T17:42:59" } })
                 .Build());
 
         Assert.Null(result.ExpectOperationResult().Data);

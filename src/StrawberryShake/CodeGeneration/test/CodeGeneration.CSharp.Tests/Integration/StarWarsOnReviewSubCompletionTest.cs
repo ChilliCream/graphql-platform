@@ -45,7 +45,7 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
 
         // try to send message 10 times
         // make sure the subscription connection is successful
-        for(var times = 0; commentary is null && times < 10; times++)
+        for (var times = 0; commentary is null && times < 10; times++)
         {
             await topicEventSender.SendAsync(
                 $"{OnReview}_{topic}",

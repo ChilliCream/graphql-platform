@@ -352,7 +352,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         {
             Complete();
         }
-        else if(envelope.Body is { } body)
+        else if (envelope.Body is { } body)
         {
             Publish(body);
         }
@@ -364,7 +364,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         {
             return serializer.Deserialize<TMessage>(serializedMessage);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _diagnosticEvents.MessageProcessingError(Name, ex);
             throw;

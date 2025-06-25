@@ -237,10 +237,10 @@ public class OrderedDictionary<TKey, TValue>
     public bool Remove(KeyValuePair<TKey, TValue> item)
     {
         var index = IndexOfKey(item.Key);
-        if(index != -1)
+        if (index != -1)
         {
             var value = _map[item.Key];
-            if(value == null || value.Equals(item.Value))
+            if (value == null || value.Equals(item.Value))
             {
                 _keys.RemoveAt(index);
                 _map.Remove(item.Key);

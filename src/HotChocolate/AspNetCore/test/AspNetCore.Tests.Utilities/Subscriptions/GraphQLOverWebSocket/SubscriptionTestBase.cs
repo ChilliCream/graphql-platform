@@ -37,7 +37,7 @@ public class SubscriptionTestBase : ServerTestBase
             {
                 var message = await webSocket.ReceiveServerMessageAsync(combinedCts.Token);
 
-                if(message is null)
+                if (message is null)
                 {
                     await Task.Delay(5, combinedCts.Token);
                     continue;

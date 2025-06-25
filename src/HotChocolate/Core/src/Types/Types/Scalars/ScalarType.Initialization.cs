@@ -74,7 +74,7 @@ public abstract partial class ScalarType
         var directiveDefinitions = configuration.GetDirectives();
         Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
 
-        if(configuration.SpecifiedBy is not null)
+        if (configuration.SpecifiedBy is not null)
         {
             SpecifiedBy = configuration.SpecifiedBy;
         }

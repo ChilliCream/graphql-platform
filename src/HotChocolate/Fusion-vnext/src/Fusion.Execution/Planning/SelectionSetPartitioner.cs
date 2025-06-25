@@ -111,7 +111,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
         );
 
         context.Register(selectionSetNode, result.Resolvable);
-        if(result.Unresolvable is not null)
+        if (result.Unresolvable is not null)
         {
             context.Register(selectionSetNode, result.Unresolvable);
         }
@@ -333,7 +333,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 return;
             }
 
-            if(SelectionSetIndex.IsRegistered(branch))
+            if (SelectionSetIndex.IsRegistered(branch))
             {
                 return;
             }

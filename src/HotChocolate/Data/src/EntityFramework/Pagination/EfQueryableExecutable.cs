@@ -20,7 +20,7 @@ internal sealed class EfQueryableExecutable<T>(IQueryable<T> source)
     public override async IAsyncEnumerable<T> ToAsyncEnumerable(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        await foreach(var item in source.AsAsyncEnumerable()
+        await foreach (var item in source.AsAsyncEnumerable()
             .WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             yield return item;

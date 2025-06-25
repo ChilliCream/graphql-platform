@@ -106,7 +106,7 @@ internal sealed class TypeDiscoverer
         const int max = 1000;
         var processed = new HashSet<TypeReference>();
 
-        DISCOVER:
+DISCOVER:
         var tries = 0;
         var resolved = false;
 

@@ -486,12 +486,12 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                     "{ foo{ barEnum}}}")
                 .Build());
 
-            var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.New()
-                .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) " +
-                    "{ foo{ barEnum}}}")
-                .Build());
+        var res2 = await tester.ExecuteAsync(
+        OperationRequestBuilder.New()
+            .SetDocument(
+                "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) " +
+                "{ foo{ barEnum}}}")
+            .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
@@ -678,7 +678,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 .Build());
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument( "{ root { foo{ barEnum}}}")
+                .SetDocument("{ root { foo{ barEnum}}}")
                 .Build());
 
         // assert

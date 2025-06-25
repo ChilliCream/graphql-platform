@@ -87,7 +87,7 @@ public static class DirectiveLocationUtils
         return loc;
     }
 
-     public static Language.DirectiveLocation Format(
+    public static Language.DirectiveLocation Format(
         this DirectiveLocation location)
     {
         if (!s_locationToSyntax.TryGetValue(location, out var l))

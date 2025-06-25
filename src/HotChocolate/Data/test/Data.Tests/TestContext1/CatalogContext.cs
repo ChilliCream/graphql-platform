@@ -48,7 +48,9 @@ public class CatalogContext(string connectionString) : DbContext
             {
                 var product = new Product
                 {
-                    Name = $"Product {i}-{j}", Type = type, Brand = brand
+                    Name = $"Product {i}-{j}",
+                    Type = type,
+                    Brand = brand
                 };
                 context.Products.Add(product);
             }

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace HotChocolate.Data.Data.EntityConfigurations;
 
-internal sealed  class BrandEntityTypeConfiguration : IEntityTypeConfiguration<Brand>
+internal sealed class BrandEntityTypeConfiguration : IEntityTypeConfiguration<Brand>
 {
     public void Configure(EntityTypeBuilder<Brand> builder)
     {

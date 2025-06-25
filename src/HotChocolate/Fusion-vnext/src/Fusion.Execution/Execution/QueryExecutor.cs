@@ -49,7 +49,9 @@ public class QueryExecutor
         // assemble the result
     }
 
+#pragma warning disable IDE0051 // Remove unused private members -- WIP
     private static void AssembleResult(
+#pragma warning restore IDE0051 // Remove unused private members
         OperationPlanContext context)
     {
         var path = Path.Root;
@@ -95,7 +97,9 @@ public class QueryExecutor
         jsonWriter.Flush();
     }
 
+#pragma warning disable IDE0051 // Remove unused private members -- WIP
     private void WriteFieldValue(
+#pragma warning restore IDE0051 // Remove unused private members
         OperationPlanContext context,
         Utf8JsonWriter writer,
         IComplexTypeDefinition type,

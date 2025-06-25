@@ -32,34 +32,34 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
         switch (context.Type)
         {
             case ObjectType objectType:
+            {
+                var isQueryType = ReferenceEquals(context, _queryContext);
+
+                ValidateCacheControlOnType(context, objectType);
+
+                var span = objectType.Fields.AsSpan();
+
+                for (var i = 0; i < span.Length; i++)
                 {
-                    var isQueryType = ReferenceEquals(context, _queryContext);
-
-                    ValidateCacheControlOnType(context, objectType);
-
-                    var span = objectType.Fields.AsSpan();
-
-                    for (var i = 0; i < span.Length; i++)
-                    {
-                        var field = span[i];
-                        ValidateCacheControlOnField(context, field, objectType, isQueryType);
-                    }
-                    break;
+                    var field = span[i];
+                    ValidateCacheControlOnField(context, field, objectType, isQueryType);
                 }
+                break;
+            }
 
             case InterfaceType interfaceType:
+            {
+                ValidateCacheControlOnType(context, interfaceType);
+
+                var span = interfaceType.Fields.AsSpan();
+
+                for (var i = 0; i < span.Length; i++)
                 {
-                    ValidateCacheControlOnType(context, interfaceType);
-
-                    var span = interfaceType.Fields.AsSpan();
-
-                    for (var i = 0; i < span.Length; i++)
-                    {
-                        var field = span[i];
-                        ValidateCacheControlOnField(context, field, interfaceType, false);
-                    }
-                    break;
+                    var field = span[i];
+                    ValidateCacheControlOnField(context, field, interfaceType, false);
                 }
+                break;
+            }
 
             case UnionType unionType:
                 ValidateCacheControlOnType(context, unionType);

@@ -21,7 +21,7 @@ public sealed class InputFieldDefinitionCollection
         string name,
         [NotNullWhen(true)] out IInputValueDefinition? field)
     {
-        if(TryGetField(name, out var inputField))
+        if (TryGetField(name, out var inputField))
         {
             field = inputField;
             return true;

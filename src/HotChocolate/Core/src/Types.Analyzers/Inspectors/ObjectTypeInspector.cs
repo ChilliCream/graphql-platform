@@ -256,7 +256,7 @@ public class ObjectTypeInspector : ISyntaxInspector
             resolverTypeName,
             resolverMethod,
             resolverMethod.GetResultKind(),
-            [..resolverParameters],
+            [.. resolverParameters],
             resolverMethod.GetMemberBindings(),
             kind: compilation.IsConnectionType(resolverMethod.ReturnType)
                 ? ResolverKind.ConnectionResolver

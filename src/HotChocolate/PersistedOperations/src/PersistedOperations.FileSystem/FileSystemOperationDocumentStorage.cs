@@ -9,7 +9,6 @@ namespace HotChocolate.PersistedOperations.FileSystem;
 /// </summary>
 public class FileSystemOperationDocumentStorage : IOperationDocumentStorage
 {
-    private static readonly Task<OperationDocument?> s_null = Task.FromResult<OperationDocument?>(null);
     private readonly IOperationDocumentFileMap _documentMap;
 
     /// <summary>

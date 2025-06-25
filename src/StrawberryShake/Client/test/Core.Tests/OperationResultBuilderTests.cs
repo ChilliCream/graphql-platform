@@ -41,7 +41,7 @@ public class OperationResultBuilderTests
     {
         public IReadOnlyCollection<EntityId> EntityIds { get; } = ArraySegment<EntityId>.Empty;
 
-        public ulong Version { get; } = 0;
+        public ulong Version { get; }
 
         public IOperationResultDataInfo WithVersion(ulong version)
         {

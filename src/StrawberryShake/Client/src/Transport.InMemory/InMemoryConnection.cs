@@ -97,7 +97,7 @@ public class InMemoryConnection : IInMemoryConnection
                     }
                 }
 
-                    break;
+                break;
 
                 default:
                 {

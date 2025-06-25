@@ -109,7 +109,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
     {
         var method = request.Method;
 
-        if(method == GraphQLHttpMethod.Get)
+        if (method == GraphQLHttpMethod.Get)
         {
             if (request.Body is not OperationRequest)
             {
@@ -233,7 +233,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         Uri baseAddress,
         IRequestBody body)
     {
-        if(body is not OperationRequest or)
+        if (body is not OperationRequest or)
         {
             throw new InvalidOperationException(
                 HttpResources.DefaultGraphQLHttpClient_BatchNotAllowed);

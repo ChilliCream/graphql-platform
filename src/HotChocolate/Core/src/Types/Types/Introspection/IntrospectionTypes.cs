@@ -49,7 +49,7 @@ public static class IntrospectionTypes
     /// Defines if the type name represents an introspection type.
     /// </summary>
     public static bool IsIntrospectionType(string typeName)
-        => !string.IsNullOrEmpty(typeName)  && s_typeNames.Contains(typeName);
+        => !string.IsNullOrEmpty(typeName) && s_typeNames.Contains(typeName);
 
     /// <summary>
     /// Defines if the type represents an introspection type.

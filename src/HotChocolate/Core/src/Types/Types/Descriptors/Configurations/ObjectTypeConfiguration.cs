@@ -185,17 +185,17 @@ public class ObjectTypeConfiguration
 
         if (_knownClrTypes is { Count: > 0 })
         {
-            target._knownClrTypes = [.._knownClrTypes];
+            target._knownClrTypes = [.. _knownClrTypes];
         }
 
         if (_interfaces is { Count: > 0 })
         {
-            target._interfaces = [.._interfaces];
+            target._interfaces = [.. _interfaces];
         }
 
         if (_fieldIgnores is { Count: > 0 })
         {
-            target._fieldIgnores = [.._fieldIgnores];
+            target._fieldIgnores = [.. _fieldIgnores];
         }
 
         if (Fields is { Count: > 0 })
@@ -208,7 +208,7 @@ public class ObjectTypeConfiguration
             }
         }
 
-        if(AttributeBindingTypes.Length > 0)
+        if (AttributeBindingTypes.Length > 0)
         {
             target.AttributeBindingTypes = AttributeBindingTypes;
         }
@@ -240,7 +240,7 @@ public class ObjectTypeConfiguration
             target._fieldIgnores.AddRange(_fieldIgnores);
         }
 
-        if(AttributeBindingTypes.Length > 0)
+        if (AttributeBindingTypes.Length > 0)
         {
             target.AttributeBindingTypes = target.AttributeBindingTypes.AddRange(AttributeBindingTypes);
         }

@@ -107,7 +107,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         var server = CreateStarWarsServer(
             configureServices: services => services
                 .AddGraphQLServer()
-                .AddHttpRequestInterceptor<CostInterceptor>() );
+                .AddHttpRequestInterceptor<CostInterceptor>());
 
         var uri = new Uri("http://localhost:5000/graphql");
 
@@ -141,7 +141,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
             CancellationToken cancellationToken)
         {
             var costOptions = requestExecutor.GetCostOptions();
-            requestBuilder.SetCostOptions(costOptions with { MaxTypeCost = 1});
+            requestBuilder.SetCostOptions(costOptions with { MaxTypeCost = 1 });
             return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
         }
     }

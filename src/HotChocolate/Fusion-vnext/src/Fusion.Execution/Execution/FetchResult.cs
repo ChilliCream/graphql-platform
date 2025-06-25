@@ -56,7 +56,7 @@ public sealed class FetchResult : IComparable<FetchResult>, IDisposable
 
         foreach (var segment in path.Segments)
         {
-            if(current.ValueKind == JsonValueKind.Null)
+            if (current.ValueKind == JsonValueKind.Null)
             {
                 return current;
             }
@@ -66,7 +66,7 @@ public sealed class FetchResult : IComparable<FetchResult>, IDisposable
                 return default;
             }
 
-            if(segment.Kind == SelectionPathSegmentKind.InlineFragment)
+            if (segment.Kind == SelectionPathSegmentKind.InlineFragment)
             {
                 if (current.TryGetProperty("__typename", out var typeProperty)
                     && typeProperty.ValueKind == JsonValueKind.String
