@@ -194,7 +194,6 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         private static ReadOnlySpan<byte> ContentType => "Content-Type: application/json; charset=utf-8\r\n\r\n"u8;
         private static ReadOnlySpan<byte> Start => "\r\n---\r\n"u8;
         private static ReadOnlySpan<byte> End => "\r\n-----\r\n"u8;
-        private static ReadOnlySpan<byte> CrLf => "\r\n"u8;
 
         public static void WriteNext(IBufferWriter<byte> writer)
         {

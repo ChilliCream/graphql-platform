@@ -6,8 +6,6 @@ namespace HotChocolate.CostAnalysis;
 
 public sealed class SchemaIntegrationTests
 {
-    private readonly CostSyntaxRewriter _costSyntaxRewriter = new();
-
     [Fact]
     public async Task Rewrite_DefaultWeights_RemovesCostDirectives()
     {

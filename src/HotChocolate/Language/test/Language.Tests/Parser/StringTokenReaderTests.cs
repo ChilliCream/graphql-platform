@@ -9,7 +9,7 @@ public class StringTokenReaderTests
     [InlineData("     \n\"üähelloWorld_123\"\n        ")]
     [InlineData("\"üähelloWorld_123\"")]
     [Theory]
-    private void ReadToken(string sourceText)
+    public void ReadToken(string sourceText)
     {
         // arrange
         var source = Encoding.UTF8.GetBytes(sourceText);
@@ -50,7 +50,7 @@ public class StringTokenReaderTests
     [InlineData("\"123\\t456\"", "123\t456")]
 
     [Theory]
-    private void EscapeCharacters(string sourceText, string expectedResult)
+    public void EscapeCharacters(string sourceText, string expectedResult)
     {
         // arrange
         var source = Encoding.UTF8.GetBytes(sourceText);
