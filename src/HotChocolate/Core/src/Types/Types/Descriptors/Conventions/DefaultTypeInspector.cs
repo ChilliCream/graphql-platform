@@ -643,8 +643,9 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             return false;
         }
 
-        if (member.IsDefined(typeof(GraphQLTypeAttribute), true) ||
-            member.IsDefined(typeof(DescriptorAttribute), true))
+        if ((member.IsDefined(typeof(GraphQLTypeAttribute), true) ||
+                member.IsDefined(typeof(DescriptorAttribute), true)) &&
+            member is PropertyInfo or MethodInfo)
         {
             return true;
         }
