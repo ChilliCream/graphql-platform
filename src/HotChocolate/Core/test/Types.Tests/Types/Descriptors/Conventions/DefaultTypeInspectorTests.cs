@@ -764,7 +764,7 @@ public class DefaultTypeInspectorTests
 
         public void ReturnsVoid() { }
 
-        public object ObjectProp { get; } = null;
+        public object ObjectProp { get; }
 
         public string ByRefParameter(ref string s) => s;
 

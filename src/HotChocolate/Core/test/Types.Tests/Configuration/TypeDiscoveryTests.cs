@@ -174,6 +174,6 @@ public class TypeDiscoveryTests
 
     public class LocalDate
     {
-        public DateOnly Date { get; set; } = new();
+        public DateOnly Date { get; set; }
     }
 }

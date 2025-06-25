@@ -4,7 +4,7 @@ namespace HotChocolate.Fusion.Planning;
 
 internal sealed class CodeWriter(StringBuilder sb)
 {
-    private int indent = 0;
+    private int indent;
 
     public void Indent() => indent++;
 
