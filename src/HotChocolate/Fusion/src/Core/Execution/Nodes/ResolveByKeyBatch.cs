@@ -142,12 +142,12 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     private void ProcessResult(
         FusionExecutionContext context,
         GraphQLResponse response,
-        BatchExecutionState[] batchExecutionState,
+        List<BatchExecutionState> batchExecutionState,
         string subgraphName)
     {
         var result = UnwrapResult(response, Requires);
-        ref var batchState = ref MemoryMarshal.GetArrayDataReference(batchExecutionState);
-        ref var end = ref Unsafe.Add(ref batchState, batchExecutionState.Length);
+        ref var batchState = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(batchExecutionState));
+        ref var end = ref Unsafe.Add(ref batchState, batchExecutionState.Count);
         var pathLength = Path.Length;
         var first = true;
 
@@ -195,13 +195,13 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
     }
 
     private static Dictionary<string, IValueNode> BuildVariables(
-        BatchExecutionState[] batchExecutionState,
+        List<BatchExecutionState> batchExecutionState,
         string[] requires,
         Dictionary<string, ITypeNode> argumentTypes)
     {
         var first = batchExecutionState[0];
 
-        if (batchExecutionState.Length == 1)
+        if (batchExecutionState.Count == 1)
         {
             return first.VariableValues;
         }
@@ -210,8 +210,8 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         var uniqueState = new List<BatchExecutionState>();
         var processed = new HashSet<string>();
 
-        ref var batchState = ref MemoryMarshal.GetArrayDataReference(batchExecutionState);
-        ref var end = ref Unsafe.Add(ref batchState, batchExecutionState.Length);
+        ref var batchState = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(batchExecutionState));
+        ref var end = ref Unsafe.Add(ref batchState, batchExecutionState.Count);
 
         while (Unsafe.IsAddressLessThan(ref batchState, ref end))
         {
@@ -339,44 +339,38 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         return current;
     }
 
-    private static BatchExecutionState[] CreateBatchBatchState(List<ExecutionState> executionState, string[] requires)
+    private static List<BatchExecutionState> CreateBatchBatchState(List<ExecutionState> executionState, string[] requires)
     {
-        var batchExecutionState = new BatchExecutionState[executionState.Count];
+        var batchExecutionState = new List<BatchExecutionState>(executionState.Count);
 
         ref var state = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(executionState));
-        ref var batchState = ref MemoryMarshal.GetArrayDataReference(batchExecutionState);
         ref var end = ref Unsafe.Add(ref state, executionState.Count);
 
         if (requires.Length == 1)
         {
             while (Unsafe.IsAddressLessThan(ref state, ref end))
             {
-                var key = FormatKeyValue(state.VariableValues[requires[0]]);
-                batchState = new BatchExecutionState(key, state);
+                if (state.VariableValues.ContainsKey(requires[0]))
+                {
+                    var key = FormatKeyValue(state.VariableValues[requires[0]]);
+                    var batchState = new BatchExecutionState(key, state);
+
+                    batchExecutionState.Add(batchState);
+                }
 
                 state = ref Unsafe.Add(ref state, 1)!;
-                batchState = ref Unsafe.Add(ref batchState, 1)!;
             }
         }
         else
         {
-            var keyBuilder = new StringBuilder();
-
             while (Unsafe.IsAddressLessThan(ref state, ref end))
             {
-                ref var key = ref MemoryMarshal.GetArrayDataReference(requires);
-                ref var keyEnd = ref Unsafe.Add(ref key, requires.Length);
+                var lastKey = requires[^1];
+                var batchState = new BatchExecutionState(lastKey, state);
 
-                while (Unsafe.IsAddressLessThan(ref key, ref keyEnd))
-                {
-                    keyBuilder.Append(FormatKeyValue(state.VariableValues[key]));
-                    key = ref Unsafe.Add(ref key, 1)!;
-                }
-
-                batchState = new BatchExecutionState(key, state);
+                batchExecutionState.Add(batchState);
 
                 state = ref Unsafe.Add(ref state, 1)!;
-                batchState = ref Unsafe.Add(ref batchState, 1)!;
             }
         }
 
