@@ -1,0 +1,28 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "bool": {
+            "must": [
+              {
+                "range": {
+                  "dateTimeValue": {
+                    "gt": "2022-12-22T15:05:22Z"
+                  }
+                }
+              },
+              {
+                "range": {
+                  "dateTimeValue": {
+                    "lt": "2022-12-24T15:05:22Z"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
