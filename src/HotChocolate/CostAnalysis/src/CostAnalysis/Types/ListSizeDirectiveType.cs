@@ -140,7 +140,7 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
 
     private static DirectiveNode FormatValue(object value)
     {
-        if(value is not ListSizeDirective directive)
+        if (value is not ListSizeDirective directive)
         {
             throw new InvalidOperationException("The value is not a list size directive.");
         }
@@ -156,7 +156,7 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
         {
             arguments.Add(new ArgumentNode(SlicingArguments, directive.SlicingArguments.ToListValueNode()));
 
-            if(directive.SlicingArgumentDefaultValue.HasValue)
+            if (directive.SlicingArgumentDefaultValue.HasValue)
             {
                 arguments.Add(
                     new ArgumentNode(

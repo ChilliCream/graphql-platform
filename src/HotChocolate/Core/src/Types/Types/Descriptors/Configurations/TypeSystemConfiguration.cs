@@ -114,7 +114,7 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     {
         if (_dependencies?.Count > 0)
         {
-            target._dependencies = [.._dependencies];
+            target._dependencies = [.. _dependencies];
         }
 
         if (_configurations?.Count > 0)

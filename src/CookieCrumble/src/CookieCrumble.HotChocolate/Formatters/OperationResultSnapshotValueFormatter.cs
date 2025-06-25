@@ -11,14 +11,14 @@ internal sealed class OperationResultSnapshotValueFormatter : SnapshotValueForma
     {
         var next = false;
 
-        if(value.RequestIndex.HasValue)
+        if (value.RequestIndex.HasValue)
         {
             snapshot.Append("RequestIndex: ");
             snapshot.Append(value.RequestIndex.Value.ToString());
             next = true;
         }
 
-        if(value.VariableIndex.HasValue)
+        if (value.VariableIndex.HasValue)
         {
             snapshot.AppendLine(appendWhenTrue: next);
             snapshot.Append("VariableIndex: ");

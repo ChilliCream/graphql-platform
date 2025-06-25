@@ -182,7 +182,8 @@ public sealed class FieldSelectionMapReaderTests
         {
             var reader = new FieldSelectionMapReader("field1.field2", maxAllowedTokens: 2);
 
-            while (reader.Read()) { }
+            while (reader.Read())
+            { }
         }
 
         // assert
@@ -199,7 +200,8 @@ public sealed class FieldSelectionMapReaderTests
         {
             var reader = new FieldSelectionMapReader("field1*field2");
 
-            while (reader.Read()) { }
+            while (reader.Read())
+            { }
         }
 
         // assert

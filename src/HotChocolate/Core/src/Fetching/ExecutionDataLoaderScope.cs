@@ -74,7 +74,7 @@ internal sealed class ExecutionDataLoaderScope(
                 return _serviceInspector;
             }
 
-            if(serviceType == typeof(IBatchScheduler))
+            if (serviceType == typeof(IBatchScheduler))
             {
                 return _batchScheduler;
             }

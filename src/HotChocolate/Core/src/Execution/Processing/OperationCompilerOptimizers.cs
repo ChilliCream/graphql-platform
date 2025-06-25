@@ -15,7 +15,7 @@ internal sealed class OperationCompilerOptimizers
         get => _operationOptimizers;
         set
         {
-            if((_initFlags & PropertyInitFlags.OperationOptimizers) == PropertyInitFlags.OperationOptimizers)
+            if ((_initFlags & PropertyInitFlags.OperationOptimizers) == PropertyInitFlags.OperationOptimizers)
             {
                 throw new InvalidOperationException(
                     "OperationOptimizers can only be set once.");
@@ -31,7 +31,7 @@ internal sealed class OperationCompilerOptimizers
         get => _selectionSetOptimizers;
         set
         {
-            if((_initFlags & PropertyInitFlags.SelectionSetOptimizers) == PropertyInitFlags.SelectionSetOptimizers)
+            if ((_initFlags & PropertyInitFlags.SelectionSetOptimizers) == PropertyInitFlags.SelectionSetOptimizers)
             {
                 throw new InvalidOperationException(
                     "OperationOptimizers can only be set once.");

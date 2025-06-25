@@ -33,7 +33,7 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
 
         foreach (var syntaxInfo in syntaxInfos)
         {
-            if(syntaxInfo.Diagnostics.Length > 0)
+            if (syntaxInfo.Diagnostics.Length > 0)
             {
                 continue;
             }
@@ -49,7 +49,7 @@ public sealed class DataLoaderModuleGenerator : ISyntaxGenerator
                     var interfaceTypeName = $"{dataLoader.Namespace}.{dataLoader.InterfaceName}";
                     generator.WriteAddDataLoader(typeName, interfaceTypeName, dataLoaderDefaults.GenerateInterfaces);
 
-                    if(dataLoader.Groups.Count > 0)
+                    if (dataLoader.Groups.Count > 0)
                     {
                         groups ??= [];
                         foreach (var groupName in dataLoader.Groups)

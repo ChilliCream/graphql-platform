@@ -269,19 +269,19 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
 
         if (_middlewareDefinitions is { Count: > 0 })
         {
-            target._middlewareDefinitions = [.._middlewareDefinitions];
+            target._middlewareDefinitions = [.. _middlewareDefinitions];
             _middlewareDefinitionsCleaned = false;
         }
 
         if (_resultConverters is { Count: > 0 })
         {
-            target._resultConverters = [.._resultConverters];
+            target._resultConverters = [.. _resultConverters];
             _resultConvertersCleaned = false;
         }
 
         if (_expressionBuilders is { Count: > 0 })
         {
-            target._expressionBuilders = [.._expressionBuilders];
+            target._expressionBuilders = [.. _expressionBuilders];
         }
 
         target.SourceType = SourceType;
@@ -330,7 +330,7 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
             target.IsParallelExecutable = false;
         }
 
-        if(DependencyInjectionScope.HasValue)
+        if (DependencyInjectionScope.HasValue)
         {
             target.DependencyInjectionScope = DependencyInjectionScope;
         }

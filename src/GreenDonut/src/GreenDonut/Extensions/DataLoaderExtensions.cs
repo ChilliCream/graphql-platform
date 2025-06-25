@@ -77,7 +77,7 @@ public static class DataLoaderExtensions
 
         var values = await dataLoader.LoadAsync(keys, cancellationToken).ConfigureAwait(false);
 
-        if(values.Any(t => t is null))
+        if (values.Any(t => t is null))
         {
             throw new KeyNotFoundException(CreateMissingKeyValueMessage(keys, values));
         }
@@ -99,7 +99,7 @@ public static class DataLoaderExtensions
         {
             if (values[i] == null)
             {
-                if(!first)
+                if (!first)
                 {
                     multipleMissing = true;
                     buffer.Append(", ");
@@ -371,7 +371,7 @@ public static class DataLoaderExtensions
 
         var key = typeof(TState).FullName ?? typeof(TState).Name;
 
-        if(!dataLoader.ContextData.TryGetValue(key, out var internalValue))
+        if (!dataLoader.ContextData.TryGetValue(key, out var internalValue))
         {
             internalValue = createValue(key);
             dataLoader.ContextData = dataLoader.ContextData.SetItem(key, internalValue);
@@ -420,7 +420,7 @@ public static class DataLoaderExtensions
         ArgumentNullException.ThrowIfNull(dataLoader);
         ArgumentException.ThrowIfNullOrEmpty(key);
 
-        if(!dataLoader.ContextData.TryGetValue(key, out var internalValue))
+        if (!dataLoader.ContextData.TryGetValue(key, out var internalValue))
         {
             internalValue = createValue(key);
             dataLoader.ContextData = dataLoader.ContextData.SetItem(key, internalValue);

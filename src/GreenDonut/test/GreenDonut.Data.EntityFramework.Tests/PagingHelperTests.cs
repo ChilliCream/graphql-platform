@@ -122,7 +122,8 @@ public class PagingHelperTests(PostgreSqlResource resource)
         17  Product 0-16
         18  Product 0-17
         */
-        new {
+        new
+        {
             First = page.First!.Name,
             Last = page.Last!.Name,
             ItemsCount = page.Items.Length

@@ -49,7 +49,7 @@ public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfo
             _typeNameLookup = [];
             foreach (var syntaxInfo in syntaxInfos)
             {
-                if(syntaxInfo is not DataLoaderInfo dataLoaderInfo)
+                if (syntaxInfo is not DataLoaderInfo dataLoaderInfo)
                 {
                     continue;
                 }

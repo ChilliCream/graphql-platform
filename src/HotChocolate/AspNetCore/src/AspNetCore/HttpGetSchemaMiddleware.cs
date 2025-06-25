@@ -72,7 +72,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
     private bool IsSchemaPath(HttpRequest request)
     {
-        if(request.Path.StartsWithSegments(_path, StringComparison.OrdinalIgnoreCase, out var remaining))
+        if (request.Path.StartsWithSegments(_path, StringComparison.OrdinalIgnoreCase, out var remaining))
         {
             return remaining.Equals("/schema", StringComparison.OrdinalIgnoreCase)
                 || remaining.Equals("/schema/", StringComparison.OrdinalIgnoreCase)

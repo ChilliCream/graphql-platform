@@ -241,9 +241,9 @@ public class PooledArrayWriterTests
         // Act
         // NB: ask for 0x3000 bytes because the initial 512 bytes buffer size is added
         // to request when doubling is insufficient and ArrayPool<byte> sizes are powers of 2
-        writer.GetSpan (0x3000) ;
-        writer.Advance (0x2000) ;
-        writer.GetSpan (0x7000) ;
+        writer.GetSpan(0x3000);
+        writer.Advance(0x2000);
+        writer.GetSpan(0x7000);
     }
 
     [Fact]

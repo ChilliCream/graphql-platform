@@ -7,8 +7,8 @@ namespace HotChocolate.Utilities;
 
 public static class ReflectionUtils
 {
-    public const BindingFlags StaticMemberFlags = BindingFlags.Public | BindingFlags.NonPublic |BindingFlags.Static;
-    public const BindingFlags InstanceMemberFlags = BindingFlags.Public | BindingFlags.NonPublic |BindingFlags.Instance;
+    public const BindingFlags StaticMemberFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+    public const BindingFlags InstanceMemberFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
     public static MemberInfo TryExtractMember<T, TPropertyType>(
         this Expression<Func<T, TPropertyType>> memberExpression,

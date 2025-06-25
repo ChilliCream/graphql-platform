@@ -128,10 +128,10 @@ public class HttpCachingTests : ServerTestBase
                     var o = d.Name("Query");
                     o.Field("field1")
                         .Resolve("")
-                        .CacheControl(sharedMaxAge:60);
+                        .CacheControl(sharedMaxAge: 60);
                     o.Field("field2")
                         .Resolve("")
-                        .CacheControl(scope:CacheControlScope.Private, sharedMaxAge:30);
+                        .CacheControl(scope: CacheControlScope.Private, sharedMaxAge: 30);
                 });
         });
 
@@ -155,10 +155,10 @@ public class HttpCachingTests : ServerTestBase
                     var o = d.Name("Query");
                     o.Field("field1")
                         .Resolve("")
-                        .CacheControl(maxAge: 0, sharedMaxAge:60);
+                        .CacheControl(maxAge: 0, sharedMaxAge: 60);
                     o.Field("field2")
                         .Resolve("")
-                        .CacheControl(maxAge:30);
+                        .CacheControl(maxAge: 30);
                 });
         });
 
@@ -185,7 +185,7 @@ public class HttpCachingTests : ServerTestBase
                         .CacheControl(maxAge: 30);
                     o.Field("field2")
                         .Resolve("")
-                        .CacheControl(maxAge: 0, sharedMaxAge:60);
+                        .CacheControl(maxAge: 0, sharedMaxAge: 60);
                 });
         });
 

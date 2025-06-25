@@ -14,7 +14,7 @@ internal readonly struct DeferredExecutionTaskResult
 
     public uint TaskId { get; }
 
-    public  uint ParentTaskId { get; }
+    public uint ParentTaskId { get; }
 
     public IOperationResult? Result { get; }
 }

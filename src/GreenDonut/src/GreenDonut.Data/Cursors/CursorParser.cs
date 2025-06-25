@@ -164,7 +164,7 @@ public static class CursorParser
         {
             var index = span.IndexOf(separator);
 
-            if(index == -1)
+            if (index == -1)
             {
                 throw new InvalidOperationException(
                     "The cursor page info could not be parsed.");

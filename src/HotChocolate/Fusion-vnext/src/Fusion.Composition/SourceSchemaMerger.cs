@@ -984,7 +984,7 @@ internal sealed class SourceSchemaMerger
                 ? selectionSets[0]
                 : GetMergeSelectionSetRewriter(sourceSchema).Merge(selectionSets, type);
             var keyArgument =
-                mergedSelectionSet.ToString(indented: false).AsSpan()[2 .. ^2].ToString();
+                mergedSelectionSet.ToString(indented: false).AsSpan()[2..^2].ToString();
 
             var fieldArgument =
                 s_removeDirectivesRewriter
@@ -1066,7 +1066,7 @@ internal sealed class SourceSchemaMerger
                     ? selectionSets[0]
                     : GetMergeSelectionSetRewriter(sourceSchema).Merge(selectionSets, complexType);
                 var requirementsArgument =
-                    mergedSelectionSet.ToString(indented: false).AsSpan()[2 .. ^2].ToString();
+                    mergedSelectionSet.ToString(indented: false).AsSpan()[2..^2].ToString();
 
                 var fieldArgument =
                     s_removeDirectivesRewriter

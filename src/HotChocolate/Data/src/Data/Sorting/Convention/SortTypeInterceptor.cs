@@ -70,7 +70,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
             configuration.Scope);
 
         var typeReference =
-            TypeReference.Create( discoveryContext.Type, configuration.Scope);
+            TypeReference.Create(discoveryContext.Type, configuration.Scope);
 
         convention.ApplyConfigurations(typeReference, descriptor);
 

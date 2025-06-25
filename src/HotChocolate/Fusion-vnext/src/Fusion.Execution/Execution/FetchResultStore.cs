@@ -18,7 +18,7 @@ public sealed class FetchResultStore
     {
         _selectionPaths.Add(result.Target);
 
-        if(!_resultsBySelectionPath.TryGetValue(result.Target, out var results))
+        if (!_resultsBySelectionPath.TryGetValue(result.Target, out var results))
         {
             results = [];
             _resultsBySelectionPath.Add(result.Target, results);
@@ -164,7 +164,7 @@ public sealed class FetchResultStore
                 {
                     foreach (var item in listElement.EnumerateArray())
                     {
-                        if(!isList && item.ValueKind == JsonValueKind.Array)
+                        if (!isList && item.ValueKind == JsonValueKind.Array)
                         {
                             isList = true;
                         }
@@ -221,11 +221,11 @@ public sealed class FetchResultStore
                     return new StringValueNode(element.GetString()!);
 
                 case JsonValueKind.Number:
-                    #if NET9_0_OR_GREATER
+#if NET9_0_OR_GREATER
                     return Utf8GraphQLParser.Syntax.ParseValueLiteral(JsonMarshal.GetRawUtf8Value(element));
-                    #else
+#else
                     return Utf8GraphQLParser.Syntax.ParseValueLiteral(element.GetRawText());
-                    #endif
+#endif
 
                 case JsonValueKind.True:
                     return BooleanValueNode.True;

@@ -109,7 +109,7 @@ public class EnumTypeSchemaFirstTests
     }
 
     [Fact]
-    public async Task  RequestBuilder_Declare_EnumType_With_Implicit_Value_Binding()
+    public async Task RequestBuilder_Declare_EnumType_With_Implicit_Value_Binding()
     {
         // arrange
         var sdl =
@@ -132,7 +132,7 @@ public class EnumTypeSchemaFirstTests
     }
 
     [Fact]
-    public async Task  RequestBuilder_Declare_EnumType_With_Type_Extension()
+    public async Task RequestBuilder_Declare_EnumType_With_Type_Extension()
     {
         // arrange
         var sdl =

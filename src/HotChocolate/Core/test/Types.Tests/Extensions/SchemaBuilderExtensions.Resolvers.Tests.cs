@@ -220,7 +220,7 @@ public class SchemaBuilderExtensionsResolversTests
     }
 
     [Fact]
-    public async  Task AddResolverContextTaskTResult_ResolveField()
+    public async Task AddResolverContextTaskTResult_ResolveField()
     {
         // arrange
         var builder = new SchemaBuilder();

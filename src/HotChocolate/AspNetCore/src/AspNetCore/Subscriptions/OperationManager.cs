@@ -63,7 +63,7 @@ public sealed class OperationManager : IOperationManager
 
         try
         {
-            if(!_subs.ContainsKey(sessionId))
+            if (!_subs.ContainsKey(sessionId))
             {
                 session = _createSession(sessionId);
                 _subs.Add(sessionId, session);

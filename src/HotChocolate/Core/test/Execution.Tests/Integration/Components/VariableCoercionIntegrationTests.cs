@@ -21,7 +21,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"user", user } })
+                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -39,7 +39,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"user", user } })
+                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -59,7 +59,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"user", user } })
+                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -78,7 +78,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"user", user } })
+                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -95,7 +95,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"user", user } })
+                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -110,7 +110,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"user", null } })
+                .SetVariableValues(new Dictionary<string, object?> { { "user", null } })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -144,7 +144,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"user", user } })
+                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -165,7 +165,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"user", user } })
+                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -184,7 +184,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"user", user } })
+                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();

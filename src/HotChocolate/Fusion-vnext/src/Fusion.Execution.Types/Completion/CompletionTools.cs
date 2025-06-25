@@ -16,7 +16,7 @@ internal static class CompletionTools
     {
         directives = DirectiveTools.GetUserDirectives(directives);
 
-        if(directives.Count == 0)
+        if (directives.Count == 0)
         {
             return FusionDirectiveCollection.Empty;
         }
@@ -39,7 +39,7 @@ internal static class CompletionTools
     private static ArgumentAssignment[] CreateArgumentAssignments(
         IReadOnlyList<ArgumentNode> arguments)
     {
-        if(arguments.Count == 0)
+        if (arguments.Count == 0)
         {
             return [];
         }

@@ -91,6 +91,7 @@ csharp_new_line_before_members_in_object_initializers = true
 csharp_indent_case_contents = true
 csharp_indent_switch_labels = true
 csharp_indent_labels = flush_left
+csharp_indent_case_contents_when_block = false
 
 # Spacing options
 csharp_space_after_cast = false
@@ -174,6 +175,8 @@ dotnet_diagnostic.IDE0005.severity = warning
 dotnet_diagnostic.IDE0028.severity = warning
 # Order modifiers.
 dotnet_diagnostic.IDE0036.severity = warning
+# Formatting rule.
+dotnet_diagnostic.IDE0055.severity = warning
 # Use range operator.
 dotnet_diagnostic.IDE0057.severity = warning
 # Use pattern matching (not operator).
