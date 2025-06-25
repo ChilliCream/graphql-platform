@@ -900,7 +900,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                             .AddArgument(Sp)))));
     }
 
-    private static string s_clientServiceProvider =
+    private static readonly string s_clientServiceProvider =
         @"private sealed class ClientServiceProvider
                 : System.IServiceProvider
                 , System.IDisposable

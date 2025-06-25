@@ -27,7 +27,7 @@ public class PostgresChannelTests
         };
     }
 
-    private PostgresSubscriptionOptions _options;
+    private readonly PostgresSubscriptionOptions _options;
 
     [Fact]
     public async Task Subscribe_Should_ReceiveMessage_When_MessageIsSent()

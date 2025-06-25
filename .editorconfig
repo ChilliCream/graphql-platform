@@ -175,6 +175,9 @@ dotnet_diagnostic.IDE0005.severity = warning
 dotnet_diagnostic.IDE0028.severity = warning
 # Order modifiers.
 dotnet_diagnostic.IDE0036.severity = warning
+# Add readonly modifier.
+dotnet_diagnostic.IDE0044.severity = warning
+dotnet_diagnostic.RCS1169.severity = none
 # Remove unused private member.
 dotnet_diagnostic.IDE0051.severity = warning
 dotnet_diagnostic.RCS1213.severity = none

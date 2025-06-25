@@ -21,7 +21,7 @@ namespace HotChocolate.Types;
 
 internal static partial class TestHelper
 {
-    private static HashSet<string> s_ignoreCodes = ["CS8652", "CS8632", "CS5001", "CS8019"];
+    private static readonly HashSet<string> s_ignoreCodes = ["CS8652", "CS8632", "CS5001", "CS8019"];
 
     public static Snapshot GetGeneratedSourceSnapshot([StringSyntax("csharp")] string sourceText)
     {
