@@ -26,53 +26,6 @@
       "extensions": {
         "code": "HC0018"
       }
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 9,
-          "column": 15
-        }
-      ],
-      "path": [
-        "userBySlug",
-        "feedbacks",
-        "edges",
-        2,
-        "node",
-        "feedback",
-        "buyer",
-        "displayName"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 9,
-          "column": 15
-        }
-      ],
-      "path": [
-        "userBySlug",
-        "feedbacks",
-        "edges",
-        0,
-        "node",
-        "feedback",
-        "buyer",
-        "displayName"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Unexpected Execution Error"
     }
   ],
   "data": {
@@ -82,7 +35,10 @@
           {
             "node": {
               "feedback": {
-                "buyer": null
+                "buyer": {
+                  "relativeUrl": "string",
+                  "displayName": "string"
+                }
               }
             }
           },
@@ -96,7 +52,10 @@
           {
             "node": {
               "feedback": {
-                "buyer": null
+                "buyer": {
+                  "relativeUrl": "string",
+                  "displayName": "string"
+                }
               }
             }
           }
