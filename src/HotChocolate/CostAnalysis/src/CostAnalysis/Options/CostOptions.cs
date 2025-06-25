@@ -5,7 +5,7 @@ namespace HotChocolate.CostAnalysis;
 /// </summary>
 public sealed class CostOptions
 {
-    private bool _skipAnalyzer = false;
+    private bool _skipAnalyzer;
     private bool _enforceCostLimits = true;
 
     /// <summary>

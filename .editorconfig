@@ -167,6 +167,9 @@ dotnet_diagnostic.CA1511.severity = warning
 dotnet_diagnostic.CA1512.severity = warning
 # Use ObjectDisposedException throw helper.
 dotnet_diagnostic.CA1513.severity = warning
+# Do not initialize unnecessarily.
+dotnet_diagnostic.CA1805.severity = warning
+dotnet_diagnostic.RCS1129.severity = none
 # Remove unnecessary cast.
 dotnet_diagnostic.IDE0004.severity = warning
 # Remove unnecessary using directives.
