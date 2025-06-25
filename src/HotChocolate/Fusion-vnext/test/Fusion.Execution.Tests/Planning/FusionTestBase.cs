@@ -61,4 +61,16 @@ public abstract class FusionTestBase
         var actual = formatter.Format(plan);
         actual.MatchInlineSnapshot(expected + Environment.NewLine);
     }
+
+    protected record TestSubgraph([StringSyntax("graphql")] string Schema);
+
+    protected class TestSubgraphCollection(params TestSubgraph[] subgraphs)
+    {
+        public FusionSchemaDefinition BuildFusionSchema()
+        {
+            var schemas = subgraphs.Select(s => s.Schema).ToArray();
+
+            return ComposeSchema(schemas);
+        }
+    }
 }
