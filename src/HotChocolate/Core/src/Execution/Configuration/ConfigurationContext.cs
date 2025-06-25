@@ -64,10 +64,7 @@ public sealed class ConfigurationContext : IHasContextData
     {
         get
         {
-            if (_descriptorContext is null)
-            {
-                _descriptorContext = SchemaBuilder.CreateContext();
-            }
+            _descriptorContext ??= SchemaBuilder.CreateContext();
 
             return _descriptorContext;
         }

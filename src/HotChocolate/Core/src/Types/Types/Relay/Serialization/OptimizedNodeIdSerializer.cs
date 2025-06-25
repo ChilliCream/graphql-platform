@@ -250,9 +250,9 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         {
             valueSerializer = serializer.ValueSerializer;
         }
-        else if (valueSerializer is null)
+        else
         {
-            valueSerializer = TryResolveSerializer(runtimeType);
+            valueSerializer ??= TryResolveSerializer(runtimeType);
         }
 
         if (valueSerializer is null)

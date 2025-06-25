@@ -689,11 +689,7 @@ public static class PagingQueryableExtensions
 
     internal static void SetQueryInterceptor(PagingQueryInterceptor pagingQueryInterceptor)
     {
-        if (s_interceptor.Value is null)
-        {
-            s_interceptor.Value = new InterceptorHolder();
-        }
-
+        s_interceptor.Value ??= new InterceptorHolder();
         s_interceptor.Value.Interceptor = pagingQueryInterceptor;
     }
 

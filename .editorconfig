@@ -183,10 +183,14 @@ dotnet_diagnostic.IDE0051.severity = warning
 dotnet_diagnostic.RCS1213.severity = none
 # Remove unread private member.
 dotnet_diagnostic.IDE0052.severity = warning
+# Use compound assignment.
+dotnet_diagnostic.IDE0054.severity = warning
 # Formatting rule.
 dotnet_diagnostic.IDE0055.severity = warning
 # Use range operator.
 dotnet_diagnostic.IDE0057.severity = warning
+# Use compound assignment.
+dotnet_diagnostic.IDE0074.severity = warning
 # Use pattern matching (not operator).
 dotnet_diagnostic.IDE0083.severity = warning
 # Use collection expression for array.
