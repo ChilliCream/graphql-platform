@@ -20,5 +20,5 @@ public enum TopicBufferFullMode
     /// <summary>
     /// Drop the item being written.
     /// </summary>
-    DropWrite
+    DropWrite,
 }

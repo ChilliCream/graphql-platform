@@ -38,7 +38,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
-            FullMode = (BoundedChannelFullMode)(int)fullMode
+            FullMode = fullMode.ToBoundedChannelFullMode()
         };
         _incoming = CreateUnbounded<TMessage>();
         _diagnosticEvents = diagnosticEvents;
@@ -54,7 +54,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
-            FullMode = (BoundedChannelFullMode)(int)fullMode
+            FullMode = fullMode.ToBoundedChannelFullMode()
         };
         _incoming = incomingMessages;
         _diagnosticEvents = diagnosticEvents;
@@ -108,7 +108,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
     }
 
     /// <summary>
-    /// Allows to subscribe to this topic. If the topic is already completed, this method will
+    /// Allows subscribing to this topic. If the topic is already completed, this method will
     /// return null.
     /// </summary>
     /// <returns>
@@ -266,7 +266,8 @@ public abstract class DefaultTopic<TMessage> : ITopic
 
                 if (!allWritesSuccessful || iterations++ >= 8)
                 {
-                    // we will take a pause if we have dispatched 8 messages or if we could not dispatch all messages.
+                    // We will take a pause if we have dispatched 8 messages
+                    // or if we could not dispatch all messages.
                     // This will give time for subscribers to unsubscribe and
                     // others to hop on.
                     break;
