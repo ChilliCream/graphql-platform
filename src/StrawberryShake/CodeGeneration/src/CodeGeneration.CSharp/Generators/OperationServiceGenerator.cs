@@ -703,7 +703,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                             .New()
                             .SetMethodName(Files, "Add")
                             .AddArgument(pathVariable)
-                            .AddArgument($"{variable} is {TypeNames.Upload} u ? u : null"));
+                            .AddArgument($"{variable} is {TypeNames.Upload} {variable}_u ? {variable}_u : null"));
             }
             default:
                 throw ThrowHelper.OperationServiceGenerator_HasNoUploadScalar(typeReference);
