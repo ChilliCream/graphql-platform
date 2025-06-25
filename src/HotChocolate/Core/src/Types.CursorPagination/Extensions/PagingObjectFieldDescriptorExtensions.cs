@@ -319,14 +319,11 @@ public static class PagingObjectFieldDescriptorExtensions
     {
         var typeInspector = context.TypeInspector;
 
-        if (nodeType is null)
-        {
-            // if there is no explicit node type provided we will try and
-            // infer the schema type from the resolver member.
-            nodeType = TypeReference.Create(
-                PagingHelper.GetSchemaType(context, resolverMember),
-                TypeContext.Output);
-        }
+        // if there is no explicit node type provided we will try and
+        // infer the schema type from the resolver member.
+        nodeType ??= TypeReference.Create(
+            PagingHelper.GetSchemaType(context, resolverMember),
+            TypeContext.Output);
 
         // if the node type is a syntax type reference we will try to preserve the actual
         // runtime type for later usage.

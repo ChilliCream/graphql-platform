@@ -95,10 +95,7 @@ internal sealed partial class ExtendedType
                     }
                 }
 
-                if (elementType is null)
-                {
-                    elementType = ExtendedType.FromType(itemType, cache);
-                }
+                elementType ??= ExtendedType.FromType(itemType, cache);
             }
 
             if (extendedType.IsArray && elementType is null)
