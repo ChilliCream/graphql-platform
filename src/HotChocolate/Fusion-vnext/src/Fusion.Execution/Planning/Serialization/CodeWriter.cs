@@ -4,15 +4,15 @@ namespace HotChocolate.Fusion.Planning;
 
 internal sealed class CodeWriter(StringBuilder sb)
 {
-    private int indent;
+    private int _indent;
 
-    public void Indent() => indent++;
+    public void Indent() => _indent++;
 
-    public void Unindent() => indent--;
+    public void Unindent() => _indent--;
 
     public void WriteLine(string line)
     {
-        for (var i = 0; i < indent; i++)
+        for (var i = 0; i < _indent; i++)
         {
             sb.Append("  ");
         }
