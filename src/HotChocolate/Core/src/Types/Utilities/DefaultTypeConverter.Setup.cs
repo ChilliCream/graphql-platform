@@ -59,7 +59,7 @@ public partial class DefaultTypeConverter
             });
 
         registry.Register<DateTimeOffset, long>(from => from.ToUnixTimeSeconds());
-        registry.Register<long, DateTimeOffset>(from => FromUnixTimeSeconds(from));
+        registry.Register<long, DateTimeOffset>(FromUnixTimeSeconds);
 
         registry.Register<DateTime, long>(from => ((DateTimeOffset)from).ToUnixTimeSeconds());
         registry.Register<long, DateTime>(from => FromUnixTimeSeconds(from).UtcDateTime);
@@ -89,7 +89,7 @@ public partial class DefaultTypeConverter
         registry.Register<TimeOnly, DateTime>(from => default(DateOnly).ToDateTime(from));
         registry.Register<DateTime, TimeOnly>(from => TimeOnly.FromDateTime(from.Date));
         registry.Register<TimeOnly, TimeSpan>(from => from.ToTimeSpan());
-        registry.Register<TimeSpan, TimeOnly>(from => TimeOnly.FromTimeSpan(from));
+        registry.Register<TimeSpan, TimeOnly>(TimeOnly.FromTimeSpan);
         registry.Register<TimeOnly, string>(from => from.ToShortTimeString());
         registry.Register<string, TimeOnly>(from => TimeOnly.Parse(from, InvariantCulture));
     }
@@ -169,174 +169,174 @@ public partial class DefaultTypeConverter
     private static void RegisterByteConversions(
         DefaultTypeConverter registry)
     {
-        registry.Register<byte, short>(from => SysConvert.ToInt16(from));
-        registry.Register<byte, int>(from => SysConvert.ToInt32(from));
-        registry.Register<byte, long>(from => SysConvert.ToInt64(from));
-        registry.Register<byte, ushort>(from => SysConvert.ToUInt16(from));
-        registry.Register<byte, uint>(from => SysConvert.ToUInt32(from));
-        registry.Register<byte, ulong>(from => SysConvert.ToUInt64(from));
-        registry.Register<byte, decimal>(from => SysConvert.ToDecimal(from));
-        registry.Register<byte, float>(from => SysConvert.ToSingle(from));
-        registry.Register<byte, double>(from => SysConvert.ToDouble(from));
-        registry.Register<byte, sbyte>(from => SysConvert.ToSByte(from));
+        registry.Register<byte, short>(SysConvert.ToInt16);
+        registry.Register<byte, int>(SysConvert.ToInt32);
+        registry.Register<byte, long>(SysConvert.ToInt64);
+        registry.Register<byte, ushort>(SysConvert.ToUInt16);
+        registry.Register<byte, uint>(SysConvert.ToUInt32);
+        registry.Register<byte, ulong>(SysConvert.ToUInt64);
+        registry.Register<byte, decimal>(SysConvert.ToDecimal);
+        registry.Register<byte, float>(SysConvert.ToSingle);
+        registry.Register<byte, double>(SysConvert.ToDouble);
+        registry.Register<byte, sbyte>(SysConvert.ToSByte);
         registry.Register<byte, string>(from => from.ToString(InvariantCulture));
     }
 
     private static void RegisterSByteConversions(
         DefaultTypeConverter registry)
     {
-        registry.Register<sbyte, short>(from => SysConvert.ToInt16(from));
-        registry.Register<sbyte, int>(from => SysConvert.ToInt32(from));
-        registry.Register<sbyte, long>(from => SysConvert.ToInt64(from));
-        registry.Register<sbyte, ushort>(from => SysConvert.ToUInt16(from));
-        registry.Register<sbyte, uint>(from => SysConvert.ToUInt32(from));
-        registry.Register<sbyte, ulong>(from => SysConvert.ToUInt64(from));
-        registry.Register<sbyte, decimal>(from => SysConvert.ToDecimal(from));
-        registry.Register<sbyte, float>(from => SysConvert.ToSingle(from));
-        registry.Register<sbyte, double>(from => SysConvert.ToDouble(from));
+        registry.Register<sbyte, short>(SysConvert.ToInt16);
+        registry.Register<sbyte, int>(SysConvert.ToInt32);
+        registry.Register<sbyte, long>(SysConvert.ToInt64);
+        registry.Register<sbyte, ushort>(SysConvert.ToUInt16);
+        registry.Register<sbyte, uint>(SysConvert.ToUInt32);
+        registry.Register<sbyte, ulong>(SysConvert.ToUInt64);
+        registry.Register<sbyte, decimal>(SysConvert.ToDecimal);
+        registry.Register<sbyte, float>(SysConvert.ToSingle);
+        registry.Register<sbyte, double>(SysConvert.ToDouble);
         registry.Register<sbyte, string>(from => from.ToString(InvariantCulture));
     }
 
     private static void RegisterUInt16Conversions(
         DefaultTypeConverter registry)
     {
-        registry.Register<ushort, byte>(from => SysConvert.ToByte(from));
-        registry.Register<ushort, short>(from => SysConvert.ToInt16(from));
-        registry.Register<ushort, int>(from => SysConvert.ToInt32(from));
-        registry.Register<ushort, long>(from => SysConvert.ToInt64(from));
-        registry.Register<ushort, uint>(from => SysConvert.ToUInt32(from));
-        registry.Register<ushort, ulong>(from => SysConvert.ToUInt64(from));
-        registry.Register<ushort, decimal>(from => SysConvert.ToDecimal(from));
-        registry.Register<ushort, float>(from => SysConvert.ToSingle(from));
-        registry.Register<ushort, double>(from => SysConvert.ToDouble(from));
-        registry.Register<ushort, sbyte>(from => SysConvert.ToSByte(from));
+        registry.Register<ushort, byte>(SysConvert.ToByte);
+        registry.Register<ushort, short>(SysConvert.ToInt16);
+        registry.Register<ushort, int>(SysConvert.ToInt32);
+        registry.Register<ushort, long>(SysConvert.ToInt64);
+        registry.Register<ushort, uint>(SysConvert.ToUInt32);
+        registry.Register<ushort, ulong>(SysConvert.ToUInt64);
+        registry.Register<ushort, decimal>(SysConvert.ToDecimal);
+        registry.Register<ushort, float>(SysConvert.ToSingle);
+        registry.Register<ushort, double>(SysConvert.ToDouble);
+        registry.Register<ushort, sbyte>(SysConvert.ToSByte);
         registry.Register<ushort, string>(from => from.ToString(InvariantCulture));
     }
 
     private static void RegisterUInt32Conversions(
         DefaultTypeConverter registry)
     {
-        registry.Register<uint, byte>(from => SysConvert.ToByte(from));
-        registry.Register<uint, short>(from => SysConvert.ToInt16(from));
-        registry.Register<uint, int>(from => SysConvert.ToInt32(from));
-        registry.Register<uint, long>(from => SysConvert.ToInt64(from));
-        registry.Register<uint, ushort>(from => SysConvert.ToUInt16(from));
-        registry.Register<uint, ulong>(from => SysConvert.ToUInt64(from));
-        registry.Register<uint, decimal>(from => SysConvert.ToDecimal(from));
-        registry.Register<uint, float>(from => SysConvert.ToSingle(from));
-        registry.Register<uint, double>(from => SysConvert.ToDouble(from));
-        registry.Register<uint, sbyte>(from => SysConvert.ToSByte(from));
+        registry.Register<uint, byte>(SysConvert.ToByte);
+        registry.Register<uint, short>(SysConvert.ToInt16);
+        registry.Register<uint, int>(SysConvert.ToInt32);
+        registry.Register<uint, long>(SysConvert.ToInt64);
+        registry.Register<uint, ushort>(SysConvert.ToUInt16);
+        registry.Register<uint, ulong>(SysConvert.ToUInt64);
+        registry.Register<uint, decimal>(SysConvert.ToDecimal);
+        registry.Register<uint, float>(SysConvert.ToSingle);
+        registry.Register<uint, double>(SysConvert.ToDouble);
+        registry.Register<uint, sbyte>(SysConvert.ToSByte);
         registry.Register<uint, string>(from => from.ToString(InvariantCulture));
     }
 
     private static void RegisterUInt64Conversions(
         DefaultTypeConverter registry)
     {
-        registry.Register<ulong, byte>(from => SysConvert.ToByte(from));
-        registry.Register<ulong, short>(from => SysConvert.ToInt16(from));
-        registry.Register<ulong, int>(from => SysConvert.ToInt32(from));
-        registry.Register<ulong, long>(from => SysConvert.ToInt64(from));
-        registry.Register<ulong, ushort>(from => SysConvert.ToUInt16(from));
-        registry.Register<ulong, uint>(from => SysConvert.ToUInt32(from));
-        registry.Register<ulong, decimal>(from => SysConvert.ToDecimal(from));
-        registry.Register<ulong, float>(from => SysConvert.ToSingle(from));
-        registry.Register<ulong, double>(from => SysConvert.ToDouble(from));
-        registry.Register<ulong, sbyte>(from => SysConvert.ToSByte(from));
+        registry.Register<ulong, byte>(SysConvert.ToByte);
+        registry.Register<ulong, short>(SysConvert.ToInt16);
+        registry.Register<ulong, int>(SysConvert.ToInt32);
+        registry.Register<ulong, long>(SysConvert.ToInt64);
+        registry.Register<ulong, ushort>(SysConvert.ToUInt16);
+        registry.Register<ulong, uint>(SysConvert.ToUInt32);
+        registry.Register<ulong, decimal>(SysConvert.ToDecimal);
+        registry.Register<ulong, float>(SysConvert.ToSingle);
+        registry.Register<ulong, double>(SysConvert.ToDouble);
+        registry.Register<ulong, sbyte>(SysConvert.ToSByte);
         registry.Register<ulong, string>(from => from.ToString(InvariantCulture));
     }
 
     private static void RegisterInt16Conversions(
        DefaultTypeConverter registry)
     {
-        registry.Register<short, byte>(from => SysConvert.ToByte(from));
-        registry.Register<short, int>(from => SysConvert.ToInt32(from));
-        registry.Register<short, long>(from => SysConvert.ToInt64(from));
-        registry.Register<short, ushort>(from => SysConvert.ToUInt16(from));
-        registry.Register<short, uint>(from => SysConvert.ToUInt32(from));
-        registry.Register<short, ulong>(from => SysConvert.ToUInt64(from));
-        registry.Register<short, decimal>(from => SysConvert.ToDecimal(from));
-        registry.Register<short, float>(from => SysConvert.ToSingle(from));
-        registry.Register<short, double>(from => SysConvert.ToDouble(from));
-        registry.Register<short, sbyte>(from => SysConvert.ToSByte(from));
+        registry.Register<short, byte>(SysConvert.ToByte);
+        registry.Register<short, int>(SysConvert.ToInt32);
+        registry.Register<short, long>(SysConvert.ToInt64);
+        registry.Register<short, ushort>(SysConvert.ToUInt16);
+        registry.Register<short, uint>(SysConvert.ToUInt32);
+        registry.Register<short, ulong>(SysConvert.ToUInt64);
+        registry.Register<short, decimal>(SysConvert.ToDecimal);
+        registry.Register<short, float>(SysConvert.ToSingle);
+        registry.Register<short, double>(SysConvert.ToDouble);
+        registry.Register<short, sbyte>(SysConvert.ToSByte);
         registry.Register<short, string>(from => from.ToString(InvariantCulture));
     }
 
     private static void RegisterInt32Conversions(
         DefaultTypeConverter registry)
     {
-        registry.Register<int, byte>(from => SysConvert.ToByte(from));
-        registry.Register<int, short>(from => SysConvert.ToInt16(from));
-        registry.Register<int, long>(from => SysConvert.ToInt64(from));
-        registry.Register<int, ushort>(from => SysConvert.ToUInt16(from));
-        registry.Register<int, uint>(from => SysConvert.ToUInt32(from));
-        registry.Register<int, ulong>(from => SysConvert.ToUInt64(from));
-        registry.Register<int, decimal>(from => SysConvert.ToDecimal(from));
-        registry.Register<int, float>(from => SysConvert.ToSingle(from));
-        registry.Register<int, double>(from => SysConvert.ToDouble(from));
-        registry.Register<int, sbyte>(from => SysConvert.ToSByte(from));
+        registry.Register<int, byte>(SysConvert.ToByte);
+        registry.Register<int, short>(SysConvert.ToInt16);
+        registry.Register<int, long>(SysConvert.ToInt64);
+        registry.Register<int, ushort>(SysConvert.ToUInt16);
+        registry.Register<int, uint>(SysConvert.ToUInt32);
+        registry.Register<int, ulong>(SysConvert.ToUInt64);
+        registry.Register<int, decimal>(SysConvert.ToDecimal);
+        registry.Register<int, float>(SysConvert.ToSingle);
+        registry.Register<int, double>(SysConvert.ToDouble);
+        registry.Register<int, sbyte>(SysConvert.ToSByte);
         registry.Register<int, string>(from => from.ToString(InvariantCulture));
     }
 
     private static void RegisterInt64Conversions(
         DefaultTypeConverter registry)
     {
-        registry.Register<long, byte>(from => SysConvert.ToByte(from));
-        registry.Register<long, short>(from => SysConvert.ToInt16(from));
-        registry.Register<long, int>(from => SysConvert.ToInt32(from));
-        registry.Register<long, ushort>(from => SysConvert.ToUInt16(from));
-        registry.Register<long, uint>(from => SysConvert.ToUInt32(from));
-        registry.Register<long, ulong>(from => SysConvert.ToUInt64(from));
-        registry.Register<long, decimal>(from => SysConvert.ToDecimal(from));
-        registry.Register<long, float>(from => SysConvert.ToSingle(from));
-        registry.Register<long, double>(from => SysConvert.ToDouble(from));
-        registry.Register<long, sbyte>(from => SysConvert.ToSByte(from));
+        registry.Register<long, byte>(SysConvert.ToByte);
+        registry.Register<long, short>(SysConvert.ToInt16);
+        registry.Register<long, int>(SysConvert.ToInt32);
+        registry.Register<long, ushort>(SysConvert.ToUInt16);
+        registry.Register<long, uint>(SysConvert.ToUInt32);
+        registry.Register<long, ulong>(SysConvert.ToUInt64);
+        registry.Register<long, decimal>(SysConvert.ToDecimal);
+        registry.Register<long, float>(SysConvert.ToSingle);
+        registry.Register<long, double>(SysConvert.ToDouble);
+        registry.Register<long, sbyte>(SysConvert.ToSByte);
         registry.Register<long, string>(from => from.ToString(InvariantCulture));
     }
 
     private static void RegisterSingleConversions(
         DefaultTypeConverter registry)
     {
-        registry.Register<float, byte>(from => SysConvert.ToByte(from));
-        registry.Register<float, short>(from => SysConvert.ToInt16(from));
-        registry.Register<float, int>(from => SysConvert.ToInt32(from));
-        registry.Register<float, long>(from => SysConvert.ToInt64(from));
-        registry.Register<float, ushort>(from => SysConvert.ToUInt16(from));
-        registry.Register<float, uint>(from => SysConvert.ToUInt32(from));
-        registry.Register<float, ulong>(from => SysConvert.ToUInt64(from));
-        registry.Register<float, decimal>(from => SysConvert.ToDecimal(from));
-        registry.Register<float, double>(from => SysConvert.ToDouble(from));
-        registry.Register<float, sbyte>(from => SysConvert.ToSByte(from));
+        registry.Register<float, byte>(SysConvert.ToByte);
+        registry.Register<float, short>(SysConvert.ToInt16);
+        registry.Register<float, int>(SysConvert.ToInt32);
+        registry.Register<float, long>(SysConvert.ToInt64);
+        registry.Register<float, ushort>(SysConvert.ToUInt16);
+        registry.Register<float, uint>(SysConvert.ToUInt32);
+        registry.Register<float, ulong>(SysConvert.ToUInt64);
+        registry.Register<float, decimal>(SysConvert.ToDecimal);
+        registry.Register<float, double>(SysConvert.ToDouble);
+        registry.Register<float, sbyte>(SysConvert.ToSByte);
         registry.Register<float, string>(from => from.ToString(InvariantCulture));
     }
 
     private static void RegisterDoubleConversions(
         DefaultTypeConverter registry)
     {
-        registry.Register<double, byte>(from => SysConvert.ToByte(from));
-        registry.Register<double, short>(from => SysConvert.ToInt16(from));
-        registry.Register<double, int>(from => SysConvert.ToInt32(from));
-        registry.Register<double, long>(from => SysConvert.ToInt64(from));
-        registry.Register<double, ushort>(from => SysConvert.ToUInt16(from));
-        registry.Register<double, uint>(from => SysConvert.ToUInt32(from));
-        registry.Register<double, ulong>(from => SysConvert.ToUInt64(from));
-        registry.Register<double, decimal>(from => SysConvert.ToDecimal(from));
-        registry.Register<double, float>(from => SysConvert.ToSingle(from));
-        registry.Register<double, sbyte>(from => SysConvert.ToSByte(from));
+        registry.Register<double, byte>(SysConvert.ToByte);
+        registry.Register<double, short>(SysConvert.ToInt16);
+        registry.Register<double, int>(SysConvert.ToInt32);
+        registry.Register<double, long>(SysConvert.ToInt64);
+        registry.Register<double, ushort>(SysConvert.ToUInt16);
+        registry.Register<double, uint>(SysConvert.ToUInt32);
+        registry.Register<double, ulong>(SysConvert.ToUInt64);
+        registry.Register<double, decimal>(SysConvert.ToDecimal);
+        registry.Register<double, float>(SysConvert.ToSingle);
+        registry.Register<double, sbyte>(SysConvert.ToSByte);
         registry.Register<double, string>(from => from.ToString(InvariantCulture));
     }
 
     private static void RegisterDecimalConversions(
         DefaultTypeConverter registry)
     {
-        registry.Register<decimal, short>(from => SysConvert.ToInt16(from));
-        registry.Register<decimal, int>(from => SysConvert.ToInt32(from));
-        registry.Register<decimal, long>(from => SysConvert.ToInt64(from));
-        registry.Register<decimal, ushort>(from => SysConvert.ToUInt16(from));
-        registry.Register<decimal, uint>(from => SysConvert.ToUInt32(from));
-        registry.Register<decimal, ulong>(from => SysConvert.ToUInt64(from));
-        registry.Register<decimal, float>(from => SysConvert.ToSingle(from));
-        registry.Register<decimal, double>(from => SysConvert.ToDouble(from));
-        registry.Register<decimal, sbyte>(from => SysConvert.ToSByte(from));
+        registry.Register<decimal, short>(SysConvert.ToInt16);
+        registry.Register<decimal, int>(SysConvert.ToInt32);
+        registry.Register<decimal, long>(SysConvert.ToInt64);
+        registry.Register<decimal, ushort>(SysConvert.ToUInt16);
+        registry.Register<decimal, uint>(SysConvert.ToUInt32);
+        registry.Register<decimal, ulong>(SysConvert.ToUInt64);
+        registry.Register<decimal, float>(SysConvert.ToSingle);
+        registry.Register<decimal, double>(SysConvert.ToDouble);
+        registry.Register<decimal, sbyte>(SysConvert.ToSByte);
         registry.Register<decimal, string>(from => from.ToString("E", InvariantCulture));
     }
 

@@ -262,7 +262,7 @@ public class FilterInputTypeTest : FilterTestBase
 
         // act
         // assert
-        var exception = Assert.Throws<SchemaException>(() => builder.Create());
+        var exception = Assert.Throws<SchemaException>(builder.Create);
         exception.Message.MatchSnapshot();
     }
 
@@ -280,7 +280,7 @@ public class FilterInputTypeTest : FilterTestBase
 
         // act
         // assert
-        var exception = Assert.Throws<SchemaException>(() => builder.Create());
+        var exception = Assert.Throws<SchemaException>(builder.Create);
         exception.Message.MatchSnapshot();
     }
 
