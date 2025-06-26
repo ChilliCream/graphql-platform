@@ -38,7 +38,7 @@ public class PostgresChannelTests
         await channel.EnsureInitialized(CancellationToken.None);
 
         var receivedMessages = new List<string>();
-        var listener = new PostgresChannelObserver(topicName, e => receivedMessages.Add(e));
+        var listener = new PostgresChannelObserver(topicName, receivedMessages.Add);
 
         // Act
         channel.Subscribe(listener);
@@ -83,7 +83,7 @@ public class PostgresChannelTests
         await channel.EnsureInitialized(CancellationToken.None);
 
         var receivedMessages = new ConcurrentBag<string>();
-        var listener = new PostgresChannelObserver(topicName, e => receivedMessages.Add(e));
+        var listener = new PostgresChannelObserver(topicName, receivedMessages.Add);
 
         // Act
         channel.Subscribe(listener);
@@ -113,7 +113,7 @@ public class PostgresChannelTests
         await channel.EnsureInitialized(CancellationToken.None);
 
         var receivedMessages = new ConcurrentBag<string>();
-        var listener = new PostgresChannelObserver(topicName, e => receivedMessages.Add(e));
+        var listener = new PostgresChannelObserver(topicName, receivedMessages.Add);
 
         // Act
         channel.Subscribe(listener);
@@ -145,7 +145,7 @@ public class PostgresChannelTests
         await channel.EnsureInitialized(CancellationToken.None);
 
         var receivedMessages = new ConcurrentBag<string>();
-        var listener = new PostgresChannelObserver(topicName, e => receivedMessages.Add(e));
+        var listener = new PostgresChannelObserver(topicName, receivedMessages.Add);
 
         // Act
         channel.Subscribe(listener);
@@ -177,7 +177,7 @@ public class PostgresChannelTests
         await channel.EnsureInitialized(CancellationToken.None);
 
         var receivedMessages = new ConcurrentBag<string>();
-        var listener = new PostgresChannelObserver(topicName, e => receivedMessages.Add(e));
+        var listener = new PostgresChannelObserver(topicName, receivedMessages.Add);
         channel.Subscribe(listener);
 
         // Act
@@ -201,7 +201,7 @@ public class PostgresChannelTests
         await channel.EnsureInitialized(CancellationToken.None);
 
         var receivedMessages = new ConcurrentBag<string>();
-        var listener = new PostgresChannelObserver(topicName, e => receivedMessages.Add(e));
+        var listener = new PostgresChannelObserver(topicName, receivedMessages.Add);
         channel.Subscribe(listener);
 
         // Act
@@ -235,7 +235,7 @@ public class PostgresChannelTests
 
         for (var i = 0; i < 100; i++)
         {
-            channel.Subscribe(new PostgresChannelObserver(topicName, e => receivedMessages.Add(e)));
+            channel.Subscribe(new PostgresChannelObserver(topicName, receivedMessages.Add));
         }
 
         // Act
@@ -259,7 +259,7 @@ public class PostgresChannelTests
 
         var receivedMessages = new ConcurrentBag<string>();
         var disposable =
-            channel.Subscribe(new PostgresChannelObserver(topicName, e => receivedMessages.Add(e)));
+            channel.Subscribe(new PostgresChannelObserver(topicName, receivedMessages.Add));
 
         using var testChannel = new TestChannel(SyncConnectionFactory, _channelName);
         await testChannel.SendMessageAsync("aaaaaaaaaaaaaaaaaaaaaaaa:dGVzdA==:foobar");
@@ -303,7 +303,7 @@ public class PostgresChannelTests
         using var testChannel = new TestChannel(SyncConnectionFactory, _channelName);
 
         var receivedMessages = new ConcurrentBag<string>();
-        channel.Subscribe(new PostgresChannelObserver(topicName, e => receivedMessages.Add(e)));
+        channel.Subscribe(new PostgresChannelObserver(topicName, receivedMessages.Add));
 
         // Act
         SpinWait.SpinUntil(() => connection is not null, TimeSpan.FromSeconds(1));
@@ -362,7 +362,7 @@ public class PostgresChannelTests
         using var testChannel = new TestChannel(SyncConnectionFactory, _channelName);
 
         var receivedMessages = new ConcurrentBag<string>();
-        channel.Subscribe(new PostgresChannelObserver(topicName, e => receivedMessages.Add(e)));
+        channel.Subscribe(new PostgresChannelObserver(topicName, receivedMessages.Add));
 
         // Act
         SpinWait.SpinUntil(() => connection is not null, TimeSpan.FromSeconds(1));

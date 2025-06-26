@@ -585,7 +585,7 @@ public class DefaultTypeInspectorTests
         var nullability = typeInspector.CollectNullability(extendedType);
 
         // assert
-        Assert.Collection(nullability, item => Assert.True(item));
+        Assert.Collection(nullability, Assert.True);
     }
 
     [Fact]
@@ -599,7 +599,7 @@ public class DefaultTypeInspectorTests
         var nullability = typeInspector.CollectNullability(extendedType);
 
         // assert
-        Assert.Collection(nullability, item => Assert.False(item));
+        Assert.Collection(nullability, Assert.False);
     }
 
     [Fact]

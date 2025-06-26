@@ -37,7 +37,7 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>();
 
         // act
-        var ex = Record.Exception(() => builder.Create());
+        var ex = Record.Exception(builder.Create);
 
         // assert
         Assert.IsType<SchemaException>(ex).MatchSnapshot();

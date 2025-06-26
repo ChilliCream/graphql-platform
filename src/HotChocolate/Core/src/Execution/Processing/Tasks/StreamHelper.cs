@@ -22,7 +22,7 @@ internal static class StreamHelper
     public static IAsyncEnumerable<object?> CreateStream(object result)
     {
         var resultType = result.GetType();
-        var factory = s_streamFactories.GetOrAdd(resultType, t => CreateFactory(t));
+        var factory = s_streamFactories.GetOrAdd(resultType, CreateFactory);
         return factory.Invoke(result);
     }
 
