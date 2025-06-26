@@ -52,7 +52,7 @@ public class IntegrationTests : FusionTestBase
         var executor = await services.GetRequestExecutorAsync();
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ foo }")
+                .SetDocument("{ foo bar }")
                 .Build());
 
         using var buffer = new PooledArrayWriter();
