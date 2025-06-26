@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Fetching;
@@ -467,7 +466,6 @@ public class DataLoaderTests
             await FooObject.Get(context, "hello", ct);
     }
 
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
     [GraphQLName("Foo")]
     [Node]
     public class FooObject(string field)
