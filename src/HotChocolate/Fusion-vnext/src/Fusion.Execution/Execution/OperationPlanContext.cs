@@ -75,10 +75,12 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     public void AddPartialResults(SelectionPath sourcePath, ReadOnlySpan<SourceSchemaResult> results)
         => _resultStore.AddPartialResults(sourcePath, results);
 
-    internal OperationResult CreateFinalResult()
+    internal IExecutionResult CreateFinalResult()
     {
-        // _resultStore.CreateVariableValueSets()
-        throw new NotImplementedException();
+        return OperationResultBuilder.New()
+            .AddErrors(_resultStore.Errors)
+            .SetData(_resultStore.Data)
+            .Build();
     }
 
     private List<ObjectFieldNode> GetPathThroughVariables(

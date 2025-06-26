@@ -1,23 +1,31 @@
 using System.Buffers;
-using System.Collections;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using static HotChocolate.Transport.Formatters.JsonNullIgnoreCondition;
+using static HotChocolate.Execution.ResultFieldNames;
+using static HotChocolate.Execution.JsonValueFormatter;
 
 namespace HotChocolate.Transport.Formatters;
 
 /// <summary>
 /// The default JSON formatter for <see cref="IOperationResult"/>.
 /// </summary>
-public sealed partial class JsonResultFormatter : IExecutionResultFormatter
+public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionResultFormatter
 {
     private readonly JsonWriterOptions _options;
     private readonly JsonSerializerOptions _serializerOptions;
-    private readonly bool _stripNullProps;
-    private readonly bool _stripNullElements;
+    private readonly JsonNullIgnoreCondition _nullIgnoreCondition;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="JsonResultFormatter"/> with default options.
+    /// </summary>
+    /// <param name="indented">
+    /// Defines if the JSON should be formatted with indentations.
+    /// </param>
+    public JsonResultFormatter(bool indented = false)
+        : this(new JsonResultFormatterOptions { Indented = indented })
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of <see cref="JsonResultFormatter"/>.
@@ -25,13 +33,22 @@ public sealed partial class JsonResultFormatter : IExecutionResultFormatter
     /// <param name="options">
     /// The JSON result formatter options
     /// </param>
-    public JsonResultFormatter(JsonResultFormatterOptions options = default)
+    public JsonResultFormatter(JsonResultFormatterOptions options)
     {
         _options = options.CreateWriterOptions();
         _serializerOptions = options.CreateSerializerOptions();
-        _stripNullProps = options.NullIgnoreCondition is Fields or All;
-        _stripNullElements = options.NullIgnoreCondition is Lists or All;
+        _nullIgnoreCondition = options.NullIgnoreCondition;
     }
+
+    /// <summary>
+    /// The default JSON formatter for <see cref="IOperationResult"/> with indentations.
+    /// </summary>
+    public static JsonResultFormatter Indented { get; } = new(true);
+
+    /// <summary>
+    /// The default JSON formatter for <see cref="IOperationResult"/> without indentations.
+    /// </summary>
+    public static JsonResultFormatter Default { get; } = new();
 
     /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync"/>
     public async ValueTask FormatAsync(
@@ -98,7 +115,7 @@ public sealed partial class JsonResultFormatter : IExecutionResultFormatter
         ArgumentNullException.ThrowIfNull(error);
         ArgumentNullException.ThrowIfNull(writer);
 
-        WriteError(writer, error);
+        WriteError(writer, error, _serializerOptions, _nullIgnoreCondition);
     }
 
     /// <summary>
@@ -123,7 +140,7 @@ public sealed partial class JsonResultFormatter : IExecutionResultFormatter
 
         for (var i = 0; i < errors.Count; i++)
         {
-            WriteError(writer, errors[i]);
+            WriteError(writer, errors[i], _serializerOptions, _nullIgnoreCondition);
         }
 
         writer.WriteEndArray();
@@ -143,7 +160,7 @@ public sealed partial class JsonResultFormatter : IExecutionResultFormatter
         WriteResult(jsonWriter, result);
         jsonWriter.Flush();
     }
-    
+
     public ValueTask FormatAsync(
         IOperationResult result,
         Stream outputStream,
@@ -258,7 +275,7 @@ public sealed partial class JsonResultFormatter : IExecutionResultFormatter
         WriteData(writer, result);
         WriteItems(writer, result.Items);
         WriteIncremental(writer, result.Incremental);
-        WriteExtensions(writer, result.Extensions);
+        WriteExtensions(writer, result.Extensions, _serializerOptions, _nullIgnoreCondition);
         WritePatchInfo(writer, result);
         WriteHasNext(writer, result);
 
@@ -307,14 +324,7 @@ public sealed partial class JsonResultFormatter : IExecutionResultFormatter
 
         writer.WritePropertyName(Data);
 
-        if (result.Data is ObjectResult resultMap)
-        {
-            WriteObjectResult(writer, resultMap);
-        }
-        else
-        {
-            WriteDictionary(writer, result.Data);
-        }
+        WriteValue(writer, result.Data, _serializerOptions, _nullIgnoreCondition);
     }
 
     private void WriteItems(Utf8JsonWriter writer, IReadOnlyList<object?>? items)
@@ -327,7 +337,7 @@ public sealed partial class JsonResultFormatter : IExecutionResultFormatter
 
             for (var i = 0; i < items.Count; i++)
             {
-                WriteFieldValue(writer, items[i]);
+                WriteValue(writer, items[i], _serializerOptions, _nullIgnoreCondition);
             }
 
             writer.WriteEndArray();
@@ -344,110 +354,10 @@ public sealed partial class JsonResultFormatter : IExecutionResultFormatter
 
             for (var i = 0; i < errors.Count; i++)
             {
-                WriteError(writer, errors[i]);
+                WriteError(writer, errors[i], _serializerOptions, _nullIgnoreCondition);
             }
 
             writer.WriteEndArray();
-        }
-    }
-
-    private void WriteError(Utf8JsonWriter writer, IError error)
-    {
-        writer.WriteStartObject();
-
-        writer.WriteString(Message, error.Message);
-
-        WriteLocations(writer, error.Locations);
-        WritePath(writer, error.Path);
-        WriteExtensions(writer, error.Extensions);
-
-        writer.WriteEndObject();
-    }
-
-    private static void WriteLocations(Utf8JsonWriter writer, IReadOnlyList<Location>? locations)
-    {
-        if (locations is { Count: > 0 })
-        {
-            writer.WritePropertyName(Locations);
-
-            writer.WriteStartArray();
-
-            for (var i = 0; i < locations.Count; i++)
-            {
-                WriteLocation(writer, locations[i]);
-            }
-
-            writer.WriteEndArray();
-        }
-    }
-
-    private static void WriteLocation(Utf8JsonWriter writer, Location location)
-    {
-        writer.WriteStartObject();
-        writer.WriteNumber(Line, location.Line);
-        writer.WriteNumber(Column, location.Column);
-        writer.WriteEndObject();
-    }
-
-    private static void WritePath(Utf8JsonWriter writer, Path? path)
-    {
-        if (path is not null)
-        {
-            writer.WritePropertyName(Path);
-            WritePathValue(writer, path);
-        }
-    }
-
-    private static void WritePathValue(Utf8JsonWriter writer, Path path)
-    {
-        if (path.IsRoot)
-        {
-            writer.WriteStartArray();
-            writer.WriteEndArray();
-            return;
-        }
-
-        writer.WriteStartArray();
-
-        var list = path.ToList();
-
-        for (var i = 0; i < list.Count; i++)
-        {
-            switch (list[i])
-            {
-                case string s:
-                    writer.WriteStringValue(s);
-                    break;
-
-                case int n:
-                    writer.WriteNumberValue(n);
-                    break;
-
-                case short n:
-                    writer.WriteNumberValue(n);
-                    break;
-
-                case long n:
-                    writer.WriteNumberValue(n);
-                    break;
-
-                default:
-                    writer.WriteStringValue(list[i].ToString());
-                    break;
-            }
-        }
-
-        writer.WriteEndArray();
-    }
-
-    private void WriteExtensions(
-        Utf8JsonWriter writer,
-        IReadOnlyDictionary<string, object?>? dict)
-    {
-        if (dict is { Count: > 0 })
-        {
-            writer.WritePropertyName(Extensions);
-            WriteDictionary(writer, dict);
         }
     }
 
@@ -465,306 +375,6 @@ public sealed partial class JsonResultFormatter : IExecutionResultFormatter
             }
 
             writer.WriteEndArray();
-        }
-    }
-
-    private void WriteDictionary(
-        Utf8JsonWriter writer,
-        IReadOnlyDictionary<string, object?> dict)
-    {
-        writer.WriteStartObject();
-
-        foreach (var item in dict)
-        {
-            if (item.Value is null && _stripNullProps)
-            {
-                continue;
-            }
-
-            writer.WritePropertyName(item.Key);
-            WriteFieldValue(writer, item.Value);
-        }
-
-        writer.WriteEndObject();
-    }
-
-    private void WriteDictionary(
-        Utf8JsonWriter writer,
-        Dictionary<string, object?> dict)
-    {
-        writer.WriteStartObject();
-
-        foreach (var item in dict)
-        {
-            if (item.Value is null && _stripNullProps)
-            {
-                continue;
-            }
-
-            writer.WritePropertyName(item.Key);
-            WriteFieldValue(writer, item.Value);
-        }
-
-        writer.WriteEndObject();
-    }
-
-    private void WriteObjectResult(
-        Utf8JsonWriter writer,
-        ObjectResult objectResult)
-    {
-        writer.WriteStartObject();
-
-        ref var searchSpace = ref objectResult.GetReference();
-
-        for (var i = 0; i < objectResult.Capacity; i++)
-        {
-            var field = Unsafe.Add(ref searchSpace, i);
-
-            if (!field.IsInitialized || (field.Value is null && _stripNullProps))
-            {
-                continue;
-            }
-
-            writer.WritePropertyName(field.Name);
-            WriteFieldValue(writer, field.Value);
-        }
-
-        writer.WriteEndObject();
-    }
-
-    private void WriteListResult(
-        Utf8JsonWriter writer,
-        ListResult list)
-    {
-        writer.WriteStartArray();
-
-        ref var searchSpace = ref list.GetReference();
-
-        for (var i = 0; i < list.Count; i++)
-        {
-            var element = Unsafe.Add(ref searchSpace, i);
-
-            if (element is null && _stripNullElements)
-            {
-                continue;
-            }
-
-            WriteFieldValue(writer, element);
-        }
-
-        writer.WriteEndArray();
-    }
-
-    private void WriteList(
-        Utf8JsonWriter writer,
-        IList list)
-    {
-        writer.WriteStartArray();
-
-        for (var i = 0; i < list.Count; i++)
-        {
-            var element = list[i];
-
-            if (element is null && _stripNullElements)
-            {
-                continue;
-            }
-
-            WriteFieldValue(writer, element);
-        }
-
-        writer.WriteEndArray();
-    }
-
-    private void WriteJsonElement(
-        Utf8JsonWriter writer,
-        JsonElement element)
-    {
-        switch (element.ValueKind)
-        {
-            case JsonValueKind.Object:
-                WriteJsonObject(writer, element);
-                break;
-
-            case JsonValueKind.Array:
-                WriteJsonArray(writer, element);
-                break;
-
-            case JsonValueKind.String:
-                writer.WriteStringValue(element.GetString());
-                break;
-
-            case JsonValueKind.Number:
-                writer.WriteRawValue(element.GetRawText());
-                break;
-
-            case JsonValueKind.True:
-                writer.WriteBooleanValue(true);
-                break;
-
-            case JsonValueKind.False:
-                writer.WriteBooleanValue(false);
-                break;
-
-            case JsonValueKind.Null:
-                writer.WriteNullValue();
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-    }
-
-    private void WriteJsonObject(
-        Utf8JsonWriter writer,
-        JsonElement element)
-    {
-        writer.WriteStartObject();
-
-        foreach (var item in element.EnumerateObject())
-        {
-            if (item.Value.ValueKind is JsonValueKind.Null && _stripNullProps)
-            {
-                continue;
-            }
-
-            writer.WritePropertyName(item.Name);
-            WriteJsonElement(writer, item.Value);
-        }
-
-        writer.WriteEndObject();
-    }
-
-    private void WriteJsonArray(
-        Utf8JsonWriter writer,
-        JsonElement element)
-    {
-        writer.WriteStartArray();
-
-        foreach (var item in element.EnumerateArray())
-        {
-            if (item.ValueKind is JsonValueKind.Null && _stripNullElements)
-            {
-                continue;
-            }
-
-            WriteJsonElement(writer, item);
-        }
-
-        writer.WriteEndArray();
-    }
-
-    private void WriteFieldValue(
-        Utf8JsonWriter writer,
-        object? value)
-    {
-        if (value is null)
-        {
-            writer.WriteNullValue();
-            return;
-        }
-
-        switch (value)
-        {
-            case ObjectResult resultMap:
-                WriteObjectResult(writer, resultMap);
-                break;
-
-            case ListResult resultMapList:
-                WriteListResult(writer, resultMapList);
-                break;
-
-            case JsonDocument doc:
-                WriteJsonElement(writer, doc.RootElement);
-                break;
-
-            case JsonElement element:
-                WriteJsonElement(writer, element);
-                break;
-
-            case RawJsonValue rawJsonValue:
-                writer.WriteRawValue(rawJsonValue.Value.Span, true);
-                break;
-
-            case NeedsFormatting unformatted:
-                unformatted.FormatValue(writer, _serializerOptions);
-                break;
-
-            case Dictionary<string, object?> dict:
-                WriteDictionary(writer, dict);
-                break;
-
-            case IReadOnlyDictionary<string, object?> dict:
-                WriteDictionary(writer, dict);
-                break;
-
-            case IList list:
-                WriteList(writer, list);
-                break;
-
-            case IError error:
-                WriteError(writer, error);
-                break;
-
-            case string s:
-                writer.WriteStringValue(s);
-                break;
-
-            case byte b:
-                writer.WriteNumberValue(b);
-                break;
-
-            case short s:
-                writer.WriteNumberValue(s);
-                break;
-
-            case ushort s:
-                writer.WriteNumberValue(s);
-                break;
-
-            case int i:
-                writer.WriteNumberValue(i);
-                break;
-
-            case uint i:
-                writer.WriteNumberValue(i);
-                break;
-
-            case long l:
-                writer.WriteNumberValue(l);
-                break;
-
-            case ulong l:
-                writer.WriteNumberValue(l);
-                break;
-
-            case float f:
-                writer.WriteNumberValue(f);
-                break;
-
-            case double d:
-                writer.WriteNumberValue(d);
-                break;
-
-            case decimal d:
-                writer.WriteNumberValue(d);
-                break;
-
-            case bool b:
-                writer.WriteBooleanValue(b);
-                break;
-
-            case Uri u:
-                writer.WriteStringValue(u.ToString());
-                break;
-
-            case Path p:
-                WritePathValue(writer, p);
-                break;
-
-            default:
-                writer.WriteStringValue(value.ToString());
-                break;
         }
     }
 }

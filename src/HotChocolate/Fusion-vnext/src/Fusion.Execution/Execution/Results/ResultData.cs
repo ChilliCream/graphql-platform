@@ -1,20 +1,12 @@
-using System.Collections;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
-using HotChocolate.Types;
-using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution;
 
 /// <summary>
 /// Represents a result data object like an object or list.
 /// </summary>
-public abstract class ResultData
+public abstract class ResultData : IResultDataJsonFormatter
 {
     /// <summary>
     /// Gets the parent result data object.
@@ -44,32 +36,57 @@ public abstract class ResultData
         ParentIndex = index;
     }
 
+    /// <summary>
+    /// Sets the next value to <see langword="null"/>.
+    /// </summary>
     public virtual void SetNextValueNull()
     {
         throw new NotSupportedException();
     }
 
+    /// <summary>
+    /// Sets the next value to the given value.
+    /// </summary>
+    /// <param name="value">The value to set.</param>
     public virtual void SetNextValue(ResultData value)
     {
         throw new NotSupportedException();
     }
 
+    /// <summary>
+    /// Sets the next value to the given value.
+    /// </summary>
+    /// <param name="value">The value to set.</param>
     public virtual void SetNextValue(JsonElement value)
     {
         throw new NotSupportedException();
     }
 
+    /// <summary>
+    /// Tries to set the next value to <see langword="null"/>.
+    /// </summary>
+    /// <param name="index">The index to set.</param>
+    /// <returns>
+    /// <see langword="true"/> if the value was set; otherwise, <see langword="false"/>.
+    /// </returns>
     public virtual bool TrySetValueNull(int index)
     {
         throw new NotSupportedException();
     }
 
+    /// <inheritdoc />
+    public abstract void WriteTo(
+        Utf8JsonWriter writer,
+        JsonSerializerOptions? options = null,
+        JsonNullIgnoreCondition nullIgnoreCondition = JsonNullIgnoreCondition.None);
+
     /// <summary>
     /// Resets the parent and parent index.
     /// </summary>
-    public virtual void Reset()
+    public virtual bool Reset()
     {
         Parent = null;
         ParentIndex = -1;
+        return true;
     }
 }

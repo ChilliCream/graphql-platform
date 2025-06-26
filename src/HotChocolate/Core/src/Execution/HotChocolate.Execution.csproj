@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Formatters\HotChocolate.Transport.Formatters.csproj" />
     <ProjectReference Include="..\..\..\Caching\src\Caching.Memory\HotChocolate.Caching.Memory.csproj" />
     <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Abstractions\HotChocolate.PersistedOperations.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Pipeline\HotChocolate.PersistedOperations.Pipeline.csproj" />

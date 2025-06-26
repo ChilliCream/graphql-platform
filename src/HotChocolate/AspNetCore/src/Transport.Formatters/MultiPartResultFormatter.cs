@@ -94,10 +94,10 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         using var buffer = new PooledArrayWriter();
         MessageHelper.WriteNext(buffer);
 
-        // First we write the header of the part.
+        // First, we write the header of the part.
         MessageHelper.WriteResultHeader(buffer);
 
-        // Next we write the payload of the part.
+        // Next, we write the payload of the part.
         MessageHelper.WritePayload(buffer, result, _payloadFormatter);
 
         // Last we write the end of the part.
@@ -141,7 +141,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct = default)
     {
-        // first we create the iterator.
+        // first, we create the iterator.
         using var buffer = new PooledArrayWriter();
         await using var enumerator = responseStream.ReadResultsAsync().GetAsyncEnumerator(ct);
         var first = true;
@@ -158,15 +158,15 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
                     first = false;
                 }
 
-                // First we write the header of the part.
+                // First, we write the header of the part.
                 MessageHelper.WriteResultHeader(buffer);
 
-                // Next we write the payload of the part.
+                // Next, we write the payload of the part.
                 MessageHelper.WritePayload(buffer, enumerator.Current, _payloadFormatter);
 
                 if (responseStream.Kind is DeferredResult && (enumerator.Current.HasNext ?? false))
                 {
-                    // If the result is a deferred result and has a next result we need to
+                    // If the result is a deferred result and has a next result, we need to
                     // write a new part so that the client knows that there is more to come.
                     MessageHelper.WriteNext(buffer);
                 }
@@ -177,13 +177,13 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
             }
             finally
             {
-                // The result objects use pooled memory so we need to ensure that they
+                // The result objects use pooled memory, so we need to ensure that they
                 // return the memory by disposing them.
                 await enumerator.Current.DisposeAsync().ConfigureAwait(false);
             }
         }
 
-        // After all parts have been written we need to write the final boundary.
+        // After all parts have been written, we need to write the final boundary.
         buffer.Reset();
         MessageHelper.WriteEnd(buffer);
         await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
@@ -195,7 +195,6 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         private static ReadOnlySpan<byte> ContentType => "Content-Type: application/json; charset=utf-8\r\n\r\n"u8;
         private static ReadOnlySpan<byte> Start => "\r\n---\r\n"u8;
         private static ReadOnlySpan<byte> End => "\r\n-----\r\n"u8;
-        private static ReadOnlySpan<byte> CrLf => "\r\n"u8;
 
         public static void WriteNext(IBufferWriter<byte> writer)
         {
@@ -220,7 +219,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         public static void WriteResultHeader(IBufferWriter<byte> writer)
         {
             // Each part of the multipart response must contain a Content-Type header.
-            // Similar to the GraphQL specification this specification does not require
+            // Similar to the GraphQL specification, this specification does not require
             // a specific serialization format. For consistency and ease of notation,
             // examples of the response are given in JSON throughout the spec.
             // After all headers, an additional CRLF is sent.

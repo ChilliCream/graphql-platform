@@ -1,4 +1,4 @@
-namespace HotChocolate.Execution.Serialization;
+namespace HotChocolate.Execution;
 
 /// <summary>
 /// This helper class allows to add raw json values to response objects.
@@ -13,21 +13,16 @@ namespace HotChocolate.Execution.Serialization;
 /// </para>
 /// <para>This is also the reason for keeping this internal.</para>
 /// </remarks>
-internal readonly struct RawJsonValue
+/// <remarks>
+/// Initializes a new instance of <see cref="RawJsonValue"/>.
+/// </remarks>
+/// <param name="value">
+/// The raw JSON value.
+/// </param>
+public readonly struct RawJsonValue(ReadOnlyMemory<byte> value)
 {
-    /// <summary>
-    /// Initializes a new instance of <see cref="RawJsonValue"/>.
-    /// </summary>
-    /// <param name="value">
-    /// The raw JSON value.
-    /// </param>
-    public RawJsonValue(ReadOnlyMemory<byte> value)
-    {
-        Value = value;
-    }
-
     /// <summary>
     /// Gets the raw JSON value.
     /// </summary>
-    public ReadOnlyMemory<byte> Value { get; }
+    public ReadOnlyMemory<byte> Value { get; } = value;
 }

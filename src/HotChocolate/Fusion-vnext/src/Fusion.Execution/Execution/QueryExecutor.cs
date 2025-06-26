@@ -1,10 +1,11 @@
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Execution;
 
 public class QueryExecutor
 {
-    public async ValueTask QueryAsync(
+    public async ValueTask<IExecutionResult> QueryAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
@@ -38,7 +39,7 @@ public class QueryExecutor
             }
         }
 
-        // assemble the result
+        return context.CreateFinalResult();
     }
 
     private static void EnqueueNextNodes(

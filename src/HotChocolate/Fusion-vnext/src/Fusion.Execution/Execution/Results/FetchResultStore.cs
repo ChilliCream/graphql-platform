@@ -13,12 +13,14 @@ namespace HotChocolate.Fusion.Execution;
 // we must make this thread-safe
 internal sealed class FetchResultStore : IDisposable
 {
+    private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
     private readonly ResultPoolSession _resultPoolSession;
     private readonly ValueCompletion _valueCompletion;
     private readonly Operation _operation;
     private readonly ObjectResult _root;
     private readonly ulong _includeFlags;
-    private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
+    private ImmutableArray<IError> _errors = ImmutableArray<IError>.Empty;
+    private bool _isInitialized;
 
     public FetchResultStore(
         ISchemaDefinition schema,
@@ -36,6 +38,10 @@ internal sealed class FetchResultStore : IDisposable
         _root = resultPoolSession.RentObjectResult();
         _includeFlags = includeFlags;
     }
+
+    public ObjectResult Data => _root;
+
+    public ImmutableArray<IError> Errors => _errors;
 
     public bool AddPartialResults(
         SelectionPath sourcePath,
@@ -92,9 +98,10 @@ internal sealed class FetchResultStore : IDisposable
                 {
                     var selectionSet = _operation.RootSelectionSet;
 
-                    if (!_root.IsInitialized)
+                    if (!_isInitialized)
                     {
                         _root.Initialize(_resultPoolSession, selectionSet, _includeFlags);
+                        _isInitialized = true;
                     }
 
                     if (!_valueCompletion.BuildResult(selectionSet, result, startElement, _root))

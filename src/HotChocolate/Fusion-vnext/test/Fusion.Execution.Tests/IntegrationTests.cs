@@ -1,10 +1,11 @@
+using System.Text;
+using HotChocolate.Buffers;
 using HotChocolate.Types;
 using HotChocolate.Execution;
-using HotChocolate.Language;
+using HotChocolate.Transport.Formatters;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Fusion;
 
@@ -53,6 +54,10 @@ public class IntegrationTests : FusionTestBase
             OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .Build());
+
+        using var buffer = new PooledArrayWriter();
+        JsonResultFormatter.Indented.Format(result.ExpectOperationResult(), buffer);
+        Encoding.UTF8.GetString(buffer.GetWrittenSpan()).MatchSnapshot();
     }
 }
 

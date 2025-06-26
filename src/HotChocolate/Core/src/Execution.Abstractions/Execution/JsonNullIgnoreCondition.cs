@@ -1,14 +1,15 @@
-namespace HotChocolate.Execution.Serialization;
+namespace HotChocolate.Execution;
 
 /// <summary>
 /// Specifies when null values are ignored.
 /// </summary>
+[Flags]
 public enum JsonNullIgnoreCondition
 {
     /// <summary>
     /// No null values are ignore.
     /// </summary>
-    Default = 0,
+    None = 0,
 
     /// <summary>
     /// Fields that have a null value are ignored.
@@ -23,5 +24,5 @@ public enum JsonNullIgnoreCondition
     /// <summary>
     /// Fields that have a null value and null elements in lists are ignored.
     /// </summary>
-    All = 4
+    FieldsAndLists = Fields | Lists
 }

@@ -33,7 +33,7 @@ internal sealed class SchemaNameTypeInterceptor(string schemaName) : TypeInterce
         {
             var directiveTypeRef = _context.TypeInspector.GetTypeRef(typeof(SchemaNameDirectiveType));
             var directive = new DirectiveNode("schemaName", new ArgumentNode("value", schemaName));
-            schema.Dependencies.Add(new TypeDependency(directiveTypeRef, TypeDependencyFulfilled.Completed));
+            discoveryContext.Dependencies.Add(new TypeDependency(directiveTypeRef, TypeDependencyFulfilled.Completed));
             schema.Directives.Add(new DirectiveConfiguration(directive));
         }
     }

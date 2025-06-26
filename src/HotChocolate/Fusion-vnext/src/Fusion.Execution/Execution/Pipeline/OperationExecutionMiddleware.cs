@@ -23,7 +23,7 @@ internal sealed class OperationExecutionMiddleware
             context.VariableValues[0],
             context);
 
-        await _queryExecutor.QueryAsync(operationPlanContext, cancellationToken);
+        context.Result = await _queryExecutor.QueryAsync(operationPlanContext, cancellationToken);
 
         await next(context);
     }

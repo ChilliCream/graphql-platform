@@ -30,7 +30,7 @@ public sealed record OperationExecutionNode : ExecutionNode
         // and optimize request serialization.
         Span<byte> hash = stackalloc byte[16];
         var length = MD5.HashData(Encoding.UTF8.GetBytes(operation.ToString()), hash);
-        OperationId = Convert.ToHexString(hash);
+        OperationId = Convert.ToHexString(hash[..length]);
 
         var variables = ImmutableArray.CreateBuilder<string>();
 
@@ -123,18 +123,15 @@ public sealed record OperationExecutionNode : ExecutionNode
                     buffer[index++] = result;
                 }
 
-                context.AddResults(Source, buffer.AsSpan(0, index));
+                context.AddPartialResults(Source, buffer.AsSpan(0, index));
             }
             catch
             {
-                // if there is an error we need to make sure that the pooled buffers for the JsonDocuments
+                // if there is an error, we need to make sure that the pooled buffers for the JsonDocuments
                 // are returned to the pool.
                 foreach (var result in buffer.AsSpan(0, index))
                 {
-                    if (result is not null)
-                    {
-                        response.Dispose();
-                    }
+                    result?.Dispose();
                 }
 
                 throw;
@@ -147,18 +144,5 @@ public sealed record OperationExecutionNode : ExecutionNode
         }
 
         return new ExecutionStatus(Id, IsSkipped: false);
-    }
-}
-
-internal class InternalOperationDefinitionBuilder
-{
-    public OperationDefinitionNode Build(
-        ISchemaDefinition schema,
-        OperationDefinitionNode operationDefinition,
-        ImmutableArray<OperationExecutionNode> rootNodes,
-        ImmutableArray<OperationExecutionNode> allNodes)
-    {
-        // var rewriter = new InlineFragmentOperationRewriter(schema);
-        throw new NotImplementedException();
     }
 }

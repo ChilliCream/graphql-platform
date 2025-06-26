@@ -115,7 +115,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool EnableSemanticNonNull { get; set; }
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableSchemaNameDirective"/>
-    public bool EnableSchemaNameDirective { get; set; }
+    public bool EnableSchemaNameDirective { get; set; } = true;
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.MaxAllowedNodeBatchSize"/>
     public int MaxAllowedNodeBatchSize { get; set; } = 50;

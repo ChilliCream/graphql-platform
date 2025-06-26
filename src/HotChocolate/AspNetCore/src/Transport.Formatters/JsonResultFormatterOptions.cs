@@ -1,8 +1,8 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using HotChocolate.Execution;
 using static System.Text.Json.JsonSerializerDefaults;
 using static System.Text.Json.Serialization.JsonIgnoreCondition;
-using static HotChocolate.Transport.Formatters.JsonNullIgnoreCondition;
 
 namespace HotChocolate.Transport.Formatters;
 
@@ -37,13 +37,13 @@ public struct JsonResultFormatterOptions
             Encoder = Encoder ?? JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
-    internal JsonSerializerOptions CreateSerializerOptions()
+    internal readonly JsonSerializerOptions CreateSerializerOptions()
         => new(Web)
         {
             WriteIndented = Indented,
             Encoder = Encoder ?? JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             DefaultIgnoreCondition =
-                NullIgnoreCondition is Fields or All
+                (NullIgnoreCondition & JsonNullIgnoreCondition.Fields) == JsonNullIgnoreCondition.Fields
                     ? WhenWritingNull
                     : default
         };
