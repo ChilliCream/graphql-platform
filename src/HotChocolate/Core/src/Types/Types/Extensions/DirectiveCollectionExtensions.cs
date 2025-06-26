@@ -220,7 +220,7 @@ public static class DirectiveCollectionExtensions
     }
 
     internal static DirectiveNode? GetDeferDirectiveNode(
-        this Language.IHasDirectives container) =>
+        this IHasDirectives container) =>
         GetDirectiveNode(container.Directives, DirectiveNames.Defer.Name);
 
     internal static DirectiveNode? GetDeferDirectiveNode(

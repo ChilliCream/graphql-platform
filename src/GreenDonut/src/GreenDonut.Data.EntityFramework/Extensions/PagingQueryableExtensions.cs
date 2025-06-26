@@ -273,7 +273,7 @@ public static class PagingQueryableExtensions
         PagingArguments arguments,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => ToBatchPageAsync<TKey, TValue, TValue>(
+        => ToBatchPageAsync(
             source,
             keySelector,
             t => t,
@@ -315,7 +315,7 @@ public static class PagingQueryableExtensions
         bool includeTotalCount,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => ToBatchPageAsync<TKey, TValue, TValue>(
+        => ToBatchPageAsync(
             source,
             keySelector,
             t => t,

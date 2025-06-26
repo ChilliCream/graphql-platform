@@ -67,7 +67,7 @@ public class IDAttribute : DescriptorAttribute
     }
 
     /// <summary>
-    /// With the <see cref="IDAttribute.TypeName"/> property you can override the type name
+    /// With the <see cref="TypeName"/> property you can override the type name
     /// of the ID. This is useful to rewrite a parameter of a mutation or query, to a specific
     /// id.
     /// </summary>

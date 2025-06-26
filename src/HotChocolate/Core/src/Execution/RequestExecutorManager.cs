@@ -11,7 +11,6 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.PersistedOperations;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -294,7 +293,7 @@ internal sealed partial class RequestExecutorManager
             static s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IPersistedOperationOptionsAccessor>(
             static s => s.GetRequiredService<RequestExecutorOptions>());
-        serviceCollection.AddSingleton<PersistedOperationOptions>(
+        serviceCollection.AddSingleton(
             static s => s.GetRequiredService<RequestExecutorOptions>().PersistedOperations);
 
         serviceCollection.AddSingleton<IPreparedOperationCache>(static sp => new DefaultPreparedOperationCache(

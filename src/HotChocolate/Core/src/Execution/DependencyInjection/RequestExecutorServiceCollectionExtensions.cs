@@ -1,4 +1,3 @@
-using System.Text;
 using GreenDonut;
 using HotChocolate;
 using HotChocolate.Execution;
@@ -39,7 +38,7 @@ public static class RequestExecutorServiceCollectionExtensions
         services.TryAddSingleton<AggregateServiceScopeInitializer>();
         services.TryAddSingleton<IParameterBindingResolver, DefaultParameterBindingResolver>();
 
-        services.TryAddSingleton<ObjectPool<StringBuilder>>(sp =>
+        services.TryAddSingleton(sp =>
         {
             var provider = sp.GetRequiredService<ObjectPoolProvider>();
             var policy = new StringBuilderPooledObjectPolicy();
@@ -176,8 +175,7 @@ public static class RequestExecutorServiceCollectionExtensions
         int capacity = 256)
     {
         services.RemoveAll<PreparedOperationCacheOptions>();
-        services.AddSingleton<PreparedOperationCacheOptions>(
-            _ => new PreparedOperationCacheOptions { Capacity = capacity });
+        services.AddSingleton(_ => new PreparedOperationCacheOptions { Capacity = capacity });
         return services;
     }
 
