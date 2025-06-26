@@ -159,6 +159,13 @@ dotnet_naming_symbols.static_fields.applicable_accessibilities = private, intern
 dotnet_naming_style.static_prefix_style.required_prefix = s_
 dotnet_naming_style.static_prefix_style.capitalization = camel_case
 
+# Name all local variables using camelCase
+dotnet_naming_rule.local_variables_should_be_camel_case.severity = warning
+dotnet_naming_rule.local_variables_should_be_camel_case.symbols = local_variables
+dotnet_naming_rule.local_variables_should_be_camel_case.style = camel_case_style
+dotnet_naming_symbols.local_variables.applicable_kinds = local
+dotnet_naming_style.camel_case_style.capitalization = camel_case
+
 # Use ArgumentNullException throw helper.
 dotnet_diagnostic.CA1510.severity = warning
 # Use ArgumentException throw helper.

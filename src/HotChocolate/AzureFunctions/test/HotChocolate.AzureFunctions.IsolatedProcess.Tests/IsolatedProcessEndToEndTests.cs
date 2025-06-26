@@ -49,7 +49,7 @@ public class IsolatedProcessEndToEndTests
     [Fact]
     public async Task AzFuncIsolatedProcess_FunctionsContextItemsTestAsync()
     {
-        const string DarkSideLeaderKey = "DarkSideLeader";
+        const string darkSideLeaderKey = "DarkSideLeader";
 
         var host = new MockIsolatedProcessHostBuilder()
             .AddGraphQLFunction(graphQL =>
@@ -60,7 +60,7 @@ public class IsolatedProcessEndToEndTests
                         var darkSideLeader = ctx.ContextData.TryGetValue(
                             nameof(HttpContext),
                             out var httpContext)
-                            ? (httpContext as HttpContext)?.Items[DarkSideLeaderKey] as string
+                            ? (httpContext as HttpContext)?.Items[darkSideLeaderKey] as string
                             : null;
 
                         return darkSideLeader;
@@ -79,7 +79,7 @@ public class IsolatedProcessEndToEndTests
             }");
 
         //Set Up our global Items now available from the Functions Context...
-        request.FunctionContext.Items.Add(DarkSideLeaderKey, "Darth Vader");
+        request.FunctionContext.Items.Add(darkSideLeaderKey, "Darth Vader");
 
         // Execute Query Test for end-to-end validation...
         // NOTE: This uses the new Az Func Isolated Process extension to execute

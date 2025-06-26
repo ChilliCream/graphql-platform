@@ -19,7 +19,7 @@ public class NestedOptionalInt_2114
             return true;
         });
 
-        const string Query = @"
+        const string query = @"
                 mutation {
                     eat(topping: {
                         pickles: [ {
@@ -29,7 +29,7 @@ public class NestedOptionalInt_2114
                                 complexAssignedNull: null, complexList: [ { value: 2 } ] } } ] })
                 }";
         // act
-        var result = await executor.ExecuteAsync(Query);
+        var result = await executor.ExecuteAsync(query);
 
         // assert
         Assert.Null(result.ExpectOperationResult().Errors);
@@ -47,7 +47,7 @@ public class NestedOptionalInt_2114
             return true;
         });
 
-        const string Query = @"
+        const string query = @"
                 mutation a($input: ButterPickleInput!)
                 {
                     eat(topping: {
@@ -58,7 +58,7 @@ public class NestedOptionalInt_2114
 
         // act
         var result = await executor.ExecuteAsync(
-            Query,
+            query,
             new Dictionary<string, object?>
             {
                 {
