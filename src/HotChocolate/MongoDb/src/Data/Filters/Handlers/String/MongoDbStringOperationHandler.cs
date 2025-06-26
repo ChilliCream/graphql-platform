@@ -7,7 +7,7 @@ namespace HotChocolate.Data.MongoDb.Filters;
 public abstract class MongoDbStringOperationHandler
     : MongoDbOperationHandlerBase
 {
-    public MongoDbStringOperationHandler(InputParser inputParser) : base(inputParser)
+    protected MongoDbStringOperationHandler(InputParser inputParser) : base(inputParser)
     {
     }
 

@@ -22,7 +22,7 @@ public abstract class StringToStructBaseType<TRuntimeType>
     /// <param name="name">
     /// The name of the scalar.
     /// </param>
-    public StringToStructBaseType(string name)
+    protected StringToStructBaseType(string name)
         : base(name, BindingBehavior.Implicit)
     {
     }
