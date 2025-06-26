@@ -111,18 +111,18 @@ public static class CursorParser
 
     private static CursorPageInfo ParsePageInfo(ref Span<byte> span)
     {
-        const byte Open = (byte)'{';
-        const byte Close = (byte)'}';
-        const byte Separator = (byte)'|';
+        const byte open = (byte)'{';
+        const byte close = (byte)'}';
+        const byte separator = (byte)'|';
 
         // Validate input: must start with `{` and end with `}`
-        if (span.Length < 2 || span[0] != Open)
+        if (span.Length < 2 || span[0] != open)
         {
             return default;
         }
 
         // the page info is empty
-        if (span[0] == Open && span[1] == Close)
+        if (span[0] == open && span[1] == close)
         {
             span = span[2..];
             return default;
@@ -131,17 +131,17 @@ public static class CursorParser
         // Advance span beyond opening `{`
         span = span[1..];
 
-        var separatorIndex = ExpectSeparator(span, Separator);
+        var separatorIndex = ExpectSeparator(span, separator);
         var part = span[..separatorIndex];
         ParseNumber(part, out var offset, out var consumed);
         var start = separatorIndex + 1;
 
-        separatorIndex = ExpectSeparator(span[start..], Separator);
+        separatorIndex = ExpectSeparator(span[start..], separator);
         part = span.Slice(start, separatorIndex);
         ParseNumber(part, out var page, out consumed);
         start += separatorIndex + 1;
 
-        separatorIndex = ExpectSeparator(span[start..], Close);
+        separatorIndex = ExpectSeparator(span[start..], close);
         part = span.Slice(start, separatorIndex);
         ParseNumber(part, out var totalCount, out consumed);
         start += separatorIndex + 1;
