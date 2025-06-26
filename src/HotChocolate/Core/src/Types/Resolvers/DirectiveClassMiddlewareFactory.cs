@@ -146,7 +146,7 @@ internal static class DirectiveClassMiddlewareFactory
                 return Expression.Constant(_directive.ToSyntaxNode(), typeof(DirectiveNode));
             }
 
-            return  Expression.Constant(_directive.ToValue<object>(), _runtimeType);
+            return Expression.Constant(_directive.ToValue<object>(), _runtimeType);
         }
     }
 }

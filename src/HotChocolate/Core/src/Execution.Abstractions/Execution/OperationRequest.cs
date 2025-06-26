@@ -468,7 +468,7 @@ public sealed class OperationRequest : IOperationRequest
             flags);
 
     /// <summary>
-    /// Creates a GraphQL request from a operation document source text.
+    /// Creates a GraphQL request from an operation document source text.
     /// </summary>
     /// <param name="sourceText">
     /// The GraphQL operation-document source text.

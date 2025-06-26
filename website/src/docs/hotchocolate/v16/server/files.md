@@ -279,7 +279,7 @@ We _could_ make the profile picture a queryable field in our graph that returns 
 - A query for the user's name might take a couple of milliseconds to transfer from the server to the client. Additionally querying for the image data might increase the response time by seconds.
 - Let's not even think about how video playback, i.e. streaming, would work...
 
-The recommended solution is to serve files through a different HTTP endpoint and only referencing this endpoint in our GraphQL response. So instead of querying for the profile picture we would query for an URL that points to the profile picture.
+The recommended solution is to serve files through a different HTTP endpoint and only referencing this endpoint in our GraphQL response. So instead of querying for the profile picture we would query for a URL that points to the profile picture.
 
 **Request**
 
@@ -307,4 +307,4 @@ The recommended solution is to serve files through a different HTTP endpoint and
 
 Serving the file through a dedicated HTTP endpoint makes caching a lot easier and also allows for features like streaming video. Ultimately it gives control to the client on how a resource should be handled, given its URL. In the case of a web application we can pass the `imageUrl` as `src` to a HTML `img` element and let the browser handle the fetching and caching of the image.
 
-If you are using a cloud provider for file storage, chances are you are already accessing the files using an URL and you can simply expose this URL as a `String` field in your graph. If infrastructure for serving files is not already in place, you can look into how files can be served using ASP.NET Core or how to setup a dedicated web server like nginx to serve the files.
+If you are using a cloud provider for file storage, chances are you are already accessing the files using a URL and you can simply expose this URL as a `String` field in your graph. If infrastructure for serving files is not already in place, you can look into how files can be served using ASP.NET Core or how to setup a dedicated web server like nginx to serve the files.

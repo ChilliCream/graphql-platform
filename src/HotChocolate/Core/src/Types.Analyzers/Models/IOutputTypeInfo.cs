@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -71,7 +70,7 @@ public interface IOutputTypeInfo
 
     void AddDiagnosticRange(ImmutableArray<Diagnostic> diagnostics);
 
-     void ReplaceResolver(
+    void ReplaceResolver(
         Resolver current,
         Resolver replacement);
 }

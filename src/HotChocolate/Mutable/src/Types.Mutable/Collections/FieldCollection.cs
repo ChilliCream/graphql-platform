@@ -7,7 +7,7 @@ public abstract class FieldDefinitionCollection<TField> : IList<TField> where TF
 {
     private readonly OrderedDictionary<string, TField> _fields = [];
 
-    public FieldDefinitionCollection(ITypeSystemMember declaringMember)
+    protected FieldDefinitionCollection(ITypeSystemMember declaringMember)
     {
         ArgumentNullException.ThrowIfNull(declaringMember);
         DeclaringMember = declaringMember;

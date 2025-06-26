@@ -138,7 +138,7 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
     /// </exception>
     public static void EnsureValidId(string operationId)
     {
-        if(!IsValidId(operationId))
+        if (!IsValidId(operationId))
         {
             throw new ArgumentException(
                 "Invalid operation id format.",
@@ -159,7 +159,7 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
     /// </returns>
     public static bool IsValidId(string operationId)
     {
-        if(operationId.Length == 0)
+        if (operationId.Length == 0)
         {
             return false;
         }
@@ -183,7 +183,7 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
 
     internal static bool IsValidId(ReadOnlySpan<byte> operationId)
     {
-        if(operationId.Length == 0)
+        if (operationId.Length == 0)
         {
             return false;
         }

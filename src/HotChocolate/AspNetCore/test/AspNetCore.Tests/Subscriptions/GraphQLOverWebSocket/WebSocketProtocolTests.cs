@@ -520,7 +520,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                     await webSocket.SendSubscribeAsync(i.ToString(), payload, ct);
                 }
 
-                while(diagnostics.Subscribed < 100)
+                while (diagnostics.Subscribed < 100)
                 {
                     await Task.Delay(10, ct);
                 }

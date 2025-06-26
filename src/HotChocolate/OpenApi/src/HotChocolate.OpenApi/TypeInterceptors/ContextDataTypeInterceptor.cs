@@ -1,7 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Mutable;
 using EnumTypeDefinition = HotChocolate.Types.Descriptors.Configurations.EnumTypeDefinition;
 using InterfaceTypeDefinition = HotChocolate.Types.Descriptors.Configurations.InterfaceTypeDefinition;

@@ -92,7 +92,7 @@ public class DirectiveDescriptorTests
         var descriptor = DirectiveTypeDescriptor.New(Context);
 
         // act
-        descriptor.Argument("arg").Type<BooleanType>(); ;
+        descriptor.Argument("arg").Type<BooleanType>();
 
         // assert
         var description = descriptor.CreateConfiguration();

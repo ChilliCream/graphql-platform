@@ -347,7 +347,7 @@ public class IntrospectionTests
                         }
                     }");
 
-            result.MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     private static Schema CreateSchema()

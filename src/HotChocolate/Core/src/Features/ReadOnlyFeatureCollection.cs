@@ -71,9 +71,9 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     /// <inheritdoc />
     public bool TryGet<TFeature>([NotNullWhen(true)] out TFeature? feature)
     {
-        if(_features.TryGetValue(typeof(TFeature), out var result))
+        if (_features.TryGetValue(typeof(TFeature), out var result))
         {
-            if(result is TFeature f)
+            if (result is TFeature f)
             {
                 feature = f;
                 return true;

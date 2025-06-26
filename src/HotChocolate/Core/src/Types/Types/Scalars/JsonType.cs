@@ -5,7 +5,6 @@ using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Properties;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
 

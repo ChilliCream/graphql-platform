@@ -193,7 +193,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetPeopleByPk GraphQL operation
     /// <code>
-    /// query GetPeopleByPk($id: uuid!) {
+    /// query GetPeopleByPk(
+    ///   $id: uuid!
+    /// ) {
     ///   people_by_pk(id: $id) {
     ///     __typename
     ///     id
@@ -349,7 +351,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetPeopleByPk GraphQL operation
     /// <code>
-    /// query GetPeopleByPk($id: uuid!) {
+    /// query GetPeopleByPk(
+    ///   $id: uuid!
+    /// ) {
     ///   people_by_pk(id: $id) {
     ///     __typename
     ///     id
@@ -447,7 +451,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetPeopleByPk GraphQL operation
     /// <code>
-    /// query GetPeopleByPk($id: uuid!) {
+    /// query GetPeopleByPk(
+    ///   $id: uuid!
+    /// ) {
     ///   people_by_pk(id: $id) {
     ///     __typename
     ///     id

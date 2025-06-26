@@ -41,7 +41,8 @@ public partial class EmailAddressType : RegexType
     public EmailAddressType()
         : this(
             WellKnownScalarTypes.EmailAddress,
-            ScalarResources.EmailAddressType_Description) { }
+            ScalarResources.EmailAddressType_Description)
+    { }
 
     /// <inheritdoc />
     protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)

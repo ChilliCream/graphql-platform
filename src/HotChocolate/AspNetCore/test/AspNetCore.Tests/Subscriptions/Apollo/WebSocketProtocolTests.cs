@@ -61,11 +61,14 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // arrange
             using var testServer = CreateStarWarsServer(
                 configureConventions: mapping => mapping.WithOptions(
-                    new GraphQLServerOptions { Sockets =
+                    new GraphQLServerOptions
                     {
-                        ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
-                        KeepAliveInterval = TimeSpan.FromMilliseconds(150)
-                    } }));
+                        Sockets =
+                        {
+                            ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
+                            KeepAliveInterval = TimeSpan.FromMilliseconds(150)
+                        }
+                    }));
             var client = CreateWebSocketClient(testServer);
 
             // act

@@ -1,7 +1,6 @@
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Features;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.ApolloFederation.FederationContextData;
 
 namespace HotChocolate.ApolloFederation.Types;
 

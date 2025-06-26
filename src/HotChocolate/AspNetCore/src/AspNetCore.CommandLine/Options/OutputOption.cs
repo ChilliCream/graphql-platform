@@ -3,7 +3,7 @@ using System.CommandLine;
 namespace HotChocolate.AspNetCore.CommandLine;
 
 /// <summary>
-/// A option for the schema command. The option is used to specify the path to the file
+/// An option for the schema command. The option is used to specify the path to the file
 /// </summary>
 internal sealed class OutputOption : Option<FileInfo?>
 {

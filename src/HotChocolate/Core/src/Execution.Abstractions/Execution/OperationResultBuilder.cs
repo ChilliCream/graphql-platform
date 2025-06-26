@@ -179,7 +179,7 @@ public sealed class OperationResultBuilder
 
         if (result.Errors is not null)
         {
-            builder._errors = [..result.Errors];
+            builder._errors = [.. result.Errors];
         }
 
         if (result.Extensions is OrderedDictionary<string, object?> ext)

@@ -12,7 +12,7 @@ public class SerializerResolver : ISerializerResolver
     /// Initializes a new <see cref="SerializerResolver"/>
     /// </summary>
     /// <param name="serializers">
-    /// A enumerable of <see cref="ISerializer"/> that shall be known to the resolver
+    /// An enumerable of <see cref="ISerializer"/> that shall be known to the resolver
     /// </param>
     /// <exception cref="ArgumentNullException">
     /// In case <paramref name="serializers" /> is <c>null</c>

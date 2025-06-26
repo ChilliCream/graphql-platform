@@ -23,7 +23,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
     private bool? _enableRelativeCursors;
 
     /// <summary>
-    /// Overrides the global paging options for the annotated  field.
+    /// Overrides the global paging options for the annotated field.
     /// </summary>
     /// <param name="order">
     /// The explicit order priority for this attribute.
@@ -149,13 +149,13 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
             }
 
             var beforeArg = definition.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal("before"));
-            if(beforeArg is not null)
+            if (beforeArg is not null)
             {
                 definition.Arguments.Remove(beforeArg);
             }
 
             var lastArg = definition.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal("last"));
-            if(lastArg is not null)
+            if (lastArg is not null)
             {
                 definition.Arguments.Remove(lastArg);
             }

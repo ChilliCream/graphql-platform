@@ -69,7 +69,7 @@ internal static class PathHelper
     private static Path CreatePath(Path? patchPath, object[] segments, int length)
     {
         var root = patchPath ?? Path.Root;
-        var path = root.Append((string) segments[length - 1]);
+        var path = root.Append((string)segments[length - 1]);
 
         if (length > 1)
         {

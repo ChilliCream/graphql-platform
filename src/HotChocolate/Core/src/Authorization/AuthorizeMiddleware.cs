@@ -1,6 +1,5 @@
 using HotChocolate.Resolvers;
 using static HotChocolate.Authorization.Properties.AuthCoreResources;
-using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Authorization;
 

@@ -39,7 +39,7 @@ public class CollectionSegment<T> : CollectionSegment
     /// </summary>
     public override void Accept(IPageObserver observer)
     {
-        if(Items.Count == 0)
+        if (Items.Count == 0)
         {
             ReadOnlySpan<T> empty = [];
             observer.OnAfterSliced(empty, Info);

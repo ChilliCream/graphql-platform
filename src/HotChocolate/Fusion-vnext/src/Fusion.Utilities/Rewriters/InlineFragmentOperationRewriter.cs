@@ -35,6 +35,7 @@ public sealed class InlineFragmentOperationRewriter(
         var newOperation = new OperationDefinitionNode(
             null,
             operation.Name,
+            operation.Description,
             operation.Operation,
             operation.VariableDefinitions,
             RewriteDirectives(operation.Directives),

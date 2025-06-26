@@ -171,6 +171,6 @@ public class TypeModuleSyntaxGeneratorTests
             internal class ATestBType: ObjectType<ATestB>;
             internal record ATestB(int Id);
             """
-        ], assemblyName:"Custom-Module").MatchMarkdownAsync();
+        ], assemblyName: "Custom-Module").MatchMarkdownAsync();
     }
 }

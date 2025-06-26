@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Fetching.Properties;
@@ -75,7 +74,7 @@ internal sealed class ExecutionDataLoaderScope(
                 return _serviceInspector;
             }
 
-            if(serviceType == typeof(IBatchScheduler))
+            if (serviceType == typeof(IBatchScheduler))
             {
                 return _batchScheduler;
             }

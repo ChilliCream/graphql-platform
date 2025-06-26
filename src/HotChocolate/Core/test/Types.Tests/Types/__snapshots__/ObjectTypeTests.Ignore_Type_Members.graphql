@@ -1,0 +1,12 @@
+schema {
+  query: Query
+}
+
+type Query {
+  someClass: SomeClass
+}
+
+type SomeClass {
+  something: Int!
+  somethingElse: Int!
+}

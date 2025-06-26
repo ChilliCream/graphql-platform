@@ -1,4 +1,3 @@
-using System;
 using Nuke.Common;
 using Semver;
 

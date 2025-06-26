@@ -50,8 +50,7 @@ public static class WebSocketClientFactoryServiceCollectionExtensions
     /// and providing the matching name.
     /// </para>
     /// <para>
-    /// Use <see cref="Microsoft.Extensions.Options.Options.DefaultName"/> as the name to configure the
-    /// default client.
+    /// Use <see cref="Options.Options.DefaultName"/> as the name to configure the default client.
     /// </para>
     /// </remarks>
     public static IWebSocketClientBuilder AddWebSocketClient(
@@ -91,8 +90,7 @@ public static class WebSocketClientFactoryServiceCollectionExtensions
     /// the matching name.
     /// </para>
     /// <para>
-    /// Use <see cref="Microsoft.Extensions.Options.Options.DefaultName"/> as the name to configure
-    /// the default client.
+    /// Use <see cref="Options.Options.DefaultName"/> as the name to configure the default client.
     /// </para>
     /// </remarks>
     public static IWebSocketClientBuilder AddWebSocketClient(
@@ -136,8 +134,7 @@ public static class WebSocketClientFactoryServiceCollectionExtensions
     /// the matching name.
     /// </para>
     /// <para>
-    /// Use <see cref="Microsoft.Extensions.Options.Options.DefaultName"/> as the name to configure
-    /// the default client.
+    /// Use <see cref="Options.Options.DefaultName"/> as the name to configure the default client.
     /// </para>
     /// </remarks>
     public static IWebSocketClientBuilder AddWebSocketClient(

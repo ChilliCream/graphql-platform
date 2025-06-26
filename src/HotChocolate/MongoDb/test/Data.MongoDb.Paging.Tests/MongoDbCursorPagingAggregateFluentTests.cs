@@ -13,7 +13,7 @@ namespace HotChocolate.Data.MongoDb.Paging;
 
 public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResource>
 {
-    private readonly List<Foo> foos =
+    private readonly List<Foo> _foos =
     [
         new Foo { Bar = "a" },
         new Foo { Bar = "b" },
@@ -248,7 +248,7 @@ public class MongoDbCursorPagingAggregateFluentTests : IClassFixture<MongoResour
                 {
                     descriptor
                         .Field("foos")
-                        .Resolve(BuildResolver(_resource, foos))
+                        .Resolve(BuildResolver(_resource, _foos))
                         .Type<ListType<ObjectType<Foo>>>()
                         .Use(
                             next => async context =>

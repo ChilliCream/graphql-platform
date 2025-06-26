@@ -1,8 +1,5 @@
 using System.Text;
 using HotChocolate;
-#if NET8_0
-using HotChocolate.Execution;
-#endif
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -276,7 +273,7 @@ public static class FragmentHelper
         ISet<string> implementedFields,
         Path path)
     {
-        // the fragment type is a complex type we will generate a interface with fields.
+        // the fragment type is a complex type we will generate an interface with fields.
         if (fragmentNode.Fragment.TypeCondition is IOutputTypeDefinition type &&
             type.IsCompositeType())
         {

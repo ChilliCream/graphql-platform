@@ -87,7 +87,7 @@ public class DurationTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "09:22:01:00.019" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "09:22:01:00.019" } })
                 .Build());
         Assert.Equal("9:22:11:00.019", result.ExpectOperationResult().Data!["test"]);
     }
@@ -98,7 +98,7 @@ public class DurationTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "09:22:01:00" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "09:22:01:00" } })
                 .Build());
         Assert.Equal("9:22:11:00", result.ExpectOperationResult().Data!["test"]);
     }
@@ -109,7 +109,7 @@ public class DurationTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "9:22:01:00" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "9:22:01:00" } })
                 .Build());
         Assert.Equal("9:22:11:00", result.ExpectOperationResult().Data!["test"]);
     }
@@ -120,7 +120,7 @@ public class DurationTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "-9:22:01:00" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "-9:22:01:00" } })
                 .Build());
         Assert.Equal("-9:21:51:00", result.ExpectOperationResult().Data!["test"]);
     }
@@ -131,7 +131,7 @@ public class DurationTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "+09:22:01:00" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "+09:22:01:00" } })
                 .Build());
         Assert.Null(result.ExpectOperationResult().Data);
         Assert.Single(result.ExpectOperationResult().Errors!);
@@ -143,7 +143,7 @@ public class DurationTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "9:26:01:00" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "9:26:01:00" } })
                 .Build());
         Assert.Null(result.ExpectOperationResult().Data);
         Assert.Single(result.ExpectOperationResult().Errors!);

@@ -205,7 +205,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test($input: Test!) {
+    /// query Test(
+    ///   $input: Test!
+    /// ) {
     ///   foo(input: $input)
     /// }
     /// </code>
@@ -286,7 +288,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test($input: Test!) {
+    /// query Test(
+    ///   $input: Test!
+    /// ) {
     ///   foo(input: $input)
     /// }
     /// </code>
@@ -393,7 +397,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test($input: Test!) {
+    /// query Test(
+    ///   $input: Test!
+    /// ) {
     ///   foo(input: $input)
     /// }
     /// </code>

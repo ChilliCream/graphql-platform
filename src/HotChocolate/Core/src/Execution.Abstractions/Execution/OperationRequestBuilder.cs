@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Language;
-using static HotChocolate.ExecutionAbstractionsResources;
 
 namespace HotChocolate.Execution;
 

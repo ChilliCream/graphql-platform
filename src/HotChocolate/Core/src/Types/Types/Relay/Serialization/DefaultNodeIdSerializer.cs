@@ -112,9 +112,9 @@ public sealed class DefaultNodeIdSerializer(
             span = span[..written];
 
             // make urls safe base64
-            if(urlSafeBase64)
+            if (urlSafeBase64)
             {
-                for(var i = 0; i < span.Length; i++)
+                for (var i = 0; i < span.Length; i++)
                 {
                     if (span[i] == '+')
                     {
@@ -179,7 +179,7 @@ public sealed class DefaultNodeIdSerializer(
 
         if (urlSafeBase64)
         {
-            for(var i = 0; i < span.Length; i++)
+            for (var i = 0; i < span.Length; i++)
             {
                 if (span[i] == (byte)'-')
                 {
@@ -271,7 +271,7 @@ public sealed class DefaultNodeIdSerializer(
 
         if (urlSafeBase64)
         {
-            for(var i = 0; i < span.Length; i++)
+            for (var i = 0; i < span.Length; i++)
             {
                 if (span[i] == (byte)'-')
                 {

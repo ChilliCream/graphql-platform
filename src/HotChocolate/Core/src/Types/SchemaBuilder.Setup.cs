@@ -499,44 +499,44 @@ public partial class SchemaBuilder
                 switch (reference)
                 {
                     case SchemaTypeReference str:
+                    {
+                        if (str.Type is not ObjectType ot)
                         {
-                            if (str.Type is not ObjectType ot)
-                            {
-                                Throw((ITypeDefinition)str.Type, operation);
-                            }
-
-                            return ot;
+                            Throw((ITypeDefinition)str.Type, operation);
                         }
+
+                        return ot;
+                    }
 
                     case ExtendedTypeReference cr when typeRegistry.TryGetType(cr, out var registeredType):
+                    {
+                        if (registeredType.Type is not ObjectType ot)
                         {
-                            if (registeredType.Type is not ObjectType ot)
-                            {
-                                Throw((ITypeDefinition)registeredType.Type, operation);
-                            }
-
-                            return ot;
+                            Throw((ITypeDefinition)registeredType.Type, operation);
                         }
+
+                        return ot;
+                    }
 
                     case SyntaxTypeReference str:
+                    {
+                        var namedType = str.Type.NamedType();
+                        var type = typeRegistry.Types
+                            .Select(t => t.Type)
+                            .FirstOrDefault(t => t.Name.EqualsOrdinal(namedType.Name.Value));
+
+                        if (type is null)
                         {
-                            var namedType = str.Type.NamedType();
-                            var type = typeRegistry.Types
-                                .Select(t => t.Type)
-                                .FirstOrDefault(t => t.Name.EqualsOrdinal(namedType.Name.Value));
-
-                            if (type is null)
-                            {
-                                return null;
-                            }
-
-                            if (type is not ObjectType ot)
-                            {
-                                Throw((ITypeDefinition)type, operation);
-                            }
-
-                            return ot;
+                            return null;
                         }
+
+                        if (type is not ObjectType ot)
+                        {
+                            Throw((ITypeDefinition)type, operation);
+                        }
+
+                        return ot;
+                    }
 
                     default:
                         return null;

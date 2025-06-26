@@ -15,7 +15,7 @@ public sealed class JsonLinesResultFormatterEventSource : EventSource
         Message = "Started formatting operation result.")]
     public OperationScope? FormatOperationResultStart()
     {
-        if(IsEnabled())
+        if (IsEnabled())
         {
             var correlationId = Guid.NewGuid();
             WriteEvent(1, correlationId);

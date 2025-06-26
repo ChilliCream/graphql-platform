@@ -30,7 +30,7 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if(completionContext.Type is ObjectType && configuration is ObjectTypeConfiguration typeDef)
+        if (completionContext.Type is ObjectType && configuration is ObjectTypeConfiguration typeDef)
         {
             _objectTypeConfigurations.Add(typeDef);
         }

@@ -605,7 +605,7 @@ public sealed partial class OperationCompiler
                     fragmentName));
         }
 
-        EXIT:
+EXIT:
         return value;
     }
 

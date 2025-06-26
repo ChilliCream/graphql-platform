@@ -115,13 +115,13 @@ public class SQLitePersistence : IDisposable
             .Watch()
             .Subscribe(
                 onNext: update => _queue.Writer.TryWrite(update),
-                onCompleted: () => _cts.Cancel());
+                onCompleted: _cts.Cancel);
 
         _operationStoreSubscription = _storeAccessor.OperationStore
             .Watch()
             .Subscribe(
                 onNext: update => _queue.Writer.TryWrite(update),
-                onCompleted: () => _cts.Cancel());
+                onCompleted: _cts.Cancel);
 
         Task.Run(async () => await WriteAsync(_cts.Token).ConfigureAwait(false));
     }

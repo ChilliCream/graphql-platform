@@ -21,9 +21,9 @@ internal sealed class FusionImplementsMutableDirectiveDefinition : MutableDirect
 
         Arguments.Add(
             new MutableInputFieldDefinition(Schema, new NonNullType(schemaMutableEnumType))
-        {
-            Description = FusionImplementsMutableDirectiveDefinition_Argument_Schema_Description
-        });
+            {
+                Description = FusionImplementsMutableDirectiveDefinition_Argument_Schema_Description
+            });
 
         Arguments.Add(new MutableInputFieldDefinition(Interface, new NonNullType(stringType))
         {

@@ -7,7 +7,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static partial class RequestExecutorBuilderExtensions
 {
     /// <summary>
-    /// Adds a initializer to copy state between a request scoped service instance and
+    /// Adds an initializer to copy state between a request scoped service instance and
     /// a resolver scoped service instance.
     /// </summary>
     /// <param name="builder">

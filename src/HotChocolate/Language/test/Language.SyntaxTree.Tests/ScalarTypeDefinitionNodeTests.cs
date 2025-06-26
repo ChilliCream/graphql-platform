@@ -1,4 +1,3 @@
-using Xunit;
 using static HotChocolate.Language.SyntaxTree.TestLocations;
 
 namespace HotChocolate.Language.SyntaxTree;

@@ -243,7 +243,7 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
 
-                var resolverMember =  d.Member;
+                var resolverMember = d.Member;
                 d.Type = CreateTypeRef(c, resolverMember, collectionSegmentName, typeRef, options);
             });
 
