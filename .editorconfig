@@ -212,6 +212,10 @@ dotnet_diagnostic.IDE0055.severity = warning
 dotnet_diagnostic.IDE0057.severity = warning
 # Use compound assignment.
 dotnet_diagnostic.IDE0074.severity = warning
+# Remove unnecessary suppression.
+dotnet_diagnostic.IDE0079.severity = warning
+# See https://github.com/dotnet/roslyn/issues/75887
+dotnet_remove_unnecessary_suppression_exclusions = CA1822, InconsistentNaming, RCS1102, xUnit1044
 # Use pattern matching (not operator).
 dotnet_diagnostic.IDE0083.severity = warning
 # Use collection expression for array.

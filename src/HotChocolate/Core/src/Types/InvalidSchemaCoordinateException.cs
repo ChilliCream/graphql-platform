@@ -7,7 +7,6 @@ namespace HotChocolate;
 /// <see cref="Coordinate"/>
 /// could not be resolved.
 /// </summary>
-#pragma warning disable RCS1194
 public class InvalidSchemaCoordinateException : Exception
 {
     /// <summary>
@@ -27,4 +26,3 @@ public class InvalidSchemaCoordinateException : Exception
     /// <value></value>
     public SchemaCoordinate Coordinate { get; }
 }
-#pragma warning restore RCS1194

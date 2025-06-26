@@ -11,9 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers;
 
-#pragma warning disable RS1041
 [Generator]
-#pragma warning restore RS1041
 public class GraphQLServerGenerator : IIncrementalGenerator
 {
     private static readonly ISyntaxInspector[] s_allInspectors =
