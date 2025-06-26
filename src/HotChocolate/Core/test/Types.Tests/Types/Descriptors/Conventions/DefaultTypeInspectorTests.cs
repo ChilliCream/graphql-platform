@@ -649,7 +649,7 @@ public class DefaultTypeInspectorTests
     {
         public object ShouldNotBeFound { get; }
 
-        [SomeAttribute]
+        [Some]
         public object ShouldBeFound { get; }
     }
 
@@ -671,7 +671,7 @@ public class DefaultTypeInspectorTests
     {
         public object ShouldNotBeFound() => null;
 
-        [SomeAttribute]
+        [Some]
         public object ShouldBeFound() => null;
     }
 
@@ -723,7 +723,7 @@ public class DefaultTypeInspectorTests
     {
         public ValueTask<object> ShouldNotBeFound() => default;
 
-        [SomeAttribute]
+        [Some]
         public ValueTask<object> ShouldBeFound() => default;
     }
 

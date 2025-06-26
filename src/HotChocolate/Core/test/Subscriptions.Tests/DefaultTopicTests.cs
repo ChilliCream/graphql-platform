@@ -64,7 +64,7 @@ public class DefaultTopicTests(ITestOutputHelper outputHelper)
         {
             protected override ValueTask<IDisposable> OnConnectAsync(CancellationToken cancellationToken)
             {
-                return ValueTask.FromResult<IDisposable>(session);
+                return ValueTask.FromResult(session);
             }
         }
     }

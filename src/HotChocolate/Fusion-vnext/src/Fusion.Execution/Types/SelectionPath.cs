@@ -85,7 +85,7 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     /// </param>
     /// <returns>
     /// A new <see cref="SelectionPath"/> representing the relative path,
-    /// or <see cref="SelectionPath.Root"/> if both paths are identical.
+    /// or <see cref="Root"/> if both paths are identical.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// Thrown if <paramref name="basePath"/> is <c>null</c>.

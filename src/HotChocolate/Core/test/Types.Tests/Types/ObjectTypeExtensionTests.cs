@@ -921,7 +921,7 @@ public class ObjectTypeExtensionTests
     [ExtendObjectType(typeof(BindResolver_With_Property_PersonDto))]
     public class BindResolver_With_Field_PersonResolvers
     {
-        [BindFieldAttribute("friendId")]
+        [BindField("friendId")]
         public List<BindResolver_With_Property_PersonDto?> Friends() => [];
     }
 

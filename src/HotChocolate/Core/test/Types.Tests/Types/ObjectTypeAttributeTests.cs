@@ -41,8 +41,7 @@ public class ObjectTypeAttributeTests
     {
         // act
         var schema = SchemaBuilder.New()
-            .AddQueryType<Object2>(d =>
-                d.Field<string>(t => t.GetField()).Name("foo"))
+            .AddQueryType<Object2>(d => d.Field(t => t.GetField()).Name("foo"))
             .Create();
 
         // assert
@@ -183,7 +182,7 @@ public class ObjectTypeAttributeTests
             IObjectTypeDescriptor descriptor,
             Type type)
         {
-            descriptor.Field("abc").Resolve<string>("def");
+            descriptor.Field("abc").Resolve("def");
         }
     }
 

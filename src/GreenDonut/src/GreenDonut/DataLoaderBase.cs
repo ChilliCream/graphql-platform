@@ -358,7 +358,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
                     var context = new DataLoaderFetchContext<TValue>(ContextData);
                     await FetchAsync(batch.Keys, buffer, context, cancellationToken).ConfigureAwait(false);
                     BatchOperationSucceeded(batch, batch.Keys, buffer);
-                    _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, buffer);
+                    _diagnosticEvents.BatchResults(batch.Keys, buffer);
                 }
                 catch (Exception ex)
                 {

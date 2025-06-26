@@ -150,7 +150,7 @@ public class ResolverContextStateExtensionTests
 
         var context = mock.Object;
 
-        var state = context.GetOrSetGlobalState<int>("key", key => 1);
+        var state = context.GetOrSetGlobalState("key", key => 1);
 
         Assert.Equal(1, state);
         context.ContextData.MatchSnapshot();
@@ -169,7 +169,7 @@ public class ResolverContextStateExtensionTests
 
         var context = mock.Object;
 
-        var state = context.GetOrSetGlobalState<int>("key", key => 1);
+        var state = context.GetOrSetGlobalState("key", key => 1);
 
         Assert.Equal(1, state);
         context.ContextData.MatchSnapshot();
@@ -188,7 +188,7 @@ public class ResolverContextStateExtensionTests
 
         var context = mock.Object;
 
-        var state = context.GetOrSetGlobalState<int>("key", key => 1);
+        var state = context.GetOrSetGlobalState("key", key => 1);
 
         Assert.Equal(2, state);
         context.ContextData.MatchSnapshot();
@@ -311,7 +311,7 @@ public class ResolverContextStateExtensionTests
         var context = mock.Object;
         context.ScopedContextData = ImmutableDictionary<string, object?>.Empty;
 
-        var state = context.GetOrSetScopedState<int>("key", key => 1);
+        var state = context.GetOrSetScopedState("key", key => 1);
 
         Assert.Equal(1, state);
         context.ScopedContextData.MatchSnapshot();
@@ -329,7 +329,7 @@ public class ResolverContextStateExtensionTests
             {"key", "value"}
         }.ToImmutableDictionary();
 
-        var state = context.GetOrSetScopedState<int>("key", key => 1);
+        var state = context.GetOrSetScopedState("key", key => 1);
 
         Assert.Equal(1, state);
         context.ScopedContextData.MatchSnapshot();
@@ -347,7 +347,7 @@ public class ResolverContextStateExtensionTests
             {"key", 2}
         }.ToImmutableDictionary();
 
-        var state = context.GetOrSetScopedState<int>("key", key => 1);
+        var state = context.GetOrSetScopedState("key", key => 1);
 
         Assert.Equal(2, state);
         context.ScopedContextData.MatchSnapshot();
@@ -502,7 +502,7 @@ public class ResolverContextStateExtensionTests
         var context = mock.Object;
         context.LocalContextData = ImmutableDictionary<string, object?>.Empty;
 
-        var state = context.GetOrSetLocalState<int>("key", key => 1);
+        var state = context.GetOrSetLocalState("key", key => 1);
 
         Assert.Equal(1, state);
         context.LocalContextData.MatchSnapshot();
@@ -520,7 +520,7 @@ public class ResolverContextStateExtensionTests
             { "key", "value" }
         }.ToImmutableDictionary();
 
-        var state = context.GetOrSetLocalState<int>("key", key => 1);
+        var state = context.GetOrSetLocalState("key", key => 1);
 
         Assert.Equal(1, state);
         context.LocalContextData.MatchSnapshot();
@@ -538,7 +538,7 @@ public class ResolverContextStateExtensionTests
             { "key", 2 }
         }.ToImmutableDictionary();
 
-        var state = context.GetOrSetLocalState<int>("key", key => 1);
+        var state = context.GetOrSetLocalState("key", key => 1);
 
         Assert.Equal(2, state);
         context.LocalContextData.MatchSnapshot();

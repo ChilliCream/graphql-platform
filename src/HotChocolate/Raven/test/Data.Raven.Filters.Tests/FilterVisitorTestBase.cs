@@ -34,7 +34,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         var resolver = BuildResolver(documentStore, entities);
 
         var builder = new ServiceCollection()
-            .AddSingleton<IDocumentStore>(documentStore)
+            .AddSingleton(documentStore)
             .AddGraphQLServer()
             .AddRavenFiltering()
             .AddRavenPagingProviders()

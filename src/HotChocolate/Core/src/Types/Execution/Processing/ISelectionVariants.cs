@@ -44,7 +44,7 @@ public interface ISelectionVariants
     /// <returns>
     /// Returns the selection set for the specified field return type.
     /// </returns>
-    /// <exception cref="System.ArgumentException">
+    /// <exception cref="ArgumentException">
     /// Invalid field return type.
     /// </exception>
     ISelectionSet GetSelectionSet(ObjectType typeContext);
