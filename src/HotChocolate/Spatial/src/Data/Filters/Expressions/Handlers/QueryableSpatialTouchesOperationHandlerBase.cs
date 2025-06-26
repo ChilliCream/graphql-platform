@@ -15,7 +15,7 @@ public abstract class QueryableSpatialTouchesOperationHandlerBase
     private static readonly MethodInfo s_touches =
         typeof(Geometry).GetMethod(nameof(Geometry.Touches))!;
 
-    public QueryableSpatialTouchesOperationHandlerBase(
+    protected QueryableSpatialTouchesOperationHandlerBase(
         IFilterConvention convention,
         ITypeInspector inspector,
         InputParser inputParser)

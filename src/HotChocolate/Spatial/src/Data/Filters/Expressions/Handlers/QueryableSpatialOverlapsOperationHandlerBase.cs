@@ -15,7 +15,7 @@ public abstract class QueryableSpatialOverlapsOperationHandlerBase
     private static readonly MethodInfo s_overlap =
         typeof(Geometry).GetMethod(nameof(Geometry.Overlaps))!;
 
-    public QueryableSpatialOverlapsOperationHandlerBase(
+    protected QueryableSpatialOverlapsOperationHandlerBase(
         IFilterConvention convention,
         ITypeInspector inspector,
         InputParser inputParser)
