@@ -99,7 +99,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             GenerateClientForProfile(settings, factory, descriptor, profile);
         }
 
-        factory.AddClass(s_clientServiceProvider);
+        factory.AddClass(ClientServiceProvider);
 
         factory.Build(writer);
     }
@@ -900,7 +900,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                             .AddArgument(Sp)))));
     }
 
-    private static readonly string s_clientServiceProvider =
+    private const string ClientServiceProvider =
         @"private sealed class ClientServiceProvider
                 : System.IServiceProvider
                 , System.IDisposable

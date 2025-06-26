@@ -216,6 +216,8 @@ dotnet_diagnostic.RCS0063.severity = warning
 dotnet_diagnostic.RCS1036.severity = none # see https://github.com/dotnet/roslynator/issues/1632
 # Remove redundant 'ToString' call.
 dotnet_diagnostic.RCS1097.severity = warning
+# Use constant instead of field.
+dotnet_diagnostic.RCS1187.severity = warning
 # Convert interpolated string to concatenation.
 dotnet_diagnostic.RCS1217.severity = warning
 # Unnecessary null-forgiving operator.
