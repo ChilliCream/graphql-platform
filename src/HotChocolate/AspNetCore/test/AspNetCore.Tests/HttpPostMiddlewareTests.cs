@@ -990,12 +990,14 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
+                """
+                Headers:
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: OK
                 -------------------------->
-                {""data"":{""__schema"":{}}}");
+                {"data":{"__schema":{}}}
+                """);
     }
 
     [Fact]

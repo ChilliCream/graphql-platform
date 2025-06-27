@@ -176,14 +176,14 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
             _buffer[i] = null!;
         }
 
-    #if NET9_0_OR_GREATER
+#if NET9_0_OR_GREATER
         _fieldMap.Clear();
         return base.Reset() && _fieldMap.Capacity <= 512;
-    #else
+#else
         var retainResult = _fieldMap.Count <= 512;
         _fieldMap.Clear();
         return base.Reset() && retainResult;
-    #endif
+#endif
     }
 
     object? IReadOnlyDictionary<string, object?>.this[string key]

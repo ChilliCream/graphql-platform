@@ -11,7 +11,6 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
 {
     private readonly object _sync = new();
     private readonly ConcurrentDictionary<(string Name, OperationType Type), ISourceSchemaClient> _clients = [];
-    private readonly FusionSchemaDefinition _schemaDefinition;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly SourceSchemaClientConfigurations _configurations;
     private readonly Cache<string> _operationStringCache;
@@ -26,7 +25,6 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
         ArgumentNullException.ThrowIfNull(httpClientFactory);
         ArgumentNullException.ThrowIfNull(operationStringCache);
 
-        _schemaDefinition = schemaDefinition;
         _httpClientFactory = httpClientFactory;
         _configurations = schemaDefinition.Features.GetRequired<SourceSchemaClientConfigurations>();
         _operationStringCache = operationStringCache;

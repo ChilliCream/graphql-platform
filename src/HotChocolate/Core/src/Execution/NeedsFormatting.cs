@@ -36,11 +36,11 @@ internal abstract class NeedsFormatting : IResultDataJsonFormatter
         Utf8JsonWriter writer,
         JsonSerializerOptions? options,
         JsonNullIgnoreCondition nullIgnoreCondition)
-    #if NET9_0_OR_GREATER
+#if NET9_0_OR_GREATER
         => FormatValue(writer, options ?? JsonSerializerOptions.Web, nullIgnoreCondition);
-    #else
+#else
         => FormatValue(writer, options ?? JsonSerializerOptions.Default, nullIgnoreCondition);
-    #endif
+#endif
 }
 
 /// <summary>

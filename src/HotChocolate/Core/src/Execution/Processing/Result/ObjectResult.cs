@@ -165,26 +165,29 @@ public sealed class ObjectResult
 
         while (Unsafe.IsAddressLessThan(ref field, ref end))
         {
-            switch (field.Value)
+            if (field.IsInitialized)
             {
-                case null:
-                    if ((nullIgnoreCondition & JsonNullIgnoreCondition.Fields) == JsonNullIgnoreCondition.Fields)
-                    {
-                        continue;
-                    }
+                switch (field.Value)
+                {
+                    case null:
+                        if ((nullIgnoreCondition & JsonNullIgnoreCondition.Fields) == JsonNullIgnoreCondition.Fields)
+                        {
+                            break;
+                        }
 
-                    writer.WriteNull(field.Name);
-                    break;
+                        writer.WriteNull(field.Name);
+                        break;
 
-                case ResultData resultData:
-                    writer.WritePropertyName(field.Name);
-                    resultData.WriteTo(writer, options, nullIgnoreCondition);
-                    break;
+                    case ResultData resultData:
+                        writer.WritePropertyName(field.Name);
+                        resultData.WriteTo(writer, options, nullIgnoreCondition);
+                        break;
 
-                default:
-                    writer.WritePropertyName(field.Name);
-                    JsonValueFormatter.WriteValue(writer, field.Value, options, nullIgnoreCondition);
-                    break;
+                    default:
+                        writer.WritePropertyName(field.Name);
+                        JsonValueFormatter.WriteValue(writer, field.Value, options, nullIgnoreCondition);
+                        break;
+                }
             }
 
             field = ref Unsafe.Add(ref field, 1)!;

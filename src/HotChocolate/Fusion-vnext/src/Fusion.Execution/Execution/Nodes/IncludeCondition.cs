@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography.X509Certificates;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 

@@ -404,7 +404,9 @@ public class InlineFragmentOperationRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query($skip: Boolean!) {
+            query(
+              $skip: Boolean!
+              ) {
               productById(id: 1) {
                 id @skip(if: $skip)
                 description

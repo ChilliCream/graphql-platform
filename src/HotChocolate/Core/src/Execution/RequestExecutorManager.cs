@@ -156,7 +156,7 @@ internal sealed partial class RequestExecutorManager
 
         var context = new ConfigurationContext(
             schemaName,
-            setup.SchemaBuilder ?? new SchemaBuilder(),
+            setup.SchemaBuilder ?? SchemaBuilder.New(),
             _applicationServices);
 
         var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, context.SchemaName);

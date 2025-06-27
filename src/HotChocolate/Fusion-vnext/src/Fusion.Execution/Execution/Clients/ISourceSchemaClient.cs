@@ -1,5 +1,3 @@
-using HotChocolate.Execution;
-
 namespace HotChocolate.Fusion.Execution.Clients;
 
 public interface ISourceSchemaClient : IAsyncDisposable

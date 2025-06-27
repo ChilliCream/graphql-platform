@@ -9,7 +9,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddQueryTypeDesc_ConfigureIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -35,7 +35,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddQueryTypeDesc_ConfigureQueryType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         SchemaBuilderExtensions.AddQueryType(builder,
@@ -49,7 +49,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddMutationTypeDesc_ConfigureIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -75,7 +75,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddMutationTypeDesc_ConfigureQueryType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -90,7 +90,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddSubscriptionTypeDesc_ConfigureIsNull_ArgNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -116,7 +116,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddSubscriptionTypeDesc_ConfigureQueryType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -131,7 +131,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddQueryTypeDescT_ConfigureIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -158,7 +158,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddQueryTypeDescT_ConfigureQueryType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         SchemaBuilderExtensions.AddQueryType<Foo>(builder,
@@ -172,7 +172,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddMutationTypeDescT_ConfigureIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -199,7 +199,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddMutationTypeDescT_ConfigureQueryType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -214,7 +214,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddSubscriptionTypeDescT_ConfigureIsNull_ArgNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -241,7 +241,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddSubscriptionTypeDescT_ConfQueryType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -256,7 +256,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddQueryTypeType_TypeIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -282,7 +282,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddQueryTypeType_TypeIsFooType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         SchemaBuilderExtensions.AddQueryType(builder, typeof(FooType));
@@ -295,7 +295,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddMutationTypeType_TypeIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -321,7 +321,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddMutationTypeType_TypeIsFooType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -335,7 +335,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddSubscriptionTypeType_TypeIsNull_ArgNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -361,7 +361,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddSubscriptionTypeType_TypeIsFooType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -376,7 +376,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddQueryTypeObjectType_TypeIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -402,7 +402,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddQueryTypeObjectType_TypeIsFooType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         SchemaBuilderExtensions.AddQueryType(builder, new FooType());
@@ -415,7 +415,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddMutationTypeObjectType_TypeIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -441,7 +441,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddMutationTypeObjectType_TypeIsFooType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -455,7 +455,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddSubscriptionTypeObjectType_TypeIsNull_ArgNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -481,7 +481,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddSubscriptionTypeObjType_TypeIsFooType_SchemaIsCreated()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act
@@ -496,7 +496,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void SetSchema_BuilderIsNull_ArgumentException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () =>
@@ -607,7 +607,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddDirectiveType_TypeIsNull_ArgumentNullException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () =>
@@ -621,7 +621,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddDirectiveType_TypeIsDirectiveType_ArgumentException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () =>
@@ -636,7 +636,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddDirectiveType_TypeIsDirectiveTypeFoo_ArgumentException()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () =>
@@ -651,7 +651,7 @@ public class SchemaBuilderExtensionsTypeTests
     public void AddDirectiveType_TypeIsMyDirectiveType_SchemaIsValid()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddQueryType<QueryType>();
 
         // act

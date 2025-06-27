@@ -19,7 +19,7 @@ internal sealed class FetchResultStore : IDisposable
     private readonly Operation _operation;
     private readonly ObjectResult _root;
     private readonly ulong _includeFlags;
-    private ImmutableArray<IError> _errors = ImmutableArray<IError>.Empty;
+    private readonly ImmutableArray<IError> _errors = [];
     private bool _isInitialized;
 
     public FetchResultStore(
