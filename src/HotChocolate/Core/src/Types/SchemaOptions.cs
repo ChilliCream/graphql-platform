@@ -137,6 +137,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.PublishRootFieldPagesToPromiseCache"/>
     public bool PublishRootFieldPagesToPromiseCache { get; set; } = true;
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ErrorOnAspNetCoreAuthorizationAttributes"/>
+    public bool ErrorOnAspNetCoreAuthorizationAttributes { get; set; } = true;
+
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
@@ -175,7 +178,8 @@ public class SchemaOptions : IReadOnlySchemaOptions
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
-            DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope
+            DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
+            ErrorOnAspNetCoreAuthorizationAttributes = options.ErrorOnAspNetCoreAuthorizationAttributes
         };
     }
 }
