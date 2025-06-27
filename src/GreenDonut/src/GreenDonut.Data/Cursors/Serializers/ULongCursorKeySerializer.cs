@@ -1,16 +1,18 @@
 using System.Buffers.Text;
-using System.Reflection;
 
 namespace GreenDonut.Data.Cursors.Serializers;
 
 internal sealed class ULongCursorKeySerializer : ICursorKeySerializer
 {
-    private static readonly MethodInfo s_compareTo = CompareToResolver.GetCompareToMethod<ulong>();
+    private static readonly CursorKeyCompareMethod s_compareTo = CompareToResolver.GetCompareToMethod<ulong>();
 
     public bool IsSupported(Type type)
-        => type == typeof(ulong);
+        => type == typeof(ulong) || type == typeof(ulong?);
 
-    public MethodInfo GetCompareToMethod(Type type)
+    public bool IsNullable(Type type)
+        => type == typeof(ulong?);
+
+    public CursorKeyCompareMethod GetCompareToMethod(Type type)
         => s_compareTo;
 
     public object Parse(ReadOnlySpan<byte> formattedKey)

@@ -14,7 +14,7 @@ public sealed class Page<T> : IEnumerable<T>
     private readonly ImmutableArray<T> _items;
     private readonly bool _hasNextPage;
     private readonly bool _hasPreviousPage;
-    private readonly Func<T, int, int, int, string> _createCursor;
+    private readonly Func<T, bool, int, int, int, string> _createCursor;
     private readonly int? _requestedPageSize;
     private readonly int? _index;
     private readonly int? _totalCount;
@@ -47,7 +47,7 @@ public sealed class Page<T> : IEnumerable<T>
         _items = items;
         _hasNextPage = hasNextPage;
         _hasPreviousPage = hasPreviousPage;
-        _createCursor = (item, _, _, _) => createCursor(item);
+        _createCursor = (item, _, _, _, _) => createCursor(item);
         _totalCount = totalCount;
     }
 
@@ -79,7 +79,7 @@ public sealed class Page<T> : IEnumerable<T>
         ImmutableArray<T> items,
         bool hasNextPage,
         bool hasPreviousPage,
-        Func<T, int, int, int, string> createCursor,
+        Func<T, bool, int, int, int, string> createCursor,
         int index,
         int requestedPageSize,
         int totalCount)
@@ -144,7 +144,7 @@ public sealed class Page<T> : IEnumerable<T>
     /// <returns>
     /// Returns a cursor for the item.
     /// </returns>
-    public string CreateCursor(T item) => _createCursor(item, 0, 0, 0);
+    public string CreateCursor(T item) => _createCursor(item, false, 0, 0, 0);
 
     public string CreateCursor(T item, int offset)
     {
@@ -153,7 +153,7 @@ public sealed class Page<T> : IEnumerable<T>
             throw new InvalidOperationException("This page does not allow relative cursors.");
         }
 
-        return _createCursor(item, offset, _index ?? 1, _totalCount ?? 0);
+        return _createCursor(item, false, offset, _index ?? 1, _totalCount ?? 0);
     }
 
     /// <summary>

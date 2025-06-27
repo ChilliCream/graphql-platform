@@ -1,16 +1,18 @@
 using System.Buffers.Text;
-using System.Reflection;
 
 namespace GreenDonut.Data.Cursors.Serializers;
 
 internal sealed class DecimalCursorKeySerializer : ICursorKeySerializer
 {
-    private static readonly MethodInfo s_compareTo = CompareToResolver.GetCompareToMethod<decimal>();
+    private static readonly CursorKeyCompareMethod s_compareTo = CompareToResolver.GetCompareToMethod<decimal>();
 
     public bool IsSupported(Type type)
-        => type == typeof(decimal);
+        => type == typeof(decimal) || type == typeof(decimal?);
 
-    public MethodInfo GetCompareToMethod(Type type)
+    public bool IsNullable(Type type)
+        => type == typeof(decimal?);
+
+    public CursorKeyCompareMethod GetCompareToMethod(Type type)
         => s_compareTo;
 
     public object Parse(ReadOnlySpan<byte> formattedKey)

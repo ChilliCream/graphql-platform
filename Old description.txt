@@ -1,0 +1,50 @@
+## 🧭 Paging Cursor Enhancements: Nullable Keys and Null Ordering Support
+
+### Summary
+
+This PR introduces enhancements to the paging logic to correctly handle sorting and filtering when cursor keys are nullable. The main change is that the `WHERE` condition used in pagination must now adapt based on **three factors**:
+
+1. Whether the **cursor key** is nullable.
+2. Whether the **actual cursor value** is `null` or not.
+3. Whether the **database** sorts `null` values **first** or **last**.
+
+---
+
+### 🔍 Why This Is Needed
+
+When performing cursor-based pagination on fields that can be `null`, it's essential to construct the `WHERE` clause correctly. Incorrect assumptions about `null` ordering or the presence of `null` values can result in missing or duplicated records across pages.
+
+---
+
+### 🔧 Implementation Details
+
+To support this behavior, the following changes were made:
+
+- **Cursor Key Metadata**
+  - Cursor keys now include a new property (`IsNullable`) to indicate whether they are nullable.
+
+- **Null Ordering in Cursor**
+  - Cursors now carry a `NullsFirst` flag to indicate how `null` values are ordered.
+  - For subsequent pages, this flag is **inherited** from the previous cursor.
+  - For the **first(last) page**, the flag is **calculated** based on whether the **first(last) item** contains a `null` value:
+    - If a `null` is found → we can determine the null ordering: nulls first(nulls last).
+    - If not → we assume the opposite ordering.
+      - If this assumption is incorrect, it does **not affect correctness**, because it implies there are **no `null` values** in the dataset, making null ordering irrelevant.
+
+> The concept of handling nullable types in relative cursor-based pagination is inspired by [[this StackOverflow discussion](https://stackoverflow.com/questions/68971695/cursor-pagination-prev-next-with-null-values)].
+
+---
+
+### ✅ Benefits
+
+- Correct pagination over nullable fields.
+- Eliminates edge cases where `null` records might be skipped or duplicated.
+- Supports both `nulls first` and `nulls last` configurations in the database.
+
+---
+
+### ⚠️ Side Effects / Limitations
+
+If our assumption about null ordering is incorrect, **secondary ordering keys** may appear to be sorted in reverse (opposite to the database's actual null handling behavior), particularly when paginating **backward from the last page**.
+
+This only affects the **visual or logical order** of `null` values relative to each other and **does not break pagination**—all items will still be included in the correct pages.

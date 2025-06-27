@@ -83,6 +83,43 @@ public class CursorFormatterTests
     }
 
     [Fact]
+    public void Format_And_Parse_Two_Keys_With_PageInfo()
+    {
+        // arrange
+        var entity = new MyClass { Name = "test:345", Description = null };
+        Expression<Func<MyClass, object?>> selector1 = x => x.Name;
+        Expression<Func<MyClass, object?>> selector2 = x => x.Description;
+        var serializer = new StringCursorKeySerializer();
+        var expectedNullsFirst = true;
+        var expectedOffset = 12;
+        var expectedPageIndex = 1;
+        var expectedTotalCount = 20;
+
+        // act
+        var formatted = CursorFormatter.Format(
+            entity,
+            [
+                new CursorKey(selector1, serializer),
+                new CursorKey(selector2, serializer)
+            ],
+            new CursorPageInfo(expectedNullsFirst, expectedOffset, expectedPageIndex, expectedTotalCount));
+        var parsed = CursorParser.Parse(
+            formatted,
+            [
+                new CursorKey(selector1, serializer),
+                new CursorKey(selector2, serializer)
+            ]);
+
+        // assert
+        Assert.Equal(expectedNullsFirst, parsed.NullsFirst);
+        Assert.Equal(expectedOffset, parsed.Offset);
+        Assert.Equal(expectedPageIndex, parsed.PageIndex);
+        Assert.Equal(expectedTotalCount, parsed.TotalCount);
+        Assert.Equal("test:345", parsed.Values[0]);
+        Assert.Null(parsed.Values[1]);
+    }
+
+    [Fact]
     public void Format_And_Parse_Two_Keys_With_Colon()
     {
         // arrange
