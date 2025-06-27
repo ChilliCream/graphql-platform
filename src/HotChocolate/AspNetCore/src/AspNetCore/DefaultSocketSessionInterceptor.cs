@@ -30,7 +30,6 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
         requestBuilder.Features.Set(context.User);
         requestBuilder.Features.Set(serviceScopeFactory);
 
-        requestBuilder.TryAddGlobalState(nameof(CancellationToken), session.Connection.RequestAborted);
         requestBuilder.TryAddGlobalState(nameof(HttpContext), context);
         requestBuilder.TryAddGlobalState(nameof(ISocketSession), session);
         requestBuilder.TryAddGlobalState(OperationSessionId, operationSessionId);
