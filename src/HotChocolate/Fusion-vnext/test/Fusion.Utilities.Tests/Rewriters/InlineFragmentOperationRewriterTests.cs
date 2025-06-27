@@ -201,6 +201,41 @@ public class InlineFragmentOperationRewriterTests
     }
 
     [Fact]
+    public void Remove_Statically_Excluded_Fragment()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    id
+                    ... @include(if: false) {
+                        id
+                        name
+                    }
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(schemaDefinition, true);
+        var rewritten = rewriter.RewriteDocument(doc, null);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public void Deduplicate_Fields()
     {
         // arrange
@@ -234,6 +269,147 @@ public class InlineFragmentOperationRewriterTests
               productById(id: 1) {
                 id
                 name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Remove_Statically_Included_Fragment_Spread()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    ... Product @skip(if: true)
+                    name
+                }
+            }
+
+            fragment Product on Product {
+                id
+                name
+                name
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(schemaDefinition, true);
+        var rewritten = rewriter.RewriteDocument(doc, null);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Remove_Statically_Excluded_Field()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    id
+                    ... {
+                        id
+                        name @include(if: false)
+                    }
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(schemaDefinition, true);
+        var rewritten = rewriter.RewriteDocument(doc, null);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Remove_Statically_Excluded_Field_2()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    id @include(if: false)
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(schemaDefinition, true);
+        var rewritten = rewriter.RewriteDocument(doc, null);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                __typename @fusion_internal
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Remove_Statically_Included_Skip_Included()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+                productById(id: 1) {
+                    id @skip(if: $skip) @include(if: true)
+                    name @include(if: false)
+                    description @include(if: true)
+                    description @skip(if: false)
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(schemaDefinition, true);
+        var rewritten = rewriter.RewriteDocument(doc, null);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            query(
+              $skip: Boolean!
+              ) {
+              productById(id: 1) {
+                id @skip(if: $skip)
+                description
               }
             }
             """);

@@ -8,13 +8,27 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
-public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
+public sealed partial class OperationPlanner
 {
-    private readonly MergeSelectionSetRewriter _mergeRewriter = new(schema);
-    private readonly SelectionSetPartitioner _partitioner = new(schema);
+    private readonly FusionSchemaDefinition _schema;
+    private readonly OperationCompiler _operationCompiler;
+    private readonly MergeSelectionSetRewriter _mergeRewriter;
+    private readonly SelectionSetPartitioner _partitioner;
 
-    public OperationExecutionPlan CreatePlan(OperationDefinitionNode operationDefinition)
+    public OperationPlanner(FusionSchemaDefinition schema, OperationCompiler operationCompiler)
     {
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(operationCompiler);
+
+        _schema = schema;
+        _operationCompiler = operationCompiler;
+        _mergeRewriter = new(schema);
+        _partitioner = new(schema);
+    }
+
+    public OperationExecutionPlan CreatePlan(string id, OperationDefinitionNode operationDefinition)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(operationDefinition);
 
         // We first need to create an index to keep track of the logical selections
@@ -26,7 +40,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
         var selectionSet = new SelectionSet(
             index.GetId(operationDefinition.SelectionSet),
             operationDefinition.SelectionSet,
-            schema.GetOperationType(operationDefinition.Operation),
+            _schema.GetOperationType(operationDefinition.Operation),
             SelectionPath.Root);
 
         var workItem = OperationWorkItem.CreateRoot(selectionSet);
@@ -34,6 +48,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
         var node = new PlanNode
         {
             OperationDefinition = operationDefinition,
+            InternalOperationDefinition = operationDefinition,
             SchemaName = "None",
             SelectionSetIndex = index.ToImmutable(),
             Backlog = ImmutableStack<WorkItem>.Empty.Push(workItem),
@@ -41,7 +56,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
             BacklogCost = 1
         };
 
-        foreach (var (schemaName, resolutionCost) in schema.GetPossibleSchemas(selectionSet))
+        foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
         {
             possiblePlans.Enqueue(
                 node with
@@ -51,22 +66,19 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
                 });
         }
 
-        var planSteps = Plan(possiblePlans);
-
-        if (planSteps.IsEmpty)
-        {
-            // if we do not get back any plan steps than there is no solution to the provided operation.
-            throw new InvalidOperationException("The operation cannot be resolved.");
-        }
+        var (internalOperationDefinition, planSteps) = Plan(possiblePlans)
+            ?? throw new InvalidOperationException("The operation cannot be resolved.");
 
         return BuildExecutionPlan(
+            id,
             // this is not ideal and are we going to rework this once we figured out
             // introspection and defer and stream.
             planSteps.OfType<OperationPlanStep>().ToImmutableList(),
-            operationDefinition);
+            operationDefinition,
+            internalOperationDefinition);
     }
 
-    private ImmutableList<PlanStep> Plan(PriorityQueue<PlanNode, double> possiblePlans)
+    private (OperationDefinitionNode, ImmutableList<PlanStep>)? Plan(PriorityQueue<PlanNode, double> possiblePlans)
     {
         while (possiblePlans.TryDequeue(out var current, out _))
         {
@@ -76,7 +88,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
             {
                 // If the backlog is empty than the planning process is complete and we can return the
                 // steps to build the actual execution plan.
-                return current.Steps;
+                return (current.InternalOperationDefinition, current.Steps);
             }
 
             // The backlog represents the tasks we we have to complete to build out
@@ -108,7 +120,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
             }
         }
 
-        return [];
+        return null;
     }
 
     private void PlanRootSelections(
@@ -208,6 +220,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
         {
             Previous = current,
             OperationDefinition = current.OperationDefinition,
+            InternalOperationDefinition = current.InternalOperationDefinition,
             SchemaName = current.SchemaName,
             SelectionSetIndex = index.ToImmutable(),
             Backlog = backlog,
@@ -217,7 +230,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
             LastRequirementId = lastRequirementId
         };
 
-        possiblePlans.Enqueue(next, schema);
+        possiblePlans.Enqueue(next, _schema);
     }
 
     private PlanNode InlineLookupRequirements(
@@ -226,13 +239,20 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
         Lookup lookup,
         ImmutableStack<WorkItem> backlog)
     {
-        var partitioner = new SelectionSetPartitioner(schema);
         var processed = new HashSet<string>();
         var lookupStepId = current.Steps.NextId();
         var steps = current.Steps;
         var index = current.SelectionSetIndex.ToBuilder();
         var selectionSet = lookup.SelectionSet;
         index.Register(workItemSelectionSet, selectionSet);
+
+        var internalOperation = InlineSelections(
+            current.InternalOperationDefinition,
+            index,
+            workItemSelectionSet.Type,
+            workItemSelectionSet.Id,
+            selectionSet,
+            inlineInternal: true);
 
         foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItemSelectionSet.Id))
         {
@@ -248,7 +268,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
                 SelectionSetIndex = index
             };
 
-            var (resolvable, unresolvable, _, _) = partitioner.Partition(input);
+            var (resolvable, unresolvable, _, _) = _partitioner.Partition(input);
 
             if (resolvable is { Selections.Count: > 0 })
             {
@@ -308,7 +328,8 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
         {
             Steps = steps,
             Backlog = backlog,
-            SelectionSetIndex = index
+            SelectionSetIndex = index,
+            InternalOperationDefinition = internalOperation
         };
     }
 
@@ -405,6 +426,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
         {
             Previous = current,
             OperationDefinition = current.OperationDefinition,
+            InternalOperationDefinition = current.InternalOperationDefinition,
             SchemaName = current.SchemaName,
             SelectionSetIndex = index.ToImmutable(),
             Backlog = backlog,
@@ -413,7 +435,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
             BacklogCost = backlog.Count()
         };
 
-        possiblePlans.Enqueue(next, schema);
+        possiblePlans.Enqueue(next, _schema);
     }
 
     private void PlanFieldWithRequirement(
@@ -562,6 +584,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
         {
             Previous = current,
             OperationDefinition = current.OperationDefinition,
+            InternalOperationDefinition = current.InternalOperationDefinition,
             SchemaName = current.SchemaName,
             SelectionSetIndex = index.ToImmutable(),
             Backlog = backlog,
@@ -571,7 +594,7 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
             LastRequirementId = lastRequirementId
         };
 
-        possiblePlans.Enqueue(next, schema);
+        possiblePlans.Enqueue(next, _schema);
     }
 
     private SelectionSetNode? ExtractResolvableChildSelections(
@@ -618,9 +641,18 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
     {
         var field = workItem.Selection.Field;
         var fieldSource = field.Sources[current.SchemaName];
-        // todo: we need a deep copy of this selection set or there might be problems if a requirement
+
+        // TODO: we need a deep copy of this selection set or there might be problems if a requirement
         // is used on different parts of the operation.
         var requirements = fieldSource.Requirements!.SelectionSet;
+
+        var internalOperation = InlineSelections(
+            current.InternalOperationDefinition,
+            index,
+            workItem.Selection.Field.DeclaringType,
+            workItem.Selection.SelectionSetId,
+            requirements,
+            inlineInternal: true);
 
         foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
         {
@@ -718,7 +750,8 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
         SelectionSetIndexBuilder index,
         ITypeDefinition selectionSetType,
         uint targetSelectionSetId,
-        SelectionSetNode selectionsToInline)
+        SelectionSetNode selectionsToInline,
+        bool inlineInternal = false)
     {
         var rewriter = SyntaxRewriter.Create<Stack<ISyntaxNode>>(
             (node, path) =>
@@ -735,7 +768,37 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
 
                     if (targetSelectionSetId == id)
                     {
-                        var newSelectionSet = _mergeRewriter.Merge(selectionSet, selectionsToInline, selectionSetType);
+                        SelectionSetNode newSelectionSet;
+
+                        if (inlineInternal)
+                        {
+                            var size = selectionSet.Selections.Count + selectionsToInline.Selections.Count;
+                            var selections = new List<ISelectionNode>(size);
+                            selections.AddRange(originalSelectionSet.Selections);
+
+                            foreach (var selection in selectionsToInline.Selections)
+                            {
+                                var directives = AddInternalDirective(selection);
+
+                                switch (selection)
+                                {
+                                    case FieldNode field:
+                                        selections.Add(field.WithDirectives(directives));
+                                        break;
+
+                                    case InlineFragmentNode inlineFragment:
+                                        selections.Add(inlineFragment.WithDirectives(directives));
+                                        break;
+                                }
+                            }
+
+                            newSelectionSet = new SelectionSetNode(selections);
+                        }
+                        else
+                        {
+                            newSelectionSet = _mergeRewriter.Merge(selectionSet, selectionsToInline, selectionSetType);
+                        }
+
                         index.Register(originalSelectionSet, newSelectionSet);
                         return newSelectionSet;
                     }
@@ -751,6 +814,20 @@ public sealed partial class OperationPlanner(FusionSchemaDefinition schema)
             (_, path) => path.Pop());
 
         return (OperationDefinitionNode)rewriter.Rewrite(operation, new Stack<ISyntaxNode>())!;
+
+        static IReadOnlyList<DirectiveNode> AddInternalDirective(IHasDirectives selection)
+        {
+            var directives = new List<DirectiveNode>(selection.Directives.Count + 1);
+
+            if (selection.Directives.Count > 0)
+            {
+                directives.AddRange(selection.Directives);
+            }
+
+            directives.Add(new DirectiveNode("fusion_internal"));
+
+            return directives;
+        }
     }
 }
 

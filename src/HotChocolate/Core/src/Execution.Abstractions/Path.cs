@@ -17,6 +17,8 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
 
     protected Path(Path parent)
     {
+        ArgumentNullException.ThrowIfNull(parent);
+
         _parent = parent ?? throw new ArgumentNullException(nameof(parent));
         Length = parent.Length + 1;
     }

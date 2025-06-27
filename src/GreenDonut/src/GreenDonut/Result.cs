@@ -107,5 +107,3 @@ public readonly record struct Result<TValue>
     public static implicit operator TValue(Result<TValue> result)
         => result.Value;
 }
-
-public class KeyNotFoundException(string message) : Exception(message);

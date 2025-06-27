@@ -5,8 +5,19 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Rewriters;
 
-public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
+public sealed class InlineFragmentOperationRewriter(
+    ISchemaDefinition schema,
+    bool removeStaticallyExcludedSelections = false)
 {
+    private static readonly FieldNode s_typeNameField =
+        new FieldNode(
+            null,
+            new NameNode(IntrospectionFieldNames.TypeName),
+            null,
+            [new DirectiveNode("fusion_internal")],
+            ImmutableArray<ArgumentNode>.Empty,
+            null);
+
     public DocumentNode RewriteDocument(DocumentNode document, string? operationName = null)
     {
         var operation = document.GetOperation(operationName);
@@ -40,15 +51,27 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
             switch (selection)
             {
                 case FieldNode field:
-                    context.AddField(field);
+                    if (!removeStaticallyExcludedSelections || IsIncluded(field.Directives))
+                    {
+                        context.AddField(field);
+                    }
+
                     break;
 
                 case InlineFragmentNode inlineFragment:
-                    CollectInlineFragment(inlineFragment, context);
+                    if (!removeStaticallyExcludedSelections || IsIncluded(inlineFragment.Directives))
+                    {
+                        CollectInlineFragment(inlineFragment, context);
+                    }
+
                     break;
 
                 case FragmentSpreadNode fragmentSpread:
-                    CollectFragmentSpread(fragmentSpread, context);
+                    if (!removeStaticallyExcludedSelections || IsIncluded(fragmentSpread.Directives))
+                    {
+                        CollectFragmentSpread(fragmentSpread, context);
+                    }
+
                     break;
             }
         }
@@ -56,7 +79,13 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
 
     internal void RewriteSelections(Context context)
     {
-        var collectedSelections = context.Selections.ToImmutableArray();
+        if (context.Selections.Count == 0)
+        {
+            context.Selections.Add(s_typeNameField);
+            context.Fields.Add(IntrospectionFieldNames.TypeName, [s_typeNameField]);
+        }
+
+        var collectedSelections = context.Selections.ToArray();
         context.Selections.Clear();
 
         foreach (var selection in collectedSelections)
@@ -86,8 +115,13 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
                 if (mergedField.SelectionSet is not null)
                 {
                     mergedField = mergedField.WithSelectionSet(
-                        new SelectionSetNode(
-                            field.SelectMany(t => t.SelectionSet!.Selections).ToList()));
+                        new SelectionSetNode(field.SelectMany(t => t.SelectionSet!.Selections).ToList()));
+                }
+
+                if (removeStaticallyExcludedSelections)
+                {
+                    mergedField = mergedField.WithDirectives(
+                        RemoveStaticIncludeConditions(mergedField.Directives));
                 }
 
                 RewriteField(mergedField, ctx);
@@ -214,7 +248,7 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
         }
     }
 
-    private IReadOnlyList<DirectiveNode> RewriteDirectives(IReadOnlyList<DirectiveNode> directives)
+    private static IReadOnlyList<DirectiveNode> RewriteDirectives(IReadOnlyList<DirectiveNode> directives)
     {
         if (directives.Count == 0)
         {
@@ -238,7 +272,7 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
         return ImmutableArray.Create(buffer);
     }
 
-    private IReadOnlyList<ArgumentNode> RewriteArguments(IReadOnlyList<ArgumentNode> arguments)
+    private static IReadOnlyList<ArgumentNode> RewriteArguments(IReadOnlyList<ArgumentNode> arguments)
     {
         if (arguments.Count == 0)
         {
@@ -259,7 +293,7 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
         return ImmutableArray.Create(buffer);
     }
 
-    private Dictionary<string, FragmentDefinitionNode> CreateFragmentLookup(DocumentNode document)
+    private static Dictionary<string, FragmentDefinitionNode> CreateFragmentLookup(DocumentNode document)
     {
         var lookup = new Dictionary<string, FragmentDefinitionNode>();
 
@@ -272,6 +306,219 @@ public sealed class InlineFragmentOperationRewriter(ISchemaDefinition schema)
         }
 
         return lookup;
+    }
+
+    private static bool IsIncluded(IReadOnlyList<DirectiveNode> directives)
+    {
+        if (directives.Count == 0)
+        {
+            return true;
+        }
+
+        var skipChecked = false;
+        var includeChecked = false;
+
+        if (directives.Count == 1)
+        {
+            return TryCheckIsIncluded(directives[0], ref skipChecked, ref includeChecked);
+        }
+
+        if (directives.Count == 2)
+        {
+            return TryCheckIsIncluded(directives[0], ref skipChecked, ref includeChecked)
+                && TryCheckIsIncluded(directives[1], ref skipChecked, ref includeChecked);
+        }
+
+        if (directives.Count == 3)
+        {
+            var included = TryCheckIsIncluded(directives[0], ref skipChecked, ref includeChecked);
+
+            if (!included)
+            {
+                return false;
+            }
+
+            included = TryCheckIsIncluded(directives[1], ref skipChecked, ref includeChecked);
+
+            if (!included)
+            {
+                return false;
+            }
+            else if (skipChecked && includeChecked)
+            {
+                return true;
+            }
+
+            return TryCheckIsIncluded(directives[2], ref skipChecked, ref includeChecked);
+        }
+
+        for (var i = 0; i < directives.Count; i++)
+        {
+            var included = TryCheckIsIncluded(directives[i], ref skipChecked, ref includeChecked);
+
+            if (!included)
+            {
+                return false;
+            }
+            else if (skipChecked && includeChecked)
+            {
+                return true;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool TryCheckIsIncluded(DirectiveNode directive, ref bool skipChecked, ref bool includeChecked)
+    {
+        if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal))
+        {
+            skipChecked = true;
+
+            if (directive.Arguments is [{ Value: BooleanValueNode { Value: true } }])
+            {
+                return false;
+            }
+        }
+        else if (directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal))
+        {
+            includeChecked = true;
+
+            if (directive.Arguments is [{ Value: BooleanValueNode { Value: false } }])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static IReadOnlyList<DirectiveNode> RemoveStaticIncludeConditions(
+        IReadOnlyList<DirectiveNode> directives)
+    {
+        if (directives.Count == 0)
+        {
+            return directives;
+        }
+
+        var skipChecked = false;
+        var includeChecked = false;
+
+        if (directives.Count == 1)
+        {
+            var directive = directives[0];
+            return IsStaticIncludeCondition(directive, ref skipChecked, ref includeChecked) ? [] : directives;
+        }
+
+        if (directives.Count == 2)
+        {
+            var directive1 = directives[0];
+            var directive2 = directives[1];
+
+            var remove1 = IsStaticIncludeCondition(directive1, ref skipChecked, ref includeChecked);
+
+            if (IsStaticIncludeCondition(directive2, ref skipChecked, ref includeChecked))
+            {
+                return remove1 ? [] : [directive1];
+            }
+
+            return remove1 ? [directive2] : directives;
+        }
+
+        if (directives.Count == 3)
+        {
+            var directive1 = directives[0];
+            var directive2 = directives[1];
+            var directive3 = directives[2];
+
+            var remove1 = IsStaticIncludeCondition(directive1, ref skipChecked, ref includeChecked);
+            var remove2 = IsStaticIncludeCondition(directive2, ref skipChecked, ref includeChecked);
+            var remove3 =
+                (skipChecked && includeChecked)
+                || IsStaticIncludeCondition(directive3, ref skipChecked, ref includeChecked);
+
+            switch (remove1)
+            {
+                case true when remove2 && remove3:
+                    return [];
+
+                case false when !remove2 && !remove3:
+                    return directives;
+
+                default:
+                    var list = new List<DirectiveNode>();
+
+                    if (!remove1)
+                    {
+                        list.Add(directive1);
+                    }
+
+                    if (!remove2)
+                    {
+                        list.Add(directive2);
+                    }
+
+                    if (!remove3)
+                    {
+                        list.Add(directive3);
+                    }
+
+                    return list;
+            }
+        }
+
+        List<DirectiveNode>? result = null;
+
+        for (var i = 0; i < directives.Count; i++)
+        {
+            var directive = directives[i];
+
+            if ((skipChecked && includeChecked)
+                || IsStaticIncludeCondition(directive, ref skipChecked, ref includeChecked))
+            {
+                if (result is not null)
+                {
+                    continue;
+                }
+
+                result = [];
+                for (var j = 0; j < i; j++)
+                {
+                    result.Add(directives[j]);
+                }
+            }
+            else
+            {
+                result?.Add(directive);
+            }
+        }
+
+        if (result is null)
+        {
+            return directives;
+        }
+
+        return result.Count == 0 ? [] : result;
+
+        static bool IsStaticIncludeCondition(DirectiveNode directive, ref bool skipChecked, ref bool includeChecked)
+        {
+            if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal)
+                && directive.Arguments.Count == 1
+                && directive.Arguments[0].Value is BooleanValueNode skipConstant
+                && !skipConstant.Value)
+            {
+                return true;
+            }
+            else if (directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal)
+                && (directive.Arguments.Count != 1
+                    || directive.Arguments[0].Value is not BooleanValueNode includeConstant
+                    || includeConstant.Value))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 
     public readonly ref struct Context(

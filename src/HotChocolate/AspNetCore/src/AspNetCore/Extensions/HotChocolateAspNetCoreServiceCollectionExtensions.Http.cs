@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Execution.Serialization;
+using HotChocolate.Transport.Formatters;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;

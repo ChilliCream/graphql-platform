@@ -1,6 +1,8 @@
 using System.Buffers;
+using System.Text;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Serialization;
+using HotChocolate.Transport.Formatters;
 using static HotChocolate.Execution.Properties.Resources;
 
 // ReSharper disable once CheckNamespace
@@ -8,8 +10,8 @@ namespace HotChocolate;
 
 public static class ExecutionResultExtensions
 {
-    private static readonly JsonResultFormatter s_formatter = new(new() { Indented = false });
-    private static readonly JsonResultFormatter s_formatterIndented = new(new() { Indented = true });
+    private static readonly JsonResultFormatter s_formatter = JsonResultFormatter.Default;
+    private static readonly JsonResultFormatter s_formatterIndented = JsonResultFormatter.Indented;
 
     public static void WriteTo(
         this IOperationResult result,
@@ -51,11 +53,18 @@ public static class ExecutionResultExtensions
     {
         ArgumentNullException.ThrowIfNull(result);
 
-        if (result is IOperationResult queryResult)
+        if (result is IOperationResult operationResult)
         {
-            return withIndentations
-                ? s_formatterIndented.Format(queryResult)
-                : s_formatter.Format(queryResult);
+            using var writer = new PooledArrayWriter();
+
+            if (withIndentations)
+            {
+                s_formatterIndented.Format(operationResult, writer);
+                return Encoding.UTF8.GetString(writer.GetWrittenSpan());
+            }
+
+            s_formatter.Format(operationResult, writer);
+            return Encoding.UTF8.GetString(writer.GetWrittenSpan());
         }
 
         throw new NotSupportedException(ExecutionResultExtensions_OnlyQueryResults);

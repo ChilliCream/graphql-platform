@@ -9,6 +9,7 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
@@ -16,6 +17,7 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 
@@ -109,7 +111,8 @@ internal sealed class FusionRequestExecutorManager
 
         var requestOptions = CreateRequestOptions(setup);
         var parserOptions = CreateParserOptions(setup);
-        var features = CreateSchemaFeatures(setup, requestOptions, parserOptions);
+        var clientConfigurations = CreateClientConfigurations(setup);
+        var features = CreateSchemaFeatures(setup, requestOptions, parserOptions, clientConfigurations);
         var schemaServices = CreateSchemaServices(setup);
 
         var schema = CreateSchema(schemaName, document, schemaServices, features);
@@ -178,15 +181,29 @@ internal sealed class FusionRequestExecutorManager
             maxAllowedFields: options.MaxAllowedFields);
     }
 
+    private SourceSchemaClientConfigurations CreateClientConfigurations(FusionGatewaySetup setup)
+    {
+        var configurations = new List<ISourceSchemaClientConfiguration>();
+
+        foreach (var configure in setup.ClientConfigurationModifiers)
+        {
+            configurations.Add(configure.Invoke(_applicationServices));
+        }
+
+        return new SourceSchemaClientConfigurations(configurations);
+    }
+
     private FeatureCollection CreateSchemaFeatures(
         FusionGatewaySetup setup,
         FusionRequestOptions requestOptions,
-        ParserOptions parserOptions)
+        ParserOptions parserOptions,
+        SourceSchemaClientConfigurations clientConfigurations)
     {
         var features = new FeatureCollection();
 
         features.Set(requestOptions);
         features.Set(parserOptions);
+        features.Set(clientConfigurations);
 
         foreach (var configure in setup.SchemaFeaturesModifiers)
         {
@@ -206,6 +223,7 @@ internal sealed class FusionRequestExecutorManager
         AddParserServices(schemaServices);
         AddDocumentValidator(setup, schemaServices);
         AddDiagnosticEvents(schemaServices);
+        AddSourceSchemaClients(schemaServices);
 
         foreach (var configure in setup.SchemaServiceModifiers)
         {
@@ -237,6 +255,12 @@ internal sealed class FusionRequestExecutorManager
 
     private static void AddOperationPlanner(IServiceCollection services)
     {
+        services.TryAddSingleton<ObjectPoolProvider>(
+            static _ => new DefaultObjectPoolProvider());
+
+        services.AddSingleton(
+            static sp => sp.GetRequiredService<ObjectPoolProvider>().CreateFieldMapPool());
+
         services.AddSingleton(
             static sp =>
             {
@@ -246,7 +270,15 @@ internal sealed class FusionRequestExecutorManager
                     options.OperationExecutionPlanCacheDiagnostics);
             });
 
-        services.AddSingleton(static sp => new OperationPlanner(sp.GetRequiredService<FusionSchemaDefinition>()));
+        services.AddSingleton(
+            static sp => new OperationCompiler(
+                sp.GetRequiredService<FusionSchemaDefinition>(),
+                sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>()));
+
+        services.AddSingleton(
+            static sp => new OperationPlanner(
+                sp.GetRequiredService<FusionSchemaDefinition>(),
+                sp.GetRequiredService<OperationCompiler>()));
     }
 
     private static void AddParserServices(IServiceCollection services)
@@ -296,6 +328,17 @@ internal sealed class FusionRequestExecutorManager
 
         services.AddSingleton<ICoreExecutionDiagnosticEvents>(
             static sp => sp.GetRequiredService<IFusionExecutionDiagnosticEvents>());
+    }
+
+    private static void AddSourceSchemaClients(
+        IServiceCollection services)
+    {
+        services.AddSingleton(
+            static sp =>
+            {
+                var options = sp.GetRequiredService<ISchemaDefinition>().GetRequestOptions();
+                return new Cache<string>(options.SourceSchemaOperationCacheSize);
+            });
     }
 
     private static FusionSchemaDefinition CreateSchema(

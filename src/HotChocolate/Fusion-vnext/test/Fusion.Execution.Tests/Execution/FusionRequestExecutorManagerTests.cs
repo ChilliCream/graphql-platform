@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -66,12 +67,13 @@ public class FusionRequestExecutorManagerTests
                 .AddGraphQLGateway()
                 .AddInMemoryConfiguration(schemaDocument)
                 .UseDefaultPipeline()
-                .UseRequest(
-                    (_, next) =>
+                .InsertUseRequest(
+                    before: nameof(OperationExecutionMiddleware),
+                    (_, _) =>
                     {
-                        return async context =>
+                        return context =>
                         {
-                            var plan = context.GetOperationExecutionPlan();
+                            var plan = context.GetOperationPlan();
                             context.Result =
                                 OperationResultBuilder.New()
                                     .SetData(
@@ -85,7 +87,7 @@ public class FusionRequestExecutorManagerTests
                                             { "operationPlan", plan }
                                         })
                                         .Build();
-                            await next(context);
+                            return ValueTask.CompletedTask;
                         };
                     })
                 .Services

@@ -1,7 +1,6 @@
 #nullable enable
 
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Validation;
 using HotChocolate.Features;
@@ -16,6 +15,7 @@ using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate;
 
@@ -37,41 +37,58 @@ public partial class SchemaBuilder
         {
             try
             {
-                var typeInterceptors = new List<TypeInterceptor>();
+                // We first register optional type interceptors
+                var typeInterceptors = builder.Features.GetOrSet<TypeInterceptorCollection>();
 
-                if (context.Options.StrictRuntimeTypeValidation
-                    && !builder._typeInterceptors.Contains(typeof(TypeValidationTypeInterceptor)))
+                if (context.Options.StrictRuntimeTypeValidation)
                 {
-                    builder._typeInterceptors.Add(typeof(TypeValidationTypeInterceptor));
+                    typeInterceptors.TryAdd(typeof(TypeValidationTypeInterceptor));
                 }
 
-                if (context.Options.EnableFlagEnums
-                    && !builder._typeInterceptors.Contains(typeof(FlagsEnumInterceptor)))
+                if (context.Options.EnableFlagEnums)
                 {
-                    builder._typeInterceptors.Add(typeof(FlagsEnumInterceptor));
+                    typeInterceptors.TryAdd(typeof(FlagsEnumInterceptor));
                 }
 
-                if (context.Options.RemoveUnusedTypeSystemDirectives
-                    && !builder._typeInterceptors.Contains(typeof(DirectiveTypeInterceptor)))
+                if (context.Options.RemoveUnusedTypeSystemDirectives)
                 {
-                    builder._typeInterceptors.Add(typeof(DirectiveTypeInterceptor));
+                    typeInterceptors.TryAdd(typeof(DirectiveTypeInterceptor));
                 }
+
+                // Next, we create the actual type interceptor instances
+                var typeInterceptorInstances = new List<TypeInterceptor>();
 
                 if (builder.Features.Get<TypeSystemFeature>()?.SchemaDocuments.Count > 0)
                 {
-                    typeInterceptors.Add(new SchemaFirstTypeInterceptor());
+                    typeInterceptorInstances.Add(new SchemaFirstTypeInterceptor());
                 }
 
                 var pagingOptions = builder.Features.GetOrSet<PagingOptions>();
                 PagingDefaults.Apply(pagingOptions);
 
-                InitializeInterceptors(
-                    context.Services,
-                    builder._typeInterceptors,
-                    typeInterceptors);
+                if (typeInterceptors.Count > 0)
+                {
+                    foreach (var descriptor in typeInterceptors)
+                    {
+                        if (descriptor.Interceptor is not null)
+                        {
+                            typeInterceptorInstances.Add(descriptor.Interceptor);
+                        }
+                        else
+                        {
+                            var typeInterceptor =
+                                descriptor.Factory is not null
+                                    ? descriptor.Factory(context.Services)
+                                    : (TypeInterceptor)ActivatorUtilities.CreateInstance(
+                                        context.Services,
+                                        descriptor.Type);
+                            typeInterceptorInstances.Add(typeInterceptor);
+                        }
+                    }
+                }
 
                 ((AggregateTypeInterceptor)context.TypeInterceptor)
-                    .SetInterceptors(typeInterceptors);
+                    .SetInterceptors(typeInterceptorInstances);
 
                 context.TypeInterceptor.OnBeforeCreateSchemaInternal(context, builder);
 
@@ -253,38 +270,6 @@ public partial class SchemaBuilder
             }
 
             return initializer;
-        }
-
-        private static void InitializeInterceptors<T>(
-            IServiceProvider services,
-            IReadOnlyList<object> registered,
-            List<T> interceptors)
-            where T : class
-        {
-            if (services is not EmptyServiceProvider
-                && services.GetService<IEnumerable<T>>() is { } fromService)
-            {
-                interceptors.AddRange(fromService);
-            }
-
-            if (registered.Count > 0)
-            {
-                foreach (var interceptorOrType in registered)
-                {
-                    if (interceptorOrType is Type type)
-                    {
-                        var obj = ActivatorUtilities.CreateInstance(services, type);
-                        if (obj is T casted)
-                        {
-                            interceptors.Add(casted);
-                        }
-                    }
-                    else if (interceptorOrType is T interceptor)
-                    {
-                        interceptors.Add(interceptor);
-                    }
-                }
-            }
         }
 
         private static RootTypeKind GetOperationKind(

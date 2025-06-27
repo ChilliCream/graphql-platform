@@ -9,6 +9,11 @@ namespace HotChocolate.Execution;
 public interface IVariableValueCollection : IEnumerable<VariableValue>
 {
     /// <summary>
+    /// Specifies whether the collection is empty.
+    /// </summary>
+    bool IsEmpty { get; }
+
+    /// <summary>
     /// Gets a coerced variable value from the collection.
     /// </summary>
     /// <param name="name">The variable name.</param>

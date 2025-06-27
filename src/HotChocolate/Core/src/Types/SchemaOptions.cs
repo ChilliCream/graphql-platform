@@ -114,6 +114,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableSemanticNonNull"/>
     public bool EnableSemanticNonNull { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableSchemaNameDirective"/>
+    public bool EnableSchemaNameDirective { get; set; } = true;
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.MaxAllowedNodeBatchSize"/>
     public int MaxAllowedNodeBatchSize { get; set; } = 50;
 
@@ -161,6 +164,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             SortFieldsByName = options.SortFieldsByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
             EnableOneOf = options.EnableOneOf,
+            EnableSchemaNameDirective = options.EnableSchemaNameDirective,
             EnsureAllNodesCanBeResolved = options.EnsureAllNodesCanBeResolved,
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,

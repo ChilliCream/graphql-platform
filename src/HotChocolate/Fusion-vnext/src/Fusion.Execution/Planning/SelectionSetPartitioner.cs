@@ -86,7 +86,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
             return (selectionSetNode, null);
         }
 
-        if (unresolvableSelections is not null && type.IsEntity())
+        if (unresolvableSelections is not null)
         {
             var unresolvableSelectionSet = new SelectionSetNode(unresolvableSelections);
             context.Register(selectionSetNode, unresolvableSelectionSet);

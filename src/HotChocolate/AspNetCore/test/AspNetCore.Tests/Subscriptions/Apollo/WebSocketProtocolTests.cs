@@ -4,8 +4,9 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
-using HotChocolate.Execution.Serialization;
+using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Transport.Formatters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -537,9 +538,9 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
                                 _ => new DefaultWebSocketPayloadFormatter(
                                     new WebSocketPayloadFormatterOptions
                                     {
-                                        Json = new JsonResultFormatterOptions()
+                                        Json = new JsonResultFormatterOptions
                                         {
-                                            NullIgnoreCondition = JsonNullIgnoreCondition.All
+                                            NullIgnoreCondition = JsonNullIgnoreCondition.FieldsAndLists
                                         }
                                     })));
                 var client = CreateWebSocketClient(testServer);
