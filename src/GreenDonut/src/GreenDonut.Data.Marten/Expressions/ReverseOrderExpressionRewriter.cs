@@ -1,0 +1,60 @@
+using System.Linq.Expressions;
+using System.Reflection;
+
+namespace GreenDonut.Data.Expressions;
+
+public class ReverseOrderExpressionRewriter : ExpressionVisitor
+{
+    private static readonly MethodInfo _orderByMethod = typeof(Queryable).GetMethods()
+        .First(m => m.Name == nameof(Queryable.OrderBy) && m.GetParameters().Length == 2);
+
+    private static readonly MethodInfo _orderByDescendingMethod = typeof(Queryable).GetMethods()
+        .First(m => m.Name == nameof(Queryable.OrderByDescending) && m.GetParameters().Length == 2);
+
+    private static readonly MethodInfo _thenByMethod = typeof(Queryable).GetMethods()
+        .First(m => m.Name == nameof(Queryable.ThenBy) && m.GetParameters().Length == 2);
+
+    private static readonly MethodInfo _thenByDescendingMethod = typeof(Queryable).GetMethods()
+        .First(m => m.Name == nameof(Queryable.ThenByDescending) && m.GetParameters().Length == 2);
+
+    protected override Expression VisitMethodCall(MethodCallExpression node)
+    {
+        var visitedArguments = node.Arguments.Select(Visit).Cast<Expression>().ToArray();
+
+        if (node.Method.Name == nameof(Queryable.OrderBy))
+        {
+            return Expression.Call(
+                _orderByDescendingMethod.MakeGenericMethod(node.Method.GetGenericArguments()),
+                visitedArguments);
+        }
+
+        if (node.Method.Name == nameof(Queryable.OrderByDescending))
+        {
+            return Expression.Call(
+                _orderByMethod.MakeGenericMethod(node.Method.GetGenericArguments()),
+                visitedArguments);
+        }
+
+        if (node.Method.Name == nameof(Queryable.ThenBy))
+        {
+            return Expression.Call(
+                _thenByDescendingMethod.MakeGenericMethod(node.Method.GetGenericArguments()),
+                visitedArguments);
+        }
+
+        if (node.Method.Name == nameof(Queryable.ThenByDescending))
+        {
+            return Expression.Call(
+                _thenByMethod.MakeGenericMethod(node.Method.GetGenericArguments()),
+                visitedArguments);
+        }
+
+        return base.VisitMethodCall(node);
+    }
+
+    public static IQueryable<T> Rewrite<T>(IQueryable<T> query)
+    {
+        var reversedExpression = new ReverseOrderExpressionRewriter().Visit(query.Expression);
+        return query.Provider.CreateQuery<T>(reversedExpression);
+    }
+}
