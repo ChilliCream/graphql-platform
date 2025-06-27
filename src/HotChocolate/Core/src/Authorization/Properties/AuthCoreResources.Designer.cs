@@ -86,5 +86,17 @@ namespace HotChocolate.Authorization.Properties {
                 return ResourceManager.GetString("ThrowHelper_UnableToResolveTypeReg", resourceCulture);
             }
         }
+        
+        internal static string AuthorizationTypeInterceptor_UnsupportedAspNetCoreAttributeOnType {
+            get {
+                return ResourceManager.GetString("AuthorizationTypeInterceptor_UnsupportedAspNetCoreAttributeOnType", resourceCulture);
+            }
+        }
+        
+        internal static string AuthorizationTypeInterceptor_UnsupportedAspNetCoreAttributeOnMember {
+            get {
+                return ResourceManager.GetString("AuthorizationTypeInterceptor_UnsupportedAspNetCoreAttributeOnMember", resourceCulture);
+            }
+        }
     }
 }

@@ -955,6 +955,78 @@ public class AnnotationBasedAuthorizationTests
                 """);
     }
 
+    [Fact]
+    public async Task Microsoft_AuthorizeAttribute_On_Method_Produces_Error()
+    {
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithMicrosoftAuthorizeAttributeOnMethod>()
+            .AddAuthorizationCore();
+
+        var act = async () => await builder.BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(act);
+        var error = exception.Errors.First();
+        Assert.Equal(ErrorCodes.Schema.UnsupportedAspNetCoreAuthorizationAttribute, error.Code);
+        Assert.Equal(
+            "Found unsupported `Microsoft.AspNetCore.Authorization.AuthorizeAttribute` on `HotChocolate.Authorization.AnnotationBasedAuthorizationTests+QueryWithMicrosoftAuthorizeAttributeOnMethod.Field`. Use `HotChocolate.Authorization.AuthorizeAttribute` instead.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Microsoft_AllowAnonymousAttribute_On_Method_Produces_Error()
+    {
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithMicrosoftAllowAnonymousAttributeOnMethod>()
+            .AddAuthorizationCore();
+
+        var act = async () => await builder.BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(act);
+        var error = exception.Errors.First();
+        Assert.Equal(ErrorCodes.Schema.UnsupportedAspNetCoreAuthorizationAttribute, error.Code);
+        Assert.Equal(
+            "Found unsupported `Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute` on `HotChocolate.Authorization.AnnotationBasedAuthorizationTests+QueryWithMicrosoftAllowAnonymousAttributeOnMethod.Field`. Use `HotChocolate.Authorization.AllowAnonymousAttribute` instead.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Microsoft_AuthorizeAttribute_On_Type_Produces_Error()
+    {
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithMicrosoftAuthorizeAttribute>()
+            .AddAuthorizationCore();
+
+        var act = async () => await builder.BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(act);
+        var error = exception.Errors.First();
+        Assert.Equal(ErrorCodes.Schema.UnsupportedAspNetCoreAuthorizationAttribute, error.Code);
+        Assert.Equal(
+            "Found unsupported `Microsoft.AspNetCore.Authorization.AuthorizeAttribute` on `HotChocolate.Authorization.AnnotationBasedAuthorizationTests+QueryWithMicrosoftAuthorizeAttribute`. Use `HotChocolate.Authorization.AuthorizeAttribute` instead.",
+            error.Message);
+    }
+
+    [Fact]
+    public async Task Microsoft_AllowAnonymousAttribute_On_Type_Produces_Error()
+    {
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithMicrosoftAllowAnonymousAttribute>()
+            .AddAuthorizationCore();
+
+        var act = async () => await builder.BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(act);
+        var error = exception.Errors.First();
+        Assert.Equal(ErrorCodes.Schema.UnsupportedAspNetCoreAuthorizationAttribute, error.Code);
+        Assert.Equal(
+            "Found unsupported `Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute` on `HotChocolate.Authorization.AnnotationBasedAuthorizationTests+QueryWithMicrosoftAllowAnonymousAttribute`. Use `HotChocolate.Authorization.AllowAnonymousAttribute` instead.",
+            error.Message);
+    }
+
     private static IServiceProvider CreateServices(
         IAuthorizationHandler handler,
         Action<AuthorizationOptions>? configure = null)
@@ -970,6 +1042,30 @@ public class AnnotationBasedAuthorizationTests
             .ModifyAuthorizationOptions(configure ?? (_ => { }))
             .Services
             .BuildServiceProvider();
+
+    public class QueryWithMicrosoftAuthorizeAttributeOnMethod
+    {
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        public string Field() => "foo";
+    }
+
+    public class QueryWithMicrosoftAllowAnonymousAttributeOnMethod
+    {
+        [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+        public string Field() => "foo";
+    }
+
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    public class QueryWithMicrosoftAuthorizeAttribute
+    {
+        public string Field() => "foo";
+    }
+
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    public class QueryWithMicrosoftAllowAnonymousAttribute
+    {
+        public string Field() => "foo";
+    }
 
     [FooDirective]
     [Authorize("QUERY", ApplyPolicy.Validation)]

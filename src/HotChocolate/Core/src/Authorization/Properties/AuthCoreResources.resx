@@ -39,4 +39,10 @@
   <data name="ThrowHelper_UnableToResolveTypeReg" xml:space="preserve">
     <value>Unable to resolve a type registration.</value>
   </data>
+  <data name="AuthorizationTypeInterceptor_UnsupportedAspNetCoreAttributeOnType" xml:space="preserve">
+    <value>Found unsupported `{0}` on `{1}`. Use `{2}` instead.</value>
+  </data>
+  <data name="AuthorizationTypeInterceptor_UnsupportedAspNetCoreAttributeOnMember" xml:space="preserve">
+    <value>Found unsupported `{0}` on `{1}.{2}`. Use `{3}` instead.</value>
+  </data>
 </root>

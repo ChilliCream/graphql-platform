@@ -253,6 +253,12 @@ public static class ErrorCodes
         /// The specified directive argument does not exist.
         /// </summary>
         public const string UnknownDirectiveArgument = "HC0072";
+
+         /// <summary>
+        /// An underlying schema runtime type / member is annotated with a
+        /// Microsoft.AspNetCore.Authorization.* attribute that is not supported by Hot Chocolate.
+        /// </summary>
+        public const string UnsupportedAspNetCoreAuthorizationAttribute = "HC0090";
     }
 
     public static class Scalars
@@ -264,7 +270,7 @@ public static class ErrorCodes
 
         /// <summary>
         /// Either the syntax node is invalid when parsing the literal or the syntax
-        /// node value has an invalid format.
+        /// node value has an invalid format.`
         /// </summary>
         public const string InvalidSyntaxFormat = "HC0002";
     }
