@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Frozen;
-using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using HotChocolate.Types;
 

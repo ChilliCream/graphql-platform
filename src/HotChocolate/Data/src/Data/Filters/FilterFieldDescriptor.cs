@@ -99,7 +99,7 @@ public class FilterFieldDescriptor
         return this;
     }
 
-   public new IFilterFieldDescriptor Description(string value)
+    public new IFilterFieldDescriptor Description(string value)
     {
         base.Description(value);
         return this;

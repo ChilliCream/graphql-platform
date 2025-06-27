@@ -1,7 +1,5 @@
 // ReSharper disable InconsistentNaming
 
-using System.Reflection.Metadata;
-
 namespace GreenDonut;
 
 public class DataLoaderExtensionsTests
@@ -68,7 +66,7 @@ public class DataLoaderExtensionsTests
             });
 
         const string key = "Foo";
-        const string  value = "Bar";
+        const string value = "Bar";
 
         // act
         loader.SetCacheEntry(key, value);

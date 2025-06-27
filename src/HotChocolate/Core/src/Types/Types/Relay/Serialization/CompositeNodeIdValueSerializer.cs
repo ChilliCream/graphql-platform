@@ -3,7 +3,6 @@ using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types.Relay;
 
@@ -197,7 +196,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
     }
 
     /// <summary>
-    /// Tries to format a int value into the buffer.
+    /// Tries to format an int value into the buffer.
     /// </summary>
     /// <param name="buffer">
     /// The buffer to write the value into.
@@ -452,7 +451,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
     }
 
     /// <summary>
-    /// Tries to parse a int value from the buffer.
+    /// Tries to parse an int value from the buffer.
     /// </summary>
     /// <param name="buffer">
     /// The buffer to read the value from.

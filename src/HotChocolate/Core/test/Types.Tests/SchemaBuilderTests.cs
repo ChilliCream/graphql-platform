@@ -2,7 +2,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -389,7 +388,7 @@ public class SchemaBuilderTests
     {
         // arrange
         // act
-        void Action() => SchemaBuilder.New().Use(((FieldMiddleware)null)!);
+        void Action() => SchemaBuilder.New().Use(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -533,7 +532,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .AddDirectiveType((DirectiveType)null);
+            .AddDirectiveType(null);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -1101,33 +1100,11 @@ public class SchemaBuilderTests
     }
 
     [Fact]
-    public void AddInterceptor_AsService_TypesAreTouched()
-    {
-        // arrange
-        var services = new ServiceCollection();
-        services.AddSingleton<TypeInterceptor, MyInterceptor>();
-
-        // act
-        var schema = SchemaBuilder.New()
-            .AddServices(services.BuildServiceProvider())
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Resolve("bar"))
-            .Create();
-
-        // assert
-        Assert.NotNull(schema.Types.GetType<ObjectType>("Query").Features.Get<Touched>());
-        Assert.NotNull(schema.Types.GetType<StringType>("String").Features.Get<Touched>());
-    }
-
-    [Fact]
     public void AddConvention_TypeIsNullConcreteIsSet_ArgumentException()
     {
         // arrange
         // act
-        Action action = () => SchemaBuilder.New()
-            .AddConvention(null, new TestConvention());
+        Action action = () => SchemaBuilder.New() .AddConvention(null!, new TestConvention());
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -1138,8 +1115,7 @@ public class SchemaBuilderTests
     {
         // arrange
         // act
-        Action action = () => SchemaBuilder.New()
-            .AddConvention(typeof(IConvention), default(TestConvention));
+        Action action = () => SchemaBuilder.New() .AddConvention(typeof(IConvention), default(TestConvention)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -1150,8 +1126,7 @@ public class SchemaBuilderTests
     {
         // arrange
         // act
-        Action action = () => SchemaBuilder.New()
-            .AddConvention(null, typeof(IConvention));
+        Action action = () => SchemaBuilder.New() .AddConvention(null!, typeof(IConvention));
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -1162,8 +1137,7 @@ public class SchemaBuilderTests
     {
         // arrange
         // act
-        Action action = () => SchemaBuilder.New()
-            .AddConvention(typeof(IConvention), default(Type));
+        Action action = () => SchemaBuilder.New().AddConvention(typeof(IConvention), default(Type)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

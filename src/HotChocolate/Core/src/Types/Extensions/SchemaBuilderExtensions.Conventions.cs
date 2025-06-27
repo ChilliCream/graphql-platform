@@ -110,13 +110,6 @@ public static partial class SchemaBuilderExtensions
                 nameof(convention));
         }
 
-        if (!typeof(IConvention).IsAssignableFrom(concreteConvention.GetType()))
-        {
-            throw new ArgumentException(
-                TypeResources.SchemaBuilder_Convention_NotSupported,
-                nameof(convention));
-        }
-
         return builder.AddConvention(convention, _ => concreteConvention, scope);
     }
 

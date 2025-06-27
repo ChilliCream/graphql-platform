@@ -28,28 +28,40 @@ public static class SyntaxRewriter
         Action<ISyntaxNode?, TContext>? leave = null)
         where TContext : INavigatorContext
     {
-        Func<ISyntaxNode, TContext, TContext> enterFunc = enter is not null
-            ? (node, context) =>
+        Func<ISyntaxNode, TContext, TContext> enterFunc;
+        if (enter is not null)
+        {
+            enterFunc = (node, context) =>
             {
                 context.Navigator.Push(node);
                 return enter(node, context);
-            }
-            : (node, context) =>
+            };
+        }
+        else
+        {
+            enterFunc = (node, context) =>
             {
                 context.Navigator.Push(node);
                 return context;
             };
+        }
 
-        Action<ISyntaxNode?, TContext> leaveFunc = leave is not null
-            ? (node, context) =>
+        Action<ISyntaxNode?, TContext> leaveFunc;
+        if (leave is not null)
+        {
+            leaveFunc = (node, context) =>
             {
                 context.Navigator.Pop();
                 leave(node, context);
-            }
-            : (_, context) =>
+            };
+        }
+        else
+        {
+            leaveFunc = (_, context) =>
             {
                 context.Navigator.Pop();
             };
+        }
 
         return new DelegateSyntaxRewriter<TContext>(rewrite, enterFunc, leaveFunc);
     }

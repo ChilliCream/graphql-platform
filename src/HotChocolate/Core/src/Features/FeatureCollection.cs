@@ -30,7 +30,7 @@ public sealed class FeatureCollection : IFeatureCollection
     /// <param name="initialCapacity">
     /// The initial number of elements that the collection can contain.
     /// </param>
-    /// <exception cref="System.ArgumentOutOfRangeException">
+    /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="initialCapacity"/> is less than 0
     /// </exception>
     public FeatureCollection(int initialCapacity)

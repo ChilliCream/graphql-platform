@@ -49,7 +49,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         var serviceInspector = appServiceProvider?.GetService<IServiceProviderIsService>();
 
         var custom = customParameterExpressionBuilders is not null
-            ? [..customParameterExpressionBuilders]
+            ? [.. customParameterExpressionBuilders]
             : new List<IParameterExpressionBuilder>();
 
         // explicit internal expression builders will be added first.

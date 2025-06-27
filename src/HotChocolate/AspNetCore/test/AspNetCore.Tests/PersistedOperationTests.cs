@@ -449,7 +449,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
             path: "/starwars");
 
         var result2ShouldBeOk = await server.PostAsync(
-            new ClientQueryRequest { Query = "query GetHeroName { hero { name } }"},
+            new ClientQueryRequest { Query = "query GetHeroName { hero { name } }" },
             path: "/starwars");
 
         var result3ShouldFail = await server.PostAsync(
@@ -465,7 +465,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
     }
 
     private ClientQueryRequest CreateApolloStyleRequest(string hashName, string key)
-        =>  new()
+        => new()
         {
             Extensions = new Dictionary<string, object?>
             {

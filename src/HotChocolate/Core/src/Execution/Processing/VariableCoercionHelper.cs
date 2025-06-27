@@ -1,6 +1,5 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -107,7 +106,7 @@ internal sealed class VariableCoercionHelper
         ISchemaDefinition schema,
         VariableDefinitionNode variableDefinition)
     {
-        if (schema.TryGetTypeFromAst(variableDefinition.Type, out IInputType type))
+        if (schema.Types.TryGetType(variableDefinition.Type, out IInputType? type))
         {
             return type;
         }

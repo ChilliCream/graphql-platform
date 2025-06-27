@@ -8,8 +8,6 @@ using Nuke.Common.Tools.NuGet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Helpers;
 using static Nuke.Common.Tools.NuGet.NuGetTasks;
-using Nuke.Common.Utilities.Collections;
-using System.Linq;
 
 partial class Build
 {

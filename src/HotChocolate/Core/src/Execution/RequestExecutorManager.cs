@@ -10,7 +10,7 @@ using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
-using HotChocolate.PersistedOperations;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -156,7 +156,7 @@ internal sealed partial class RequestExecutorManager
 
         var context = new ConfigurationContext(
             schemaName,
-            setup.SchemaBuilder ?? new SchemaBuilder(),
+            setup.SchemaBuilder ?? SchemaBuilder.New(),
             _applicationServices);
 
         var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, context.SchemaName);
@@ -293,13 +293,19 @@ internal sealed partial class RequestExecutorManager
             static s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IPersistedOperationOptionsAccessor>(
             static s => s.GetRequiredService<RequestExecutorOptions>());
-        serviceCollection.AddSingleton<PersistedOperationOptions>(
+        serviceCollection.AddSingleton(
             static s => s.GetRequiredService<RequestExecutorOptions>().PersistedOperations);
 
         serviceCollection.AddSingleton<IPreparedOperationCache>(static sp => new DefaultPreparedOperationCache(
             sp.GetRootServiceProvider().GetRequiredService<PreparedOperationCacheOptions>().Capacity));
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
+        serviceCollection.AddSingleton(
+            static sp => sp.GetRootServiceProvider().GetRequiredService<ParserOptions>());
+        serviceCollection.AddSingleton(
+            static sp => sp.GetRootServiceProvider().GetRequiredService<IDocumentHashProvider>());
+        serviceCollection.AddSingleton(
+            static sp => sp.GetRootServiceProvider().GetRequiredService<IDocumentCache>());
 
         serviceCollection.TryAddDiagnosticEvents();
         serviceCollection.TryAddOperationExecutors();

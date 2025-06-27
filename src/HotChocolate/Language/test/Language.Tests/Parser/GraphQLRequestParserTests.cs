@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
 using Newtonsoft.Json;
-using Xunit;
 
 namespace HotChocolate.Language;
 

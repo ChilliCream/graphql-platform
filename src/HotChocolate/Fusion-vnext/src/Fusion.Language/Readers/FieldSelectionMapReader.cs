@@ -283,7 +283,8 @@ internal ref struct FieldSelectionMapReader
         var start = Position;
         var position = Position;
 
-        while (++position < _length && _sourceText[position].IsLetterOrDigitOrUnderscore()) { }
+        while (++position < _length && _sourceText[position].IsLetterOrDigitOrUnderscore())
+        { }
 
         TokenKind = TokenKind.Name;
         Start = start;

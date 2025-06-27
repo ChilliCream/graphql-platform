@@ -14,7 +14,7 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class RavenAsyncDocumentQueryTests
 {
-    private readonly List<Foo> foos =
+    private readonly List<Foo> _foos =
     [
         new Foo { Bar = "a" },
         new Foo { Bar = "b" },
@@ -377,7 +377,7 @@ public class RavenAsyncDocumentQueryTests
                 {
                     descriptor
                         .Field("foos")
-                        .Resolve(BuildResolver(database, foos))
+                        .Resolve(BuildResolver(database, _foos))
                         .Type<ListType<ObjectType<Foo>>>()
                         .Use(
                             next => async context =>
@@ -403,7 +403,7 @@ public class RavenAsyncDocumentQueryTests
 
                     descriptor
                         .Field("foosOffset")
-                        .Resolve(BuildResolver(database, foos))
+                        .Resolve(BuildResolver(database, _foos))
                         .Type<ListType<ObjectType<Foo>>>()
                         .Use(
                             next => async context =>

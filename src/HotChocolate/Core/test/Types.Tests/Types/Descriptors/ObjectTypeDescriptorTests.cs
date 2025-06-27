@@ -245,7 +245,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
     public class TestFieldMiddleware2
     {
-        private FieldDelegate _next;
+        private readonly FieldDelegate _next;
 
         public TestFieldMiddleware2(FieldDelegate next)
         {

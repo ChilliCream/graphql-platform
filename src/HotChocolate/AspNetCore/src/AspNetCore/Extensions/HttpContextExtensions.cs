@@ -40,12 +40,12 @@ internal static class HttpContextExtensions
                 return null;
             }
 
-            if(value.Equals(HttpHeaderValues.ReportCost, StringComparison.OrdinalIgnoreCase))
+            if (value.Equals(HttpHeaderValues.ReportCost, StringComparison.OrdinalIgnoreCase))
             {
                 return WellKnownContextData.ReportCost;
             }
 
-            if(value.Equals(HttpHeaderValues.ValidateCost, StringComparison.OrdinalIgnoreCase))
+            if (value.Equals(HttpHeaderValues.ValidateCost, StringComparison.OrdinalIgnoreCase))
             {
                 return WellKnownContextData.ValidateCost;
             }

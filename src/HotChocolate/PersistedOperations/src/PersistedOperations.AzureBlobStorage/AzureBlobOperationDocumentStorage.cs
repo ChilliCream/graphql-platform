@@ -99,7 +99,7 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
         }
         finally
         {
-            if(position > 0)
+            if (position > 0)
             {
                 buffer.AsSpan()[..position].Clear();
             }

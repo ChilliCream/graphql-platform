@@ -16,7 +16,7 @@ public abstract class SortProviderExtensions<TContext>
         _configure = Configure;
     }
 
-    public SortProviderExtensions(Action<ISortProviderDescriptor<TContext>> configure)
+    protected SortProviderExtensions(Action<ISortProviderDescriptor<TContext>> configure)
     {
         _configure = configure ??
             throw new ArgumentNullException(nameof(configure));

@@ -18,11 +18,11 @@ internal sealed partial class RequestExecutorManager
 
         for (var i = 0; i < schemasToWarmup.Length; i++)
         {
-            // next we create an initial warmup for each schema
+            // next, we create an initial warmup for each schema
             tasks[i] = WarmupSchemaAsync(schemasToWarmup[i], cancellationToken);
         }
 
-        // last we wait for all warmup tasks to complete.
+        // last, we wait for all warmup tasks to complete.
         await Task.WhenAll(tasks).ConfigureAwait(false);
 
         async Task WarmupSchemaAsync(string schemaName, CancellationToken cancellationToken)

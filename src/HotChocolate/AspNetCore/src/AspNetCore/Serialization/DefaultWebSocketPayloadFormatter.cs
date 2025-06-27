@@ -1,5 +1,5 @@
 using System.Text.Json;
-using HotChocolate.Execution.Serialization;
+using HotChocolate.Transport.Formatters;
 
 namespace HotChocolate.AspNetCore.Serialization;
 

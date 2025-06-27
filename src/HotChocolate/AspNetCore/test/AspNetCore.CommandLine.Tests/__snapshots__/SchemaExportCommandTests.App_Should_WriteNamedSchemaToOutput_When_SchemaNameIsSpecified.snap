@@ -1,7 +1,9 @@
-schema {
+schema @schemaName(value: "Foo") {
   query: Query
 }
 
 type Query {
   foo: String
 }
+
+directive @schemaName(value: String!) on SCHEMA

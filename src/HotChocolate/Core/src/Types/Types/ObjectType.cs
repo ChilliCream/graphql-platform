@@ -30,7 +30,7 @@ public partial class ObjectType
     , IObjectTypeDefinition
 {
     /// <summary>
-    /// Initializes a new  instance of <see cref="ObjectType"/>.
+    /// Initializes a new instance of <see cref="ObjectType"/>.
     /// </summary>
     protected ObjectType()
     {
@@ -38,7 +38,7 @@ public partial class ObjectType
     }
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="ObjectType"/>.
+    /// Initializes a new instance of <see cref="ObjectType"/>.
     /// </summary>
     /// <param name="configure">
     /// A delegate to specify the properties of this type.
@@ -52,7 +52,7 @@ public partial class ObjectType
     }
 
     /// <summary>
-    /// Create a object type from a type definition.
+    /// Create an object type from a type definition.
     /// </summary>
     /// <param name="definition">
     /// The object type definition that specifies the properties of the

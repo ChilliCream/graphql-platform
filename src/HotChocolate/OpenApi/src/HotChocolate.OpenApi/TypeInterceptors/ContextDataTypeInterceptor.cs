@@ -1,7 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Mutable;
 using EnumTypeDefinition = HotChocolate.Types.Descriptors.Configurations.EnumTypeDefinition;
 using InterfaceTypeDefinition = HotChocolate.Types.Descriptors.Configurations.InterfaceTypeDefinition;
@@ -11,7 +10,7 @@ using UnionTypeDefinition = HotChocolate.Types.Descriptors.Configurations.UnionT
 namespace HotChocolate.OpenApi.TypeInterceptors;
 
 /// <summary>
-/// Copies OpenAPI-related context data from the skimmed schema to the type definitions.
+/// Copies OpenAPI-related context data from the Mutable schema to the type definitions.
 /// </summary>
 public sealed class ContextDataTypeInterceptor(MutableSchemaDefinition schema) : TypeInterceptor
 {

@@ -17,7 +17,7 @@ public static class DataLoaderAttributeHelper
 
     public static ImmutableHashSet<string> GetDataLoaderGroupKeys(this IMethodSymbol methodSymbol)
     {
-        var groupNamesBuilder = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
+        var groupNamesBuilder = ImmutableHashSet.CreateBuilder(StringComparer.Ordinal);
         AddGroupNames(groupNamesBuilder, methodSymbol.GetAttributes());
         AddGroupNames(groupNamesBuilder, methodSymbol.ContainingType.GetAttributes());
         return groupNamesBuilder.Count == 0 ? [] : groupNamesBuilder.ToImmutable();

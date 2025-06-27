@@ -1,11 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace HotChocolate.Utilities.Introspection;
 
-[SuppressMessage("ReSharper", "InconsistentNaming")]
 internal static class WellKnownTypes
 {
-#pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable IDE1006, InconsistentNaming
     public const string __Directive = "__Directive";
     public const string __DirectiveLocation = "__DirectiveLocation";
     public const string __EnumValue = "__EnumValue";
@@ -14,7 +11,7 @@ internal static class WellKnownTypes
     public const string __Schema = "__Schema";
     public const string __Type = "__Type";
     public const string __TypeKind = "__TypeKind";
-#pragma warning restore IDE1006 // Naming Styles
+#pragma warning restore IDE1006, InconsistentNaming
     public const string String = "String";
     public const string Boolean = "Boolean";
     public const string Float = "Float";

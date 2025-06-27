@@ -3,7 +3,6 @@ using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Caching.Tests;
 
@@ -363,7 +362,7 @@ public class CacheControlTypeInterceptorTests
         [CacheControl(MaxAge = 200)]
         public IQueryable<string> QueryableFieldWithCacheControl() => null!;
 
-        [CacheControl(SharedMaxAge=200)]
+        [CacheControl(SharedMaxAge = 200)]
         public IQueryable<string> QueryableFieldWithCacheControlSharedMaxAge() => null!;
 
         [CacheControl(500, SharedMaxAge = 200)]

@@ -1,7 +1,7 @@
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// The <see cref="RequestExecutorProxy"/> is a helper class that represents a executor for
+/// The <see cref="RequestExecutorProxy"/> is a helper class that represents an executor for
 /// one specific schema and handles the resolving and hot-swapping the specific executor.
 /// </summary>
 public sealed class RequestExecutorProxy : IDisposable

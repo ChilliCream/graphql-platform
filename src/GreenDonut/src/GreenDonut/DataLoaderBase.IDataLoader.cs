@@ -53,24 +53,4 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
     /// <inheritdoc />
     public void ClearCache() => Cache?.Clear();
-
-    /// <inheritdoc />
-    [Obsolete("Use SetCacheEntry instead.")]
-    void IDataLoader.Set(object key, Task<object?> value)
-    {
-        IDataLoader dataLoader = this;
-        dataLoader.SetCacheEntry(key, value);
-    }
-
-    /// <inheritdoc />
-    [Obsolete("Use RemoveCacheEntry instead.")]
-    void IDataLoader.Remove(object key)
-    {
-        IDataLoader dataLoader = this;
-        dataLoader.RemoveCacheEntry(key);
-    }
-
-    /// <inheritdoc />
-    [Obsolete("Use ClearCache instead.")]
-    public void Clear() => ClearCache();
 }

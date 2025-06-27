@@ -11,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using static HotChocolate.Types.FieldBindingFlags;
 using static HotChocolate.WellKnownContextData;
-using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 
 namespace HotChocolate.Types;
 
@@ -2123,6 +2122,35 @@ public class ObjectTypeTests : TypeTestBase
                 .BuildSchemaAsync();
 
         schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Ignore_Type_Members()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithTypeExtension>()
+            .AddTypeExtension<QueryWithTypeExtension.SomeClassExtension>()
+            .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [GraphQLName("Query")]
+    public class QueryWithTypeExtension
+    {
+        public SomeClass GetSomeClass() => null!;
+
+        [ExtendObjectType("SomeClass")]
+        public class SomeClassExtension
+        {
+            public int SomethingElse { get; set; }
+        }
+    }
+
+    public class SomeClass
+    {
+        public int Something { get; set; }
     }
 
     public abstract class ResolverBase

@@ -92,7 +92,7 @@ public class PathTests
         Assert.True(areEqual);
     }
 
-[Fact]
+    [Fact]
     public void Null_Is_Last()
     {
         var path = Path.Parse("/foo");

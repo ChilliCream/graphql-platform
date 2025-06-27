@@ -264,7 +264,7 @@ public class EntitiesResolverTests
 
         public static TypeWithReferenceResolver Get([LocalState] ObjectValueNode data)
         {
-            return new TypeWithReferenceResolver {Id = "1", SomeField = "SomeField"};
+            return new TypeWithReferenceResolver { Id = "1", SomeField = "SomeField" };
         }
     }
 
@@ -353,9 +353,9 @@ public class EntitiesResolverTests
 
             Dictionary<string, FederatedType> result = new()
             {
-                ["1"] = new FederatedType {Id = "1", SomeField = "SomeField-1"},
-                ["2"] = new FederatedType {Id = "2", SomeField = "SomeField-2"},
-                ["3"] = new FederatedType {Id = "3", SomeField = "SomeField-3"}
+                ["1"] = new FederatedType { Id = "1", SomeField = "SomeField-1" },
+                ["2"] = new FederatedType { Id = "2", SomeField = "SomeField-2" },
+                ["3"] = new FederatedType { Id = "3", SomeField = "SomeField-3" }
             };
 
             return Task.FromResult<IReadOnlyDictionary<string, FederatedType>>(result);

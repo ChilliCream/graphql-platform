@@ -247,7 +247,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             DiagnosticEvents.HttpRequestError(context, error);
         }
 
-        HANDLE_RESULT:
+HANDLE_RESULT:
         IDisposable? formatScope = null;
 
         try

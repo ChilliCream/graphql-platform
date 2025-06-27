@@ -4,8 +4,9 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
-using HotChocolate.Execution.Serialization;
+using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Transport.Formatters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -60,11 +61,14 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // arrange
             using var testServer = CreateStarWarsServer(
                 configureConventions: mapping => mapping.WithOptions(
-                    new GraphQLServerOptions { Sockets =
+                    new GraphQLServerOptions
                     {
-                        ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
-                        KeepAliveInterval = TimeSpan.FromMilliseconds(150)
-                    } }));
+                        Sockets =
+                        {
+                            ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
+                            KeepAliveInterval = TimeSpan.FromMilliseconds(150)
+                        }
+                    }));
             var client = CreateWebSocketClient(testServer);
 
             // act
@@ -534,9 +538,9 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
                                 _ => new DefaultWebSocketPayloadFormatter(
                                     new WebSocketPayloadFormatterOptions
                                     {
-                                        Json = new JsonResultFormatterOptions()
+                                        Json = new JsonResultFormatterOptions
                                         {
-                                            NullIgnoreCondition = JsonNullIgnoreCondition.All
+                                            NullIgnoreCondition = JsonNullIgnoreCondition.FieldsAndLists
                                         }
                                     })));
                 var client = CreateWebSocketClient(testServer);

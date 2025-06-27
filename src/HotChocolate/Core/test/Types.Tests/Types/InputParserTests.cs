@@ -564,6 +564,6 @@ public class InputParserTests
     {
         public string Field1 { get; set; } = null!;
 
-        public int Field2 { get; set; } = 0;
+        public int Field2 { get; set; }
     }
 }

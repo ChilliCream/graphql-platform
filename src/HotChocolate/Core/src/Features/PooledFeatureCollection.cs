@@ -15,7 +15,7 @@ public sealed class PooledFeatureCollection : IFeatureCollection
     private static readonly KeyComparer s_featureKeyComparer = new();
     private readonly Dictionary<Type, object> _features = [];
     private readonly List<KeyValuePair<Type, object>> _pooledFeatures = [];
-    private object _state;
+    private readonly object _state;
     private IFeatureCollection? _defaults;
     private volatile int _containerRevision;
 
@@ -136,7 +136,7 @@ public sealed class PooledFeatureCollection : IFeatureCollection
     /// <param name="defaults">
     /// The defaults for the feature collection.
     /// </param>
-    public void Initialize(IFeatureCollection? defaults = default)
+    public void Initialize(IFeatureCollection? defaults = null)
     {
         _defaults = defaults;
 

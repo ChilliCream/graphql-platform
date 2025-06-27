@@ -1,15 +1,11 @@
-using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate.CostAnalysis;
 
 public sealed class SchemaIntegrationTests
 {
-    private readonly CostSyntaxRewriter _costSyntaxRewriter = new();
-
     [Fact]
     public async Task Rewrite_DefaultWeights_RemovesCostDirectives()
     {

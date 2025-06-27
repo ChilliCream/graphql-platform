@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Text.Json;
 using HotChocolate.Buffers;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
 

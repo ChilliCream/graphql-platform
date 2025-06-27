@@ -41,7 +41,7 @@ public abstract class VisitorTestBase : IAsyncLifetime
         var resolver = BuildResolver(documentStore, entities);
 
         var builder = new ServiceCollection()
-            .AddSingleton<IDocumentStore>(documentStore)
+            .AddSingleton(documentStore)
             .AddGraphQLServer()
             .AddRavenFiltering()
             .AddRavenPagingProviders()

@@ -1,6 +1,3 @@
-using System.Data;
-using System.Diagnostics.Contracts;
-
 namespace HotChocolate.Types.Analyzers;
 
 public static class WellKnownTypes

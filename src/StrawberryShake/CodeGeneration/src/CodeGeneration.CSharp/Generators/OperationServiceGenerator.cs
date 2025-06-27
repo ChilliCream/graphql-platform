@@ -663,48 +663,48 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
         switch (typeReference)
         {
             case ListTypeDescriptor { InnerType: { } lt }:
-                {
-                    var innerVariable = variable + "_lt";
-                    var innerPathVariable = pathVariable + "_lt";
-                    var counterVariable = pathVariable + "_counter";
+            {
+                var innerVariable = variable + "_lt";
+                var innerPathVariable = pathVariable + "_lt";
+                var counterVariable = pathVariable + "_counter";
 
-                    result = CodeBlockBuilder
+                result = CodeBlockBuilder
+                    .New()
+                    .AddCode(AssignmentBuilder
                         .New()
+                        .SetLeftHandSide($"var {counterVariable}")
+                        .SetRightHandSide("0"))
+                    .AddCode(ForEachBuilder
+                        .New()
+                        .SetLoopHeader($"var {innerVariable} in {checkedVariable}")
                         .AddCode(AssignmentBuilder
                             .New()
-                            .SetLeftHandSide($"var {counterVariable}")
-                            .SetRightHandSide("0"))
-                        .AddCode(ForEachBuilder
-                            .New()
-                            .SetLoopHeader($"var {innerVariable} in {checkedVariable}")
-                            .AddCode(AssignmentBuilder
-                                .New()
-                                .SetLeftHandSide($"var {innerPathVariable}")
-                                .SetRightHandSide($"{pathVariable} + \".\" + ({counterVariable}++)"))
-                            .AddEmptyLine()
-                            .AddCode(BuildUploadFileMapper(lt, innerPathVariable, innerVariable)));
+                            .SetLeftHandSide($"var {innerPathVariable}")
+                            .SetRightHandSide($"{pathVariable} + \".\" + ({counterVariable}++)"))
+                        .AddEmptyLine()
+                        .AddCode(BuildUploadFileMapper(lt, innerPathVariable, innerVariable)));
 
-                    break;
-                }
+                break;
+            }
             case InputObjectTypeDescriptor { HasUpload: true, Name: { } inputTypeName }:
-                {
-                    result = MethodCallBuilder.New()
-                        .SetMethodName("MapFilesFromType" + inputTypeName)
-                        .AddArgument(pathVariable)
-                        .AddArgument(checkedVariable)
-                        .AddArgument(Files);
-                    break;
-                }
+            {
+                result = MethodCallBuilder.New()
+                    .SetMethodName("MapFilesFromType" + inputTypeName)
+                    .AddArgument(pathVariable)
+                    .AddArgument(checkedVariable)
+                    .AddArgument(Files);
+                break;
+            }
             case ScalarTypeDescriptor { Name: "Upload" }:
-                {
-                    return CodeBlockBuilder.New()
-                        .AddCode(
-                            MethodCallBuilder
-                                .New()
-                                .SetMethodName(Files, "Add")
-                                .AddArgument(pathVariable)
-                                .AddArgument($"{variable} is {TypeNames.Upload} u ? u : null"));
-                }
+            {
+                return CodeBlockBuilder.New()
+                    .AddCode(
+                        MethodCallBuilder
+                            .New()
+                            .SetMethodName(Files, "Add")
+                            .AddArgument(pathVariable)
+                            .AddArgument($"{variable} is {TypeNames.Upload} u ? u : null"));
+            }
             default:
                 throw ThrowHelper.OperationServiceGenerator_HasNoUploadScalar(typeReference);
         }

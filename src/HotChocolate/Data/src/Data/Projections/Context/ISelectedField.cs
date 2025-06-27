@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Projections.Context;
 /// The difference between <see cref="ISelectedField"/> and <see cref="ISelection"/> is that
 /// <see cref="ISelectedField"/> is specific to the current request/operation and not cached. This
 /// makes it possible to recursively iterate through the selected fields by calling
-/// <see cref="ISelectedField.GetFields"/>.
+/// <see cref="GetFields"/>.
 /// <example >
 /// <code>
 /// Queue&lt;string> visitedFields = new();
@@ -43,12 +43,12 @@ public interface ISelectedField
     IOutputFieldDefinition Field { get; }
 
     /// <summary>
-    /// Gets the  type of the field.
+    /// Gets the type of the field.
     /// </summary>
     IType Type { get; }
 
     /// <summary>
-    /// Is true if the type of the selected field is a abstract type.
+    /// Is true if the type of the selected field is an abstract type.
     /// Equivalent to <c>Type.IsAbstractType()</c>.
     /// </summary>
     bool IsAbstractType { get; }
@@ -63,8 +63,7 @@ public interface ISelectedField
     /// The type context. In case of an abstract type, there are multiple selection sets.
     /// The <paramref name="type"/> specifies which fields are returned.
     /// <remarks>
-    /// This parameter is required if <see cref="ISelectedField.Type"/> is an
-    /// abstract type.
+    /// This parameter is required if <see cref="Type"/> is an abstract type.
     /// </remarks>
     /// </param>
     /// <param name="allowInternals">
@@ -88,8 +87,7 @@ public interface ISelectedField
     /// The type context. In case of an abstract type, there are multiple selection sets.
     /// The <paramref name="type"/> specifies which fields are returned.
     /// <remarks>
-    /// This parameter is required if <see cref="ISelectedField.Type"/> is an
-    /// abstract type.
+    /// This parameter is required if <see cref="Type"/> is an abstract type.
     /// </remarks>
     /// </param>
     /// <param name="allowInternals">
