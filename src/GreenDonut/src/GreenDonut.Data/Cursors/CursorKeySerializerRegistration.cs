@@ -26,7 +26,15 @@ public static class CursorKeySerializerRegistration
         new BoolCursorKeySerializer(),
         new UShortCursorKeySerializer(),
         new UIntCursorKeySerializer(),
-        new ULongCursorKeySerializer()
+        new ULongCursorKeySerializer(),
+        new EnumCursorKeySerializer<byte>(),
+        new EnumCursorKeySerializer<sbyte>(),
+        new EnumCursorKeySerializer<short>(),
+        new EnumCursorKeySerializer<ushort>(),
+        new EnumCursorKeySerializer<int>(),
+        new EnumCursorKeySerializer<uint>(),
+        new EnumCursorKeySerializer<long>(),
+        new EnumCursorKeySerializer<ulong>()
     ];
 
     /// <summary>
