@@ -54,7 +54,7 @@ public static class CursorParser
         var start = 0;
         var end = 0;
         var parsedCursor = new object?[keys.Length];
-        var (offset, page, totalCount) = ParsePageInfo(ref bufferSpan);
+        var (nullesFirst, offset, page, totalCount) = ParsePageInfo(ref bufferSpan);
 
         for (var current = 0; current < bufferSpan.Length; current++)
         {
@@ -83,7 +83,7 @@ public static class CursorParser
         }
 
         ArrayPool<byte>.Shared.Return(buffer);
-        return new Cursor(parsedCursor.ToImmutableArray(), offset, page, totalCount);
+        return new Cursor(parsedCursor.ToImmutableArray(), nullesFirst, offset, page, totalCount);
 
         static bool CanParse(byte code, int pos, ReadOnlySpan<byte> buffer)
         {
@@ -133,10 +133,15 @@ public static class CursorParser
 
         var separatorIndex = ExpectSeparator(span, separator);
         var part = span[..separatorIndex];
-        ParseNumber(part, out var offset, out var consumed);
+        ParseNumber(part, out var nullsFirst, out var consumed);
         var start = separatorIndex + 1;
 
         separatorIndex = ExpectSeparator(span[start..], separator);
+        part = span.Slice(start, separatorIndex);
+        ParseNumber(part, out var offset, out consumed);
+        start += separatorIndex + 1;
+
+        separatorIndex = ExpectSeparator(span[start..], Separator);
         part = span.Slice(start, separatorIndex);
         ParseNumber(part, out var page, out consumed);
         start += separatorIndex + 1;
@@ -149,7 +154,7 @@ public static class CursorParser
         // Advance span beyond closing `}`
         span = span[start..];
 
-        return new CursorPageInfo(offset, page, totalCount);
+        return new CursorPageInfo(nullsFirst > 0, offset, page, totalCount);
 
         static void ParseNumber(ReadOnlySpan<byte> span, out int value, out int consumed)
         {

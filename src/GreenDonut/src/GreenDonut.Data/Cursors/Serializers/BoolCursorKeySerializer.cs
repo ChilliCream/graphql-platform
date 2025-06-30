@@ -1,16 +1,18 @@
 using System.Buffers.Text;
-using System.Reflection;
 
 namespace GreenDonut.Data.Cursors.Serializers;
 
 internal sealed class BoolCursorKeySerializer : ICursorKeySerializer
 {
-    private static readonly MethodInfo s_compareTo = CompareToResolver.GetCompareToMethod<bool>();
+    private static readonly CursorKeyCompareMethod s_compareTo = CompareToResolver.GetCompareToMethod<bool>();
 
     public bool IsSupported(Type type)
-        => type == typeof(bool);
+        => type == typeof(bool) || type == typeof(bool?);
 
-    public MethodInfo GetCompareToMethod(Type type)
+    public bool IsNullable(Type type)
+        => type == typeof(bool?);
+
+    public CursorKeyCompareMethod GetCompareToMethod(Type type)
         => s_compareTo;
 
     public object Parse(ReadOnlySpan<byte> formattedKey)

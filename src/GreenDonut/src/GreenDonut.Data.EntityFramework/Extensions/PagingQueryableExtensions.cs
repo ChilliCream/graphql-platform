@@ -79,7 +79,7 @@ public static class PagingQueryableExtensions
 
         source = QueryHelpers.EnsureOrderPropsAreSelected(source);
 
-        var keys = ParseDataSetKeys(source);
+        var (keys, prounedQuery) = ExtractDataSetKeys(source);
 
         if (keys.Length == 0)
         {
@@ -120,9 +120,8 @@ public static class PagingQueryableExtensions
         if (arguments.After is not null)
         {
             cursor = CursorParser.Parse(arguments.After, keys);
-            var (whereExpr, cursorOffset) = BuildWhereExpression<T>(keys, cursor, true);
-            source = source.Where(whereExpr);
-            offset = cursorOffset;
+            source = prounedQuery.CursorPaginate(keys, cursor, forward: true);
+            offset = cursor.Offset ?? 0;
 
             if (!includeTotalCount)
             {
@@ -145,9 +144,8 @@ public static class PagingQueryableExtensions
             }
 
             cursor = CursorParser.Parse(arguments.Before, keys);
-            var (whereExpr, cursorOffset) = BuildWhereExpression<T>(keys, cursor, false);
-            source = source.Where(whereExpr);
-            offset = cursorOffset;
+            source = prounedQuery.CursorPaginate(keys, cursor, forward: false);
+            offset = cursor.Offset ?? 0;
 
             if (!includeTotalCount)
             {
@@ -164,13 +162,6 @@ public static class PagingQueryableExtensions
                     "Positive offsets are not allowed with `last`, and negative offsets are not allowed with `first`.",
                     nameof(arguments));
             }
-        }
-
-        var isBackward = arguments.Last is not null;
-
-        if (isBackward)
-        {
-            source = ReverseOrderExpressionRewriter.Rewrite(source);
         }
 
         var absOffset = Math.Abs(offset);
@@ -228,14 +219,9 @@ public static class PagingQueryableExtensions
             return Page<T>.Empty;
         }
 
-        if (isBackward)
-        {
-            builder.Reverse();
-        }
-
         if (builder.Count > requestedCount)
         {
-            builder.RemoveAt(isBackward ? 0 : requestedCount);
+            builder.RemoveAt(requestedCount);
         }
 
         var pageIndex = CreateIndex(arguments, cursor, totalCount);
@@ -412,7 +398,7 @@ public static class PagingQueryableExtensions
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
-        var keys = ParseDataSetKeys(source);
+        var (keys, prounedQuery) = ExtractDataSetKeys(source);
 
         if (keys.Length == 0)
         {
@@ -438,11 +424,6 @@ public static class PagingQueryableExtensions
         source = QueryHelpers.EnsureOrderPropsAreSelected(source);
         source = QueryHelpers.EnsureGroupPropsAreSelected(source, keySelector);
 
-        // we need to move the ordering into the select expression we are constructing
-        // so that the groupBy will not remove it. The first thing we do here is to extract the order expressions
-        // and to create a new expression that will not contain it anymore.
-        var ordering = ExtractAndRemoveOrder(source.Expression);
-
         Dictionary<TKey, int>? counts = null;
         if (includeTotalCount)
         {
@@ -455,14 +436,12 @@ public static class PagingQueryableExtensions
             BuildBatchExpression<TKey, TElement>(
                 arguments,
                 keys,
-                ordering.OrderExpressions,
-                ordering.OrderMethods,
                 forward,
                 ref requestedCount);
         var map = new Dictionary<TKey, Page<TValue>>();
 
         // we apply our new expression here.
-        source = source.Provider.CreateQuery<TElement>(ordering.Expression);
+        source = source.Provider.CreateQuery<TElement>(prounedQuery.Expression);
 
         TryGetQueryInterceptor()?.OnBeforeExecute(source.GroupBy(keySelector).Select(batchExpression.SelectExpression));
 
@@ -614,7 +593,7 @@ public static class PagingQueryableExtensions
                 items,
                 hasNext,
                 hasPrevious,
-                (item, o, p, c) => CursorFormatter.Format(item, keys, new CursorPageInfo(o, p, c)),
+                (item, n, o, p, c) => CursorFormatter.Format(item, keys, new CursorPageInfo(n, o, p, c)),
                 index ?? 1,
                 requestedPageSize.Value,
                 totalCount.Value);
@@ -672,11 +651,11 @@ public static class PagingQueryableExtensions
         return null;
     }
 
-    private static CursorKey[] ParseDataSetKeys<T>(IQueryable<T> source)
+    private static (CursorKey[] keys, PrunedQuery<T> prunedQuery) ExtractDataSetKeys<T>(IQueryable<T> source)
     {
-        var parser = new CursorKeyParser();
-        parser.Visit(source.Expression);
-        return [.. parser.Keys];
+        var parser = new CursorKeyExtractor();
+        var prunedExpression = parser.Visit(source.Expression);
+        return ([.. parser.Keys], new PrunedQuery<T>(prunedExpression, source.Provider));
     }
 
     private sealed class InterceptorHolder

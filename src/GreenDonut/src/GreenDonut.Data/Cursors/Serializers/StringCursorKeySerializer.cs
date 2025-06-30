@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Text;
 
 namespace GreenDonut.Data.Cursors.Serializers;
@@ -6,12 +5,15 @@ namespace GreenDonut.Data.Cursors.Serializers;
 internal sealed class StringCursorKeySerializer : ICursorKeySerializer
 {
     private static readonly Encoding s_encoding = Encoding.UTF8;
-    private static readonly MethodInfo s_compareTo = CompareToResolver.GetCompareToMethod<string>();
+    private static readonly CursorKeyCompareMethod s_compareTo = CompareToResolver.GetCompareToMethod<string>();
 
     public bool IsSupported(Type type)
         => type == typeof(string);
 
-    public MethodInfo GetCompareToMethod(Type type)
+    public bool IsNullable(Type type)
+        => false;
+
+    public CursorKeyCompareMethod GetCompareToMethod(Type type)
         => s_compareTo;
 
     public object Parse(ReadOnlySpan<byte> formattedKey)

@@ -1,20 +1,22 @@
 using System.Buffers;
-using System.Reflection;
 using System.Text.Unicode;
 
 namespace GreenDonut.Data.Cursors.Serializers;
 
 internal sealed class TimeOnlyCursorKeySerializer : ICursorKeySerializer
 {
-    private static readonly MethodInfo s_compareTo =
+    private static readonly CursorKeyCompareMethod s_compareTo =
         CompareToResolver.GetCompareToMethod<TimeOnly>();
 
     private const string TimeFormat = "HHmmssfffffff";
 
     public bool IsSupported(Type type)
-        => type == typeof(TimeOnly);
+        => type == typeof(TimeOnly) || type == typeof(TimeOnly?);
 
-    public MethodInfo GetCompareToMethod(Type type)
+    public bool IsNullable(Type type)
+        => type == typeof(TimeOnly?);
+
+    public CursorKeyCompareMethod GetCompareToMethod(Type type)
         => s_compareTo;
 
     public object Parse(ReadOnlySpan<byte> formattedKey)

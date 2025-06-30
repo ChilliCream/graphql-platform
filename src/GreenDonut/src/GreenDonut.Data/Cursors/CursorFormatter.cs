@@ -55,7 +55,7 @@ public static class CursorFormatter
         var totalWritten = 0;
         var first = true;
 
-        if (pageInfo.TotalCount == 0)
+        if (pageInfo.TotalCount == 0 && pageInfo.NullsFirst == false)
         {
             span[totalWritten++] = (byte)'{';
             span[totalWritten++] = (byte)'}';
@@ -63,6 +63,8 @@ public static class CursorFormatter
         else
         {
             WriteCharacter('{', ref span, ref poolArray, ref totalWritten);
+            WriteNumber(pageInfo.NullsFirst ? 1 : 0, ref span, ref poolArray, ref totalWritten);
+            WriteCharacter('|', ref span, ref poolArray, ref totalWritten);
             WriteNumber(pageInfo.Offset, ref span, ref poolArray, ref totalWritten);
             WriteCharacter('|', ref span, ref poolArray, ref totalWritten);
             WriteNumber(pageInfo.PageIndex, ref span, ref poolArray, ref totalWritten);

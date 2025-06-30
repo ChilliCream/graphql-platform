@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using System.Reflection;
 using GreenDonut.Data.Cursors.Serializers;
 
 namespace GreenDonut.Data.Cursors;
@@ -31,7 +30,12 @@ public sealed class CursorKey(
     /// <summary>
     /// Gets the compare method that is applicable to the key value.
     /// </summary>
-    public MethodInfo CompareMethod { get; } = serializer.GetCompareToMethod(expression.ReturnType);
+    public CursorKeyCompareMethod CompareMethod { get; } = serializer.GetCompareToMethod(expression.ReturnType);
+
+    /// <summary>
+    /// Gets a value indicating whether the key value is nullable.
+    /// </summary>
+    public bool IsNullable { get; } = serializer.IsNullable(expression.ReturnType);
 
     /// <summary>
     /// Gets a value defining the sort direction of this key in dataset.
@@ -66,7 +70,17 @@ public sealed class CursorKey(
     public bool TryFormat(object entity, Span<byte> buffer, out int written)
         => CursorKeySerializerHelper.TryFormat(GetValue(entity), serializer, buffer, out written);
 
-    private object? GetValue(object entity)
+    /// <summary>
+    /// Extracts the key value from the provided entity by compiling and invoking
+    /// the lambda expression associated with this cursor key.
+    /// </summary>
+    /// <param name="entity">
+    /// The entity from which the key value should be extracted.
+    /// </param>
+    /// <returns>
+    /// The extracted key value, or <c>null</c> if the value cannot be determined.
+    /// </returns>
+    public object? GetValue(object entity)
     {
         _compiled ??= Expression.Compile();
         return _compiled.DynamicInvoke(entity);
