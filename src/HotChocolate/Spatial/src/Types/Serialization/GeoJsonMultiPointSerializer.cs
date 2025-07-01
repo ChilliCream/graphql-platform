@@ -18,14 +18,11 @@ internal class GeoJsonMultiPointSerializer
         object? coordinates,
         int? crs)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         Point[]? geometries;
 
-        if (coordinates is IList { Count: > 0, } listObjects &&
+        if (coordinates is IList { Count: > 0 } listObjects &&
             listObjects.TryConvertToCoordinates(out var list))
         {
             geometries = new Point[list.Length];
@@ -54,10 +51,7 @@ Error:
 
     public override object CreateInstance(IType type, object?[] fieldValues)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (fieldValues[0] is not GeoJsonGeometryType.MultiPoint)
         {
@@ -69,10 +63,7 @@ Error:
 
     public override void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is not Geometry geometry)
         {

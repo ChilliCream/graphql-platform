@@ -254,11 +254,11 @@ public class InputFieldDescriptorTests
         // act
         var descriptor = InputFieldDescriptor.New(
             Context,
-            typeof(ObjectField).GetProperty("Arguments"));
+            typeof(ObjectField).GetProperty("Arguments")!);
 
         // assert
         var description = descriptor.CreateConfiguration();
-        Assert.Equal(typeof(FieldCollection<Argument>),
+        Assert.Equal(typeof(ArgumentCollection),
             Assert.IsType<ExtendedTypeReference>(description.Type).Type.Source);
         Assert.Equal("arguments", description.Name);
     }

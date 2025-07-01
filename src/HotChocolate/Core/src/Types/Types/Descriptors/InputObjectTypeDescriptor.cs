@@ -2,7 +2,7 @@
 
 using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static System.Reflection.BindingFlags;
@@ -18,10 +18,7 @@ public class InputObjectTypeDescriptor
     protected InputObjectTypeDescriptor(IDescriptorContext context, Type runtimeType)
         : base(context)
     {
-        if (runtimeType is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeType));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeType);
 
         Configuration.RuntimeType = runtimeType;
         Configuration.Name = context.Naming.GetTypeName(

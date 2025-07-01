@@ -10,7 +10,7 @@ namespace HotChocolate.Resolvers;
 
 internal static class DirectiveClassMiddlewareFactory
 {
-    private static readonly MethodInfo _createGeneric =
+    private static readonly MethodInfo s_createGeneric =
         typeof(DirectiveClassMiddlewareFactory)
             .GetTypeInfo().DeclaredMethods.First(
                 t =>
@@ -22,7 +22,7 @@ internal static class DirectiveClassMiddlewareFactory
                     return false;
                 });
 
-    private static readonly PropertyInfo _services =
+    private static readonly PropertyInfo s_services =
         typeof(IResolverContext).GetProperty(nameof(IResolverContext.Services))!;
 
     internal static DirectiveMiddleware Create<TMiddleware>()
@@ -57,7 +57,7 @@ internal static class DirectiveClassMiddlewareFactory
                                     {
                                         directiveHandler,
                                         new ServiceParameterHandler(
-                                            Expression.Property(context, _services))
+                                            Expression.Property(context, s_services))
                                     });
                     }
                 }
@@ -74,7 +74,7 @@ internal static class DirectiveClassMiddlewareFactory
     }
 
     internal static DirectiveMiddleware Create(Type middlewareType)
-        => (DirectiveMiddleware)_createGeneric
+        => (DirectiveMiddleware)s_createGeneric
             .MakeGenericMethod(middlewareType)
             .Invoke(null, [])!;
 
@@ -102,7 +102,7 @@ internal static class DirectiveClassMiddlewareFactory
                                     {
                                         directiveHandler,
                                         new ServiceParameterHandler(
-                                            Expression.Property(context, _services))
+                                            Expression.Property(context, s_services))
                                     });
                     }
                 }
@@ -143,10 +143,10 @@ internal static class DirectiveClassMiddlewareFactory
 
             if (parameter.ParameterType == typeof(DirectiveNode))
             {
-                return Expression.Constant(_directive.AsSyntaxNode(), typeof(DirectiveNode));
+                return Expression.Constant(_directive.ToSyntaxNode(), typeof(DirectiveNode));
             }
 
-            return  Expression.Constant(_directive.AsValue<object>(), _runtimeType);
+            return Expression.Constant(_directive.ToValue<object>(), _runtimeType);
         }
     }
 }

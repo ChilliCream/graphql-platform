@@ -119,18 +119,18 @@ public class MyServerEventListener : ServerDiagnosticEventListener
 }
 ```
 
-| Method name                | Description                                                                                                                  |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| ExecuteHttpRequest         | Called when starting to execute a GraphQL over HTTP request in the transport layer.                                          |
-| StartSingleRequest         | Called within the ExecuteHttpRequest scope and signals that a single GraphQL request will be executed.                       |
-| StartBatchRequest          | Called within the ExecuteHttpRequest scope and signals that a GraphQL batch request will be executed.                        |
-| StartOperationBatchRequest | Called within the ExecuteHttpRequest scope and signals that a GraphQL batch request will be executed.                        |
-| HttpRequestError           | Called within the ExecuteHttpRequest scope and signals that a error occurred while processing the GraphQL over HTTP request. |
-| ParseHttpRequest           | Called when starting to parse a GraphQL HTTP request.                                                                        |
-| ParserErrors               | Called within the ParseHttpRequest scope and signals that a error occurred while parsing the GraphQL request.                |
-| FormatHttpResponse         | Called when starting to format a GraphQL query result.                                                                       |
-| WebSocketSession           | Called when starting to establish a GraphQL WebSocket session.                                                               |
-| WebSocketSessionError      | Called within the WebSocketSession scope and signals that a error occurred that terminated the session.                      |
+| Method name                | Description                                                                                                                   |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| ExecuteHttpRequest         | Called when starting to execute a GraphQL over HTTP request in the transport layer.                                           |
+| StartSingleRequest         | Called within the ExecuteHttpRequest scope and signals that a single GraphQL request will be executed.                        |
+| StartBatchRequest          | Called within the ExecuteHttpRequest scope and signals that a GraphQL batch request will be executed.                         |
+| StartOperationBatchRequest | Called within the ExecuteHttpRequest scope and signals that a GraphQL batch request will be executed.                         |
+| HttpRequestError           | Called within the ExecuteHttpRequest scope and signals that an error occurred while processing the GraphQL over HTTP request. |
+| ParseHttpRequest           | Called when starting to parse a GraphQL HTTP request.                                                                         |
+| ParserErrors               | Called within the ParseHttpRequest scope and signals that an error occurred while parsing the GraphQL request.                |
+| FormatHttpResponse         | Called when starting to format a GraphQL query result.                                                                        |
+| WebSocketSession           | Called when starting to establish a GraphQL WebSocket session.                                                                |
+| WebSocketSessionError      | Called within the WebSocketSession scope and signals that an error occurred that terminated the session.                      |
 
 ## Execution Events
 

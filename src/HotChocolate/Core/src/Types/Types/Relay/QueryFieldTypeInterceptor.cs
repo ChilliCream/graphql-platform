@@ -1,9 +1,8 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
-using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
@@ -11,12 +10,12 @@ namespace HotChocolate.Types.Relay;
 
 internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 {
-    private const string _defaultFieldName = "query";
+    private const string DefaultFieldName = "query";
     private readonly HashSet<string> _payloads = [];
 
-    private ITypeCompletionContext _context = default!;
+    private ITypeCompletionContext _context = null!;
     private ObjectType? _queryType;
-    private ObjectFieldConfiguration _queryField = default!;
+    private ObjectFieldConfiguration _queryField = null!;
     private ObjectTypeConfiguration? _mutationConfig;
 
     public override void OnAfterResolveRootType(
@@ -33,7 +32,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
                 break;
 
             case OperationType.Mutation:
-                _mutationConfig = (ObjectTypeConfiguration)configuration;
+                _mutationConfig = configuration;
                 break;
         }
     }
@@ -47,10 +46,10 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
             TypeReference queryType = TypeReference.Parse($"{_queryType.Name}!");
 
             _queryField = new ObjectFieldConfiguration(
-                options.QueryFieldName ?? _defaultFieldName,
+                options.QueryFieldName ?? DefaultFieldName,
                 type: queryType,
                 resolver: ctx => new(ctx.GetQueryRoot<object>()));
-            _queryField.Flags |= FieldFlags.MutationQueryField;
+            _queryField.Flags |= CoreFieldFlags.MutationQueryField;
 
             foreach (var field in _mutationConfig.Fields)
             {

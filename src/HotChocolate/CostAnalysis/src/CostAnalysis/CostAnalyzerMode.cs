@@ -29,5 +29,5 @@ internal enum CostAnalyzerMode
     /// <summary>
     /// Execute the request after analyzing the operation cost.
     /// </summary>
-    Execute = 8,
+    Execute = 8
 }

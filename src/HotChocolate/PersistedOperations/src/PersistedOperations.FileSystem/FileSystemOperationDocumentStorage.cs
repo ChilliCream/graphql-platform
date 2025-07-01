@@ -9,7 +9,6 @@ namespace HotChocolate.PersistedOperations.FileSystem;
 /// </summary>
 public class FileSystemOperationDocumentStorage : IOperationDocumentStorage
 {
-    private static readonly Task<OperationDocument?> _null = Task.FromResult<OperationDocument?>(null);
     private readonly IOperationDocumentFileMap _documentMap;
 
     /// <summary>
@@ -53,7 +52,7 @@ public class FileSystemOperationDocumentStorage : IOperationDocumentStorage
                 stream,
                 static (buffer, buffered) =>
                 {
-                    var span = buffer.AsSpan().Slice(0, buffered);
+                    var span = buffer.AsSpan()[..buffered];
                     return Utf8GraphQLParser.Parse(span);
                 },
                 cancellationToken)
@@ -73,10 +72,7 @@ public class FileSystemOperationDocumentStorage : IOperationDocumentStorage
             throw new ArgumentNullException(nameof(documentId));
         }
 
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         var filePath = _documentMap.MapToFilePath(documentId.Value);
         return SaveInternalAsync(filePath, document, cancellationToken);

@@ -79,5 +79,5 @@ internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector)
     }
 
     private static bool IsTypeSystemObject(Type type) =>
-        typeof(TypeSystemObjectBase).IsAssignableFrom(type);
+        typeof(TypeSystemObject).IsAssignableFrom(type);
 }

@@ -24,10 +24,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
         object? runtimeValue,
         out object? resultValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         try
         {
@@ -56,7 +53,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
                             GeoJsonTypeSerializer.Default.Serialize(type, _geometryType) ??
                             throw Serializer_CouldNotSerialize(type)
                         },
-                        { CrsFieldName, g.SRID },
+                        { CrsFieldName, g.SRID }
                     };
 
                 return true;
@@ -74,15 +71,8 @@ internal abstract class GeoJsonInputObjectSerializer<T>
 
     public override bool IsInstanceOfType(IType type, IValueNode literal)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (literal is null)
-        {
-            throw new ArgumentNullException(nameof(literal));
-        }
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(literal);
 
         return literal is ObjectValueNode ||
             literal is NullValueNode;
@@ -90,10 +80,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
 
     public override bool IsInstanceOfType(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return runtimeValue is T t &&
             GeoJsonTypeSerializer.Default.TryParseString(
@@ -104,10 +91,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
 
     public override object? ParseLiteral(IType type, IValueNode valueSyntax)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (valueSyntax is NullValueNode)
         {
@@ -132,10 +116,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
 
     public override IValueNode ParseResult(IType type, object? resultValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (resultValue is null)
         {
@@ -148,7 +129,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
                 {
                     new ObjectFieldNode(
                         TypeFieldName,
-                        GeoJsonTypeSerializer.Default.ParseResult(type, _geometryType)),
+                        GeoJsonTypeSerializer.Default.ParseResult(type, _geometryType))
                 };
 
             if (dict.TryGetValue(CoordinatesFieldName, out var value) &&
@@ -181,10 +162,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
 
     public override IValueNode ParseValue(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is null)
         {
@@ -208,7 +186,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
                         ParseCoordinateValue(type, geometry)),
                     new ObjectFieldNode(
                         CrsFieldName,
-                        new IntValueNode(geometry.SRID)),
+                        new IntValueNode(geometry.SRID))
                 };
 
             return new ObjectValueNode(list);
@@ -222,10 +200,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
         object? resultValue,
         out object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         try
         {
@@ -236,19 +211,19 @@ internal abstract class GeoJsonInputObjectSerializer<T>
                     return true;
 
                 case IReadOnlyDictionary<string, object> dict:
+                {
+                    (var geometryType, var coordinates, var crs) =
+                        ParseFields(type, dict);
+
+                    if (geometryType != _geometryType)
                     {
-                        (var geometryType, var coordinates, var crs) =
-                            ParseFields(type, dict);
-
-                        if (geometryType != _geometryType)
-                        {
-                            runtimeValue = null;
-                            return false;
-                        }
-
-                        runtimeValue = CreateGeometry(type, coordinates, crs);
-                        return true;
+                        runtimeValue = null;
+                        return false;
                     }
+
+                    runtimeValue = CreateGeometry(type, coordinates, crs);
+                    return true;
+                }
 
                 case T:
                     runtimeValue = resultValue;

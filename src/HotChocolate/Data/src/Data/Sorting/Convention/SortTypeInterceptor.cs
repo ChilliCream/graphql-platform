@@ -3,14 +3,14 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Sorting;
 
 public sealed class SortTypeInterceptor : TypeInterceptor
 {
-    private readonly Dictionary<string, ISortConvention> _conventions = new();
+    private readonly Dictionary<string, ISortConvention> _conventions = [];
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
@@ -70,7 +70,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
             configuration.Scope);
 
         var typeReference =
-            TypeReference.Create( discoveryContext.Type, configuration.Scope);
+            TypeReference.Create(discoveryContext.Type, configuration.Scope);
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
@@ -124,7 +124,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
             configuration);
 
         if (!string.IsNullOrEmpty(configuration.Name) &&
-            configuration is IHasScope { Scope: not null, })
+            configuration is IHasScope { Scope: not null })
         {
             configuration.Name = completionContext.Scope + "_" + configuration.Name;
         }
@@ -153,7 +153,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
             configuration);
 
         if (!string.IsNullOrEmpty(configuration.Name) &&
-            configuration is IHasScope { Scope: not null, })
+            configuration is IHasScope { Scope: not null })
         {
             configuration.Name = completionContext.Scope + "_" + configuration.Name;
         }

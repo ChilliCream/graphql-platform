@@ -90,7 +90,7 @@ public sealed class OperationResult<T> : IOperationResult<T> where T : class
 /// </summary>
 public static class OperationResult
 {
-    private static readonly MethodInfo _factory =
+    private static readonly MethodInfo s_factory =
         typeof(OperationResult)
             .GetMethods(BindingFlags.Public | BindingFlags.Static)
             .First(m =>
@@ -106,11 +106,11 @@ public static class OperationResult
         IReadOnlyDictionary<string, object?>? extensions = null,
         IReadOnlyDictionary<string, object?>? contextData = null)
     {
-        return (IOperationResult)_factory
+        return (IOperationResult)s_factory
             .MakeGenericMethod(dataType)
             .Invoke(
                 null,
-                [data, dataInfo, dataFactory, errors, extensions, contextData,])!;
+                [data, dataInfo, dataFactory, errors, extensions, contextData])!;
     }
 
     public static IOperationResult<TData> Create<TData>(

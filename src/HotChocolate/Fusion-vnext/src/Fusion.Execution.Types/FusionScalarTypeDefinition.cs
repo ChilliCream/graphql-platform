@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
@@ -8,29 +9,19 @@ namespace HotChocolate.Fusion.Types;
 
 public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
 {
-    private FusionDirectiveCollection _directives = default!;
+    private FusionDirectiveCollection _directives = null!;
     private bool _completed;
 
-    public FusionScalarTypeDefinition(string name,
-        string? description,
-        ScalarResultType scalarResultType = ScalarResultType.Unknown)
+    public FusionScalarTypeDefinition(
+        string name,
+        string? description)
     {
         Name = name;
         Description = description;
-        ScalarResultType = scalarResultType;
 
-        if (scalarResultType is ScalarResultType.Unknown)
-        {
-            ScalarResultType = name switch
-            {
-                "ID" => ScalarResultType.String | ScalarResultType.Int,
-                "String" => ScalarResultType.String,
-                "Int" => ScalarResultType.Int,
-                "Float" => ScalarResultType.Float,
-                "Boolean" => ScalarResultType.Boolean,
-                _ => ScalarResultType.Unknown
-            };
-        }
+        // these properties are initialized
+        // in the type complete step.
+        Features = null!;
     }
 
     public TypeKind Kind => TypeKind.Scalar;
@@ -39,17 +30,14 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
 
     public string? Description { get; }
 
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
+
     public FusionDirectiveCollection Directives
     {
         get => _directives;
         private set
         {
-            if (_completed)
-            {
-                throw new InvalidOperationException(
-                    "The type is completed and cannot be modified.");
-            }
-
+            ThrowHelper.EnsureNotSealed(_completed);
             _directives = value;
         }
     }
@@ -57,18 +45,93 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives
         => _directives;
 
-    public ScalarResultType ScalarResultType { get; }
+    public ScalarValueKind ValueKind { get; private set; }
+
+    public IFeatureCollection Features
+    {
+        get;
+        private set
+        {
+            ThrowHelper.EnsureNotSealed(_completed);
+            field = value;
+        }
+    }
 
     internal void Complete(CompositeScalarTypeCompletionContext context)
     {
-        if (_completed)
+        ThrowHelper.EnsureNotSealed(_completed);
+        Directives = context.Directives;
+        ValueKind = context.ValueKind;
+
+        // if the value kind is any, we need to determine the value kind based on the name
+        // for the spec scalars.
+        if (ValueKind is ScalarValueKind.Any)
         {
-            throw new InvalidOperationException(
-                "The type is completed and cannot be modified.");
+            ValueKind = Name switch
+            {
+                "ID" => ScalarValueKind.String | ScalarValueKind.Integer,
+                "String" => ScalarValueKind.String,
+                "Int" => ScalarValueKind.Integer,
+                "Float" => ScalarValueKind.Float,
+                "Boolean" => ScalarValueKind.Boolean,
+                _ => ScalarValueKind.Any
+            };
         }
 
-        Directives = context.Directives;
         _completed = true;
+    }
+
+    /// <inheritdoc />
+    public bool IsAssignableFrom(ITypeDefinition type)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        if (type.Kind == TypeKind.Scalar)
+        {
+            return Equals(type, TypeComparison.Reference);
+        }
+
+        return false;
+    }
+
+    /// <inheritdoc />
+    public bool IsInstanceOfType(IValueNode value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+
+        if (ValueKind == ScalarValueKind.Any)
+        {
+            return true;
+        }
+
+        return value.Kind switch
+        {
+            SyntaxKind.NullValue => true,
+            SyntaxKind.EnumValue => false,
+            SyntaxKind.StringValue => ValueKind.HasFlag(ScalarValueKind.String),
+            SyntaxKind.IntValue => ValueKind.HasFlag(ScalarValueKind.Integer),
+            SyntaxKind.FloatValue => ValueKind.HasFlag(ScalarValueKind.Float),
+            SyntaxKind.BooleanValue => ValueKind.HasFlag(ScalarValueKind.Boolean),
+            SyntaxKind.ListValue => ValueKind.HasFlag(ScalarValueKind.List),
+            SyntaxKind.ObjectValue => ValueKind.HasFlag(ScalarValueKind.Object),
+            _ => false
+        };
+    }
+
+    /// <inheritdoc />
+    public bool Equals(IType? other)
+        => Equals(other, TypeComparison.Reference);
+
+    /// <inheritdoc />
+    public bool Equals(IType? other, TypeComparison comparison)
+    {
+        if (comparison is TypeComparison.Reference)
+        {
+            return ReferenceEquals(this, other);
+        }
+
+        return other is FusionScalarTypeDefinition otherScalar
+            && otherScalar.Name.Equals(Name, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -89,36 +152,4 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => SchemaDebugFormatter.Format(this);
-
-    /// <inheritdoc />
-    public bool Equals(IType? other)
-        => Equals(other, TypeComparison.Reference);
-
-    /// <inheritdoc />
-    public bool Equals(IType? other, TypeComparison comparison)
-    {
-        if (comparison is TypeComparison.Reference)
-        {
-            return ReferenceEquals(this, other);
-        }
-
-        return other is FusionScalarTypeDefinition otherScalar
-            && otherScalar.Name.Equals(Name, StringComparison.Ordinal);
-    }
-
-    /// <inheritdoc />
-    public bool IsAssignableFrom(ITypeDefinition type)
-    {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (type.Kind == TypeKind.Scalar)
-        {
-            return Equals(type, TypeComparison.Reference);
-        }
-
-        return false;
-    }
 }

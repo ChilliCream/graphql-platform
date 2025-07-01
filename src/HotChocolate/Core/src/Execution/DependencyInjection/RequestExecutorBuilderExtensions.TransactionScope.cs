@@ -26,10 +26,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where T : class, ITransactionScopeHandler
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         // we host the transaction scope in the global DI.
         builder.Services.TryAddSingleton<T>();
@@ -43,7 +40,7 @@ public static partial class RequestExecutorBuilderExtensions
 
                 // and then reference the transaction scope handler from the global DI.
                 services.AddSingleton<ITransactionScopeHandler>(
-                s => s.GetApplicationServices().GetRequiredService<T>());
+                    s => s.GetRootServiceProvider().GetRequiredService<T>());
             });
     }
 
@@ -64,10 +61,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, ITransactionScopeHandler> create)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(create);
 
         return ConfigureSchemaServices(
             builder,
@@ -94,10 +89,7 @@ public static partial class RequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddDefaultTransactionScopeHandler(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return AddTransactionScopeHandler<DefaultTransactionScopeHandler>(builder);
     }
@@ -105,14 +97,14 @@ public static partial class RequestExecutorBuilderExtensions
     internal static IRequestExecutorBuilder TryAddNoOpTransactionScopeHandler(
         this IRequestExecutorBuilder builder)
     {
-        builder.Services.AddSingleton<NoOpTransactionScopeHandler>();
+        builder.Services.TryAddSingleton<NoOpTransactionScopeHandler>();
 
         return ConfigureSchemaServices(
             builder,
             services =>
             {
                 services.TryAddSingleton<ITransactionScopeHandler>(
-                    sp => sp.GetApplicationService<NoOpTransactionScopeHandler>());
+                    sp => sp.GetRootServiceProvider().GetRequiredService<NoOpTransactionScopeHandler>());
             });
     }
 }

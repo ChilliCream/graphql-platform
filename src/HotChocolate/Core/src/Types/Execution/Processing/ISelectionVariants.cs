@@ -22,7 +22,7 @@ public interface ISelectionVariants
     /// <summary>
     /// Gets all the possible return types of the field to which this variant belongs to.
     /// </summary>
-    IEnumerable<IObjectType> GetPossibleTypes();
+    IEnumerable<ObjectType> GetPossibleTypes();
 
     /// <summary>
     /// Evaluates if the specified type context is a possible type for this variant.
@@ -33,7 +33,7 @@ public interface ISelectionVariants
     /// <returns>
     /// Returns <c>true</c> if the specified type context is a possible type for this variant;
     /// </returns>
-    bool IsPossibleType(IObjectType typeContext);
+    bool IsPossibleType(ObjectType typeContext);
 
     /// <summary>
     /// Gets the selection set for the specified field return type.
@@ -44,8 +44,8 @@ public interface ISelectionVariants
     /// <returns>
     /// Returns the selection set for the specified field return type.
     /// </returns>
-    /// <exception cref="System.ArgumentException">
+    /// <exception cref="ArgumentException">
     /// Invalid field return type.
     /// </exception>
-    ISelectionSet GetSelectionSet(IObjectType typeContext);
+    ISelectionSet GetSelectionSet(ObjectType typeContext);
 }

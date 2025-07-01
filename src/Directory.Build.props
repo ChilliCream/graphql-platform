@@ -1,14 +1,14 @@
 <Project>
 
   <PropertyGroup>
-    <LangVersion>13.0</LangVersion>
+    <LangVersion>preview</LangVersion>
     <Version Condition="$(Version) == ''">0.0.0</Version>
     <NoWarn>$(NoWarn);CS0436;RS0026;RS0027;RS0041;AD0001;CS1591;NU5104;NU5128;NU5501</NoWarn>
     <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <NuGetAuditMode>direct</NuGetAuditMode>
+    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TreatWarningsAsErrors)' == ''">
@@ -44,9 +44,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFrameworks>net9.0; net8.0</TargetFrameworks>
-    <ExtendedTargetFrameworks>net9.0; net8.0; netstandard2.0</ExtendedTargetFrameworks>
-    <SourceGenTargetFrameworks>netstandard2.0</SourceGenTargetFrameworks>
+    <TargetFrameworks>net10.0; net9.0; net8.0</TargetFrameworks>
+    <ExtendedTargetFrameworks>net10.0; net9.0; net8.0; netstandard2.0</ExtendedTargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>

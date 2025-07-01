@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -828,7 +829,7 @@ namespace Foo.Bar.State
             }
 
             IGetFoo_Foo returnValue = default !;
-            if (data?.__typename.Equals("Baz", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("Baz", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetFoo_Foo_Baz(data.Str, data.StrNonNullable ?? throw new global::System.ArgumentNullException(), MapIGetFoo_Foo_Nested(data.Nested, snapshot), MapNonNullableIGetFoo_Foo_NestedListNonNullableArray(data.NestedList ?? throw new global::System.ArgumentNullException(), snapshot), MapIGetFoo_Foo_NestedMatrixArrayArray(data.NestedMatrix, snapshot));
             }
@@ -848,7 +849,7 @@ namespace Foo.Bar.State
             }
 
             IGetFoo_Foo_Nested returnValue = default !;
-            if (data?.__typename.Equals("Baz", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("Baz", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetFoo_Foo_Nested_Baz(data.Str);
             }
@@ -931,7 +932,7 @@ namespace Foo.Bar.State
             }
 
             IGetFoo_Foo_NestedMatrix returnValue = default !;
-            if (data?.__typename.Equals("Baz", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("Baz", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetFoo_Foo_NestedMatrix_Baz(data.Str);
             }

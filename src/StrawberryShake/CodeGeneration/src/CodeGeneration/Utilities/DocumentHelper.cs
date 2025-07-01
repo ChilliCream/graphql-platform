@@ -9,10 +9,7 @@ public static class DocumentHelper
     public static IReadOnlyList<GraphQLFile> GetTypeSystemDocuments(
         this IEnumerable<GraphQLFile> documentNodes)
     {
-        if (documentNodes is null)
-        {
-            throw new ArgumentNullException(nameof(documentNodes));
-        }
+        ArgumentNullException.ThrowIfNull(documentNodes);
 
         return documentNodes.Where(doc =>
                 doc.Document.Definitions.All(def =>
@@ -23,10 +20,7 @@ public static class DocumentHelper
     public static IReadOnlyList<GraphQLFile> GetExecutableDocuments(
         this IEnumerable<GraphQLFile> documentNodes)
     {
-        if (documentNodes is null)
-        {
-            throw new ArgumentNullException(nameof(documentNodes));
-        }
+        ArgumentNullException.ThrowIfNull(documentNodes);
 
         return documentNodes.Where(doc =>
                 doc.Document.Definitions.All(def => def is IExecutableDefinitionNode))
@@ -63,7 +57,7 @@ public static class DocumentHelper
                     VisitArguments = true,
                     VisitDescriptions = true,
                     VisitDirectives = true,
-                    VisitNames = true,
+                    VisitNames = true
                 })
             .Visit(file.Document);
     }

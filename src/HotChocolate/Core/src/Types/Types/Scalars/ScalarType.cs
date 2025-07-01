@@ -1,7 +1,8 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 #nullable enable
 
@@ -13,9 +14,10 @@ namespace HotChocolate.Types;
 /// the leaves on these trees are GraphQL scalars.
 /// </summary>
 public abstract partial class ScalarType
-    : TypeSystemObjectBase<ScalarTypeConfiguration>
+    : TypeSystemObject<ScalarTypeConfiguration>
+    , IScalarTypeDefinition
     , ILeafType
-    , IHasDirectives
+    , IHasRuntimeType
 {
     private Uri? _specifiedBy;
 
@@ -36,6 +38,11 @@ public abstract partial class ScalarType
     public abstract Type RuntimeType { get; }
 
     /// <summary>
+    /// Gets the schema coordinate of this scalar type.
+    /// </summary>
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
+
+    /// <summary>
     /// Gets the optional description of this scalar type.
     /// </summary>
     public Uri? SpecifiedBy
@@ -52,11 +59,31 @@ public abstract partial class ScalarType
         }
     }
 
-    public IDirectiveCollection Directives { get; private set; }
+    /// <summary>
+    /// Gets the directives of this scalar type.
+    /// </summary>
+    public DirectiveCollection Directives { get; private set; }
 
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => Directives.AsReadOnlyDirectiveCollection();
+
+    /// <summary>
+    /// Provides access to the schema type converter.
+    /// </summary>
     protected ITypeConverter Converter => _converter;
 
-    public bool IsAssignableFrom(INamedType type) => ReferenceEquals(type, this);
+    /// <summary>
+    /// Defines if the specified <paramref name="type"/> is assignable from the current <see cref="ScalarType"/>.
+    /// </summary>
+    /// <param name="type">
+    /// The type that shall be checked.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the specified <paramref name="type"/> is assignable from the current <see cref="ScalarType"/>;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    public bool IsAssignableFrom(ITypeDefinition type)
+        => ReferenceEquals(type, this);
 
     public bool Equals(IType? other) => ReferenceEquals(other, this);
 
@@ -78,7 +105,7 @@ public abstract partial class ScalarType
 
     /// <summary>
     /// Defines if the specified <paramref name="runtimeValue" />
-    /// is a instance of this type.
+    /// is an instance of this type.
     /// </summary>
     /// <param name="runtimeValue">
     /// A value representation of this type.
@@ -242,4 +269,22 @@ public abstract partial class ScalarType
         value = default!;
         return false;
     }
+
+    /// <summary>
+    /// Returns a string that represents the current <see cref="ScalarType"/>.
+    /// </summary>
+    /// <returns>
+    /// A string that represents the current <see cref="ScalarType"/>.
+    /// </returns>
+    public override string ToString() => Format(this).ToString();
+
+    /// <summary>
+    /// Creates a <see cref="ScalarTypeDefinitionNode"/> from the current <see cref="ScalarType"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns a <see cref="ScalarTypeDefinitionNode"/>.
+    /// </returns>
+    public ScalarTypeDefinitionNode ToSyntaxNode() => Format(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => ToSyntaxNode();
 }

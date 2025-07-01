@@ -8,12 +8,12 @@ namespace HotChocolate.Data.MongoDb;
 /// </summary>
 public sealed class AndFilterDefinition : MongoDbFilterDefinition
 {
-    private static readonly string[] __operatorsThatCannotBeCombined =
+    private static readonly string[] s_operatorsThatCannotBeCombined =
     [
         "$geoWithin",
             "$near",
             "$geoIntersects",
-            "$nearSphere",
+            "$nearSphere"
     ];
 
     private readonly MongoDbFilterDefinition[] _filters;
@@ -77,8 +77,8 @@ public sealed class AndFilterDefinition : MongoDbFilterDefinition
                 var clauseOperator = clauseValue.ElementCount > 0
                     ? clauseValue.GetElement(0).Name
                     : null;
-                if (clauseValue.Names.Any(op => existingClauseValue.Contains(op)) ||
-                    __operatorsThatCannotBeCombined.Contains(clauseOperator))
+                if (clauseValue.Names.Any(existingClauseValue.Contains) ||
+                    s_operatorsThatCannotBeCombined.Contains(clauseOperator))
                 {
                     PromoteFilterToDollarForm(document, clause);
                 }

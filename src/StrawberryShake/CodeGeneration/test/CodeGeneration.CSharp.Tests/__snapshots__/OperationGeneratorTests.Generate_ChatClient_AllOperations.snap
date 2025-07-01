@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -2990,7 +2991,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetMessages GraphQL operation
     /// <code>
-    /// query GetMessages($email: String!) {
+    /// query GetMessages(
+    ///   $email: String!
+    /// ) {
     ///   personByEmail(email: $email) {
     ///     __typename
     ///     messages(order_by: { sent: ASC }) {
@@ -3503,7 +3506,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetMessages GraphQL operation
     /// <code>
-    /// query GetMessages($email: String!) {
+    /// query GetMessages(
+    ///   $email: String!
+    /// ) {
     ///   personByEmail(email: $email) {
     ///     __typename
     ///     messages(order_by: { sent: ASC }) {
@@ -3635,7 +3640,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetMessages GraphQL operation
     /// <code>
-    /// query GetMessages($email: String!) {
+    /// query GetMessages(
+    ///   $email: String!
+    /// ) {
     ///   personByEmail(email: $email) {
     ///     __typename
     ///     messages(order_by: { sent: ASC }) {
@@ -3696,7 +3703,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageInput GraphQL operation
     /// <code>
-    /// mutation SendMessageInput($input: SendMessageInput!) {
+    /// mutation SendMessageInput(
+    ///   $input: SendMessageInput!
+    /// ) {
     ///   sendMessage(input: $input) {
     ///     __typename
     ///     message {
@@ -4151,7 +4160,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageInput GraphQL operation
     /// <code>
-    /// mutation SendMessageInput($input: SendMessageInput!) {
+    /// mutation SendMessageInput(
+    ///   $input: SendMessageInput!
+    /// ) {
     ///   sendMessage(input: $input) {
     ///     __typename
     ///     message {
@@ -4277,7 +4288,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageInput GraphQL operation
     /// <code>
-    /// mutation SendMessageInput($input: SendMessageInput!) {
+    /// mutation SendMessageInput(
+    ///   $input: SendMessageInput!
+    /// ) {
     ///   sendMessage(input: $input) {
     ///     __typename
     ///     message {
@@ -4332,7 +4345,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageMut GraphQL operation
     /// <code>
-    /// mutation SendMessageMut($email: String!, $text: String!) {
+    /// mutation SendMessageMut(
+    ///   $email: String!
+    ///   $text: String!
+    /// ) {
     ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
     ///     __typename
     ///     message {
@@ -4824,7 +4840,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageMut GraphQL operation
     /// <code>
-    /// mutation SendMessageMut($email: String!, $text: String!) {
+    /// mutation SendMessageMut(
+    ///   $email: String!
+    ///   $text: String!
+    /// ) {
     ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
     ///     __typename
     ///     message {
@@ -4961,7 +4980,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageMut GraphQL operation
     /// <code>
-    /// mutation SendMessageMut($email: String!, $text: String!) {
+    /// mutation SendMessageMut(
+    ///   $email: String!
+    ///   $text: String!
+    /// ) {
     ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
     ///     __typename
     ///     message {
@@ -5682,7 +5704,7 @@ namespace Foo.Bar.State
             }
 
             IGetPeople_People returnValue = default !;
-            if (data?.__typename.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PersonConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetPeople_People_PersonConnection(MapIGetPeople_People_NodesArray(data.Nodes, snapshot));
             }
@@ -7286,7 +7308,7 @@ namespace Foo.Bar.State
             }
 
             IGetMessages_PersonByEmail_Messages returnValue = default !;
-            if (data?.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetMessages_PersonByEmail_Messages_MessageConnection(MapIGetMessages_PersonByEmail_Messages_NodesArray(data.Nodes, snapshot));
             }

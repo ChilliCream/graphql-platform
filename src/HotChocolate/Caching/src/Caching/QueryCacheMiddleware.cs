@@ -18,7 +18,7 @@ internal sealed class QueryCacheMiddleware
         _options = optionsAccessor.CacheControl;
     }
 
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
         await _next(context).ConfigureAwait(false);
 
@@ -29,8 +29,8 @@ internal sealed class QueryCacheMiddleware
             return;
         }
 
-        if (context.Operation?.ContextData is null
-            || !context.Operation.ContextData.TryGetValue(WellKnownContextData.CacheControlHeaderValue, out var value)
+        if (!context.TryGetOperation(out var operation)
+            || !operation.ContextData.TryGetValue(WellKnownContextData.CacheControlHeaderValue, out var value)
             || value is not CacheControlHeaderValue cacheControlHeaderValue)
         {
             return;
@@ -44,11 +44,11 @@ internal sealed class QueryCacheMiddleware
             var contextData =
                 operationResult.ContextData is not null
                     ? new ExtensionData(operationResult.ContextData)
-                    : new ExtensionData();
+                    : [];
 
             contextData.Add(WellKnownContextData.CacheControlHeaderValue, cacheControlHeaderValue);
 
-            if (context.Operation.ContextData.TryGetValue(VaryHeaderValue, out var varyValue)
+            if (operation.ContextData.TryGetValue(VaryHeaderValue, out var varyValue)
                 && varyValue is string varyHeaderValue
                 && !string.IsNullOrEmpty(varyHeaderValue))
             {
@@ -59,11 +59,13 @@ internal sealed class QueryCacheMiddleware
         }
     }
 
-    internal static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var options = core.SchemaServices.GetRequiredService<ICacheControlOptionsAccessor>();
-            var middleware = new QueryCacheMiddleware(next, options);
-            return context => middleware.InvokeAsync(context);
-        };
+    internal static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var options = core.SchemaServices.GetRequiredService<ICacheControlOptionsAccessor>();
+                var middleware = new QueryCacheMiddleware(next, options);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(QueryCacheMiddleware));
 }

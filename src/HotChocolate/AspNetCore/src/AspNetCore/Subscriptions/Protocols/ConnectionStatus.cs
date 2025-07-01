@@ -1,5 +1,3 @@
-using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
-
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
 
 /// <summary>
@@ -7,9 +5,9 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
 /// </summary>
 public sealed class ConnectionStatus
 {
-    private static readonly ConnectionStatus _defaultAccepted =
-        new(true, "You connection was accepted.", null);
-    private static readonly ConnectionStatus _defaultRejected =
+    private static readonly ConnectionStatus s_defaultAccepted =
+        new(true, "Your connection was accepted.", null);
+    private static readonly ConnectionStatus s_defaultRejected =
         new(false, "Your connection was rejected.", null);
 
     private ConnectionStatus(
@@ -44,7 +42,7 @@ public sealed class ConnectionStatus
     /// The connection accept status.
     /// </returns>
     public static ConnectionStatus Accept()
-        => _defaultAccepted;
+        => s_defaultAccepted;
 
     /// <summary>
     /// Reject the socket connection with a custom message.
@@ -62,12 +60,7 @@ public sealed class ConnectionStatus
         string message,
         IReadOnlyDictionary<string, object?>? extensions)
     {
-        if (string.IsNullOrEmpty(message))
-        {
-            throw new ArgumentException(
-                ConnectionStatus_Reject_MessageCannotBeNullOrEmpty,
-                nameof(message));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(message);
 
         return new ConnectionStatus(false, message, extensions);
     }
@@ -91,7 +84,7 @@ public sealed class ConnectionStatus
     /// The connection reject status.
     /// </returns>
     public static ConnectionStatus Reject()
-        => _defaultRejected;
+        => s_defaultRejected;
 
     /// <summary>
     /// Reject the socket connection with a custom message.

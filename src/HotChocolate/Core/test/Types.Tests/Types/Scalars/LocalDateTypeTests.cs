@@ -553,11 +553,11 @@ public class LocalDateTypeTests
 
     public static TheoryData<string> InvalidLocalDateScalarStrings()
     {
-        return new TheoryData<string>
-        {
+        return
+        [
             // https://scalars.graphql.org/andimarek/local-date.html#sec-Overview
             // There isn't a 13th month in a year.
             "2011-13-10"
-        };
+        ];
     }
 }

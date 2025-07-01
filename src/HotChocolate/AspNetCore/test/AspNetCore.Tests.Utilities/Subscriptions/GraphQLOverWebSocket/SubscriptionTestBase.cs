@@ -37,7 +37,7 @@ public class SubscriptionTestBase : ServerTestBase
             {
                 var message = await webSocket.ReceiveServerMessageAsync(combinedCts.Token);
 
-                if(message is null)
+                if (message is null)
                 {
                     await Task.Delay(5, combinedCts.Token);
                     continue;
@@ -97,7 +97,7 @@ public class SubscriptionTestBase : ServerTestBase
         await webSocket.SendConnectionInitAsync(cancellationToken);
         var message = await webSocket.ReceiveServerMessageAsync(cancellationToken);
         Assert.NotNull(message);
-        Assert.Equal("connection_ack", message?["type"]);
+        Assert.Equal("connection_ack", message["type"]);
         return webSocket;
     }
 

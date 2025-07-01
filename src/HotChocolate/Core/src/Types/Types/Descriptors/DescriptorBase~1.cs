@@ -1,5 +1,5 @@
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -26,10 +26,7 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
     public IDescriptorExtension<T> ExtendWith(
         Action<IDescriptorExtension<T>> configure)
     {
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(configure);
 
         configure(this);
         return this;
@@ -39,15 +36,11 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
         Action<IDescriptorExtension<T>, TState> configure,
         TState state)
     {
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(configure);
 
         configure(this, state);
         return this;
     }
-
 
     public T CreateConfiguration()
     {
@@ -100,10 +93,7 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
 
     private void OnBeforeCreate(Action<IDescriptorContext, T> configure)
     {
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(configure);
 
         Configuration.Tasks.Add(new OnCreateTypeSystemConfigurationTask(
             (c, d) => configure(c, (T)d),
@@ -121,10 +111,7 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
     private INamedDependencyDescriptor OnBeforeNaming(
         Action<ITypeCompletionContext, T> configure)
     {
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(configure);
 
         var configuration = new OnCompleteTypeSystemConfigurationTask(
             (c, d) => configure(c, (T)d),

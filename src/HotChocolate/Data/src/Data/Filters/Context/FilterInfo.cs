@@ -4,7 +4,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
-/// Represents a collection of filter fields and operations .
+/// Represents a collection of filter fields and operations.
 /// </summary>
 public class FilterInfo : FilterValueNode, IFilterInfo
 {

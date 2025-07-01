@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Transport.Http;
 using StrawberryShake.Internal;
 using static StrawberryShake.Properties.Resources;
@@ -39,9 +40,9 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         try
         {
             enumerator = result
-                .ReadAsResultStreamAsync(cancellationToken)
-                .ConfigureAwait(false)
+                .ReadAsResultStreamAsync()
                 .WithCancellation(cancellationToken)
+                .ConfigureAwait(false)
                 .GetAsyncEnumerator();
         }
         catch (Exception ex)
@@ -87,14 +88,14 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
             return null;
         }
 
-        using var buffer = new HotChocolate.Utilities.ArrayWriter();
+        using var buffer = new PooledArrayWriter();
         using var writer = new Utf8JsonWriter(buffer);
 
         writer.WriteStartObject();
         WriteProperty(writer, "data", result.Data);
 
         // in case we have just a "Internal Execution Error" we will not write the errors as this
-        // is a internal error of HotChocolate.Transport.Http. In strawberry shake we are used to
+        // is an internal error of HotChocolate.Transport.Http. In strawberry shake we are used to
         // handle the transport errors our self.
         // Strawberry Shake only outputs the exceptions though if there is no error in the errors
         // field

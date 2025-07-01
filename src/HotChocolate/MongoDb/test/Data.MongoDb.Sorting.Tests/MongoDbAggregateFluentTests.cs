@@ -13,13 +13,13 @@ namespace HotChocolate.Data.MongoDb.Sorting;
 
 public class MongoDbAggregateFluentTests(MongoResource resource) : IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { Bar = true },
         new() { Bar = false }
     ];
 
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
         new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
@@ -33,7 +33,7 @@ public class MongoDbAggregateFluentTests(MongoResource resource) : IClassFixture
             () =>
             {
                 var collection = resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
-                collection.InsertMany(_fooEntities);
+                collection.InsertMany(s_fooEntities);
                 return collection.Aggregate().AsExecutable();
             });
 
@@ -71,7 +71,7 @@ public class MongoDbAggregateFluentTests(MongoResource resource) : IClassFixture
                 var collection =
                     resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
 
-                collection.InsertMany(_barEntities);
+                collection.InsertMany(s_barEntities);
                 return collection.Aggregate().AsExecutable();
             });
 
@@ -137,7 +137,7 @@ public class MongoDbAggregateFluentTests(MongoResource resource) : IClassFixture
                         })
                     .UseSorting<SortInputType<TEntity>>())
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
@@ -152,8 +152,8 @@ public class MongoDbAggregateFluentTests(MongoResource resource) : IClassFixture
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync()
             .GetAwaiter()
             .GetResult();
     }

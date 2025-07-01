@@ -57,10 +57,7 @@ public class EnumBuilder : ITypeBuilder
 
     public void Build(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         _xmlComment?.Build(writer);
 

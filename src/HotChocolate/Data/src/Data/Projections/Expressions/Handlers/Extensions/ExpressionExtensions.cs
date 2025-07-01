@@ -13,7 +13,7 @@ internal static class ExpressionExtensions
             PropertyInfo propertyInfo => Expression.Property(expression, propertyInfo),
             MethodInfo methodInfo => Expression.Call(expression, methodInfo),
             { } info => throw ThrowHelper.ProjectionVisitor_MemberInvalid(info),
-            null => throw ThrowHelper.ProjectionVisitor_NoMemberFound(),
+            null => throw ThrowHelper.ProjectionVisitor_NoMemberFound()
         };
 
     public static Type GetReturnType(
@@ -23,6 +23,6 @@ internal static class ExpressionExtensions
             PropertyInfo propertyInfo => propertyInfo.PropertyType,
             MethodInfo methodInfo => methodInfo.ReturnType,
             { } info => throw ThrowHelper.ProjectionVisitor_MemberInvalid(info),
-            null => throw ThrowHelper.ProjectionVisitor_NoMemberFound(),
+            null => throw ThrowHelper.ProjectionVisitor_NoMemberFound()
         };
 }

@@ -1,7 +1,6 @@
 using System.Collections;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
@@ -13,7 +12,7 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 public sealed class OperationManager : IOperationManager
 {
     private readonly ReaderWriterLockSlim _lock = new();
-    private readonly Dictionary<string, IOperationSession> _subs = new();
+    private readonly Dictionary<string, IOperationSession> _subs = [];
     private readonly CancellationTokenSource _cts;
     private readonly CancellationToken _cancellationToken;
     private readonly ISocketSession _socketSession;
@@ -32,7 +31,7 @@ public sealed class OperationManager : IOperationManager
         _interceptor = interceptor ?? throw new ArgumentNullException(nameof(interceptor));
         _executor = executor ?? throw new ArgumentNullException(nameof(executor));
         _createSession = CreateSession;
-        _errorHandler = executor.Services.GetRequiredService<IErrorHandler>();
+        _errorHandler = executor.Schema.Services.GetRequiredService<IErrorHandler>();
         _cts = new CancellationTokenSource();
         _cancellationToken = _cts.Token;
     }
@@ -47,7 +46,7 @@ public sealed class OperationManager : IOperationManager
         _interceptor = interceptor ?? throw new ArgumentNullException(nameof(interceptor));
         _executor = executor ?? throw new ArgumentNullException(nameof(executor));
         _createSession = createSession ?? throw new ArgumentNullException(nameof(createSession));
-        _errorHandler = executor.Services.GetRequiredService<IErrorHandler>();
+        _errorHandler = executor.Schema.Services.GetRequiredService<IErrorHandler>();
         _cts = new CancellationTokenSource();
         _cancellationToken = _cts.Token;
     }
@@ -55,29 +54,16 @@ public sealed class OperationManager : IOperationManager
     /// <inheritdoc />
     public bool Enqueue(string sessionId, GraphQLRequest request)
     {
-        if (string.IsNullOrEmpty(sessionId))
-        {
-            throw new ArgumentException(
-                OperationManager_Register_SessionIdNullOrEmpty,
-                nameof(sessionId));
-        }
-
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
-
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationManager));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(sessionId);
+        ArgumentNullException.ThrowIfNull(request);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         IOperationSession? session = null;
         _lock.EnterWriteLock();
 
         try
         {
-            if(!_subs.ContainsKey(sessionId))
+            if (!_subs.ContainsKey(sessionId))
             {
                 session = _createSession(sessionId);
                 _subs.Add(sessionId, session);
@@ -101,17 +87,8 @@ public sealed class OperationManager : IOperationManager
     /// <inheritdoc />
     public bool Complete(string sessionId)
     {
-        if (string.IsNullOrEmpty(sessionId))
-        {
-            throw new ArgumentException(
-                OperationManager_Register_SessionIdNullOrEmpty,
-                nameof(sessionId));
-        }
-
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationManager));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(sessionId);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         _lock.EnterWriteLock();
 

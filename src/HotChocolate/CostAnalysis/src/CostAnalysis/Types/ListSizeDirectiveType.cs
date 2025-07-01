@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.CostAnalysis.WellKnownArgumentNames;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
@@ -18,12 +18,12 @@ namespace HotChocolate.CostAnalysis.Types;
 /// </seealso>
 public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
 {
-    private const string _name = "listSize";
+    private const string DirectiveName = "listSize";
 
     protected override void Configure(IDirectiveTypeDescriptor<ListSizeDirective> descriptor)
     {
         descriptor
-            .Name(_name)
+            .Name(DirectiveName)
             .Description(
                 "The purpose of the `@listSize` directive is to either inform the static " +
                 "analysis about the size of returned lists (if that information is statically " +
@@ -140,7 +140,7 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
 
     private static DirectiveNode FormatValue(object value)
     {
-        if(value is not ListSizeDirective directive)
+        if (value is not ListSizeDirective directive)
         {
             throw new InvalidOperationException("The value is not a list size directive.");
         }
@@ -156,7 +156,7 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
         {
             arguments.Add(new ArgumentNode(SlicingArguments, directive.SlicingArguments.ToListValueNode()));
 
-            if(directive.SlicingArgumentDefaultValue.HasValue)
+            if (directive.SlicingArgumentDefaultValue.HasValue)
             {
                 arguments.Add(
                     new ArgumentNode(
@@ -172,7 +172,7 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
 
         arguments.Add(new ArgumentNode(RequireOneSlicingArgument, directive.RequireOneSlicingArgument));
 
-        return new DirectiveNode(_name, arguments.ToImmutableArray());
+        return new DirectiveNode(DirectiveName, arguments.ToImmutableArray());
     }
 }
 

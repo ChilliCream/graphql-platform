@@ -52,7 +52,7 @@ internal sealed class OperationSession : IOperationSession
             switch (result)
             {
                 case IOperationResult queryResult:
-                    if (queryResult.Data is null && queryResult.Errors is { Count: > 0, })
+                    if (queryResult.Data is null && queryResult.Errors is { Count: > 0 })
                     {
                         await _session.Protocol.SendErrorMessageAsync(
                             _session,
@@ -129,9 +129,9 @@ internal sealed class OperationSession : IOperationSession
     {
         var requestBuilder = new OperationRequestBuilder();
 
-        if (request.Query is not null)
+        if (request.Document is not null)
         {
-            requestBuilder.SetDocument(request.Query);
+            requestBuilder.SetDocument(request.Document);
         }
 
         if (request.OperationName is not null)
@@ -139,14 +139,14 @@ internal sealed class OperationSession : IOperationSession
             requestBuilder.SetOperationName(request.OperationName);
         }
 
-        if (request.QueryId is not null)
+        if (request.DocumentId is not null)
         {
-            requestBuilder.SetDocumentId(request.QueryId);
+            requestBuilder.SetDocumentId(request.DocumentId);
         }
 
-        if (request.QueryHash is not null)
+        if (request.DocumentHash is not null)
         {
-            requestBuilder.SetDocumentHash(request.QueryHash);
+            requestBuilder.SetDocumentHash(request.DocumentHash);
         }
 
         if (request.Variables is not null)
@@ -174,13 +174,13 @@ internal sealed class OperationSession : IOperationSession
         {
             if (!ct.IsCancellationRequested)
             {
-                var error = _errorHandler.CreateUnexpectedError(exception).Build();
+                var error = ErrorBuilder.FromException(exception).Build();
                 error = _errorHandler.Handle(error);
 
                 var errors =
                     error is AggregateError aggregateError
                         ? aggregateError.Errors
-                        : new[] { error, };
+                        : [error];
 
                 await _session.Protocol.SendErrorMessageAsync(_session, Id, errors, ct);
             }

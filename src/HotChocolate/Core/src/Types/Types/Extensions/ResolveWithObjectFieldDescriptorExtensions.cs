@@ -27,15 +27,8 @@ public static class ResolveWithObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Expression<Func<TResolver, TResult?>> propertyOrMethod)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         var convertedBody = Expression.Convert(propertyOrMethod.Body, typeof(object));
         var newExpression = Expression.Lambda<Func<TResolver, object?>>(convertedBody,
@@ -65,15 +58,8 @@ public static class ResolveWithObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Expression<Func<TResolver, Task<TResult?>>> propertyOrMethod)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         var convertedBody = Expression.Convert(propertyOrMethod.Body, typeof(object));
         var newExpression = Expression.Lambda<Func<TResolver, object?>>(convertedBody,

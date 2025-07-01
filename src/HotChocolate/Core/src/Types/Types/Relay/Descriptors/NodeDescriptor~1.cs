@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
@@ -32,7 +32,7 @@ public class NodeDescriptor<TNode>
     {
         _typeDescriptor = descriptor;
 
-        // we use the CompleteConfiguration  instead of the higher level api since
+        // we use the CompleteConfiguration instead of the higher level api since
         // we want to target a specific event.
         var ownerDef = _typeDescriptor.Implements<NodeType>().Extend().Configuration;
 
@@ -98,10 +98,7 @@ public class NodeDescriptor<TNode>
     public INodeDescriptor<TNode, TId> IdField<TId>(
         Expression<Func<TNode, TId>> propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         var member = propertyOrMethod.TryExtractMember();
 
@@ -117,10 +114,7 @@ public class NodeDescriptor<TNode>
     /// <inheritdoc cref="INodeDescriptor{TNode}.IdField"/>
     public INodeDescriptor<TNode> IdField(MemberInfo propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         if (propertyOrMethod is MethodInfo or PropertyInfo)
         {
@@ -135,10 +129,7 @@ public class NodeDescriptor<TNode>
     public IObjectFieldDescriptor ResolveNode<TId>(
         NodeResolverDelegate<TNode, TId> fieldResolver)
     {
-        if (fieldResolver is null)
-        {
-            throw new ArgumentNullException(nameof(fieldResolver));
-        }
+        ArgumentNullException.ThrowIfNull(fieldResolver);
 
         return ResolveNode(async ctx =>
         {

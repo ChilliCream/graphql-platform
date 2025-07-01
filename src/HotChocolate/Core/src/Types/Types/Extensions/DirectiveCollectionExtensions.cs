@@ -11,33 +11,43 @@ namespace HotChocolate.Types;
 
 public static class DirectiveCollectionExtensions
 {
-    public static T SingleOrDefault<T>(this IDirectiveCollection directives)
+    public static T? SingleOrDefault<T>(this DirectiveCollection directives) where T : notnull
     {
         foreach (var directive in directives)
         {
             if (typeof(T).IsAssignableFrom(directive.Type.RuntimeType))
             {
-                return directive.AsValue<T>();
+                return directive.ToValue<T>();
             }
         }
 
-        return default!;
+        return default;
     }
 
     internal static IValueNode? SkipValue(this IReadOnlyList<DirectiveNode> directives)
     {
         var directive = directives.GetSkipDirectiveNode();
-        return directive is null
-            ? null
-            : GetIfArgumentValue(directive);
+
+        if (directive is null)
+        {
+            return null;
+        }
+
+        return directive.GetArgumentValue(DirectiveNames.Skip.Arguments.If, BooleanValueNode.True)
+            ?? throw ThrowHelper.MissingIfArgument(directive);
     }
 
     internal static IValueNode? IncludeValue(this IReadOnlyList<DirectiveNode> directives)
     {
         var directive = directives.GetIncludeDirectiveNode();
-        return directive is null
-            ? null
-            : GetIfArgumentValue(directive);
+
+        if (directive is null)
+        {
+            return null;
+        }
+
+        return directive.GetArgumentValue(DirectiveNames.Include.Arguments.If, BooleanValueNode.True)
+            ?? throw ThrowHelper.MissingIfArgument(directive);
     }
 
     internal static bool IsDeferrable(this InlineFragmentNode fragmentNode)
@@ -49,75 +59,26 @@ public static class DirectiveCollectionExtensions
     internal static bool IsDeferrable(this IReadOnlyList<DirectiveNode> directives)
     {
         var directive = directives.GetDeferDirectiveNode();
-        var ifValue = directive?.GetIfArgumentValueOrDefault();
+        var ifValue = directive?.GetArgumentValue(DirectiveNames.Defer.Arguments.If, BooleanValueNode.True);
 
         // a fragment is not deferrable if we do not find a defer directive or
-        // if the `if` of the defer directive is a bool literal with a false value.
-        return directive is not null && ifValue is not BooleanValueNode { Value: false };
-    }
-
-    internal static bool IsStreamable(this FieldNode field)
-    {
-        var directive = field.Directives.GetStreamDirectiveNode();
-        var ifValue = directive?.GetIfArgumentValueOrDefault();
-
-        // a field is not streamable if we do not find a streamable directive or
-        // if the `if` of the streamable directive is a bool literal with a false value.
-        return directive is not null && ifValue is not BooleanValueNode { Value: false };
-    }
-
-    internal static bool HasStreamOrDeferDirective(this IReadOnlyList<DirectiveNode> directives)
-    {
-        if (directives.Count == 0)
-        {
-            return false;
-        }
-
-        for (var i = 0; i < directives.Count; i++)
-        {
-            var directive = directives[i];
-
-            if (directive.Name.Value.EqualsOrdinal(WellKnownDirectives.Defer) ||
-                directive.Name.Value.EqualsOrdinal(WellKnownDirectives.Stream))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static IValueNode GetIfArgumentValue(DirectiveNode directive)
-    {
-        if (directive.Arguments.Count == 1)
-        {
-            var argument = directive.Arguments[0];
-
-            if (string.Equals(
-                argument.Name.Value,
-                WellKnownDirectives.IfArgument,
-                StringComparison.Ordinal))
-            {
-                return argument.Value;
-            }
-        }
-
-        throw ThrowHelper.MissingIfArgument(directive);
+        // if the `if`-argument of the defer directive is a bool literal with a false value.
+        return directive is not null && ifValue is not { Value: false };
     }
 
     internal static DirectiveNode? GetSkipDirectiveNode(
         this IReadOnlyList<DirectiveNode> directives)
-        => GetDirectiveNode(directives, WellKnownDirectives.Skip);
+        => GetDirectiveNode(directives, DirectiveNames.Skip.Name);
 
     internal static DirectiveNode? GetIncludeDirectiveNode(
         this IReadOnlyList<DirectiveNode> directives)
-        => GetDirectiveNode(directives, WellKnownDirectives.Include);
+        => GetDirectiveNode(directives, DirectiveNames.Include.Name);
 
     internal static DeferDirective? GetDeferDirective(
         this IReadOnlyList<DirectiveNode> directives,
         IVariableValueCollection variables)
     {
-        var directiveNode = GetDirectiveNode(directives, WellKnownDirectives.Defer);
+        var directiveNode = GetDirectiveNode(directives, DirectiveNames.Defer.Name);
 
         if (directiveNode is not null)
         {
@@ -128,23 +89,21 @@ public static class DirectiveCollectionExtensions
             {
                 switch (argument.Name.Value)
                 {
-                    case WellKnownDirectives.IfArgument:
+                    case DirectiveNames.Defer.Arguments.If:
                         @if = argument.Value switch
                         {
-                            VariableNode variable
-                                => variables.GetVariable<bool>(variable.Name.Value),
+                            VariableNode variable => !variables.GetBooleanValue(variable.Name.Value) ?? true,
                             BooleanValueNode b => b.Value,
-                            _ => @if
+                            _ => true
                         };
                         break;
 
-                    case WellKnownDirectives.LabelArgument:
+                    case DirectiveNames.Defer.Arguments.Label:
                         label = argument.Value switch
                         {
-                            VariableNode variable
-                                => variables.GetVariable<string?>(variable.Name.Value),
+                            VariableNode variable => variables.GetStringValue(variable.Name.Value),
                             StringValueNode b => b.Value,
-                            _ => label
+                            _ => null
                         };
                         break;
                 }
@@ -156,6 +115,15 @@ public static class DirectiveCollectionExtensions
         return null;
     }
 
+    private static bool? GetBooleanValue(this IVariableValueCollection variables, string variableName)
+        => variables.TryGetValue(variableName, out BooleanValueNode? value) ? value.Value : null;
+
+    private static string? GetStringValue(this IVariableValueCollection variables, string variableName)
+        => variables.TryGetValue(variableName, out StringValueNode? value) ? value.Value : null;
+
+    private static int? GetIntValue(this IVariableValueCollection variables, string variableName)
+        => variables.TryGetValue(variableName, out IntValueNode? value) ? value.ToInt32() : null;
+
     internal static StreamDirective? GetStreamDirective(
         this ISelection selection,
         IVariableValueCollection variables) =>
@@ -165,7 +133,7 @@ public static class DirectiveCollectionExtensions
         this FieldNode fieldNode,
         IVariableValueCollection variables)
     {
-        var directiveNode = GetDirectiveNode(fieldNode.Directives, WellKnownDirectives.Stream);
+        var directiveNode = GetDirectiveNode(fieldNode.Directives, DirectiveNames.Stream.Name);
 
         if (directiveNode is not null)
         {
@@ -177,69 +145,36 @@ public static class DirectiveCollectionExtensions
             {
                 switch (argument.Name.Value)
                 {
-                    case WellKnownDirectives.IfArgument:
+                    case DirectiveNames.Stream.Arguments.If:
                         @if = argument.Value switch
                         {
-                            VariableNode variable
-                                => variables.GetVariable<bool>(variable.Name.Value),
+                            VariableNode variable => !variables.GetBooleanValue(variable.Name.Value) ?? true,
                             BooleanValueNode b => b.Value,
-                            _ => @if
+                            _ => true
                         };
                         break;
 
-                    case WellKnownDirectives.LabelArgument:
+                    case DirectiveNames.Stream.Arguments.Label:
                         label = argument.Value switch
                         {
-                            VariableNode variable
-                                => variables.GetVariable<string?>(variable.Name.Value),
+                            VariableNode variable => variables.GetStringValue(variable.Name.Value),
                             StringValueNode b => b.Value,
-                            _ => label
+                            _ => null
                         };
                         break;
 
-                    case WellKnownDirectives.InitialCount:
+                    case DirectiveNames.Stream.Arguments.InitialCount:
                         initialCount = argument.Value switch
                         {
-                            VariableNode variable
-                                => variables.GetVariable<int>(variable.Name.Value),
+                            VariableNode variable => variables.GetIntValue(variable.Name.Value) ?? 0,
                             IntValueNode b => b.ToInt32(),
-                            _ => initialCount
+                            _ => 0
                         };
                         break;
                 }
             }
 
             return new StreamDirective(@if, initialCount, label);
-        }
-
-        return null;
-    }
-
-    internal static IValueNode? GetIfArgumentValueOrDefault(this DirectiveNode directive)
-    {
-        for (var i = 0; i < directive.Arguments.Count; i++)
-        {
-            var argument = directive.Arguments[i];
-
-            if (argument.Name.Value.EqualsOrdinal(WellKnownDirectives.IfArgument))
-            {
-                return argument.Value;
-            }
-        }
-
-        return null;
-    }
-
-    internal static IValueNode? GetLabelArgumentValueOrDefault(this DirectiveNode directive)
-    {
-        for (var i = 0; i < directive.Arguments.Count; i++)
-        {
-            var argument = directive.Arguments[i];
-
-            if (argument.Name.Value.EqualsOrdinal(WellKnownDirectives.LabelArgument))
-            {
-                return argument.Value;
-            }
         }
 
         return null;
@@ -267,15 +202,15 @@ public static class DirectiveCollectionExtensions
 
             switch (argument.Name.Value)
             {
-                case WellKnownDirectives.IfArgument:
+                case DirectiveNames.Stream.Arguments.If:
                     args.If = argument.Value;
                     break;
 
-                case WellKnownDirectives.LabelArgument:
+                case DirectiveNames.Stream.Arguments.Label:
                     args.Label = argument.Value;
                     break;
 
-                case WellKnownDirectives.InitialCount:
+                case DirectiveNames.Stream.Arguments.InitialCount:
                     args.InitialCount = argument.Value;
                     break;
             }
@@ -285,20 +220,12 @@ public static class DirectiveCollectionExtensions
     }
 
     internal static DirectiveNode? GetDeferDirectiveNode(
-        this Language.IHasDirectives container) =>
-        GetDirectiveNode(container.Directives, WellKnownDirectives.Defer);
+        this IHasDirectives container) =>
+        GetDirectiveNode(container.Directives, DirectiveNames.Defer.Name);
 
     internal static DirectiveNode? GetDeferDirectiveNode(
         this IReadOnlyList<DirectiveNode> directives) =>
-        GetDirectiveNode(directives, WellKnownDirectives.Defer);
-
-    internal static DirectiveNode? GetStreamDirectiveNode(
-        this FieldNode selection) =>
-        GetDirectiveNode(selection.Directives, WellKnownDirectives.Stream);
-
-    internal static DirectiveNode? GetStreamDirectiveNode(
-        this IReadOnlyList<DirectiveNode> directives) =>
-        GetDirectiveNode(directives, WellKnownDirectives.Stream);
+        GetDirectiveNode(directives, DirectiveNames.Defer.Name);
 
     private static DirectiveNode? GetDirectiveNode(
         this IReadOnlyList<DirectiveNode> directives,

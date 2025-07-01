@@ -1,0 +1,24 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AspNetCore.Authorization.Opa/HotChocolate.AspNetCore.Authorization.Opa.csproj" />
+    <Project Path="src/AspNetCore.Authorization/HotChocolate.AspNetCore.Authorization.csproj" />
+    <Project Path="src/AspNetCore.CommandLine/HotChocolate.AspNetCore.CommandLine.csproj" />
+    <Project Path="src/AspNetCore/HotChocolate.AspNetCore.csproj" />
+    <Project Path="src/Transport.Abstractions/HotChocolate.Transport.Abstractions.csproj" />
+    <Project Path="src/Transport.Http/HotChocolate.Transport.Http.csproj" />
+    <Project Path="src/Transport.Sockets.Client/HotChocolate.Transport.Sockets.Client.csproj" />
+    <Project Path="src/Transport.Sockets/HotChocolate.Transport.Sockets.csproj" />
+  </Folder>
+  <Folder Name="/src/Transport.Formatters/">
+    <Project Path="src/Transport.Formatters/HotChocolate.Transport.Formatters.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/AspNetCore.Authorization.Opa.Tests/HotChocolate.AspNetCore.Authorization.Opa.Tests.csproj" />
+    <Project Path="test/AspNetCore.Authorization.Tests/HotChocolate.AspNetCore.Authorization.Tests.csproj" />
+    <Project Path="test/AspNetCore.CommandLine.Tests/HotChocolate.AspNetCore.CommandLine.Tests.csproj" />
+    <Project Path="test/AspNetCore.Tests.Utilities/HotChocolate.AspNetCore.Tests.Utilities.csproj" />
+    <Project Path="test/AspNetCore.Tests/HotChocolate.AspNetCore.Tests.csproj" />
+    <Project Path="test/Transport.Http.Tests/HotChocolate.Transport.Http.Tests.csproj" />
+    <Project Path="test/Transport.Sockets.Client.Tests/HotChocolate.Transport.Sockets.Client.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -9,7 +9,7 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 
 internal sealed class WebSocketSession : ISocketSession
 {
-    private static readonly GraphQLSocketOptions _defaultOptions = new();
+    private static readonly GraphQLSocketOptions s_defaultOptions = new();
     private bool _disposed;
 
     private WebSocketSession(
@@ -54,7 +54,7 @@ internal sealed class WebSocketSession : ISocketSession
         if (protocol is not null)
         {
             using var session = new WebSocketSession(connection, protocol, interceptor, executor);
-            var options = context.GetGraphQLSocketOptions() ?? _defaultOptions;
+            var options = context.GetGraphQLSocketOptions() ?? s_defaultOptions;
 
             try
             {

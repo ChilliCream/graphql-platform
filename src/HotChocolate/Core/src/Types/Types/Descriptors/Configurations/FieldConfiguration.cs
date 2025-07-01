@@ -1,6 +1,6 @@
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// This definition represents a field or argument.
@@ -12,12 +12,12 @@ public abstract class FieldConfiguration
 {
     private List<DirectiveConfiguration>? _directives;
     private string? _deprecationReason;
-    private FieldFlags _flags = FieldFlags.None;
+    private CoreFieldFlags _flags = CoreFieldFlags.None;
 
     /// <summary>
     /// Gets the internal field flags from this field.
     /// </summary>
-    internal FieldFlags Flags
+    internal CoreFieldFlags Flags
     {
         get => _flags;
         set => _flags = value;
@@ -33,11 +33,11 @@ public abstract class FieldConfiguration
         {
             if (string.IsNullOrEmpty(value))
             {
-                Flags &= ~FieldFlags.Deprecated;
+                Flags &= ~CoreFieldFlags.Deprecated;
             }
             else
             {
-                Flags |= FieldFlags.Deprecated;
+                Flags |= CoreFieldFlags.Deprecated;
             }
 
             _deprecationReason = value;
@@ -47,7 +47,7 @@ public abstract class FieldConfiguration
     /// <summary>
     /// If true, the field is deprecated
     /// </summary>
-    public bool IsDeprecated => (Flags & FieldFlags.Deprecated) == FieldFlags.Deprecated;
+    public bool IsDeprecated => (Flags & CoreFieldFlags.Deprecated) == CoreFieldFlags.Deprecated;
 
     /// <summary>
     /// Gets the field type.
@@ -60,16 +60,16 @@ public abstract class FieldConfiguration
     /// </summary>
     public bool Ignore
     {
-        get => (Flags & FieldFlags.Ignored) == FieldFlags.Ignored;
+        get => (Flags & CoreFieldFlags.Ignored) == CoreFieldFlags.Ignored;
         set
         {
             if (value)
             {
-                Flags |= FieldFlags.Ignored;
+                Flags |= CoreFieldFlags.Ignored;
             }
             else
             {
-                Flags &= ~FieldFlags.Ignored;
+                Flags &= ~CoreFieldFlags.Ignored;
             }
         }
     }
@@ -98,15 +98,15 @@ public abstract class FieldConfiguration
         return _directives;
     }
 
-    public void SetSourceGeneratorFlags() => Flags |= FieldFlags.SourceGenerator;
+    public void SetSourceGeneratorFlags() => Flags |= CoreFieldFlags.SourceGenerator;
 
-    public void SetConnectionFlags() => Flags |= FieldFlags.Connection;
+    public void SetConnectionFlags() => Flags |= CoreFieldFlags.Connection;
 
-    public void SetConnectionEdgesFieldFlags() => Flags |= FieldFlags.ConnectionEdgesField;
+    public void SetConnectionEdgesFieldFlags() => Flags |= CoreFieldFlags.ConnectionEdgesField;
 
-    public void SetConnectionNodesFieldFlags() => Flags |= FieldFlags.ConnectionNodesField;
+    public void SetConnectionNodesFieldFlags() => Flags |= CoreFieldFlags.ConnectionNodesField;
 
-    public void SetConnectionTotalCountFieldFlags() => Flags |= FieldFlags.TotalCount;
+    public void SetConnectionTotalCountFieldFlags() => Flags |= CoreFieldFlags.TotalCount;
 
     protected void CopyTo(FieldConfiguration target)
     {
@@ -114,7 +114,7 @@ public abstract class FieldConfiguration
 
         if (_directives is { Count: > 0 })
         {
-            target._directives = [.._directives];
+            target._directives = [.. _directives];
         }
 
         target.Type = Type;

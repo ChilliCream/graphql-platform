@@ -15,10 +15,10 @@ public sealed class SelectionSetFieldsExtractorTests
     {
         // arrange
         var selectionSet = ParseSelectionSet(selectionSetText);
-        var extractor = new SelectionSetFieldsExtractor(_schema);
+        var extractor = new SelectionSetFieldsExtractor(s_schema);
 
         // act
-        var fields = extractor.ExtractFields(selectionSet, _schema.QueryType!);
+        var fields = extractor.ExtractFields(selectionSet, s_schema.QueryType!);
 
         // assert
         Assert.Equal(expected.Length, fields.Length);
@@ -70,7 +70,7 @@ public sealed class SelectionSetFieldsExtractorTests
         };
     }
 
-    private static readonly MutableSchemaDefinition _schema = SchemaParser.Parse(
+    private static readonly MutableSchemaDefinition s_schema = SchemaParser.Parse(
         """
         type Query {
             a: A!

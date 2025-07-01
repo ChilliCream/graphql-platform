@@ -44,6 +44,6 @@ public static class StringUtilities
             previousChar = currentChar;
         }
 
-        return new string(span[.. charCount]);
+        return new string(span[..charCount]);
     }
 }

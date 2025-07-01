@@ -22,22 +22,20 @@ public class MiddlewareBase : IDisposable
 
     protected MiddlewareBase(
         RequestDelegate next,
-        IRequestExecutorResolver executorResolver,
+        IRequestExecutorProvider executorProvider,
+        IRequestExecutorEvents executorEvents,
         IHttpResponseFormatter responseFormatter,
         string schemaName)
     {
-        if (executorResolver is null)
-        {
-            throw new ArgumentNullException(nameof(executorResolver));
-        }
+        ArgumentNullException.ThrowIfNull(executorProvider);
 
         _next = next ??
             throw new ArgumentNullException(nameof(next));
         _responseFormatter = responseFormatter ??
             throw new ArgumentNullException(nameof(responseFormatter));
         SchemaName = schemaName;
-        IsDefaultSchema = SchemaName.EqualsOrdinal(Schema.DefaultName);
-        _executorProxy = new RequestExecutorProxy(executorResolver, schemaName);
+        IsDefaultSchema = SchemaName.EqualsOrdinal(ISchemaDefinition.DefaultName);
+        _executorProxy = new RequestExecutorProxy(executorProvider, executorEvents, schemaName);
     }
 
     /// <summary>
@@ -78,7 +76,7 @@ public class MiddlewareBase : IDisposable
     /// Returns the request executor for this middleware.
     /// </returns>
     protected ValueTask<IRequestExecutor> GetExecutorAsync(CancellationToken cancellationToken)
-        => _executorProxy.GetRequestExecutorAsync(cancellationToken);
+        => _executorProxy.GetExecutorAsync(cancellationToken);
 
     /// <summary>
     /// Gets the schema for this middleware.
@@ -89,8 +87,8 @@ public class MiddlewareBase : IDisposable
     /// <returns>
     /// Returns the schema for this middleware.
     /// </returns>
-    protected ValueTask<ISchema> GetSchemaAsync(CancellationToken cancellationToken)
-        => _executorProxy.GetSchemaAsync(cancellationToken);
+    protected async ValueTask<ISchemaDefinition> GetSchemaAsync(CancellationToken cancellationToken)
+        => await _executorProxy.GetSchemaAsync(cancellationToken);
 
     protected ValueTask WriteResultAsync(
         HttpContext context,
@@ -105,7 +103,7 @@ public class MiddlewareBase : IDisposable
             context.RequestAborted);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected GraphQLRequestFlags CreateRequestFlags(AcceptMediaType[] acceptMediaTypes)
+    protected RequestFlags CreateRequestFlags(AcceptMediaType[] acceptMediaTypes)
         => _responseFormatter.CreateRequestFlags(acceptMediaTypes);
 
     protected static async Task<IExecutionResult> ExecuteSingleAsync(
@@ -114,7 +112,7 @@ public class MiddlewareBase : IDisposable
         IHttpRequestInterceptor requestInterceptor,
         IServerDiagnosticEvents diagnosticEvents,
         GraphQLRequest request,
-        GraphQLRequestFlags flags)
+        RequestFlags flags)
     {
         diagnosticEvents.StartSingleRequest(context, request);
 
@@ -138,7 +136,7 @@ public class MiddlewareBase : IDisposable
         IHttpRequestInterceptor requestInterceptor,
         IServerDiagnosticEvents diagnosticEvents,
         GraphQLRequest request,
-        GraphQLRequestFlags flags,
+        RequestFlags flags,
         IReadOnlyList<string> operationNames)
     {
         diagnosticEvents.StartOperationBatchRequest(context, request, operationNames);
@@ -171,7 +169,7 @@ public class MiddlewareBase : IDisposable
         IHttpRequestInterceptor requestInterceptor,
         IServerDiagnosticEvents diagnosticEvents,
         IReadOnlyList<GraphQLRequest> requests,
-        GraphQLRequestFlags flags)
+        RequestFlags flags)
     {
         diagnosticEvents.StartBatchRequest(context, requests);
 

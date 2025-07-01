@@ -5,7 +5,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal static class PathHelper
 {
-    private const int _initialPathLength = 64;
+    private const int InitialPathLength = 64;
 
     public static Path CreatePathFromContext(ObjectResult parent)
     {
@@ -27,7 +27,7 @@ internal static class PathHelper
         {
             ObjectResult => CreatePath(parent, selection.ResponseName),
             ListResult => CreatePath(parent, index),
-            _ => throw new NotSupportedException($"{parent.GetType().FullName} is not a supported parent type."),
+            _ => throw new NotSupportedException($"{parent.GetType().FullName} is not a supported parent type.")
         };
 
     public static Path CombinePath(Path path, JsonElement errorSubPath, int skipSubElements)
@@ -36,9 +36,9 @@ internal static class PathHelper
         {
             path = errorSubPath[i] switch
             {
-                { ValueKind: JsonValueKind.String, } nameElement => path.Append(nameElement.GetString()!),
-                { ValueKind: JsonValueKind.Number, } indexElement => path.Append(indexElement.GetInt32()),
-                _ => throw new InvalidOperationException("The error path contains an unsupported element."),
+                { ValueKind: JsonValueKind.String } nameElement => path.Append(nameElement.GetString()!),
+                { ValueKind: JsonValueKind.Number } indexElement => path.Append(indexElement.GetInt32()),
+                _ => throw new InvalidOperationException("The error path contains an unsupported element.")
             };
         }
 
@@ -47,7 +47,7 @@ internal static class PathHelper
 
     private static Path CreatePath(ResultData parent, object segmentValue)
     {
-        var segments = ArrayPool<object>.Shared.Rent(_initialPathLength);
+        var segments = ArrayPool<object>.Shared.Rent(InitialPathLength);
         segments[0] = segmentValue;
         var current = parent;
         var length = Build(segments, ref current);
@@ -58,7 +58,7 @@ internal static class PathHelper
 
     private static Path CreatePath(ResultData parent)
     {
-        var segments = ArrayPool<object>.Shared.Rent(_initialPathLength);
+        var segments = ArrayPool<object>.Shared.Rent(InitialPathLength);
         var current = parent;
         var length = Build(segments, ref current, 0);
         var path = CreatePath(current.PatchPath, segments, length);
@@ -69,7 +69,7 @@ internal static class PathHelper
     private static Path CreatePath(Path? patchPath, object[] segments, int length)
     {
         var root = patchPath ?? Path.Root;
-        var path = root.Append((string) segments[length - 1]);
+        var path = root.Append((string)segments[length - 1]);
 
         if (length > 1)
         {
@@ -79,7 +79,7 @@ internal static class PathHelper
                 {
                     string s => path.Append(s),
                     int n => path.Append(n),
-                    _ => path,
+                    _ => path
                 };
             }
         }

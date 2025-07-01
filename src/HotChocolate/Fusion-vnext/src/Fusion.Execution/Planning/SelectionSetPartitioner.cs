@@ -16,7 +16,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
             SchemaName = input.SchemaName,
             AllowRequirements = input.AllowRequirements,
             RootPath = input.SelectionSet.Path,
-            SelectionSetIndex = input.SelectionSetIndex,
+            SelectionSetIndex = input.SelectionSetIndex
         };
 
         var (resolvable, _) =
@@ -86,7 +86,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
             return (selectionSetNode, null);
         }
 
-        if (unresolvableSelections is not null && type.IsEntity())
+        if (unresolvableSelections is not null)
         {
             var unresolvableSelectionSet = new SelectionSetNode(unresolvableSelections);
             context.Register(selectionSetNode, unresolvableSelectionSet);
@@ -111,7 +111,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
         );
 
         context.Register(selectionSetNode, result.Resolvable);
-        if(result.Unresolvable is not null)
+        if (result.Unresolvable is not null)
         {
             context.Register(selectionSetNode, result.Unresolvable);
         }
@@ -273,19 +273,13 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
     private sealed class Context
     {
-        private ISelectionSetIndex _selectionSetIndex = null!;
-
         public required string SchemaName { get; init; }
 
         public required bool AllowRequirements { get; init; }
 
         public required SelectionPath RootPath { get; init; }
 
-        public required ISelectionSetIndex SelectionSetIndex
-        {
-            get => _selectionSetIndex;
-            init => _selectionSetIndex = value;
-        }
+        public required ISelectionSetIndex SelectionSetIndex { get; set; } = null!;
 
         [field: AllowNull, MaybeNull]
         public SelectionSetIndexBuilder SelectionSetIndexBuilder
@@ -294,8 +288,8 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
             {
                 if (field is null)
                 {
-                    field = _selectionSetIndex.ToBuilder();
-                    _selectionSetIndex = field;
+                    field = SelectionSetIndex.ToBuilder();
+                    this.SelectionSetIndex = field;
                 }
 
                 return field;
@@ -330,7 +324,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
         }
 
         public uint GetId(SelectionSetNode selectionSetNode)
-            => _selectionSetIndex.GetId(selectionSetNode);
+            => SelectionSetIndex.GetId(selectionSetNode);
 
         public void Register(SelectionSetNode original, SelectionSetNode branch)
         {
@@ -339,7 +333,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 return;
             }
 
-            if(SelectionSetIndex.IsRegistered(branch))
+            if (SelectionSetIndex.IsRegistered(branch))
             {
                 return;
             }

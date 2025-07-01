@@ -4,7 +4,7 @@ namespace HotChocolate.Fusion.Types;
 
 public interface ISourceMemberCollection<out TMember>
     : IEnumerable<TMember>
-    where TMember: ISourceMember
+    where TMember : ISourceMember
 {
     int Count { get; }
 
@@ -14,4 +14,3 @@ public interface ISourceMemberCollection<out TMember>
 
     ImmutableArray<string> Schemas { get; }
 }
-

@@ -16,7 +16,7 @@ public abstract class FilterProviderExtensions<TContext>
         _configure = Configure;
     }
 
-    public FilterProviderExtensions(Action<IFilterProviderDescriptor<TContext>> configure)
+    protected FilterProviderExtensions(Action<IFilterProviderDescriptor<TContext>> configure)
     {
         _configure = configure ??
             throw new ArgumentNullException(nameof(configure));

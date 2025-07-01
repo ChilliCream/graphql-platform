@@ -18,7 +18,7 @@ public static class TokenClient
                 Address = tokenEndpoint,
                 ClientId = clientId,
                 ClientSecret = clientSecret,
-                Scope = string.Join(" ", scopes),
+                Scope = string.Join(" ", scopes)
             },
             cancellationToken).ConfigureAwait(false);
         return tokenRes.AccessToken;

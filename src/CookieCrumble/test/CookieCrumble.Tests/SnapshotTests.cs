@@ -9,7 +9,7 @@ namespace CookieCrumble;
 
 public class SnapshotTests
 {
-    private const string _strictModeExceptionMessage =
+    private const string StrictModeExceptionMessage =
         "Strict mode is enabled and no snapshot has been found " +
         "for the current test. Create a new snapshot locally and " +
         "rerun your tests.";
@@ -60,8 +60,8 @@ public class SnapshotTests
     {
         var snapshot = new Snapshot();
         snapshot.Add(new MyClass());
-        snapshot.Add(new MyClass { Foo = "Bar", });
-        snapshot.Add(new MyClass { Foo = "Baz", });
+        snapshot.Add(new MyClass { Foo = "Bar" });
+        snapshot.Add(new MyClass { Foo = "Baz" });
         snapshot.Match();
     }
 
@@ -70,8 +70,8 @@ public class SnapshotTests
     {
         var snapshot = new Snapshot();
         snapshot.Add(new MyClass());
-        snapshot.Add(new MyClass { Foo = "Bar", });
-        snapshot.Add(new MyClass { Foo = "Baz", });
+        snapshot.Add(new MyClass { Foo = "Bar" });
+        snapshot.Add(new MyClass { Foo = "Baz" });
         await snapshot.MatchAsync();
     }
 
@@ -80,8 +80,8 @@ public class SnapshotTests
     {
         var snapshot = new Snapshot();
         snapshot.Add(new MyClass());
-        snapshot.Add(new MyClass { Foo = "Bar", }, "Bar:");
-        snapshot.Add(new MyClass { Foo = "Baz", });
+        snapshot.Add(new MyClass { Foo = "Bar" }, "Bar:");
+        snapshot.Add(new MyClass { Foo = "Baz" });
         snapshot.Match();
     }
 
@@ -90,8 +90,8 @@ public class SnapshotTests
     {
         var snapshot = new Snapshot();
         snapshot.Add(new MyClass(), "Segment 1:");
-        snapshot.Add(new MyClass { Foo = "Bar", }, "Segment 2:");
-        snapshot.Add(new MyClass { Foo = "Baz", }, "Segment 3:");
+        snapshot.Add(new MyClass { Foo = "Bar" }, "Segment 2:");
+        snapshot.Add(new MyClass { Foo = "Baz" }, "Segment 3:");
         snapshot.Match();
     }
 
@@ -100,9 +100,9 @@ public class SnapshotTests
     {
         var snapshot = new Snapshot();
         snapshot.Add(new MyClass());
-        snapshot.Add(new MyClass { Foo = "Baz", }, "Bar:", new CustomSerializer());
-        snapshot.Add(new MyClass { Foo = "Baz", });
-        snapshot.Add(new MyClass { Foo = "Baz", });
+        snapshot.Add(new MyClass { Foo = "Baz" }, "Bar:", new CustomSerializer());
+        snapshot.Add(new MyClass { Foo = "Baz" });
+        snapshot.Add(new MyClass { Foo = "Baz" });
         snapshot.Match();
     }
 
@@ -112,7 +112,7 @@ public class SnapshotTests
         Snapshot.RegisterFormatter(new CustomSerializer());
 
         var snapshot = new Snapshot();
-        snapshot.Add(new MyClass { Foo = "123", });
+        snapshot.Add(new MyClass { Foo = "123" });
         snapshot.Match();
     }
 
@@ -124,7 +124,7 @@ public class SnapshotTests
         Environment.SetEnvironmentVariable("COOKIE_CRUMBLE_STRICT_MODE", strictMode);
 
         var snapshot = new Snapshot();
-        snapshot.Add(new MyClass { Foo = "123", });
+        snapshot.Add(new MyClass { Foo = "123" });
 
         async Task Act1() => await snapshot.MatchAsync();
         void Act2() => snapshot.Match();
@@ -134,16 +134,16 @@ public class SnapshotTests
         try
         {
             Assert.Equal(
-                _strictModeExceptionMessage,
+                StrictModeExceptionMessage,
                 (await Assert.ThrowsAsync<XunitException>(Act1)).Message);
 
-            Assert.Equal(_strictModeExceptionMessage, Assert.Throws<XunitException>(Act2).Message);
+            Assert.Equal(StrictModeExceptionMessage, Assert.Throws<XunitException>(Act2).Message);
 
             Assert.Equal(
-                _strictModeExceptionMessage,
+                StrictModeExceptionMessage,
                 (await Assert.ThrowsAsync<XunitException>(Act3)).Message);
 
-            Assert.Equal(_strictModeExceptionMessage, Assert.Throws<XunitException>(Act4).Message);
+            Assert.Equal(StrictModeExceptionMessage, Assert.Throws<XunitException>(Act4).Message);
         }
         finally
         {
@@ -160,7 +160,7 @@ public class SnapshotTests
         Environment.SetEnvironmentVariable("COOKIE_CRUMBLE_STRICT_MODE", strictMode);
 
         var snapshot = new Snapshot();
-        snapshot.Add(new MyClass { Foo = "123", });
+        snapshot.Add(new MyClass { Foo = "123" });
 
         async Task Act1() => await snapshot.SetPostFix($"MA_{number}").MatchAsync();
         void Act2() => snapshot.SetPostFix($"M_{number}").Match();
@@ -201,7 +201,7 @@ public class SnapshotTests
     public class CustomSerializer : ISnapshotValueFormatter
     {
         public bool CanHandle(object? value)
-            => value is MyClass { Foo: "123", };
+            => value is MyClass { Foo: "123" };
 
         public void Format(IBufferWriter<byte> snapshot, object? value)
         {

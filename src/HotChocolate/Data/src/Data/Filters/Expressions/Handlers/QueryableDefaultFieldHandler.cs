@@ -54,10 +54,10 @@ public class QueryableDefaultFieldHandler
         }
 
         Expression nestedProperty;
-        if (field.Metadata is ExpressionFilterMetadata { Expression: LambdaExpression expression, })
+        if (field.Metadata is ExpressionFilterMetadata { Expression: LambdaExpression expression })
         {
             if (expression.Parameters.Count != 1 ||
-                expression.Parameters[0].Type != context.RuntimeTypes.Peek()!.Source)
+                expression.Parameters[0].Type != context.RuntimeTypes.Peek().Source)
             {
                 throw ThrowHelper.QueryableFiltering_ExpressionParameterInvalid(
                     field.RuntimeType.Source,
@@ -92,7 +92,7 @@ public class QueryableDefaultFieldHandler
 
                 null => throw ThrowHelper.QueryableFiltering_NoMemberDeclared(field),
 
-                _ => throw ThrowHelper.QueryableFiltering_MemberInvalid(field.Member, field),
+                _ => throw ThrowHelper.QueryableFiltering_MemberInvalid(field.Member, field)
             };
         }
 
@@ -122,9 +122,9 @@ public class QueryableDefaultFieldHandler
         context.PopInstance();
         context.RuntimeTypes.Pop();
 
-        // when we are in a in-memory context, it is possible that we have null reference exceptions
-        // To avoid these exceptions, we need to add null checks to the chain. We always wrap the
-        // field before in a null check.
+        // When we are in an in-memory context, it is possible that we have null reference
+        // exceptions. To avoid these exceptions, we need to add null checks to the chain. We always
+        // wrap the field before in a null check.
         //
         // reference types:
         //    previous.current > 10   ==>    previous is not null && previous.current > 10
@@ -179,7 +179,7 @@ public class QueryableDefaultFieldHandler
     }
 }
 
-static file class LocalExtensions
+file static class LocalExtensions
 {
     public static bool TryGetPreviousRuntimeType(
         this QueryableFilterContext context,
@@ -190,17 +190,17 @@ static file class LocalExtensions
 
     public static bool IsNullableValueType(this IExtendedType type)
     {
-        return type.GetTypeOrElementType() is { Type.IsValueType: true, IsNullable: true, };
+        return type.GetTypeOrElementType() is { Type.IsValueType: true, IsNullable: true };
     }
 
     public static bool IsValueType(this IExtendedType type)
     {
-        return type.GetTypeOrElementType() is { Type.IsValueType: true, };
+        return type.GetTypeOrElementType() is { Type.IsValueType: true };
     }
 
     private static IExtendedType GetTypeOrElementType(this IExtendedType type)
     {
-        while (type is { IsArrayOrList: true, ElementType: { } nextType, })
+        while (type is { IsArrayOrList: true, ElementType: { } nextType })
         {
             type = nextType;
         }

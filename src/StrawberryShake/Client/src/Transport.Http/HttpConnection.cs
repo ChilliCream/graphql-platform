@@ -81,7 +81,7 @@ public class HttpConnection : IHttpConnection
     {
         var (id, name, document, variables, extensions, _, files, strategy) = request;
 
-        var hasFiles = files is { Count: > 0, };
+        var hasFiles = files is { Count: > 0 };
 
         variables = MapVariables(variables);
         if (hasFiles && variables is not null)
@@ -102,7 +102,7 @@ public class HttpConnection : IHttpConnection
             operation = new HotChocolate.Transport.OperationRequest(body, null, name, variables, extensions);
         }
 
-        return new GraphQLHttpRequest(operation) { EnableFileUploads = hasFiles, };
+        return new GraphQLHttpRequest(operation) { EnableFileUploads = hasFiles };
     }
 
     protected virtual Response<JsonDocument> CreateResponse(
@@ -196,12 +196,12 @@ public class HttpConnection : IHttpConnection
                 continue;
             }
 
-            var currentPath = path.Substring("variables.".Length);
+            var currentPath = path["variables.".Length..];
             object? currentObject = variables;
             int index;
             while ((index = currentPath.IndexOf('.')) >= 0)
             {
-                var segment = currentPath.Substring(0, index);
+                var segment = currentPath[..index];
                 switch (currentObject)
                 {
                     case Dictionary<string, object> dictionary:
@@ -234,7 +234,7 @@ public class HttpConnection : IHttpConnection
                             string.Format(HttpConnection_FileMapDoesNotMatch, path));
                 }
 
-                currentPath = currentPath.Substring(index + 1);
+                currentPath = currentPath[(index + 1)..];
             }
 
             switch (currentObject)

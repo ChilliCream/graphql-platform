@@ -31,9 +31,19 @@ public enum AcceptMediaTypeKind
     ApplicationGraphQL,
 
     /// <summary>
+    /// application/graphql-response+jsonl
+    /// </summary>
+    ApplicationGraphQLStream,
+
+    /// <summary>
     /// application/json
     /// </summary>
     ApplicationJson,
+
+    /// <summary>
+    /// application/jsonl
+    /// </summary>
+    ApplicationJsonLines,
 
     /// <summary>
     /// multipart/mixed
@@ -43,5 +53,5 @@ public enum AcceptMediaTypeKind
     /// <summary>
     /// text/event-stream
     /// </summary>
-    EventStream,
+    EventStream
 }

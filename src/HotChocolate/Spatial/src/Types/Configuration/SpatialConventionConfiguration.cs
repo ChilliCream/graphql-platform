@@ -16,5 +16,5 @@ public class SpatialConventionConfiguration
     /// <summary>
     /// Stores a lookup of SRID and their coordinates systems
     /// </summary>
-    public Dictionary<int, CoordinateSystem> CoordinateSystems { get; } = new();
+    public Dictionary<int, CoordinateSystem> CoordinateSystems { get; } = [];
 }

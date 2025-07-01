@@ -19,7 +19,7 @@ internal static class Utf8Messages
             (byte)'i',
             (byte)'n',
             (byte)'i',
-            (byte)'t',
+            (byte)'t'
         ];
 
     public static ReadOnlySpan<byte> ConnectionAccept =>
@@ -37,7 +37,7 @@ internal static class Utf8Messages
             (byte)'_',
             (byte)'a',
             (byte)'c',
-            (byte)'k',
+            (byte)'k'
         ];
 
     public static ReadOnlySpan<byte> Subscribe =>
@@ -50,7 +50,7 @@ internal static class Utf8Messages
             (byte)'r',
             (byte)'i',
             (byte)'b',
-            (byte)'e',
+            (byte)'e'
         ];
 
     public static ReadOnlySpan<byte> Next =>
@@ -58,7 +58,7 @@ internal static class Utf8Messages
             (byte)'n',
             (byte)'e',
             (byte)'x',
-            (byte)'t',
+            (byte)'t'
         ];
 
     public static ReadOnlySpan<byte> Error =>
@@ -67,7 +67,7 @@ internal static class Utf8Messages
             (byte)'r',
             (byte)'r',
             (byte)'o',
-            (byte)'r',
+            (byte)'r'
         ];
 
     public static ReadOnlySpan<byte> Complete =>
@@ -79,7 +79,7 @@ internal static class Utf8Messages
             (byte)'l',
             (byte)'e',
             (byte)'t',
-            (byte)'e',
+            (byte)'e'
         ];
 
     public static ReadOnlySpan<byte> Ping =>
@@ -87,7 +87,7 @@ internal static class Utf8Messages
             (byte)'p',
             (byte)'i',
             (byte)'n',
-            (byte)'g',
+            (byte)'g'
         ];
 
     public static ReadOnlySpan<byte> Pong =>
@@ -95,6 +95,6 @@ internal static class Utf8Messages
             (byte)'p',
             (byte)'o',
             (byte)'n',
-            (byte)'g',
+            (byte)'g'
         ];
 }

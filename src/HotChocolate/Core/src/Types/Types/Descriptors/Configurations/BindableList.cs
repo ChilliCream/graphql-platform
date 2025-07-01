@@ -3,11 +3,11 @@ using System.Runtime.InteropServices;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 public sealed class BindableList<T> : IBindableList<T>
 {
-    private static readonly T[] _empty = [];
+    private static readonly T[] s_empty = [];
 
     private List<T>? _list;
 
@@ -97,7 +97,7 @@ public sealed class BindableList<T> : IBindableList<T>
     {
         if (_list is null)
         {
-            return _empty;
+            return s_empty;
         }
 
         return CollectionsMarshal.AsSpan(_list);

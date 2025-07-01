@@ -5,7 +5,7 @@ using HotChocolate.Types;
 namespace HotChocolate;
 
 /// <summary>
-/// The schema type definition is a mutable object that is used during type initialization
+/// The schema type definition is a mutable object used during type initialization
 /// to configure the <see cref="Schema"/> properties.
 /// </summary>
 internal sealed class SchemaTypesConfiguration
@@ -28,10 +28,10 @@ internal sealed class SchemaTypesConfiguration
     /// <summary>
     /// Gets all types of the schema.
     /// </summary>
-    public IReadOnlyList<INamedType>? Types { get; set; }
+    public ITypeDefinition[]? Types { get; set; }
 
     /// <summary>
     /// Gets all directives of the schema.
     /// </summary>
-    public IReadOnlyList<DirectiveType>? DirectiveTypes { get; set; }
+    public DirectiveType[]? DirectiveTypes { get; set; }
 }

@@ -3,7 +3,7 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Filters;
 
@@ -76,7 +76,7 @@ public class FilterFieldDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, Member: not null, })
+        if (Configuration is { AttributesAreApplied: false, Member: not null })
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Configuration.Member);
             Configuration.AttributesAreApplied = true;
@@ -99,7 +99,7 @@ public class FilterFieldDescriptor
         return this;
     }
 
-   public new IFilterFieldDescriptor Description(string value)
+    public new IFilterFieldDescriptor Description(string value)
     {
         base.Description(value);
         return this;

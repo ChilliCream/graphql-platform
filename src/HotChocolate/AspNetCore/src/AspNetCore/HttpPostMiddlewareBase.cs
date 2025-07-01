@@ -6,23 +6,24 @@ using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
-using static HotChocolate.Execution.GraphQLRequestFlags;
+using static HotChocolate.Execution.RequestFlags;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
 
 public class HttpPostMiddlewareBase : MiddlewareBase
 {
-    private const string _batchOperations = "batchOperations";
+    private const string BatchOperations = "batchOperations";
 
     protected HttpPostMiddlewareBase(
         HttpRequestDelegate next,
-        IRequestExecutorResolver executorResolver,
+        IRequestExecutorProvider executorResolver,
+        IRequestExecutorEvents executorEvents,
         IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
         IServerDiagnosticEvents diagnosticEvents,
         string schemaName)
-        : base(next, executorResolver, responseFormatter, schemaName)
+        : base(next, executorResolver, executorEvents, responseFormatter, schemaName)
     {
         RequestParser = requestParser ??
             throw new ArgumentNullException(nameof(requestParser));
@@ -51,7 +52,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         }
         else
         {
-            // if the request is not a post request we will just invoke the next
+            // if the request is not a post request, we will just invoke the next
             // middleware and do nothing:
             await NextAsync(context);
         }
@@ -127,7 +128,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             catch (Exception ex)
             {
                 statusCode = HttpStatusCode.InternalServerError;
-                var error = errorHandler.CreateUnexpectedError(ex).Build();
+                var error = ErrorBuilder.FromException(ex).Build();
                 result = OperationResultBuilder.CreateError(error);
                 DiagnosticEvents.HttpRequestError(context, error);
                 goto HANDLE_RESULT;
@@ -157,9 +158,9 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // An operation batch consists of a single GraphQL request document that
                 // contains multiple operations. The batch operation query parameter
                 // defines the order in which the operations shall be executed.
-                case 1 when context.Request.Query.ContainsKey(_batchOperations):
+                case 1 when context.Request.Query.ContainsKey(BatchOperations):
                 {
-                    string? operationNames = context.Request.Query[_batchOperations];
+                    string? operationNames = context.Request.Query[BatchOperations];
 
                     if (!string.IsNullOrEmpty(operationNames) &&
                         TryParseOperations(operationNames, out var ops) &&
@@ -241,12 +242,12 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         catch (Exception ex)
         {
             statusCode = HttpStatusCode.InternalServerError;
-            var error = errorHandler.CreateUnexpectedError(ex).Build();
+            var error = ErrorBuilder.FromException(ex).Build();
             result = OperationResultBuilder.CreateError(error);
             DiagnosticEvents.HttpRequestError(context, error);
         }
 
-        HANDLE_RESULT:
+HANDLE_RESULT:
         IDisposable? formatScope = null;
 
         try

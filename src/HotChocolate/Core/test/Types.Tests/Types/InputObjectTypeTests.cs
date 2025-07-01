@@ -23,7 +23,7 @@ public class InputObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("StringFoo");
+        var type = schema.Types.GetType<InputObjectType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -41,7 +41,7 @@ public class InputObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("StringFoo");
+        var type = schema.Types.GetType<InputObjectType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -57,7 +57,7 @@ public class InputObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("StringFoo");
+        var type = schema.Types.GetType<InputObjectType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -73,7 +73,7 @@ public class InputObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("StringFoo");
+        var type = schema.Types.GetType<InputObjectType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -114,8 +114,7 @@ public class InputObjectTypeTests : TypeTestBase
     {
         // arrange
         var schema = Create();
-        var inputObjectType =
-            schema.GetType<InputObjectType>("Object1");
+        var inputObjectType = schema.Types.GetType<InputObjectType>("Object1");
 
         // act
         var kind = inputObjectType.Kind;
@@ -312,7 +311,7 @@ public class InputObjectTypeTests : TypeTestBase
         Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
     }
 
-    private ISchema Create()
+    private Schema Create()
     {
         return SchemaBuilder.New()
             .ModifyOptions(o => o.StrictValidation = false)
@@ -439,8 +438,8 @@ public class InputObjectTypeTests : TypeTestBase
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryType>()
-            .AddTypeConverter<Baz, Bar>(from => new Bar { Text = from.Text, })
-            .AddTypeConverter<Bar, Baz>(from => new Baz { Text = from.Text, })
+            .AddTypeConverter<Baz, Bar>(from => new Bar { Text = from.Text })
+            .AddTypeConverter<Bar, Baz>(from => new Baz { Text = from.Text })
             .BuildRequestExecutorAsync();
 
         // act
@@ -568,7 +567,7 @@ public class InputObjectTypeTests : TypeTestBase
             })
             .ModifyOptions(o => o.StrictValidation = false)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -742,7 +741,7 @@ public class InputObjectTypeTests : TypeTestBase
             .AddInputObjectType<InputWithDeprecatedField>()
             .ModifyOptions(o => o.StrictValidation = false)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -753,7 +752,7 @@ public class InputObjectTypeTests : TypeTestBase
             .AddInputObjectType<FooWithMethod>()
             .ModifyOptions(o => o.StrictValidation = false)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -761,7 +760,7 @@ public class InputObjectTypeTests : TypeTestBase
     {
         public string? YourFieldName { get; set; }
 
-        public string YourFieldname { get; set; } = default!;
+        public string YourFieldname { get; set; } = null!;
     }
 
     public class DeprecatedInputFields
@@ -813,7 +812,7 @@ public class InputObjectTypeTests : TypeTestBase
     public class SerializationInputObject2
     {
         public List<SerializationInputObject1?>? FooList { get; set; } =
-            [new SerializationInputObject1(),];
+            [new SerializationInputObject1()];
     }
 
     public class FooDirectiveType : DirectiveType<FooDirective>
@@ -852,9 +851,7 @@ public class InputObjectTypeTests : TypeTestBase
         }
     }
 
-    public class BazInputType : InputObjectType<Baz>
-    {
-    }
+    public class BazInputType : InputObjectType<Baz>;
 
     public class Foo
     {
@@ -887,7 +884,7 @@ public class InputObjectTypeTests : TypeTestBase
             {
                 IsBarSet = input.Bar.HasValue,
                 Bar = input.Bar,
-                Baz = input.Baz,
+                Baz = input.Baz
             };
         }
     }
@@ -974,6 +971,6 @@ public class InputObjectTypeTests : TypeTestBase
     public enum FooEnum
     {
         Bar,
-        Baz,
+        Baz
     }
 }
