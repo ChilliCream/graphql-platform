@@ -472,6 +472,20 @@ public class LocalTimeTypeTests
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public void LocalTime_Relaxed_Format_Check()
+    {
+        // arrange
+        const string s = "8:46 am";
+
+        // act
+        var localTimeType = new LocalTimeType(disableFormatCheck: true);
+        var result = localTimeType.Deserialize(s);
+
+        // assert
+        Assert.IsType<TimeOnly>(result);
+    }
+
     public class Query
     {
         [GraphQLType(typeof(LocalTimeType))]
