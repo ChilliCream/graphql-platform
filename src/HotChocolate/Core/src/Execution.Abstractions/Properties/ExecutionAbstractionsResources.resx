@@ -18,13 +18,34 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="OperationDocumentId_InvalidOperationIdFormat" xml:space="preserve">
-    <value>Invalid operation id format.</value>
-  </data>
   <data name="OperationRequest_DocumentOrIdMustBeSet" xml:space="preserve">
     <value>A GraphQL operation document or a document id is required to create a query request.</value>
   </data>
   <data name="AggregateError_Message" xml:space="preserve">
     <value>For error details look at the `Errors` property.</value>
+  </data>
+  <data name="QueryResult_DataAndResultAreNull" xml:space="preserve">
+    <value>data and errors cannot be null at the same time.</value>
+  </data>
+  <data name="OperationResultBatch_ResponseStreamOrOperationResult" xml:space="preserve">
+    <value>The result must be either an operation result or a response stream.</value>
+  </data>
+  <data name="ExecutionResultExtensions_ExpectOperationResultBatch_NotOperationResultBatch" xml:space="preserve">
+    <value>The specified result is expected to be an OperationResultBatch.</value>
+  </data>
+  <data name="ExecutionResultExtensions_ExpectOperationResult_NotOperationResult" xml:space="preserve">
+    <value>The specified result is expected to be an OperationResult.</value>
+  </data>
+  <data name="ResponseStream_InvalidResultKind" xml:space="preserve">
+    <value>The result kind must be a BatchResult, DeferredResult or SubscriptionResult.</value>
+  </data>
+  <data name="SubscriptionResult_ResultHasErrors" xml:space="preserve">
+    <value>This result has errors and cannot read from the response stream.</value>
+  </data>
+  <data name="ExecutionResultExtensions_ExpectResponseStream_NotResponseStream" xml:space="preserve">
+    <value>The specified result is expected to be a ResponseStream.</value>
+  </data>
+  <data name="SubscriptionResult_ReadOnlyOnce" xml:space="preserve">
+    <value>You can only read a response stream once.</value>
   </data>
 </root>

@@ -5,8 +5,8 @@ namespace HotChocolate.StarWars.Data;
 
 public class CharacterRepository
 {
-    private Dictionary<string, ICharacter> _characters;
-    private Dictionary<string, Starship> _starships;
+    private readonly Dictionary<string, ICharacter> _characters;
+    private readonly Dictionary<string, Starship> _starships;
 
     public CharacterRepository()
     {

@@ -57,12 +57,11 @@ internal static class ErrorHelper
 
     public static IError UnexpectedLeafValueSerializationError(
         Exception exception,
-        IErrorHandler errorHandler,
         FieldNode field,
         Path path)
     {
-        return errorHandler
-            .CreateUnexpectedError(exception)
+        return ErrorBuilder
+            .FromException(exception)
             .AddLocation(field)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)
@@ -163,13 +162,6 @@ internal static class ErrorHelper
             .AddLocation(field)
             .Build();
 
-    public static IOperationResult StateInvalidForDocumentValidation() =>
-        OperationResultBuilder.CreateError(
-            ErrorBuilder.New()
-                .SetMessage(ErrorHelper_StateInvalidForDocumentValidation_Message)
-                .SetCode(ErrorCodes.Execution.QueryNotFound)
-                .Build());
-
     public static IOperationResult OperationKindNotAllowed() =>
         OperationResultBuilder.CreateError(
             ErrorBuilder.New()
@@ -187,7 +179,7 @@ internal static class ErrorHelper
                 .Build(),
             new Dictionary<string, object?>
             {
-                { WellKnownContextData.ValidationErrors, null }
+                { ExecutionContextData.ValidationErrors, null }
             });
 
     public static IOperationResult RequestTimeout(TimeSpan timeout) =>
@@ -198,39 +190,11 @@ internal static class ErrorHelper
                 Extensions = ImmutableDictionary<string, object?>.Empty.Add("code", ErrorCodes.Execution.Timeout)
             });
 
-    public static IOperationResult OperationCanceled() =>
-        OperationResultBuilder.CreateError(
-            new Error
-            {
-                Message = ErrorHelper_OperationCanceled_Message,
-                Extensions = ImmutableDictionary<string, object?>.Empty.Add("code", ErrorCodes.Execution.Canceled)
-            });
-
     public static IError NonNullOutputFieldViolation(Path? path, FieldNode selection)
         => ErrorBuilder.New()
             .SetMessage("Cannot return null for non-nullable field.")
             .SetCode(ErrorCodes.Execution.NonNullViolation)
             .SetPath(path)
             .AddLocation(selection)
-            .Build();
-
-    public static IError PersistedOperationNotFound(OperationDocumentId requestedKey)
-        => ErrorBuilder.New()
-            .SetMessage(ErrorHelper_PersistedOperationNotFound)
-            .SetCode(ErrorCodes.Execution.PersistedOperationNotFound)
-            .SetExtension(nameof(requestedKey), requestedKey)
-            .Build();
-
-    public static IError OnlyPersistedOperationsAreAllowed()
-        => ErrorBuilder.New()
-            .SetMessage(ErrorHelper_OnlyPersistedOperationsAreAllowed)
-            .SetCode(ErrorCodes.Execution.OnlyPersistedOperationsAllowed)
-            .Build();
-
-    public static IError ReadPersistedOperationMiddleware_PersistedOperationNotFound()
-        => ErrorBuilder.New()
-            // this string is defined in the APQ spec!
-            .SetMessage("PersistedQueryNotFound")
-            .SetCode(ErrorCodes.Execution.PersistedOperationNotFound)
             .Build();
 }

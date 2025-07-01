@@ -12,7 +12,7 @@ namespace HotChocolate.Data.MongoDb.Paging;
 
 public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
 {
-    private readonly List<Foo> foos =
+    private readonly List<Foo> _foos =
     [
         new Foo { Bar = "a" },
         new Foo { Bar = "b" },
@@ -281,7 +281,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                 {
                     descriptor
                         .Field("foos")
-                        .Resolve(BuildResolver(_resource, foos))
+                        .Resolve(BuildResolver(_resource, _foos))
                         .Type<ListType<ObjectType<Foo>>>()
                         .Use(
                             next => async context =>
@@ -296,7 +296,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                             options: new PagingOptions { IncludeTotalCount = true });
                 })
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
@@ -313,7 +313,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync();
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync();
     }
 }

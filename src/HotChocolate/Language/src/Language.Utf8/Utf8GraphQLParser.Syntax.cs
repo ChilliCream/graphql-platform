@@ -12,11 +12,11 @@ public ref partial struct Utf8GraphQLParser
         /// Parses a GraphQL object type definitions e.g. type Foo { bar: String }
         /// </summary>
         public static ObjectTypeDefinitionNode ParseObjectTypeDefinition(
-            #if NETSTANDARD2_0
+#if NETSTANDARD2_0
             string sourceText) =>
-            #else
+#else
             [StringSyntax("graphql")] string sourceText) =>
-            #endif
+#endif
             Parse(sourceText, parser => parser.ParseObjectTypeDefinition());
 
         /// <summary>

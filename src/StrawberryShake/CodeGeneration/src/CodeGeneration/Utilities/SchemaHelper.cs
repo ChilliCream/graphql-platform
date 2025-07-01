@@ -160,16 +160,14 @@ public static class SchemaHelper
         }
     }
 
-    private static RuntimeTypeDirective? GetRuntimeType(
-        HotChocolate.Language.IHasDirectives hasDirectives) =>
-        GetDirectiveValue(hasDirectives, "runtimeType");
+    private static RuntimeTypeDirective? GetRuntimeType(IHasDirectives hasDirectives)
+        => GetDirectiveValue(hasDirectives, "runtimeType");
 
-    private static RuntimeTypeDirective? GetSerializationType(
-        HotChocolate.Language.IHasDirectives hasDirectives) =>
-        GetDirectiveValue(hasDirectives, "serializationType");
+    private static RuntimeTypeDirective? GetSerializationType(IHasDirectives hasDirectives)
+        => GetDirectiveValue(hasDirectives, "serializationType");
 
     private static RuntimeTypeDirective? GetDirectiveValue(
-        HotChocolate.Language.IHasDirectives hasDirectives,
+        IHasDirectives hasDirectives,
         string directiveName)
     {
         var directive = hasDirectives.Directives.FirstOrDefault(
@@ -284,7 +282,7 @@ public static class SchemaHelper
     }
 
     private static bool TryGetKeys(
-        HotChocolate.Language.IHasDirectives directives,
+        IHasDirectives directives,
         [NotNullWhen(true)] out SelectionSetNode? selectionSet)
     {
         var directive = directives.Directives.FirstOrDefault(IsKeyDirective);

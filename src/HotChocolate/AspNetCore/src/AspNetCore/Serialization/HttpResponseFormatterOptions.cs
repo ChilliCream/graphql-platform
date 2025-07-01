@@ -1,4 +1,4 @@
-using HotChocolate.Execution.Serialization;
+using HotChocolate.Transport.Formatters;
 
 namespace HotChocolate.AspNetCore.Serialization;
 

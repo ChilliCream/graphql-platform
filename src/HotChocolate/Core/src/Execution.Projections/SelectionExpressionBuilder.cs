@@ -11,7 +11,6 @@ namespace HotChocolate.Execution.Projections;
 
 internal sealed class SelectionExpressionBuilder
 {
-    private static readonly NullabilityInfoContext s_nullabilityInfoContext = new();
     private static readonly HashSet<Type> s_runtimeLeafTypes =
     [
         typeof(string),
@@ -208,7 +207,7 @@ internal sealed class SelectionExpressionBuilder
             return;
         }
 
-        var flags = ((ObjectField)selection.Field).Flags;
+        var flags = selection.Field.Flags;
         if ((flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection
             || (flags & CoreFieldFlags.CollectionSegment) == CoreFieldFlags.CollectionSegment)
         {

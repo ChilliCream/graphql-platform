@@ -7,7 +7,7 @@ internal static class ResultHelper
 {
     private static readonly ImmutableDictionary<string, object?> s_validationError
         = ImmutableDictionary<string, object?>.Empty
-            .Add(WellKnownContextData.ValidationErrors, true);
+            .Add(ExecutionContextData.ValidationErrors, true);
     private static readonly ImmutableDictionary<string, object?> s_ok
         = ImmutableDictionary<string, object?>.Empty
             .Add(WellKnownContextData.HttpStatusCode, 200);
@@ -124,7 +124,7 @@ internal static class ResultHelper
     {
         var onFirstResult = responseStream.OnFirstResult;
 
-        if(onFirstResult.Count == 0)
+        if (onFirstResult.Count == 0)
         {
             onFirstResult =
                 ImmutableArray.Create<Func<IOperationResult, IOperationResult>>(
@@ -135,7 +135,7 @@ internal static class ResultHelper
             return responseStream.WithOnFirstResult(onFirstResult);
         }
 
-        if(onFirstResult is ImmutableArray<Func<IOperationResult, IOperationResult>> immutable)
+        if (onFirstResult is ImmutableArray<Func<IOperationResult, IOperationResult>> immutable)
         {
             onFirstResult = immutable.Add(
                 result => result is OperationResult operationResult
@@ -168,12 +168,12 @@ internal static class ResultHelper
     {
         const string costKey = "operationCost";
 
-        if(extensions is null || extensions.Count == 0)
+        if (extensions is null || extensions.Count == 0)
         {
             return ImmutableDictionary<string, object?>.Empty.Add(costKey, costMetrics);
         }
 
-        if(extensions is ImmutableDictionary<string, object?> immutable)
+        if (extensions is ImmutableDictionary<string, object?> immutable)
         {
             return immutable.Add(costKey, costMetrics);
         }
@@ -197,6 +197,6 @@ internal static class ResultHelper
         OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage("The query request contains no document or no document id.")
-                .SetCode(ErrorCodes.Execution.QueryNotFound)
+                .SetCode(ErrorCodes.Execution.OperationDocumentNotFound)
                 .Build());
 }

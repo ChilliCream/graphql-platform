@@ -54,7 +54,7 @@ public sealed class FieldError : IFieldResult
     public bool IsSuccess => false;
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
     public bool IsError => true;
 }

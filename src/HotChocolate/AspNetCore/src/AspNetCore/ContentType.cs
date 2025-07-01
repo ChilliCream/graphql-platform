@@ -10,7 +10,9 @@ internal static class ContentType
     public const string Json = $"{Types.Application}/{SubTypes.Json}; {Utf8}";
     public const string MultiPartMixed = $"{Types.MultiPart}/{SubTypes.Mixed}; {Boundary}";
     public const string GraphQLResponse = $"{Types.Application}/{SubTypes.GraphQLResponse}; {Utf8}";
+    public const string GraphQLResponseStream = $"{Types.Application}/{SubTypes.GraphQLResponseStream}; {Utf8}";
     public const string EventStream = $"{Types.Text}/{SubTypes.EventStream}; {Utf8}";
+    public const string JsonLines = $"{Types.Application}/{SubTypes.JsonLines}; {Utf8}";
     public const string Html = $"{Types.Text}/{SubTypes.Html}";
 
     private static readonly char[] s_jsonArray =
@@ -42,7 +44,9 @@ internal static class ContentType
     {
         public const string GraphQL = "graphql";
         public const string GraphQLResponse = "graphql-response+json";
+        public const string GraphQLResponseStream = "graphql-response+jsonl";
         public const string Json = "json";
+        public const string JsonLines = "jsonl";
         public const string Mixed = "mixed";
         public const string EventStream = "event-stream";
         public const string Html = "html";

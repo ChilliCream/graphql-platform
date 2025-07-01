@@ -92,7 +92,7 @@ public class InterfaceTypeAttributeTests
 
     public interface Interface1
     {
-        string GetField([ArgumentDefaultValue("abc")]string argument);
+        string GetField([ArgumentDefaultValue("abc")] string argument);
     }
 
     public class ArgumentDefaultValueAttribute

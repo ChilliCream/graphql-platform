@@ -97,7 +97,7 @@ public static partial class RequestExecutorBuilderExtensions
     internal static IRequestExecutorBuilder TryAddNoOpTransactionScopeHandler(
         this IRequestExecutorBuilder builder)
     {
-        builder.Services.AddSingleton<NoOpTransactionScopeHandler>();
+        builder.Services.TryAddSingleton<NoOpTransactionScopeHandler>();
 
         return ConfigureSchemaServices(
             builder,

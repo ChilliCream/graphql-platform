@@ -1,7 +1,4 @@
 using HotChocolate;
-#if NET8_0
-using HotChocolate.Execution;
-#endif
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;

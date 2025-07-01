@@ -1,9 +1,11 @@
+using System.Text.Json;
+
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>
 /// Represents a result data object like an object or list.
 /// </summary>
-public abstract class ResultData
+public abstract class ResultData : IResultDataJsonFormatter
 {
     /// <summary>
     /// Gets the parent result data object.
@@ -22,9 +24,9 @@ public abstract class ResultData
 
     /// <summary>
     /// Gets an internal ID that tracks result objects.
-    /// In most cases this id is 0. But if this result object has
-    /// significance for deferred work it will get assigned a proper id which
-    /// allows us to efficiently track if this result was deleted due to a
+    /// In most cases, this id is 0. But if this result object has
+    /// significance for deferred work, it will get assigned a proper id which
+    /// allows us to efficiently track if this result was deleted due to
     /// non-null propagation.
     /// </summary>
     public uint PatchId { get; set; }
@@ -50,4 +52,21 @@ public abstract class ResultData
         Parent = parent ?? throw new ArgumentNullException(nameof(parent));
         ParentIndex = index;
     }
+
+    /// <summary>
+    /// Writes the result data to the given <paramref name="writer"/>.
+    /// </summary>
+    /// <param name="writer">
+    /// The writer to write the result data to.
+    /// </param>
+    /// <param name="options">
+    /// The serializer options to use.
+    /// </param>
+    /// <param name="nullIgnoreCondition">
+    /// The null ignore condition.
+    /// </param>
+    public abstract void WriteTo(
+        Utf8JsonWriter writer,
+        JsonSerializerOptions? options = null,
+        JsonNullIgnoreCondition nullIgnoreCondition = JsonNullIgnoreCondition.None);
 }

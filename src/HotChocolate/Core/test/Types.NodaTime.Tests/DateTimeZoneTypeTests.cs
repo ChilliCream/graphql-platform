@@ -33,7 +33,7 @@ public class DateTimeZoneTypeIntegrationTests
     [Fact]
     public void QueryReturnsUtc()
     {
-        var result =  _testExecutor.Execute("query { test: utc }");
+        var result = _testExecutor.Execute("query { test: utc }");
         Assert.Equal("UTC", Assert.IsType<OperationResult>(result).Data!["test"]);
     }
 
@@ -57,7 +57,7 @@ public class DateTimeZoneTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "Europe/Amsterdam" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "Europe/Amsterdam" } })
                 .Build());
         Assert.Equal("Europe/Amsterdam", Assert.IsType<OperationResult>(result).Data!["test"]);
     }
@@ -68,7 +68,7 @@ public class DateTimeZoneTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "Europe/Hamster" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "Europe/Hamster" } })
                 .Build());
         Assert.Null(Assert.IsType<OperationResult>(result).Data);
         Assert.Single(Assert.IsType<OperationResult>(result).Errors!);

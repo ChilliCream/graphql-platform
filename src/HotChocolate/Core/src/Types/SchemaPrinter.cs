@@ -441,7 +441,7 @@ public static class SchemaPrinter
     {
         if (isDeprecated)
         {
-            if (DirectiveNames.Deprecated.Arguments.DefaultReason. EqualsOrdinal(deprecationReason))
+            if (DirectiveNames.Deprecated.Arguments.DefaultReason.EqualsOrdinal(deprecationReason))
             {
                 directives.Add(new DirectiveNode(DirectiveNames.Deprecated.Name));
             }

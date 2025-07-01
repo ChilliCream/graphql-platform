@@ -47,7 +47,7 @@ public class LocalDateTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-21" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-21" } })
                 .Build());
 
         Assert.Equal("2020-02-24", result.ExpectOperationResult().Data!["test"]);
@@ -59,7 +59,7 @@ public class LocalDateTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-20T17:42:59" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-20T17:42:59" } })
                 .Build());
 
         Assert.Null(result.ExpectOperationResult().Data);

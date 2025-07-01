@@ -45,6 +45,7 @@
     <Project Path="HotChocolate/AspNetCore/src/Transport.Http/HotChocolate.Transport.Http.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/Transport.Sockets.Client/HotChocolate.Transport.Sockets.Client.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/Transport.Sockets/HotChocolate.Transport.Sockets.csproj" />
+    <Project Path="HotChocolate/AspNetCore/src/Transport.Formatters/HotChocolate.Transport.Formatters.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/AspNetCore/test/">
     <Project Path="HotChocolate/AspNetCore/test/AspNetCore.Authorization.Opa.Tests/HotChocolate.AspNetCore.Authorization.Opa.Tests.csproj" />
@@ -80,6 +81,7 @@
     <Project Path="HotChocolate/Core/src/Core/HotChocolate.Core.csproj" />
     <Project Path="HotChocolate/Core/src/Execution.Abstractions/HotChocolate.Execution.Abstractions.csproj" />
     <Project Path="HotChocolate/Core/src/Execution.Configuration.Abstractions/HotChocolate.Execution.Configuration.Abstractions.csproj" />
+    <Project Path="HotChocolate/Core/src/Execution.Pipeline/HotChocolate.Execution.Pipeline.csproj" />
     <Project Path="HotChocolate/Core/src/Execution.Projections/HotChocolate.Execution.Projections.csproj" />
     <Project Path="HotChocolate/Core/src/Execution/HotChocolate.Execution.csproj" />
     <Project Path="HotChocolate/Core/src/Features/HotChocolate.Features.csproj" />
@@ -232,6 +234,8 @@
     <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.FileSystem/HotChocolate.PersistedOperations.FileSystem.csproj" />
     <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.InMemory/HotChocolate.PersistedOperations.InMemory.csproj" />
     <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.Redis/HotChocolate.PersistedOperations.Redis.csproj" />
+    <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.Abstractions/HotChocolate.PersistedOperations.Abstractions.csproj" />
+    <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.Pipeline/HotChocolate.PersistedOperations.Pipeline.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/PersistedOperations/test/">
     <Project Path="HotChocolate/PersistedOperations/test/PersistedOperations.AzureBlobStorage.Tests/HotChocolate.PersistedOperations.AzureBlobStorage.Tests.csproj" />

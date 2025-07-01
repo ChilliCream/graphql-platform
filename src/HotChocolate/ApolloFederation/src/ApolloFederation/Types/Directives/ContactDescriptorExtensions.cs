@@ -1,6 +1,5 @@
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.ApolloFederation.FederationContextData;
 
 namespace HotChocolate.ApolloFederation.Types;
 
@@ -171,7 +170,7 @@ public static class ContactDescriptorExtensions
                     return;
                 }
 
-               if (sb.Features.TryGet(out ContactMarker? _))
+                if (sb.Features.TryGet(out ContactMarker? _))
                 {
                     throw ThrowHelper.Contact_Not_Repeatable();
                 }

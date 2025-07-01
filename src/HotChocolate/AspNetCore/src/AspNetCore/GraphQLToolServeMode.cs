@@ -8,24 +8,24 @@ namespace HotChocolate.AspNetCore;
 /// <list type="bullet">
 /// <item>
 /// <description>
-/// <see cref="GraphQLToolServeMode.Latest"/>: Uses the latest version of the tool, served over the
+/// <see cref="Latest"/>: Uses the latest version of the tool, served over the
 /// cdn.
 /// </description>
 /// </item>
 /// <item>
 /// <description>
-/// <see cref="GraphQLToolServeMode.Insider"/>: Uses the insider version of the tool, served over
+/// <see cref="Insider"/>: Uses the insider version of the tool, served over
 /// the CDN.
 /// </description>
 /// </item>
 /// <item>
 /// <description>
-/// <see cref="GraphQLToolServeMode.Embedded"/>: Uses the tool's embedded files in the package.
+/// <see cref="Embedded"/>: Uses the tool's embedded files in the package.
 /// </description>
 /// </item>
 /// </list>
 /// In addition, a specific version of the tool can be served over the CDN using the
-/// <see cref="GraphQLToolServeMode.Version(string)"/> method.
+/// <see cref="Version(string)"/> method.
 /// <example>
 /// <para>
 /// The following example shows how to serve the embedded version of the tool:

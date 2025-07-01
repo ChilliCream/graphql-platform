@@ -62,7 +62,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     /// the string using the other formats.
     /// </param>
     /// <param name="bind">
-    /// Defines if this scalar binds implicitly to <see cref="System.Guid"/>,
+    /// Defines if this scalar binds implicitly to <see cref="Guid"/>,
     /// or must be explicitly bound.
     /// </param>
     public UuidType(

@@ -269,7 +269,7 @@ file static class ResolverHelpers
     {
         var extendedType = inspector.GetType(type);
 
-        if(type == typeof(object))
+        if (type == typeof(object))
         {
             return ListPostProcessor<object>.Default;
         }

@@ -22,7 +22,7 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
     public void LocalCurrency_EnsureLocalCurrencyTypeKindIsCorrect()
     {
         // arrange
-        var type = new LocalCurrencyType("Germany","de-DE");
+        var type = new LocalCurrencyType("Germany", "de-DE");
 
         // act
         var kind = type.Kind;

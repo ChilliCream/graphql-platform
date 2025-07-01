@@ -78,7 +78,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             possibleType,
             i == 0
                 ? []
-                : [..resolvers]);
+                : [.. resolvers]);
 
         if (diagnostics.Length > 0)
         {
@@ -150,7 +150,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             resolverType.Name,
             resolverMethod,
             resolverMethod.GetResultKind(),
-            [..resolverParameters],
+            [.. resolverParameters],
             []);
     }
 }

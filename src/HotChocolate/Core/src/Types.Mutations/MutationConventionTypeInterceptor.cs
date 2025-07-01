@@ -1,5 +1,4 @@
 using HotChocolate.Features;
-using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;

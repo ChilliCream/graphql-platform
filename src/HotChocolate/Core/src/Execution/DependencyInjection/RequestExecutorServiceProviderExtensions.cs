@@ -58,11 +58,12 @@ public static class RequestExecutorServiceProviderExtensions
         CancellationToken cancellationToken = default)
     {
         IServiceProvider services = builder.Services.BuildServiceProvider();
+
         var executor =
             await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                 .ConfigureAwait(false);
 
-        return executor.Schema;
+        return (Schema)executor.Schema;
     }
 
     /// <summary>
@@ -85,8 +86,8 @@ public static class RequestExecutorServiceProviderExtensions
         string? schemaName = null,
         CancellationToken cancellationToken = default) =>
         services
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync(schemaName, cancellationToken);
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync(schemaName, cancellationToken);
 
     /// <summary>
     /// Builds the <see cref="IRequestExecutor" /> from the
@@ -111,8 +112,8 @@ public static class RequestExecutorServiceProviderExtensions
         builder
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync(schemaName, cancellationToken);
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync(schemaName, cancellationToken);
 
     /// <summary>
     /// Executes the given GraphQL <paramref name="request" />.

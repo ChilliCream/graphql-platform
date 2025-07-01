@@ -558,6 +558,7 @@ public class ResolverCompilerTests
             new OperationDefinitionNode(
                 null,
                 null,
+                null,
                 OperationType.Query,
                 Array.Empty<VariableDefinitionNode>(),
                 Array.Empty<DirectiveNode>(),
@@ -788,7 +789,7 @@ public class ResolverCompilerTests
     {
         // arrange
         var type = typeof(Resolvers);
-        MemberInfo member =  type.GetMethod(nameof(Resolvers.GetGlobalStateWithDefault))!;
+        MemberInfo member = type.GetMethod(nameof(Resolvers.GetGlobalStateWithDefault))!;
         var contextData = new Dictionary<string, object?>();
 
         // act
@@ -896,7 +897,7 @@ public class ResolverCompilerTests
         var type = typeof(Resolvers);
         MemberInfo member = type.GetMethod(nameof(Resolvers.GetScopedState))!;
 
-        var contextData = new Dictionary<string, object?>{ { "foo", "bar" } }
+        var contextData = new Dictionary<string, object?> { { "foo", "bar" } }
             .ToImmutableDictionary();
 
         // act

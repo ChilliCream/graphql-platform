@@ -7,7 +7,7 @@ internal sealed class NodeSelectionSetOptimizer(ISelectionSetOptimizer optimizer
 {
     public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
     {
-        if(context.Type.Features.TryGet<NodeTypeFeature>(out var feature)
+        if (context.Type.Features.TryGet<NodeTypeFeature>(out var feature)
             && feature.NodeResolver is { } nodeResolverInfo
             && nodeResolverInfo.QueryField?.HasProjectionMiddleware() == true)
         {

@@ -10,9 +10,11 @@ public sealed partial class OperationPlanner
     /// <summary>
     /// Builds the actual execution plan from the provided <paramref name="planSteps"/>.
     /// </summary>
-    private static OperationPlan BuildExecutionPlan(
+    private OperationExecutionPlan BuildExecutionPlan(
+        string id,
         ImmutableList<OperationPlanStep> planSteps,
-        OperationDefinitionNode originalOperation)
+        OperationDefinitionNode originalOperation,
+        OperationDefinitionNode internalOperation)
     {
         var completedSteps = new HashSet<int>();
         var completedNodes = new Dictionary<int, ExecutionNode>();
@@ -32,8 +34,12 @@ public sealed partial class OperationPlanner
             .Select(t => t.Value)
             .ToImmutableArray();
 
-        return new OperationPlan
+        var operation = _operationCompiler.Compile(id, internalOperation);
+
+        return new OperationExecutionPlan
         {
+            Operation = operation,
+            OperationDefinition = originalOperation,
             RootNodes = rootNodes,
             AllNodes = allNodes
         };
@@ -106,6 +112,7 @@ public sealed partial class OperationPlanner
                     new VariableDefinitionNode(
                         null,
                         new VariableNode(null, new NameNode(key)),
+                        description: null,
                         requirement.Type,
                         null,
                         []);

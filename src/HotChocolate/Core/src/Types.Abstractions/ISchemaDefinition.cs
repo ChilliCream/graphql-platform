@@ -18,6 +18,11 @@ public interface ISchemaDefinition
     , ISyntaxNodeProvider
 {
     /// <summary>
+    /// Gets the schema services.
+    /// </summary>
+    IServiceProvider Services { get; }
+
+    /// <summary>
     /// Gets the GraphQL object type that represents the query root.
     /// </summary>
     IObjectTypeDefinition QueryType { get; }
@@ -89,10 +94,10 @@ public interface ISchemaDefinition
     IEnumerable<INameProvider> GetAllDefinitions();
 
     /// <summary>
-    /// Returns a string that represents the current schema.
+    /// Returns the schema SDL representation of the current schema definition.
     /// </summary>
     /// <returns>
-    /// A string that represents the current schema.
+    /// Returns the schema SDL representation of the current schema definition.
     /// </returns>
     string ToString();
 

@@ -95,14 +95,14 @@ public interface IFilterConventionDescriptor
     IFilterConventionDescriptor ArgumentName(string argumentName);
 
     /// <summary>
-    /// Add a extensions that is applied to <see cref="FilterProvider{TContext}"/>
+    /// Adds an extension that is applied to <see cref="FilterProvider{TContext}"/>
     /// </summary>
     /// <typeparam name="TExtension">The filter provider extension type.</typeparam>
     IFilterConventionDescriptor AddProviderExtension<TExtension>()
         where TExtension : class, IFilterProviderExtension;
 
     /// <summary>
-    /// Add a extensions that is applied to <see cref="FilterProvider{TContext}"/>
+    /// Adds an extension that is applied to <see cref="FilterProvider{TContext}"/>
     /// </summary>
     /// <param name="provider">
     /// The concrete filter provider extension that shall be used.

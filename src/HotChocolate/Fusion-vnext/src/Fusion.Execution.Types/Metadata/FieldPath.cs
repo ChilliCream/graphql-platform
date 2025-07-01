@@ -137,7 +137,7 @@ public sealed class FieldPath : IEnumerable<FieldPath>, IEquatable<FieldPath>
 
         do
         {
-            if(ReferenceEquals(current, Root))
+            if (ReferenceEquals(current, Root))
             {
                 break;
             }

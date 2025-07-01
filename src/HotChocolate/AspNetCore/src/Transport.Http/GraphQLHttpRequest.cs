@@ -147,6 +147,11 @@ public sealed class GraphQLHttpRequest
     public OnHttpRequestMessageCreated? OnMessageCreated { get; set; }
 
     /// <summary>
+    /// Gets or sets a hook that can inspect the <see cref="HttpResponseMessage"/> after it is received.
+    /// </summary>
+    public OnHttpResponseMessageReceived? OnMessageReceived { get; set; }
+
+    /// <summary>
     /// Specifies if files shall be uploaded using the multipart request spec.
     /// </summary>
     public bool EnableFileUploads { get; set; }
@@ -155,6 +160,11 @@ public sealed class GraphQLHttpRequest
     /// Specifies that the request URI represents a persisted document URI.
     /// </summary>
     public bool PersistedDocumentUri { get; set; }
+
+    /// <summary>
+    /// Allows to specify some custom request state, that will be passed into the request hooks.
+    /// </summary>
+    public object? State { get; set; }
 
     public static implicit operator GraphQLHttpRequest(OperationRequest body) => new(body);
 

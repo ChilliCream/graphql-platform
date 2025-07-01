@@ -59,7 +59,7 @@ public sealed class DefaultParameterBindingResolver : IParameterBindingResolver
         bindingFactories.Add(new PathParameterExpressionBuilder());
         bindingFactories.Add(new ConnectionFlagsParameterExpressionBuilder());
 
-         if (customBindingFactories is not null)
+        if (customBindingFactories is not null)
         {
             bindingFactories.AddRange(
                 customBindingFactories

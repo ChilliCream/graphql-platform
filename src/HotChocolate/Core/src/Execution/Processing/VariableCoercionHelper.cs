@@ -1,6 +1,5 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -19,7 +18,7 @@ internal sealed class VariableCoercionHelper
     }
 
     public void CoerceVariableValues(
-        Schema schema,
+        ISchemaDefinition schema,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
         IReadOnlyDictionary<string, object?> values,
         IDictionary<string, VariableValueOrLiteral> coercedValues)
@@ -104,10 +103,10 @@ internal sealed class VariableCoercionHelper
     }
 
     private static IInputType AssertInputType(
-        Schema schema,
+        ISchemaDefinition schema,
         VariableDefinitionNode variableDefinition)
     {
-        if (schema.TryGetTypeFromAst(variableDefinition.Type, out IInputType type))
+        if (schema.Types.TryGetType(variableDefinition.Type, out IInputType? type))
         {
             return type;
         }

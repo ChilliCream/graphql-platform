@@ -42,8 +42,8 @@ internal sealed class ExportCommand : Command
         schemaName ??= ISchemaDefinition.DefaultName;
 
         var schema = await host.Services
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync(schemaName, cancellationToken);
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync(schemaName, cancellationToken);
 
         var sdl = schema.Schema.ToString();
 

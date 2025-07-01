@@ -195,7 +195,10 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
             using var webSocket = await webSocketClient.ConnectAsync(SubscriptionUri, ct);
 
             // act
-            await SocketClient.ConnectAsync(webSocket, new Auth { Token = "abc" }, ct);
+            await SocketClient.ConnectAsync(
+                webSocket,
+                JsonSerializer.SerializeToElement(new Auth { Token = "abc" }),
+                ct);
 
             // assert
             // no error

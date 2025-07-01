@@ -159,7 +159,7 @@ public class SchemaErrorTests
             .Use(_ => _ => default);
 
         // act
-        var ex = Assert.Throws<SchemaException>(() => schema.Create());
+        var ex = Assert.Throws<SchemaException>(schema.Create);
 
         // assert
         Assert.Equal(2, ex.Errors.Count);

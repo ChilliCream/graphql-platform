@@ -6,7 +6,7 @@ public class OperationPlannerTests : FusionTestBase
     public void Plan_Simple_Operation_1_Source_Schema()
     {
         // arrange
-        var schema = CreateSchema();
+        var schema = CreateCompositeSchema();
 
         // act
         var plan = PlanOperation(
@@ -28,6 +28,13 @@ public class OperationPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
+            operation: >-
+              {
+                productBySlug(slug: "1") {
+                  id
+                  name
+                }
+              }
             nodes:
               - id: 1
                 schema: PRODUCTS
@@ -45,7 +52,7 @@ public class OperationPlannerTests : FusionTestBase
     public void Plan_Simple_Operation_2_Source_Schema()
     {
         // arrange
-        var compositeSchema = CreateSchema();
+        var compositeSchema = CreateCompositeSchema();
 
         // act
         var plan = PlanOperation(
@@ -68,6 +75,15 @@ public class OperationPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
+            operation: >-
+              {
+                productBySlug(slug: "1") {
+                  id
+                  name
+                  estimatedDelivery(postCode: "12345")
+                  id @fusion_internal
+                }
+              }
             nodes:
               - id: 1
                 schema: PRODUCTS
@@ -109,7 +125,7 @@ public class OperationPlannerTests : FusionTestBase
     public void Plan_Simple_Operation_3_Source_Schema()
     {
         // arrange
-        var compositeSchema = CreateSchema();
+        var compositeSchema = CreateCompositeSchema();
 
         // act
         var plan = PlanOperation(
@@ -147,6 +163,23 @@ public class OperationPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
+            operation: >-
+              {
+                productBySlug(slug: "1") {
+                  name
+                  reviews(first: 10) {
+                    nodes {
+                      body
+                      stars
+                      author {
+                        displayName
+                        id @fusion_internal
+                      }
+                    }
+                  }
+                  id @fusion_internal
+                }
+              }
             nodes:
               - id: 1
                 schema: PRODUCTS
@@ -196,7 +229,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
     }
 
-    [Fact(Skip = "Fix satisfiability (consider using @inaccessible on some of the lookup fields)")]
+    [Fact]
     public void Plan_Simple_Lookup()
     {
         // arrange
@@ -223,7 +256,7 @@ public class OperationPlannerTests : FusionTestBase
             }
 
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @internal
             }
 
             type Product {
@@ -253,6 +286,15 @@ public class OperationPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
+            operation: >-
+                query GetTopProducts {
+                  topProducts {
+                    id
+                    name
+                    price
+                    id @fusion_internal
+                  }
+                }
             nodes:
             - id: 1
               schema: A
@@ -280,7 +322,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
     }
 
-    [Fact(Skip = "Fix satisfiability (consider using @inaccessible on some of the lookup fields)")]
+    [Fact]
     public void Plan_Simple_Requirement()
     {
         // arrange
@@ -308,7 +350,7 @@ public class OperationPlannerTests : FusionTestBase
             }
 
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @internal
             }
 
             type Product {
@@ -340,6 +382,15 @@ public class OperationPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
+            operation: >-
+              query GetTopProducts {
+                topProducts {
+                  id
+                  name
+                  price
+                  id @fusion_internal
+                }
+              }
             nodes:
               - id: 1
                 schema: A
@@ -371,7 +422,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
     }
 
-    [Fact(Skip = "Fix satisfiability (consider using @inaccessible on some of the lookup fields)")]
+    [Fact]
     public void Plan_Requirement_That_Cannot_Be_Inlined()
     {
         // arrange
@@ -399,7 +450,7 @@ public class OperationPlannerTests : FusionTestBase
             }
 
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @internal
             }
 
             type Product {
@@ -431,6 +482,15 @@ public class OperationPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
+            operation: >-
+              query GetTopProducts {
+                topProducts {
+                  id
+                  name
+                  price
+                  id @fusion_internal
+                }
+              }
             nodes:
               - id: 1
                 schema: A
@@ -462,7 +522,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
     }
 
-    [Fact(Skip = "Fix satisfiability (consider using @inaccessible on some of the lookup fields)")]
+    [Fact]
     public void Plan_Key_Requirement()
     {
         // arrange
@@ -489,7 +549,7 @@ public class OperationPlannerTests : FusionTestBase
             }
 
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @internal
             }
 
             type Product {
@@ -509,7 +569,7 @@ public class OperationPlannerTests : FusionTestBase
             }
 
             type Query {
-              productBySku(sku: String!): Product @lookup
+              productBySku(sku: String!): Product @lookup @internal
             }
 
             type Product {
@@ -540,6 +600,15 @@ public class OperationPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
+            operation: >-
+              query GetTopProducts {
+                topProducts {
+                  id
+                  name
+                  sku @fusion_internal
+                  id @fusion_internal
+                }
+              }
             nodes:
               - id: 1
                 schema: A

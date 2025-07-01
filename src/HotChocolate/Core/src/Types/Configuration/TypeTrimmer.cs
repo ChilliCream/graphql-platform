@@ -187,7 +187,7 @@ internal sealed class TypeTrimmer
 
         foreach (var discoveredType in _discoveredTypes)
         {
-            if(discoveredType is not IComplexTypeDefinition complexType)
+            if (discoveredType is not IComplexTypeDefinition complexType)
             {
                 continue;
             }

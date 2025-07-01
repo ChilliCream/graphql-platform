@@ -404,7 +404,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
 Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.</value>
   </data>
   <data name="UnionTypeExtension_CannotMerge" xml:space="preserve">
-    <value>The union type extension can only be merged with an union type.</value>
+    <value>The union type extension can only be merged with a union type.</value>
   </data>
   <data name="VariableValueBuilder_InputType" xml:space="preserve">
     <value>Variable `{0}` of type `{1}` must be an input type.</value>
@@ -986,7 +986,7 @@ Type: `{0}`</value>
     <value>The `LocalDateTime` scalar type is a local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss`.</value>
   </data>
   <data name="LocalDateType_Description" xml:space="preserve">
-    <value>The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339</value>
+    <value>The `LocalDate` scalar type represents an ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339</value>
   </data>
   <data name="LocalTimeType_Description" xml:space="preserve">
     <value>The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss.</value>

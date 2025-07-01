@@ -20,14 +20,14 @@ public class SourceInterfaceTypeCollection
         => Members;
 
     ImmutableArray<ISourceComplexType> ISourceComplexTypeCollection<ISourceComplexType>.Types
-        => [..Members];
+        => [.. Members];
 
     public bool TryGetType(string schemaName, [NotNullWhen(true)] out SourceInterfaceType? type)
         => TryGetMember(schemaName, out type);
 
     public bool TryGetType(string schemaName, [NotNullWhen(true)] out ISourceComplexType? type)
     {
-        if(TryGetMember(schemaName, out var member))
+        if (TryGetMember(schemaName, out var member))
         {
             type = member;
             return true;

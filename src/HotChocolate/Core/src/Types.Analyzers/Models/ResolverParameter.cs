@@ -149,12 +149,12 @@ public sealed class ResolverParameter
             return ResolverParameterKind.QueryContext;
         }
 
-        if(parameter.IsPagingArguments())
+        if (parameter.IsPagingArguments())
         {
             return ResolverParameterKind.PagingArguments;
         }
 
-        if(compilation.IsConnectionFlagsType(parameter.Type))
+        if (compilation.IsConnectionFlagsType(parameter.Type))
         {
             return ResolverParameterKind.ConnectionFlags;
         }

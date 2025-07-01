@@ -1,21 +1,24 @@
 using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
 public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
 {
-    public override string Format(OperationPlan plan)
+    public override string Format(OperationExecutionPlan plan)
     {
         var sb = new StringBuilder();
         var writer = new CodeWriter(sb);
+
+        WriteOperation(plan.Operation.Definition, writer);
 
         writer.WriteLine("nodes:");
         writer.Indent();
 
         foreach (var node in plan.AllNodes)
         {
-            if(node is OperationExecutionNode operationNode)
+            if (node is OperationExecutionNode operationNode)
             {
                 WriteNode(operationNode, writer);
             }
@@ -29,16 +32,8 @@ public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
         writer.WriteLine("- id: " + node.Id);
         writer.Indent();
         writer.WriteLine("schema: " + node.SchemaName);
-        writer.WriteLine("operation: >-");
-        writer.Indent();
-        var reader = new StringReader(node.Operation.ToString());
-        var line = reader.ReadLine();
-        while (line != null)
-        {
-            writer.WriteLine(line);
-            line = reader.ReadLine();
-        }
-        writer.Unindent();
+
+        WriteOperation(node.Operation, writer);
 
         if (node.Requirements.Any())
         {
@@ -68,6 +63,20 @@ public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
             writer.Unindent();
         }
 
+        writer.Unindent();
+    }
+
+    private static void WriteOperation(OperationDefinitionNode operation, CodeWriter writer)
+    {
+        writer.WriteLine("operation: >-");
+        writer.Indent();
+        var reader = new StringReader(operation.ToString());
+        var line = reader.ReadLine();
+        while (line != null)
+        {
+            writer.WriteLine(line);
+            line = reader.ReadLine();
+        }
         writer.Unindent();
     }
 }

@@ -21,7 +21,7 @@ public sealed class OutputFieldDefinitionCollection
         string name,
         [NotNullWhen(true)] out IOutputFieldDefinition? field)
     {
-        if(TryGetField(name, out var outputField))
+        if (TryGetField(name, out var outputField))
         {
             field = outputField;
             return true;

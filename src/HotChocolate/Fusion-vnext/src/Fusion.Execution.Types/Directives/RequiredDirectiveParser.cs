@@ -81,23 +81,23 @@ internal static class RequiredDirectiveParser
         switch (value)
         {
             case ListValueNode listValue:
+            {
+                var fields = ImmutableArray.CreateBuilder<string?>();
+
+                foreach (var item in listValue.Items)
                 {
-                    var fields = ImmutableArray.CreateBuilder<string?>();
-
-                    foreach (var item in listValue.Items)
+                    if (item is StringValueNode stringValue)
                     {
-                        if (item is StringValueNode stringValue)
-                        {
-                            fields.Add(stringValue.Value);
-                        }
-                        else
-                        {
-                            fields.Add(null);
-                        }
+                        fields.Add(stringValue.Value);
                     }
-
-                    return fields.ToImmutable();
+                    else
+                    {
+                        fields.Add(null);
+                    }
                 }
+
+                return fields.ToImmutable();
+            }
 
             case StringValueNode stringValue:
                 return [stringValue.Value];
