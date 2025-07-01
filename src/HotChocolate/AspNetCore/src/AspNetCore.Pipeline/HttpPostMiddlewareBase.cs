@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
 using HotChocolate.AspNetCore.Instrumentation;
-using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 using static HotChocolate.Execution.RequestFlags;
@@ -11,43 +10,28 @@ using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
 
-public class HttpPostMiddlewareBase : MiddlewareBase
+public abstract class HttpPostMiddlewareBase : MiddlewareBase
 {
     private const string BatchOperations = "batchOperations";
 
     protected HttpPostMiddlewareBase(
         HttpRequestDelegate next,
-        IRequestExecutorProvider executorResolver,
-        IRequestExecutorEvents executorEvents,
-        IHttpResponseFormatter responseFormatter,
-        IHttpRequestParser requestParser,
-        IServerDiagnosticEvents diagnosticEvents,
-        string schemaName)
-        : base(next, executorResolver, executorEvents, responseFormatter, schemaName)
+        HttpRequestExecutorProxy executor)
+        : base(next, executor)
     {
-        RequestParser = requestParser ??
-            throw new ArgumentNullException(nameof(requestParser));
-        DiagnosticEvents = diagnosticEvents ??
-            throw new ArgumentNullException(nameof(diagnosticEvents));
     }
-
-    protected IHttpRequestParser RequestParser { get; }
-
-    protected IServerDiagnosticEvents DiagnosticEvents { get; }
 
     public virtual async Task InvokeAsync(HttpContext context)
     {
-        if (HttpMethods.IsPost(context.Request.Method) &&
-            ParseContentType(context) is RequestContentType.Json)
-        {
-            if (!IsDefaultSchema)
-            {
-                context.Items[WellKnownContextData.SchemaName] = SchemaName;
-            }
+        var ct = context.RequestAborted;
+        var session = await Executor.GetOrCreateSessionAsync(ct);
 
-            using (DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpPost))
+        if (HttpMethods.IsPost(context.Request.Method)
+            && context.ParseContentType() is RequestContentType.Json)
+        {
+            using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpPost))
             {
-                await HandleRequestAsync(context);
+                await HandleRequestAsync(context, session, ct);
             }
         }
         else
@@ -58,16 +42,10 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         }
     }
 
-    protected async Task HandleRequestAsync(HttpContext context)
+    protected async Task HandleRequestAsync(HttpContext context, ExecutorSession session, CancellationToken ct)
     {
         HttpStatusCode? statusCode = null;
         IExecutionResult? result;
-
-        // first we need to get the request executor to be able to execute requests.
-        var requestExecutor = await GetExecutorAsync(context.RequestAborted);
-        var requestInterceptor = requestExecutor.GetRequestInterceptor();
-        var errorHandler = requestExecutor.GetErrorHandler();
-        context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
 
         // next we will inspect the accept headers and determine if we can execute this request.
         var headerResult = HeaderUtilities.GetAcceptHeader(context.Request);
@@ -84,11 +62,11 @@ public class HttpPostMiddlewareBase : MiddlewareBase
 
             var errors = headerResult.ErrorResult.Errors!;
             result = headerResult.ErrorResult;
-            DiagnosticEvents.HttpRequestError(context, errors[0]);
+            session.DiagnosticEvents.HttpRequestError(context, errors[0]);
             goto HANDLE_RESULT;
         }
 
-        var requestFlags = CreateRequestFlags(headerResult.AcceptMediaTypes);
+        var requestFlags = session.CreateRequestFlags(headerResult.AcceptMediaTypes);
 
         // if the request defines accept header values of which we cannot handle any provided
         // media type then we will fail the request with 406 Not Acceptable.
@@ -101,18 +79,18 @@ public class HttpPostMiddlewareBase : MiddlewareBase
 
             var error = ErrorHelper.NoSupportedAcceptMediaType();
             result = OperationResultBuilder.CreateError(error);
-            DiagnosticEvents.HttpRequestError(context, error);
+            session.DiagnosticEvents.HttpRequestError(context, error);
             goto HANDLE_RESULT;
         }
 
         // next we parse the GraphQL request.
         IReadOnlyList<GraphQLRequest> requests;
 
-        using (DiagnosticEvents.ParseHttpRequest(context))
+        using (session.DiagnosticEvents.ParseHttpRequest(context))
         {
             try
             {
-                requests = await ParseRequestsFromBodyAsync(context.Request, context.RequestAborted);
+                requests = await ParseRequestsFromBodyAsync(context, session);
             }
             catch (GraphQLRequestException ex)
             {
@@ -120,9 +98,9 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // parsed. In this case we will return HTTP status code 400 and return a
                 // GraphQL error result.
                 statusCode = HttpStatusCode.BadRequest;
-                var errors = errorHandler.Handle(ex.Errors);
+                var errors = session.Handle(ex.Errors);
                 result = OperationResultBuilder.CreateError(errors);
-                DiagnosticEvents.ParserErrors(context, errors);
+                session.DiagnosticEvents.ParserErrors(context, errors);
                 goto HANDLE_RESULT;
             }
             catch (Exception ex)
@@ -130,7 +108,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 statusCode = HttpStatusCode.InternalServerError;
                 var error = ErrorBuilder.FromException(ex).Build();
                 result = OperationResultBuilder.CreateError(error);
-                DiagnosticEvents.HttpRequestError(context, error);
+                session.DiagnosticEvents.HttpRequestError(context, error);
                 goto HANDLE_RESULT;
             }
         }
@@ -145,9 +123,9 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 case 0:
                 {
                     statusCode = HttpStatusCode.BadRequest;
-                    var error = errorHandler.Handle(ErrorHelper.RequestHasNoElements());
+                    var error = session.Handle(ErrorHelper.RequestHasNoElements());
                     result = OperationResultBuilder.CreateError(error);
-                    DiagnosticEvents.HttpRequestError(context, error);
+                    session.DiagnosticEvents.HttpRequestError(context, error);
                     break;
                 }
 
@@ -166,21 +144,14 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                         TryParseOperations(operationNames, out var ops) &&
                         GetOptions(context).EnableBatching)
                     {
-                        result = await ExecuteOperationBatchAsync(
-                            context,
-                            requestExecutor,
-                            requestInterceptor,
-                            DiagnosticEvents,
-                            requests[0],
-                            requestFlags,
-                            ops);
+                        result = await session.ExecuteOperationBatchAsync(context, requests[0], requestFlags, ops);
                     }
                     else
                     {
-                        var error = errorHandler.Handle(ErrorHelper.InvalidRequest());
+                        var error = session.Handle(ErrorHelper.InvalidRequest());
                         statusCode = HttpStatusCode.BadRequest;
                         result = OperationResultBuilder.CreateError(error);
-                        DiagnosticEvents.HttpRequestError(context, error);
+                        session.DiagnosticEvents.HttpRequestError(context, error);
                     }
 
                     break;
@@ -194,13 +165,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // a single GraphQL query or mutation.
                 case 1:
                 {
-                    result = await ExecuteSingleAsync(
-                        context,
-                        requestExecutor,
-                        requestInterceptor,
-                        DiagnosticEvents,
-                        requests[0],
-                        requestFlags);
+                    result = await session.ExecuteSingleAsync(context, requests[0], requestFlags);
                     break;
                 }
 
@@ -210,20 +175,14 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 default:
                     if (GetOptions(context).EnableBatching)
                     {
-                        result = await ExecuteBatchAsync(
-                            context,
-                            requestExecutor,
-                            requestInterceptor,
-                            DiagnosticEvents,
-                            requests,
-                            requestFlags);
+                        result = await session.ExecuteBatchAsync(context, requests, requestFlags);
                     }
                     else
                     {
-                        var error = errorHandler.Handle(ErrorHelper.InvalidRequest());
+                        var error = session.Handle(ErrorHelper.InvalidRequest());
                         statusCode = HttpStatusCode.BadRequest;
                         result = OperationResultBuilder.CreateError(error);
-                        DiagnosticEvents.HttpRequestError(context, error);
+                        session.DiagnosticEvents.HttpRequestError(context, error);
                     }
                     break;
             }
@@ -236,7 +195,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
 
             foreach (var error in ex.Errors)
             {
-                DiagnosticEvents.HttpRequestError(context, error);
+                session.DiagnosticEvents.HttpRequestError(context, error);
             }
         }
         catch (Exception ex)
@@ -244,7 +203,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             statusCode = HttpStatusCode.InternalServerError;
             var error = ErrorBuilder.FromException(ex).Build();
             result = OperationResultBuilder.CreateError(error);
-            DiagnosticEvents.HttpRequestError(context, error);
+            session.DiagnosticEvents.HttpRequestError(context, error);
         }
 
 HANDLE_RESULT:
@@ -254,7 +213,7 @@ HANDLE_RESULT:
         {
             // if cancellation is requested we will not try to attempt to write the result to the
             // response stream.
-            if (context.RequestAborted.IsCancellationRequested)
+            if (ct.IsCancellationRequested)
             {
                 return;
             }
@@ -265,10 +224,10 @@ HANDLE_RESULT:
 
             if (result is IOperationResult queryResult)
             {
-                formatScope = DiagnosticEvents.FormatHttpResponse(context, queryResult);
+                formatScope = session.DiagnosticEvents.FormatHttpResponse(context, queryResult);
             }
 
-            await WriteResultAsync(context, result, acceptMediaTypes, statusCode);
+            await session.WriteResultAsync(context, result, acceptMediaTypes, statusCode);
         }
         finally
         {
@@ -284,10 +243,10 @@ HANDLE_RESULT:
         }
     }
 
-    protected virtual ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestsFromBodyAsync(
-        HttpRequest request,
-        CancellationToken cancellationToken)
-        => RequestParser.ParseRequestAsync(request.Body, cancellationToken);
+    protected virtual async ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestsFromBodyAsync(
+        HttpContext context,
+        ExecutorSession session)
+        => await session.RequestParser.ParseRequestAsync(context.Request.Body, context.RequestAborted);
 
     private static bool TryParseOperations(
         string operationNameString,

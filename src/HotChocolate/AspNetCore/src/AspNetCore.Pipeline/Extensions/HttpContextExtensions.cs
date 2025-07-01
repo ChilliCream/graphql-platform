@@ -27,6 +27,7 @@ internal static class HttpContextExtensions
         return false;
     }
 
+    // TODO : Implement this
     public static string? TryGetCostSwitch(this HttpContext context)
     {
         var headers = context.Request.Headers;
@@ -42,15 +43,40 @@ internal static class HttpContextExtensions
 
             if (value.Equals(HttpHeaderValues.ReportCost, StringComparison.OrdinalIgnoreCase))
             {
-                return WellKnownContextData.ReportCost;
+                throw new NotImplementedException();
+                // return WellKnownContextData.ReportCost;
             }
 
             if (value.Equals(HttpHeaderValues.ValidateCost, StringComparison.OrdinalIgnoreCase))
             {
-                return WellKnownContextData.ValidateCost;
+                throw new NotImplementedException();
+                //return WellKnownContextData.ValidateCost;
             }
         }
 
         return null;
+    }
+
+    public static RequestContentType ParseContentType(this HttpContext context)
+    {
+        if (context.Items.TryGetValue(nameof(RequestContentType), out var value) &&
+            value is RequestContentType contentType)
+        {
+            return contentType;
+        }
+
+        var span = context.Request.ContentType.AsSpan();
+
+        if (span.StartsWith(ContentType.JsonSpan()))
+        {
+            return RequestContentType.Json;
+        }
+
+        if (span.StartsWith(ContentType.MultiPartFormSpan()))
+        {
+            return RequestContentType.Form;
+        }
+
+        return RequestContentType.None;
     }
 }

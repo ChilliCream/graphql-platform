@@ -1,10 +1,12 @@
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// The <see cref="RequestExecutorProxy"/> is a helper class that represents an executor for
-/// one specific schema and handles the resolving and hot-swapping the specific executor.
+/// Provides a proxy for managing and executing GraphQL requests against a specific schema.
+/// The <see cref="RequestExecutorProxy"/> handles the resolution, caching, and hot-swapping
+/// of the underlying <see cref="IRequestExecutor"/> instance for a given schema name,
+/// ensuring thread-safe access and automatic updates in response to schema changes or evictions.
 /// </summary>
-public sealed class RequestExecutorProxy : IDisposable
+public class RequestExecutorProxy : IRequestExecutor, IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly IRequestExecutorProvider _executorProvider;
@@ -13,10 +15,18 @@ public sealed class RequestExecutorProxy : IDisposable
     private readonly IDisposable? _eventSubscription;
     private bool _disposed;
 
-    public event EventHandler<RequestExecutorUpdatedEventArgs>? ExecutorUpdated;
-
-    public event EventHandler? ExecutorEvicted;
-
+    /// <summary>
+    /// Initializes a new instance of <see cref="RequestExecutorProxy" />.
+    /// </summary>
+    /// <param name="executorProvider">
+    /// The request executor provider.
+    /// </param>
+    /// <param name="executorEvents">
+    /// The request executor events.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the schema.
+    /// </param>
     public RequestExecutorProxy(
         IRequestExecutorProvider executorProvider,
         IRequestExecutorEvents executorEvents,
@@ -33,7 +43,26 @@ public sealed class RequestExecutorProxy : IDisposable
         _eventSubscription = executorEvents.Subscribe(observer);
     }
 
+    /// <summary>
+    /// Gets the name of the schema that this executor serves up.
+    /// </summary>
+    public string SchemaName => _schemaName;
+
+    /// <summary>
+    /// Specifies if this executor serves up the default schema.
+    /// </summary>
+    public bool IsDefaultSchema => SchemaName.Equals(ISchemaDefinition.DefaultName, StringComparison.Ordinal);
+
+    /// <summary>
+    /// Gets the current request executor.
+    /// </summary>
     public IRequestExecutor? CurrentExecutor => _executor;
+
+    ulong IRequestExecutor.Version
+        => CurrentExecutor?.Version ?? 0;
+
+    ISchemaDefinition IRequestExecutor.Schema
+        => CurrentExecutor?.Schema ?? throw new InvalidOperationException("No schema available yet.");
 
     /// <summary>
     /// Executes the given GraphQL <paramref name="request" />.
@@ -64,17 +93,10 @@ public sealed class RequestExecutorProxy : IDisposable
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var executor =
-            await GetExecutorAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-        var result =
-            await executor
-                .ExecuteAsync(request, cancellationToken)
-                .ConfigureAwait(false);
-
-        return result;
+        var executor = _executor ?? await GetExecutorAsync(cancellationToken).ConfigureAwait(false);
+        return await executor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -94,17 +116,10 @@ public sealed class RequestExecutorProxy : IDisposable
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(requestBatch);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var executor =
-            await GetExecutorAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-        var result =
-            await executor
-                .ExecuteBatchAsync(requestBatch, cancellationToken)
-                .ConfigureAwait(false);
-
-        return result;
+        var executor = _executor ?? await GetExecutorAsync(cancellationToken).ConfigureAwait(false);
+        return await executor.ExecuteBatchAsync(requestBatch, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -119,6 +134,8 @@ public sealed class RequestExecutorProxy : IDisposable
     public async ValueTask<ISchemaDefinition> GetSchemaAsync(
         CancellationToken cancellationToken)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         var executor =
             await GetExecutorAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -137,6 +154,8 @@ public sealed class RequestExecutorProxy : IDisposable
     public async ValueTask<IRequestExecutor> GetExecutorAsync(
         CancellationToken cancellationToken)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         var executor = _executor;
 
         if (executor is not null)
@@ -155,10 +174,7 @@ public sealed class RequestExecutorProxy : IDisposable
                     .ConfigureAwait(false);
 
                 _executor = executor;
-
-                ExecutorUpdated?.Invoke(
-                    this,
-                    new RequestExecutorUpdatedEventArgs(executor));
+                OnRequestExecutorUpdated(executor);
             }
             else
             {
@@ -173,34 +189,39 @@ public sealed class RequestExecutorProxy : IDisposable
         return executor;
     }
 
-    private void OnRequestExecutorEvent(RequestExecutorEvent @event)
+    protected virtual void OnRequestExecutorUpdated(IRequestExecutor? executor)
     {
-        if (_disposed || !@event.Name.Equals(_schemaName) || _executor is null)
+    }
+
+    private void OnRequestExecutorEvent(RequestExecutorEvent eventArgs)
+    {
+        if (_disposed || !eventArgs.Name.Equals(_schemaName) || _executor is null)
         {
             return;
         }
 
-        if (@event.Type is RequestExecutorEventType.Evicted)
+        if (eventArgs.Type is RequestExecutorEventType.Evicted)
         {
             _semaphore.Wait();
 
             try
             {
-                ExecutorEvicted?.Invoke(this, EventArgs.Empty);
+                _executor = null;
+                OnRequestExecutorUpdated(null);
             }
             finally
             {
                 _semaphore.Release();
             }
         }
-        else if (@event.Type is RequestExecutorEventType.Created)
+        else if (eventArgs.Type is RequestExecutorEventType.Created)
         {
             _semaphore.Wait();
 
             try
             {
-                _executor = @event.Executor;
-                ExecutorUpdated?.Invoke(this, new RequestExecutorUpdatedEventArgs(@event.Executor));
+                _executor = eventArgs.Executor;
+                OnRequestExecutorUpdated(eventArgs.Executor);
             }
             finally
             {

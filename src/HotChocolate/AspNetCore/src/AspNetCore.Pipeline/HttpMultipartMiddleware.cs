@@ -1,14 +1,13 @@
 using System.Text.Json;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.Extensions.Options;
+using System.Text.Json.Serialization;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.Options;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.ErrorHelper;
-using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
@@ -22,47 +21,33 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
     public HttpMultipartMiddleware(
         HttpRequestDelegate next,
-        IRequestExecutorProvider executorProvider,
-        IRequestExecutorEvents executorEvents,
-        IHttpResponseFormatter responseFormatter,
-        IHttpRequestParser requestParser,
-        IServerDiagnosticEvents diagnosticEvents,
-        string schemaName,
+        HttpRequestExecutorProxy executor,
         IOptions<FormOptions> formOptions)
-        : base(
-            next,
-            executorProvider,
-            executorEvents,
-            responseFormatter,
-            requestParser,
-            diagnosticEvents,
-            schemaName)
+        : base(next, executor)
     {
+        ArgumentNullException.ThrowIfNull(formOptions);
         _formOptions = formOptions.Value;
     }
 
     public override async Task InvokeAsync(HttpContext context)
     {
+        var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
+
         if (HttpMethods.IsPost(context.Request.Method) &&
             GetOptions(context).EnableMultipartRequests &&
-            ParseContentType(context) == RequestContentType.Form)
+            context.ParseContentType() == RequestContentType.Form)
         {
             if (!context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight) &&
                 GetOptions(context).EnforceMultipartRequestsPreflightHeader)
             {
                 var headerResult = HeaderUtilities.GetAcceptHeader(context.Request);
-                await WriteResultAsync(context, _multipartRequestError, headerResult.AcceptMediaTypes, BadRequest);
+                await session.WriteResultAsync(context, _multipartRequestError, headerResult.AcceptMediaTypes, BadRequest);
                 return;
             }
 
-            if (!IsDefaultSchema)
+            using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpMultiPart))
             {
-                context.Items[WellKnownContextData.SchemaName] = SchemaName;
-            }
-
-            using (DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpMultiPart))
-            {
-                await HandleRequestAsync(context);
+                await HandleRequestAsync(context, session, context.RequestAborted);
             }
         }
         else
@@ -74,15 +59,16 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
     }
 
     protected override async ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestsFromBodyAsync(
-        HttpRequest httpRequest,
-        CancellationToken cancellationToken)
+        HttpContext context,
+        ExecutorSession session)
     {
         IFormCollection? form;
+        var httpRequest = context.Request;
 
         try
         {
             var formFeature = new FormFeature(httpRequest, _formOptions);
-            form = await formFeature.ReadFormAsync(cancellationToken);
+            form = await formFeature.ReadFormAsync(context.RequestAborted);
         }
         catch (Exception exception)
         {
@@ -91,7 +77,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
         // Parse the string values of interest from the IFormCollection
         var multipartRequest = ParseMultipartRequest(form);
-        var requests = RequestParser.ParseRequest(
+        var requests = session.RequestParser.ParseRequest(
             multipartRequest.Operations);
 
         foreach (var graphQLRequest in requests)
@@ -127,7 +113,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
                 try
                 {
-                    map = JsonSerializer.Deserialize<Dictionary<string, string[]>>(mapString!);
+                    map = JsonSerializer.Deserialize(mapString!, FormsMapJsonContext.Default.Map);
                 }
                 catch
                 {
@@ -233,7 +219,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
             for (var i = 0; i < ov.Fields.Count; i++)
             {
-                if (ov.Fields[i].Name.Value.EqualsOrdinal(key.Value))
+                if (ov.Fields[i].Name.Value.Equals(key.Value, StringComparison.Ordinal))
                 {
                     pos = i;
                     break;
@@ -267,3 +253,6 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         throw ThrowHelper.HttpMultipartMiddleware_VariableNotFound(objectPath);
     }
 }
+
+[JsonSerializable(typeof(Dictionary<string, string[]>), TypeInfoPropertyName = "Map")]
+internal partial class FormsMapJsonContext : JsonSerializerContext;

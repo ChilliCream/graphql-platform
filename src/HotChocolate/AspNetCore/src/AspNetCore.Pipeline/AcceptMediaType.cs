@@ -1,4 +1,3 @@
-using HotChocolate.Utilities;
 using Microsoft.Extensions.Primitives;
 
 namespace HotChocolate.AspNetCore;
@@ -48,45 +47,47 @@ public readonly struct AcceptMediaType
         Charset = charset.HasValue ? charset.Value : null;
         IsUtf8 = Charset?.Equals("utf-8", StringComparison.OrdinalIgnoreCase) ?? true;
 
-        if (Type.EqualsOrdinal(ContentType.Types.All) && SubType.EqualsOrdinal(ContentType.Types.All))
+        if (Type.Equals(ContentType.Types.All, StringComparison.Ordinal)
+            && SubType.Equals(ContentType.Types.All, StringComparison.Ordinal))
         {
             Kind = AcceptMediaTypeKind.All;
         }
-        else if (Type.EqualsOrdinal(ContentType.Types.Application))
+        else if (Type.Equals(ContentType.Types.Application, StringComparison.Ordinal))
         {
-            if (SubType.EqualsOrdinal(ContentType.Types.All))
+            if (SubType.Equals(ContentType.Types.All, StringComparison.Ordinal))
             {
                 Kind = AcceptMediaTypeKind.AllApplication;
             }
-            else if (SubType.EqualsOrdinal(ContentType.SubTypes.GraphQLResponse))
+            else if (SubType.Equals(ContentType.SubTypes.GraphQLResponse, StringComparison.Ordinal))
             {
                 Kind = AcceptMediaTypeKind.ApplicationGraphQL;
             }
-            else if (SubType.EqualsOrdinal(ContentType.SubTypes.GraphQLResponseStream))
+            else if (SubType.Equals(ContentType.SubTypes.GraphQLResponseStream, StringComparison.Ordinal))
             {
                 Kind = AcceptMediaTypeKind.ApplicationGraphQLStream;
             }
-            else if (SubType.EqualsOrdinal(ContentType.SubTypes.Json))
+            else if (SubType.Equals(ContentType.SubTypes.Json, StringComparison.Ordinal))
             {
                 Kind = AcceptMediaTypeKind.ApplicationJson;
             }
-            else if (SubType.EqualsOrdinal(ContentType.SubTypes.JsonLines))
+            else if (SubType.Equals(ContentType.SubTypes.JsonLines, StringComparison.Ordinal))
             {
                 Kind = AcceptMediaTypeKind.ApplicationJsonLines;
             }
         }
-        else if (Type.EqualsOrdinal(ContentType.Types.MultiPart))
+        else if (Type.Equals(ContentType.Types.MultiPart, StringComparison.Ordinal))
         {
-            if (SubType.EqualsOrdinal(ContentType.Types.All))
+            if (SubType.Equals(ContentType.Types.All, StringComparison.Ordinal))
             {
                 Kind = AcceptMediaTypeKind.AllMultiPart;
             }
-            else if (SubType.EqualsOrdinal(ContentType.SubTypes.Mixed))
+            else if (SubType.Equals(ContentType.SubTypes.Mixed, StringComparison.Ordinal))
             {
                 Kind = AcceptMediaTypeKind.MultiPartMixed;
             }
         }
-        else if (Type.EqualsOrdinal(ContentType.Types.Text) && SubType.EqualsOrdinal(ContentType.SubTypes.EventStream))
+        else if (Type.Equals(ContentType.Types.Text, StringComparison.Ordinal)
+            && SubType.Equals(ContentType.SubTypes.EventStream, StringComparison.Ordinal))
         {
             Kind = AcceptMediaTypeKind.EventStream;
         }
