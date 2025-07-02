@@ -6,12 +6,10 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Transport.Formatters;
-using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
 using static HotChocolate.AspNetCore.AcceptMediaTypeKind;
 using static HotChocolate.Execution.ExecutionResultKind;
-using static HotChocolate.WellKnownContextData;
 using HttpStatusCode = System.Net.HttpStatusCode;
 
 namespace HotChocolate.AspNetCore.Serialization;
@@ -210,14 +208,14 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 response.StatusCode = statusCode;
 
                 if (result.ContextData is not null
-                    && result.ContextData.TryGetValue(WellKnownContextData.CacheControlHeaderValue, out var value)
+                    && result.ContextData.TryGetValue(ExecutionContextData.CacheControlHeaderValue, out var value)
                     && value is CacheControlHeaderValue cacheControlHeaderValue)
                 {
                     response.GetTypedHeaders().CacheControl = cacheControlHeaderValue;
                 }
 
                 if (result.ContextData is not null
-                    && result.ContextData.TryGetValue(VaryHeaderValue, out var varyValue)
+                    && result.ContextData.TryGetValue(ExecutionContextData.VaryHeaderValue, out var varyValue)
                     && varyValue is string varyHeaderValue)
                 {
                     response.Headers.Vary = varyHeaderValue;
@@ -352,7 +350,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 var contextData = result.ContextData;
 
                 // First, we check if there is an explicit HTTP status code override by the user.
-                if (contextData.TryGetValue(WellKnownContextData.HttpStatusCode, out var value))
+                if (contextData.TryGetValue(ExecutionContextData.HttpStatusCode, out var value))
                 {
                     if (value is HttpStatusCode statusCode)
                     {
@@ -372,7 +370,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     return HttpStatusCode.BadRequest;
                 }
 
-                if (result.ContextData.ContainsKey(OperationNotAllowed))
+                if (result.ContextData.ContainsKey(ExecutionContextData.OperationNotAllowed))
                 {
                     return HttpStatusCode.MethodNotAllowed;
                 }
@@ -442,7 +440,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         HttpStatusCode? proposedStatusCode)
     {
         // if we are sending a response stream with the multipart/mixed header or
-        // with a text/event-stream response content-type we as well will just
+        // with a text/event-stream response content-type, we as well will just
         // respond with an OK status code.
         if (format.Kind is ResponseContentType.MultiPartMixed or ResponseContentType.EventStream)
         {
@@ -450,7 +448,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         }
 
         // we allow for users to implement alternative protocols or response content-type.
-        // if we end up here the user did not fully implement all necessary parts to add support
+        // if we end up here, the user did not fully implement all necessary parts to add support
         // for an alternative protocols or response content-type.
         throw ThrowHelper.Formatter_ResponseContentTypeNotSupported(format.ContentType);
     }
@@ -640,14 +638,14 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             if (resultKind is ResultKind.Stream or ResultKind.Single
                 && start.Kind is MultiPartMixed or AllMultiPart or All)
             {
-                // if the result is a stream we consider this a perfect match and
+                // if the result is a stream, we consider this a perfect match and
                 // will use this format.
                 if (resultKind is ResultKind.Stream)
                 {
                     possibleFormat = _multiPartFormat;
                 }
 
-                // if the format is an event-stream or not set we will create a
+                // if the format is an event-stream or not set, we will create a
                 // multipart/mixed formatInfo for the current result but also keep
                 // on validating for a better suited format.
                 if (possibleFormat?.Kind is not ResponseContentType.Json)
@@ -658,17 +656,17 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
             if (start.Kind is EventStream or All)
             {
-                // if the result is a subscription we consider this a perfect match and
+                // if the result is a subscription, we consider this a perfect match and
                 // will use this format.
                 if (resultKind is ResultKind.Subscription or ResultKind.Stream)
                 {
                     possibleFormat = _eventStreamFormat;
                 }
 
-                // if the result is stream it means that we did not yet validate a
+                // if the result is stream, it means that we did not yet validate a
                 // multipart content-type and thus will create a format for the case that it
                 // is not specified;
-                // or we have a single result but there is no format yet specified
+                // or we have a single result, but there is no format yet specified
                 // we will create a text/event-stream formatInfo for the current result
                 // but also keep on validating for a better suited format.
                 if (possibleFormat?.Kind is ResponseContentType.Unknown)
@@ -686,7 +684,10 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     internal static DefaultHttpResponseFormatter Create(
         HttpResponseFormatterOptions options,
         ITimeProvider timeProvider)
-        => new SealedDefaultHttpResponseFormatter(options, timeProvider);
+    {
+        ArgumentNullException.ThrowIfNull(timeProvider);
+        return new SealedDefaultHttpResponseFormatter(options, timeProvider);
+    }
 
     /// <summary>
     /// Representation of a resolver format, containing the formatter and the content type.
@@ -767,7 +768,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         }
 
         private static string GetSchemaFileName(ISchemaDefinition schema)
-            => schema.Name.EqualsOrdinal(ISchemaDefinition.DefaultName)
+            => schema.Name.Equals(ISchemaDefinition.DefaultName, StringComparison.OrdinalIgnoreCase)
                 ? "schema.graphql"
                 : schema.Name + ".schema.graphql";
     }

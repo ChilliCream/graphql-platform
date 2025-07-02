@@ -23,6 +23,10 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
+  </ItemGroup>
 
   <ItemGroup>
     <Using Include="System" />

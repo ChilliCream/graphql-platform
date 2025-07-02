@@ -1,5 +1,5 @@
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Utilities;
 using HotChocolate.Language;
 
 namespace HotChocolate.PersistedOperations.FileSystem;
@@ -47,17 +47,15 @@ public class FileSystemOperationDocumentStorage : IOperationDocumentStorage
         CancellationToken cancellationToken)
     {
         await using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+        using var writer = new PooledArrayWriter();
+        var read = 0;
 
-        var document = await BufferHelper.ReadAsync(
-                stream,
-                static (buffer, buffered) =>
-                {
-                    var span = buffer.AsSpan()[..buffered];
-                    return Utf8GraphQLParser.Parse(span);
-                },
-                cancellationToken)
-            .ConfigureAwait(false);
+        do
+        {
+            read = await stream.ReadAsync(writer.GetMemory(256), cancellationToken).ConfigureAwait(false);
+        } while (read > 0);
 
+        var document = Utf8GraphQLParser.Parse(writer.GetWrittenSpan());
         return new OperationDocument(document);
     }
 

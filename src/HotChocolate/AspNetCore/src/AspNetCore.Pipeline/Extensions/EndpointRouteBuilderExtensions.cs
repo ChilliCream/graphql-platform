@@ -1,10 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using ChilliCream.Nitro.App;
+using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
-using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Extensions;
 using static Microsoft.AspNetCore.Routing.Patterns.RoutePatternFactory;
 
 // ReSharper disable once CheckNamespace
@@ -116,7 +116,7 @@ public static class EndpointRouteBuilderExtensions
             .UseMiddleware<HttpPostMiddleware>(schemaName)
             .UseMiddleware<HttpMultipartMiddleware>(schemaName)
             .UseMiddleware<HttpGetMiddleware>(schemaName)
-            .UseMiddleware<HttpGetSchemaMiddleware>(schemaName, path, Integrated)
+            .UseMiddleware<HttpGetSchemaMiddleware>(schemaName, path, MiddlewareRoutingType.Integrated)
             .UseNitroApp(path)
             .Use(_ => context =>
             {
@@ -328,7 +328,10 @@ public static class EndpointRouteBuilderExtensions
 
         requestPipeline
             .UseCancellation()
-            .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault, PathString.Empty, Explicit)
+            .UseMiddleware<HttpGetSchemaMiddleware>(
+                schemaNameOrDefault,
+                PathString.Empty,
+                MiddlewareRoutingType.Explicit)
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -421,7 +424,7 @@ public static class EndpointRouteBuilderExtensions
     /// The name of the schema that shall be used by this endpoint.
     /// </param>
     /// <param name="requireOperationName">
-    /// Specifies if its required to provide the operation name as part of the URI.
+    /// Specifies if its required providing the operation name as part of the URI.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IEndpointConventionBuilder"/> so that
@@ -446,7 +449,7 @@ public static class EndpointRouteBuilderExtensions
     /// The name of the schema that shall be used by this endpoint.
     /// </param>
     /// <param name="requireOperationName">
-    /// Specifies if its required to provide the operation name as part of the URI.
+    /// Specifies if its required providing the operation name as part of the URI.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IEndpointConventionBuilder"/> so that

@@ -151,6 +151,14 @@ public sealed class ExecutorSession
             statusCode,
             context.RequestAborted);
 
+    public async Task WriteSchemaAsync(
+        HttpContext context)
+        => await _responseFormatter.FormatAsync(
+            context.Response,
+            Schema,
+            Version,
+            context.RequestAborted);
+
     public RequestFlags CreateRequestFlags(AcceptMediaType[] acceptMediaTypes)
         => _responseFormatter.CreateRequestFlags(acceptMediaTypes);
 }

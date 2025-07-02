@@ -53,25 +53,6 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             .RemoveAll<IHttpRequestInterceptor>()
             .AddSingleton<IHttpRequestInterceptor, T>(sp => factory(sp.GetCombinedServices())));
 
-    /// <summary>
-    /// Adds an interceptor for GraphQL requests to the GraphQL configuration.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/>.
-    /// </param>
-    /// <param name="interceptor">
-    /// The interceptor instance that shall be added to the configuration.
-    /// </param>
-    /// <returns>
-    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
-    /// </returns>
-    public static IRequestExecutorBuilder AddHttpRequestInterceptor(
-        this IRequestExecutorBuilder builder,
-        HttpRequestInterceptorDelegate interceptor) =>
-        AddHttpRequestInterceptor(
-            builder,
-            _ => new DelegateHttpRequestInterceptor(interceptor));
-
     private static IRequestExecutorBuilder AddDefaultHttpRequestInterceptor(
         this IRequestExecutorBuilder builder)
     {

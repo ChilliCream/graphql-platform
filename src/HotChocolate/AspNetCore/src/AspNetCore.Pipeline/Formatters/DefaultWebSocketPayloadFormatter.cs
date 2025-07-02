@@ -28,4 +28,10 @@ public class DefaultWebSocketPayloadFormatter(WebSocketPayloadFormatterOptions o
     {
         _jsonFormatter.FormatErrors(errors, jsonWriter);
     }
+
+    /// <inheritdoc />
+    public void Format(IReadOnlyDictionary<string, object?> extensions, Utf8JsonWriter jsonWriter)
+    {
+        _jsonFormatter.FormatDictionary(extensions, jsonWriter);
+    }
 }

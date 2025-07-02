@@ -22,6 +22,11 @@ public sealed class GraphQLServerOptions
         AllowedGetOperations.Query;
 
     /// <summary>
+    /// Specifies that the transport is allowed to provide the schema SDL document as a file.
+    /// </summary>
+    public bool EnableSchemaFileSupport { get; set; } = true;
+
+    /// <summary>
     /// Defines if GraphQL HTTP GET requests are allowed.
     /// </summary>
     public bool EnableGetRequests { get; set; } = true;

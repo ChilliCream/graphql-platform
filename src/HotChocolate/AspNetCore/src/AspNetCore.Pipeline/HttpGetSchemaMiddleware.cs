@@ -1,7 +1,6 @@
+using System.Text;
 using HotChocolate.AspNetCore.Instrumentation;
-using HotChocolate.AspNetCore.Serialization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.ErrorHelper;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
@@ -20,7 +19,6 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
     ];
 
     private readonly MiddlewareRoutingType _routing;
-    private readonly IServerDiagnosticEvents _diagnosticEvents;
     private readonly PathString _path;
 
     public HttpGetSchemaMiddleware(
@@ -46,10 +44,11 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
         if (handle)
         {
             var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
+            var options = GetOptions(context);
 
             using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGetSchema))
             {
-                await HandleRequestAsync(context);
+                await HandleRequestAsync(context, session, options);
             }
         }
         else
@@ -72,10 +71,8 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
         return false;
     }
 
-    private async Task HandleRequestAsync(HttpContext context, ExecutorSession session)
+    private async Task HandleRequestAsync(HttpContext context, ExecutorSession session, GraphQLServerOptions options)
     {
-        var options = executor.Schema.Services.GetRequiredService<IRequestExecutorOptionsAccessor>();
-
         if (!options.EnableSchemaFileSupport)
         {
             context.Response.StatusCode = 404;
@@ -96,17 +93,17 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
                 return;
             }
 
-            await WriteTypesAsync(context, session.Schema, s, true);
+            await WriteTypesAsync(context, session, s, true);
         }
         else
         {
-            await WriteSchemaAsync(context, session);
+            await session.WriteSchemaAsync(context);
         }
     }
 
     private async Task WriteTypesAsync(
         HttpContext context,
-        ISchemaDefinition schema,
+        ExecutorSession session,
         string typeNames,
         bool indent)
     {
@@ -118,7 +115,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
                 || coordinate.Value.MemberName is not null
                 || coordinate.Value.ArgumentName is not null)
             {
-                await WriteResultAsync(
+                await session.WriteResultAsync(
                     context,
                     InvalidTypeName(typeName),
                     s_mediaTypes,
@@ -126,9 +123,9 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
                 return;
             }
 
-            if (!schema.Types.TryGetType<ITypeDefinition>(coordinate.Value.Name, out var type))
+            if (!session.Schema.Types.TryGetType<ITypeDefinition>(coordinate.Value.Name, out var type))
             {
-                await WriteResultAsync(
+                await session.WriteResultAsync(
                     context,
                     TypeNotFound(typeName),
                     s_mediaTypes,
@@ -141,20 +138,26 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
         context.Response.ContentType = ContentType.GraphQL;
         context.Response.Headers.SetContentDisposition(GetTypesFileName(types));
-        await PrintAsync(types, context.Response.Body, indent, context.RequestAborted);
+        await PrintTypesAsync(types, context.Response.Body, indent, context.RequestAborted);
     }
-
-    private ValueTask WriteSchemaAsync(
-        HttpContext context,
-        IRequestExecutor executor)
-        => ResponseFormatter.FormatAsync(
-            context.Response,
-            executor.Schema,
-            executor.Version,
-            context.RequestAborted);
 
     private string GetTypesFileName(List<ITypeDefinition> types)
         => types.Count == 1
             ? $"{types[0].Name}.graphql"
             : "types.graphql";
+
+    private static async Task PrintTypesAsync(
+        List<ITypeDefinition> types,
+        Stream stream,
+        bool indent,
+        CancellationToken cancellationToken)
+    {
+        await using var streamWriter = new StreamWriter(stream, Encoding.UTF8, 1024, leaveOpen: true);
+
+        foreach (var type in types)
+        {
+            var s = type.ToSyntaxNode().ToString(indent);
+            await streamWriter.WriteLineAsync(s.AsMemory(), cancellationToken);
+        }
+    }
 }
