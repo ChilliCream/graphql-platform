@@ -37,11 +37,11 @@
   </Folder>
   <Folder Name="/HotChocolate/AspNetCore/" />
   <Folder Name="/HotChocolate/AspNetCore/src/">
-    <Project Path="HotChocolate/AspNetCore/src/AspNetCore.Authorization.Opa/HotChocolate.AspNetCore.Authorization.Opa.csproj" />
-    <Project Path="HotChocolate/AspNetCore/src/AspNetCore.Authorization/HotChocolate.AspNetCore.Authorization.csproj" />
-    <Project Path="HotChocolate/AspNetCore/src/AspNetCore.CommandLine/HotChocolate.AspNetCore.CommandLine.csproj" />
-    <Project Path="HotChocolate/AspNetCore/src/AspNetCore.Pipeline/AspNetCore.Pipeline.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/AspNetCore/HotChocolate.AspNetCore.csproj" />
+    <Project Path="HotChocolate/AspNetCore/src/AspNetCore.Authorization/HotChocolate.AspNetCore.Authorization.csproj" />
+    <Project Path="HotChocolate/AspNetCore/src/AspNetCore.Authorization.Opa/HotChocolate.AspNetCore.Authorization.Opa.csproj" />
+    <Project Path="HotChocolate/AspNetCore/src/AspNetCore.CommandLine/HotChocolate.AspNetCore.CommandLine.csproj" />
+    <Project Path="HotChocolate/AspNetCore/src/AspNetCore.Pipeline/HotChocolate.AspNetCore.Pipeline.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/Transport.Abstractions/HotChocolate.Transport.Abstractions.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/Transport.Http/HotChocolate.Transport.Http.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/Transport.Sockets.Client/HotChocolate.Transport.Sockets.Client.csproj" />

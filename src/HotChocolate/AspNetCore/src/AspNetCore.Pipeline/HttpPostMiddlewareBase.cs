@@ -23,12 +23,12 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
 
     public virtual async Task InvokeAsync(HttpContext context)
     {
-        var ct = context.RequestAborted;
-        var session = await Executor.GetOrCreateSessionAsync(ct);
-
         if (HttpMethods.IsPost(context.Request.Method)
             && context.ParseContentType() is RequestContentType.Json)
         {
+            var ct = context.RequestAborted;
+            var session = await Executor.GetOrCreateSessionAsync(ct);
+
             using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpPost))
             {
                 await HandleRequestAsync(context, session, ct);

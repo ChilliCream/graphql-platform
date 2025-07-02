@@ -1,4 +1,5 @@
 using HotChocolate.Features;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore;
 
@@ -32,5 +33,12 @@ public sealed class HttpRequestExecutorProxy(
         var session = new ExecutorSession(executor);
         executor.Features.Set(session);
         _session = session;
+    }
+
+    public static HttpRequestExecutorProxy Create(IServiceProvider services, string schemaName)
+    {
+        var executorProvider = services.GetRequiredService<IRequestExecutorProvider>();
+        var executorEvents = services.GetRequiredService<IRequestExecutorEvents>();
+        return new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaName);
     }
 }

@@ -27,11 +27,6 @@ public static class WellKnownContextData
     public const string OperationNotAllowed = "HotChocolate.Execution.OperationNotAllowed";
 
     /// <summary>
-    /// Includes the query plan into the response.
-    /// </summary>
-    public const string IncludeQueryPlan = "HotChocolate.Execution.EmitQueryPlan";
-
-    /// <summary>
     /// The key identifies the resolver scope on the local context.
     /// </summary>
     public const string ResolverServiceScope = "HotChocolate.Resolvers.ServiceScope";
@@ -50,12 +45,6 @@ public static class WellKnownContextData
     /// The key to the current schema.
     /// </summary>
     public const string Schema = "HotChocolate.Schema";
-
-    /// <summary>
-    /// The key to get the user provided transport operation session id when executing
-    /// GraphQL over Websocket.
-    /// </summary>
-    public const string OperationSessionId = "HotChocolate.Execution.Transport.OperationSessionId";
 
     /// <summary>
     /// The key to get the deferred task ID on the scoped context data.
@@ -164,12 +153,12 @@ public static class WellKnownContextData
     public const string PagingObserver = "HotChocolate.Types.PagingObserver";
 
     /// <summary>
-    /// The key to access the requirements syntax on an object field definition.
+    /// The key to access the requirement syntax on an object field definition.
     /// </summary>
-    public const string FieldRequirementsSyntax = "HotChocolate.Types.ObjectField.Requirements.Syntax";
+    public const string FieldRequirementSyntax = "HotChocolate.Types.ObjectField.Requirements.Syntax";
 
     /// <summary>
-    /// The key to access the requirements entity type on an object field definition.
+    /// The key to access the requirement entity type on an object field definition.
     /// </summary>
     public const string FieldRequirementsEntity = "HotChocolate.Types.ObjectField.Requirements.EntityType";
 

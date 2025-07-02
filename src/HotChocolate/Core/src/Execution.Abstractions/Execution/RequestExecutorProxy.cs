@@ -1,3 +1,5 @@
+using HotChocolate.Features;
+
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -11,7 +13,6 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly IRequestExecutorProvider _executorProvider;
     private readonly string _schemaName;
-    private IRequestExecutor? _executor;
     private readonly IDisposable? _eventSubscription;
     private bool _disposed;
 
@@ -56,13 +57,16 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
     /// <summary>
     /// Gets the current request executor.
     /// </summary>
-    public IRequestExecutor? CurrentExecutor => _executor;
+    public IRequestExecutor? CurrentExecutor { get; private set; }
 
     ulong IRequestExecutor.Version
         => CurrentExecutor?.Version ?? 0;
 
     ISchemaDefinition IRequestExecutor.Schema
         => CurrentExecutor?.Schema ?? throw new InvalidOperationException("No schema available yet.");
+
+    IFeatureCollection IFeatureProvider.Features
+        => CurrentExecutor?.Features ?? throw new InvalidOperationException("No feature collection available yet.");
 
     /// <summary>
     /// Executes the given GraphQL <paramref name="request" />.
@@ -95,7 +99,7 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
         ArgumentNullException.ThrowIfNull(request);
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var executor = _executor ?? await GetExecutorAsync(cancellationToken).ConfigureAwait(false);
+        var executor = CurrentExecutor ?? await GetExecutorAsync(cancellationToken).ConfigureAwait(false);
         return await executor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
@@ -118,7 +122,7 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
         ArgumentNullException.ThrowIfNull(requestBatch);
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var executor = _executor ?? await GetExecutorAsync(cancellationToken).ConfigureAwait(false);
+        var executor = CurrentExecutor ?? await GetExecutorAsync(cancellationToken).ConfigureAwait(false);
         return await executor.ExecuteBatchAsync(requestBatch, cancellationToken).ConfigureAwait(false);
     }
 
@@ -156,7 +160,7 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var executor = _executor;
+        var executor = CurrentExecutor;
 
         if (executor is not null)
         {
@@ -167,18 +171,18 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
 
         try
         {
-            if (_executor is null)
+            if (CurrentExecutor is null)
             {
                 executor = await _executorProvider
                     .GetExecutorAsync(_schemaName, cancellationToken)
                     .ConfigureAwait(false);
 
-                _executor = executor;
+                CurrentExecutor = executor;
                 OnRequestExecutorUpdated(executor);
             }
             else
             {
-                executor = _executor;
+                executor = CurrentExecutor;
             }
         }
         finally
@@ -195,7 +199,7 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
 
     private void OnRequestExecutorEvent(RequestExecutorEvent eventArgs)
     {
-        if (_disposed || !eventArgs.Name.Equals(_schemaName) || _executor is null)
+        if (_disposed || !eventArgs.Name.Equals(_schemaName) || CurrentExecutor is null)
         {
             return;
         }
@@ -206,7 +210,7 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
 
             try
             {
-                _executor = null;
+                CurrentExecutor = null;
                 OnRequestExecutorUpdated(null);
             }
             finally
@@ -220,7 +224,7 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
 
             try
             {
-                _executor = eventArgs.Executor;
+                CurrentExecutor = eventArgs.Executor;
                 OnRequestExecutorUpdated(eventArgs.Executor);
             }
             finally
@@ -234,7 +238,7 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
     {
         if (!_disposed)
         {
-            _executor = null;
+            CurrentExecutor = null;
             _eventSubscription?.Dispose();
             _semaphore.Dispose();
             _disposed = true;

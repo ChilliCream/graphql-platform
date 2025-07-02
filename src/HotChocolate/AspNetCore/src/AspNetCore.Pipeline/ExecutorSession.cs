@@ -13,22 +13,28 @@ public sealed class ExecutorSession
     , IHttpRequestInterceptor
     , IErrorHandler
 {
-    private readonly IHttpRequestParser _requestParser;
     private readonly IRequestExecutor _executor;
     private readonly IErrorHandler _errorHandler;
     private readonly IHttpRequestInterceptor _requestInterceptor;
+    private readonly ISocketSessionInterceptor _socketSessionInterceptor;
+    private readonly IHttpRequestParser _requestParser;
     private readonly IHttpResponseFormatter _responseFormatter;
     private readonly IServerDiagnosticEvents _diagnosticEvents;
 
     public ExecutorSession(IRequestExecutor executor)
     {
+        ArgumentNullException.ThrowIfNull(executor);
+
         _executor = executor;
         _errorHandler = executor.Schema.Services.GetRequiredService<IErrorHandler>();
         _requestInterceptor = executor.Schema.Services.GetRequiredService<IHttpRequestInterceptor>();
+        _socketSessionInterceptor = executor.Schema.Services.GetRequiredService<ISocketSessionInterceptor>();
         _responseFormatter = executor.Schema.Services.GetRequiredService<IHttpResponseFormatter>();
         _requestParser = executor.Schema.Services.GetRequiredService<IHttpRequestParser>();
         _diagnosticEvents = executor.Schema.Services.GetRequiredService<IServerDiagnosticEvents>();
     }
+
+    public ISocketSessionInterceptor SocketSessionInterceptor => _socketSessionInterceptor;
 
     public IHttpResponseFormatter ResponseFormatter => _responseFormatter;
 
@@ -54,6 +60,12 @@ public sealed class ExecutorSession
 
     public IError Handle(IError error)
         => _errorHandler.Handle(error);
+
+    public ValueTask OnCreateAsync(
+        HttpContext context,
+        OperationRequestBuilder requestBuilder,
+        CancellationToken cancellationToken)
+        => _requestInterceptor.OnCreateAsync(context, _executor, requestBuilder, cancellationToken);
 
     public ValueTask OnCreateAsync(
         HttpContext context,

@@ -22,4 +22,15 @@ public static class ExecutionContextData
     /// The key for setting a flag that the execution had document validation errors.
     /// </summary>
     public const string ValidationErrors = "HotChocolate.Execution.ValidationErrors";
+
+    /// <summary>
+    /// Includes the query plan in the response.
+    /// </summary>
+    public const string IncludeQueryPlan = "HotChocolate.Execution.EmitQueryPlan";
+
+    /// <summary>
+    /// The key to get the user provided transport operation session id when executing
+    /// GraphQL over Websocket.
+    /// </summary>
+    public const string OperationSessionId = "HotChocolate.Execution.Transport.OperationSessionId";
 }

@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;

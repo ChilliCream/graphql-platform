@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.ErrorHelper;
+using static HotChocolate.AspNetCore.Properties.AspNetCorePipelineResources;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
@@ -31,12 +32,12 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
     public override async Task InvokeAsync(HttpContext context)
     {
-        var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
-
         if (HttpMethods.IsPost(context.Request.Method) &&
             GetOptions(context).EnableMultipartRequests &&
             context.ParseContentType() == RequestContentType.Form)
         {
+            var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
+
             if (!context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight) &&
                 GetOptions(context).EnforceMultipartRequestsPreflightHeader)
             {
@@ -138,7 +139,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         return new HttpMultipartRequest(operations, pathToFileMap);
     }
 
-    private static IDictionary<string, IFile> MapFilesToObjectPaths(
+    private static Dictionary<string, IFile> MapFilesToObjectPaths(
         IDictionary<string, string[]> map,
         IFormFileCollection files)
     {
@@ -151,9 +152,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
                 throw ThrowHelper.HttpMultipartMiddleware_NoObjectPath(filename);
             }
 
-            var file = filename is { Length: > 0 }
-                ? files.GetFile(filename)
-                : null;
+            var file = filename.Length > 0 ? files.GetFile(filename) : null;
 
             if (file is null)
             {

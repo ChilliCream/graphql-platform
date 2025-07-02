@@ -1,15 +1,10 @@
-using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
+using static HotChocolate.AspNetCore.Properties.AspNetCorePipelineResources;
 
 namespace HotChocolate.AspNetCore.Serialization;
 
-internal class VariablePath
+internal sealed class VariablePath(KeyPathSegment key)
 {
-    public VariablePath(KeyPathSegment key)
-    {
-        Key = key;
-    }
-
-    public KeyPathSegment Key { get; }
+    public KeyPathSegment Key { get; } = key;
 
     public static VariablePath Parse(string s)
     {
