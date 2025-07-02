@@ -1,4 +1,3 @@
-#nullable enable
 using System.Buffers;
 using System.Text.Json;
 using HotChocolate.Buffers;

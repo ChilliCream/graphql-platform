@@ -1,8 +1,6 @@
 using System.Reflection;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 internal sealed partial class ExtendedType

@@ -7,8 +7,6 @@ using System.Xml.XPath;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.ObjectPool;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 public class XmlDocumentationProvider : IDocumentationProvider

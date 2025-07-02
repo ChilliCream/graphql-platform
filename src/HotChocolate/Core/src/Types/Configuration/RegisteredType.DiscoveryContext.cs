@@ -4,8 +4,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed partial class RegisteredType : ITypeDiscoveryContext

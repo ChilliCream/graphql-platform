@@ -2,8 +2,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Utilities.ErrorHelper;
 
-#nullable enable
-
 namespace HotChocolate.Types.Helpers;
 
 internal static class CompleteInterfacesHelper

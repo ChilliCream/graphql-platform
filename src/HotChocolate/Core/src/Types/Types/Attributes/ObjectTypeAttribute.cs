@@ -2,8 +2,6 @@ using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Types.FieldBindingFlags;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>

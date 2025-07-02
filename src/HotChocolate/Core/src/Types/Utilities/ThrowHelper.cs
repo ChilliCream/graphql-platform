@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Globalization;
 using System.Reflection;
 using HotChocolate.Language;

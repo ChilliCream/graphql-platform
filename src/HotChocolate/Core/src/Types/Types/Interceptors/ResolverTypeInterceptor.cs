@@ -7,8 +7,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 
-#nullable enable
-
 namespace HotChocolate.Types.Interceptors;
 
 internal sealed class ResolverTypeInterceptor : TypeInterceptor
