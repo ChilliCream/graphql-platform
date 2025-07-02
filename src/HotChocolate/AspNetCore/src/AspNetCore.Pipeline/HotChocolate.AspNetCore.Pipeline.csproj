@@ -23,9 +23,13 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests.Utilities" />
+    <InternalsVisibleTo Include="HotChocolate.AzureFunctions" />
+    <InternalsVisibleTo Include="HotChocolate.AzureFunctions.IsolatedProcess" />
   </ItemGroup>
 
   <ItemGroup>
@@ -49,5 +53,5 @@
       <DependentUpon>AspNetCorePipelineResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-  
+
 </Project>

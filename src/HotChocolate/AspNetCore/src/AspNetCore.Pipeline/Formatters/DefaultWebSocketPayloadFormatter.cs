@@ -6,7 +6,7 @@ namespace HotChocolate.AspNetCore.Serialization;
 /// <summary>
 /// This represents the default implementation for the <see cref="IWebSocketPayloadFormatter" />.
 /// </summary>
-public class DefaultWebSocketPayloadFormatter(WebSocketPayloadFormatterOptions options)
+public class DefaultWebSocketPayloadFormatter(WebSocketPayloadFormatterOptions options = default)
     : IWebSocketPayloadFormatter
 {
     private readonly JsonResultFormatter _jsonFormatter = new(options.Json);

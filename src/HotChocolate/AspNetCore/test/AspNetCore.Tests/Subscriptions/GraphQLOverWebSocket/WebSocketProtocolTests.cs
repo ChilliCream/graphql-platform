@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
@@ -957,7 +958,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             IOperationMessagePayload connectionInitMessage,
             CancellationToken cancellationToken = default)
         {
-            var payload = connectionInitMessage.As<Auth>();
+            var payload = connectionInitMessage.Payload?.Deserialize<Auth>();
 
             if (payload?.Token is not null)
             {
@@ -986,7 +987,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             IOperationMessagePayload pingMessage,
             CancellationToken cancellationToken = default)
         {
-            var payload = pingMessage.As<Dictionary<string, string?>>();
+            var payload = pingMessage.Payload?.Deserialize<Dictionary<string, string?>>();
             var responsePayload = new Dictionary<string, object?> { ["touched"] = true };
 
             if (payload is not null)
@@ -1006,7 +1007,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             CancellationToken cancellationToken = default)
         {
             OnPongInvoked = true;
-            Payload = pongMessage.As<Dictionary<string, string?>>();
+            Payload = pongMessage.Payload?.Deserialize<Dictionary<string, string?>>();
             return base.OnPongAsync(session, pongMessage, cancellationToken);
         }
     }

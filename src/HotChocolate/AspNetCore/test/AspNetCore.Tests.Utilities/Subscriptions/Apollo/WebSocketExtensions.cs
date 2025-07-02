@@ -1,5 +1,6 @@
 using System.Net.WebSockets;
 using System.Text;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.Buffers;
@@ -35,7 +36,8 @@ public static class WebSocketExtensions
         CancellationToken cancellationToken)
     {
         using var writer = new PooledArrayWriter();
-        MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionInitialize, payload);
+        var formatter = new DefaultWebSocketPayloadFormatter();
+        MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.ConnectionInitialize, payload);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
@@ -44,7 +46,8 @@ public static class WebSocketExtensions
         CancellationToken cancellationToken)
     {
         using var writer = new PooledArrayWriter();
-        MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionTerminate);
+        var formatter = new DefaultWebSocketPayloadFormatter();
+        MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.ConnectionTerminate);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
@@ -66,7 +69,8 @@ public static class WebSocketExtensions
         CancellationToken cancellationToken)
     {
         using var writer = new PooledArrayWriter();
-        MessageUtilities.SerializeMessage(writer, Utf8Messages.Stop, id: subscriptionId);
+        var formatter = new DefaultWebSocketPayloadFormatter();
+        MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.Stop, id: subscriptionId);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
@@ -181,17 +185,11 @@ public static class WebSocketExtensions
         return (IReadOnlyDictionary<string, object?>?)ParseJson(stream.ToArray())!;
     }
 
-    private sealed class HelperOperationMessage : OperationMessage
+    private sealed class HelperOperationMessage(string type, string id, object payload)
+        : OperationMessage(type)
     {
-        public HelperOperationMessage(string type, string id, object payload)
-            : base(type)
-        {
-            Id = id;
-            Payload = payload;
-        }
+        public string Id { get; } = id;
 
-        public string Id { get; }
-
-        public object Payload { get; }
+        public object Payload { get; } = payload;
     }
 }
