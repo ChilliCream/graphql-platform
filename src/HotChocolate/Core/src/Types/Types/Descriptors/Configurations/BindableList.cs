@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Runtime.InteropServices;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors.Configurations;
 
 public sealed class BindableList<T> : IBindableList<T>

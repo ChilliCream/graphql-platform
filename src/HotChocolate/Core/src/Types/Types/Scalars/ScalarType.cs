@@ -4,8 +4,6 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>

@@ -1,4 +1,3 @@
-#nullable enable
 using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Types.Descriptors.Configurations;

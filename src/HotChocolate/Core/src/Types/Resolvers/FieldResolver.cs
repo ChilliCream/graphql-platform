@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Resolvers;
 
 public sealed class FieldResolver

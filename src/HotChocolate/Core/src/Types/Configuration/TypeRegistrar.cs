@@ -3,8 +3,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed partial class TypeRegistrar : ITypeRegistrar

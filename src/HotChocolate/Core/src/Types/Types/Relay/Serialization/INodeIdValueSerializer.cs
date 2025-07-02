@@ -1,4 +1,3 @@
-#nullable enable
 using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Types.Relay;

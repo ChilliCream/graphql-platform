@@ -2,8 +2,6 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using static HotChocolate.Utilities.ThrowHelper;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>

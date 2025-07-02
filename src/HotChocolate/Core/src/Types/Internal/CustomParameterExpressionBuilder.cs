@@ -2,8 +2,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 /// <summary>
