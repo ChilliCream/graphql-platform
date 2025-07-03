@@ -65,8 +65,8 @@ public class WorkQueueTests
         queue.Push(task2);
 
         // act
-        queue.TryTake(out var task);
-        var success = queue.TryTake(out task);
+        queue.TryTake(out _);
+        var success = queue.TryTake(out var task);
 
         // assert
         Assert.Same(task1, task);
@@ -86,9 +86,9 @@ public class WorkQueueTests
         queue.Push(task2);
 
         // act
-        queue.TryTake(out var task);
+        queue.TryTake(out _);
         queue.Complete();
-        queue.TryTake(out task);
+        queue.TryTake(out var task);
         queue.Complete();
 
         // assert

@@ -310,7 +310,7 @@ public abstract class SubscriptionIntegrationTestBase
         await Task.Delay(2000, cts.Token);
         await sender.CompleteAsync("OnMessage");
 
-        await foreach (var unused in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var _ in results.WithCancellation(cts.Token).ConfigureAwait(false))
         {
             Assert.Fail("Should not have any messages.");
         }
@@ -337,7 +337,7 @@ public abstract class SubscriptionIntegrationTestBase
         await Task.Delay(2000, cts.Token);
         await sender.CompleteAsync("OnMessage3");
 
-        await foreach (var unused in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var _ in results.WithCancellation(cts.Token).ConfigureAwait(false))
         {
             Assert.Fail("Should not have any messages.");
         }

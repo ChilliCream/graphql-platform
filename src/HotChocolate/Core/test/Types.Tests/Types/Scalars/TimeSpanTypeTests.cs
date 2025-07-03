@@ -154,7 +154,7 @@ public class TimeSpanTypeTests
 
         // act
         var success = timeSpanType
-            .TryDeserialize("PT5", out var deserialized);
+            .TryDeserialize("PT5", out _);
 
         // assert
         Assert.False(success);
@@ -202,7 +202,7 @@ public class TimeSpanTypeTests
 
         // act
         var success = timeSpanType
-            .TryDeserialize("bad", out var deserialized);
+            .TryDeserialize("bad", out _);
 
         // assert
         Assert.False(success);

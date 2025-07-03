@@ -1411,7 +1411,7 @@ public class AnnotationBasedMutations
             ITypeCompletionContext completionContext,
             TypeSystemConfiguration configuration)
         {
-            if (configuration is not ObjectTypeConfiguration objTypeDef)
+            if (configuration is not ObjectTypeConfiguration _)
             {
                 return;
             }
