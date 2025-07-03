@@ -207,4 +207,10 @@ public interface IReadOnlySchemaOptions
     /// to the DataLoader promise cache.
     /// </summary>
     bool PublishRootFieldPagesToPromiseCache { get; }
+
+    /// <summary>
+    /// Errors if either an ASP.NET Core [Authorize] or [AllowAnonymous] attribute
+    /// is used on a Hot Chocolate resolver or type definition.
+    /// </summary>
+    bool ErrorOnAspNetCoreAuthorizationAttributes { get; }
 }
