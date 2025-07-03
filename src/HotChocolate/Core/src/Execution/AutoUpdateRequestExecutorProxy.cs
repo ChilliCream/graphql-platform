@@ -1,5 +1,3 @@
-using HotChocolate.Utilities;
-
 namespace HotChocolate.Execution;
 
 /// <summary>

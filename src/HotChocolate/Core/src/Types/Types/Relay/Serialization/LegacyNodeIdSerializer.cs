@@ -138,16 +138,16 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
     {
         switch (value)
         {
-            case Guid g:
+            case System.Guid:
                 return Guid;
 
-            case short s:
+            case short:
                 return Short;
 
-            case int i:
+            case int:
                 return Int;
 
-            case long l:
+            case long:
                 return Long;
 
             default:

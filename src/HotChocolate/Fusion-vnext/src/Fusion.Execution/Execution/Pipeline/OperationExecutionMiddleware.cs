@@ -4,11 +4,28 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 
 internal sealed class OperationExecutionMiddleware
 {
-    public ValueTask InvokeAsync(
+    private readonly QueryExecutor _queryExecutor = new();
+
+    public async ValueTask InvokeAsync(
         RequestContext context,
-        RequestDelegate next)
+        RequestDelegate next,
+        CancellationToken cancellationToken)
     {
-        return next(context);
+        var operationPlan = context.GetOperationPlan();
+
+        if (operationPlan is null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        var operationPlanContext = new OperationPlanContext(
+            operationPlan,
+            context.VariableValues[0],
+            context);
+
+        context.Result = await _queryExecutor.QueryAsync(operationPlanContext, cancellationToken);
+
+        await next(context);
     }
 
     public static RequestMiddlewareConfiguration Create()
@@ -17,7 +34,7 @@ internal sealed class OperationExecutionMiddleware
             (fc, next) =>
             {
                 var middleware = new OperationExecutionMiddleware();
-                return requestContext => middleware.InvokeAsync(requestContext, next);
+                return context => middleware.InvokeAsync(context, next, context.RequestAborted);
             },
             nameof(OperationExecutionMiddleware));
     }

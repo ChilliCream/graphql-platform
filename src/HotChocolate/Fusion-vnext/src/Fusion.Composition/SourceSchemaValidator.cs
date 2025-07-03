@@ -12,7 +12,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
-using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion;
 

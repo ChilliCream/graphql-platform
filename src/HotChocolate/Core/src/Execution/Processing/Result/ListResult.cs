@@ -1,5 +1,7 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -109,6 +111,49 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
         _capacity = newCapacity;
     }
 
+    public override void WriteTo(
+        Utf8JsonWriter writer,
+        JsonSerializerOptions? options = null,
+        JsonNullIgnoreCondition nullIgnoreCondition = JsonNullIgnoreCondition.None)
+    {
+#if NET9_0_OR_GREATER
+        options ??= JsonSerializerOptions.Web;
+#else
+        options ??= JsonSerializerOptions.Default;
+#endif
+
+        writer.WriteStartArray();
+
+        ref var item = ref GetReference();
+        ref var end = ref Unsafe.Add(ref item, _count);
+
+        while (Unsafe.IsAddressLessThan(ref item, ref end))
+        {
+            if (item is null)
+            {
+                if ((nullIgnoreCondition & JsonNullIgnoreCondition.Lists) != JsonNullIgnoreCondition.Lists)
+                {
+                    writer.WriteNullValue();
+                }
+            }
+            else
+            {
+                if (item is ResultData resultData)
+                {
+                    resultData.WriteTo(writer, options, nullIgnoreCondition);
+                }
+                else
+                {
+                    JsonValueFormatter.WriteValue(writer, item, options, nullIgnoreCondition);
+                }
+            }
+
+            item = ref Unsafe.Add(ref item, 1)!;
+        }
+
+        writer.WriteEndArray();
+    }
+
     /// <summary>
     /// Resets the result object.
     /// </summary>
@@ -128,7 +173,7 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
         PatchPath = null;
     }
 
-    internal ref object? GetReference()
+    private ref object? GetReference()
         => ref MemoryMarshal.GetReference(_buffer.AsSpan());
 
     /// <inheritdoc cref="IEnumerable{T}.GetEnumerator"/>

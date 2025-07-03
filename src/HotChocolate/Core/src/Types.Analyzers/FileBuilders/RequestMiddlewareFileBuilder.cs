@@ -157,7 +157,7 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
         {
             var parameter = parameters[i];
 
-            if(i > 0)
+            if (i > 0)
             {
                 _writer.Write(", ");
             }
@@ -224,7 +224,7 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
         {
             var parameter = parameters[i];
 
-            if(i > 0)
+            if (i > 0)
             {
                 _writer.Write(", ");
             }

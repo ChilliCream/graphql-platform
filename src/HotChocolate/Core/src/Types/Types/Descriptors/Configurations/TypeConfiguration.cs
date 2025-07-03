@@ -70,7 +70,7 @@ public abstract class TypeConfiguration : TypeSystemConfiguration, ITypeConfigur
 
         if (_directives is { Count: > 0 })
         {
-            target._directives = [.._directives];
+            target._directives = [.. _directives];
         }
     }
 

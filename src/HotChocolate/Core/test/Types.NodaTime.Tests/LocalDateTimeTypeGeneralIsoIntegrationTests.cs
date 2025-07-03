@@ -28,7 +28,7 @@ public class LocalDateTimeTypeGeneralIsoIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-21T17:42:59" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-21T17:42:59" } })
                 .Build());
 
         Assert.Equal("2020-02-21T17:52:59", result.ExpectOperationResult().Data!["test"]);
@@ -40,7 +40,7 @@ public class LocalDateTimeTypeGeneralIsoIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-20T17:42:59Z" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-20T17:42:59Z" } })
                 .Build());
 
         Assert.Null(result.ExpectOperationResult().Data);

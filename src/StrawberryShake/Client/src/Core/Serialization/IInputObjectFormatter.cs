@@ -1,7 +1,7 @@
 namespace StrawberryShake.Serialization;
 
 /// <summary>
-/// A input value formatter for input objects
+/// An input value formatter for input objects
 /// </summary>
 public interface IInputObjectFormatter : IInputValueFormatter
 {

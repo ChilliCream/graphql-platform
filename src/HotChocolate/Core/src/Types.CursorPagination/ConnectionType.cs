@@ -177,7 +177,7 @@ internal sealed class ConnectionType
                 Names.Nodes,
                 ConnectionType_Nodes_Description,
                 pureResolver: GetNodes)
-                { Flags = CoreFieldFlags.ConnectionNodesField });
+            { Flags = CoreFieldFlags.ConnectionNodesField });
         }
 
         if (includeTotalCount)

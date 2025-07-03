@@ -89,26 +89,26 @@ public ref partial struct Utf8GraphQLRequestParser
         switch (_reader.Kind)
         {
             case TokenKind.String:
-                {
-                    var value = _reader.GetString();
-                    _reader.MoveNext();
-                    return new StringValueNode(value);
-                }
+            {
+                var value = _reader.GetString();
+                _reader.MoveNext();
+                return new StringValueNode(value);
+            }
 
             case TokenKind.Integer:
-                {
-                    ReadOnlyMemory<byte> value = _reader.Value.ToArray();
-                    _reader.MoveNext();
-                    return new IntValueNode(null, value);
-                }
+            {
+                ReadOnlyMemory<byte> value = _reader.Value.ToArray();
+                _reader.MoveNext();
+                return new IntValueNode(null, value);
+            }
 
             case TokenKind.Float:
-                {
-                    ReadOnlyMemory<byte> value = _reader.Value.ToArray();
-                    var format = _reader.FloatFormat;
-                    _reader.MoveNext();
-                    return new FloatValueNode(null, value, format ?? FloatFormat.FixedPoint);
-                }
+            {
+                ReadOnlyMemory<byte> value = _reader.Value.ToArray();
+                var format = _reader.FloatFormat;
+                _reader.MoveNext();
+                return new FloatValueNode(null, value, format ?? FloatFormat.FixedPoint);
+            }
 
             case TokenKind.Name:
                 if (_reader.Value.SequenceEqual(GraphQLKeywords.True))

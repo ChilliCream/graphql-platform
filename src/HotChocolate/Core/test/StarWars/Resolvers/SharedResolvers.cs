@@ -28,7 +28,7 @@ public class SharedResolvers
             return null;
         }
         return character.Friends
-            .Select(t => repository.GetCharacter(t))
+            .Select(repository.GetCharacter)
             .OfType<Human>()
             .FirstOrDefault();
     }

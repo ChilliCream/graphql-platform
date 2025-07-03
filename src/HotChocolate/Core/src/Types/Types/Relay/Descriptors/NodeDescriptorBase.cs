@@ -187,7 +187,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
                     => result is not null
                         ? serializerAccessor.Serializer.Format(context.ObjectType.Name, result)
                         : null,
-                key: WellKnownMiddleware.GlobalId,
-                isRepeatable: false);
+                isRepeatable: false,
+                key: WellKnownMiddleware.GlobalId);
     }
 }

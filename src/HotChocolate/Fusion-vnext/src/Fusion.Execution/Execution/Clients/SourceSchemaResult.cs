@@ -17,7 +17,7 @@ public sealed class SourceSchemaResult : IDisposable
             return;
         }
 
-        if(root.TryGetProperty("data", out var data))
+        if (root.TryGetProperty("data", out var data))
         {
             Data = data;
         }

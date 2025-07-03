@@ -31,7 +31,7 @@ internal static class PropertyTreeBuilder
         {
             if (selection is FieldNode field)
             {
-                if(field.Arguments.Count > 0)
+                if (field.Arguments.Count > 0)
                 {
                     throw new SchemaException(
                         SchemaErrorBuilder.New()
@@ -39,7 +39,7 @@ internal static class PropertyTreeBuilder
                             .Build());
                 }
 
-                if(field.Directives.Count > 0)
+                if (field.Directives.Count > 0)
                 {
                     throw new SchemaException(
                         SchemaErrorBuilder.New()
@@ -58,7 +58,7 @@ internal static class PropertyTreeBuilder
                 var fieldPath = path.Append(field.Name.Value);
                 var property = type.GetProperty(field.Name.Value);
 
-                if(property is null)
+                if (property is null)
                 {
                     throw new SchemaException(
                         SchemaErrorBuilder.New()

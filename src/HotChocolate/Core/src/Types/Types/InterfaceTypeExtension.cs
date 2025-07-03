@@ -23,7 +23,7 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeConfig
     private Action<IInterfaceTypeDescriptor>? _configure;
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="InterfaceTypeExtension"/>.
+    /// Initializes a new instance of <see cref="InterfaceTypeExtension"/>.
     /// </summary>
     protected InterfaceTypeExtension()
     {
@@ -31,7 +31,7 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeConfig
     }
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="InterfaceTypeExtension"/>.
+    /// Initializes a new instance of <see cref="InterfaceTypeExtension"/>.
     /// </summary>
     /// <param name="configure">
     /// A delegate to specify the properties of this type.

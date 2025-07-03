@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate;
 
-public class GenericTypesNamingTests
+public class GenericTypeNamingTests
 {
     [Fact]
     public async Task NamingResolution()

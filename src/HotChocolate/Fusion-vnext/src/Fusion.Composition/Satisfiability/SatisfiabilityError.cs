@@ -18,7 +18,7 @@ internal sealed class SatisfiabilityError(
     {
         var indent = new string(' ', indentationLevel * 2);
         var stringBuilder = new StringBuilder();
-        stringBuilder.Append($"{indent}{Message}");
+        stringBuilder.Append(indent + Message);
 
         if (errors is not null)
         {

@@ -92,7 +92,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "238:01:00.019" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "238:01:00.019" } })
                 .Build());
         Assert.Equal("238:11:00.019", Assert.IsType<OperationResult>(result).Data!["test"]);
     }
@@ -103,7 +103,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "238:01:00" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "238:01:00" } })
                 .Build());
         Assert.Equal("238:11:00", Assert.IsType<OperationResult>(result).Data!["test"]);
     }
@@ -114,7 +114,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "238:01:00" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "238:01:00" } })
                 .Build());
         Assert.Equal("238:11:00", Assert.IsType<OperationResult>(result).Data!["test"]);
     }
@@ -125,7 +125,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "-238:01:00" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "-238:01:00" } })
                 .Build());
         Assert.Equal("-237:51:00", Assert.IsType<OperationResult>(result).Data!["test"]);
     }
@@ -136,7 +136,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "+09:22:01:00" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "+09:22:01:00" } })
                 .Build());
         Assert.Null(Assert.IsType<OperationResult>(result).Data);
         Assert.Single(Assert.IsType<OperationResult>(result).Errors!);

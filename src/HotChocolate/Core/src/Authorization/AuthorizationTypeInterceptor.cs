@@ -189,7 +189,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
                     // if the field contains the AnonymousAllowed flag, we will not
                     // apply authorization on it.
-                    if(fieldDef.IsAnonymousAllowed())
+                    if (fieldDef.IsAnonymousAllowed())
                     {
                         continue;
                     }
@@ -364,7 +364,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     {
         // if the field contains the AnonymousAllowed flag, we will not apply authorization
         // on it.
-        if(fieldDef.IsAnonymousAllowed())
+        if (fieldDef.IsAnonymousAllowed())
         {
             return;
         }

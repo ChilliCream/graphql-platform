@@ -4,14 +4,15 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
-using HotChocolate.Execution.Serialization;
+using HotChocolate.Execution;
 using HotChocolate.Subscriptions.Diagnostics;
-using HotChocolate.Transport;
+using HotChocolate.Transport.Formatters;
 using HotChocolate.Transport.Sockets.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static System.Net.WebSockets.WebSocketCloseStatus;
+using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
 
@@ -519,7 +520,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                     await webSocket.SendSubscribeAsync(i.ToString(), payload, ct);
                 }
 
-                while(diagnostics.Subscribed < 100)
+                while (diagnostics.Subscribed < 100)
                 {
                     await Task.Delay(10, ct);
                 }
@@ -901,9 +902,9 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                                 _ => new DefaultWebSocketPayloadFormatter(
                                     new WebSocketPayloadFormatterOptions
                                     {
-                                        Json = new JsonResultFormatterOptions()
+                                        Json = new JsonResultFormatterOptions
                                         {
-                                            NullIgnoreCondition = JsonNullIgnoreCondition.All
+                                            NullIgnoreCondition = JsonNullIgnoreCondition.FieldsAndLists
                                         }
                                     })),
                     output: output);

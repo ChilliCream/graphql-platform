@@ -25,7 +25,7 @@ internal sealed class OperationVariableCoercionMiddleware
         RequestContext context,
         RequestDelegate next)
     {
-        var operationExecutionPlan = context.GetOperationExecutionPlan();
+        var operationExecutionPlan = context.GetOperationPlan();
 
         if (operationExecutionPlan is null)
         {
@@ -35,7 +35,7 @@ internal sealed class OperationVariableCoercionMiddleware
 
         return TryCoerceVariables(
             context,
-            operationExecutionPlan.Operation.VariableDefinitions,
+            operationExecutionPlan.VariableDefinitions,
             _diagnosticEvents)
             ? next(context)
             : default;
@@ -61,7 +61,7 @@ internal sealed class OperationVariableCoercionMiddleware
         {
             using (diagnosticEvents.CoerceVariables(context))
             {
-                if(VariableCoercionHelper.TryCoerceVariableValues(
+                if (VariableCoercionHelper.TryCoerceVariableValues(
                     context.Schema,
                     variableDefinitions,
                     operationRequest.VariableValues ?? s_empty,
@@ -90,7 +90,7 @@ internal sealed class OperationVariableCoercionMiddleware
 
                 for (var i = 0; i < variableSetCount; i++)
                 {
-                    if(VariableCoercionHelper.TryCoerceVariableValues(
+                    if (VariableCoercionHelper.TryCoerceVariableValues(
                         context.Schema,
                         variableDefinitions,
                         variableSetInput[i],

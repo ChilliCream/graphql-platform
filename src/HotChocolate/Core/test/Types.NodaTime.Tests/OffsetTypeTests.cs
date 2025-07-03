@@ -57,7 +57,7 @@ public class OffsetTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "+02" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "+02" } })
                 .Build());
         Assert.Equal("+03:05", result.ExpectOperationResult().Data!["test"]);
     }
@@ -68,7 +68,7 @@ public class OffsetTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "+02:35" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "+02:35" } })
                 .Build());
         Assert.Equal("+03:40", result.ExpectOperationResult().Data!["test"]);
     }
@@ -79,7 +79,7 @@ public class OffsetTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13+02" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "18:30:13+02" } })
                 .Build());
         Assert.Null(result.ExpectOperationResult().Data);
         Assert.Single(result.ExpectOperationResult().Errors!);

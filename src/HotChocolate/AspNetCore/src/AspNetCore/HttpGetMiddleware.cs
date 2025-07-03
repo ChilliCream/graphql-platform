@@ -131,7 +131,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         statusCode = executionResult.StatusCode;
         result = executionResult.Result;
 
-        HANDLE_RESULT:
+HANDLE_RESULT:
         await MiddlewareHelper.WriteResultAsync(
             result!,
             acceptMediaTypes,

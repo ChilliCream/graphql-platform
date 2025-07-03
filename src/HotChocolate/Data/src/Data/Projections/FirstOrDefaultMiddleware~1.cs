@@ -24,29 +24,29 @@ public sealed class FirstOrDefaultMiddleware<T>
         switch (context.Result)
         {
             case IAsyncEnumerable<T> ae:
+            {
+                // Apply limit.
+                if (ae is IQueryable<T> q)
                 {
-                    // Apply limit.
-                    if (ae is IQueryable<T> q)
-                    {
-                        q = q.Take(1);
+                    q = q.Take(1);
 
-                        ae = (IAsyncEnumerable<T>)q;
-                    }
-
-                    await using var enumerator =
-                        ae.GetAsyncEnumerator(context.RequestAborted);
-
-                    if (await enumerator.MoveNextAsync().ConfigureAwait(false))
-                    {
-                        context.Result = enumerator.Current;
-                    }
-                    else
-                    {
-                        context.Result = default(T)!;
-                    }
-
-                    break;
+                    ae = (IAsyncEnumerable<T>)q;
                 }
+
+                await using var enumerator =
+                    ae.GetAsyncEnumerator(context.RequestAborted);
+
+                if (await enumerator.MoveNextAsync().ConfigureAwait(false))
+                {
+                    context.Result = enumerator.Current;
+                }
+                else
+                {
+                    context.Result = default(T)!;
+                }
+
+                break;
+            }
             case IEnumerable<T> e:
                 context.Result = await Task
                     .Run(() => e.FirstOrDefault(), context.RequestAborted)

@@ -23,7 +23,8 @@ public class PostgresChannelWriterTests
         _channelName = $"channel_{Guid.NewGuid():N}";
         _options = new PostgresSubscriptionOptions
         {
-            ConnectionFactory = ConnectionFactory, ChannelName = _channelName
+            ConnectionFactory = ConnectionFactory,
+            ChannelName = _channelName
         };
     }
 

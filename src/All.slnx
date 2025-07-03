@@ -45,6 +45,7 @@
     <Project Path="HotChocolate/AspNetCore/src/Transport.Http/HotChocolate.Transport.Http.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/Transport.Sockets.Client/HotChocolate.Transport.Sockets.Client.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/Transport.Sockets/HotChocolate.Transport.Sockets.csproj" />
+    <Project Path="HotChocolate/AspNetCore/src/Transport.Formatters/HotChocolate.Transport.Formatters.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/AspNetCore/test/">
     <Project Path="HotChocolate/AspNetCore/test/AspNetCore.Authorization.Opa.Tests/HotChocolate.AspNetCore.Authorization.Opa.Tests.csproj" />

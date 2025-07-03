@@ -73,7 +73,7 @@ public class IsoDayOfWeekTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", 1 } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", 1 } })
                 .Build());
 
         Assert.Equal(2, result.ExpectOperationResult().Data!["test"]);
@@ -85,7 +85,7 @@ public class IsoDayOfWeekTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", 7 } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", 7 } })
                 .Build());
 
         Assert.Equal(1, result.ExpectOperationResult().Data!["test"]);
@@ -97,7 +97,7 @@ public class IsoDayOfWeekTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", 0 } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", 0 } })
                 .Build());
 
         Assert.Null(result.ExpectOperationResult().Data);
@@ -110,7 +110,7 @@ public class IsoDayOfWeekTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", 8 } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", 8 } })
                 .Build());
 
         Assert.Null(result.ExpectOperationResult().Data);
@@ -123,7 +123,7 @@ public class IsoDayOfWeekTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", -2 } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", -2 } })
                 .Build());
 
         Assert.Null(result.ExpectOperationResult().Data);

@@ -1,5 +1,4 @@
 using HotChocolate.AspNetCore.Extensions;
-using HotChocolate.Execution;
 using HotChocolate.PersistedOperations;
 using HotChocolate.StarWars;
 using HotChocolate.Tests;

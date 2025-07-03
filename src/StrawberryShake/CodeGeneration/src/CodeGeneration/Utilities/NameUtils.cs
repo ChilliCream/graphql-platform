@@ -104,7 +104,7 @@ public static class NameUtils
 
     public static string GetLeftPropertyAssignment(string property)
     {
-        if (property is { Length: >0 } && property[0] == '_')
+        if (property is { Length: > 0 } && property[0] == '_')
         {
             return $"this.{property}";
         }

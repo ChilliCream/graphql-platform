@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics;
 using HotChocolate.Fusion.Collections;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Language;

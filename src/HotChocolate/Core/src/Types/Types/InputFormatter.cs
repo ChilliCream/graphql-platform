@@ -105,7 +105,7 @@ public sealed class InputFormatter(ITypeConverter converter)
         if (runtimeValue is IEnumerable enumerable)
         {
             var items = new List<IValueNode>();
-            var i = 0;
+            const int i = 0;
 
             foreach (var item in enumerable)
             {

@@ -627,7 +627,7 @@ public class ActivityEnricher
 
             foreach (var (name, value) in variables)
             {
-                // since we are in the HTTP context here we know that it will always be a IValueNode.
+                // since we are in the HTTP context here we know that it will always be an IValueNode.
                 var valueNode = value is null ? NullValueNode.Default : (IValueNode)value;
                 fields[index++] = new ObjectFieldNode(name, valueNode);
             }
@@ -649,7 +649,7 @@ public class ActivityEnricher
 
                 foreach (var (name, value) in variables)
                 {
-                    // since we are in the HTTP context here we know that it will always be a IValueNode.
+                    // since we are in the HTTP context here we know that it will always be an IValueNode.
                     var valueNode = value is null ? NullValueNode.Default : (IValueNode)value;
                     fields[index++] = new ObjectFieldNode(name, valueNode);
                 }

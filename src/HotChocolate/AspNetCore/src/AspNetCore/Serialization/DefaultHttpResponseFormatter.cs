@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using HotChocolate.Execution.Serialization;
+using HotChocolate.Transport.Formatters;
 using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
@@ -56,7 +56,11 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         : this(
             new HttpResponseFormatterOptions
             {
-                Json = new JsonResultFormatterOptions { Indented = indented, Encoder = encoder }
+                Json = new JsonResultFormatterOptions
+                {
+                    Indented = indented,
+                    Encoder = encoder
+                }
             },
             timeProvider)
     {

@@ -24,7 +24,6 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
 
         requestBuilder.TrySetServices(context.RequestServices);
         requestBuilder.TryAddGlobalState(nameof(HttpContext), context);
-        requestBuilder.TryAddGlobalState(nameof(CancellationToken), context.RequestAborted);
         requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), userState.User);
 
         if (context.IncludeQueryPlan())

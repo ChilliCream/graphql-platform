@@ -125,7 +125,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
                 ? null!
                 : _connectionName;
 
-        var options =new PagingOptions
+        var options = new PagingOptions
         {
             DefaultPageSize = _defaultPageSize,
             MaxPageSize = _maxPageSize,

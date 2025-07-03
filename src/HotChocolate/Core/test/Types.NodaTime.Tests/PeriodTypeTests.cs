@@ -41,7 +41,7 @@ public class PeriodTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Period!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "P-3W15DT139t" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "P-3W15DT139t" } })
                 .Build());
         Assert.Equal("P-3W15DT-10M139t", result.ExpectOperationResult().Data!["test"]);
     }
@@ -52,7 +52,7 @@ public class PeriodTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Period!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "-3W3DT-10M139t" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "-3W3DT-10M139t" } })
                 .Build());
         Assert.Null(result.ExpectOperationResult().Data);
         Assert.Single(result.ExpectOperationResult().Errors!);

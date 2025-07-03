@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public sealed class ArgumentNodeTests
@@ -43,7 +41,7 @@ public sealed class ArgumentNodeTests
     public void CreateArgumentWithConvenienceConstructor()
     {
         // arrange
-        var name = "foo";
+        const string name = "foo";
         var value = new StringValueNode("bar");
 
         // act

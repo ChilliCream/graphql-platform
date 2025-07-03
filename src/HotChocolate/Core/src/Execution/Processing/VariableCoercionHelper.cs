@@ -1,6 +1,5 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Processing;
 

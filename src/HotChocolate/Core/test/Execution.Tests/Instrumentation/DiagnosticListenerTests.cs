@@ -70,7 +70,7 @@ public class DiagnosticListenerTests
 
     public class Touched
     {
-        public bool Signal = false;
+        public bool Signal;
     }
 
     private class TouchedListener : ExecutionDiagnosticEventListener

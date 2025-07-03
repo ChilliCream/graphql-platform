@@ -5,7 +5,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Tests;
 
-public class SortInputTypeTest : SortTestBase
+public class SortInputTypeTests : SortTestBase
 {
     [Fact]
     public void SortInputType_DynamicName()
@@ -161,7 +161,7 @@ public class SortInputTypeTest : SortTestBase
 
         // act
         // assert
-        var exception = Assert.Throws<SchemaException>(() => builder.Create());
+        var exception = Assert.Throws<SchemaException>(builder.Create);
         exception.Message.MatchSnapshot();
     }
 
@@ -179,7 +179,7 @@ public class SortInputTypeTest : SortTestBase
 
         // act
         // assert
-        var exception = Assert.Throws<SchemaException>(() => builder.Create());
+        var exception = Assert.Throws<SchemaException>(builder.Create);
         exception.Message.MatchSnapshot();
     }
 
@@ -277,14 +277,14 @@ public class SortInputTypeTest : SortTestBase
 
     public class Book
     {
-        public int Id { get; set; } = 0;
+        public int Id { get; set; }
 
         [GraphQLNonNullType]
         public string Title { get; set; } = null!;
 
-        public int Pages { get; set; } = 0;
+        public int Pages { get; set; }
 
-        public int Chapters { get; set; } = 0;
+        public int Chapters { get; set; }
 
         [GraphQLNonNullType]
         public Author Author { get; set; } = null!;

@@ -172,8 +172,6 @@ internal class GraphQLHttpEventStreamEnumerator : IAsyncEnumerator<OperationResu
 
     private static EventType ParseEventType(ref ReadOnlySpan<byte> span)
     {
-        var debug = Encoding.UTF8.GetString(span);
-
         if (ExpectEvent(ref span))
         {
             if (ExpectNext(ref span))

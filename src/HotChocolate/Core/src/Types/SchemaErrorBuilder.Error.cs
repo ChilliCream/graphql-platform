@@ -5,7 +5,6 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -34,7 +33,11 @@ public partial class SchemaErrorBuilder
         IReadOnlyCollection<ISyntaxNode> ISchemaError.SyntaxNodes => SyntaxNodes;
 
         public ImmutableDictionary<string, object> Extensions { get; set; }
+#if NET10_0_OR_GREATER
+            = [];
+#else
             = ImmutableDictionary<string, object>.Empty;
+#endif
 
         IReadOnlyDictionary<string, object> ISchemaError.Extensions => Extensions;
 

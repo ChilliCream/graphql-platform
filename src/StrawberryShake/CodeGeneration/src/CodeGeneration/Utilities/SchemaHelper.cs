@@ -116,7 +116,7 @@ public static class SchemaHelper
     {
         foreach (var scalarTypeExtension in scalarTypeExtensions)
         {
-            if (!leafTypes.TryGetValue(scalarTypeExtension.Name.Value, out var scalarInfo))
+            if (!leafTypes.ContainsKey(scalarTypeExtension.Name.Value))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -124,7 +124,7 @@ public static class SchemaHelper
                 TryRegister(typeInfos, runtimeType);
                 TryRegister(typeInfos, serializationType);
 
-                scalarInfo = new LeafTypeInfo(
+                var scalarInfo = new LeafTypeInfo(
                     scalarTypeExtension.Name.Value,
                     runtimeType?.Name,
                     serializationType?.Name);
@@ -141,9 +141,7 @@ public static class SchemaHelper
     {
         foreach (var scalarTypeExtension in enumTypeExtensions)
         {
-            if (!leafTypes.TryGetValue(
-                    scalarTypeExtension.Name.Value,
-                    out var scalarInfo))
+            if (!leafTypes.ContainsKey(scalarTypeExtension.Name.Value))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -151,7 +149,7 @@ public static class SchemaHelper
                 TryRegister(typeInfos, runtimeType);
                 TryRegister(typeInfos, serializationType);
 
-                scalarInfo = new LeafTypeInfo(
+                var scalarInfo = new LeafTypeInfo(
                     scalarTypeExtension.Name.Value,
                     runtimeType?.Name,
                     serializationType?.Name);
@@ -160,16 +158,14 @@ public static class SchemaHelper
         }
     }
 
-    private static RuntimeTypeDirective? GetRuntimeType(
-        HotChocolate.Language.IHasDirectives hasDirectives) =>
-        GetDirectiveValue(hasDirectives, "runtimeType");
+    private static RuntimeTypeDirective? GetRuntimeType(IHasDirectives hasDirectives)
+        => GetDirectiveValue(hasDirectives, "runtimeType");
 
-    private static RuntimeTypeDirective? GetSerializationType(
-        HotChocolate.Language.IHasDirectives hasDirectives) =>
-        GetDirectiveValue(hasDirectives, "serializationType");
+    private static RuntimeTypeDirective? GetSerializationType(IHasDirectives hasDirectives)
+        => GetDirectiveValue(hasDirectives, "serializationType");
 
     private static RuntimeTypeDirective? GetDirectiveValue(
-        HotChocolate.Language.IHasDirectives hasDirectives,
+        IHasDirectives hasDirectives,
         string directiveName)
     {
         var directive = hasDirectives.Directives.FirstOrDefault(
@@ -284,7 +280,7 @@ public static class SchemaHelper
     }
 
     private static bool TryGetKeys(
-        HotChocolate.Language.IHasDirectives directives,
+        IHasDirectives directives,
         [NotNullWhen(true)] out SelectionSetNode? selectionSet)
     {
         var directive = directives.Directives.FirstOrDefault(IsKeyDirective);
@@ -322,9 +318,9 @@ public static class SchemaHelper
         string runtimeType,
         string serializationType = TypeNames.String)
     {
-        if (!leafTypes.TryGetValue(typeName, out var leafType))
+        if (!leafTypes.ContainsKey(typeName))
         {
-            leafType = new LeafTypeInfo(typeName, runtimeType, serializationType);
+            var leafType = new LeafTypeInfo(typeName, runtimeType, serializationType);
             leafTypes.Add(typeName, leafType);
         }
     }

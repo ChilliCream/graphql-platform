@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
@@ -7,7 +8,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public record OperationExecutionNode : ExecutionNode
+public sealed record OperationExecutionNode : ExecutionNode
 {
     public OperationExecutionNode(
         int id,
@@ -29,8 +30,7 @@ public record OperationExecutionNode : ExecutionNode
         // and optimize request serialization.
         Span<byte> hash = stackalloc byte[16];
         var length = MD5.HashData(Encoding.UTF8.GetBytes(operation.ToString()), hash);
-        hash = hash[..length];
-        OperationId = Convert.ToHexString(hash);
+        OperationId = Convert.ToHexString(hash[..length]);
 
         var variables = ImmutableArray.CreateBuilder<string>();
 
@@ -93,9 +93,9 @@ public record OperationExecutionNode : ExecutionNode
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var variables = context.TryCreateVariables(Target, Variables, Requirements);
+        var variables = context.CreateVariableValueSets(Target, Variables, Requirements);
 
-        if (variables is null)
+        if (variables.Length == 0 && (Requirements.Length > 0 || Variables.Length > 0))
         {
             return new ExecutionStatus(Id, IsSkipped: true);
         }
@@ -104,18 +104,42 @@ public record OperationExecutionNode : ExecutionNode
         {
             OperationId = OperationId,
             Operation = Operation,
-            Variables = variables.Value
+            Variables = variables
         };
 
-        var client = context.GetClient(SchemaName);
-        var response = await client.ExecuteAsync(request, cancellationToken);
+        var client = context.GetClient(SchemaName, Operation.Operation);
+        var response = await client.ExecuteAsync(context, request, cancellationToken);
 
         if (response.IsSuccessful)
         {
-            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
+            var index = 0;
+            var bufferLength = variables.Length > 1 ? variables.Length : 1;
+            var buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
+
+            try
             {
-                var fetchResult = FetchResult.From(this, result);
-                context.ResultStore.AddResult(fetchResult);
+                await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
+                {
+                    buffer[index++] = result;
+                }
+
+                context.AddPartialResults(Source, buffer.AsSpan(0, index));
+            }
+            catch
+            {
+                // if there is an error, we need to make sure that the pooled buffers for the JsonDocuments
+                // are returned to the pool.
+                foreach (var result in buffer.AsSpan(0, index))
+                {
+                    result?.Dispose();
+                }
+
+                throw;
+            }
+            finally
+            {
+                buffer.AsSpan(0, index).Clear();
+                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
             }
         }
 

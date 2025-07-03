@@ -2,14 +2,14 @@ using System.Text;
 
 namespace StrawberryShake.Transport.WebSockets.Protocols;
 
-public class GraphQlWsSocketWriterExtensionTests
+public class GraphQLWebSocketWriterExtensionTests
 {
     [Fact]
     public async Task WriteStartOperationMessage_WithOperation_IsMatch()
     {
         // arrange
         await using var writer = new SocketMessageWriter();
-        var operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
+        const string operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
         var request = new OperationRequest("Foo",
             GetHeroQueryDocument.Instance,
             new Dictionary<string, object?>() { { "Var1", "Value1" } });
@@ -43,7 +43,7 @@ public class GraphQlWsSocketWriterExtensionTests
     {
         // arrange
         await using var writer = new SocketMessageWriter();
-        var operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
+        const string operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
 
         // act
         var ex =
@@ -58,7 +58,7 @@ public class GraphQlWsSocketWriterExtensionTests
     {
         // arrange
         await using var writer = new SocketMessageWriter();
-        var operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
+        const string operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
 
         // act
         writer.WriteStopOperationMessage(operationId);

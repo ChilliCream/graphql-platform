@@ -94,7 +94,7 @@ internal sealed class DocumentCacheMiddleware
             // The hash and the documentId can differ if the id is not a hash or
             // if the hash algorithm is different from the one that Hot Chocolate uses internally.
             // In case they differ, we just add another lookup to the cache.
-            if(!documentInfo.Hash.IsEmpty
+            if (!documentInfo.Hash.IsEmpty
                 && !documentInfo.Id.Value.Equals(documentInfo.Hash.Value, StringComparison.Ordinal))
             {
                 _documentCache.TryAddDocument(

@@ -32,7 +32,7 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
 
         foreach (var fieldDef in typeDef.Fields)
         {
-            if((fieldDef.Flags & CoreFieldFlags.WithRequirements) == CoreFieldFlags.WithRequirements)
+            if ((fieldDef.Flags & CoreFieldFlags.WithRequirements) == CoreFieldFlags.WithRequirements)
             {
                 var fieldCoordinate = new SchemaCoordinate(
                     typeDef.Name,
