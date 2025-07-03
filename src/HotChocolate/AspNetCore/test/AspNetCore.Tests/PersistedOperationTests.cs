@@ -24,7 +24,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
         storage.AddOperation(key.Value, query);
 
@@ -50,7 +50,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
         // we are not adding the query to the store so the server request should fail
         // storage.AddOperation(key, query);
@@ -78,7 +78,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
         storage.AddOperation(key.Value, query);
 
@@ -105,7 +105,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
         storage.AddOperation(key.Value, query);
 
@@ -132,7 +132,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
         storage.AddOperation(key.Value, query);
 
@@ -162,7 +162,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
         storage.AddOperation(key.Value, query);
 
@@ -188,7 +188,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
         // we are not adding the query to the store so the server request should fail
         // storage.AddOperation(key, query);
@@ -216,7 +216,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
         storage.AddOperation(key.Value, query);
 
@@ -243,7 +243,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
         storage.AddOperation(key.Value, query);
 
@@ -268,7 +268,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
 
         // act
         var result = await server.PostAsync(
@@ -292,7 +292,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
 
         // act
         var result = await server.PostAsync(
@@ -319,7 +319,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "query GetHeroName { hero { name } }";
+        const string query = "query GetHeroName { hero { name } }";
 
         // act
         var result = await server.PostAsync(
@@ -350,7 +350,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "query GetHeroName { hero { name } }";
+        const string query = "query GetHeroName { hero { name } }";
 
         // act
         var result = await server.PostAsync(
@@ -381,7 +381,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
 
         // act
         var result = await server.PostAsync(
@@ -409,7 +409,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
                 .UsePersistedOperationPipeline()
                 .AddHttpRequestInterceptor<AllowNonPersistedOperationInterceptor>());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
 
         // act
         var result = await server.PostAsync(

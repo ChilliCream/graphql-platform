@@ -33,7 +33,7 @@ public class ClientDescriptorMapperTests
             }");
 
         // act
-        var clientName = "FooClient";
+        const string clientName = "FooClient";
         var context = new MapperContext(
             "Foo.Bar",
             clientName,

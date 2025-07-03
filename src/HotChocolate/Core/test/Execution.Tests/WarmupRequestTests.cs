@@ -17,7 +17,7 @@ public class WarmupRequestTests
             .AddQueryType<Query>()
             .BuildRequestExecutorAsync();
 
-        var documentId = "f614e9a2ed367399e87751d41ca09105";
+        const string documentId = "f614e9a2ed367399e87751d41ca09105";
         var warmupRequest = OperationRequestBuilder.New()
             .SetDocument("query test($name: String!) { greeting(name: $name) }")
             .SetDocumentId(documentId)
@@ -72,7 +72,7 @@ public class WarmupRequestTests
             .UsePersistedOperationPipeline()
             .BuildRequestExecutorAsync();
 
-        var documentId = "f614e9a2ed367399e87751d41ca09105";
+        const string documentId = "f614e9a2ed367399e87751d41ca09105";
         var warmupRequest = OperationRequestBuilder.New()
             .SetDocument("query test($name: String!) { greeting(name: $name) }")
             .SetDocumentId(documentId)

@@ -101,7 +101,7 @@ public class DefaultInMemoryClientBuilderTests
     public async Task CreateClientAsync_SchemaNameSet_CreateExecutorForSchema()
     {
         // arrange
-        var nameString = "FooBar";
+        const string nameString = "FooBar";
         var executor = new Mock<IRequestExecutor>().Object;
         Mock<IRequestExecutorProvider> executorResolverMock = new();
         var executorResolver = executorResolverMock.Object;
