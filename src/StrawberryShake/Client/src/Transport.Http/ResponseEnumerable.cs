@@ -1,6 +1,6 @@
+using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using HotChocolate.Buffers;
 using HotChocolate.Transport.Http;
 using StrawberryShake.Internal;
 using static StrawberryShake.Properties.Resources;
@@ -88,8 +88,8 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
             return null;
         }
 
-        using var buffer = new PooledArrayWriter();
-        using var writer = new Utf8JsonWriter(buffer);
+        var pipe = new Pipe();
+        using var writer = new Utf8JsonWriter(pipe.Writer);
 
         writer.WriteStartObject();
         WriteProperty(writer, "data", result.Data);
@@ -111,8 +111,9 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         writer.WriteEndObject();
 
         writer.Flush();
+        pipe.Writer.Complete();
 
-        return JsonDocument.Parse(buffer.GetWrittenMemory());
+        return JsonDocument.Parse(pipe.Reader.AsStream());
     }
 
     private static void WriteProperty(Utf8JsonWriter writer, string propertyName, JsonElement value)
