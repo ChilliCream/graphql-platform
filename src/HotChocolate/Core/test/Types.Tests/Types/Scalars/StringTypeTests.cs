@@ -14,7 +14,7 @@ public class StringTypeTests
         var kind = type.Kind;
 
         // assert
-        Assert.Equal(TypeKind.Scalar, type.Kind);
+        Assert.Equal(TypeKind.Scalar, kind);
     }
 
     [Fact]
