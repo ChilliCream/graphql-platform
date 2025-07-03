@@ -11,6 +11,7 @@ public class RedisOperationDocumentStorage : IOperationDocumentStorage
 {
     private readonly IDatabase _database;
     private readonly TimeSpan? _expiration;
+    private readonly string? _cacheKeyPrefix;
 
     /// <summary>
     /// Initializes a new instance of the class.
@@ -19,10 +20,14 @@ public class RedisOperationDocumentStorage : IOperationDocumentStorage
     /// <param name="expiration">
     /// A time span after which an operation document will be removed from the cache.
     /// </param>
-    public RedisOperationDocumentStorage(IDatabase database, TimeSpan? expiration = null)
+    /// <param name="cacheKeyPrefix">
+    /// An optional prefix for the cache keys used to store operation documents.
+    /// </param>
+    public RedisOperationDocumentStorage(IDatabase database, TimeSpan? expiration = null, string? cacheKeyPrefix = null)
     {
         _database = database ?? throw new ArgumentNullException(nameof(database));
         _expiration = expiration;
+        _cacheKeyPrefix = cacheKeyPrefix;
     }
 
     /// <inheritdoc />
@@ -40,7 +45,7 @@ public class RedisOperationDocumentStorage : IOperationDocumentStorage
 
     private async ValueTask<IOperationDocument?> TryReadInternalAsync(OperationDocumentId documentId)
     {
-        var buffer = (byte[]?)await _database.StringGetAsync(documentId.Value).ConfigureAwait(false);
+        var buffer = (byte[]?)await _database.StringGetAsync(GetCacheKey(documentId.Value)).ConfigureAwait(false);
         return buffer is null ? null : new OperationDocument(Utf8GraphQLParser.Parse(buffer));
     }
 
@@ -65,8 +70,23 @@ public class RedisOperationDocumentStorage : IOperationDocumentStorage
         IOperationDocument document)
     {
         var promise = _expiration.HasValue
-            ? _database.StringSetAsync(documentId.Value, document.ToArray(), _expiration.Value)
-            : _database.StringSetAsync(documentId.Value, document.ToArray());
+            ? _database.StringSetAsync(GetCacheKey(documentId.Value), document.ToArray(), _expiration.Value)
+            : _database.StringSetAsync(GetCacheKey(documentId.Value), document.ToArray());
         await promise.ConfigureAwait(false);
+    }
+
+    private string GetCacheKey(string documentId)
+    {
+        if (string.IsNullOrEmpty(documentId))
+        {
+            throw new ArgumentNullException(nameof(documentId));
+        }
+
+        if (string.IsNullOrEmpty(_cacheKeyPrefix))
+        {
+            return documentId;
+        }
+
+        return $"{_cacheKeyPrefix}:{{{documentId}}}";
     }
 }

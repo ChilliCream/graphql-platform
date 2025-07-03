@@ -23,10 +23,15 @@ public static class HotChocolateRedisPersistedOperationsServiceCollectionExtensi
     /// <param name="queryExpiration">
     /// A timeout after which an operation document is removed from the Redis cache.
     /// </param>
+    /// <param name="cacheKeyPrefix">
+    /// An optional prefix for the cache keys used to store operation documents.
+    /// This can be useful to avoid key collisions when multiple applications share the same Redis instance.
+    /// </param>
     public static IServiceCollection AddRedisOperationDocumentStorage(
         this IServiceCollection services,
         Func<IServiceProvider, IDatabase> databaseFactory,
-        TimeSpan? queryExpiration = null)
+        TimeSpan? queryExpiration = null,
+        string? cacheKeyPrefix = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(databaseFactory);
@@ -34,7 +39,7 @@ public static class HotChocolateRedisPersistedOperationsServiceCollectionExtensi
         return services
             .RemoveService<IOperationDocumentStorage>()
             .AddSingleton<IOperationDocumentStorage>(
-                sp => new RedisOperationDocumentStorage(databaseFactory(sp), queryExpiration));
+                sp => new RedisOperationDocumentStorage(databaseFactory(sp), queryExpiration, cacheKeyPrefix));
     }
 
     private static IServiceCollection RemoveService<TService>(

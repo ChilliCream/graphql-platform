@@ -22,10 +22,14 @@ public static class HotChocolateRedisPersistedOperationsRequestExecutorBuilderEx
     /// <param name="queryExpiration">
     /// A timeout after which an operation document is removed from the Redis cache.
     /// </param>
+    /// <param name="cacheKeyPrefix">
+    /// An optional prefix for the cache keys used to store operation documents.
+    /// </param>
     public static IRequestExecutorBuilder AddRedisOperationDocumentStorage(
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, IDatabase> databaseFactory,
-        TimeSpan? queryExpiration = null)
+        TimeSpan? queryExpiration = null,
+        string? cacheKeyPrefix = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(databaseFactory);
@@ -33,7 +37,8 @@ public static class HotChocolateRedisPersistedOperationsRequestExecutorBuilderEx
         return builder.ConfigureSchemaServices(
             s => s.AddRedisOperationDocumentStorage(
                 sp => databaseFactory(sp.GetCombinedServices()),
-                queryExpiration));
+                queryExpiration,
+                cacheKeyPrefix));
     }
 
     /// <summary>
@@ -48,10 +53,14 @@ public static class HotChocolateRedisPersistedOperationsRequestExecutorBuilderEx
     /// <param name="queryExpiration">
     /// A timeout after which an operation document is removed from the Redis cache.
     /// </param>
+    /// <param name="cacheKeyPrefix">
+    /// An optional prefix for the cache keys used to store operation documents.
+    /// </param>
     public static IRequestExecutorBuilder AddRedisOperationDocumentStorage(
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, IConnectionMultiplexer> multiplexerFactory,
-        TimeSpan? queryExpiration = null)
+        TimeSpan? queryExpiration = null,
+        string? cacheKeyPrefix = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(multiplexerFactory);
@@ -59,7 +68,8 @@ public static class HotChocolateRedisPersistedOperationsRequestExecutorBuilderEx
         return builder.ConfigureSchemaServices(
             s => s.AddRedisOperationDocumentStorage(
                 sp => multiplexerFactory(sp.GetCombinedServices()).GetDatabase(),
-                queryExpiration));
+                queryExpiration,
+                cacheKeyPrefix));
     }
 
     /// <summary>
@@ -73,14 +83,19 @@ public static class HotChocolateRedisPersistedOperationsRequestExecutorBuilderEx
     /// <param name="queryExpiration">
     /// A timeout after which an operation document is removed from the Redis cache.
     /// </param>
+    /// <param name="cacheKeyPrefix">
+    /// An optional prefix for the cache keys used to store operation documents.
+    /// </param>
     public static IRequestExecutorBuilder AddRedisOperationDocumentStorage(
         this IRequestExecutorBuilder builder,
-        TimeSpan? queryExpiration = null)
+        TimeSpan? queryExpiration = null,
+        string? cacheKeyPrefix = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
         return builder.AddRedisOperationDocumentStorage(
             sp => sp.GetRequiredService<IConnectionMultiplexer>(),
-            queryExpiration);
+            queryExpiration,
+            cacheKeyPrefix);
     }
 }
