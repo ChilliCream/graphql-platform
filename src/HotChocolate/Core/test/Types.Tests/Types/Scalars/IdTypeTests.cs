@@ -124,7 +124,7 @@ public class IdTypeTests
     {
         // arrange
         var type = new IdType();
-        var input = "123456";
+        const string input = "123456";
 
         // act
         var serializedValue = type.Serialize(input);
@@ -152,7 +152,7 @@ public class IdTypeTests
     {
         // arrange
         var type = new IdType();
-        var serialized = "123456";
+        const string serialized = "123456";
 
         // act
         var success = type.TryDeserialize(serialized, out var value);
@@ -175,7 +175,7 @@ public class IdTypeTests
             .Create()
             .Types
             .GetType<IdType>("ID");
-        var serialized = 123456;
+        const int serialized = 123456;
 
         // act
         var success = type.TryDeserialize(serialized, out var value);
@@ -204,7 +204,7 @@ public class IdTypeTests
     {
         // arrange
         var type = new IdType();
-        var serialized = 1.1f;
+        const float serialized = 1.1f;
 
         // act
         var success = type.TryDeserialize(serialized, out _);

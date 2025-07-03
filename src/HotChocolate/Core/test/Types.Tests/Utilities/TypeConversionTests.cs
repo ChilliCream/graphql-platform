@@ -95,7 +95,7 @@ public class TypeConverterTests
     public void Convert_Int_NullableLong()
     {
         // arrange
-        var source = 55;
+        const int source = 55;
 
         // act
         var success = DefaultTypeConverter.Default.TryConvert(

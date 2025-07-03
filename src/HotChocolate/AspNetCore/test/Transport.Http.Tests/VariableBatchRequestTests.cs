@@ -66,7 +66,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         var httpClient = testServer.CreateClient();
         var client = new DefaultGraphQLHttpClient(httpClient);
 
-        var query =
+        const string query =
             """
             query($episode: Episode!) {
               hero(episode: $episode) {
@@ -126,7 +126,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         var httpClient = testServer.CreateClient();
         var client = new DefaultGraphQLHttpClient(httpClient);
 
-        var query =
+        const string query =
             """
             query($episode: Episode!) {
               hero(episode: $episode) {
@@ -211,7 +211,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         var httpClient = testServer.CreateClient();
         var client = new DefaultGraphQLHttpClient(httpClient);
 
-        var query =
+        const string query =
             """
             query($episode: Episode!) {
               hero(episode: $episode) {

@@ -244,6 +244,8 @@ dotnet_diagnostic.RCS0063.severity = warning
 dotnet_diagnostic.RCS1036.severity = none # see https://github.com/dotnet/roslynator/issues/1632
 # Remove redundant 'ToString' call.
 dotnet_diagnostic.RCS1097.severity = warning
+# Mark local variable as const.
+dotnet_diagnostic.RCS1118.severity = warning
 # Abstract type should not have public constructors.
 dotnet_diagnostic.RCS1160.severity = warning
 # Use constant instead of field.

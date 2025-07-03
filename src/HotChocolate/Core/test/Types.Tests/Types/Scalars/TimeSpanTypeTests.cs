@@ -61,7 +61,7 @@ public class TimeSpanTypeTests
         // arrange
         var timeSpanType = new TimeSpanType();
         var timeSpan = TimeSpan.FromMinutes(5);
-        var expectedValue = "PT5M";
+        const string expectedValue = "PT5M";
 
         // act
         var serializedValue = (string)timeSpanType.Serialize(timeSpan);
