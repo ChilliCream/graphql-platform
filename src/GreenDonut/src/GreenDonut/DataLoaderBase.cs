@@ -30,7 +30,11 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     private readonly int _maxBatchSize;
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
     private ImmutableDictionary<string, IDataLoader> _branches =
+#if NET10_0_OR_GREATER
+        [];
+#else
         ImmutableDictionary<string, IDataLoader>.Empty;
+#endif
     private Batch<TKey>? _currentBatch;
 
     /// <summary>

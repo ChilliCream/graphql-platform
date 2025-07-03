@@ -76,7 +76,11 @@ public sealed class OperationResultBuilder
         }
         else if (extensions is not null)
         {
+#if NET9_0_OR_GREATER
             _extensionData = new OrderedDictionary<string, object?>(extensions);
+#else
+            _extensionData = [];
+#endif
         }
         else
         {
@@ -188,7 +192,11 @@ public sealed class OperationResultBuilder
         }
         else if (result.Extensions is not null)
         {
+#if NET9_0_OR_GREATER
             builder._extensionData = new OrderedDictionary<string, object?>(result.Extensions);
+#else
+            builder._extensionData = [];
+#endif
         }
 
         if (result.ContextData is Dictionary<string, object?> cd)
