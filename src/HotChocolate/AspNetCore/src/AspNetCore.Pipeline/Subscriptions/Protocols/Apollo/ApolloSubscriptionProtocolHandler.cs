@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 using static HotChocolate.AspNetCore.Properties.AspNetCorePipelineResources;

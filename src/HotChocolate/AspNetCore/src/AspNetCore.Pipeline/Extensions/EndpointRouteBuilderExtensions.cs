@@ -3,9 +3,13 @@ using ChilliCream.Nitro.App;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using static Microsoft.AspNetCore.Routing.Patterns.RoutePatternFactory;
+using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.AspNetCore.Builder;
@@ -107,16 +111,22 @@ public static class EndpointRouteBuilderExtensions
         string schemaName)
     {
         ArgumentNullException.ThrowIfNull(applicationBuilder);
+        ArgumentException.ThrowIfNullOrEmpty(schemaName);
 
         path = path.ToString().TrimEnd('/');
 
+        var executorProvider = applicationBuilder.ApplicationServices.GetRequiredService<IRequestExecutorProvider>();
+        var executorEvents = applicationBuilder.ApplicationServices.GetRequiredService<IRequestExecutorEvents>();
+        var formOptions = applicationBuilder.ApplicationServices.GetRequiredService<IOptions<FormOptions>>();
+        var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaName);
+
         applicationBuilder
             .UseCancellation()
-            .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaName)
-            .UseMiddleware<HttpPostMiddleware>(schemaName)
-            .UseMiddleware<HttpMultipartMiddleware>(schemaName)
-            .UseMiddleware<HttpGetMiddleware>(schemaName)
-            .UseMiddleware<HttpGetSchemaMiddleware>(schemaName, path, MiddlewareRoutingType.Integrated)
+            .Use(CreateWebSocketSubscriptionMiddleware(executor))
+            .Use(CreateHttpPostMiddleware(executor))
+            .Use(CreateHttpMultipartMiddleware(executor, formOptions))
+            .Use(CreateHttpGetMiddleware(executor))
+            .Use(CreateHttpGetSchemaMiddleware(executor, path, MiddlewareRoutingType.Integrated))
             .UseNitroApp(path)
             .Use(_ => context =>
             {
@@ -182,11 +192,16 @@ public static class EndpointRouteBuilderExtensions
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
 
+        var executorProvider = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorProvider>();
+        var executorEvents = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorEvents>();
+        var formOptions = endpointRouteBuilder.ServiceProvider.GetRequiredService<IOptions<FormOptions>>();
+        var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaNameOrDefault);
+
         requestPipeline
             .UseCancellation()
-            .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
+            .Use(CreateHttpPostMiddleware(executor))
+            .Use(CreateHttpMultipartMiddleware(executor, formOptions))
+            .Use(CreateHttpGetMiddleware(executor))
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -254,9 +269,13 @@ public static class EndpointRouteBuilderExtensions
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
 
+        var executorProvider = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorProvider>();
+        var executorEvents = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorEvents>();
+        var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaNameOrDefault);
+
         requestPipeline
             .UseCancellation()
-            .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
+            .Use(CreateWebSocketSubscriptionMiddleware(executor))
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -326,12 +345,13 @@ public static class EndpointRouteBuilderExtensions
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
 
+        var executorProvider = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorProvider>();
+        var executorEvents = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorEvents>();
+        var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaNameOrDefault);
+
         requestPipeline
             .UseCancellation()
-            .UseMiddleware<HttpGetSchemaMiddleware>(
-                schemaNameOrDefault,
-                PathString.Empty,
-                MiddlewareRoutingType.Explicit)
+            .Use(CreateHttpGetSchemaMiddleware(executor, PathString.Empty, MiddlewareRoutingType.Explicit))
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -564,6 +584,59 @@ public static class EndpointRouteBuilderExtensions
                 // we just catch cancellations here and do nothing.
             }
         });
+
+    private static Func<RequestDelegate, RequestDelegate> CreateWebSocketSubscriptionMiddleware(
+        HttpRequestExecutorProxy executor)
+    {
+        return next => context =>
+        {
+            var middleware = new WebSocketSubscriptionMiddleware(next, executor);
+            return middleware.InvokeAsync(context);
+        };
+    }
+
+    private static Func<RequestDelegate, RequestDelegate> CreateHttpPostMiddleware(
+        HttpRequestExecutorProxy executor)
+    {
+        return next => context =>
+        {
+            var middleware = new HttpPostMiddleware(next, executor);
+            return middleware.InvokeAsync(context);
+        };
+    }
+
+    private static Func<RequestDelegate, RequestDelegate> CreateHttpMultipartMiddleware(
+        HttpRequestExecutorProxy executor,
+        IOptions<FormOptions> formOptions)
+    {
+        return next => context =>
+        {
+            var middleware = new HttpMultipartMiddleware(next, executor, formOptions);
+            return middleware.InvokeAsync(context);
+        };
+    }
+
+    private static Func<RequestDelegate, RequestDelegate> CreateHttpGetMiddleware(
+        HttpRequestExecutorProxy executor)
+    {
+        return next => context =>
+        {
+            var middleware = new HttpGetMiddleware(next, executor);
+            return middleware.InvokeAsync(context);
+        };
+    }
+
+    private static Func<RequestDelegate, RequestDelegate> CreateHttpGetSchemaMiddleware(
+        HttpRequestExecutorProxy executor,
+        PathString path,
+        MiddlewareRoutingType routingType)
+    {
+        return next => context =>
+        {
+            var middleware = new HttpGetSchemaMiddleware(next, executor, path, routingType);
+            return middleware.InvokeAsync(context);
+        };
+    }
 
     internal static NitroAppOptions ToNitroAppOptions(this GraphQLToolOptions options)
         => new()

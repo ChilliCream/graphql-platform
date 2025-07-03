@@ -52,7 +52,7 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
     /// <summary>
     /// Specifies if this executor serves up the default schema.
     /// </summary>
-    public bool IsDefaultSchema => SchemaName.Equals(ISchemaDefinition.DefaultName, StringComparison.Ordinal);
+    public bool IsDefaultSchema => _schemaName.Equals(ISchemaDefinition.DefaultName, StringComparison.Ordinal);
 
     /// <summary>
     /// Gets the current request executor.

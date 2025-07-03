@@ -1,5 +1,5 @@
 using System.Text.Json;
-using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.Buffers;
 

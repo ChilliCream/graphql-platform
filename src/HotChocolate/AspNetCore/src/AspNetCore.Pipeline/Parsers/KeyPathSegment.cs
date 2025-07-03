@@ -1,4 +1,4 @@
-namespace HotChocolate.AspNetCore.Serialization;
+namespace HotChocolate.AspNetCore.Parsers;
 
 internal class KeyPathSegment : IVariablePathSegment
 {

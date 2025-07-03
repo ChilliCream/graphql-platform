@@ -1,7 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Transport.Formatters;
 
-namespace HotChocolate.AspNetCore.Serialization;
+namespace HotChocolate.AspNetCore.Formatters;
 
 /// <summary>
 /// This represents the default implementation for the <see cref="IWebSocketPayloadFormatter" />.

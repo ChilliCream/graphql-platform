@@ -1,7 +1,7 @@
 using HotChocolate.Collections.Immutable;
 using static HotChocolate.AspNetCore.Properties.AspNetCorePipelineResources;
 
-namespace HotChocolate.AspNetCore;
+namespace HotChocolate.AspNetCore.Utilities;
 
 /// <summary>
 /// An internal helper class that centralizes server errors.

@@ -2,13 +2,14 @@
 
 using System.Buffers;
 using System.Text;
+using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
-using static HotChocolate.AspNetCore.ThrowHelper;
+using static HotChocolate.AspNetCore.Utilities.ThrowHelper;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
-namespace HotChocolate.AspNetCore.Serialization;
+namespace HotChocolate.AspNetCore.Parsers;
 
 internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 {
@@ -56,18 +57,21 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
         try
         {
+            const int chunkSize = 256;
             using var writer = new PooledArrayWriter();
             var read = 0;
 
             do
             {
-                read = await requestBody.ReadAsync(writer.GetMemory(256), cancellationToken).ConfigureAwait(false);
+                var memory = writer.GetMemory(chunkSize);
+                read = await requestBody.ReadAsync(memory, cancellationToken).ConfigureAwait(false);
+                writer.Advance(read);
 
                 if (_maxRequestSize < writer.Length)
                 {
                     throw DefaultHttpRequestParser_MaxRequestSizeExceeded();
                 }
-            } while (read > 0);
+            } while (read == chunkSize);
 
             if (writer.Length == 0)
             {
@@ -253,18 +257,21 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
     {
         try
         {
+            const int chunkSize = 256;
             using var writer = new PooledArrayWriter();
-            var read = 0;
+            int read;
 
             do
             {
-                read = await stream.ReadAsync(writer.GetMemory(256), cancellationToken).ConfigureAwait(false);
+                var memory = writer.GetMemory(chunkSize);
+                read = await stream.ReadAsync(memory, cancellationToken).ConfigureAwait(false);
+                writer.Advance(read);
 
                 if (_maxRequestSize < writer.Length)
                 {
                     throw DefaultHttpRequestParser_MaxRequestSizeExceeded();
                 }
-            } while (read > 0);
+            } while (read == chunkSize);
 
             if (writer.Length == 0)
             {

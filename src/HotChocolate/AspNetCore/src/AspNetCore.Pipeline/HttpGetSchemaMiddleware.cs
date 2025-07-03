@@ -2,7 +2,7 @@ using System.Text;
 using HotChocolate.AspNetCore.Instrumentation;
 using Microsoft.AspNetCore.Http;
 using static System.Net.HttpStatusCode;
-using static HotChocolate.AspNetCore.ErrorHelper;
+using static HotChocolate.AspNetCore.Utilities.ErrorHelper;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;

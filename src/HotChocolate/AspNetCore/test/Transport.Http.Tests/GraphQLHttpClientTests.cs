@@ -740,8 +740,8 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var server = ServerFactory.Create(
             services => services
                 .AddRouting()
-                .AddHttpResponseFormatter()
                 .AddGraphQLServer()
+                .AddHttpResponseFormatter()
                 .AddQueryType(desc =>
                 {
                     desc.Name("Query");

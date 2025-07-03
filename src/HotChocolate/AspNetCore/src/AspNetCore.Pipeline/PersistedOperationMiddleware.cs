@@ -1,4 +1,5 @@
 using System.Net;
+using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;

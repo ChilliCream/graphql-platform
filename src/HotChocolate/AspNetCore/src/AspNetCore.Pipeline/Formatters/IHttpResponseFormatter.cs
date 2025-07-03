@@ -1,7 +1,7 @@
 using System.Net;
 using Microsoft.AspNetCore.Http;
 
-namespace HotChocolate.AspNetCore.Serialization;
+namespace HotChocolate.AspNetCore.Formatters;
 
 /// <summary>
 /// This interface specifies how a GraphQL result is formatted to a HTTP response.

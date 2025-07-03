@@ -4,7 +4,7 @@ using System.Net;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 
-namespace HotChocolate.AspNetCore;
+namespace HotChocolate.AspNetCore.Utilities;
 
 internal static class MiddlewareHelper
 {

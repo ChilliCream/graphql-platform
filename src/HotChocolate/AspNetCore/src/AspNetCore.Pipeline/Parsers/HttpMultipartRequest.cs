@@ -1,4 +1,4 @@
-namespace HotChocolate.AspNetCore;
+namespace HotChocolate.AspNetCore.Parsers;
 
 internal sealed class HttpMultipartRequest(string operations, IDictionary<string, IFile> fileMap)
 {

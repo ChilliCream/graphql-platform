@@ -11,75 +11,6 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 public class OperationManagerTests
 {
     [Fact]
-    public async Task Enqueue_SessionId_Is_Null()
-    {
-        // arrange
-        var executor =
-            await new ServiceCollection()
-                .AddGraphQLServer()
-                .AddStarWars()
-                .BuildRequestExecutorAsync();
-
-        var session = new Mock<ISocketSession>();
-        var interceptor = new Mock<ISocketSessionInterceptor>();
-        var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
-
-        // act
-        void Action() => subscriptions.Enqueue(null!, new GraphQLRequest(null, documentId: "123"));
-
-        // assert
-        Assert.Equal(
-            "sessionId",
-            Assert.Throws<ArgumentNullException>(Action).ParamName);
-    }
-
-    [Fact]
-    public async Task Enqueue_SessionId_Is_Empty()
-    {
-        // arrange
-        var executor =
-            await new ServiceCollection()
-                .AddGraphQLServer()
-                .AddStarWars()
-                .BuildRequestExecutorAsync();
-
-        var session = new Mock<ISocketSession>();
-        var interceptor = new Mock<ISocketSessionInterceptor>();
-        var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
-
-        // act
-        void Action() => subscriptions.Enqueue("", new GraphQLRequest(null, documentId: "123"));
-
-        // assert
-        Assert.Equal(
-            "sessionId",
-            Assert.Throws<ArgumentException>(Action).ParamName);
-    }
-
-    [Fact]
-    public async Task Enqueue_Request_Is_Null()
-    {
-        // arrange
-        var executor =
-            await new ServiceCollection()
-                .AddGraphQLServer()
-                .AddStarWars()
-                .BuildRequestExecutorAsync();
-
-        var session = new Mock<ISocketSession>();
-        var interceptor = new Mock<ISocketSessionInterceptor>();
-        var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
-
-        // act
-        void Action() => subscriptions.Enqueue("abc", null!);
-
-        // assert
-        Assert.Equal(
-            "request",
-            Assert.Throws<ArgumentNullException>(Action).ParamName);
-    }
-
-    [Fact]
     public async Task Enqueue_On_Disposed_Manager()
     {
         // arrange
@@ -94,18 +25,15 @@ public class OperationManagerTests
         var mockSession = new Mock<IOperationSession>();
         mockSession.SetupGet(t => t.Id).Returns("abc");
 
-        using var subscriptions = new OperationManager(
+        var subscriptions = new OperationManager(
             socketSession,
-            new DefaultSocketSessionInterceptor(),
-            executor,
-            _ => mockSession.Object);
-
-        var query = Utf8GraphQLParser.Parse(
-            "subscription { onReview(episode: NEW_HOPE) { stars } }");
-        var request = new GraphQLRequest(query);
+            new ExecutorSession(executor));
         subscriptions.Dispose();
 
         // act
+        var query = Utf8GraphQLParser.Parse(
+            "subscription { onReview(episode: NEW_HOPE) { stars } }");
+        var request = new GraphQLRequest(query);
         void Fail() => subscriptions.Enqueue("abc", request);
 
         // assert
@@ -129,9 +57,7 @@ public class OperationManagerTests
 
         using var subscriptions = new OperationManager(
             socketSession,
-            new DefaultSocketSessionInterceptor(),
-            executor,
-            _ => mockSession.Object);
+            new ExecutorSession(executor));
 
         var query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");
@@ -163,9 +89,7 @@ public class OperationManagerTests
 
         using var subscriptions = new OperationManager(
             socketSession,
-            new DefaultSocketSessionInterceptor(),
-            executor,
-            _ => mockSession.Object);
+            new ExecutorSession(executor));
 
         var query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");
@@ -201,9 +125,7 @@ public class OperationManagerTests
 
         using var subscriptions = new OperationManager(
             socketSession,
-            new DefaultSocketSessionInterceptor(),
-            executor,
-            _ => mockSession.Object);
+            new ExecutorSession(executor));
 
         var query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");
@@ -233,8 +155,7 @@ public class OperationManagerTests
                 .BuildRequestExecutorAsync();
 
         var session = new Mock<ISocketSession>();
-        var interceptor = new Mock<ISocketSessionInterceptor>();
-        var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
+        var subscriptions = new OperationManager(session.Object, new ExecutorSession(executor));
 
         // act
         void Action() => subscriptions.Complete(null!);
@@ -256,8 +177,7 @@ public class OperationManagerTests
                 .BuildRequestExecutorAsync();
 
         var session = new Mock<ISocketSession>();
-        var interceptor = new Mock<ISocketSessionInterceptor>();
-        var subscriptions = new OperationManager(session.Object, interceptor.Object, executor);
+        var subscriptions = new OperationManager(session.Object, new ExecutorSession(executor));
 
         // act
         void Action() => subscriptions.Complete("");
@@ -283,12 +203,9 @@ public class OperationManagerTests
         var mockSession = new Mock<IOperationSession>();
         mockSession.SetupGet(t => t.Id).Returns("abc");
 
-        using var subscriptions = new OperationManager(
+        var subscriptions = new OperationManager(
             socketSession,
-            new DefaultSocketSessionInterceptor(),
-            executor,
-            _ => mockSession.Object);
-
+            new ExecutorSession(executor));
         subscriptions.Dispose();
 
         // act
@@ -313,11 +230,9 @@ public class OperationManagerTests
         var mockSession = new Mock<IOperationSession>();
         mockSession.SetupGet(t => t.Id).Returns("abc");
 
-        using var subscriptions = new OperationManager(
+        var subscriptions = new OperationManager(
             socketSession,
-            new DefaultSocketSessionInterceptor(),
-            executor,
-            _ => mockSession.Object);
+            new ExecutorSession(executor));
 
         var query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");

@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 #endif
 using System.Text.Json;
-using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket.MessageProperties;

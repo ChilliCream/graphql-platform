@@ -31,7 +31,6 @@ public static class RequestExecutorServiceCollectionExtensions
 
         services.AddOptions();
 
-        services.TryAddSingleton<ITimeProvider, DefaultTimeProvider>();
         services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
         services.TryAddSingleton<DefaultRequestContextAccessor>();
         services.TryAddSingleton<IRequestContextAccessor>(sp => sp.GetRequiredService<DefaultRequestContextAccessor>());
@@ -161,6 +160,8 @@ public static class RequestExecutorServiceCollectionExtensions
         {
             builder.TryAddTypeInterceptor(_ => new SchemaNameTypeInterceptor(schemaName));
         }
+
+        builder.ConfigureSchemaServices(static s => s.TryAddSingleton<ITimeProvider, DefaultTimeProvider>());
 
         return builder;
     }

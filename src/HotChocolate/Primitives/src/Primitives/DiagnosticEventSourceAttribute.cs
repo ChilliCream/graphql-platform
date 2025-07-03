@@ -16,6 +16,8 @@ public class DiagnosticEventSourceAttribute : Attribute
     /// </param>
     public DiagnosticEventSourceAttribute(Type listener)
     {
+        ArgumentNullException.ThrowIfNull(listener, nameof(listener));
+
         Listener = listener;
     }
 

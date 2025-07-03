@@ -1,6 +1,7 @@
 using System.Net;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
-using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.AspNetCore.Parsers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;

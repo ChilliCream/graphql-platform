@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace HotChocolate.AspNetCore.Serialization;
+namespace HotChocolate.AspNetCore.Formatters;
 
 /// <summary>
 /// This interface specifies how a GraphQL result is formatted as a WebSocket payload.

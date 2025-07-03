@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Transport.Formatters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
@@ -12,7 +13,7 @@ using static HotChocolate.AspNetCore.AcceptMediaTypeKind;
 using static HotChocolate.Execution.ExecutionResultKind;
 using HttpStatusCode = System.Net.HttpStatusCode;
 
-namespace HotChocolate.AspNetCore.Serialization;
+namespace HotChocolate.AspNetCore.Formatters;
 
 /// <summary>
 /// This represents the default implementation for the <see cref="IHttpResponseFormatter" />

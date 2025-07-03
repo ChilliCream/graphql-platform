@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
 using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 using static HotChocolate.Execution.RequestFlags;

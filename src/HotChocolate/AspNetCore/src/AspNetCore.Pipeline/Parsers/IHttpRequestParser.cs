@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Http;
 using HotChocolate.Language;
+using Microsoft.AspNetCore.Http;
 
-namespace HotChocolate.AspNetCore.Serialization;
+namespace HotChocolate.AspNetCore.Parsers;
 
 /// <summary>
 /// A helper to parse GraphQL HTTP requests.

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace HotChocolate.AspNetCore;
+namespace HotChocolate.AspNetCore.Parsers;
 
 internal sealed class UploadedFile(IFormFile file) : IFile
 {

@@ -46,14 +46,17 @@ public class FileSystemOperationDocumentStorage : IOperationDocumentStorage
         string filePath,
         CancellationToken cancellationToken)
     {
+        const int chunkSize = 256;
         await using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
         using var writer = new PooledArrayWriter();
         var read = 0;
 
         do
         {
-            read = await stream.ReadAsync(writer.GetMemory(256), cancellationToken).ConfigureAwait(false);
-        } while (read > 0);
+            var memory = writer.GetMemory(chunkSize);
+            read = await stream.ReadAsync(memory, cancellationToken).ConfigureAwait(false);
+            writer.Advance(read);
+        } while (read == chunkSize);
 
         var document = Utf8GraphQLParser.Parse(writer.GetWrittenSpan());
         return new OperationDocument(document);

@@ -1,6 +1,6 @@
 using System.Net.WebSockets;
 using System.Text;
-using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.Buffers;

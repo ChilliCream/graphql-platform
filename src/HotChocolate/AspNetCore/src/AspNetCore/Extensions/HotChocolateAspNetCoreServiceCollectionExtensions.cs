@@ -1,8 +1,9 @@
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Formatters;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.ParameterExpressionBuilders;
-using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.AspNetCore.Parsers;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;

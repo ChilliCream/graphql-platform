@@ -6,7 +6,7 @@ namespace HotChocolate.AspNetCore.Instrumentation;
 /// <summary>
 /// Inherit form this class if you want to receive server diagnostic events.
 /// </summary>
-// TODO : [DiagnosticEventSource(typeof(IServerDiagnosticEventListener))]
+[DiagnosticEventSource(typeof(IServerDiagnosticEventListener))]
 public class ServerDiagnosticEventListener : IServerDiagnosticEventListener
 {
     /// <summary>

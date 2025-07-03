@@ -1,4 +1,6 @@
 using System.Net.WebSockets;
+using System.Text.Json;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
@@ -588,7 +590,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             IOperationMessagePayload connectionInitMessage,
             CancellationToken cancellationToken = default)
         {
-            var payload = connectionInitMessage.As<Auth>();
+            var payload = connectionInitMessage.Payload?.Deserialize<Auth>();
 
             if (payload?.Token is not null)
             {

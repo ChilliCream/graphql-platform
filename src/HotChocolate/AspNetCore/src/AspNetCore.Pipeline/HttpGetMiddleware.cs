@@ -1,7 +1,8 @@
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
-using static HotChocolate.AspNetCore.Serialization.DefaultHttpRequestParser;
+using HotChocolate.AspNetCore.Utilities;
+using static HotChocolate.AspNetCore.Parsers.DefaultHttpRequestParser;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;

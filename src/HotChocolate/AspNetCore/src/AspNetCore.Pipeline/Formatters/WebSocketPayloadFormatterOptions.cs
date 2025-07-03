@@ -1,6 +1,6 @@
 using HotChocolate.Transport.Formatters;
 
-namespace HotChocolate.AspNetCore.Serialization;
+namespace HotChocolate.AspNetCore.Formatters;
 
 /// <summary>
 /// Represents the GraphQL over WebSocket payload formatter options.

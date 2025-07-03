@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
-namespace HotChocolate.AspNetCore;
+namespace HotChocolate.AspNetCore.Utilities;
 
 /// <summary>
 /// Utilities for handling HTTP headers.
