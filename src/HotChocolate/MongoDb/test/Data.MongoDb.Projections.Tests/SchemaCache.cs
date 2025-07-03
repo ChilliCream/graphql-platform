@@ -22,9 +22,9 @@ public class SchemaCache(MongoResource resource) : ProjectionVisitorTestBase
             key,
             _ => CreateSchema(
                 entities,
+                mongoResource: resource,
                 usePaging: usePaging,
                 useOffsetPaging: useOffsetPaging,
-                mongoResource: resource,
                 objectType: objectType));
     }
 

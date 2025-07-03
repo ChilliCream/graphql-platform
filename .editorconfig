@@ -252,6 +252,8 @@ dotnet_diagnostic.RCS1118.severity = warning
 dotnet_diagnostic.RCS1160.severity = warning
 # Use constant instead of field.
 dotnet_diagnostic.RCS1187.severity = warning
+# Order named arguments according to the order of parameters.
+dotnet_diagnostic.RCS1205.severity = warning
 # Convert interpolated string to concatenation.
 dotnet_diagnostic.RCS1217.severity = warning
 # Unnecessary null-forgiving operator.

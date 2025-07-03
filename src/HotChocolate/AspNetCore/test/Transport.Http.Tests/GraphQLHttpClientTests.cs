@@ -347,11 +347,11 @@ public class GraphQLHttpClientTests : ServerTestBase
               }
             }
             """,
+            operationName: "B",
             variables: new Dictionary<string, object?>
             {
                 ["episode"] = "JEDI"
-            },
-            operationName: "B");
+            });
 
         var requestUri = new Uri(CreateUrl("/graphql"));
 
@@ -587,11 +587,11 @@ public class GraphQLHttpClientTests : ServerTestBase
               }
             }
             """,
+            operationName: "B",
             variables: new Dictionary<string, object?>
             {
                 ["episode"] = "JEDI"
-            },
-            operationName: "B");
+            });
 
         var requestUri = new Uri(CreateUrl("/graphql"));
 

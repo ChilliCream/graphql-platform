@@ -54,13 +54,13 @@ public class RequestExecutorResolverTests
         var manager = new ServiceCollection()
             .AddGraphQL()
             .InitializeOnStartup(
-                keepWarm: true,
                 warmup: (_, _) =>
                 {
                     warmupResetEvent.Wait(cts.Token);
 
                     return Task.CompletedTask;
-                })
+                },
+                keepWarm: true)
             .AddQueryType(d => d.Field("foo").Resolve(""))
             .Services.BuildServiceProvider()
             .GetRequiredService<RequestExecutorManager>();
@@ -107,12 +107,12 @@ public class RequestExecutorResolverTests
         var manager = new ServiceCollection()
             .AddGraphQL()
             .InitializeOnStartup(
-                keepWarm: keepWarm,
                 warmup: (_, _) =>
                 {
                     warmups++;
                     return Task.CompletedTask;
-                })
+                },
+                keepWarm: keepWarm)
             .AddQueryType(d => d.Field("foo").Resolve(""))
             .Services.BuildServiceProvider()
             .GetRequiredService<RequestExecutorManager>();
