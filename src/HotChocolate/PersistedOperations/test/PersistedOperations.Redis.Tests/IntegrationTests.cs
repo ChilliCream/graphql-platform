@@ -58,6 +58,46 @@ public class IntegrationTests : IClassFixture<RedisResource>
     }
 
     [Fact]
+    public async Task ExecutePersistedOperation_With_CacheKeyPrefix()
+    {
+        // arrange
+        const string cacheKeyPrefix = "test-prefix";
+        var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
+        var storage = new RedisOperationDocumentStorage(_database, cacheKeyPrefix: cacheKeyPrefix);
+
+        await storage.SaveAsync(
+            documentId,
+            new OperationDocumentSourceText("{ __typename }"));
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
+                .AddRedisOperationDocumentStorage(_ => _database, cacheKeyPrefix: cacheKeyPrefix)
+                .UseRequest((_, n) => async c =>
+                {
+                    await n(c);
+
+                    var documentInfo = c.OperationDocumentInfo;
+                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
+                    {
+                        c.Result = OperationResultBuilder
+                            .FromResult(r)
+                            .SetExtension("persistedDocument", true)
+                            .Build();
+                    }
+                })
+                .UsePersistedOperationPipeline()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task ExecutePersistedOperation_After_Expiration()
     {
         // arrange
