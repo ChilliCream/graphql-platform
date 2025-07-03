@@ -161,7 +161,7 @@ public class DataLoaderTests(ITestOutputHelper output)
     public async Task LoadParamsZeroKeys()
     {
         // arrange
-        var fetch = TestHelpers.CreateFetch<string, string>();
+        var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var keys = Array.Empty<string>();
@@ -179,8 +179,8 @@ public class DataLoaderTests(ITestOutputHelper output)
     public async Task LoadParamsResult()
     {
         // arrange
-        var fetch = TestHelpers
-            .CreateFetch<string, string>("Bar");
+        var fetch =
+            CreateFetch<string, string>("Bar");
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(fetch, batchScheduler, new DataLoaderOptions());
         var keys = new[] { "Foo" };

@@ -188,6 +188,8 @@ dotnet_diagnostic.CA1805.severity = warning
 dotnet_diagnostic.RCS1129.severity = none
 # Simplify name.
 dotnet_diagnostic.IDE0001.severity = warning
+# Simplify member access.
+dotnet_diagnostic.IDE0002.severity = warning
 # Remove unnecessary cast.
 dotnet_diagnostic.IDE0004.severity = warning
 # Remove unnecessary using directives.

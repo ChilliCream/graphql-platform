@@ -26,7 +26,7 @@ public abstract class FilterProviderExtensions<TContext>
         IConventionContext context,
         IFilterConvention convention)
     {
-        base.Initialize(context);
+        Initialize(context);
     }
 
     void IFilterProviderConvention.Complete(IConventionContext context)

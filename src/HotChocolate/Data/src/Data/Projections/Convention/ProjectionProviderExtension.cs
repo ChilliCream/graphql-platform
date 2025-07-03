@@ -22,7 +22,7 @@ public class ProjectionProviderExtension
 
     void IProjectionProviderConvention.Initialize(IConventionContext context)
     {
-        base.Initialize(context);
+        Initialize(context);
     }
 
     void IProjectionProviderConvention.Complete(IConventionContext context)
