@@ -24,7 +24,7 @@ public class OrderedDictionary<TKey, TValue>
     /// </summary>
     public OrderedDictionary()
     {
-        _map = new Dictionary<TKey, TValue>();
+        _map = [];
     }
 
     /// <summary>
@@ -36,7 +36,7 @@ public class OrderedDictionary<TKey, TValue>
     {
         ArgumentNullException.ThrowIfNull(collection);
 
-        _map = new Dictionary<TKey, TValue>();
+        _map = [];
 
         foreach (var (key, value) in collection)
         {
