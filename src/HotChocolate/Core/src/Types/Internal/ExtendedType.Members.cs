@@ -173,8 +173,8 @@ internal sealed partial class ExtendedType
                     type,
                     ExtendedTypeKind.Extended,
                     typeArguments: new[] { elementType },
-                    elementType: elementType,
                     source: type,
+                    elementType: elementType,
                     isNullable: state ?? false);
             }
 
