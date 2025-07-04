@@ -792,7 +792,7 @@ public sealed class SatisfiabilityValidatorTests
                 # Schema B
                 type Query { # Added
                     productListByProductsIdAndPid(
-                        key: [ProductIdAndPidInput!]! @is(field: "products[{id pid}]")
+                        key: [ProductIdAndPidInput!]! @is(field: "products[{ id, pid }]")
                     ): ProductList @lookup @inaccessible
                     productByIdAndPid(id: String!, pid: String): Product @lookup @inaccessible
                 }
@@ -818,13 +818,13 @@ public sealed class SatisfiabilityValidatorTests
                 type Query { # Added
                     productListByProductsIdAndPidAndCategoryAndSelected(
                         products: [ProductIdAndPidAndCategoryInput!]!
-                            @is(field: "products[{ id pid category: category.{ id tag } }]")
+                            @is(field: "products[{ id, pid, category: category.{ id, tag } }]")
                         selectedId: String! @is(field: "selected.id")
                     ): ProductList @lookup @inaccessible
                     productByIdAndPidAndCategory(
                         id: String!
                         pid: String
-                        category: CategoryIdAndTagInput! @is(field: "category.{ id tag }")
+                        category: CategoryIdAndTagInput! @is(field: "category.{ id, tag }")
                     ): Product @lookup @inaccessible
                     categoryByIdAndTag(id: String!, tag: String): Category @lookup @inaccessible
                 }
@@ -1791,7 +1791,7 @@ public sealed class SatisfiabilityValidatorTests
 
                 type Product {
                     id: ID!
-                    title(description: String @require(field: "{ name price }")): String
+                    title(description: String @require(field: "{ name, price }")): String
                 }
                 """,
                 """
@@ -1853,7 +1853,7 @@ public sealed class SatisfiabilityValidatorTests
                 type Product {
                     id: ID!
                     title(
-                        input: String @require(field: "{ a: category.name b: section.name }")
+                        input: String @require(field: "{ a: category.name, b: section.name }")
                     ): String
                 }
                 """,
