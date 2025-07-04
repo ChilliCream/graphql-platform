@@ -43,14 +43,12 @@ internal static class HttpContextExtensions
 
             if (value.Equals(HttpHeaderValues.ReportCost, StringComparison.OrdinalIgnoreCase))
             {
-                throw new NotImplementedException();
-                // return WellKnownContextData.ReportCost;
+                return ExecutionContextData.ReportCost;
             }
 
             if (value.Equals(HttpHeaderValues.ValidateCost, StringComparison.OrdinalIgnoreCase))
             {
-                throw new NotImplementedException();
-                //return WellKnownContextData.ValidateCost;
+                return ExecutionContextData.ValidateCost;
             }
         }
 

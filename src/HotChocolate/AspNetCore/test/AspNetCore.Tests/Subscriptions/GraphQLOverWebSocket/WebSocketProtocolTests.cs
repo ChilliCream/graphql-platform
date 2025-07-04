@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
@@ -969,11 +970,10 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             return new(ConnectionStatus.Reject());
         }
 
-        // ReSharper disable once ClassNeverInstantiated.Local
         private sealed class Auth
         {
-            // ReSharper disable once UnusedAutoPropertyAccessor.Local
-            public string? Token { get; set; }
+            [JsonPropertyName("token")]
+            public string? Token { get; init; }
         }
     }
 

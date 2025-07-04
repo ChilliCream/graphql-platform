@@ -67,7 +67,7 @@ internal sealed class OperationSession : IOperationSession
                     {
                         try
                         {
-                            // use original cancellation token here to keep the websocket open for other streams.
+                            // use the original cancellation token here to keep the websocket open for other streams.
                             await SendResultMessageAsync(item, cancellationToken);
                         }
                         finally
@@ -78,8 +78,8 @@ internal sealed class OperationSession : IOperationSession
                     break;
             }
 
-            // the operation is completed and we will try to send a complete message.
-            // we mark completeTry true so that in case of an error we do not try to send this
+            // The operation is completed, and we will try to send a complete message.
+            // We mark 'completeTry' true so that in case of an error, we do not try to send this
             // message again.
             completeTry = true;
 

@@ -33,21 +33,20 @@ internal static class PipelineTools
         return $"{context.Schema.Name}-{context.ExecutorVersion}-{operationId}";
     }
 
-    public static IReadOnlyList<IVariableValueCollection> CoerceVariables(
-        RequestContext context,
+    public static void CoerceVariables(RequestContext context,
         VariableCoercionHelper coercionHelper,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
         IExecutionDiagnosticEvents diagnosticEvents)
     {
         if (context.VariableValues.Length > 0)
         {
-            return context.VariableValues;
+            return;
         }
 
         if (variableDefinitions.Count == 0)
         {
             context.VariableValues = s_noVariables;
-            return s_noVariables;
+            return;
         }
 
         if (context.Request is OperationRequest operationRequest)
@@ -63,7 +62,7 @@ internal static class PipelineTools
                     coercedValues);
 
                 context.VariableValues = [new VariableValueCollection(coercedValues)];
-                return context.VariableValues;
+                return;
             }
         }
 
@@ -90,7 +89,7 @@ internal static class PipelineTools
                 }
 
                 context.VariableValues = ImmutableCollectionsMarshal.AsImmutableArray(variableSet);
-                return context.VariableValues;
+                return;
             }
         }
 

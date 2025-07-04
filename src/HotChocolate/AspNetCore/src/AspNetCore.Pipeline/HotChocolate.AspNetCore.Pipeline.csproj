@@ -30,6 +30,7 @@
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests.Utilities" />
     <InternalsVisibleTo Include="HotChocolate.AzureFunctions" />
     <InternalsVisibleTo Include="HotChocolate.AzureFunctions.IsolatedProcess" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>

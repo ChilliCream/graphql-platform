@@ -18,6 +18,8 @@ public class OperationManagerTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
+                .AddInMemorySubscriptions()
+                .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
                 .BuildRequestExecutorAsync();
 
         var socketSession = new TestSocketSession();
@@ -25,16 +27,17 @@ public class OperationManagerTests
         var mockSession = new Mock<IOperationSession>();
         mockSession.SetupGet(t => t.Id).Returns("abc");
 
-        var subscriptions = new OperationManager(
+        var operations = new OperationManager(
             socketSession,
             new ExecutorSession(executor));
-        subscriptions.Dispose();
+        socketSession.Operations = operations;
+        operations.Dispose();
 
         // act
         var query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");
         var request = new GraphQLRequest(query);
-        void Fail() => subscriptions.Enqueue("abc", request);
+        void Fail() => operations.Enqueue("abc", request);
 
         // assert
         Assert.Throws<ObjectDisposedException>(Fail);
@@ -48,6 +51,8 @@ public class OperationManagerTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
+                .AddInMemorySubscriptions()
+                .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
                 .BuildRequestExecutorAsync();
 
         var socketSession = new TestSocketSession();
@@ -55,17 +60,18 @@ public class OperationManagerTests
         var mockSession = new Mock<IOperationSession>();
         mockSession.SetupGet(t => t.Id).Returns("abc");
 
-        using var subscriptions = new OperationManager(
+        using var operations = new OperationManager(
             socketSession,
             new ExecutorSession(executor));
+        socketSession.Operations = operations;
 
         var query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");
         var request = new GraphQLRequest(query);
 
         // act
-        var success = subscriptions.Enqueue("abc", request);
-        var registered = subscriptions.ToArray();
+        var success = operations.Enqueue("abc", request);
+        var registered = operations.ToArray();
 
         // assert
         Assert.True(success);
@@ -80,6 +86,8 @@ public class OperationManagerTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
+                .AddInMemorySubscriptions()
+                .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
                 .BuildRequestExecutorAsync();
 
         var socketSession = new TestSocketSession();
@@ -87,19 +95,20 @@ public class OperationManagerTests
         var mockSession = new Mock<IOperationSession>();
         mockSession.SetupGet(t => t.Id).Returns("abc");
 
-        using var subscriptions = new OperationManager(
+        using var operations = new OperationManager(
             socketSession,
             new ExecutorSession(executor));
+        socketSession.Operations = operations;
 
         var query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");
         var request = new GraphQLRequest(query);
-        var success1 = subscriptions.Enqueue("abc", request);
-        var registered1 = subscriptions.ToArray();
+        var success1 = operations.Enqueue("abc", request);
+        var registered1 = operations.ToArray();
 
         // act
-        var success2 = subscriptions.Enqueue("abc", request);
-        var registered2 = subscriptions.ToArray();
+        var success2 = operations.Enqueue("abc", request);
+        var registered2 = operations.ToArray();
 
         // assert
         Assert.True(success1);
@@ -116,6 +125,8 @@ public class OperationManagerTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
+                .AddInMemorySubscriptions()
+                .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
                 .BuildRequestExecutorAsync();
 
         var socketSession = new TestSocketSession();
@@ -123,23 +134,32 @@ public class OperationManagerTests
         var mockSession = new Mock<IOperationSession>();
         mockSession.SetupGet(t => t.Id).Returns("abc");
 
-        using var subscriptions = new OperationManager(
+        using var operations = new OperationManager(
             socketSession,
             new ExecutorSession(executor));
+        socketSession.Operations = operations;
 
         var query = Utf8GraphQLParser.Parse(
-            "subscription { onReview(episode: NEW_HOPE) { stars } }");
+            """
+            subscription {
+              onReview(episode: NEW_HOPE) {
+                stars
+              }
+            }
+            """);
         var request = new GraphQLRequest(query);
-        var success1 = subscriptions.Enqueue("abc", request);
-        var registered1 = subscriptions.ToArray();
+        var success1 = operations.Enqueue("abc", request);
+        var registered1 = operations.ToArray();
 
         // act
-        var success2 = subscriptions.Complete("abc");
-        var registered2 = subscriptions.ToArray();
+        var success2 = operations.Complete("abc");
+        var registered2 = operations.ToArray();
 
         // assert
         Assert.True(success1);
-        Assert.Collection(registered1, t => Assert.Equal("abc", t.Id));
+        var session = Assert.Single(registered1);
+        Assert.Equal("abc", session.Id);
+
         Assert.True(success2);
         Assert.Empty(registered2);
     }
@@ -152,6 +172,8 @@ public class OperationManagerTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
+                .AddInMemorySubscriptions()
+                .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
                 .BuildRequestExecutorAsync();
 
         var session = new Mock<ISocketSession>();
@@ -174,6 +196,8 @@ public class OperationManagerTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
+                .AddInMemorySubscriptions()
+                .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
                 .BuildRequestExecutorAsync();
 
         var session = new Mock<ISocketSession>();
@@ -196,6 +220,8 @@ public class OperationManagerTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
+                .AddInMemorySubscriptions()
+                .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
                 .BuildRequestExecutorAsync();
 
         var socketSession = new TestSocketSession();
@@ -203,13 +229,14 @@ public class OperationManagerTests
         var mockSession = new Mock<IOperationSession>();
         mockSession.SetupGet(t => t.Id).Returns("abc");
 
-        var subscriptions = new OperationManager(
+        var operations = new OperationManager(
             socketSession,
             new ExecutorSession(executor));
-        subscriptions.Dispose();
+        socketSession.Operations = operations;
+        operations.Dispose();
 
         // act
-        void Fail() => subscriptions.Complete("abc");
+        void Fail() => operations.Complete("abc");
 
         // assert
         Assert.Throws<ObjectDisposedException>(Fail);
@@ -223,6 +250,8 @@ public class OperationManagerTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWars()
+                .AddInMemorySubscriptions()
+                .AddSocketSessionInterceptor<TestSocketSessionInterceptor>()
                 .BuildRequestExecutorAsync();
 
         var socketSession = new TestSocketSession();
@@ -230,19 +259,20 @@ public class OperationManagerTests
         var mockSession = new Mock<IOperationSession>();
         mockSession.SetupGet(t => t.Id).Returns("abc");
 
-        var subscriptions = new OperationManager(
+        var operations = new OperationManager(
             socketSession,
             new ExecutorSession(executor));
+        socketSession.Operations = operations;
 
         var query = Utf8GraphQLParser.Parse(
             "subscription { onReview(episode: NEW_HOPE) { stars } }");
         var request = new GraphQLRequest(query);
-        var success = subscriptions.Enqueue("abc", request);
+        var success = operations.Enqueue("abc", request);
         Assert.True(success);
 
         // act
-        subscriptions.Dispose();
-        var registered = subscriptions.ToArray();
+        operations.Dispose();
+        var registered = operations.ToArray();
 
         // assert
         Assert.Empty(registered);
@@ -254,7 +284,7 @@ public class OperationManagerTests
 
         public IProtocolHandler Protocol { get; } = new TestProtocolHandler();
 
-        public IOperationManager Operations => throw new NotImplementedException();
+        public IOperationManager Operations { get; set; } = null!;
 
         public void Dispose()
         {
@@ -303,5 +333,17 @@ public class OperationManagerTests
             ISocketSession session,
             CancellationToken cancellationToken)
             => default;
+    }
+
+    public sealed class TestSocketSessionInterceptor : DefaultSocketSessionInterceptor
+    {
+        public override ValueTask OnRequestAsync(
+            ISocketSession session,
+            string operationSessionId,
+            OperationRequestBuilder requestBuilder,
+            CancellationToken cancellationToken = default)
+        {
+            return default;
+        }
     }
 }

@@ -3,6 +3,16 @@ namespace HotChocolate;
 public static class ExecutionContextData
 {
     /// <summary>
+    /// The key to set the flag that the cost should be reported in the response.
+    /// </summary>
+    public const string ReportCost = "HotChocolate.CostAnalysis.ReportCost";
+
+    /// <summary>
+    /// The key to set the flag that only the cost should be validated and the request should not be executed.
+    /// </summary>
+    public const string ValidateCost = "HotChocolate.CostAnalysis.ValidateCost";
+
+    /// <summary>
     /// The key to determine whether the request is a warmup request.
     /// </summary>
     public const string IsWarmupRequest = "HotChocolate.AspNetCore.Warmup.IsWarmupRequest";

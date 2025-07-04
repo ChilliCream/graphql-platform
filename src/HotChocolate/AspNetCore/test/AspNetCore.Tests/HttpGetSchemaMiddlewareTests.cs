@@ -94,9 +94,8 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureServices: s =>
-                s.AddGraphQL()
-                    .ModifyRequestOptions(o => o.EnableSchemaFileSupport = false));
+            configureConventions: b =>
+                b.WithOptions(new GraphQLServerOptions { EnableSchemaFileSupport = false }));
 
         var url = TestServerExtensions.CreateUrl(path);
         var request = new HttpRequestMessage(HttpMethod.Get, url);

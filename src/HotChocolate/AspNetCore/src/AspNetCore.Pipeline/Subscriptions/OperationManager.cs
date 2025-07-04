@@ -94,9 +94,8 @@ public sealed class OperationManager : IOperationManager
 
         try
         {
-            if (_subs.TryGetValue(sessionId, out var session))
+            if (_subs.Remove(sessionId, out var session))
             {
-                _subs.Remove(sessionId);
                 session.Dispose();
                 return true;
             }
