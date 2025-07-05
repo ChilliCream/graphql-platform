@@ -36,8 +36,8 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                 services
                     .AddSingleton(mockHostEnvironment.Object)
                     .AddRouting()
-                    .AddHttpResponseFormatter()
                     .AddGraphQLServer()
+                    .AddHttpResponseFormatter()
                     .AddStarWarsTypes()
                     .AddTypeExtension<QueryExtension>()
                     .AddTypeExtension<SubscriptionsExtensions>()
@@ -149,8 +149,8 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
         return ServerFactory.Create(
             services => services
                 .AddRouting()
-                .AddHttpResponseFormatter()
                 .AddGraphQLServer()
+                .AddHttpResponseFormatter()
                 .AddStarWarsTypes()
                 .AddTypeExtension<QueryExtension>()
                 .AddTypeExtension<SubscriptionsExtensions>()

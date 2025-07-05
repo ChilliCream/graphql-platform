@@ -1,5 +1,6 @@
 using System.Net.WebSockets;
 using System.Text;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.Buffers;
@@ -21,7 +22,8 @@ public static class WebSocketExtensions
         CancellationToken cancellationToken)
     {
         using var writer = new PooledArrayWriter();
-        MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionInitialize, payload);
+        var formatter = new DefaultWebSocketPayloadFormatter();
+        MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.ConnectionInitialize, payload);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
@@ -59,7 +61,8 @@ public static class WebSocketExtensions
         }
 
         using var writer = new PooledArrayWriter();
-        MessageUtilities.SerializeMessage(writer, Utf8Messages.Subscribe, map, subscriptionId);
+        var formatter = new DefaultWebSocketPayloadFormatter();
+        MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.Subscribe, map, subscriptionId);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
@@ -69,7 +72,8 @@ public static class WebSocketExtensions
         CancellationToken cancellationToken)
     {
         using var writer = new PooledArrayWriter();
-        MessageUtilities.SerializeMessage(writer, Utf8Messages.Complete, id: subscriptionId);
+        var formatter = new DefaultWebSocketPayloadFormatter();
+        MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.Complete, id: subscriptionId);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
@@ -84,7 +88,8 @@ public static class WebSocketExtensions
         CancellationToken cancellationToken)
     {
         using var writer = new PooledArrayWriter();
-        MessageUtilities.SerializeMessage(writer, Utf8Messages.Ping, payload);
+        var formatter = new DefaultWebSocketPayloadFormatter();
+        MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.Ping, payload);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
@@ -99,7 +104,8 @@ public static class WebSocketExtensions
         CancellationToken cancellationToken)
     {
         using var writer = new PooledArrayWriter();
-        MessageUtilities.SerializeMessage(writer, Utf8Messages.Pong, payload);
+        var formatter = new DefaultWebSocketPayloadFormatter();
+        MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.Pong, payload);
         await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 

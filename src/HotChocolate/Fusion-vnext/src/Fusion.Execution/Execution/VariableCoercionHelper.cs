@@ -42,7 +42,7 @@ internal static class VariableCoercionHelper
                     throw ExceptionHelper.NonNullVariableIsNull(variableDefinition);
                 }
 
-                // if we do not have any value we will not create an entry to the
+                // if we do not have any value, we will not create an entry to the
                 // coerced variables.
                 if (!hasValue)
                 {
@@ -71,7 +71,7 @@ internal static class VariableCoercionHelper
             else
             {
                 throw new NotSupportedException(
-                    $"The variable value of type {value?.GetType().Name} is not supported.");
+                    $"The variable value of type {value.GetType().Name} is not supported.");
             }
         }
 

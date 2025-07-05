@@ -3,6 +3,7 @@
     <Project Path="src/AspNetCore.Authorization.Opa/HotChocolate.AspNetCore.Authorization.Opa.csproj" />
     <Project Path="src/AspNetCore.Authorization/HotChocolate.AspNetCore.Authorization.csproj" />
     <Project Path="src/AspNetCore.CommandLine/HotChocolate.AspNetCore.CommandLine.csproj" />
+    <Project Path="src/AspNetCore.Pipeline/HotChocolate.AspNetCore.Pipeline.csproj" />
     <Project Path="src/AspNetCore/HotChocolate.AspNetCore.csproj" />
     <Project Path="src/Transport.Abstractions/HotChocolate.Transport.Abstractions.csproj" />
     <Project Path="src/Transport.Http/HotChocolate.Transport.Http.csproj" />

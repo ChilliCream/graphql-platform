@@ -41,7 +41,7 @@ internal sealed class OperationVariableCoercionMiddleware
             : default;
     }
 
-    public static bool TryCoerceVariables(
+    private static bool TryCoerceVariables(
         RequestContext context,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
         ICoreExecutionDiagnosticEvents diagnosticEvents)
@@ -71,11 +71,9 @@ internal sealed class OperationVariableCoercionMiddleware
                     context.VariableValues = [new VariableValueCollection(coercedValues)];
                     return true;
                 }
-                else
-                {
-                    context.Result = OperationResultBuilder.CreateError(error);
-                    return false;
-                }
+
+                context.Result = OperationResultBuilder.CreateError(error);
+                return false;
             }
         }
 
@@ -83,7 +81,6 @@ internal sealed class OperationVariableCoercionMiddleware
         {
             using (diagnosticEvents.CoerceVariables(context))
             {
-                var schema = context.Schema;
                 var variableSetCount = variableBatchRequest.VariableValues?.Count ?? 0;
                 var variableSetInput = variableBatchRequest.VariableValues!;
                 var variableSet = new IVariableValueCollection[variableSetCount];

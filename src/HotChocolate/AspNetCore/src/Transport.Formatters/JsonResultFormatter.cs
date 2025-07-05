@@ -146,6 +146,14 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         writer.WriteEndArray();
     }
 
+    public void FormatDictionary(IReadOnlyDictionary<string, object?> dictionary, Utf8JsonWriter writer)
+    {
+        ArgumentNullException.ThrowIfNull(dictionary);
+        ArgumentNullException.ThrowIfNull(writer);
+
+        WriteDictionary(writer, dictionary, _serializerOptions, _nullIgnoreCondition);
+    }
+
     public void Format(IOperationResult result, IBufferWriter<byte> writer)
     {
         ArgumentNullException.ThrowIfNull(result);

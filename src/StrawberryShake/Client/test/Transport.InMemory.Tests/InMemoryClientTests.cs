@@ -130,6 +130,8 @@ public class InMemoryClientTests
 
         public ulong Version { get; }
 
+        public IFeatureCollection Features { get; } = new FeatureCollection();
+
         public Task<IExecutionResult> ExecuteAsync(
             IOperationRequest request,
             CancellationToken cancellationToken = default)

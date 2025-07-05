@@ -1,8 +1,9 @@
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Formatters;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.ParameterExpressionBuilders;
-using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.AspNetCore.Parsers;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
@@ -18,65 +19,51 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
 {
-    /// <summary>
-    /// Adds the GraphQL server core services to the DI.
-    /// </summary>
-    /// <param name="services">
-    /// The <see cref="IServiceCollection"/>.
-    /// </param>
-    /// <param name="maxAllowedRequestSize">
-    /// The max allowed GraphQL request size.
-    /// </param>
-    /// <returns>
-    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// The <see cref="IServiceCollection"/> is <c>null</c>.
-    /// </exception>
-    public static IServiceCollection AddGraphQLServerCore(
-        this IServiceCollection services,
+    private static IRequestExecutorBuilder AddGraphQLServerCore(
+        this IRequestExecutorBuilder builder,
         int maxAllowedRequestSize = MaxAllowedRequestSize)
     {
-        ArgumentNullException.ThrowIfNull(services);
-
-        services.AddGraphQLCore();
-        services.TryAddSingleton<IHttpResponseFormatter>(
-            sp => DefaultHttpResponseFormatter.Create(
-                new HttpResponseFormatterOptions { HttpTransportVersion = HttpTransportVersion.Latest },
-                sp.GetRequiredService<ITimeProvider>()));
-        services.TryAddSingleton<IHttpRequestParser>(
-            sp => new DefaultHttpRequestParser(
-                sp.GetRequiredService<IDocumentCache>(),
-                sp.GetRequiredService<IDocumentHashProvider>(),
-                maxAllowedRequestSize,
-                sp.GetRequiredService<ParserOptions>()));
-        services.TryAddSingleton<IServerDiagnosticEvents>(sp =>
+        builder.ConfigureSchemaServices(s =>
         {
-            var listeners = sp.GetServices<IServerDiagnosticEventListener>().ToArray();
-            return listeners.Length switch
+            s.TryAddSingleton<IHttpResponseFormatter>(
+                sp => DefaultHttpResponseFormatter.Create(
+                    new HttpResponseFormatterOptions { HttpTransportVersion = HttpTransportVersion.Latest },
+                    sp.GetRequiredService<ITimeProvider>()));
+            s.TryAddSingleton<IHttpRequestParser>(
+                sp => new DefaultHttpRequestParser(
+                    sp.GetRequiredService<IDocumentCache>(),
+                    sp.GetRequiredService<IDocumentHashProvider>(),
+                    maxAllowedRequestSize,
+                    sp.GetRequiredService<ParserOptions>()));
+
+            s.TryAddSingleton<IServerDiagnosticEvents>(sp =>
             {
-                0 => new NoopServerDiagnosticEventListener(),
-                1 => listeners[0],
-                _ => new AggregateServerDiagnosticEventListener(listeners)
-            };
+                var listeners = sp.GetServices<IServerDiagnosticEventListener>().ToArray();
+                return listeners.Length switch
+                {
+                    0 => new NoopServerDiagnosticEventListener(),
+                    1 => listeners[0],
+                    _ => new AggregateServerDiagnosticEventListener(listeners)
+                };
+            });
         });
 
-        if (!services.IsImplementationTypeRegistered<HttpContextParameterExpressionBuilder>())
+        if (!builder.Services.IsImplementationTypeRegistered<HttpContextParameterExpressionBuilder>())
         {
-            services.AddSingleton<IParameterExpressionBuilder, HttpContextParameterExpressionBuilder>();
+            builder.Services.AddSingleton<IParameterExpressionBuilder, HttpContextParameterExpressionBuilder>();
         }
 
-        if (!services.IsImplementationTypeRegistered<HttpRequestParameterExpressionBuilder>())
+        if (!builder.Services.IsImplementationTypeRegistered<HttpRequestParameterExpressionBuilder>())
         {
-            services.AddSingleton<IParameterExpressionBuilder, HttpRequestParameterExpressionBuilder>();
+            builder.Services.AddSingleton<IParameterExpressionBuilder, HttpRequestParameterExpressionBuilder>();
         }
 
-        if (!services.IsImplementationTypeRegistered<HttpResponseParameterExpressionBuilder>())
+        if (!builder.Services.IsImplementationTypeRegistered<HttpResponseParameterExpressionBuilder>())
         {
-            services.AddSingleton<IParameterExpressionBuilder, HttpResponseParameterExpressionBuilder>();
+            builder.Services.AddSingleton<IParameterExpressionBuilder, HttpResponseParameterExpressionBuilder>();
         }
 
-        return services;
+        return builder;
     }
 
     /// <summary>
@@ -106,8 +93,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         var builder = services
-            .AddGraphQLServerCore(maxAllowedRequestSize)
             .AddGraphQL(schemaName)
+            .AddGraphQLServerCore(maxAllowedRequestSize)
             .AddDefaultHttpRequestInterceptor()
             .AddSubscriptionServices();
 

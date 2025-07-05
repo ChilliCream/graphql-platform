@@ -128,7 +128,7 @@ internal static class ErrorHelper
                 .Build(),
             new Dictionary<string, object?>
             {
-                { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest }
+                { ExecutionContextData.HttpStatusCode, HttpStatusCode.BadRequest }
             });
 
     public static IOperationResult StateInvalidForOperationResolver() =>
@@ -169,7 +169,7 @@ internal static class ErrorHelper
                 .Build(),
             new Dictionary<string, object?>
             {
-                { WellKnownContextData.OperationNotAllowed, null }
+                { ExecutionContextData.OperationNotAllowed, null }
             });
 
     public static IOperationResult RequestTypeNotAllowed() =>
