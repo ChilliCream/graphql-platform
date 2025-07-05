@@ -545,18 +545,4 @@ public class AllVariableUsagesAreAllowedRuleTests
             """
         );
     }
-
-    [Fact(Skip = "https://github.com/graphql/graphql-spec/pull/825#discussion_r2143129894")]
-    public void VariablesUsedForOneOfInputObjectFieldsMustBeNonNullable2_Error()
-    {
-        ExpectErrors(
-            """
-            mutation addNullableCatWithDefault($cat: CatInput = { name: "Brontie" }) {
-              addPet(pet: { cat: $cat }) {
-                name
-              }
-            }
-            """
-        );
-    }
 }
