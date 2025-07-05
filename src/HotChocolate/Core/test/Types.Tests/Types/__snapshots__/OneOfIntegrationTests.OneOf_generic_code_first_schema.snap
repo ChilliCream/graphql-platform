@@ -1,17 +1,15 @@
-schema {
+﻿schema {
   query: Query
 }
 
 type Query {
-  foo: String @defaultValue(value: { string: "abc" })
+  a(a: Example2Input): String
 }
 
-input DefaultValueInput @oneOf {
-  string: String
-  int: Int
+input Example2Input @oneOf {
+  a: String
+  b: Int
 }
-
-directive @defaultValue(value: DefaultValueInput) on FIELD_DEFINITION
 
 "The `@oneOf` directive is used within the type system definition language to indicate an Input Object is a OneOf Input Object."
 directive @oneOf on INPUT_OBJECT
