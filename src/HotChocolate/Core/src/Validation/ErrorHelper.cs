@@ -705,7 +705,7 @@ internal static class ErrorHelper
             .SetMessage(Resources.ErrorHelper_DeferAndStreamLabelIsVariable)
             .AddLocation(selection)
             .SpecifiedBy("sec-Defer-And-Stream-Directive-Labels-Are-Unique")
-            .SetExtension(nameof(variable),$"${variable}")
+            .SetExtension(nameof(variable), $"${variable}")
             .SetPath(context.CreateErrorPath())
             .Build();
 

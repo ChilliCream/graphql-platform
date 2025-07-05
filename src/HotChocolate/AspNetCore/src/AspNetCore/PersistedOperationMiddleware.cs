@@ -68,7 +68,7 @@ internal static class PersistedOperationMiddleware
         }
 
         // validate if the operation name is required.
-        if(requireOperationName && string.IsNullOrWhiteSpace(operationName))
+        if (requireOperationName && string.IsNullOrWhiteSpace(operationName))
         {
             statusCode = HttpStatusCode.BadRequest;
             result = ErrorHelper.OperationNameRequired();
@@ -116,7 +116,7 @@ internal static class PersistedOperationMiddleware
         statusCode = executionResult.StatusCode;
         result = executionResult.Result;
 
-        HANDLE_RESULT:
+HANDLE_RESULT:
         await MiddlewareHelper.WriteResultAsync(
             result!,
             acceptMediaTypes,
@@ -153,7 +153,7 @@ internal static class PersistedOperationMiddleware
         }
 
         // validate if the operation name is required.
-        if(requireOperationName && string.IsNullOrWhiteSpace(operationName))
+        if (requireOperationName && string.IsNullOrWhiteSpace(operationName))
         {
             statusCode = HttpStatusCode.BadRequest;
             result = ErrorHelper.OperationNameRequired();
@@ -192,7 +192,7 @@ internal static class PersistedOperationMiddleware
         statusCode = executionResult.StatusCode;
         result = executionResult.Result;
 
-        HANDLE_RESULT:
+HANDLE_RESULT:
         await MiddlewareHelper.WriteResultAsync(
             result!,
             acceptMediaTypes,

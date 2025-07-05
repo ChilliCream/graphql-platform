@@ -564,7 +564,7 @@ public class ObjectFieldDescriptor
 
                 case MemberInitExpression memberInitExpr:
                     return string.Join(" ", memberInitExpr.Bindings.OfType<MemberAssignment>()
-                        .Select(b => $"{b.Member.Name}{ProcessExpression(b.Expression)}"));
+                        .Select(b => b.Member.Name + ProcessExpression(b.Expression)));
 
                 case MethodCallExpression { Method.Name: "Select" } methodCallExpr:
                     if (methodCallExpr.Arguments is [_, UnaryExpression { Operand: LambdaExpression lambda }])

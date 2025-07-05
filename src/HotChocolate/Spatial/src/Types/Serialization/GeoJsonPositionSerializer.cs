@@ -90,9 +90,9 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
             return NullValueNode.Default;
         }
 
-        var x = double.NaN;
-        var y = double.NaN;
-        var z = double.NaN;
+        double x;
+        double y;
+        double z;
         switch (value)
         {
             case Coordinate coordinate:

@@ -442,7 +442,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         {
             for (var i = 0; i < list.Items.Count; i++)
             {
-                if (!ValueVisitor.IsInstanceOfType(context, elementType, list.Items[i]))
+                if (!IsInstanceOfType(context, elementType, list.Items[i]))
                 {
                     return false;
                 }

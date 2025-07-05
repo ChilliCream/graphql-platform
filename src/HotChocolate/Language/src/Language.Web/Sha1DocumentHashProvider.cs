@@ -28,7 +28,7 @@ public sealed class Sha1DocumentHashProvider : DocumentHashProviderBase
     {
         var hashBytes = new byte[20];
         var hashSpan = hashBytes.AsSpan();
-        
+
         _sha.Value!.TryComputeHash(document, hashBytes, out var written);
 
         if (written < 20)

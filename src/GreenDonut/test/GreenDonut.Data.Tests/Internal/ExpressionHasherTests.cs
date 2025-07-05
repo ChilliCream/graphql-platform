@@ -72,7 +72,7 @@ public static class ExpressionHasherTests
                 Entities = new List<IEntity>(
                     x.Entities
                         .OfType<Entity2>()
-                        .Select(t => new Entity2 { Name = t.Name } ))
+                        .Select(t => new Entity2 { Name = t.Name }))
             };
 
         // act

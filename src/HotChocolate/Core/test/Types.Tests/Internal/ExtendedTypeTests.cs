@@ -412,10 +412,10 @@ public class ExtendedTypeTests
 
     public class Nullability
     {
-        public Nullable<Optional<string?>> NullableOptionalNullableString() =>
+        public Optional<string?>? NullableOptionalNullableString() =>
             throw new NotImplementedException();
 
-        public Optional<Nullable<Optional<string?>>> OptionalNullableOptionalNullableString() =>
+        public Optional<Optional<string?>?> OptionalNullableOptionalNullableString() =>
             throw new NotImplementedException();
 
         public Nested? NestedProp { get; set; }

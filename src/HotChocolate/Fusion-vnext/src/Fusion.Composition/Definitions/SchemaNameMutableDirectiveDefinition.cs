@@ -18,9 +18,9 @@ internal sealed class SchemaNameMutableDirectiveDefinition : MutableDirectiveDef
             new MutableInputFieldDefinition(
                 WellKnownArgumentNames.Value,
                 new NonNullType(stringType))
-        {
-            Description = SchemaNameMutableDirectiveDefinition_Argument_Value_Description
-        });
+            {
+                Description = SchemaNameMutableDirectiveDefinition_Argument_Value_Description
+            });
 
         Locations = DirectiveLocation.Schema;
     }

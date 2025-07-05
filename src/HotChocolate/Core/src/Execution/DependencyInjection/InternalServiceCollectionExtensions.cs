@@ -41,7 +41,7 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddResultPool(
         this IServiceCollection services)
     {
-        services.TryAddSingleton<ResultBufferOptions>(sp =>
+        services.TryAddSingleton(sp =>
         {
             var options = new ResultBufferOptions();
             var modifiers = sp.GetServices<Action<ResultBufferOptions>>();
@@ -162,8 +162,7 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddDefaultCaches(
         this IServiceCollection services)
     {
-        services.TryAddSingleton<PreparedOperationCacheOptions>(
-            _ => new PreparedOperationCacheOptions { Capacity = 256 });
+        services.TryAddSingleton(_ => new PreparedOperationCacheOptions { Capacity = 256 });
         services.TryAddSingleton<IDocumentCache>(
             sp => new DefaultDocumentCache(
                 sp.GetRequiredService<PreparedOperationCacheOptions>().Capacity));
@@ -194,7 +193,7 @@ internal static class InternalServiceCollectionExtensions
         services.RemoveAll<IDataLoaderScope>();
         services.TryAddSingleton<DataLoaderScopeHolder>();
         services.TryAddScoped<IDataLoaderScopeFactory, ExecutionDataLoaderScopeFactory>();
-        services.TryAddScoped<IDataLoaderScope>(
+        services.TryAddScoped(
             sp => sp.GetRequiredService<DataLoaderScopeHolder>().GetOrCreateScope(sp));
         return services;
     }

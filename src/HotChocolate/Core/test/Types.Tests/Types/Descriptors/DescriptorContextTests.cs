@@ -43,7 +43,7 @@ public class DescriptorContextTests
                 new XmlDocumentationFileResolver(),
                 new NoOpStringBuilderPool()));
 
-        var namingConventionKey =new ConventionKey(typeof(INamingConventions), null);
+        var namingConventionKey = new ConventionKey(typeof(INamingConventions), null);
         var conventionRegistration = new ConventionRegistration(namingConventionKey, _ => naming);
 
         var features = new FeatureCollection();

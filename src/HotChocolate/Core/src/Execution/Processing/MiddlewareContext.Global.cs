@@ -1,4 +1,3 @@
-using HotChocolate.Execution.Serialization;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -221,7 +220,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
     public IMiddlewareContext Clone()
     {
         // The middleware context is bound to a resolver task,
-        // so we need to create a resolver task in order to clone
+        // so we need to create a resolver task to clone
         // this context.
         var resolverTask =
             _operationContext.CreateResolverTask(
@@ -234,7 +233,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
         // We need to manually copy the local state.
         resolverTask.Context.LocalContextData = LocalContextData;
 
-        // Since resolver tasks are pooled and returned to the pool after they are executed
+        // Since resolver tasks are pooled and returned to the pool after they are executed,
         // we need to complete the task manually when the resolver task of the current context
         // is completed.
         RegisterForCleanup(resolverTask.CompleteUnsafeAsync);

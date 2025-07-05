@@ -18,7 +18,7 @@ internal static class FusionBuiltIns
 
     public static bool IsBuiltInType(string typeName)
     {
-        if(typeName == FieldDefinition ||
+        if (typeName == FieldDefinition ||
             typeName == FieldSelectionMap ||
             typeName == FieldSelectionSet ||
             typeName == FusionSelectionPath)
@@ -31,7 +31,7 @@ internal static class FusionBuiltIns
 
     public static bool IsBuiltInDirective(string directiveName)
     {
-        if(directiveName == Type ||
+        if (directiveName == Type ||
             directiveName == Field ||
             directiveName == InputField ||
             directiveName == Requires ||

@@ -3,12 +3,11 @@ using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Serialization;
+using HotChocolate.Transport.Formatters;
 using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.Execution.Serialization.JsonNullIgnoreCondition;
 
 namespace HotChocolate.AspNetCore;
 
@@ -973,17 +972,14 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                     {
                         Json = new JsonResultFormatterOptions
                         {
-                            NullIgnoreCondition = Fields
+                            NullIgnoreCondition = JsonNullIgnoreCondition.Fields
                         }
                     })));
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __schema { description } }" })
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __schema { description } }" });
 
         using var response = await client.SendAsync(request);
 
@@ -994,12 +990,14 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             .Create()
             .Add(response)
             .MatchInline(
-                @"Headers:
+                """
+                Headers:
                 Content-Type: application/graphql-response+json; charset=utf-8
                 -------------------------->
                 Status Code: OK
                 -------------------------->
-                {""data"":{""__schema"":{}}}");
+                {"data":{"__schema":{}}}
+                """);
     }
 
     [Fact]
@@ -1010,16 +1008,13 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             configureServices: s => s.AddHttpResponseFormatter(
                 new HttpResponseFormatterOptions
                 {
-                    Json = new JsonResultFormatterOptions { NullIgnoreCondition = Fields }
+                    Json = new JsonResultFormatterOptions { NullIgnoreCondition = JsonNullIgnoreCondition.Fields }
                 }));
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __schema { description } }" })
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __schema { description } }" });
 
         using var response = await client.SendAsync(request);
 
@@ -1052,16 +1047,13 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                 .AddHttpResponseFormatter(
                     new HttpResponseFormatterOptions
                     {
-                        Json = new JsonResultFormatterOptions { NullIgnoreCondition = Lists }
+                        Json = new JsonResultFormatterOptions { NullIgnoreCondition = JsonNullIgnoreCondition.Lists }
                     }));
         var client = server.CreateClient();
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ nullValues }" })
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ nullValues }" });
 
         using var response = await client.SendAsync(request);
 

@@ -20,7 +20,7 @@ public sealed record SortDefinition<T>
     /// </param>
     public SortDefinition(params ISortBy<T>[] operations)
     {
-        Operations = [..operations];
+        Operations = [.. operations];
     }
 
     /// <summary>
@@ -31,7 +31,7 @@ public sealed record SortDefinition<T>
     /// </param>
     public SortDefinition(IEnumerable<ISortBy<T>> operations)
     {
-        Operations = [..operations];
+        Operations = [.. operations];
     }
 
     /// <summary>

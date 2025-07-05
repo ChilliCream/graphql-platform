@@ -219,7 +219,7 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeCompleteTypeNames();
 
-        if (ProcessTypes(Named, type => CompleteTypeName(type)))
+        if (ProcessTypes(Named, CompleteTypeName))
         {
             _interceptor.OnTypesCompletedName();
         }
@@ -437,7 +437,7 @@ internal sealed class TypeInitializer
                 }
             }
         }
-        else if(registeredType.Type is InterfaceType interfaceType)
+        else if (registeredType.Type is InterfaceType interfaceType)
         {
             foreach (var field in interfaceType.Configuration!.Fields)
             {
@@ -575,7 +575,7 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeCompleteTypes();
 
-        if(ProcessTypes(Completed, type => CompleteType(type)))
+        if (ProcessTypes(Completed, CompleteType))
         {
             _interceptor.OnTypesCompleted();
         }

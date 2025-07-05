@@ -109,8 +109,8 @@ public static partial class RequestExecutorBuilderExtensions
                         maxIdLength,
                         outputNewIdFormat,
                         useUrlSafeBase64);
+                });
             });
-    });
         return builder;
     }
 

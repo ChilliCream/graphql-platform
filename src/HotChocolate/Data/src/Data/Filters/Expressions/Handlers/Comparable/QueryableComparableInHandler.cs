@@ -4,6 +4,7 @@ using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters.Expressions;
+
 public class QueryableComparableInHandler
     : QueryableComparableOperationHandler
 {

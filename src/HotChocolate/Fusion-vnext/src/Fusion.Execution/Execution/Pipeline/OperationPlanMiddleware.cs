@@ -6,14 +6,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
-public sealed class OperationPlanMiddleware
+internal sealed class OperationPlanMiddleware
 {
     private readonly OperationPlanner _planner;
+    private readonly InlineFragmentOperationRewriter _rewriter;
 
-    public OperationPlanMiddleware(OperationPlanner planner)
+    private OperationPlanMiddleware(ISchemaDefinition schema, OperationPlanner planner)
     {
         ArgumentNullException.ThrowIfNull(planner);
 
+        _rewriter = new InlineFragmentOperationRewriter(schema);
         _planner = planner;
     }
 
@@ -27,22 +29,21 @@ public sealed class OperationPlanMiddleware
                 "The operation document info is not available in the context.");
         }
 
-        if (context.GetOperationExecutionPlan() is not null)
+        if (context.GetOperationPlan() is not null)
         {
             return next(context);
         }
 
-        // Before we can plan an operation, we must defragmentize it.
-        // Defragemntization is a process that removes fragment spreads
-        // and fragment definitions and inlines them into the operation definition.
-        var rewriter = new InlineFragmentOperationRewriter(context.Schema);
-        var rewritten = rewriter.RewriteDocument(operationDocumentInfo.Document, context.Request.OperationName);
+        // Before we can plan an operation, we must defragmentize it and remove statical include conditions.
+        var operationId = context.GetOperationId();
+        var rewritten = _rewriter.RewriteDocument(operationDocumentInfo.Document, context.Request.OperationName);
         var operation = GetOperation(rewritten);
-        var executionPlan = _planner.CreatePlan(operation);
-        context.SetOperationExecutionPlan(executionPlan);
+        var executionPlan = _planner.CreatePlan(operationId, operation);
+        context.SetOperationPlan(executionPlan);
 
         return next(context);
 
+        // TODO: this algorithm is wrong and will fail with multiple operations.
         static OperationDefinitionNode GetOperation(DocumentNode document)
         {
             for (var i = 0; i < document.Definitions.Count; i++)
@@ -63,7 +64,7 @@ public sealed class OperationPlanMiddleware
         return static (fc, next) =>
         {
             var planner = fc.SchemaServices.GetRequiredService<OperationPlanner>();
-            var middleware = new OperationPlanMiddleware(planner);
+            var middleware = new OperationPlanMiddleware(fc.Schema, planner);
             return requestContext => middleware.InvokeAsync(requestContext, next);
         };
     }

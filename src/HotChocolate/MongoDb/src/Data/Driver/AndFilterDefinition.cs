@@ -77,7 +77,7 @@ public sealed class AndFilterDefinition : MongoDbFilterDefinition
                 var clauseOperator = clauseValue.ElementCount > 0
                     ? clauseValue.GetElement(0).Name
                     : null;
-                if (clauseValue.Names.Any(op => existingClauseValue.Contains(op)) ||
+                if (clauseValue.Names.Any(existingClauseValue.Contains) ||
                     s_operatorsThatCannotBeCombined.Contains(clauseOperator))
                 {
                     PromoteFilterToDollarForm(document, clause);

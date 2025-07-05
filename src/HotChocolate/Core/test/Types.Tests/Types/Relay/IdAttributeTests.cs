@@ -299,7 +299,7 @@ public class IdAttributeTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { {"someId", someId } })
+                        .SetVariableValues(new Dictionary<string, object?> { { "someId", someId } })
                         .Build());
 
         // assert
@@ -336,7 +336,7 @@ public class IdAttributeTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object?> { {"someId", someId} })
+                        .SetVariableValues(new Dictionary<string, object?> { { "someId", someId } })
                         .Build());
 
         // assert
@@ -424,7 +424,8 @@ public class IdAttributeTests
         // assert
         new
         {
-            result = result.ToJson(), legacySomeStronglyTypedId = legacyStronglyTypedId
+            result = result.ToJson(),
+            legacySomeStronglyTypedId = legacyStronglyTypedId
         }.MatchSnapshot();
     }
 
@@ -475,7 +476,7 @@ public class IdAttributeTests
         public int? OptionalIntId([DefaultValue("UXVlcnk6MA==")][ID] Optional<int> id)
             => id.HasValue ? id.Value : null;
 
-        public int[]? OptionalIntIdList([DefaultValue(new int[] {})][ID] Optional<int[]> ids)
+        public int[]? OptionalIntIdList([DefaultValue(new int[] { })][ID] Optional<int[]> ids)
             => ids.HasValue ? ids.Value : null;
 
         public string StringId([ID] string id) => id;
@@ -489,7 +490,7 @@ public class IdAttributeTests
         public string? OptionalStringId([DefaultValue("UXVlcnk6")][ID] Optional<string> id)
             => id.HasValue ? id.Value : null;
 
-        public string[]? OptionalStringIdList([DefaultValue(new string[] { })] [ID] Optional<string[]> ids)
+        public string[]? OptionalStringIdList([DefaultValue(new string[] { })][ID] Optional<string[]> ids)
             => ids.HasValue ? ids.Value : null;
 
         public Guid GuidId([ID] Guid id) => id;
@@ -503,12 +504,12 @@ public class IdAttributeTests
         public Guid? OptionalGuidId([DefaultValue("UXVlcnk6AAAAAAAAAAAAAAAAAAAAAA==")][ID] Optional<Guid> id)
             => id.HasValue ? id.Value : null;
 
-        public Guid[]? OptionalGuidIdList([DefaultValue(new object[] { })] [ID] Optional<Guid[]> ids)
+        public Guid[]? OptionalGuidIdList([DefaultValue(new object[] { })][ID] Optional<Guid[]> ids)
             => ids.HasValue ? ids.Value : null;
 
-        public int InterceptedId([InterceptedID("Query")] [ID] int id) => id;
+        public int InterceptedId([InterceptedID("Query")][ID] int id) => id;
 
-        public int[] InterceptedIds([InterceptedID("Query")] [ID] int[] ids) => ids;
+        public int[] InterceptedIds([InterceptedID("Query")][ID] int[] ids) => ids;
 
         public string CustomId([ID] StronglyTypedId id) => id.ToString();
 
@@ -566,7 +567,7 @@ public class IdAttributeTests
         [ID("Some")] public IReadOnlyList<int?>? SomeNullableIds { get; }
 
         [ID("Some")]
-        [DefaultValue(new int[] {})]
+        [DefaultValue(new int[] { })]
         public Optional<IReadOnlyList<int>> SomeOptionalIds { get; }
 
         [ID, InterceptedID("FooInput")]

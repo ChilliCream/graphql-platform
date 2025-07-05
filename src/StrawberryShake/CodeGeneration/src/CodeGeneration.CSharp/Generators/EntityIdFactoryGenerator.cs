@@ -9,7 +9,6 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
 {
     private const string Obj = "obj";
     private const string Type = "type";
-    private const string TypeName = "typeName";
     private const string UnderscoreOptions = "_options";
     private const string Writer = "writer";
     private const string JsonWriter = "jsonWriter";

@@ -8,7 +8,7 @@ public class InterfaceTypeParserTests
     public void Parser_Simple()
     {
         // arrange
-        var sourceText = "interface a { b: String } ";
+        const string sourceText = "interface a { b: String } ";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
@@ -31,7 +31,7 @@ public class InterfaceTypeParserTests
     public void Parser_Description()
     {
         // arrange
-        var sourceText = "\"\"\"test\"\"\"interface a { b: String } ";
+        const string sourceText = "\"\"\"test\"\"\"interface a { b: String } ";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
@@ -54,7 +54,7 @@ public class InterfaceTypeParserTests
     public void Parser_Directive()
     {
         // arrange
-        var sourceText = "interface a @foo(a: \"123\") { b: String } ";
+        const string sourceText = "interface a @foo(a: \"123\") { b: String } ";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
@@ -80,7 +80,7 @@ public class InterfaceTypeParserTests
     public void Parser_Directive_Multiple()
     {
         // arrange
-        var sourceText = "interface a @foo(a: \"123\") @foo(b: \"321\") { b: String } ";
+        const string sourceText = "interface a @foo(a: \"123\") @foo(b: \"321\") { b: String } ";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
@@ -115,7 +115,7 @@ public class InterfaceTypeParserTests
     public void Parser_ImplementsInterfaces()
     {
         // arrange
-        var sourceText = "interface a implements e { b: String } ";
+        const string sourceText = "interface a implements e { b: String } ";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
@@ -139,7 +139,7 @@ public class InterfaceTypeParserTests
     public void Parser_ImplementsInterfaces_Multiple()
     {
         // arrange
-        var sourceText = "interface a implements e & f { b: String } ";
+        const string sourceText = "interface a implements e & f { b: String } ";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
@@ -170,7 +170,7 @@ public class InterfaceTypeParserTests
     public void Parser_ImplementsInterfacesAndDirectives()
     {
         // arrange
-        var sourceText = "interface a implements e & f" +
+        const string sourceText = "interface a implements e & f" +
             "@foo(a: \"123\") @foo(b: \"321\") { b: String } ";
 
         var parser = new Utf8GraphQLParser(
@@ -215,7 +215,7 @@ public class InterfaceTypeParserTests
     public void Parser__Should_Fail_WhenDirectivesBeforeInterface()
     {
         // arrange
-        var sourceText = "interface a @foo(a: \"123\") implements e & f" +
+        const string sourceText = "interface a @foo(a: \"123\") implements e & f" +
             " @foo(b: \"321\") { b: String } ";
 
         // act & assert

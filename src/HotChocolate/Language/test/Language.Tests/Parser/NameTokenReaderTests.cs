@@ -9,10 +9,10 @@ public class NameTokenReaderTests
     [InlineData("helloWorld_123\n     ")]
     [InlineData("helloWorld_123")]
     [Theory]
-    private void ReadToken(string sourceText)
+    public void ReadToken(string sourceText)
     {
         // arrange
-        var nameTokenValue = "helloWorld_123";
+        const string nameTokenValue = "helloWorld_123";
         var source = Encoding.UTF8.GetBytes(sourceText);
         var reader = new Utf8GraphQLReader(source);
 

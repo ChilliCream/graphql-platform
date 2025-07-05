@@ -95,7 +95,7 @@ public sealed class DirectiveCollection : IReadOnlyList<Directive>
         return null;
     }
 
-        /// <summary>
+    /// <summary>
     /// Gets the first directive that matches the specified runtime type.
     /// </summary>
     /// <param name="runtimeType">

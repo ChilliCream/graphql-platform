@@ -1443,8 +1443,8 @@ public class OperationCompilerTests
                     baz.Type,
                     bazSelection,
                     "someName",
-                    resolverPipeline: bazPipeline,
-                    isInternal: true);
+                    isInternal: true,
+                    resolverPipeline: bazPipeline);
 
                 context.AddSelection(compiledSelection);
             }

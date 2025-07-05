@@ -305,8 +305,7 @@ public class InMemoryClientBuilderExtensionsTests
         IInMemoryClientBuilder builder = null!;
 
         // act
-        var ex =
-            Record.Exception(() => builder.ConfigureRequestInterceptor<StubInterceptor>());
+        var ex = Record.Exception(builder.ConfigureRequestInterceptor<StubInterceptor>);
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);

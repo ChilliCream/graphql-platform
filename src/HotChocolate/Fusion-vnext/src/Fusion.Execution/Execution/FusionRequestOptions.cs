@@ -9,6 +9,7 @@ public sealed class FusionRequestOptions : ICloneable
     private int _operationExecutionPlanCacheSize = 256;
     private CacheDiagnostics? _operationExecutionPlanCacheDiagnostics;
     private int _operationDocumentCacheSize = 256;
+    private int _sourceSchemaOperationCacheSize = 256;
     private bool _isReadOnly;
 
     /// <summary>
@@ -81,6 +82,20 @@ public sealed class FusionRequestOptions : ICloneable
             }
 
             _operationDocumentCacheSize = value;
+        }
+    }
+
+    public int SourceSchemaOperationCacheSize
+    {
+        get => _sourceSchemaOperationCacheSize;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new InvalidOperationException("The request options are read-only.");
+            }
+
+            _sourceSchemaOperationCacheSize = value;
         }
     }
 

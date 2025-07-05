@@ -9,6 +9,9 @@
     <Project Path="src/Transport.Sockets.Client/HotChocolate.Transport.Sockets.Client.csproj" />
     <Project Path="src/Transport.Sockets/HotChocolate.Transport.Sockets.csproj" />
   </Folder>
+  <Folder Name="/src/Transport.Formatters/">
+    <Project Path="src/Transport.Formatters/HotChocolate.Transport.Formatters.csproj" />
+  </Folder>
   <Folder Name="/test/">
     <Project Path="test/AspNetCore.Authorization.Opa.Tests/HotChocolate.AspNetCore.Authorization.Opa.Tests.csproj" />
     <Project Path="test/AspNetCore.Authorization.Tests/HotChocolate.AspNetCore.Authorization.Tests.csproj" />

@@ -30,7 +30,7 @@ public abstract class FilterProvider<TContext>
     }
 
     /// <inheritdoc />
-    public FilterProvider(Action<IFilterProviderDescriptor<TContext>> configure)
+    protected FilterProvider(Action<IFilterProviderDescriptor<TContext>> configure)
         => _configure = configure ?? throw new ArgumentNullException(nameof(configure));
 
     internal new FilterProviderConfiguration? Configuration => base.Configuration;
@@ -59,7 +59,7 @@ public abstract class FilterProvider<TContext>
         IFilterConvention convention)
     {
         _filterConvention = convention;
-        base.Initialize(context);
+        Initialize(context);
     }
 
     void IFilterProviderConvention.Complete(IConventionContext context)

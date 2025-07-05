@@ -122,74 +122,74 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         switch (kind)
         {
             case ErrorKind.SyntaxError:
+            {
+                foreach (var error in errors)
                 {
-                    foreach (var error in errors)
-                    {
-                        if (context.ContextData.TryGetValue(ParserActivity, out var value))
-                        {
-                            Debug.Assert(value is not null, "The activity mustn't be null!");
-
-                            var activity = (Activity)value;
-                            _enricher.EnrichSyntaxError(context, activity, error);
-                            activity.SetStatus(Status.Error);
-                            activity.SetStatus(ActivityStatusCode.Error);
-                        }
-                    }
-                }
-                break;
-
-            case ErrorKind.ValidationError:
-                {
-                    if (context.ContextData.TryGetValue(ValidateActivity, out var value))
+                    if (context.ContextData.TryGetValue(ParserActivity, out var value))
                     {
                         Debug.Assert(value is not null, "The activity mustn't be null!");
 
                         var activity = (Activity)value;
+                        _enricher.EnrichSyntaxError(context, activity, error);
+                        activity.SetStatus(Status.Error);
+                        activity.SetStatus(ActivityStatusCode.Error);
+                    }
+                }
+            }
+            break;
+
+            case ErrorKind.ValidationError:
+            {
+                if (context.ContextData.TryGetValue(ValidateActivity, out var value))
+                {
+                    Debug.Assert(value is not null, "The activity mustn't be null!");
+
+                    var activity = (Activity)value;
+
+                    foreach (var error in errors)
+                    {
+                        _enricher.EnrichValidationError(context, activity, error);
+                    }
+
+                    activity.SetStatus(Status.Error);
+                    activity.SetStatus(ActivityStatusCode.Error);
+                }
+            }
+            break;
+
+            case ErrorKind.FieldError:
+            {
+                if (!_options.SkipResolveFieldValue)
+                {
+                    if (state is IMiddlewareContext middlewareContext
+                        && middlewareContext.LocalContextData.TryGetValue(ResolverActivity, out var localValue)
+                        && localValue is Activity activity)
+                    {
+                        foreach (var error in errors)
+                        {
+                            _enricher.EnrichResolverError(context, middlewareContext, error, activity);
+                        }
+
+                        activity.SetStatus(Status.Error);
+                        activity.SetStatus(ActivityStatusCode.Error);
+                    }
+                    else if (context.ContextData.TryGetValue(RequestActivity, out var value))
+                    {
+                        Debug.Assert(value is not null, "The activity mustn't be null!");
+
+                        activity = (Activity)value;
 
                         foreach (var error in errors)
                         {
-                            _enricher.EnrichValidationError(context, activity, error);
+                            _enricher.EnrichResolverError(context, null, error, activity);
                         }
 
                         activity.SetStatus(Status.Error);
                         activity.SetStatus(ActivityStatusCode.Error);
                     }
                 }
-                break;
-
-            case ErrorKind.FieldError:
-                {
-                    if (!_options.SkipResolveFieldValue)
-                    {
-                        if (state is IMiddlewareContext middlewareContext
-                            && middlewareContext.LocalContextData.TryGetValue(ResolverActivity, out var localValue)
-                            && localValue is Activity activity)
-                        {
-                            foreach (var error in errors)
-                            {
-                                _enricher.EnrichResolverError(context, middlewareContext, error, activity);
-                            }
-
-                            activity.SetStatus(Status.Error);
-                            activity.SetStatus(ActivityStatusCode.Error);
-                        }
-                        else if (context.ContextData.TryGetValue(RequestActivity, out var value))
-                        {
-                            Debug.Assert(value is not null, "The activity mustn't be null!");
-
-                            activity = (Activity)value;
-
-                            foreach (var error in errors)
-                            {
-                                _enricher.EnrichResolverError(context, null, error, activity);
-                            }
-
-                            activity.SetStatus(Status.Error);
-                            activity.SetStatus(ActivityStatusCode.Error);
-                        }
-                    }
-                }
-                break;
+            }
+            break;
         }
     }
 

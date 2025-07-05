@@ -224,7 +224,7 @@ internal struct Iso8601Duration
             days = value;
             if (++pos <= length)
             {
-                if (!TryParseDigits(s, ref pos, false, out value, out numDigits))
+                if (!TryParseDigits(s, ref pos, false, out _, out numDigits))
                 {
                     return false;
                 }

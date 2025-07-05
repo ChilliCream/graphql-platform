@@ -25,7 +25,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         var module = syntaxInfos.GetModuleInfo(assemblyName, out _);
 
         // the generator is disabled.
-        if(module.Options == ModuleOptions.Disabled)
+        if (module.Options == ModuleOptions.Disabled)
         {
             return;
         }
@@ -56,28 +56,28 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                 addSource(CreateFileName(objectType), SourceText.From(sb.ToString(), Encoding.UTF8));
             }
 
-            if(type is InterfaceTypeInfo interfaceType)
+            if (type is InterfaceTypeInfo interfaceType)
             {
                 var file = new InterfaceTypeFileBuilder(sb);
                 WriteFile(file, interfaceType, typeLookup);
                 addSource(CreateFileName(interfaceType), SourceText.From(sb.ToString(), Encoding.UTF8));
             }
 
-            if(type is RootTypeInfo rootType)
+            if (type is RootTypeInfo rootType)
             {
                 var file = new RootTypeFileBuilder(sb);
                 WriteFile(file, rootType, typeLookup);
                 addSource(CreateFileName(rootType), SourceText.From(sb.ToString(), Encoding.UTF8));
             }
 
-            if(type is ConnectionTypeInfo connectionType)
+            if (type is ConnectionTypeInfo connectionType)
             {
                 var file = new ConnectionTypeFileBuilder(sb);
                 WriteFile(file, connectionType, typeLookup);
                 addSource(CreateFileName(connectionType), SourceText.From(sb.ToString(), Encoding.UTF8));
             }
 
-            if(type is EdgeTypeInfo edgeType)
+            if (type is EdgeTypeInfo edgeType)
             {
                 var file = new EdgeTypeFileBuilder(sb);
                 WriteFile(file, edgeType, typeLookup);
@@ -104,7 +104,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                 {
                     hash[i] = (byte)'_';
                 }
-                else if(hash[i] == (byte)'=')
+                else if (hash[i] == (byte)'=')
                 {
                     hash = hash[..i];
                     break;

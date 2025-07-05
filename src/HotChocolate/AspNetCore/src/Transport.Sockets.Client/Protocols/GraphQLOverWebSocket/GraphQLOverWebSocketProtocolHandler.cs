@@ -10,11 +10,18 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 {
     public string Name => WellKnownProtocols.GraphQL_Transport_WS;
 
-    public async ValueTask InitializeAsync<T>(
+    public async ValueTask InitializeAsync(
         SocketClientContext context,
-        T payload,
+        JsonElement payload,
         CancellationToken cancellationToken = default)
     {
+        if (payload.ValueKind is not JsonValueKind.Object and not JsonValueKind.Null and not JsonValueKind.Undefined)
+        {
+            throw new ArgumentException(
+                "The payload must be an object, null, or undefined.",
+                nameof(payload));
+        }
+
         var observer = new ConnectionMessageObserver<ConnectionAcceptMessage>(cancellationToken);
         using var subscription = context.Messages.Subscribe(observer);
         await context.Socket.SendConnectionInitMessage(payload, cancellationToken);
@@ -33,7 +40,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
         await context.Socket.SendSubscribeMessageAsync(id, request, cancellationToken);
 
-        // if the user cancels this stream we will send the server a complete request
+        // if the user cancels this stream, we will send the server a complete request
         // so that we no longer receive new result messages.
         cancellationToken.Register(completion.TrySendCompleteMessage);
 

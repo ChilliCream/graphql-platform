@@ -24,7 +24,7 @@ internal sealed class SelectionVariants(int id) : ISelectionVariants
 
     public bool IsPossibleType(ObjectType typeContext)
     {
-        if(_map is not null)
+        if (_map is not null)
         {
             return _map.ContainsKey(typeContext);
         }

@@ -37,7 +37,7 @@ public static class HotChocolateExecutionSelectionExtensions
     {
         // we first check if we already have an expression for this selection,
         // this would be the cheapest way to get the expression.
-        if(TryGetExpression<TValue>(selection, out var expression))
+        if (TryGetExpression<TValue>(selection, out var expression))
         {
             return expression;
         }
@@ -188,7 +188,7 @@ public static class HotChocolateExecutionSelectionExtensions
         var keyPrefix = GetKeyPrefix();
         var requiredBufferSize = EstimateIntLength(key) + keyPrefix.Length + typeNameLength;
         byte[]? rented = null;
-        var span =  requiredBufferSize <= 256
+        var span = requiredBufferSize <= 256
             ? stackalloc byte[requiredBufferSize]
             : (rented = ArrayPool<byte>.Shared.Rent(requiredBufferSize));
 

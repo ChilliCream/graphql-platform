@@ -91,7 +91,7 @@ internal static class Utf8Helper
                         throw new Utf8EncodingException(
                             string.Format(
                                 Utf8Helper_InvalidEscapeChar,
-                                (char) code));
+                                (char)code));
                     }
                 }
                 else
@@ -117,25 +117,25 @@ internal static class Utf8Helper
     {
         if (unicodeDecimal < 0x80)
         {
-            unescapedString[writePosition++] = (byte) unicodeDecimal;
+            unescapedString[writePosition++] = (byte)unicodeDecimal;
         }
         else if (unicodeDecimal < 0x800)
         {
-            unescapedString[writePosition++] = (byte) (0xC0 | (unicodeDecimal >> 6));
-            unescapedString[writePosition++] = (byte) (0x80 | (unicodeDecimal & 0x3F));
+            unescapedString[writePosition++] = (byte)(0xC0 | (unicodeDecimal >> 6));
+            unescapedString[writePosition++] = (byte)(0x80 | (unicodeDecimal & 0x3F));
         }
         else if (unicodeDecimal < 0x10000)
         {
-            unescapedString[writePosition++] = (byte) (0xE0 | (unicodeDecimal >> 12));
-            unescapedString[writePosition++] = (byte) (0x80 | ((unicodeDecimal >> 6) & 0x3F));
-            unescapedString[writePosition++] = (byte) (0x80 | (unicodeDecimal & 0x3F));
+            unescapedString[writePosition++] = (byte)(0xE0 | (unicodeDecimal >> 12));
+            unescapedString[writePosition++] = (byte)(0x80 | ((unicodeDecimal >> 6) & 0x3F));
+            unescapedString[writePosition++] = (byte)(0x80 | (unicodeDecimal & 0x3F));
         }
         else
         {
-            unescapedString[writePosition++] = (byte) (0xF0 | (unicodeDecimal >> 18));
-            unescapedString[writePosition++] = (byte) (0x80 | ((unicodeDecimal >> 12) & 0x3F));
-            unescapedString[writePosition++] = (byte) (0x80 | ((unicodeDecimal >> 6) & 0x3F));
-            unescapedString[writePosition++] = (byte) (0x80 | (unicodeDecimal & 0x3F));
+            unescapedString[writePosition++] = (byte)(0xF0 | (unicodeDecimal >> 18));
+            unescapedString[writePosition++] = (byte)(0x80 | ((unicodeDecimal >> 12) & 0x3F));
+            unescapedString[writePosition++] = (byte)(0x80 | ((unicodeDecimal >> 6) & 0x3F));
+            unescapedString[writePosition++] = (byte)(0x80 | (unicodeDecimal & 0x3F));
         }
     }
 

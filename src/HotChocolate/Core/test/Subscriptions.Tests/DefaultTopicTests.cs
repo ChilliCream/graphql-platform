@@ -1,4 +1,4 @@
-﻿using HotChocolate.Subscriptions.Diagnostics;
+using HotChocolate.Subscriptions.Diagnostics;
 using HotChocolate.Tests;
 using Xunit.Abstractions;
 
@@ -64,14 +64,14 @@ public class DefaultTopicTests(ITestOutputHelper outputHelper)
         {
             protected override ValueTask<IDisposable> OnConnectAsync(CancellationToken cancellationToken)
             {
-                return ValueTask.FromResult<IDisposable>(session);
+                return ValueTask.FromResult(session);
             }
         }
     }
 
     private class StubDisposableSession : IDisposable
     {
-        public bool DisposableCalled { get; private set; } = false;
+        public bool DisposableCalled { get; private set; }
 
         public void Dispose()
         {
@@ -81,7 +81,7 @@ public class DefaultTopicTests(ITestOutputHelper outputHelper)
 
     private class StubAsyncDisposableSession : StubDisposableSession, IAsyncDisposable
     {
-        public bool AsyncDisposableCalled { get; private set; } = false;
+        public bool AsyncDisposableCalled { get; private set; }
 
         public ValueTask DisposeAsync()
         {

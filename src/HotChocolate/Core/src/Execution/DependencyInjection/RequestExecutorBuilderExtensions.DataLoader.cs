@@ -12,7 +12,7 @@ public static partial class RequestExecutorBuilderExtensions
         where T : class, IDataLoader
     {
         builder.Services.AddSingleton(new DataLoaderRegistration(typeof(T)));
-        builder.Services.TryAddScoped<T>(sp => sp.GetDataLoader<T>());
+        builder.Services.TryAddScoped(sp => sp.GetDataLoader<T>());
         return builder;
     }
 
@@ -22,8 +22,8 @@ public static partial class RequestExecutorBuilderExtensions
         where TImplementation : class, TService
     {
         builder.Services.AddSingleton(new DataLoaderRegistration(typeof(TService), typeof(TImplementation)));
-        builder.Services.TryAddScoped<TImplementation>(sp => sp.GetDataLoader<TImplementation>());
-        builder.Services.TryAddScoped<TService>(sp => sp.GetDataLoader<TService>());
+        builder.Services.TryAddScoped(sp => sp.GetDataLoader<TImplementation>());
+        builder.Services.TryAddScoped(sp => sp.GetDataLoader<TService>());
         return builder;
     }
 
@@ -33,7 +33,7 @@ public static partial class RequestExecutorBuilderExtensions
         where T : class, IDataLoader
     {
         builder.Services.AddSingleton(new DataLoaderRegistration(typeof(T), sp => factory(sp)));
-        builder.Services.TryAddScoped<T>(sp => sp.GetDataLoader<T>());
+        builder.Services.TryAddScoped(sp => sp.GetDataLoader<T>());
         return builder;
     }
 
@@ -44,8 +44,8 @@ public static partial class RequestExecutorBuilderExtensions
         where TImplementation : class, TService
     {
         builder.Services.AddSingleton(new DataLoaderRegistration(typeof(TService), typeof(TImplementation), sp => factory(sp)));
-        builder.Services.TryAddScoped<TImplementation>(sp => sp.GetDataLoader<TImplementation>());
-        builder.Services.TryAddScoped<TService>(sp => sp.GetDataLoader<TService>());
+        builder.Services.TryAddScoped(sp => sp.GetDataLoader<TImplementation>());
+        builder.Services.TryAddScoped(sp => sp.GetDataLoader<TService>());
         return builder;
     }
 }

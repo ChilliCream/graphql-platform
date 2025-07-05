@@ -30,7 +30,7 @@ public abstract class SortProvider<TContext>
         _configure = Configure;
     }
 
-    public SortProvider(Action<ISortProviderDescriptor<TContext>> configure)
+    protected SortProvider(Action<ISortProviderDescriptor<TContext>> configure)
     {
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }

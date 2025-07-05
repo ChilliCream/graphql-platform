@@ -72,7 +72,7 @@ public class SchemaTests
     {
         public static Book GetBook()
             => new Book("C# in depth.", "abc");
-}
+    }
 
     public record Book(
         [property: CacheControl(5000)] string Title,

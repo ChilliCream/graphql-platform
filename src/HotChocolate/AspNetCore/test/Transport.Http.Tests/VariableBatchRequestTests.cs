@@ -66,7 +66,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         var httpClient = testServer.CreateClient();
         var client = new DefaultGraphQLHttpClient(httpClient);
 
-        var query =
+        const string query =
             """
             query($episode: Episode!) {
               hero(episode: $episode) {
@@ -97,7 +97,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         // assert
         var snapshot = new Snapshot();
 
-        await foreach(var result in response.ReadAsResultStreamAsync().WithCancellation(cts.Token))
+        await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cts.Token))
         {
             snapshot.Add(result);
         }
@@ -126,7 +126,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         var httpClient = testServer.CreateClient();
         var client = new DefaultGraphQLHttpClient(httpClient);
 
-        var query =
+        const string query =
             """
             query($episode: Episode!) {
               hero(episode: $episode) {
@@ -168,7 +168,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
 
         var sortedResults = new SortedList<(int?, int?), OperationResult>();
 
-        await foreach(var result in response.ReadAsResultStreamAsync().WithCancellation(cts.Token))
+        await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cts.Token))
         {
             sortedResults.Add((result.RequestIndex, result.VariableIndex), result);
         }
@@ -211,7 +211,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         var httpClient = testServer.CreateClient();
         var client = new DefaultGraphQLHttpClient(httpClient);
 
-        var query =
+        const string query =
             """
             query($episode: Episode!) {
               hero(episode: $episode) {
@@ -257,7 +257,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
 
         var sortedResults = new SortedList<(int?, int?), OperationResult>();
 
-        await foreach(var result in response.ReadAsResultStreamAsync().WithCancellation(cts.Token))
+        await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cts.Token))
         {
             sortedResults.Add((result.RequestIndex, result.VariableIndex), result);
         }

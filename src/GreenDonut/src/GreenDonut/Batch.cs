@@ -13,7 +13,7 @@ internal class Batch<TKey> where TKey : notnull
 
     public Promise<TValue> GetOrCreatePromise<TValue>(TKey key, bool allowCachePropagation)
     {
-        if(_items.TryGetValue(key, out var value))
+        if (_items.TryGetValue(key, out var value))
         {
             return (Promise<TValue>)value;
         }
