@@ -47,10 +47,8 @@ public class IntegrationTests : FusionTestBase
             """,
             new Uri("http://localhost:5000/graphql"));
 
-        using var response = await result.ReadAsResultAsync();
-
         // act
-        using var buffer = new PooledArrayWriter();
+        using var response = await result.ReadAsResultAsync();
         response.MatchSnapshot();
     }
 }
