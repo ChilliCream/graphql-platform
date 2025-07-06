@@ -189,7 +189,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         FormatInternal(result, buffer);
 
         await outputStream
-            .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
+            .WriteAsync(buffer.WrittenMemory, cancellationToken)
             .ConfigureAwait(false);
 
         await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
@@ -231,7 +231,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         }
 
         await outputStream
-            .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
+            .WriteAsync(buffer.WrittenMemory, cancellationToken)
             .ConfigureAwait(false);
 
         await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
@@ -259,7 +259,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         }
 
         await outputStream
-            .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
+            .WriteAsync(buffer.WrittenMemory, cancellationToken)
             .ConfigureAwait(false);
 
         await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);

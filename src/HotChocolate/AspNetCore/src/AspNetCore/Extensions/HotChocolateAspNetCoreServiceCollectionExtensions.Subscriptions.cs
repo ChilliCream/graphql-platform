@@ -60,9 +60,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             .ConfigureSchemaServices(s =>
             {
                 s.TryAddSingleton<ISocketSessionInterceptor, DefaultSocketSessionInterceptor>();
-                s.TryAddSingleton<IWebSocketPayloadFormatter>(
-                    _ => new DefaultWebSocketPayloadFormatter(
-                            new WebSocketPayloadFormatterOptions()));
+                s.TryAddSingleton<IWebSocketPayloadFormatter>(_ => new DefaultWebSocketPayloadFormatter());
             })
             .AddApolloProtocol()
             .AddGraphQLOverWebSocketProtocol();

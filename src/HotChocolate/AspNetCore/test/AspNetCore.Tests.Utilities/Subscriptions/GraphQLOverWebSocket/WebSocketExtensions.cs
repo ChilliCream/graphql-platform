@@ -24,7 +24,7 @@ public static class WebSocketExtensions
         using var writer = new PooledArrayWriter();
         var formatter = new DefaultWebSocketPayloadFormatter();
         MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.ConnectionInitialize, payload);
-        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
+        await SendMessageAsync(webSocket, writer.WrittenMemory, cancellationToken);
     }
 
     public static async Task SendSubscribeAsync(
@@ -63,7 +63,7 @@ public static class WebSocketExtensions
         using var writer = new PooledArrayWriter();
         var formatter = new DefaultWebSocketPayloadFormatter();
         MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.Subscribe, map, subscriptionId);
-        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
+        await SendMessageAsync(webSocket, writer.WrittenMemory, cancellationToken);
     }
 
     public static async Task SendCompleteAsync(
@@ -74,7 +74,7 @@ public static class WebSocketExtensions
         using var writer = new PooledArrayWriter();
         var formatter = new DefaultWebSocketPayloadFormatter();
         MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.Complete, id: subscriptionId);
-        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
+        await SendMessageAsync(webSocket, writer.WrittenMemory, cancellationToken);
     }
 
     public static Task SendPingAsync(
@@ -90,7 +90,7 @@ public static class WebSocketExtensions
         using var writer = new PooledArrayWriter();
         var formatter = new DefaultWebSocketPayloadFormatter();
         MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.Ping, payload);
-        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
+        await SendMessageAsync(webSocket, writer.WrittenMemory, cancellationToken);
     }
 
     public static Task SendPongAsync(
@@ -106,7 +106,7 @@ public static class WebSocketExtensions
         using var writer = new PooledArrayWriter();
         var formatter = new DefaultWebSocketPayloadFormatter();
         MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.Pong, payload);
-        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
+        await SendMessageAsync(webSocket, writer.WrittenMemory, cancellationToken);
     }
 
     public static Task SendMessageAsync(

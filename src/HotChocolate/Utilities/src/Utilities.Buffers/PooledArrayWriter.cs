@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using static HotChocolate.Buffers.Properties.BuffersResources;
 
 namespace HotChocolate.Buffers;
@@ -7,7 +8,7 @@ namespace HotChocolate.Buffers;
 /// <summary>
 /// A <see cref="IBufferWriter{T}"/> that writes to a rented buffer.
 /// </summary>
-public sealed class PooledArrayWriter : IBufferWriter<byte>, IDisposable
+public sealed class PooledArrayWriter : IBufferWriter<byte>, IMemoryOwner<byte>
 {
     private const int InitialBufferSize = 512;
     private byte[] _buffer;
@@ -43,9 +44,9 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IDisposable
     /// </returns>
     /// <remarks>
     /// Accessing the underlying buffer directly is not recommended.
-    /// If possible use <see cref="GetWrittenMemory"/> or <see cref="GetWrittenSpan"/>.
+    /// If possible use <see cref="WrittenMemory"/> or <see cref="WrittenSpan"/>.
     /// </remarks>
-    public byte[] GetInternalBuffer() => _buffer;
+    internal byte[] GetInternalBuffer() => _buffer;
 
     /// <summary>
     /// Gets the part of the buffer that has been written to.
@@ -53,8 +54,11 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IDisposable
     /// <returns>
     /// A <see cref="ReadOnlyMemory{T}"/> of the written portion of the buffer.
     /// </returns>
-    public ReadOnlyMemory<byte> GetWrittenMemory()
+    public ReadOnlyMemory<byte> WrittenMemory
         => _buffer.AsMemory()[.._start];
+
+    Memory<byte> IMemoryOwner<byte>.Memory
+        => _buffer.AsMemory(0, _start);
 
     /// <summary>
     /// Gets the part of the buffer that has been written to.
@@ -62,7 +66,7 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IDisposable
     /// <returns>
     /// A <see cref="ReadOnlySpan{T}"/> of the written portion of the buffer.
     /// </returns>
-    public ReadOnlySpan<byte> GetWrittenSpan()
+    public ReadOnlySpan<byte> WrittenSpan
         => MemoryMarshal.CreateSpan(ref _buffer[0], _start);
 
     /// <summary>
@@ -202,6 +206,43 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IDisposable
             _buffer = [];
             _capacity = 0;
             _start = 0;
+            _disposed = true;
+        }
+    }
+}
+
+public static class PooledArrayWriterMarshal
+{
+    public static byte[] GetUnderlyingBuffer(PooledArrayWriter writer)
+    {
+        ArgumentNullException.ThrowIfNull(writer);
+        return writer.GetInternalBuffer();
+    }
+}
+
+public sealed class JsonDocumentOwner : IDisposable
+{
+    private readonly IMemoryOwner<byte> _memory;
+    private bool _disposed;
+
+    public JsonDocumentOwner(JsonDocument document, IMemoryOwner<byte> memory)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(memory);
+
+        Document = document;
+        _memory = memory;
+    }
+
+    public JsonDocument Document { get; }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            Document.Dispose();
+            _memory.Dispose();
+
             _disposed = true;
         }
     }

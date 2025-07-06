@@ -112,7 +112,7 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
 
         writer.Flush();
 
-        return JsonDocument.Parse(buffer.GetWrittenMemory());
+        return JsonDocument.Parse(buffer.WrittenMemory);
     }
 
     private static void WriteProperty(Utf8JsonWriter writer, string propertyName, JsonElement value)

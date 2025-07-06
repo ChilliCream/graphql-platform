@@ -248,7 +248,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         _formatter.Format(result, jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
-        await session.Connection.SendAsync(arrayWriter.GetWrittenMemory(), cancellationToken);
+        await session.Connection.SendAsync(arrayWriter.WrittenMemory, cancellationToken);
     }
 
     public async ValueTask SendErrorMessageAsync(
@@ -266,7 +266,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         _formatter.Format(errors[0], jsonWriter);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
-        await session.Connection.SendAsync(arrayWriter.GetWrittenMemory(), cancellationToken);
+        await session.Connection.SendAsync(arrayWriter.WrittenMemory, cancellationToken);
     }
 
     public async ValueTask SendCompleteMessageAsync(
@@ -276,7 +276,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
     {
         using var writer = new PooledArrayWriter();
         SerializeMessage(writer, _formatter, Utf8Messages.Complete, id: operationSessionId);
-        await session.Connection.SendAsync(writer.GetWrittenMemory(), cancellationToken);
+        await session.Connection.SendAsync(writer.WrittenMemory, cancellationToken);
     }
 
     private async ValueTask SendConnectionAcceptMessage(
@@ -286,7 +286,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
     {
         using var writer = new PooledArrayWriter();
         SerializeMessage(writer, _formatter, Utf8Messages.ConnectionAccept, payload);
-        await session.Connection.SendAsync(writer.GetWrittenMemory(), cancellationToken);
+        await session.Connection.SendAsync(writer.WrittenMemory, cancellationToken);
     }
 
     private async ValueTask SendConnectionRejectMessage(
@@ -317,7 +317,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         jsonWriter.WriteEndObject();
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(cancellationToken);
-        await session.Connection.SendAsync(arrayWriter.GetWrittenMemory(), cancellationToken);
+        await session.Connection.SendAsync(arrayWriter.WrittenMemory, cancellationToken);
     }
 
     public ValueTask OnConnectionInitTimeoutAsync(

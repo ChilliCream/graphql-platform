@@ -78,7 +78,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 throw DefaultHttpRequestParser_RequestIsEmpty();
             }
 
-            return ParsePersistedOperationRequest(writer.GetWrittenSpan(), documentId, operationName);
+            return ParsePersistedOperationRequest(writer.WrittenSpan, documentId, operationName);
         }
         catch (GraphQLRequestException)
         {
@@ -278,7 +278,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 throw DefaultHttpRequestParser_RequestIsEmpty();
             }
 
-            return ParseRequest(writer.GetWrittenSpan());
+            return ParseRequest(writer.WrittenSpan);
         }
         catch (GraphQLRequestException)
         {

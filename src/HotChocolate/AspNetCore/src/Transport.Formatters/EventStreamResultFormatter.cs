@@ -66,7 +66,7 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
 
             if (!ct.IsCancellationRequested)
             {
-                await outputStream.WriteAsync(buffer.GetWrittenMemory(), ct).ConfigureAwait(false);
+                await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
                 await outputStream.FlushAsync(ct).ConfigureAwait(false);
             }
         }

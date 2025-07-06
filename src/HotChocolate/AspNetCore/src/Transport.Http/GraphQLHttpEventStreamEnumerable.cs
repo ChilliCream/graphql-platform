@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.IO.Pipelines;
-using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Utilities;
 
@@ -94,7 +93,7 @@ internal class GraphQLHttpEventStreamEnumerator : IAsyncEnumerator<OperationResu
 
             if (IsMessageComplete(_messageBuffer))
             {
-                var readState = TryReadResult(_messageBuffer.GetWrittenSpan(), out var operationResult);
+                var readState = TryReadResult(_messageBuffer.WrittenSpan, out var operationResult);
 
                 if (readState is ReadState.Message)
                 {
@@ -149,7 +148,7 @@ internal class GraphQLHttpEventStreamEnumerator : IAsyncEnumerator<OperationResu
 
     private static bool IsMessageComplete(PooledArrayWriter message)
     {
-        var span = message.GetWrittenSpan();
+        var span = message.WrittenSpan;
         return span.Length >= 2 && span[^1] == (byte)'\n' && span[^2] == (byte)'\n';
     }
 
@@ -172,8 +171,6 @@ internal class GraphQLHttpEventStreamEnumerator : IAsyncEnumerator<OperationResu
 
     private static EventType ParseEventType(ref ReadOnlySpan<byte> span)
     {
-        var debug = Encoding.UTF8.GetString(span);
-
         if (ExpectEvent(ref span))
         {
             if (ExpectNext(ref span))
@@ -232,18 +229,18 @@ internal class GraphQLHttpEventStreamEnumerator : IAsyncEnumerator<OperationResu
             line.CopyTo(payload.GetSpan(line.Length));
             payload.Advance(line.Length);
 
-            // if the next part does not start with another data: line we are done
+            // if the next part does not start with another data: line, we are done
             if (span.Length < 5 || !span.StartsWith(Data))
             {
                 break;
             }
 
-            // consume next "data:" token & following whitespace
+            // consume the next "data:" token and the following whitespace
             span = span[5..];
             SkipWhitespaces(ref span);
         }
 
-        return OperationResult.Parse(payload.GetWrittenSpan());
+        return OperationResult.Parse(payload.WrittenSpan);
     }
 
     private static async Task ReadFromTransportAsync(Stream stream, PipeWriter writer, CancellationToken ct)
@@ -287,8 +284,6 @@ internal class GraphQLHttpEventStreamEnumerator : IAsyncEnumerator<OperationResu
                 break;
             }
         }
-
-        var debug = Encoding.UTF8.GetString(temp.GetWrittenSpan());
 
         await writer.CompleteAsync().ConfigureAwait(false);
     }

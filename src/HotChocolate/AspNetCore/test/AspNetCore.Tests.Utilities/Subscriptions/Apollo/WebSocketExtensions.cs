@@ -38,7 +38,7 @@ public static class WebSocketExtensions
         using var writer = new PooledArrayWriter();
         var formatter = new DefaultWebSocketPayloadFormatter();
         MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.ConnectionInitialize, payload);
-        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
+        await SendMessageAsync(webSocket, writer.WrittenMemory, cancellationToken);
     }
 
     public static async Task SendTerminateConnectionAsync(
@@ -48,7 +48,7 @@ public static class WebSocketExtensions
         using var writer = new PooledArrayWriter();
         var formatter = new DefaultWebSocketPayloadFormatter();
         MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.ConnectionTerminate);
-        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
+        await SendMessageAsync(webSocket, writer.WrittenMemory, cancellationToken);
     }
 
     public static async Task SendSubscriptionStartAsync(
@@ -71,7 +71,7 @@ public static class WebSocketExtensions
         using var writer = new PooledArrayWriter();
         var formatter = new DefaultWebSocketPayloadFormatter();
         MessageUtilities.SerializeMessage(writer, formatter, Utf8Messages.Stop, id: subscriptionId);
-        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
+        await SendMessageAsync(webSocket, writer.WrittenMemory, cancellationToken);
     }
 
     public static Task SendMessageAsync(
@@ -165,8 +165,9 @@ public static class WebSocketExtensions
             var array = new ArraySegment<byte>(buffer);
             result = await webSocket.ReceiveAsync(array, cancellationToken);
 
-            if (result.Count == 2 && result.EndOfMessage &&
-                buffer.AsSpan()[..2].SequenceEqual(Utf8MessageBodies.KeepAlive.Span))
+            if (result.Count == 2
+                && result.EndOfMessage
+                && buffer.AsSpan()[..2].SequenceEqual(Utf8MessageBodies.KeepAlive.Span))
             {
                 skipped = true;
                 continue;
