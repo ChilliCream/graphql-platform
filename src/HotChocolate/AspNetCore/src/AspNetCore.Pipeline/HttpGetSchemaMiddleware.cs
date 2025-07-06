@@ -152,12 +152,19 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
         bool indent,
         CancellationToken cancellationToken)
     {
+        var next = false;
         await using var streamWriter = new StreamWriter(stream, Encoding.UTF8, 1024, leaveOpen: true);
 
         foreach (var type in types)
         {
+            if (next)
+            {
+                await streamWriter.WriteLineAsync();
+            }
+
             var s = type.ToSyntaxNode().ToString(indent);
             await streamWriter.WriteLineAsync(s.AsMemory(), cancellationToken);
+            next = true;
         }
     }
 }

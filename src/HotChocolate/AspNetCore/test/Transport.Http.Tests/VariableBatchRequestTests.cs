@@ -105,13 +105,25 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         snapshot.MatchInline(
             """
             ---------------
-            VariableIndex: 0
-            Data: {"hero":{"name":"R2-D2"}}
+            {
+              "variableIndex": 0,
+              "data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              }
+            }
             ---------------
 
             ---------------
-            VariableIndex: 1
-            Data: {"hero":{"name":"Luke Skywalker"}}
+            {
+              "variableIndex": 1,
+              "data": {
+                "hero": {
+                  "name": "Luke Skywalker"
+                }
+              }
+            }
             ---------------
 
             """);
@@ -183,20 +195,36 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         snapshot.MatchInline(
             """
             ---------------
-            RequestIndex: 0
-            VariableIndex: 0
-            Data: {"hero":{"name":"R2-D2"}}
+            {
+              "requestIndex": 0,
+              "variableIndex": 0,
+              "data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              }
+            }
             ---------------
 
             ---------------
-            RequestIndex: 0
-            VariableIndex: 1
-            Data: {"hero":{"name":"Luke Skywalker"}}
+            {
+              "requestIndex": 0,
+              "variableIndex": 1,
+              "data": {
+                "hero": {
+                  "name": "Luke Skywalker"
+                }
+              }
+            }
             ---------------
 
             ---------------
-            RequestIndex: 1
-            Data: {"__typename":"Query"}
+            {
+              "requestIndex": 1,
+              "data": {
+                "__typename": "Query"
+              }
+            }
             ---------------
 
             """);
@@ -279,18 +307,34 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
             ---------------
 
             ---------------
-            RequestIndex: 0
-            Data: {"hero":{"name":"R2-D2"}}
+            {
+              "requestIndex": 0,
+              "data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              }
+            }
             ---------------
 
             ---------------
-            RequestIndex: 1
-            Data: {"hero":{"name":"Luke Skywalker"}}
+            {
+              "requestIndex": 1,
+              "data": {
+                "hero": {
+                  "name": "Luke Skywalker"
+                }
+              }
+            }
             ---------------
 
             ---------------
-            RequestIndex: 2
-            Data: {"__typename":"Query"}
+            {
+              "requestIndex": 2,
+              "data": {
+                "__typename": "Query"
+              }
+            }
             ---------------
 
             """);

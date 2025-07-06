@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Routing.Patterns;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using static Microsoft.AspNetCore.Routing.Patterns.RoutePatternFactory;
-using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
+using MiddlewareFactory = HotChocolate.AspNetCore.MiddlewareFactory;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.AspNetCore.Builder;
@@ -121,12 +121,12 @@ public static class EndpointRouteBuilderExtensions
         var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaName);
 
         applicationBuilder
-            .UseCancellation()
-            .Use(CreateWebSocketSubscriptionMiddleware(executor))
-            .Use(CreateHttpPostMiddleware(executor))
-            .Use(CreateHttpMultipartMiddleware(executor, formOptions))
-            .Use(CreateHttpGetMiddleware(executor))
-            .Use(CreateHttpGetSchemaMiddleware(executor, path, MiddlewareRoutingType.Integrated))
+            .Use(MiddlewareFactory.CreateCancellationMiddleware())
+            .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor))
+            .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor))
+            .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, formOptions))
+            .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor))
+            .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(executor, path, MiddlewareRoutingType.Integrated))
             .UseNitroApp(path)
             .Use(_ => context =>
             {
@@ -198,10 +198,10 @@ public static class EndpointRouteBuilderExtensions
         var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaNameOrDefault);
 
         requestPipeline
-            .UseCancellation()
-            .Use(CreateHttpPostMiddleware(executor))
-            .Use(CreateHttpMultipartMiddleware(executor, formOptions))
-            .Use(CreateHttpGetMiddleware(executor))
+            .Use(MiddlewareFactory.CreateCancellationMiddleware())
+            .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor))
+            .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, formOptions))
+            .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor))
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -274,8 +274,8 @@ public static class EndpointRouteBuilderExtensions
         var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaNameOrDefault);
 
         requestPipeline
-            .UseCancellation()
-            .Use(CreateWebSocketSubscriptionMiddleware(executor))
+            .Use(MiddlewareFactory.CreateCancellationMiddleware())
+            .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor))
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -350,8 +350,8 @@ public static class EndpointRouteBuilderExtensions
         var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaNameOrDefault);
 
         requestPipeline
-            .UseCancellation()
-            .Use(CreateHttpGetSchemaMiddleware(executor, PathString.Empty, MiddlewareRoutingType.Explicit))
+            .Use(MiddlewareFactory.CreateCancellationMiddleware())
+            .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(executor, PathString.Empty, MiddlewareRoutingType.Explicit))
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -571,72 +571,6 @@ public static class EndpointRouteBuilderExtensions
         this WebSocketEndpointConventionBuilder builder,
         GraphQLSocketOptions socketOptions) =>
         builder.WithMetadata(new GraphQLServerOptions { Sockets = socketOptions });
-
-    private static IApplicationBuilder UseCancellation(this IApplicationBuilder builder)
-        => builder.Use(next => async context =>
-        {
-            try
-            {
-                await next(context);
-            }
-            catch (OperationCanceledException)
-            {
-                // we just catch cancellations here and do nothing.
-            }
-        });
-
-    private static Func<RequestDelegate, RequestDelegate> CreateWebSocketSubscriptionMiddleware(
-        HttpRequestExecutorProxy executor)
-    {
-        return next => context =>
-        {
-            var middleware = new WebSocketSubscriptionMiddleware(next, executor);
-            return middleware.InvokeAsync(context);
-        };
-    }
-
-    private static Func<RequestDelegate, RequestDelegate> CreateHttpPostMiddleware(
-        HttpRequestExecutorProxy executor)
-    {
-        return next => context =>
-        {
-            var middleware = new HttpPostMiddleware(next, executor);
-            return middleware.InvokeAsync(context);
-        };
-    }
-
-    private static Func<RequestDelegate, RequestDelegate> CreateHttpMultipartMiddleware(
-        HttpRequestExecutorProxy executor,
-        IOptions<FormOptions> formOptions)
-    {
-        return next => context =>
-        {
-            var middleware = new HttpMultipartMiddleware(next, executor, formOptions);
-            return middleware.InvokeAsync(context);
-        };
-    }
-
-    private static Func<RequestDelegate, RequestDelegate> CreateHttpGetMiddleware(
-        HttpRequestExecutorProxy executor)
-    {
-        return next => context =>
-        {
-            var middleware = new HttpGetMiddleware(next, executor);
-            return middleware.InvokeAsync(context);
-        };
-    }
-
-    private static Func<RequestDelegate, RequestDelegate> CreateHttpGetSchemaMiddleware(
-        HttpRequestExecutorProxy executor,
-        PathString path,
-        MiddlewareRoutingType routingType)
-    {
-        return next => context =>
-        {
-            var middleware = new HttpGetSchemaMiddleware(next, executor, path, routingType);
-            return middleware.InvokeAsync(context);
-        };
-    }
 
     internal static NitroAppOptions ToNitroAppOptions(this GraphQLToolOptions options)
         => new()

@@ -68,12 +68,24 @@ public static partial class RequestExecutorBuilderExtensions
         }
         else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
         {
-            builder.ConfigureSchemaServices(s =>
+            var attribute =
+                (DiagnosticEventSourceAttribute)typeof(T)
+                    .GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true)
+                    .First();
+
+            if (attribute.IsSchemaService)
             {
-                var attribute = typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true).First();
-                var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
-                s.AddSingleton(listener, sp => diagnosticEventListener(sp.GetCombinedServices()));
-            });
+                builder.ConfigureSchemaServices(s =>
+                {
+                    var listener = attribute.Listener;
+                    s.AddSingleton(listener, sp => diagnosticEventListener(sp.GetCombinedServices()));
+                });
+            }
+            else
+            {
+                var listener = attribute.Listener;
+                builder.Services.AddSingleton(listener, diagnosticEventListener);
+            }
         }
         else
         {

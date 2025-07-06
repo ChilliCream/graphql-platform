@@ -128,6 +128,29 @@ public sealed class OperationResult : IDisposable
         var buffer = new PooledArrayWriter();
         var bufferSpan = buffer.GetSpan(span.Length);
         span.CopyTo(bufferSpan);
+        buffer.Advance(span.Length);
+
+        var document = JsonDocument.Parse(buffer.WrittenMemory);
+        var root = document.RootElement;
+        var documentOwner = new JsonDocumentOwner(document, buffer);
+
+        return new OperationResult(
+            documentOwner,
+            root.TryGetProperty(DataProp, out var data) ? data : default,
+            root.TryGetProperty(ErrorsProp, out var errors) ? errors : default,
+            root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default,
+            root.TryGetProperty(RequestIndexProp, out var requestIndex) ? requestIndex.GetInt32() : null,
+            root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : null);
+    }
+
+    public static OperationResult Parse(PooledArrayWriter buffer)
+    {
+        if (buffer.WrittenSpan.Length == 0)
+        {
+            throw new ArgumentException(
+                OperationResult_Parse_JsonDataIsEmpty,
+                nameof(buffer));
+        }
 
         var document = JsonDocument.Parse(buffer.WrittenMemory);
         var root = document.RootElement;

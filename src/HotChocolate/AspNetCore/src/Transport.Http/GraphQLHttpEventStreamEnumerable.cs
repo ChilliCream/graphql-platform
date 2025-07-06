@@ -199,48 +199,57 @@ internal class GraphQLHttpEventStreamEnumerator : IAsyncEnumerator<OperationResu
 
         SkipWhitespaces(ref span);
 
-        using var payload = new PooledArrayWriter();
+        var payload = new PooledArrayWriter();
 
-        while (true)
+        try
         {
-            // read one logical line up to LF or end
-            var lineBreak = span.IndexOf((byte)'\n');
-            ReadOnlySpan<byte> line;
-            if (lineBreak == -1)
+            while (true)
             {
-                line = span;
-                span = default;
-            }
-            else
-            {
-                line = span[..lineBreak];
-                span = span[(lineBreak + 1)..];
+                // read one logical line up to LF or end
+                var lineBreak = span.IndexOf((byte)'\n');
+                ReadOnlySpan<byte> line;
+                if (lineBreak == -1)
+                {
+                    line = span;
+                    span = default;
+                }
+                else
+                {
+                    line = span[..lineBreak];
+                    span = span[(lineBreak + 1)..];
+                }
+
+                // Remove optional leading space
+                SkipWhitespaces(ref line);
+
+                // append to buffer (insert LF between lines)
+                if (payload.Length > 0)
+                {
+                    payload.GetSpan(1)[0] = (byte)'\n';
+                    payload.Advance(1);
+                }
+
+                line.CopyTo(payload.GetSpan(line.Length));
+                payload.Advance(line.Length);
+
+                // if the next part does not start with another data: line, we are done
+                if (span.Length < 5 || !span.StartsWith(Data))
+                {
+                    break;
+                }
+
+                // consume the next "data:" token and the following whitespace
+                span = span[5..];
+                SkipWhitespaces(ref span);
             }
 
-            // Remove optional leading space
-            SkipWhitespaces(ref line);
-
-            // append to buffer (insert LF between lines)
-            if (payload.Length > 0)
-            {
-                payload.GetSpan(1)[0] = (byte)'\n';
-                payload.Advance(1);
-            }
-            line.CopyTo(payload.GetSpan(line.Length));
-            payload.Advance(line.Length);
-
-            // if the next part does not start with another data: line, we are done
-            if (span.Length < 5 || !span.StartsWith(Data))
-            {
-                break;
-            }
-
-            // consume the next "data:" token and the following whitespace
-            span = span[5..];
-            SkipWhitespaces(ref span);
+            return OperationResult.Parse(payload);
         }
-
-        return OperationResult.Parse(payload.WrittenSpan);
+        catch
+        {
+            payload.Dispose();
+            throw;
+        }
     }
 
     private static async Task ReadFromTransportAsync(Stream stream, PipeWriter writer, CancellationToken ct)

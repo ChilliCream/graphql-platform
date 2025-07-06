@@ -3,14 +3,26 @@
 ## Result 1
 
 ```text
-RequestIndex: 0
-Data: {"hero":{"name":"R2-D2"}}
+{
+  "requestIndex": 0,
+  "data": {
+    "hero": {
+      "name": "R2-D2"
+    }
+  }
+}
 ```
 
 ## Result 2
 
 ```text
-RequestIndex: 1
-Data: {"hero":{"name":"Luke Skywalker"}}
+{
+  "requestIndex": 1,
+  "data": {
+    "hero": {
+      "name": "Luke Skywalker"
+    }
+  }
+}
 ```
 
