@@ -46,7 +46,7 @@ public class FileSystemOperationDocumentStorage : IOperationDocumentStorage
         string filePath,
         CancellationToken cancellationToken)
     {
-        const int chunkSize = 256;
+        const int chunkSize = 4096;
         await using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
         using var writer = new PooledArrayWriter();
         var read = 0;
