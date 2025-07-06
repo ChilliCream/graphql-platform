@@ -8,7 +8,7 @@ public class SchemaCoordinateParserTests
     public void ParseName()
     {
         // arrange
-        var sourceText = "MyType";
+        const string sourceText = "MyType";
         var source = Encoding.UTF8.GetBytes(sourceText);
 
         // act
@@ -22,7 +22,7 @@ public class SchemaCoordinateParserTests
     public void ParseNameAndMemberName()
     {
         // arrange
-        var sourceText = "MyType.MemberName";
+        const string sourceText = "MyType.MemberName";
         var source = Encoding.UTF8.GetBytes(sourceText);
 
         // act
@@ -36,7 +36,7 @@ public class SchemaCoordinateParserTests
     public void ParseNameNameName()
     {
         // arrange
-        var sourceText = "Name.Name.Name";
+        const string sourceText = "Name.Name.Name";
         var source = Encoding.UTF8.GetBytes(sourceText);
 
         // act
@@ -50,7 +50,7 @@ public class SchemaCoordinateParserTests
     public void ParseNameAndMemberNameAndArg()
     {
         // arrange
-        var sourceText = "MyType.MemberName(arg:)";
+        const string sourceText = "MyType.MemberName(arg:)";
         var source = Encoding.UTF8.GetBytes(sourceText);
 
         // act
@@ -64,7 +64,7 @@ public class SchemaCoordinateParserTests
     public void ParseDirectiveName()
     {
         // arrange
-        var sourceText = "@foo";
+        const string sourceText = "@foo";
         var source = Encoding.UTF8.GetBytes(sourceText);
 
         // act
@@ -78,7 +78,7 @@ public class SchemaCoordinateParserTests
     public void ParseDirectiveNameAndArg()
     {
         // arrange
-        var sourceText = "@foo(arg:)";
+        const string sourceText = "@foo(arg:)";
         var source = Encoding.UTF8.GetBytes(sourceText);
 
         // act

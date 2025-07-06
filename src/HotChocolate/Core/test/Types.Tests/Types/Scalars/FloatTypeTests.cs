@@ -74,7 +74,7 @@ public class FloatTypeTests
     {
         // arrange
         var type = new FloatType();
-        var value = 123.456;
+        const double value = 123.456;
 
         // act
         var serializedValue = type.Serialize(value);
@@ -102,7 +102,7 @@ public class FloatTypeTests
     {
         // arrange
         var type = new FloatType();
-        var input = "abc";
+        const string input = "abc";
 
         // act
         // assert
@@ -115,7 +115,7 @@ public class FloatTypeTests
     {
         // arrange
         var type = new FloatType(0, 100);
-        var value = 123.456;
+        const double value = 123.456;
 
         // act
         // assert
@@ -211,7 +211,7 @@ public class FloatTypeTests
     {
         // arrange
         var type = new FloatType(1, 100);
-        double input = 100;
+        const double input = 100;
 
         // act
         var literal = (FloatValueNode)type.ParseValue(input);
@@ -225,7 +225,7 @@ public class FloatTypeTests
     {
         // arrange
         var type = new FloatType(1, 100);
-        double input = 101;
+        const double input = 101;
 
         // act
         Action action = () => type.ParseValue(input);
@@ -239,7 +239,7 @@ public class FloatTypeTests
     {
         // arrange
         var type = new FloatType(1, 100);
-        double input = 1;
+        const double input = 1;
 
         // act
         var literal = (FloatValueNode)type.ParseValue(input);
@@ -253,7 +253,7 @@ public class FloatTypeTests
     {
         // arrange
         var type = new FloatType(1, 100);
-        double input = 0;
+        const double input = 0;
 
         // act
         Action action = () => type.ParseValue(input);
@@ -267,7 +267,7 @@ public class FloatTypeTests
     {
         // arrange
         var type = new FloatType();
-        var value = "123";
+        const string value = "123";
 
         // act
         // assert

@@ -74,7 +74,7 @@ public class DecimalTypeTests
     {
         // arrange
         var type = new DecimalType();
-        var value = 123.456M;
+        const decimal value = 123.456M;
 
         // act
         var serializedValue = type.Serialize(value);
@@ -102,7 +102,7 @@ public class DecimalTypeTests
     {
         // arrange
         var type = new DecimalType();
-        var input = "abc";
+        const string input = "abc";
 
         // act
         // assert
@@ -115,7 +115,7 @@ public class DecimalTypeTests
     {
         // arrange
         var type = new DecimalType(0, 100);
-        var value = 123.456M;
+        const decimal value = 123.456M;
 
         // act
         // assert
@@ -211,7 +211,7 @@ public class DecimalTypeTests
     {
         // arrange
         var type = new DecimalType(1, 100);
-        var input = 100M;
+        const decimal input = 100M;
 
         // act
         var literal = (FloatValueNode)type.ParseValue(input);
@@ -225,7 +225,7 @@ public class DecimalTypeTests
     {
         // arrange
         var type = new DecimalType(1, 100);
-        var input = 101M;
+        const decimal input = 101M;
 
         // act
         Action action = () => type.ParseValue(input);
@@ -239,7 +239,7 @@ public class DecimalTypeTests
     {
         // arrange
         var type = new DecimalType(1, 100);
-        var input = 1M;
+        const decimal input = 1M;
 
         // act
         var literal = (FloatValueNode)type.ParseValue(input);
@@ -253,7 +253,7 @@ public class DecimalTypeTests
     {
         // arrange
         var type = new DecimalType(1, 100);
-        var input = 0M;
+        const decimal input = 0M;
 
         // act
         Action action = () => type.ParseValue(input);
@@ -267,7 +267,7 @@ public class DecimalTypeTests
     {
         // arrange
         var type = new DecimalType();
-        var value = "123";
+        const string value = "123";
 
         // act
         // assert
@@ -321,8 +321,8 @@ public class DecimalTypeTests
     {
         // arrange
         var type = new DecimalType();
-        var input = 1234567.1234567m;
-        var output = "1234567.1234567";
+        const decimal input = 1234567.1234567m;
+        const string output = "1234567.1234567";
 
         // act
         var result = type.ParseValue(input);
@@ -338,8 +338,8 @@ public class DecimalTypeTests
     {
         // arrange
         var type = new DecimalType();
-        var input = 1234567.891123456789m;
-        var output = "1234567.891123456789";
+        const decimal input = 1234567.891123456789m;
+        const string output = "1234567.891123456789";
 
         // act
         var result = type.ParseValue(input);
@@ -355,8 +355,8 @@ public class DecimalTypeTests
     {
         // arrange
         var type = new DecimalType();
-        var input = 1234567.890123456789m;
-        var output = "1234567.890123456789";
+        const decimal input = 1234567.890123456789m;
+        const string output = "1234567.890123456789";
 
         // act
         var result = type.ParseValue(input);
@@ -372,8 +372,8 @@ public class DecimalTypeTests
     {
         // arrange
         var type = new DecimalType();
-        var input = 1234567.890123456789m;
-        var output = "1234567.890123456789";
+        const decimal input = 1234567.890123456789m;
+        const string output = "1234567.890123456789";
 
         // act
         var result = type.ParseValue(input);

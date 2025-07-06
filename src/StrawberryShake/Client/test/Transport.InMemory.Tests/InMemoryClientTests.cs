@@ -16,7 +16,7 @@ public class InMemoryClientTests
     public void Constructor_AllArgs_NoException()
     {
         // arrange
-        var name = "Foo";
+        const string name = "Foo";
 
         // act
         var ex = Record.Exception(() => new InMemoryClient(name));
@@ -29,10 +29,10 @@ public class InMemoryClientTests
     public void Constructor_NoName_ThrowException()
     {
         // arrange
-        string name = null!;
+        const string name = null!;
 
         // act
-        var ex = Record.Exception(() => new InMemoryClient(name));
+        var ex = Record.Exception(() => new InMemoryClient(name!));
 
         // assert
         Assert.IsType<ArgumentException>(ex);

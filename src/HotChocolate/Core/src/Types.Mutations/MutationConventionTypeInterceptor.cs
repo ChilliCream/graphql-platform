@@ -261,8 +261,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 Create<MutationConventionMiddleware>(
                     (typeof(string), options.InputArgumentName),
                     (typeof(IReadOnlyList<ResolverArgument>), resolverArguments)),
-                key: MutationArguments,
-                isRepeatable: false);
+                isRepeatable: false,
+                key: MutationArguments);
 
         mutation.Arguments.Clear();
         mutation.Arguments.Add(new(options.InputArgumentName, type: Parse($"{inputTypeName}!")));
@@ -353,8 +353,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             var nullMiddleware = _errorNullMiddleware ??=
                 new FieldMiddlewareConfiguration(
                     Create<ErrorNullMiddleware>(),
-                    key: MutationErrorNull,
-                    isRepeatable: false);
+                    isRepeatable: false,
+                    key: MutationErrorNull);
 
             foreach (var resultField in payloadTypeDef.Fields)
             {
@@ -410,8 +410,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 new FieldMiddlewareConfiguration(
                     Create<ErrorMiddleware>(
                         (typeof(IReadOnlyList<CreateError>), errorFactories)),
-                    key: MutationErrors,
-                    isRepeatable: false);
+                    isRepeatable: false,
+                    key: MutationErrors);
 
             // last but not least we insert the error middleware to the mutation field.
             mutation.MiddlewareConfigurations.Insert(0, errorMiddleware);
@@ -440,8 +440,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 new FieldMiddlewareConfiguration(
                     Create<ErrorMiddleware>(
                         (typeof(IReadOnlyList<CreateError>), errorFactories)),
-                    key: MutationErrors,
-                    isRepeatable: false);
+                    isRepeatable: false,
+                    key: MutationErrors);
 
             mutation.MiddlewareConfigurations.Insert(0, errorMiddleware);
         }

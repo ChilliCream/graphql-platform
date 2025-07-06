@@ -179,8 +179,8 @@ public readonly struct SchemaCoordinate : IEquatable<SchemaCoordinate>
     public bool Equals(SchemaCoordinate other)
         => OfDirective == other.OfDirective &&
             string.Equals(Name, other.Name, Ordinal) &&
-            Nullable.Equals(MemberName, other.MemberName) &&
-            Nullable.Equals(ArgumentName, other.ArgumentName);
+            Equals(MemberName, other.MemberName) &&
+            Equals(ArgumentName, other.ArgumentName);
 
     /// <summary>
     /// Indicates whether the current object is equal to another object of the same type.

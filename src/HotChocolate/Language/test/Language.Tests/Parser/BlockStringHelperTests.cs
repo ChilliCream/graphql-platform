@@ -8,7 +8,7 @@ public class BlockStringHelperTests
     public void TrimLeadingEmptyLines()
     {
         // arrange
-        var blockString = "\n\n\n\nblock string uses ";
+        const string blockString = "\n\n\n\nblock string uses ";
         var input = Encoding.UTF8.GetBytes(blockString);
         var output = new Span<byte>(new byte[input.Length]);
 
@@ -25,7 +25,7 @@ public class BlockStringHelperTests
     public void NoTrimNeeded()
     {
         // arrange
-        var blockString = "foo";
+        const string blockString = "foo";
         var input = Encoding.UTF8.GetBytes(blockString);
         var output = new Span<byte>(new byte[input.Length]);
 
@@ -42,7 +42,7 @@ public class BlockStringHelperTests
     public void TrimTrailingEmptyLines()
     {
         // arrange
-        var blockString = "block string uses \n\n\n\n";
+        const string blockString = "block string uses \n\n\n\n";
         var input = Encoding.UTF8.GetBytes(blockString);
         var output = new Span<byte>(new byte[input.Length]);
 
@@ -95,7 +95,7 @@ public class BlockStringHelperTests
     public void SingleLineSingleChar_Does_Not_Loop()
     {
         // arrange
-        var blockString = ".";
+        const string blockString = ".";
         var input = Encoding.UTF8.GetBytes(blockString);
         var output = new Span<byte>(new byte[input.Length]);
 

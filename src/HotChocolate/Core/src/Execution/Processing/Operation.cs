@@ -12,7 +12,12 @@ internal sealed class Operation : IOperation
     private readonly object _writeLock = new();
     private SelectionVariants[] _selectionVariants = [];
     private IncludeCondition[] _includeConditions = [];
-    private ImmutableDictionary<string, object?> _contextData = ImmutableDictionary<string, object?>.Empty;
+    private ImmutableDictionary<string, object?> _contextData =
+#if NET10_0_OR_GREATER
+        [];
+#else
+        ImmutableDictionary<string, object?>.Empty;
+#endif
     private bool _sealed;
 
     public Operation(

@@ -646,7 +646,9 @@ public sealed partial class OperationPlanner
         // is used on different parts of the operation.
         var requirements = fieldSource.Requirements!.SelectionSet;
 
+#pragma warning disable IDE0059 // WIP
         var internalOperation = InlineSelections(
+#pragma warning restore IDE0059
             current.InternalOperationDefinition,
             index,
             workItem.Selection.Field.DeclaringType,

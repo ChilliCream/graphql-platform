@@ -703,7 +703,7 @@ public class DirectiveTypeTests : TypeTestBase
     public void Directive_ValidateArgs_InvalidArg()
     {
         // arrange
-        var sourceText = @"
+        const string sourceText = @"
             type Query {
                 foo: String @a(d:1 e:true)
             }
@@ -728,7 +728,7 @@ public class DirectiveTypeTests : TypeTestBase
     public void Directive_ValidateArgs_ArgMissing()
     {
         // arrange
-        var sourceText = @"
+        const string sourceText = @"
             type Query {
                 foo: String @a
             }
@@ -753,7 +753,7 @@ public class DirectiveTypeTests : TypeTestBase
     public void Directive_ValidateArgs_NonNullArgIsNull()
     {
         // arrange
-        var sourceText = @"
+        const string sourceText = @"
             type Query {
                 foo: String @a(d: null)
             }

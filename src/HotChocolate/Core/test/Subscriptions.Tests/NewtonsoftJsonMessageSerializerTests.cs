@@ -22,7 +22,7 @@ public class NewtonsoftJsonMessageSerializerTests
     {
         // arrange
         var serializer = new NewtonsoftJsonMessageSerializer();
-        var message = "abc";
+        const string message = "abc";
 
         // act
         var serializedMessage = serializer.Serialize(message);

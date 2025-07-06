@@ -20,7 +20,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         // arrange
         var httpClient = new HttpClient(new CustomHttpClientHandler(HttpStatusCode.OK));
 
-        var query =
+        const string query =
             """
             query {
               hero(episode: JEDI) {
@@ -46,7 +46,7 @@ public class GraphQLHttpClientTests : ServerTestBase
     {
         var httpClient = new HttpClient(new CustomHttpClientHandler(HttpStatusCode.NotFound));
 
-        var query =
+        const string query =
             """
             query {
               hero(episode: JEDI) {
@@ -71,7 +71,7 @@ public class GraphQLHttpClientTests : ServerTestBase
     {
         var httpClient = new HttpClient(new CustomHttpClientHandler());
 
-        var query =
+        const string query =
             """
             query {
               hero(episode: JEDI) {
@@ -98,7 +98,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var testServer = CreateStarWarsServer();
         var httpClient = testServer.CreateClient();
 
-        var query =
+        const string query =
             """
             query {
               hero(episode: JEDI) {
@@ -134,7 +134,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var testServer = CreateStarWarsServer();
         var httpClient = testServer.CreateClient();
 
-        var query =
+        const string query =
             """
             query {
               hero(episode: JEDI) {
@@ -171,7 +171,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var httpClient = testServer.CreateClient();
         httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
 
-        var query =
+        const string query =
             """
             query {
               hero(episode: JEDI) {
@@ -208,7 +208,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var httpClient = testServer.CreateClient();
         var client = new DefaultGraphQLHttpClient(httpClient);
 
-        var query =
+        const string query =
             """
             query($episode: Episode!) {
               hero(episode: $episode) {
@@ -250,7 +250,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var httpClient = testServer.CreateClient();
         var client = new DefaultGraphQLHttpClient(httpClient);
 
-        var query =
+        const string query =
             """
             query($episode: Episode!) {
               hero(episode: $episode) {
@@ -292,7 +292,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var httpClient = testServer.CreateClient();
         var client = new DefaultGraphQLHttpClient(httpClient);
 
-        var query =
+        const string query =
             """
             query($traits: JSON!) {
               heroByTraits(traits: $traits) {
@@ -335,7 +335,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
         var client = new DefaultGraphQLHttpClient(httpClient);
 
-        var query =
+        const string query =
             """
             query($episode: Episode!) {
               hero(episode: $episode) {
@@ -389,11 +389,11 @@ public class GraphQLHttpClientTests : ServerTestBase
               }
             }
             """,
+            operationName: "B",
             variables: new Dictionary<string, object?>
             {
                 ["episode"] = "JEDI"
-            },
-            operationName: "B");
+            });
 
         var requestUri = new Uri(CreateUrl("/graphql"));
 
@@ -422,7 +422,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var testServer = CreateStarWarsServer();
         var httpClient = testServer.CreateClient();
 
-        var query =
+        const string query =
             """
             query {
               hero(episode: JEDI) {
@@ -458,7 +458,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var testServer = CreateStarWarsServer();
         var httpClient = testServer.CreateClient();
 
-        var query =
+        const string query =
             """
             query {
               hero(episode: JEDI) {
@@ -495,7 +495,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var httpClient = testServer.CreateClient();
         httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
 
-        var query =
+        const string query =
             """
             query {
               hero(episode: JEDI) {
@@ -532,7 +532,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var httpClient = testServer.CreateClient();
         var client = new DefaultGraphQLHttpClient(httpClient);
 
-        var query =
+        const string query =
             """
             query($episode: Episode!) {
               hero(episode: $episode) {
@@ -574,7 +574,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var httpClient = testServer.CreateClient();
         var client = new DefaultGraphQLHttpClient(httpClient);
 
-        var query =
+        const string query =
             """
             query($episode: Episode!) {
               hero(episode: $episode) {
@@ -617,7 +617,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
         var client = new DefaultGraphQLHttpClient(httpClient);
 
-        var query =
+        const string query =
             """
             query($episode: Episode!) {
               hero(episode: $episode) {
@@ -671,11 +671,11 @@ public class GraphQLHttpClientTests : ServerTestBase
               }
             }
             """,
+            operationName: "B",
             variables: new Dictionary<string, object?>
             {
                 ["episode"] = "JEDI"
-            },
-            operationName: "B");
+            });
 
         var requestUri = new Uri(CreateUrl("/graphql"));
 
@@ -705,7 +705,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var httpClient = testServer.CreateClient();
         httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
 
-        var subscriptionRequest =
+        const string subscriptionRequest =
             """
             subscription {
               onReview(episode: JEDI) {
@@ -768,7 +768,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var httpClient = testServer.CreateClient();
         httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
 
-        var subscriptionRequest =
+        const string subscriptionRequest =
             """
             subscription {
               onReview(episode: JEDI) {
