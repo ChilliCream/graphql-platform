@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Runtime.InteropServices;
-using System.Text.Json;
 using static HotChocolate.Buffers.Properties.BuffersResources;
 
 namespace HotChocolate.Buffers;
@@ -206,43 +205,6 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IMemoryOwner<byte>
             _buffer = [];
             _capacity = 0;
             _start = 0;
-            _disposed = true;
-        }
-    }
-}
-
-public static class PooledArrayWriterMarshal
-{
-    public static byte[] GetUnderlyingBuffer(PooledArrayWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        return writer.GetInternalBuffer();
-    }
-}
-
-public sealed class JsonDocumentOwner : IDisposable
-{
-    private readonly IMemoryOwner<byte> _memory;
-    private bool _disposed;
-
-    public JsonDocumentOwner(JsonDocument document, IMemoryOwner<byte> memory)
-    {
-        ArgumentNullException.ThrowIfNull(document);
-        ArgumentNullException.ThrowIfNull(memory);
-
-        Document = document;
-        _memory = memory;
-    }
-
-    public JsonDocument Document { get; }
-
-    public void Dispose()
-    {
-        if (_disposed)
-        {
-            Document.Dispose();
-            _memory.Dispose();
-
             _disposed = true;
         }
     }
