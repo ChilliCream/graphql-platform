@@ -13,14 +13,17 @@ public class InterfaceTests : FusionTestBase
             type Query {
               votable: Votable
             }
+
             interface Votable {
               viewerCanVote: Boolean!
             }
+
             type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               viewerRating: Float!
             }
+
             type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
@@ -66,15 +69,19 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorable: Authorable
             }
+
             interface Authorable {
               author: Author
             }
+
             type Discussion implements Authorable {
               author: Author
             }
+
             type Comment implements Authorable {
               author: Author
             }
+
             type Author {
               id: ID!
             }
@@ -85,6 +92,7 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorById(id: ID!): Author
             }
+
             type Author {
               id: ID!
               displayName: String!
@@ -149,15 +157,19 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorable: Authorable
             }
+
             interface Authorable {
               author: Author
             }
+
             type Discussion implements Authorable {
               author: Author
             }
+
             type Comment implements Authorable {
               author: Author
             }
+
             type Author {
               id: ID!
             }
@@ -168,6 +180,7 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorById(id: ID!): Author
             }
+
             type Author {
               id: ID!
               displayName: String!
@@ -257,15 +270,19 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorable: Authorable
             }
+
             interface Authorable {
               author: Author
             }
+
             type Discussion implements Authorable {
               author: Author
             }
+
             type Comment implements Authorable {
               author: Author
             }
+
             type Author {
               id: ID!
             }
@@ -276,6 +293,7 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorById(id: ID!): Author
             }
+
             type Author {
               id: ID!
               displayName: String!
@@ -365,14 +383,17 @@ public class InterfaceTests : FusionTestBase
             type Query {
               votable: Votable
             }
+
             interface Votable {
               viewerCanVote: Boolean!
             }
+
             type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               title: String!
             }
+
             type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
@@ -424,13 +445,16 @@ public class InterfaceTests : FusionTestBase
             type Query {
               votable: Votable
             }
+
             interface Votable {
               viewerCanVote: Boolean!
             }
+
             type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
+
             type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
@@ -442,6 +466,7 @@ public class InterfaceTests : FusionTestBase
             type Query {
               discussionById(id: ID!): Discussion
             }
+
             type Discussion {
               id: ID!
               viewerRating: Float!
@@ -507,18 +532,22 @@ public class InterfaceTests : FusionTestBase
             type Query {
               votable: Votable
             }
+
             interface Votable {
               viewerCanVote: Boolean!
             }
+
             type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               author: Author
             }
+
             type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
+
             type Author {
               id: ID!
             }
@@ -529,6 +558,7 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorById(id: ID!): Author
             }
+
             type Author {
               id: ID!
               displayName: String!
@@ -602,14 +632,17 @@ public class InterfaceTests : FusionTestBase
             type Query {
               votables: [Votable]
             }
+
             interface Votable {
               viewerCanVote: Boolean!
             }
+
             type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               viewerRating: Float!
             }
+
             type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
@@ -655,15 +688,19 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorables: [Authorable]
             }
+
             interface Authorable {
               author: Author
             }
+
             type Discussion implements Authorable {
               author: Author
             }
+
             type Comment implements Authorable {
               author: Author
             }
+
             type Author {
               id: ID!
             }
@@ -674,6 +711,7 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorsById(ids: [ID!]!): [Author]!
             }
+
             type Author {
               id: ID!
               displayName: String!
@@ -714,15 +752,19 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorables: [Authorable]
             }
+
             interface Authorable {
               author: Author
             }
+
             type Discussion implements Authorable {
               author: Author
             }
+
             type Comment implements Authorable {
               author: Author
             }
+
             type Author {
               id: ID!
             }
@@ -733,6 +775,7 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorsById(ids: [ID!]!): [Author]!
             }
+
             type Author {
               id: ID!
               displayName: String!
@@ -794,15 +837,19 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorables: [Authorable]
             }
+
             interface Authorable {
               author: Author
             }
+
             type Discussion implements Authorable {
               author: Author
             }
+
             type Comment implements Authorable {
               author: Author
             }
+
             type Author {
               id: ID!
             }
@@ -813,6 +860,7 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorsById(ids: [ID!]!): [Author]!
             }
+
             type Author {
               id: ID!
               displayName: String!
@@ -859,14 +907,17 @@ public class InterfaceTests : FusionTestBase
             type Query {
               votables: [Votable]
             }
+
             interface Votable {
               viewerCanVote: Boolean!
             }
+
             type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               title: String!
             }
+
             type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
@@ -918,13 +969,16 @@ public class InterfaceTests : FusionTestBase
             type Query {
               votables: [Votable]
             }
+
             interface Votable {
               viewerCanVote: Boolean!
             }
+
             type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
+
             type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
@@ -936,6 +990,7 @@ public class InterfaceTests : FusionTestBase
             type Query {
               discussionsById(ids: [ID!]!): [Discussion]
             }
+
             type Discussion {
               id: ID!
               viewerRating: Float!
@@ -976,18 +1031,22 @@ public class InterfaceTests : FusionTestBase
             type Query {
               votables: [Votable]
             }
+
             interface Votable {
               viewerCanVote: Boolean!
             }
+
             type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               author: Author
             }
+
             type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
+
             type Author {
               id: ID!
             }
@@ -998,6 +1057,7 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorsById(ids: [ID!]!): [Author]
             }
+
             type Author {
               id: ID!
               displayName: String!
@@ -1044,18 +1104,23 @@ public class InterfaceTests : FusionTestBase
             type Query {
               wrappers: [Wrapper]
             }
+
             type Wrapper {
               authorable: Authorable
             }
+
             interface Authorable {
               author: Author
             }
+
             type Discussion implements Authorable {
               author: Author
             }
+
             type Comment implements Authorable {
               author: Author
             }
+
             type Author {
               id: ID!
             }
@@ -1066,6 +1131,7 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorsById(ids: [ID!]!): [Author]!
             }
+
             type Author {
               id: ID!
               displayName: String!
@@ -1107,18 +1173,23 @@ public class InterfaceTests : FusionTestBase
             type Query {
               wrappers: [Wrapper]
             }
+
             type Wrapper {
               authorable: Authorable
             }
+
             interface Authorable {
               author: Author
             }
+
             type Discussion implements Authorable {
               author: Author
             }
+
             type Comment implements Authorable {
               author: Author
             }
+
             type Author {
               id: ID!
             }
@@ -1129,6 +1200,7 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorsById(ids: [ID!]!): [Author]!
             }
+
             type Author {
               id: ID!
               displayName: String!
@@ -1175,18 +1247,23 @@ public class InterfaceTests : FusionTestBase
             type Query {
               wrappers: [Wrapper]
             }
+
             type Wrapper {
               authorable: Authorable
             }
+
             interface Authorable {
               author: Author
             }
+
             type Discussion implements Authorable {
               author: Author
             }
+
             type Comment implements Authorable {
               author: Author
             }
+
             type Author {
               id: ID!
             }
@@ -1197,6 +1274,7 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorsById(ids: [ID!]!): [Author]!
             }
+
             type Author {
               id: ID!
               displayName: String!
@@ -1244,17 +1322,21 @@ public class InterfaceTests : FusionTestBase
             type Query {
               wrappers: [Wrapper]
             }
+
             type Wrapper {
               votable: Votable
             }
+
             interface Votable {
               viewerCanVote: Boolean!
             }
+
             type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               title: String!
             }
+
             type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
@@ -1310,16 +1392,20 @@ public class InterfaceTests : FusionTestBase
             type Query {
               wrappers: [Wrapper]
             }
+
             type Wrapper {
               votable: Votable
             }
+
             interface Votable {
               viewerCanVote: Boolean!
             }
+
             type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
+
             type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
@@ -1331,6 +1417,7 @@ public class InterfaceTests : FusionTestBase
             type Query {
               discussionsById(ids: [ID!]!): [Discussion]
             }
+
             type Discussion {
               id: ID!
               viewerRating: Float!
@@ -1373,21 +1460,26 @@ public class InterfaceTests : FusionTestBase
             type Query {
               wrappers: [Wrapper]
             }
+
             type Wrapper {
               votable: Votable
             }
+
             interface Votable {
               viewerCanVote: Boolean!
             }
+
             type Discussion implements Votable {
               id: ID!
               viewerCanVote: Boolean!
               author: Author
             }
+
             type Comment implements Votable {
               id: ID!
               viewerCanVote: Boolean!
             }
+
             type Author {
               id: ID!
             }
@@ -1398,6 +1490,7 @@ public class InterfaceTests : FusionTestBase
             type Query {
               authorsById(ids: [ID!]!): [Author]
             }
+
             type Author {
               id: ID!
               displayName: String!

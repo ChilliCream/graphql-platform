@@ -11,11 +11,14 @@ public class UnionTests : FusionTestBase
             type Query {
               post: Post
             }
+
             union Post = Photo | Discussion
+
             type Photo {
               id: ID!
               imageUrl: String!
             }
+
             type Discussion {
               id: ID!
               title: String

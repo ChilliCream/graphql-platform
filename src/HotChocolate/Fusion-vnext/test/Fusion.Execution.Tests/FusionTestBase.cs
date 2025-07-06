@@ -134,4 +134,16 @@ public abstract class FusionTestBase : IDisposable
             _testServerSession.Dispose();
         }
     }
+
+    protected record TestSubgraph([StringSyntax("graphql")] string Schema);
+
+    protected class TestSubgraphCollection(params TestSubgraph[] subgraphs)
+    {
+        public FusionSchemaDefinition BuildFusionSchema()
+        {
+            var schemas = subgraphs.Select(s => s.Schema).ToArray();
+
+            return ComposeSchema(schemas);
+        }
+    }
 }
