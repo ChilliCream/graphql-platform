@@ -10,7 +10,7 @@ internal static class ResultHelper
             .Add(ExecutionContextData.ValidationErrors, true);
     private static readonly ImmutableDictionary<string, object?> s_ok
         = ImmutableDictionary<string, object?>.Empty
-            .Add(WellKnownContextData.HttpStatusCode, 200);
+            .Add(ExecutionContextData.HttpStatusCode, 200);
 
     public static IExecutionResult CreateError(IError error, CostMetrics? costMetrics)
     {

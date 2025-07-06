@@ -1,10 +1,12 @@
+using HotChocolate.Features;
+
 namespace HotChocolate.Execution;
 
 // Leave it as IRequestExecutor
 /// <summary>
 /// This executor processes GraphQL query, mutation and subscription requests against an underlying schema.
 /// </summary>
-public interface IRequestExecutor
+public interface IRequestExecutor : IFeatureProvider
 {
     /// <summary>
     /// Gets an <see cref="ulong"/> representing the version of the executor.

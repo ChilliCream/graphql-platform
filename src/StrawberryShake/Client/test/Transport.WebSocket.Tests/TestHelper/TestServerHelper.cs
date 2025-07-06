@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.WellKnownContextData;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -60,7 +59,7 @@ public static class TestServerHelper
                                                 context.Result = result =
                                                     OperationResultBuilder
                                                         .FromResult(result)
-                                                        .SetContextData(HttpStatusCode, 403)
+                                                        .SetContextData(ExecutionContextData.HttpStatusCode, 403)
                                                         .Build();
                                             }
 

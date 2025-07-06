@@ -1,9 +1,10 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Transport.Formatters;
+using Microsoft.AspNetCore.Http;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -11,7 +12,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds an interceptor for GraphQL requests to the GraphQL configuration.
+    /// Adds an interceptor for GraphQL over HTTP requests to the GraphQL configuration.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
@@ -24,14 +25,18 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddHttpRequestInterceptor<T>(
         this IRequestExecutorBuilder builder)
-        where T : class, IHttpRequestInterceptor =>
-        builder.ConfigureSchemaServices(s => s
+        where T : class, IHttpRequestInterceptor
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.ConfigureSchemaServices(s => s
             .RemoveAll<IHttpRequestInterceptor>()
-            .AddSingleton<IHttpRequestInterceptor, T>(
-                sp => ActivatorUtilities.GetServiceOrCreateInstance<T>(sp.GetCombinedServices())));
+            .AddSingleton<IHttpRequestInterceptor, T>(sp =>
+                ActivatorUtilities.GetServiceOrCreateInstance<T>(sp.GetCombinedServices())));
+    }
 
     /// <summary>
-    /// Adds an interceptor for GraphQL requests to the GraphQL configuration.
+    /// Adds an interceptor for GraphQL over HTTP  requests to the GraphQL configuration.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
@@ -48,43 +53,46 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     public static IRequestExecutorBuilder AddHttpRequestInterceptor<T>(
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, T> factory)
-        where T : class, IHttpRequestInterceptor =>
-        builder.ConfigureSchemaServices(s => s
+        where T : class, IHttpRequestInterceptor
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
+
+        return builder.ConfigureSchemaServices(s => s
             .RemoveAll<IHttpRequestInterceptor>()
             .AddSingleton<IHttpRequestInterceptor, T>(sp => factory(sp.GetCombinedServices())));
+    }
 
     /// <summary>
-    /// Adds an interceptor for GraphQL requests to the GraphQL configuration.
+    /// Adds an interceptor for GraphQL over HTTP requests to the GraphQL configuration.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
-    /// <param name="interceptor">
-    /// The interceptor instance that shall be added to the configuration.
+    /// <param name="handler">
+    /// A delegate that allows to configure the GraphQL request.
     /// </param>
-    /// <returns>
-    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
-    /// </returns>
+    /// <returns></returns>
     public static IRequestExecutorBuilder AddHttpRequestInterceptor(
         this IRequestExecutorBuilder builder,
-        HttpRequestInterceptorDelegate interceptor) =>
-        AddHttpRequestInterceptor(
-            builder,
-            _ => new DelegateHttpRequestInterceptor(interceptor));
+        Func<HttpContext, IRequestExecutor, OperationRequestBuilder, CancellationToken, ValueTask> handler)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.AddHttpRequestInterceptor(_ => new DelegateHttpRequestInterceptor(handler));
+    }
 
     private static IRequestExecutorBuilder AddDefaultHttpRequestInterceptor(
         this IRequestExecutorBuilder builder)
-    {
-        return builder.ConfigureSchemaServices(
+        => builder.ConfigureSchemaServices(
             s => s.TryAddSingleton<IHttpRequestInterceptor, DefaultHttpRequestInterceptor>());
-    }
 
     /// <summary>
     /// Adds the <see cref="DefaultHttpResponseFormatter"/> with specific formatter options
     /// to the DI.
     /// </summary>
-    /// <param name="services">
-    /// The <see cref="IServiceCollection"/>.
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="indented">
     /// Defines whether the underlying <see cref="Utf8JsonWriter"/>
@@ -94,56 +102,62 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// By default, the JSON is written without extra white spaces.
     /// </param>
     /// <returns>
-    /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
-    public static IServiceCollection AddHttpResponseFormatter(
-        this IServiceCollection services,
+    public static IRequestExecutorBuilder AddHttpResponseFormatter(
+        this IRequestExecutorBuilder builder,
         bool indented = false)
     {
-        services.RemoveAll<IHttpResponseFormatter>();
-        services.AddSingleton<IHttpResponseFormatter>(
-            sp => DefaultHttpResponseFormatter.Create(
-                new HttpResponseFormatterOptions
-                {
-                    Json = new JsonResultFormatterOptions
-                    {
-                        Indented = indented
-                    }
-                },
-                sp.GetRequiredService<ITimeProvider>()));
-        return services;
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder.ConfigureSchemaServices(
+            s => s.RemoveAll<IHttpResponseFormatter>()
+                .AddSingleton<IHttpResponseFormatter>(
+                    sp => DefaultHttpResponseFormatter.Create(
+                        new HttpResponseFormatterOptions
+                        {
+                            Json = new JsonResultFormatterOptions
+                            {
+                                Indented = indented
+                            }
+                        },
+                        sp.GetRequiredService<ITimeProvider>())));
+        return builder;
     }
 
     /// <summary>
     /// Adds the <see cref="DefaultHttpResponseFormatter"/> with specific formatter options
     /// to the DI.
     /// </summary>
-    /// <param name="services">
-    /// The <see cref="IServiceCollection"/>.
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="options">
     /// The HTTP response formatter options
     /// </param>
     /// <returns>
-    /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
-    public static IServiceCollection AddHttpResponseFormatter(
-        this IServiceCollection services,
+    public static IRequestExecutorBuilder AddHttpResponseFormatter(
+        this IRequestExecutorBuilder builder,
         HttpResponseFormatterOptions options)
     {
-        services.RemoveAll<IHttpResponseFormatter>();
-        services.AddSingleton<IHttpResponseFormatter>(
-            sp => DefaultHttpResponseFormatter.Create(
-                options,
-                sp.GetRequiredService<ITimeProvider>()));
-        return services;
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder.ConfigureSchemaServices(
+            s => s.RemoveAll<IHttpResponseFormatter>()
+                .AddSingleton<IHttpResponseFormatter>(
+                    sp => DefaultHttpResponseFormatter.Create(
+                    options,
+                    sp.GetRequiredService<ITimeProvider>())));
+        return builder;
     }
 
     /// <summary>
     /// Adds a custom HTTP response formatter to the DI.
     /// </summary>
-    /// <param name="services">
-    /// The <see cref="IServiceCollection"/>.
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <typeparam name="T">
     /// The type of the custom <see cref="IHttpResponseFormatter"/>.
@@ -151,20 +165,23 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <returns>
     /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
     /// </returns>
-    public static IServiceCollection AddHttpResponseFormatter<T>(
-        this IServiceCollection services)
+    public static IRequestExecutorBuilder AddHttpResponseFormatter<T>(
+        this IRequestExecutorBuilder builder)
         where T : class, IHttpResponseFormatter
     {
-        services.RemoveAll<IHttpResponseFormatter>();
-        services.AddSingleton<IHttpResponseFormatter, T>();
-        return services;
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder.ConfigureSchemaServices(
+            s => s.RemoveAll<IHttpResponseFormatter>()
+                .AddSingleton<IHttpResponseFormatter, T>());
+        return builder;
     }
 
     /// <summary>
     /// Adds a custom HTTP response formatter to the DI.
     /// </summary>
-    /// <param name="services">
-    /// The <see cref="IServiceCollection"/>.
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="factory">
     /// The service factory.
@@ -175,13 +192,17 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <returns>
     /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
     /// </returns>
-    public static IServiceCollection AddHttpResponseFormatter<T>(
-        this IServiceCollection services,
+    public static IRequestExecutorBuilder AddHttpResponseFormatter<T>(
+        this IRequestExecutorBuilder builder,
         Func<IServiceProvider, T> factory)
         where T : class, IHttpResponseFormatter
     {
-        services.RemoveAll<IHttpResponseFormatter>();
-        services.AddSingleton<IHttpResponseFormatter>(factory);
-        return services;
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
+
+        builder.ConfigureSchemaServices(
+            s => s.RemoveAll<IHttpResponseFormatter>()
+                .AddSingleton<IHttpResponseFormatter>(factory));
+        return builder;
     }
 }

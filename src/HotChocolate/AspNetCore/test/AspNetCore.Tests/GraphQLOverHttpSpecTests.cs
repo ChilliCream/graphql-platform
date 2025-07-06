@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Transport;
@@ -656,7 +657,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     private HttpClient GetClient(HttpTransportVersion serverTransportVersion)
     {
         var server = CreateStarWarsServer(
-            configureServices: s => s.AddHttpResponseFormatter(
+            configureServices: s => s.AddGraphQLServer().AddHttpResponseFormatter(
                 new HttpResponseFormatterOptions
                 {
                     HttpTransportVersion = serverTransportVersion

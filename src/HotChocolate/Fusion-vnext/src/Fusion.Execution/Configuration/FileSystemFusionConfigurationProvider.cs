@@ -142,13 +142,13 @@ public class FileSystemFusionConfigurationProvider : IFusionSchemaDocumentProvid
 
             await pipeReader.CompleteAsync().ConfigureAwait(false);
 
-            var hash = XxHash64.HashToUInt64(buffer.GetWrittenSpan());
+            var hash = XxHash64.HashToUInt64(buffer.WrittenSpan);
 
             if (_schemaDocumentHash != hash)
             {
                 _schemaDocumentHash = hash;
 
-                var schemaDocument = Utf8GraphQLParser.Parse(buffer.GetWrittenSpan());
+                var schemaDocument = Utf8GraphQLParser.Parse(buffer.WrittenSpan);
                 SchemaDocument = schemaDocument;
                 NotifyObservers(schemaDocument);
             }

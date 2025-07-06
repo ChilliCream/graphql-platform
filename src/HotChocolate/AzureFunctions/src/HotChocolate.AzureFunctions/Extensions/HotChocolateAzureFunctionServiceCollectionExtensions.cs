@@ -2,11 +2,15 @@ using ChilliCream.Nitro.App;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AzureFunctions;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Azure.WebJobs.Host.Config;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
+using MiddlewareFactory = HotChocolate.AspNetCore.MiddlewareFactory;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -48,15 +52,14 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
             services.AddGraphQLServer(maxAllowedRequestSize: maxAllowedRequestSize);
 
         // Register AzFunc Custom Binding Extensions for In-Process Functions.
-        // NOTE: This does not work for Isolated Process due to (but is not harmful at all of
-        // isolated process; it just remains dormant):
+        // NOTE: This does not work for Isolated Process due to (but is not harmful at all to
+        // an isolated process; it just remains dormant):
         // 1) Bindings always execute in-process and values must be marshaled between
         // the Host Process & the Isolated Process Worker!
-        // 2) Currently only String values are supported (obviously due to above complexities).
-        // More Info. here (using Blob binding docs):
+        // 2) Currently only String values are supported (due to the above complexities).
+        // More info here (using Blob binding docs):
         // https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-blob-input#usage
-        services.TryAddEnumerable(
-            ServiceDescriptor.Singleton<IExtensionConfigProvider, GraphQLExtensions>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IExtensionConfigProvider, GraphQLExtensions>());
 
         // Add the Request Executor Dependency...
         services.AddAzureFunctionsGraphQLRequestExecutor(apiRoute, schemaName);
@@ -65,9 +68,9 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Internal method to adds the Request Executor dependency for Azure Functions both
+    /// Internal method to add the Request Executor dependency for Azure Functions both
     /// in-process and isolate-process. Normal configuration should use AddGraphQLFunction()
-    /// extension instead which correctly call this internally.
+    /// extension instead that correctly calls this internally.
     /// </summary>
     private static IServiceCollection AddAzureFunctionsGraphQLRequestExecutor(
         this IServiceCollection services,
@@ -89,19 +92,21 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
             // object.
             options.Tool.ServeMode = GraphQLToolServeMode.Embedded;
 
-            var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
+            schemaName ??= ISchemaDefinition.DefaultName;
+            var executorProvider = sp.GetRequiredService<IRequestExecutorProvider>();
+            var executorEvents = sp.GetRequiredService<IRequestExecutorEvents>();
+            var formOptions = sp.GetRequiredService<IOptions<FormOptions>>();
+            var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaName);
 
             var pipeline = new PipelineBuilder()
-                    .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
-                    .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
-                    .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
-                    .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
-                    .UseNitroApp(path)
-                    .UseMiddleware<HttpGetSchemaMiddleware>(
-                        schemaNameOrDefault,
-                        path,
-                        MiddlewareRoutingType.Integrated)
-                    .Compile(sp);
+                .Use(MiddlewareFactory.CreateCancellationMiddleware())
+                .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor))
+                .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor))
+                .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, formOptions))
+                .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor))
+                .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(executor, path, MiddlewareRoutingType.Integrated))
+                .UseNitroApp(path)
+                .Compile(sp);
 
             return new DefaultGraphQLRequestExecutor(pipeline, options);
         });
@@ -143,10 +148,26 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         var forwarderAccessor = new HttpForwarderAccessor();
 
         return requestPipeline
-            .UseMiddleware<NitroAppOptionsFileMiddleware>(path)
-            .UseMiddleware<NitroAppCdnMiddleware>(path, forwarderAccessor)
-            .UseMiddleware<NitroAppDefaultFileMiddleware>(fileProvider, path)
-            .UseMiddleware<NitroAppStaticFileMiddleware>(fileProvider, path);
+            .Use(next =>
+            {
+                var middleware = new NitroAppOptionsFileMiddleware(next, path);
+                return middleware.Invoke;
+            })
+            .Use(next =>
+            {
+                var middleware = new NitroAppCdnMiddleware(next, path, forwarderAccessor);
+                return middleware.Invoke;
+            })
+            .Use(next =>
+            {
+                var middleware = new NitroAppDefaultFileMiddleware(next, fileProvider, path);
+                return middleware.Invoke;
+            })
+            .Use(next =>
+            {
+                var middleware = new NitroAppStaticFileMiddleware(next, fileProvider, path);
+                return middleware.Invoke;
+            });
     }
 
     private static IFileProvider CreateFileProvider()
