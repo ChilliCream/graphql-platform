@@ -72,7 +72,7 @@ public class BookStoreTests : FusionTestBase
               bookById(id: 1) {
                 title
                 author {
-                  name
+               `
                 }
               }
             }
