@@ -124,6 +124,7 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
             Array.Resize(ref _buffer, selectionSet.Selections.Length);
         }
 
+        var insertIndex = 0;
         for (var i = 0; i < selectionSet.Selections.Length; i++)
         {
             var selection = selectionSet.Selections[i];
@@ -133,12 +134,17 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
                 continue;
             }
 
-            var field = CreateFieldResult(resultPoolSession, selection);
-            _buffer[i] = field;
+            var ii = insertIndex++;
+            var field = CreateFieldResult(this, ii, resultPoolSession, selection);
+            _buffer[ii] = field;
             _fieldMap.Add(selection.ResponseName, field);
         }
 
-        static FieldResult CreateFieldResult(ResultPoolSession resultPoolSession, Selection selection)
+        static FieldResult CreateFieldResult(
+            ResultData parent,
+            int parentIndex,
+            ResultPoolSession resultPoolSession,
+            Selection selection)
         {
             FieldResult field;
 
@@ -155,7 +161,7 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
                 field = resultPoolSession.RentObjectFieldResult();
             }
 
-            field.Initialize(selection);
+            field.Initialize(parent, parentIndex, selection);
 
             return field;
         }

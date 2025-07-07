@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
 /// Represents a field selection node with its path include flags.

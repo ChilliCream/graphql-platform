@@ -41,7 +41,7 @@ internal sealed class FusionRequestExecutorManager
             SingleReader = true,
             SingleWriter = false
         });
-    private ImmutableArray<ObserverSession> _observers = ImmutableArray<ObserverSession>.Empty;
+    private ImmutableArray<ObserverSession> _observers = [];
 
     private bool _disposed;
 
@@ -429,14 +429,16 @@ internal sealed class FusionRequestExecutorManager
             await registration.DisposeAsync().ConfigureAwait(false);
         }
 
-        while(_executorEvents.Reader.TryRead(out _)) { }
+        while (_executorEvents.Reader.TryRead(out _))
+        {
+        }
 
         foreach (var session in _observers)
         {
             session.OnCompleted();
         }
 
-        _observers = ImmutableArray<ObserverSession>.Empty;
+        _observers = [];
     }
 
     private sealed class RequestExecutorAccessor

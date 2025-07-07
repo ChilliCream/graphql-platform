@@ -64,6 +64,9 @@ public sealed class LeafFieldResult : FieldResult
     }
 
     /// <inheritdoc />
+    public override bool HasNullValue => Value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
+
+    /// <inheritdoc />
     protected internal override KeyValuePair<string, object?> AsKeyValuePair()
         => new(Selection.ResponseName, Value);
 
