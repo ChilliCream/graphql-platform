@@ -16,6 +16,11 @@ public abstract class FieldResult : ResultData
     public Selection Selection { get; protected set; } = null!;
 
     /// <summary>
+    /// Specifies if the field value is set to null.
+    /// </summary>
+    public abstract bool HasNullValue { get; }
+
+    /// <summary>
     /// Gets the key-value pair representation of this result.
     /// </summary>
     /// <returns>

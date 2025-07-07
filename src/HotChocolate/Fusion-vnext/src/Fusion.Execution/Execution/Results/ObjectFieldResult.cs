@@ -71,6 +71,9 @@ public sealed class ObjectFieldResult : FieldResult
         }
     }
 
+    /// <inheritdoc />
+    public override bool HasNullValue => Value is null;
+
     /// <summary>
     /// Returns the object result as a key-value pair.
     /// </summary>

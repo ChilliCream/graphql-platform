@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
 using HotChocolate.Fusion.Execution.Clients;
@@ -75,13 +74,13 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// <summary>
     /// Gets the path to the selection set for which this operation fetches data.
     /// </summary>
-    public SelectionPath Target { get; } = SelectionPath.Root;
+    public SelectionPath Target { get; }
 
     /// <summary>
     /// Gets the path to the local selection set (the selection set within the source schema request)
     /// to extract the data from.
     /// </summary>
-    public SelectionPath Source { get; } = SelectionPath.Root;
+    public SelectionPath Source { get; }
 
     /// <summary>
     /// Gets the execution nodes that depend on this operation to be completed

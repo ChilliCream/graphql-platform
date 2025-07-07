@@ -75,6 +75,9 @@ public sealed class ListFieldResult : FieldResult
         }
     }
 
+    /// <inheritdoc />
+    public override bool HasNullValue  => Value is null;
+
     protected internal override KeyValuePair<string, object?> AsKeyValuePair()
     {
         throw new NotImplementedException();

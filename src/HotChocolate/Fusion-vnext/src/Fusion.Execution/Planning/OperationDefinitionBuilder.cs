@@ -53,7 +53,7 @@ internal sealed class OperationDefinitionBuilder
         return this;
     }
 
-    public (OperationDefinitionNode, ISelectionSetIndex) Build(ISelectionSetIndex index)
+    public (OperationDefinitionNode, ISelectionSetIndex, SelectionPath) Build(ISelectionSetIndex index)
     {
         if (_selectionSet is null)
         {
@@ -61,6 +61,7 @@ internal sealed class OperationDefinitionBuilder
         }
 
         var selectionSet = _selectionSet;
+        var selectionPath = SelectionPath.Root;
 
         if (_lookup is not null)
         {
@@ -86,6 +87,7 @@ internal sealed class OperationDefinitionBuilder
             var indexBuilder = index.ToBuilder();
             indexBuilder.Register(selectionSet);
             index = indexBuilder;
+            selectionPath = selectionPath.AppendField(_lookup.Name);
         }
 
         var definition = new OperationDefinitionNode(
@@ -97,6 +99,6 @@ internal sealed class OperationDefinitionBuilder
             [],
             selectionSet);
 
-        return (definition, index);
+        return (definition, index, selectionPath);
     }
 }

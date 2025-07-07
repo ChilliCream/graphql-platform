@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -139,6 +140,49 @@ internal sealed class FetchResultStore : IDisposable
 
         try
         {
+            var current = new List<ObjectResult> { _root };
+            var next = new List<ObjectResult>();
+
+            for (var i = selectionSet.Segments.Length - 1; i >= 0; i--)
+            {
+                var segment = selectionSet.Segments[i];
+                foreach (var data in current)
+                {
+                    if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
+                    {
+                        if (data.TryGetValue(IntrospectionFieldNames.TypeName, out var value) &&
+                            value is LeafFieldResult leaf &&
+                            (leaf.Value.GetString()?.Equals(segment.Name) ?? false))
+                        {
+                            next.Add(data);
+                        }
+                    }
+                    else if (segment.Kind is SelectionPathSegmentKind.Field)
+                    {
+                        if (data.TryGetValue(segment.Name, out var value) && !value.HasNullValue)
+                        {
+                            if (value is ListFieldResult listField)
+                            {
+                                // TODO : "We need to unroll the values"
+                                throw new Exception("We need to unroll the values");
+                            }
+
+                            if (value is ObjectFieldResult objectField)
+                            {
+                                next.Add(objectField.Value!);
+                                continue;
+                            }
+
+                            // TODO : Better error
+                            throw new NotSupportedException("Must be list or object.");
+                        }
+                    }
+                }
+
+                (next, current) = (current, next);
+                next.Clear();
+            }
+
             // TODO: walk `_root` and build variable sets once implemented
             return [];
         }

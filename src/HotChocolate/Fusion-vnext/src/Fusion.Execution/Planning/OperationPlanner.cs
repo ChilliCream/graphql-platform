@@ -22,8 +22,8 @@ public sealed partial class OperationPlanner
 
         _schema = schema;
         _operationCompiler = operationCompiler;
-        _mergeRewriter = new(schema);
-        _partitioner = new(schema);
+        _mergeRewriter = new MergeSelectionSetRewriter(schema);
+        _partitioner = new SelectionSetPartitioner(schema);
     }
 
     public OperationExecutionPlan CreatePlan(string id, OperationDefinitionNode operationDefinition)
@@ -86,13 +86,13 @@ public sealed partial class OperationPlanner
 
             if (backlog.IsEmpty)
             {
-                // If the backlog is empty than the planning process is complete and we can return the
+                // If the backlog is empty, the planning process is complete, and we can return the
                 // steps to build the actual execution plan.
                 return (current.InternalOperationDefinition, current.Steps);
             }
 
-            // The backlog represents the tasks we we have to complete to build out
-            // the current possible plan. Its not guaranteed that this plan will work
+            // The backlog represents the tasks we have to complete to build out
+            // the current possible plan. It's not guaranteed that this plan will work
             // out or that it is efficient.
             backlog = current.Backlog.Pop(out var workItem);
 
@@ -203,7 +203,7 @@ public sealed partial class OperationPlanner
             operationBuilder.SetLookup(lookup, requirementKey);
         }
 
-        (var definition, index) = operationBuilder.Build(index);
+        (var definition, index, var source) = operationBuilder.Build(index);
 
         var step = new OperationPlanStep
         {
@@ -211,9 +211,12 @@ public sealed partial class OperationPlanner
             Definition = definition,
             Type = workItem.SelectionSet.Type,
             SchemaName = current.SchemaName,
+            RootSelectionSetId = index.GetId(resolvable),
             SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, index),
             Dependents = workItem.Dependents,
-            Requirements = requirements
+            Requirements = requirements,
+            Target = workItem.SelectionSet.Path,
+            Source = source
         };
 
         var next = new PlanNode
@@ -568,7 +571,7 @@ public sealed partial class OperationPlanner
 
         operationBuilder.SetLookup(workItem.Lookup, requirementKey);
 
-        (var definition, _) = operationBuilder.Build(index);
+        var (definition, _, source) = operationBuilder.Build(index);
 
         var step = new OperationPlanStep
         {
@@ -576,8 +579,11 @@ public sealed partial class OperationPlanner
             Definition = definition,
             Type = field.DeclaringType,
             SchemaName = current.SchemaName,
+            RootSelectionSetId = index.GetId(selectionSetNode),
             SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, index),
-            Requirements = requirements
+            Requirements = requirements,
+            Target = workItem.Selection.Path,
+            Source = source
         };
 
         var next = new PlanNode
@@ -642,13 +648,11 @@ public sealed partial class OperationPlanner
         var field = workItem.Selection.Field;
         var fieldSource = field.Sources[current.SchemaName];
 
-        // TODO: we need a deep copy of this selection set or there might be problems if a requirement
+        // TODO: we need a deep copy of this selection set or there might have problems if a requirement
         // is used on different parts of the operation.
         var requirements = fieldSource.Requirements!.SelectionSet;
 
-#pragma warning disable IDE0059 // WIP
-        var internalOperation = InlineSelections(
-#pragma warning restore IDE0059
+        /*var internalOperation =*/ InlineSelections(
             current.InternalOperationDefinition,
             index,
             workItem.Selection.Field.DeclaringType,
