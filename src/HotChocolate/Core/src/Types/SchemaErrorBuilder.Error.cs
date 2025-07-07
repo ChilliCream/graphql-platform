@@ -55,7 +55,7 @@ public partial class SchemaErrorBuilder
 
             writer.Flush();
 
-            fixed (byte* b = buffer.GetInternalBuffer())
+            fixed (byte* b = PooledArrayWriterMarshal.GetUnderlyingBuffer(buffer))
             {
                 return Encoding.UTF8.GetString(b, buffer.Length);
             }

@@ -99,7 +99,7 @@ internal sealed class ConcurrentStreamWriter : IAsyncDisposable
                 try
                 {
                     currentBuffer = message;
-                    await _stream.WriteAsync(message.GetWrittenMemory(), ct).ConfigureAwait(false);
+                    await _stream.WriteAsync(message.WrittenMemory, ct).ConfigureAwait(false);
                     await _stream.FlushAsync(ct).ConfigureAwait(false);
                 }
                 finally

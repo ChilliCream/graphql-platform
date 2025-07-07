@@ -40,12 +40,13 @@
     <Project Path="HotChocolate/AspNetCore/src/AspNetCore.Authorization.Opa/HotChocolate.AspNetCore.Authorization.Opa.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/AspNetCore.Authorization/HotChocolate.AspNetCore.Authorization.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/AspNetCore.CommandLine/HotChocolate.AspNetCore.CommandLine.csproj" />
+    <Project Path="HotChocolate/AspNetCore/src/AspNetCore.Pipeline/HotChocolate.AspNetCore.Pipeline.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/AspNetCore/HotChocolate.AspNetCore.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/Transport.Abstractions/HotChocolate.Transport.Abstractions.csproj" />
+    <Project Path="HotChocolate/AspNetCore/src/Transport.Formatters/HotChocolate.Transport.Formatters.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/Transport.Http/HotChocolate.Transport.Http.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/Transport.Sockets.Client/HotChocolate.Transport.Sockets.Client.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/Transport.Sockets/HotChocolate.Transport.Sockets.csproj" />
-    <Project Path="HotChocolate/AspNetCore/src/Transport.Formatters/HotChocolate.Transport.Formatters.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/AspNetCore/test/">
     <Project Path="HotChocolate/AspNetCore/test/AspNetCore.Authorization.Opa.Tests/HotChocolate.AspNetCore.Authorization.Opa.Tests.csproj" />
@@ -67,12 +68,12 @@
   </Folder>
   <Folder Name="/HotChocolate/Caching/" />
   <Folder Name="/HotChocolate/Caching/src/">
-    <Project Path="HotChocolate/Caching/src/Caching/HotChocolate.Caching.csproj" />
     <Project Path="HotChocolate/Caching/src/Caching.Memory/HotChocolate.Caching.Memory.csproj" />
+    <Project Path="HotChocolate/Caching/src/Caching/HotChocolate.Caching.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Caching/test/">
-    <Project Path="HotChocolate/Caching/test/Caching.Tests/HotChocolate.Caching.Tests.csproj" />
     <Project Path="HotChocolate/Caching/test/Caching.Memory.Tests/HotChocolate.Caching.Memory.Tests.csproj" />
+    <Project Path="HotChocolate/Caching/test/Caching.Tests/HotChocolate.Caching.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Core/" />
   <Folder Name="/HotChocolate/Core/src/">
@@ -95,8 +96,8 @@
     <Project Path="HotChocolate/Core/src/Subscriptions/HotChocolate.Subscriptions.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Abstractions/HotChocolate.Types.Abstractions.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Analyzers/HotChocolate.Types.Analyzers.csproj" />
-    <Project Path="HotChocolate/Core/src/Types.CursorPagination/HotChocolate.Types.CursorPagination.csproj" />
     <Project Path="HotChocolate/Core/src/Types.CursorPagination.Extensions/HotChocolate.Types.CursorPagination.Extensions.csproj" />
+    <Project Path="HotChocolate/Core/src/Types.CursorPagination/HotChocolate.Types.CursorPagination.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Errors/HotChocolate.Types.Errors.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Json/HotChocolate.Types.Json.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Mutations/HotChocolate.Types.Mutations.csproj" />
@@ -174,6 +175,7 @@
   </Folder>
   <Folder Name="/HotChocolate/Fusion-vnext/" />
   <Folder Name="/HotChocolate/Fusion-vnext/src/">
+    <Project Path="HotChocolate/Fusion-vnext/src/Fusion.AspNetCore/HotChocolate.Fusion.AspNetCore.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.CommandLine/HotChocolate.Fusion.CommandLine.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Composition/HotChocolate.Fusion.Composition.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Execution.Types/HotChocolate.Fusion.Execution.Types.csproj" />
@@ -182,6 +184,7 @@
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Utilities/HotChocolate.Fusion.Utilities.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Fusion-vnext/test/">
+    <Project Path="HotChocolate/Fusion-vnext/test/Fusion.AspNetCore.Tests/HotChocolate.Fusion.AspNetCore.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.CommandLine.Tests/HotChocolate.Fusion.CommandLine.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
@@ -230,12 +233,12 @@
   </Folder>
   <Folder Name="/HotChocolate/PersistedOperations/" />
   <Folder Name="/HotChocolate/PersistedOperations/src/">
+    <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.Abstractions/HotChocolate.PersistedOperations.Abstractions.csproj" />
     <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.AzureBlobStorage/HotChocolate.PersistedOperations.AzureBlobStorage.csproj" />
     <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.FileSystem/HotChocolate.PersistedOperations.FileSystem.csproj" />
     <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.InMemory/HotChocolate.PersistedOperations.InMemory.csproj" />
-    <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.Redis/HotChocolate.PersistedOperations.Redis.csproj" />
-    <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.Abstractions/HotChocolate.PersistedOperations.Abstractions.csproj" />
     <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.Pipeline/HotChocolate.PersistedOperations.Pipeline.csproj" />
+    <Project Path="HotChocolate/PersistedOperations/src/PersistedOperations.Redis/HotChocolate.PersistedOperations.Redis.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/PersistedOperations/test/">
     <Project Path="HotChocolate/PersistedOperations/test/PersistedOperations.AzureBlobStorage.Tests/HotChocolate.PersistedOperations.AzureBlobStorage.Tests.csproj" />
@@ -275,9 +278,9 @@
   <Folder Name="/HotChocolate/Utilities/" />
   <Folder Name="/HotChocolate/Utilities/src/">
     <Project Path="HotChocolate/Utilities/src/Utilities.Buffers/HotChocolate.Utilities.Buffers.csproj" />
-    <Project Path="HotChocolate/Utilities/src/Utilities.Tasks/HotChocolate.Utilities.Tasks.csproj" />
     <Project Path="HotChocolate/Utilities/src/Utilities.DependencyInjection/HotChocolate.Utilities.DependencyInjection.csproj" />
     <Project Path="HotChocolate/Utilities/src/Utilities.Introspection/HotChocolate.Utilities.Introspection.csproj" />
+    <Project Path="HotChocolate/Utilities/src/Utilities.Tasks/HotChocolate.Utilities.Tasks.csproj" />
     <Project Path="HotChocolate/Utilities/src/Utilities/HotChocolate.Utilities.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Utilities/test/">

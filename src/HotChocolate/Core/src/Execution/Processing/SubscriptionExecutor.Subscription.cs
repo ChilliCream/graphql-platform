@@ -302,7 +302,7 @@ internal sealed partial class SubscriptionExecutor
             }
             catch
             {
-                // if there is an error we will just dispose our instrumentation scope
+                // if there is an error, we will just dispose our instrumentation scope
                 // the error is reported in the request level in this case.
                 _subscriptionScope?.Dispose();
                 _subscriptionScope = null;
