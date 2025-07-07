@@ -348,6 +348,15 @@ namespace HotChocolate.Validation.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The variable `{0}` is not compatible with the type of the current one-of location..
+        /// </summary>
+        internal static string ErrorHelper_OneOfVariableIsNotCompatible {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OneOfVariableIsNotCompatible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The variable `${0}` assigned to the field `{1}` of the OneOf Input Object `{2}` must be non-null..
         /// </summary>
         internal static string ErrorHelper_OneOfVariablesMustBeNonNull {

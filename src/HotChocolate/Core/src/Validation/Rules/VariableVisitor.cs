@@ -247,12 +247,22 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
             _ => null
         };
 
-        if (context.Variables.TryGetValue(
-                node.Name.Value,
-                out var variableDefinition)
-            && !IsVariableUsageAllowed(variableDefinition, context, defaultValue))
+        var isOneOfVariable =
+            parent is ObjectFieldNode
+            && context.Types[^2].NullableType() is IInputObjectTypeDefinition inputObjectType
+            && inputObjectType.Directives.ContainsName(DirectiveNames.OneOf.Name);
+
+        if (context.Variables.TryGetValue(node.Name.Value, out var variableDefinition)
+            && !IsVariableUsageAllowed(
+                variableDefinition,
+                context.Types.Peek(),
+                isOneOfVariable,
+                defaultValue))
         {
-            context.ReportError(context.VariableIsNotCompatible(node, variableDefinition));
+            context.ReportError(
+                isOneOfVariable
+                    ? context.OneOfVariableIsNotCompatible(node, variableDefinition)
+                    : context.VariableIsNotCompatible(node, variableDefinition));
         }
 
         return Skip;
@@ -281,12 +291,11 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
     // http://facebook.github.io/graphql/June2018/#IsVariableUsageAllowed()
     private bool IsVariableUsageAllowed(
         VariableDefinitionNode variableDefinition,
-        DocumentValidatorContext context,
+        IType locationType,
+        bool isOneOfVariable,
         IValueNode? locationDefault)
     {
-        var locationType = context.Types.Peek();
-
-        if (IsNonNullPosition(locationType, context)
+        if (IsNonNullPosition(locationType, isOneOfVariable)
             && !variableDefinition.Type.IsNonNullType())
         {
             if (variableDefinition.DefaultValue.IsNull()
@@ -305,21 +314,9 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
             locationType);
     }
 
-    private static bool IsNonNullPosition(IType locationType, DocumentValidatorContext context)
+    private static bool IsNonNullPosition(IType locationType, bool isOneOfVariable)
     {
-        if (locationType.IsNonNullType())
-        {
-            return true;
-        }
-
-        if (context.Path.Peek() is ObjectFieldNode
-            && context.Types[^2].NullableType() is IInputObjectTypeDefinition inputObjectType
-            && inputObjectType.Directives.ContainsName(DirectiveNames.OneOf.Name))
-        {
-            return true;
-        }
-
-        return false;
+        return locationType.IsNonNullType() || isOneOfVariable;
     }
 
     // http://facebook.github.io/graphql/June2018/#AreTypesCompatible()

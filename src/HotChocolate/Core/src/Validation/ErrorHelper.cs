@@ -36,6 +36,24 @@ internal static class ErrorHelper
             .Build();
     }
 
+    public static IError OneOfVariableIsNotCompatible(
+        this DocumentValidatorContext context,
+        VariableNode variable,
+        VariableDefinitionNode variableDefinition)
+    {
+        var variableName = variableDefinition.Variable.Name.Value;
+
+        return ErrorBuilder.New()
+            .SetMessage(
+                Resources.ErrorHelper_OneOfVariableIsNotCompatible,
+                variableName)
+            .AddLocation(variable)
+            .SetPath(context.CreateErrorPath())
+            .SetExtension("variable", variableName)
+            .SpecifiedBy("sec-All-Variable-Usages-are-Allowed")
+            .Build();
+    }
+
     public static IError VariableIsNotCompatible(
         this DocumentValidatorContext context,
         VariableNode variable,

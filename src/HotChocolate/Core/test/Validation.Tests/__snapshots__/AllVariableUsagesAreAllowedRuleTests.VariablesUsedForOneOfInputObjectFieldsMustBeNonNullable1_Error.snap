@@ -1,6 +1,6 @@
 [
   {
-    "Message": "The variable `cat` is not compatible with the type of the current location.",
+    "Message": "The variable `cat` is not compatible with the type of the current one-of location.",
     "Code": null,
     "Path": {
       "Name": "addPet",
@@ -20,8 +20,6 @@
     ],
     "Extensions": {
       "variable": "cat",
-      "variableType": "CatInput",
-      "locationType": "CatInput",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Usages-are-Allowed"
     },
     "Exception": null

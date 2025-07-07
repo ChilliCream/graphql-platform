@@ -107,6 +107,9 @@
   <data name="DocumentValidatorContext_Context_Invalid_State" xml:space="preserve">
     <value>The context has an invalid state and is missing the schema.</value>
   </data>
+  <data name="ErrorHelper_OneOfVariableIsNotCompatible" xml:space="preserve">
+    <value>The variable `{0}` is not compatible with the type of the current one-of location.</value>
+  </data>
   <data name="ErrorHelper_VariableIsNotCompatible" xml:space="preserve">
     <value>The variable `{0}` is not compatible with the type of the current location.</value>
   </data>
