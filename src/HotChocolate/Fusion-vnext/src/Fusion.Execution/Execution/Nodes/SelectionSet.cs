@@ -48,5 +48,10 @@ public sealed class SelectionSet
 
         _isSealed = true;
         DeclaringOperation = operation;
+
+        foreach (var selection in Selections)
+        {
+            selection.Seal(this);
+        }
     }
 }
