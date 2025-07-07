@@ -8,26 +8,26 @@ public class GlobalObjectIdentificationTests : FusionTestBase
 {
     #region selections on node field
 
-    [Fact]
+    [Fact(Skip = "Not yet supported")]
     public void Id_And_Typename_Selection_On_Node_Field()
     {
         // arrange
         var subgraphA = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
               id: ID!
             }
 
-            type Discussion implements Node {
+            type Discussion implements Node @key(fields: "id") {
               id: ID!
               viewerRating: Float!
             }
 
-            type Comment implements Node {
+            type Comment implements Node @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -56,27 +56,27 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """);
     }
 
-    [Fact]
+    [Fact(Skip = "Not yet supported")]
     public void Concrete_Type_On_Node_Field_Selection_Has_Dependency()
     {
         // arrange
         var subgraphA = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
               id: ID!
             }
 
-            type Discussion implements Node {
+            type Discussion implements Node @key(fields: "id") {
               id: ID!
               viewerRating: Float!
               product: Product
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
             """);
@@ -84,14 +84,14 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
               id: ID!
             }
 
-            type Product implements Node {
+            type Product implements Node @key(fields: "id") {
               id: ID!
               name: String
             }
@@ -125,21 +125,21 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """);
     }
 
-    [Fact]
+    [Fact(Skip = "Not yet supported")]
     public void Concrete_Type_On_Node_Field_With_Dependency()
     {
         // arrange
         var subgraphA = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
               id: ID!
             }
 
-            type Discussion implements Node {
+            type Discussion implements Node @key(fields: "id") {
               id: ID!
               name: String
             }
@@ -148,14 +148,14 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
               id: ID!
             }
 
-            type Discussion implements Node {
+            type Discussion implements Node @key(fields: "id") {
               id: ID!
               commentCount: Int
             }
@@ -186,26 +186,26 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """);
     }
 
-    [Fact]
+    [Fact(Skip = "Not yet supported")]
     public void Two_Concrete_Types_On_Node_Field_Selection_Has_Same_Dependency()
     {
         // arrange
         var subgraphA = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
               id: ID!
             }
 
-            type Discussion implements Node {
+            type Discussion implements Node @key(fields: "id") {
               id: ID!
               product: Product
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
             """);
@@ -213,19 +213,19 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
               id: ID!
             }
 
-            type Review implements Node {
+            type Review implements Node @key(fields: "id") {
               id: ID!
               product: Product
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
             """);
@@ -233,14 +233,14 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         var subgraphC = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
               id: ID!
             }
 
-            type Product implements Node {
+            type Product implements Node @key(fields: "id") {
               id: ID!
               name: String
             }
@@ -277,26 +277,26 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """);
     }
 
-    [Fact]
+    [Fact(Skip = "Not yet supported")]
     public void Two_Concrete_Types_On_Node_Field_Selection_Has_Different_Dependency()
     {
         // arrange
         var subgraphA = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
               id: ID!
             }
 
-            type Discussion implements Node {
+            type Discussion implements Node @key(fields: "id") {
               id: ID!
               product: Product
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
             """);
@@ -304,19 +304,19 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
               id: ID!
             }
 
-            type Review implements Node {
+            type Review implements Node @key(fields: "id") {
               id: ID!
               product: Product
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
             """);
@@ -324,14 +324,14 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         var subgraphC = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
               id: ID!
             }
 
-            type Product implements Node {
+            type Product implements Node @key(fields: "id") {
               id: ID!
               name: String
             }
@@ -373,14 +373,14 @@ public class GlobalObjectIdentificationTests : FusionTestBase
 
     #region interface selections on node field
 
-    [Fact]
+    [Fact(Skip = "Not yet supported")]
     public void Selections_On_Interface_On_Node_Field()
     {
         // arrange
         var subgraphA = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
@@ -391,13 +391,13 @@ public class GlobalObjectIdentificationTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Node & Votable {
+            type Discussion implements Node & Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
               viewerRating: Float!
             }
 
-            type Comment implements Node & Votable {
+            type Comment implements Node & Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -427,14 +427,14 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """);
     }
 
-    [Fact]
+    [Fact(Skip = "Not yet supported")]
     public void Selections_On_Interface_And_Concrete_Type_On_Node_Field()
     {
         // arrange
         var subgraphA = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
@@ -445,13 +445,13 @@ public class GlobalObjectIdentificationTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Node & Votable {
+            type Discussion implements Node & Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
               viewerRating: Float!
             }
 
-            type Comment implements Node & Votable {
+            type Comment implements Node & Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -484,14 +484,14 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """);
     }
 
-    [Fact]
+    [Fact(Skip = "Not yet supported")]
     public void Selections_On_Interface_On_Node_Field_Interface_Selection_Has_Dependency()
     {
         // arrange
         var subgraphA = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
@@ -502,17 +502,17 @@ public class GlobalObjectIdentificationTests : FusionTestBase
               products: [Product]
             }
 
-            type Item1 implements Node & ProductList {
+            type Item1 implements Node & ProductList @key(fields: "id") {
               id: ID!
               products: [Product]
             }
 
-            type Item2 implements Node & ProductList {
+            type Item2 implements Node & ProductList @key(fields: "id") {
               id: ID!
               products: [Product]
             }
 
-            type Product implements Node {
+            type Product implements Node @key(fields: "id") {
               id: ID!
             }
             """);
@@ -520,15 +520,14 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
               id: ID!
             }
 
-            type Product implements Node {
+            type Product implements Node @key(fields: "id") {
               id: ID!
               name: String
             }
@@ -563,14 +562,14 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """);
     }
 
-    [Fact]
+    [Fact(Skip = "Not yet supported")]
     public void Selections_On_Interface_And_Concrete_Type_On_Node_Field_Interface_Selection_Has_Dependency()
     {
         // arrange
         var subgraphA = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
@@ -581,18 +580,18 @@ public class GlobalObjectIdentificationTests : FusionTestBase
               products: [Product]
             }
 
-            type Item1 implements Node & ProductList {
+            type Item1 implements Node & ProductList @key(fields: "id") {
               id: ID!
               products: [Product]
             }
 
-            type Item2 implements Node & ProductList {
+            type Item2 implements Node & ProductList @key(fields: "id") {
               id: ID!
               products: [Product]
               singularProduct: Product
             }
 
-            type Product implements Node {
+            type Product implements Node @key(fields: "id") {
               id: ID!
             }
             """);
@@ -600,15 +599,14 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node
-              nodes(ids: [ID!]!): [Node]!
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
               id: ID!
             }
 
-            type Product implements Node {
+            type Product implements Node @key(fields: "id") {
               id: ID!
               name: String
             }

@@ -48,15 +48,21 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            nodes:
-            - id: 1
-              schema: SUBGRAPH_1
-              operation: >-
-                query testQuery_1 {
-                  votable {
-                    viewerCanVote
-                  }
+            operation: >-
+              query testQuery {
+                votable {
+                  viewerCanVote
                 }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    votable {
+                      viewerCanVote
+                    }
+                  }
             """);
     }
 
@@ -82,7 +88,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -90,10 +96,10 @@ public class InterfaceTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              authorById(id: ID!): Author
+              authorById(id: ID!): Author @lookup
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
               displayName: String!
             }
@@ -120,31 +126,41 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
+            operation: >-
+              query testQuery {
+                authorable {
+                  author {
+                    id
+                    displayName
+                    id @fusion_internal
+                  }
+                }
+              }
             nodes:
-            - id: 1
-              schema: SUBGRAPH_1
-              operation: >-
-                query testQuery_1 {
-                  authorable {
-                    author {
-                      id
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    authorable {
+                      author {
+                        id
+                      }
                     }
                   }
-                }
-            - id: 2
-              schema: SUBGRAPH_2
-              operation: >-
-                query testQuery_2 {
-                  authorById(id: $__fusion_1_id) {
-                    displayName
+              - id: 2
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_2 {
+                    authorById(id: $__fusion_1_id) {
+                      displayName
+                    }
                   }
-                }
-              requirements:
-                - name: __fusion_1_id
-                  selectionSet: author.authorable
-                  selectionMap: id
-              dependencies:
-                - id: 1
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: author.authorable
+                    selectionMap: id
+                dependencies:
+                  - id: 1
             """);
     }
 
@@ -170,7 +186,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -178,10 +194,10 @@ public class InterfaceTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              authorById(id: ID!): Author
+              authorById(id: ID!): Author @lookup
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
               displayName: String!
             }
@@ -214,50 +230,67 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            nodes:
-            - id: 1
-              schema: SUBGRAPH_1
-              operation: >-
-                query testQuery_1 {
-                  authorable {
+            operation: >-
+              query testQuery {
+                authorable {
+                  author {
+                    id
+                    displayName
+                    id @fusion_internal
+                  }
+                  ... on Discussion {
                     author {
                       id
+                      displayName
+                      id @fusion_internal
                     }
-                    ... on Discussion {
+                  }
+                }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    authorable {
                       author {
                         id
                       }
+                      ... on Discussion {
+                        author {
+                          id
+                        }
+                      }
                     }
                   }
-                }
-            - id: 2
-              schema: SUBGRAPH_2
-              operation: >-
-                query testQuery_2 {
-                  authorById(id: $__fusion_1_id) {
-                    displayName
+              - id: 2
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_2 {
+                    authorById(id: $__fusion_1_id) {
+                      displayName
+                    }
                   }
-                }
-              requirements:
-                - name: __fusion_1_id
-                  selectionSet: author.<Discussion>.authorable
-                  selectionMap: id
-              dependencies:
-                - id: 1
-            - id: 3
-              schema: SUBGRAPH_2
-              operation: >-
-                query testQuery_3 {
-                  authorById(id: $__fusion_2_id) {
-                    displayName
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: author.<Discussion>.authorable
+                    selectionMap: id
+                dependencies:
+                  - id: 1
+              - id: 3
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_3 {
+                    authorById(id: $__fusion_2_id) {
+                      displayName
+                    }
                   }
-                }
-              requirements:
-                - name: __fusion_2_id
-                  selectionSet: author.authorable
-                  selectionMap: id
-              dependencies:
-                - id: 1
+                requirements:
+                  - name: __fusion_2_id
+                    selectionSet: author.authorable
+                    selectionMap: id
+                dependencies:
+                  - id: 1
             """);
     }
 
@@ -283,7 +316,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -291,10 +324,10 @@ public class InterfaceTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              authorById(id: ID!): Author
+              authorById(id: ID!): Author @lookup
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
               displayName: String!
               email: String
@@ -388,13 +421,13 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable {
+            type Discussion implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
               title: String!
             }
 
-            type Comment implements Votable {
+            type Comment implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -421,18 +454,27 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            nodes:
-            - id: 1
-              schema: SUBGRAPH_1
-              operation: >-
-                query testQuery_1 {
-                  votable {
-                    viewerCanVote
-                    ... on Discussion {
-                      title
-                    }
+            operation: >-
+              query testQuery {
+                votable {
+                  viewerCanVote
+                  ... on Discussion {
+                    title
                   }
                 }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    votable {
+                      viewerCanVote
+                      ... on Discussion {
+                        title
+                      }
+                    }
+                  }
             """);
     }
 
@@ -450,12 +492,12 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable {
+            type Discussion implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
             }
 
-            type Comment implements Votable {
+            type Comment implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -464,10 +506,10 @@ public class InterfaceTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              discussionById(id: ID!): Discussion
+              discussionById(id: ID!): Discussion @lookup
             }
 
-            type Discussion {
+            type Discussion @key(fields: "id") {
               id: ID!
               viewerRating: Float!
             }
@@ -537,18 +579,18 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable {
+            type Discussion implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
               author: Author
             }
 
-            type Comment implements Votable {
+            type Comment implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -556,10 +598,10 @@ public class InterfaceTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              authorById(id: ID!): Author
+              authorById(id: ID!): Author @lookup
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
               displayName: String!
             }
@@ -637,13 +679,13 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable {
+            type Discussion implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
               viewerRating: Float!
             }
 
-            type Comment implements Votable {
+            type Comment implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -701,7 +743,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -709,10 +751,10 @@ public class InterfaceTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              authorsById(ids: [ID!]!): [Author]!
+              authorsById(ids: [ID!]!): [Author]! @lookup
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
               displayName: String!
             }
