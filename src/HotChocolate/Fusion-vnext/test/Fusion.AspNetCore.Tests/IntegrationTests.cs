@@ -1,12 +1,7 @@
-using System.Text;
-using HotChocolate.Buffers;
-using HotChocolate.Types;
-using HotChocolate.Execution;
-using HotChocolate.Transport.Formatters;
 using HotChocolate.Transport.Http;
-using Microsoft.AspNetCore.TestHost;
+using HotChocolate.Types;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate.Fusion;
 
@@ -21,7 +16,7 @@ public class IntegrationTests : FusionTestBase
             b => b.AddQueryType(
                 d => d.Name("Query")
                     .Field("foo")
-                    .Resolve("foo")) );
+                    .Resolve("foo")));
 
         using var server2 = CreateSourceSchema(
             "B",
@@ -43,6 +38,50 @@ public class IntegrationTests : FusionTestBase
             {
               foo
               bar
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Bar()
+    {
+        var server = _testServerSession.CreateServer(
+            services =>
+            {
+                services.AddRouting();
+
+                services
+                    .AddHttpClient("SUBGRAPH1", c => c.BaseAddress = new Uri("http://localhost:5095/graphql"));
+
+                services
+                    .AddHttpClient("SUBGRAPH2", c => c.BaseAddress = new Uri("http://localhost:5096/graphql"));
+
+                services
+                    .AddGraphQLGatewayServer()
+                    .AddFileSystemConfiguration("/Users/michael/local/play/FusionServer/Gateway/gateway.graphql")
+                    .AddHttpClientConfiguration("SUBGRAPH1", new Uri("http://localhost:5095/graphql"))
+                    .AddHttpClientConfiguration("SUBGRAPH2", new Uri("http://localhost:5096/graphql"));
+            },
+            app =>
+            {
+                app.UseWebSockets();
+                app.UseRouting();
+                app.UseEndpoints(endpoint => endpoint.MapGraphQL());
+            });
+
+        using var client = GraphQLHttpClient.Create(server.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+                book {
+                  title
+                }
             }
             """,
             new Uri("http://localhost:5000/graphql"));
