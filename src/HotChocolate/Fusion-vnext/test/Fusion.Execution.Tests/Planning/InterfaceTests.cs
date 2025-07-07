@@ -360,50 +360,66 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            nodes:
-            - id: 1
-              schema: SUBGRAPH_1
-              operation: >-
-                query testQuery_1 {
-                  authorable {
+            operation: >-
+              query testQuery {
+                authorable {
+                  author {
+                    id
+                    displayName
+                    id @fusion_internal
+                  }
+                  ... on Discussion {
                     author {
-                      id
+                      email
+                      id @fusion_internal
                     }
-                    ... on Discussion {
+                  }
+                }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    authorable {
                       author {
                         id
                       }
+                      ... on Discussion {
+                        author {
+                          id
+                        }
+                      }
                     }
                   }
-                }
-            - id: 2
-              schema: SUBGRAPH_2
-              operation: >-
-                query testQuery_2 {
-                  authorById(id: $__fusion_1_id) {
-                    email
+              - id: 2
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_2 {
+                    authorById(id: $__fusion_1_id) {
+                      email
+                    }
                   }
-                }
-              requirements:
-                - name: __fusion_1_id
-                  selectionSet: author.<Discussion>.authorable
-                  selectionMap: id
-              dependencies:
-                - id: 1
-            - id: 3
-              schema: SUBGRAPH_2
-              operation: >-
-                query testQuery_3 {
-                  authorById(id: $__fusion_2_id) {
-                    displayName
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: author.<Discussion>.authorable
+                    selectionMap: id
+                dependencies:
+                  - id: 1
+              - id: 3
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_3 {
+                    authorById(id: $__fusion_2_id) {
+                      displayName
+                    }
                   }
-                }
-              requirements:
-                - name: __fusion_2_id
-                  selectionSet: author.authorable
-                  selectionMap: id
-              dependencies:
-                - id: 1
+                requirements:
+                  - name: __fusion_2_id
+                    selectionSet: author.authorable
+                    selectionMap: id
+                dependencies:
+                  - id: 1
             """);
     }
 
@@ -486,6 +502,7 @@ public class InterfaceTests : FusionTestBase
             """
             type Query {
               votable: Votable
+              discussionById(id: ID!): Discussion @lookup
             }
 
             interface Votable {
@@ -536,32 +553,42 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
+            operation: >-
+              query testQuery {
+                votable {
+                  viewerCanVote
+                  ... on Discussion {
+                    viewerRating
+                    id @fusion_internal
+                  }
+                }
+              }
             nodes:
-            - id: 1
-              schema: SUBGRAPH_1
-              operation: >-
-                query testQuery_1 {
-                  votable {
-                    viewerCanVote
-                    ... on Discussion {
-                      id
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    votable {
+                      viewerCanVote
+                      ... on Discussion {
+                        id
+                      }
                     }
                   }
-                }
-            - id: 2
-              schema: SUBGRAPH_2
-              operation: >-
-                query testQuery_2 {
-                  discussionById(id: $__fusion_1_id) {
-                    viewerRating
+              - id: 2
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_2 {
+                    discussionById(id: $__fusion_1_id) {
+                      viewerRating
+                    }
                   }
-                }
-              requirements:
-                - name: __fusion_1_id
-                  selectionSet: <Discussion>.votable
-                  selectionMap: id
-              dependencies:
-                - id: 1
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: <Discussion>.votable
+                    selectionMap: id
+                dependencies:
+                  - id: 1
             """);
     }
 
@@ -630,34 +657,46 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            nodes:
-            - id: 1
-              schema: SUBGRAPH_1
-              operation: >-
-                query testQuery_1 {
-                  votable {
-                    viewerCanVote
-                    ... on Discussion {
-                      author {
-                        id
-                      }
+            operation: >-
+              query testQuery {
+                votable {
+                  viewerCanVote
+                  ... on Discussion {
+                    author {
+                      displayName
+                      id @fusion_internal
                     }
                   }
                 }
-            - id: 2
-              schema: SUBGRAPH_2
-              operation: >-
-                query testQuery_2 {
-                  authorById(id: $__fusion_1_id) {
-                    displayName
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    votable {
+                      viewerCanVote
+                      ... on Discussion {
+                        author {
+                          id
+                        }
+                      }
+                    }
                   }
-                }
-              requirements:
-                - name: __fusion_1_id
-                  selectionSet: author.<Discussion>.votable
-                  selectionMap: id
-              dependencies:
-                - id: 1
+              - id: 2
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_2 {
+                    authorById(id: $__fusion_1_id) {
+                      displayName
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: author.<Discussion>.votable
+                    selectionMap: id
+                dependencies:
+                  - id: 1
             """);
     }
 
@@ -709,19 +748,25 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            nodes:
-            - id: 1
-              schema: SUBGRAPH_1
-              operation: >-
-                query testQuery_1 {
-                  votables {
-                    viewerCanVote
-                  }
+            operation: >-
+              query testQuery {
+                votables {
+                  viewerCanVote
                 }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    votables {
+                      viewerCanVote
+                    }
+                  }
             """);
     }
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
     public void Interface_List_Field_Linked_Field_With_Dependency()
     {
         // arrange
@@ -751,7 +796,7 @@ public class InterfaceTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              authorsById(ids: [ID!]!): [Author]! @lookup
+              authorById(id: ID!): Author @lookup
             }
 
             type Author @key(fields: "id") {
@@ -781,11 +826,45 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            NOT SUPPORTED
+            operation: >-
+              query testQuery {
+                authorables {
+                  author {
+                    id
+                    displayName
+                    id @fusion_internal
+                  }
+                }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    authorables {
+                      author {
+                        id
+                      }
+                    }
+                  }
+              - id: 2
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_2 {
+                    authorById(id: $__fusion_1_id) {
+                      displayName
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: author.authorables
+                    selectionMap: id
+                dependencies:
+                  - id: 1
             """);
     }
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
     public void Interface_List_Field_Linked_Field_With_Dependency_Same_Selection_In_Concrete_Type()
     {
         // arrange
@@ -807,7 +886,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -815,10 +894,10 @@ public class InterfaceTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              authorsById(ids: [ID!]!): [Author]!
+              authorById(id: ID!): Author @lookup
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
               displayName: String!
             }
@@ -851,26 +930,71 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            nodes:
-            - id: 1
-              schema: SUBGRAPH_1
-              operation: >-
-                query testQuery_1 {
-                  authorables {
+            operation: >-
+              query testQuery {
+                authorables {
+                  author {
+                    id
+                    displayName
+                    id @fusion_internal
+                  }
+                  ... on Discussion {
                     author {
                       id
-                    }
-                    ... on Discussion {
-                      author {
-                        id
-                      }
+                      displayName
+                      id @fusion_internal
                     }
                   }
                 }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    authorables {
+                      author {
+                        id
+                      }
+                      ... on Discussion {
+                        author {
+                          id
+                        }
+                      }
+                    }
+                  }
+              - id: 2
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_2 {
+                    authorById(id: $__fusion_1_id) {
+                      displayName
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: author.<Discussion>.authorables
+                    selectionMap: id
+                dependencies:
+                  - id: 1
+              - id: 3
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_3 {
+                    authorById(id: $__fusion_2_id) {
+                      displayName
+                    }
+                  }
+                requirements:
+                  - name: __fusion_2_id
+                    selectionSet: author.authorables
+                    selectionMap: id
+                dependencies:
+                  - id: 1
             """);
     }
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
     public void Interface_List_Field_Linked_Field_With_Dependency_Different_Selection_In_Concrete_Type()
     {
         // arrange
@@ -892,7 +1016,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -900,10 +1024,10 @@ public class InterfaceTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              authorsById(ids: [ID!]!): [Author]!
+              authorById(id: ID!): Author @lookup
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
               displayName: String!
               email: String
@@ -936,7 +1060,66 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            NOT SUPPORTED
+            operation: >-
+              query testQuery {
+                authorables {
+                  author {
+                    id
+                    displayName
+                    id @fusion_internal
+                  }
+                  ... on Discussion {
+                    author {
+                      email
+                      id @fusion_internal
+                    }
+                  }
+                }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    authorables {
+                      author {
+                        id
+                      }
+                      ... on Discussion {
+                        author {
+                          id
+                        }
+                      }
+                    }
+                  }
+              - id: 2
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_2 {
+                    authorById(id: $__fusion_1_id) {
+                      email
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: author.<Discussion>.authorables
+                    selectionMap: id
+                dependencies:
+                  - id: 1
+              - id: 3
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_3 {
+                    authorById(id: $__fusion_2_id) {
+                      displayName
+                    }
+                  }
+                requirements:
+                  - name: __fusion_2_id
+                    selectionSet: author.authorables
+                    selectionMap: id
+                dependencies:
+                  - id: 1
             """);
     }
 
@@ -954,13 +1137,13 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable {
+            type Discussion implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
               title: String!
             }
 
-            type Comment implements Votable {
+            type Comment implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -987,22 +1170,31 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            nodes:
-            - id: 1
-              schema: SUBGRAPH_1
-              operation: >-
-                query testQuery_1 {
-                  votables {
-                    viewerCanVote
-                    ... on Discussion {
-                      title
-                    }
+            operation: >-
+              query testQuery {
+                votables {
+                  viewerCanVote
+                  ... on Discussion {
+                    title
                   }
                 }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    votables {
+                      viewerCanVote
+                      ... on Discussion {
+                        title
+                      }
+                    }
+                  }
             """);
     }
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
     public void Interface_List_Field_Concrete_Type_With_Dependency()
     {
         // arrange
@@ -1010,18 +1202,19 @@ public class InterfaceTests : FusionTestBase
             """
             type Query {
               votables: [Votable]
+              discussionById(id: ID!): Discussion @lookup
             }
 
             interface Votable {
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable {
+            type Discussion implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
             }
 
-            type Comment implements Votable {
+            type Comment implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -1030,10 +1223,10 @@ public class InterfaceTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              discussionsById(ids: [ID!]!): [Discussion]
+              discussionById(id: ID!): Discussion @lookup
             }
 
-            type Discussion {
+            type Discussion @key(fields: "id") {
               id: ID!
               viewerRating: Float!
             }
@@ -1060,11 +1253,46 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            NOT SUPPORTED
+            operation: >-
+              query testQuery {
+                votables {
+                  viewerCanVote
+                  ... on Discussion {
+                    viewerRating
+                    id @fusion_internal
+                  }
+                }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    votables {
+                      viewerCanVote
+                      ... on Discussion {
+                        id
+                      }
+                    }
+                  }
+              - id: 2
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_2 {
+                    discussionById(id: $__fusion_1_id) {
+                      viewerRating
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: <Discussion>.votables
+                    selectionMap: id
+                dependencies:
+                  - id: 1
             """);
     }
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
     public void Interface_List_Field_Concrete_Type_Linked_Field_With_Dependency()
     {
         // arrange
@@ -1078,18 +1306,18 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable {
+            type Discussion implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
               author: Author
             }
 
-            type Comment implements Votable {
+            type Comment implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -1097,10 +1325,10 @@ public class InterfaceTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              authorsById(ids: [ID!]!): [Author]
+              authorById(id: ID!): Author @lookup
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
               displayName: String!
             }
@@ -1129,7 +1357,46 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            NOT SUPPORTED
+            operation: >-
+              query testQuery {
+                votables {
+                  viewerCanVote
+                  ... on Discussion {
+                    author {
+                      displayName
+                      id @fusion_internal
+                    }
+                  }
+                }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    votables {
+                      viewerCanVote
+                      ... on Discussion {
+                        author {
+                          id
+                        }
+                      }
+                    }
+                  }
+              - id: 2
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_2 {
+                    authorById(id: $__fusion_1_id) {
+                      displayName
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: author.<Discussion>.votables
+                    selectionMap: id
+                dependencies:
+                  - id: 1
             """);
     }
 
@@ -1137,7 +1404,7 @@ public class InterfaceTests : FusionTestBase
 
     #region wrappers { interface { ... } }
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
     public void List_Field_Interface_Object_Property_Linked_Field_With_Dependency()
     {
         // arrange
@@ -1163,7 +1430,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -1171,10 +1438,10 @@ public class InterfaceTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              authorsById(ids: [ID!]!): [Author]!
+              authorById(id: ID!): Author @lookup
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
               displayName: String!
             }
@@ -1202,11 +1469,48 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            NOT SUPPORTED
+            operation: >-
+              query testQuery {
+                wrappers {
+                  authorable {
+                    author {
+                      displayName
+                      id @fusion_internal
+                    }
+                  }
+                }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    wrappers {
+                      authorable {
+                        author {
+                          id
+                        }
+                      }
+                    }
+                  }
+              - id: 2
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_2 {
+                    authorById(id: $__fusion_1_id) {
+                      displayName
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: author.authorable.wrappers
+                    selectionMap: id
+                dependencies:
+                  - id: 1
             """);
     }
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
     public void List_Field_Interface_Object_Property_Linked_Field_With_Dependency_Same_Selection_In_Concrete_Type()
     {
         // arrange
@@ -1232,7 +1536,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -1240,10 +1544,10 @@ public class InterfaceTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              authorsById(ids: [ID!]!): [Author]!
+              authorById(id: ID!): Author @lookup
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
               displayName: String!
             }
@@ -1276,11 +1580,73 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            NOT SUPPORTED
+            operation: >-
+              query testQuery {
+                wrappers {
+                  authorable {
+                    author {
+                      displayName
+                      id @fusion_internal
+                    }
+                    ... on Discussion {
+                      author {
+                        displayName
+                        id @fusion_internal
+                      }
+                    }
+                  }
+                }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    wrappers {
+                      authorable {
+                        author {
+                          id
+                        }
+                        ... on Discussion {
+                          author {
+                            id
+                          }
+                        }
+                      }
+                    }
+                  }
+              - id: 2
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_2 {
+                    authorById(id: $__fusion_1_id) {
+                      displayName
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: author.<Discussion>.authorable.wrappers
+                    selectionMap: id
+                dependencies:
+                  - id: 1
+              - id: 3
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_3 {
+                    authorById(id: $__fusion_2_id) {
+                      displayName
+                    }
+                  }
+                requirements:
+                  - name: __fusion_2_id
+                    selectionSet: author.authorable.wrappers
+                    selectionMap: id
+                dependencies:
+                  - id: 1
             """);
     }
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
     public void List_Field_Interface_Object_Property_Linked_Field_With_Dependency_Different_Selection_In_Concrete_Type()
     {
         // arrange
@@ -1306,7 +1672,7 @@ public class InterfaceTests : FusionTestBase
               author: Author
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -1314,10 +1680,10 @@ public class InterfaceTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              authorsById(ids: [ID!]!): [Author]!
+              authorById(id: ID!): Author @lookup
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
               displayName: String!
               email: String
@@ -1351,7 +1717,69 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            NOT SUPPORTED
+            operation: >-
+              query testQuery {
+                wrappers {
+                  authorable {
+                    author {
+                      displayName
+                      id @fusion_internal
+                    }
+                    ... on Discussion {
+                      author {
+                        email
+                        id @fusion_internal
+                      }
+                    }
+                  }
+                }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    wrappers {
+                      authorable {
+                        author {
+                          id
+                        }
+                        ... on Discussion {
+                          author {
+                            id
+                          }
+                        }
+                      }
+                    }
+                  }
+              - id: 2
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_2 {
+                    authorById(id: $__fusion_1_id) {
+                      email
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: author.<Discussion>.authorable.wrappers
+                    selectionMap: id
+                dependencies:
+                  - id: 1
+              - id: 3
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_3 {
+                    authorById(id: $__fusion_2_id) {
+                      displayName
+                    }
+                  }
+                requirements:
+                  - name: __fusion_2_id
+                    selectionSet: author.authorable.wrappers
+                    selectionMap: id
+                dependencies:
+                  - id: 1
             """);
     }
 
@@ -1373,13 +1801,13 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable {
+            type Discussion implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
               title: String!
             }
 
-            type Comment implements Votable {
+            type Comment implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -1408,24 +1836,35 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            nodes:
-            - id: 1
-              schema: SUBGRAPH_1
-              operation: >-
-                query testQuery_1 {
-                  wrappers {
-                    votable {
-                      viewerCanVote
-                      ... on Discussion {
-                        title
-                      }
+            operation: >-
+              query testQuery {
+                wrappers {
+                  votable {
+                    viewerCanVote
+                    ... on Discussion {
+                      title
                     }
                   }
                 }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    wrappers {
+                      votable {
+                        viewerCanVote
+                        ... on Discussion {
+                          title
+                        }
+                      }
+                    }
+                  }
             """);
     }
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
     public void List_Field_Interface_Object_Property_Concrete_Type_With_Dependency()
     {
         // arrange
@@ -1433,6 +1872,7 @@ public class InterfaceTests : FusionTestBase
             """
             type Query {
               wrappers: [Wrapper]
+              discussionById(id: ID!): Discussion @lookup
             }
 
             type Wrapper {
@@ -1443,12 +1883,12 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable {
+            type Discussion implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
             }
 
-            type Comment implements Votable {
+            type Comment implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
             }
@@ -1457,10 +1897,10 @@ public class InterfaceTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              discussionsById(ids: [ID!]!): [Discussion]
+              discussionById(id: ID!): Discussion @lookup
             }
 
-            type Discussion {
+            type Discussion @key(fields: "id") {
               id: ID!
               viewerRating: Float!
             }
@@ -1489,11 +1929,50 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            NOT SUPPORTED
+            operation: >-
+              query testQuery {
+                wrappers {
+                  votable {
+                    viewerCanVote
+                    ... on Discussion {
+                      viewerRating
+                      id @fusion_internal
+                    }
+                  }
+                }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    wrappers {
+                      votable {
+                        viewerCanVote
+                        ... on Discussion {
+                          id
+                        }
+                      }
+                    }
+                  }
+              - id: 2
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_2 {
+                    discussionById(id: $__fusion_1_id) {
+                      viewerRating
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: <Discussion>.votable.wrappers
+                    selectionMap: id
+                dependencies:
+                  - id: 1
             """);
     }
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
     public void List_Field_Interface_Object_Property_Concrete_Type_Linked_Field_With_Dependency()
     {
         // arrange
@@ -1511,18 +1990,18 @@ public class InterfaceTests : FusionTestBase
               viewerCanVote: Boolean!
             }
 
-            type Discussion implements Votable {
+            type Discussion implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
               author: Author
             }
 
-            type Comment implements Votable {
+            type Comment implements Votable @key(fields: "id") {
               id: ID!
               viewerCanVote: Boolean!
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -1530,10 +2009,10 @@ public class InterfaceTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              authorsById(ids: [ID!]!): [Author]
+              authorById(id: ID!): Author @lookup
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
               displayName: String!
             }
@@ -1564,7 +2043,50 @@ public class InterfaceTests : FusionTestBase
         MatchInline(
             plan,
             """
-            NOT SUPPORTED
+            operation: >-
+              query testQuery {
+                wrappers {
+                  votable {
+                    viewerCanVote
+                    ... on Discussion {
+                      author {
+                        displayName
+                        id @fusion_internal
+                      }
+                    }
+                  }
+                }
+              }
+            nodes:
+              - id: 1
+                schema: SUBGRAPH_1
+                operation: >-
+                  query testQuery_1 {
+                    wrappers {
+                      votable {
+                        viewerCanVote
+                        ... on Discussion {
+                          author {
+                            id
+                          }
+                        }
+                      }
+                    }
+                  }
+              - id: 2
+                schema: SUBGRAPH_2
+                operation: >-
+                  query testQuery_2 {
+                    authorById(id: $__fusion_1_id) {
+                      displayName
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: author.<Discussion>.votable.wrappers
+                    selectionMap: id
+                dependencies:
+                  - id: 1
             """);
     }
 
