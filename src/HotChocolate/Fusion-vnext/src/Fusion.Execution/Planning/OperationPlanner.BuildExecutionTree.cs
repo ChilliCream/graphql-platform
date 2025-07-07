@@ -161,7 +161,7 @@ public sealed partial class OperationPlanner
                         temp.Add(requirement);
                     }
 
-                    requirements =  temp.ToArray();
+                    requirements = temp.ToArray();
                 }
 
                 var operationNode = new OperationExecutionNode(

@@ -35,6 +35,7 @@ public sealed class ObjectListResult : ListResult
             throw new ArgumentException("Value is not a ObjectResult.", nameof(value));
         }
 
+        objectResult.SetParent(this, Items.Count);
         Items.Add(objectResult);
     }
 

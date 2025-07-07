@@ -35,6 +35,7 @@ public sealed class NestedListResult : ListResult
             throw new ArgumentException("Value is not a ListResult.", nameof(value));
         }
 
+        listResult.SetParent(this, Items.Count);
         Items.Add(listResult);
     }
 

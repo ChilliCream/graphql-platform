@@ -36,6 +36,7 @@ public sealed class ObjectFieldResult : FieldResult
         }
 
         Value = objectResult;
+        objectResult.SetParent(Parent!, ParentIndex);
     }
 
     /// <summary>

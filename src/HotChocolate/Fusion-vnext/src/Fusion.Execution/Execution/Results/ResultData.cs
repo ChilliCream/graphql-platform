@@ -8,6 +8,8 @@ namespace HotChocolate.Fusion.Execution;
 /// </summary>
 public abstract class ResultData : IResultDataJsonFormatter
 {
+    private Path? _path;
+
     /// <summary>
     /// Gets the parent result data object.
     /// </summary>
@@ -17,6 +19,48 @@ public abstract class ResultData : IResultDataJsonFormatter
     /// Gets the index under which this data is stored in the parent result.
     /// </summary>
     protected internal int ParentIndex { get; private set; }
+
+    /// <summary>
+    /// Gets the path of the result.
+    /// </summary>
+    public Path Path
+    {
+        get
+        {
+            if (_path is null)
+            {
+                var stack = new Stack<ResultData>();
+                var current = this;
+
+                while (current is not null)
+                {
+                    stack.Push(current);
+                    current = current.Parent;
+                }
+
+                var path = Path.Root;
+
+                while (stack.TryPop(out var item))
+                {
+                    if (item.Parent is null)
+                    {
+                        continue;
+                    }
+
+                    path = item.Parent switch
+                    {
+                        ObjectResult obj => path.Append(obj.Fields[item.ParentIndex].Selection.ResponseName),
+                        ListResult => path.Append(item.ParentIndex),
+                        _ => path
+                    };
+                }
+
+                _path = path;
+            }
+
+            return _path;
+        }
+    }
 
     /// <summary>
     /// Connects this result to the parent result.
@@ -87,6 +131,7 @@ public abstract class ResultData : IResultDataJsonFormatter
     {
         Parent = null;
         ParentIndex = -1;
+        _path = null;
         return true;
     }
 }

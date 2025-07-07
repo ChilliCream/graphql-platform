@@ -3,7 +3,7 @@
     "bookById": {
       "title": "C# in Depth",
       "author": {
-        "name": null
+        "name": "Jon Skeet"
       }
     }
   }

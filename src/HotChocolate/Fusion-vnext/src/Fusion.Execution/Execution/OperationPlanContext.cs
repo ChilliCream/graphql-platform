@@ -79,6 +79,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         return OperationResultBuilder.New()
             .AddErrors(_resultStore.Errors)
             .SetData(_resultStore.Data)
+            .RegisterForCleanup(_resultStore.MemoryOwners)
             .Build();
     }
 
@@ -122,5 +123,24 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             _disposed = true;
             await ClientScope.DisposeAsync().ConfigureAwait(false);
         }
+    }
+}
+
+file static class OperationPlanContextExtensions
+{
+    public static OperationResultBuilder RegisterForCleanup(
+        this OperationResultBuilder builder,
+        IEnumerable<IDisposable> disposables)
+    {
+        foreach (var disposable in disposables)
+        {
+            builder.RegisterForCleanup(() =>
+            {
+                disposable.Dispose();
+                return ValueTask.CompletedTask;
+            });
+        }
+
+        return builder;
     }
 }
