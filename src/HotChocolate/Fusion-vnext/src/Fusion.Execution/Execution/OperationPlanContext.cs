@@ -49,8 +49,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     public ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
-        ImmutableArray<string> requiredVariables,
-        ImmutableArray<OperationRequirement> requiredData)
+        ReadOnlySpan<string> requiredVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
     {
         ArgumentNullException.ThrowIfNull(selectionSet);
 
@@ -83,7 +83,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     }
 
     private List<ObjectFieldNode> GetPathThroughVariables(
-        ImmutableArray<string> requiredVariables)
+        ReadOnlySpan<string> requiredVariables)
     {
         if (Variables.IsEmpty || requiredVariables.Length == 0)
         {

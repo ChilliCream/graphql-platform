@@ -8,22 +8,30 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public sealed record OperationExecutionNode : ExecutionNode
+public sealed class OperationExecutionNode : ExecutionNode
 {
+    private readonly OperationRequirement[] _requirements;
+    private readonly string[] _variables;
+    private ExecutionNode[] _dependencies = [];
+    private ExecutionNode[] _dependents = [];
+    private int _dependencyCount;
+    private int _dependentCount;
+    private bool _isSealed;
+
     public OperationExecutionNode(
         int id,
         OperationDefinitionNode operation,
         string schemaName,
         SelectionPath target,
         SelectionPath source,
-        ImmutableArray<OperationRequirement> requirements)
-        : base(id)
+        OperationRequirement[] requirements)
     {
+        Id = id;
         Operation = operation;
         SchemaName = schemaName;
         Target = target;
         Source = source;
-        Requirements = requirements;
+        _requirements = requirements;
 
         // We compute the hash of the operation definition when it is set.
         // This hash can be used within the GraphQL client to identify the operation
@@ -32,7 +40,7 @@ public sealed record OperationExecutionNode : ExecutionNode
         var length = MD5.HashData(Encoding.UTF8.GetBytes(operation.ToString()), hash);
         OperationId = Convert.ToHexString(hash[..length]);
 
-        var variables = ImmutableArray.CreateBuilder<string>();
+        var variables = new List<string>();
 
         foreach (var variableDef in operation.VariableDefinitions)
         {
@@ -44,8 +52,10 @@ public sealed record OperationExecutionNode : ExecutionNode
             variables.Add(variableDef.Variable.Name.Value);
         }
 
-        Variables = variables.ToImmutable();
+        _variables = variables.ToArray();
     }
+
+    public override int Id { get; }
 
     /// <summary>
     /// Gets the unique identifier of the operation.
@@ -77,17 +87,22 @@ public sealed record OperationExecutionNode : ExecutionNode
     /// Gets the execution nodes that depend on this operation to be completed
     /// before they can be executed.
     /// </summary>
-    public ImmutableArray<ExecutionNode> Dependents { get; init; } = [];
+    public ReadOnlySpan<ExecutionNode> Dependents => _dependents;
+
+    /// <summary>
+    /// Gets the execution nodes that this operation depends on.
+    /// </summary>
+    public override ReadOnlySpan<ExecutionNode> Dependencies => _dependencies;
 
     /// <summary>
     /// Gets the data requirements that are needed to execute this operation.
     /// </summary>
-    public ImmutableArray<OperationRequirement> Requirements { get; init; } = [];
+    public ReadOnlySpan<OperationRequirement> Requirements => _requirements;
 
     /// <summary>
     /// Gets the variables that are needed to execute this operation.
     /// </summary>
-    public ImmutableArray<string> Variables { get; }
+    public ReadOnlySpan<string> Variables => _variables;
 
     public override async Task<ExecutionStatus> ExecuteAsync(
         OperationPlanContext context,
@@ -144,5 +159,79 @@ public sealed record OperationExecutionNode : ExecutionNode
         }
 
         return new ExecutionStatus(Id, IsSkipped: false);
+    }
+
+    internal void AddDependency(ExecutionNode node)
+    {
+        if (_isSealed)
+        {
+            throw new InvalidOperationException("The operation execution node is already sealed.");
+        }
+
+        ArgumentNullException.ThrowIfNull(node);
+
+        if (node == this)
+        {
+            throw new InvalidOperationException("An operation cannot depend on itself.");
+        }
+
+        if (_dependencies.Length == 0)
+        {
+            _dependencies = new ExecutionNode[4];
+        }
+
+        if (_dependencyCount == _dependencies.Length)
+        {
+            Array.Resize(ref _dependencies, _dependencyCount * 2);
+        }
+
+        _dependencies[_dependencyCount++] = node;
+    }
+
+    internal void AddDependent(ExecutionNode node)
+    {
+        if (_isSealed)
+        {
+            throw new InvalidOperationException("The operation execution node is already sealed.");
+        }
+
+        ArgumentNullException.ThrowIfNull(node);
+
+        if (node == this)
+        {
+            throw new InvalidOperationException("An operation cannot depend on itself.");
+        }
+
+        if (_dependents.Length == 0)
+        {
+            _dependents = new ExecutionNode[4];
+        }
+
+        if (_dependentCount == _dependents.Length)
+        {
+            Array.Resize(ref _dependents, _dependentCount * 2);
+        }
+
+        _dependents[_dependentCount++] = node;
+    }
+
+    protected internal override void Seal()
+    {
+        if (_isSealed)
+        {
+            throw new InvalidOperationException("The operation execution node is already sealed.");
+        }
+
+        if (_dependencies.Length > _dependencyCount)
+        {
+            Array.Resize(ref _dependencies, _dependencyCount);
+        }
+
+        if (_dependents.Length > _dependentCount)
+        {
+            Array.Resize(ref _dependents, _dependentCount);
+        }
+
+        _isSealed = true;
     }
 }

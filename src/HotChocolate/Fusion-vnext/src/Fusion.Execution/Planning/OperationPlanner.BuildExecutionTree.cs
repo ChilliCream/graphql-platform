@@ -36,6 +36,11 @@ public sealed partial class OperationPlanner
 
         var operation = _operationCompiler.Compile(id, internalOperation);
 
+        foreach (var node in allNodes)
+        {
+            node.Seal();
+        }
+
         return new OperationExecutionPlan
         {
             Operation = operation,
@@ -209,8 +214,8 @@ public sealed partial class OperationPlanner
                     continue;
                 }
 
-                completedNodes[dependencyId] = dependencyNode with { Dependents = dependencyNode.Dependents.Add(node) };
-                completedNodes[nodeId] = node with { Dependencies = node.Dependencies.Add(dependencyNode) };
+                dependencyNode.AddDependent(node);
+                node.AddDependency(dependencyNode);
             }
         }
     }

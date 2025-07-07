@@ -133,7 +133,7 @@ internal sealed class FetchResultStore : IDisposable
     public ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
         IReadOnlyList<ObjectFieldNode> requestVariables,
-        ImmutableArray<OperationRequirement> requiredData)
+        ReadOnlySpan<OperationRequirement> requiredData)
     {
         _lock.EnterReadLock();
 
