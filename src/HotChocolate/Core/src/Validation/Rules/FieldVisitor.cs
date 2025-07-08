@@ -394,7 +394,19 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         {
             var (currentA, currentB) = stack.Pop();
 
-            if (currentA is ObjectValueNode objectA && currentB is ObjectValueNode objectB)
+            if (currentA is ListValueNode listA && currentB is ListValueNode listB)
+            {
+                if (listA.Items.Count != listB.Items.Count)
+                {
+                    return false;
+                }
+
+                for (var i = 0; i < listA.Items.Count; i++)
+                {
+                    stack.Push((listA.Items[i], listB.Items[i]));
+                }
+            }
+            else if (currentA is ObjectValueNode objectA && currentB is ObjectValueNode objectB)
             {
                 if (objectA.Fields.Count != objectB.Fields.Count)
                 {
