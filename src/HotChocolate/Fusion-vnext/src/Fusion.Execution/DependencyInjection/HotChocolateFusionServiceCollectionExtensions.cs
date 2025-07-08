@@ -25,7 +25,7 @@ public static class HotChocolateFusionServiceCollectionExtensions
 
         AddRequestExecutorManager(services);
         AddSourceSchemaScope(services);
-        AddResultObjectPools(services, options);
+        AddResultObjectPools(services, options.Clone());
 
         return CreateBuilder(services, name);
     }
