@@ -384,47 +384,53 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
     }
 
     private static bool IsValueIdentical(
-        IValueNode? valueA,
-        IValueNode? valueB)
+        IValueNode valueA,
+        IValueNode valueB)
     {
-        if (valueA is null && valueB is null)
-        {
-            return true;
-        }
+        var stack = new Stack<(IValueNode ValueA, IValueNode ValueB)>();
+        stack.Push((valueA, valueB));
 
-        if (valueA is null || valueB is null)
+        while (stack.Count > 0)
         {
-            return false;
-        }
+            var (currentA, currentB) = stack.Pop();
 
-        if (valueA is ObjectValueNode objectA && valueB is ObjectValueNode objectB)
-        {
-            var validPairs = 0;
-
-            for (var i = 0; i < objectA.Fields.Count; i++)
+            if (currentA is ObjectValueNode objectA && currentB is ObjectValueNode objectB)
             {
-                var fieldA = objectA.Fields[i];
-
-                for (var j = 0; j < objectB.Fields.Count; j++)
+                if (objectA.Fields.Count != objectB.Fields.Count)
                 {
-                    var fieldB = objectB.Fields[j];
+                    return false;
+                }
 
-                    if (BySyntax.Equals(fieldA.Name, fieldB.Name))
+                for (var i = 0; i < objectA.Fields.Count; i++)
+                {
+                    var fieldA = objectA.Fields[i];
+                    var matchFound = false;
+
+                    for (var j = 0; j < objectB.Fields.Count; j++)
                     {
-                        if (IsValueIdentical(fieldA.Value, fieldB.Value))
-                        {
-                            validPairs++;
-                        }
+                        var fieldB = objectB.Fields[j];
 
-                        break;
+                        if (BySyntax.Equals(fieldA.Name, fieldB.Name))
+                        {
+                            stack.Push((fieldA.Value, fieldB.Value));
+                            matchFound = true;
+                            break;
+                        }
+                    }
+
+                    if (!matchFound)
+                    {
+                        return false;
                     }
                 }
             }
-
-            return objectA.Fields.Count == validPairs;
+            else if (!BySyntax.Equals(currentA, currentB))
+            {
+                return false;
+            }
         }
 
-        return BySyntax.Equals(valueA, valueB);
+        return true;
     }
 
     private static bool SameResponseShape(IType typeA, IType typeB)
