@@ -307,9 +307,23 @@ internal static class ExpressionHelpers
             return Nullable.GetUnderlyingType(expression.ReturnType) is not null;
         }
 
-        if (expression.Body is MemberExpression { Member: PropertyInfo property })
+        var propertyInfo = expression.Body switch
         {
-            var nullability = s_nullabilityInfoContext.Create(property).ReadState;
+            MemberExpression
+            {
+                Member: PropertyInfo p
+            } => p,
+            BinaryExpression
+            {
+                NodeType: ExpressionType.Coalesce,
+                Right: MemberExpression { Member: PropertyInfo p }
+            } => p,
+            _ => null
+        };
+
+        if (propertyInfo is not null)
+        {
+            var nullability = s_nullabilityInfoContext.Create(propertyInfo).ReadState;
 
             switch (nullability)
             {
