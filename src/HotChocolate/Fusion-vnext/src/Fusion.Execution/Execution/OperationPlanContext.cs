@@ -17,7 +17,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     public OperationPlanContext(
         OperationExecutionPlan operationPlan,
         IVariableValueCollection variables,
-        RequestContext requestContext)
+        RequestContext requestContext,
+        ResultPoolSession resultPoolSession)
     {
         OperationPlan = operationPlan;
         RequestContext = requestContext;
@@ -26,7 +27,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         // TODO : fully implement and inject ResultPoolSession
         _resultStore = new FetchResultStore(
             RequestContext.Schema,
-            new ResultPoolSession(),
+            resultPoolSession,
             operationPlan.Operation,
             operationPlan.Operation.CreateIncludeFlags(variables));
 

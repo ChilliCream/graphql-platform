@@ -7,6 +7,9 @@ namespace HotChocolate.Fusion.Execution;
 /// </summary>
 public abstract class ListResult : ResultData
 {
+    private int _defaultCapacity = 64;
+    private int _maxAllowedCapacity = 512;
+
     /// <summary>
     /// Gets the type of the list result.
     /// </summary>
@@ -16,6 +19,11 @@ public abstract class ListResult : ResultData
     /// Gets the element type of the list result.
     /// </summary>
     public IType ElementType { get; private set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the capacity of the list result.
+    /// </summary>
+    public abstract int Capacity { get; protected set; }
 
     /// <summary>
     /// Initializes the <see cref="ListResult"/> with the specified type.
@@ -31,6 +39,21 @@ public abstract class ListResult : ResultData
         ElementType = type.ElementType();
     }
 
+    internal override void SetCapacity(int capacity, int maxAllowedCapacity)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 8);
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxAllowedCapacity, 16);
+
+        if (capacity > maxAllowedCapacity)
+        {
+            throw new ArgumentException($"Capacity cannot be greater than {maxAllowedCapacity}");
+        }
+
+        _defaultCapacity = capacity;
+        _maxAllowedCapacity = maxAllowedCapacity;
+        Capacity = capacity;
+    }
+
     /// <summary>
     /// Resets the <see cref="ListResult"/> to its initial state.
     /// </summary>
@@ -38,6 +61,11 @@ public abstract class ListResult : ResultData
     {
         Type = null!;
         ElementType = null!;
+
+        if (Capacity > _maxAllowedCapacity)
+        {
+            Capacity = _defaultCapacity;
+        }
 
         return base.Reset();
     }
