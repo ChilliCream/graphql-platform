@@ -100,6 +100,49 @@ public class FieldSelectionMergingRuleTests()
     }
 
     [Fact]
+    public void MergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering()
+    {
+        ExpectValid(
+            """
+            {
+                findDog(complex: { name: "A", owner: "B", child: { owner: "D", name: "C" } }) {
+                  name
+                }
+                ... mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering
+            }
+
+            fragment mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering on Query {
+                findDog(complex: { owner: "B", name: "A", child: { name: "C", owner: "D" } }) {
+                  barks
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void ConflictingInputFieldValues()
+    {
+        ExpectErrors(
+            """
+            {
+                findDog(complex: { name: "A", owner: "OTHER", child: { owner: "D", name: "C" } }) {
+                  name
+                }
+                ... mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering
+            }
+
+            fragment mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering on Query {
+                findDog(complex: { owner: "B", name: "A", child: { name: "C", owner: "OTHER" } }) {
+                  barks
+                }
+            }
+            """,
+            t => Assert.Equal(
+                "Encountered fields for the same object that cannot be merged.",
+                t.Message));
+    }
+
+    [Fact]
     public void ConflictingArgsOnValues()
     {
         ExpectErrors(
