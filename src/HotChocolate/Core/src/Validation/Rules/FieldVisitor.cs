@@ -370,7 +370,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
                 if (BySyntax.Equals(argumentA.Name, argumentB.Name))
                 {
-                    if (BySyntax.Equals(argumentA.Value, argumentB.Value))
+                    if (IsValueIdentical(argumentA.Value, argumentB.Value))
                     {
                         validPairs++;
                     }
@@ -381,6 +381,50 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         }
 
         return fieldA.Arguments.Count == validPairs;
+    }
+
+    private static bool IsValueIdentical(
+        IValueNode? valueA,
+        IValueNode? valueB)
+    {
+        if (valueA is null && valueB is null)
+        {
+            return true;
+        }
+
+        if (valueA is null || valueB is null)
+        {
+            return false;
+        }
+
+        if (valueA is ObjectValueNode objectA && valueB is ObjectValueNode objectB)
+        {
+            var validPairs = 0;
+
+            for (var i = 0; i < objectA.Fields.Count; i++)
+            {
+                var fieldA = objectA.Fields[i];
+
+                for (var j = 0; j < objectB.Fields.Count; j++)
+                {
+                    var fieldB = objectB.Fields[j];
+
+                    if (BySyntax.Equals(fieldA.Name, fieldB.Name))
+                    {
+                        if (IsValueIdentical(fieldA.Value, fieldB.Value))
+                        {
+                            validPairs++;
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            return objectA.Fields.Count == validPairs;
+        }
+
+        return BySyntax.Equals(valueA, valueB);
     }
 
     private static bool SameResponseShape(IType typeA, IType typeB)
