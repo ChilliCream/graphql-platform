@@ -9,7 +9,7 @@ public class SchemaFormatterTests
     public void Format_Single_InputObject_Type()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             input Foo {
                 field: String
@@ -36,7 +36,7 @@ public class SchemaFormatterTests
     public void Format_Single_InputObject_Type_Spec_Scalars_Do_Not_Need_To_Be_Declared()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             input Foo {
                 field: String
@@ -61,7 +61,7 @@ public class SchemaFormatterTests
     public void Format_Two_InputObject_Extensions_Into_One()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             extend input Foo {
                 field1: String
@@ -93,7 +93,7 @@ public class SchemaFormatterTests
     public void Format_Single_Object_Type()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             type Foo {
                 field: String
@@ -120,7 +120,7 @@ public class SchemaFormatterTests
     public void Format_Two_Object_Extensions_Into_One()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             extend type Foo {
                 field1: String
@@ -152,7 +152,7 @@ public class SchemaFormatterTests
     public void Format_Single_Interface_Type()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             interface Foo {
                 field: String
@@ -179,7 +179,7 @@ public class SchemaFormatterTests
     public void Format_Two_interface_Extensions_Into_One()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             extend interface Foo {
                 field1: String
@@ -211,7 +211,7 @@ public class SchemaFormatterTests
     public void Format_Directive_Type()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             directive @foo on FIELD_DEFINITION
             """;
@@ -232,7 +232,7 @@ public class SchemaFormatterTests
     public void Format_Directive_Type_With_Arguments()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             directive @foo(a: String! b: [Foo] c: [Int!]) on FIELD_DEFINITION
 
@@ -261,7 +261,7 @@ public class SchemaFormatterTests
     public void Format_Natural_Order()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             directive @foo(b: [Foo] c: [Int!] a: String!) on FIELD_DEFINITION
 
@@ -298,7 +298,7 @@ public class SchemaFormatterTests
     public void Format_Schema_With_Description_Schema_Keyword_Not_Omitted()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             "Example schema"
             schema {

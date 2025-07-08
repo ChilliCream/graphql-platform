@@ -1032,7 +1032,7 @@ public class SchemaBuilderTests
         // arrange
         // act
         Action action = () => SchemaBuilder.New()
-            .TryAddTypeInterceptor((Type)null);
+            .TryAddTypeInterceptor(null);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -1104,7 +1104,7 @@ public class SchemaBuilderTests
     {
         // arrange
         // act
-        Action action = () => SchemaBuilder.New() .AddConvention(null!, new TestConvention());
+        Action action = () => SchemaBuilder.New().AddConvention(null!, new TestConvention());
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -1115,7 +1115,7 @@ public class SchemaBuilderTests
     {
         // arrange
         // act
-        Action action = () => SchemaBuilder.New() .AddConvention(typeof(IConvention), default(TestConvention)!);
+        Action action = () => SchemaBuilder.New().AddConvention(typeof(IConvention), default(TestConvention)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -1126,7 +1126,7 @@ public class SchemaBuilderTests
     {
         // arrange
         // act
-        Action action = () => SchemaBuilder.New() .AddConvention(null!, typeof(IConvention));
+        Action action = () => SchemaBuilder.New().AddConvention(null!, typeof(IConvention));
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

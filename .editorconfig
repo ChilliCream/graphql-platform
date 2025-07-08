@@ -188,6 +188,8 @@ dotnet_diagnostic.CA1805.severity = warning
 dotnet_diagnostic.RCS1129.severity = none
 # Simplify name.
 dotnet_diagnostic.IDE0001.severity = warning
+# Simplify member access.
+dotnet_diagnostic.IDE0002.severity = warning
 # Remove unnecessary cast.
 dotnet_diagnostic.IDE0004.severity = warning
 # Remove unnecessary using directives.
@@ -196,6 +198,8 @@ dotnet_diagnostic.IDE0005.severity = warning
 dotnet_diagnostic.IDE0028.severity = warning
 # Order modifiers.
 dotnet_diagnostic.IDE0036.severity = warning
+# Use inferred member names.
+dotnet_diagnostic.IDE0037.severity = warning
 # Add readonly modifier.
 dotnet_diagnostic.IDE0044.severity = warning
 dotnet_diagnostic.RCS1169.severity = none
@@ -210,6 +214,8 @@ dotnet_diagnostic.IDE0054.severity = warning
 dotnet_diagnostic.IDE0055.severity = warning
 # Use range operator.
 dotnet_diagnostic.IDE0057.severity = warning
+# Remove unnecessary value assignment.
+dotnet_diagnostic.IDE0059.severity = warning
 # Use compound assignment.
 dotnet_diagnostic.IDE0074.severity = warning
 # Remove unnecessary suppression.
@@ -240,10 +246,14 @@ dotnet_diagnostic.RCS0063.severity = warning
 dotnet_diagnostic.RCS1036.severity = none # see https://github.com/dotnet/roslynator/issues/1632
 # Remove redundant 'ToString' call.
 dotnet_diagnostic.RCS1097.severity = warning
+# Mark local variable as const.
+dotnet_diagnostic.RCS1118.severity = warning
 # Abstract type should not have public constructors.
 dotnet_diagnostic.RCS1160.severity = warning
 # Use constant instead of field.
 dotnet_diagnostic.RCS1187.severity = warning
+# Order named arguments according to the order of parameters.
+dotnet_diagnostic.RCS1205.severity = warning
 # Convert interpolated string to concatenation.
 dotnet_diagnostic.RCS1217.severity = warning
 # Unnecessary null-forgiving operator.

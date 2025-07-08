@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using HotChocolate.Features;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
@@ -60,6 +61,12 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
     /// Gets the version of the request executor.
     /// </summary>
     public ulong Version { get; }
+
+    /// <summary>
+    /// Get the feature collection used to store additional
+    /// state for custom executor features.
+    /// </summary>
+    public IFeatureCollection Features { get; } = new FeatureCollection();
 
     /// <summary>
     /// Executes a single GraphQL <see cref="IOperationRequest"/> and returns the

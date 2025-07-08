@@ -14,8 +14,9 @@ namespace HotChocolate.Fusion.Execution;
 /// </summary>
 public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, object?>
 {
+    private int _maxAllowedCapacity = 512;
     private readonly Dictionary<string, FieldResult> _fieldMap = [];
-    private FieldResult[] _buffer = new FieldResult[128];
+    private FieldResult[] _buffer = [];
 
     /// <summary>
     /// Gets the selection set represents the structure of this object result.
@@ -111,7 +112,9 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
     /// <param name="selectionSet">
     /// The selection set.
     /// </param>
-    /// <param name="includeFlags"></param>
+    /// <param name="includeFlags">
+    /// The include flags.
+    /// </param>
     public void Initialize(ResultPoolSession resultPoolSession, SelectionSet selectionSet, ulong includeFlags)
     {
         ArgumentNullException.ThrowIfNull(resultPoolSession);
@@ -121,9 +124,11 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
 
         if (_buffer.Length < selectionSet.Selections.Length)
         {
-            Array.Resize(ref _buffer, selectionSet.Selections.Length);
+            _fieldMap.EnsureCapacity(selectionSet.Selections.Length);
+            _buffer = new FieldResult[selectionSet.Selections.Length];
         }
 
+        var insertIndex = 0;
         for (var i = 0; i < selectionSet.Selections.Length; i++)
         {
             var selection = selectionSet.Selections[i];
@@ -133,12 +138,17 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
                 continue;
             }
 
-            var field = CreateFieldResult(resultPoolSession, selection);
-            _buffer[i] = field;
+            var ii = insertIndex++;
+            var field = CreateFieldResult(this, ii, resultPoolSession, selection);
+            _buffer[ii] = field;
             _fieldMap.Add(selection.ResponseName, field);
         }
 
-        static FieldResult CreateFieldResult(ResultPoolSession resultPoolSession, Selection selection)
+        static FieldResult CreateFieldResult(
+            ResultData parent,
+            int parentIndex,
+            ResultPoolSession resultPoolSession,
+            Selection selection)
         {
             FieldResult field;
 
@@ -155,10 +165,21 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
                 field = resultPoolSession.RentObjectFieldResult();
             }
 
-            field.Initialize(selection);
+            field.Initialize(parent, parentIndex, selection);
 
             return field;
         }
+    }
+
+    internal override void SetCapacity(int capacity, int maxAllowedCapacity)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 8);
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxAllowedCapacity, 16);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(capacity, maxAllowedCapacity);
+
+        _maxAllowedCapacity = maxAllowedCapacity;
+        _fieldMap.EnsureCapacity(capacity);
+        _buffer = new FieldResult[capacity];
     }
 
     /// <summary>
@@ -171,16 +192,21 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
     {
         SelectionSet = null!;
 
-        for (var i = 0; i < _buffer.Length; i++)
+        if (_fieldMap.Count > _buffer.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < _fieldMap.Count; i++)
         {
             _buffer[i] = null!;
         }
 
 #if NET9_0_OR_GREATER
         _fieldMap.Clear();
-        return base.Reset() && _fieldMap.Capacity <= 512;
+        return base.Reset() && _fieldMap.Capacity < _maxAllowedCapacity;
 #else
-        var retainResult = _fieldMap.Count <= 512;
+        var retainResult = _fieldMap.Count < _maxAllowedCapacity;
         _fieldMap.Clear();
         return base.Reset() && retainResult;
 #endif

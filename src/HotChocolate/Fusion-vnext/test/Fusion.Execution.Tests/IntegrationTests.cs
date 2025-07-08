@@ -57,7 +57,7 @@ public class IntegrationTests : FusionTestBase
 
         using var buffer = new PooledArrayWriter();
         JsonResultFormatter.Indented.Format(result.ExpectOperationResult(), buffer);
-        Encoding.UTF8.GetString(buffer.GetWrittenSpan()).MatchSnapshot();
+        Encoding.UTF8.GetString(buffer.WrittenSpan).MatchSnapshot();
     }
 }
 

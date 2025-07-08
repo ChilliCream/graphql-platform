@@ -114,13 +114,12 @@ public static partial class TypeDescriptorMapper
         TypeKind? kind = null,
         OperationModel? operationModel = null)
     {
-        if (typeDescriptors.TryGetValue(
-            outputType.Name,
-            out var descriptorModel))
+        if (typeDescriptors.ContainsKey(outputType.Name))
         {
             return;
         }
 
+        TypeDescriptorModel descriptorModel;
         if (operationModel is not null && outputType.IsInterface)
         {
             descriptorModel = CreateInterfaceTypeModel(

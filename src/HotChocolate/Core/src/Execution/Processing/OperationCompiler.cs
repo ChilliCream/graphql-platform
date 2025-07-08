@@ -446,11 +446,11 @@ public sealed partial class OperationCompiler
                                 selection.SelectionSet.Selections))
                         : selection,
                     responseName: responseName,
-                    isParallelExecutable: field.IsParallelExecutable,
                     arguments: CoerceArgumentValues(field, selection, responseName),
                     includeConditions: includeCondition == 0
                         ? null
-                        : [includeCondition]);
+                        : [includeCondition],
+                    isParallelExecutable: field.IsParallelExecutable);
 
                 context.Fields.Add(responseName, preparedSelection);
 

@@ -11,7 +11,18 @@ public sealed class ListFieldResult : FieldResult
     /// <summary>
     /// Gets or sets the value of the list field.
     /// </summary>
-    public ListResult? Value { get; set; }
+    public ListResult? Value
+    {
+        get;
+        set
+        {
+            field = value;
+            value?.SetParent(Parent!, ParentIndex);
+        }
+    }
+
+    /// <inheritdoc />
+    public override bool HasNullValue => Value is null;
 
     /// <summary>
     /// Sets the value of the list field to null.
@@ -38,6 +49,7 @@ public sealed class ListFieldResult : FieldResult
         }
 
         Value = listResult;
+        listResult.SetParent(Parent!, ParentIndex);
     }
 
     /// <summary>

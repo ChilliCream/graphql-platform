@@ -227,7 +227,7 @@ public class GeoJsonPositionScalarTest
     public void ParseValue_With_Noncoordinate_Throws()
     {
         var type = new GeoJsonPositionType();
-        var item = "this is not a coordinate";
+        const string item = "this is not a coordinate";
 
         Assert.Throws<SerializationException>(() => type.ParseValue(item));
     }
@@ -282,7 +282,7 @@ public class GeoJsonPositionScalarTest
     public void TryDeserialize_With_Non_List()
     {
         var type = new GeoJsonPositionType();
-        var input = "not null and not a list";
+        const string input = "not null and not a list";
 
         var result = type.TryDeserialize(input, out var value);
 
@@ -417,7 +417,7 @@ public class GeoJsonPositionScalarTest
     public void TrySerialize_With_Invalid_Object()
     {
         var type = new GeoJsonPositionType();
-        var input = "not a coordinate";
+        const string input = "not a coordinate";
 
         var result = type.TrySerialize(input, out var value);
 

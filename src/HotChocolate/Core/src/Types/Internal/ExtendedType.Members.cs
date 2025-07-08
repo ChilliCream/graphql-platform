@@ -95,7 +95,7 @@ internal sealed partial class ExtendedType
                     }
                 }
 
-                elementType ??= ExtendedType.FromType(itemType, cache);
+                elementType ??= FromType(itemType, cache);
             }
 
             if (extendedType.IsArray && elementType is null)
@@ -173,8 +173,8 @@ internal sealed partial class ExtendedType
                     type,
                     ExtendedTypeKind.Extended,
                     typeArguments: new[] { elementType },
-                    elementType: elementType,
                     source: type,
+                    elementType: elementType,
                     isNullable: state ?? false);
             }
 

@@ -60,11 +60,11 @@ public static class ExecutionResultExtensions
             if (withIndentations)
             {
                 s_formatterIndented.Format(operationResult, writer);
-                return Encoding.UTF8.GetString(writer.GetWrittenSpan());
+                return Encoding.UTF8.GetString(writer.WrittenSpan);
             }
 
             s_formatter.Format(operationResult, writer);
-            return Encoding.UTF8.GetString(writer.GetWrittenSpan());
+            return Encoding.UTF8.GetString(writer.WrittenSpan);
         }
 
         throw new NotSupportedException(ExecutionResultExtensions_OnlyQueryResults);

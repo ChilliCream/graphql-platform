@@ -62,7 +62,7 @@ public sealed class SelectedValueToSelectionSetRewriterTests
             },
             {
                 "Product",
-                "dimensions.{ size weight }",
+                "dimensions.{ size, weight }",
                 """
                 {
                     dimensions {
@@ -74,7 +74,7 @@ public sealed class SelectedValueToSelectionSetRewriterTests
             },
             {
                 "Product",
-                "{ size: dimensions.size weight: dimensions.weight }",
+                "{ size: dimensions.size, weight: dimensions.weight }",
                 """
                 {
                     dimensions {
@@ -97,7 +97,7 @@ public sealed class SelectedValueToSelectionSetRewriterTests
             },
             {
                 "Product",
-                "parts[{ id name }]",
+                "parts[{ id, name }]",
                 """
                 {
                     parts {
@@ -109,7 +109,7 @@ public sealed class SelectedValueToSelectionSetRewriterTests
             },
             {
                 "Product",
-                "parts[[{ id name }]]",
+                "parts[[{ id, name }]]",
                 """
                 {
                     parts {
@@ -121,7 +121,7 @@ public sealed class SelectedValueToSelectionSetRewriterTests
             },
             {
                 "Location",
-                "{ coordinates: coordinates[{ lat: x lon: y }] }",
+                "{ coordinates: coordinates[{ lat: x, lon: y }] }",
                 """
                 {
                     coordinates {

@@ -53,7 +53,18 @@ public class QueryExecutor
 
         foreach (var node in waitingToRun)
         {
-            if (completed.IsSupersetOf(node.Dependencies))
+            var isSuperset = true;
+
+            foreach (var dependency in node.Dependencies)
+            {
+                if (!completed.Contains(dependency))
+                {
+                    isSuperset = false;
+                    break;
+                }
+            }
+
+            if (isSuperset)
             {
                 selected.Add(node);
             }
