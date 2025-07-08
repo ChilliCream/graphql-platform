@@ -370,7 +370,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
                 if (BySyntax.Equals(argumentA.Name, argumentB.Name))
                 {
-                    if (IsValueIdentical(argumentA.Value, argumentB.Value))
+                    if (AreValuesIdentical(argumentA.Value, argumentB.Value))
                     {
                         validPairs++;
                     }
@@ -383,9 +383,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         return fieldA.Arguments.Count == validPairs;
     }
 
-    private static bool IsValueIdentical(
-        IValueNode valueA,
-        IValueNode valueB)
+    private static bool AreValuesIdentical(IValueNode valueA, IValueNode valueB)
     {
         var stack = new Stack<(IValueNode ValueA, IValueNode ValueB)>();
         stack.Push((valueA, valueB));
@@ -413,27 +411,22 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                     return false;
                 }
 
-                for (var i = 0; i < objectA.Fields.Count; i++)
+                if (objectA.Fields.Count == 0)
                 {
-                    var fieldA = objectA.Fields[i];
-                    var matchFound = false;
+                    continue;
+                }
 
-                    for (var j = 0; j < objectB.Fields.Count; j++)
-                    {
-                        var fieldB = objectB.Fields[j];
+                var fieldDictB = objectB.Fields
+                    .ToDictionary(f => f.Name, f => f.Value, BySyntax);
 
-                        if (BySyntax.Equals(fieldA.Name, fieldB.Name))
-                        {
-                            stack.Push((fieldA.Value, fieldB.Value));
-                            matchFound = true;
-                            break;
-                        }
-                    }
-
-                    if (!matchFound)
+                foreach (var fieldA in objectA.Fields)
+                {
+                    if (!fieldDictB.TryGetValue(fieldA.Name, out var fieldBValue))
                     {
                         return false;
                     }
+
+                    stack.Push((fieldA.Value, fieldBValue));
                 }
             }
             else if (!BySyntax.Equals(currentA, currentB))

@@ -120,6 +120,26 @@ public class FieldSelectionMergingRuleTests()
     }
 
     [Fact]
+    public void ObjectValueWithNoFields()
+    {
+        ExpectValid(
+            """
+            {
+                findDog(complex: { }) {
+                  name
+                }
+                ... mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering
+            }
+
+            fragment mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering on Query {
+                findDog(complex: { }) {
+                  barks
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public void ConflictingInputFieldValues()
     {
         ExpectErrors(
