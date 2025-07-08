@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class ResultDataBatch<T> : IResultDataBatch where T : ResultData, new()
+internal sealed class ResultDataBatch<T> where T : ResultData, new()
 {
     private readonly int _defaultCapacity;
     private readonly int _maxAllowedCapacity;
