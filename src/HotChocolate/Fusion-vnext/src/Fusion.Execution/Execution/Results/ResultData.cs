@@ -125,6 +125,19 @@ public abstract class ResultData : IResultDataJsonFormatter
         JsonNullIgnoreCondition nullIgnoreCondition = JsonNullIgnoreCondition.None);
 
     /// <summary>
+    /// Sets the capacity of the result data.
+    /// </summary>
+    /// <param name="capacity">
+    /// The capacity of the result data.
+    /// </param>
+    /// <param name="maxAllowedCapacity">
+    /// The maximum allowed capacity of the result data.
+    /// </param>
+    internal virtual void SetCapacity(int capacity, int maxAllowedCapacity)
+    {
+    }
+
+    /// <summary>
     /// Resets the parent and parent index.
     /// </summary>
     public virtual bool Reset()
