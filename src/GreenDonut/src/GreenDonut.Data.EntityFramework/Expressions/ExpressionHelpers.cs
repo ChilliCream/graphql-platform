@@ -15,6 +15,10 @@ internal static class ExpressionHelpers
         .GetMethod(nameof(CreateAndConvertParameter), BindingFlags.NonPublic | BindingFlags.Static)!;
 
     private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> s_cachedConverters = new();
+    private static readonly NullabilityInfoContext s_nullabilityInfoContext = new();
+    private static readonly Expression s_null = Expression.Constant(null);
+    private static readonly Expression s_false = Expression.Constant(false);
+    private static readonly Expression s_zero = Expression.Constant(0);
 
     /// <summary>
     /// Builds a where expression that can be used to slice a dataset.
@@ -27,6 +31,9 @@ internal static class ExpressionHelpers
     /// </param>
     /// <param name="forward">
     /// Defines how the dataset is sorted.
+    /// </param>
+    /// <param name="nullOrdering">
+    /// Defines the null ordering to be used.
     /// </param>
     /// <typeparam name="T">
     /// The entity type.
@@ -43,7 +50,8 @@ internal static class ExpressionHelpers
     public static (Expression<Func<T, bool>> WhereExpression, int Offset) BuildWhereExpression<T>(
         ReadOnlySpan<CursorKey> keys,
         Cursor cursor,
-        bool forward)
+        bool forward,
+        NullOrdering nullOrdering)
     {
         if (keys.Length == 0)
         {
@@ -58,14 +66,16 @@ internal static class ExpressionHelpers
         var cursorExpr = new Expression[cursor.Values.Length];
         for (var i = 0; i < cursor.Values.Length; i++)
         {
-            cursorExpr[i] = CreateParameter(cursor.Values[i], keys[i].Expression.ReturnType);
+            var parameterType = Nullable.GetUnderlyingType(keys[i].Expression.ReturnType)
+                ?? keys[i].Expression.ReturnType;
+
+            cursorExpr[i] = CreateParameter(cursor.Values[i], parameterType);
         }
 
         var handled = new List<CursorKey>();
         Expression? expression = null;
 
         var parameter = Expression.Parameter(typeof(T), "t");
-        var zero = Expression.Constant(0);
 
         for (var i = 0; i < keys.Length; i++)
         {
@@ -77,24 +87,50 @@ internal static class ExpressionHelpers
             {
                 var handledKey = handled[j];
 
-                keyExpr = Expression.Equal(
-                    Expression.Call(ReplaceParameter(handledKey.Expression, parameter), handledKey.CompareMethod,
-                        cursorExpr[j]), zero);
+                keyExpr = BuildEqualToKeyExpr(
+                    handledKey,
+                    parameter,
+                    cursor.Values[j],
+                    cursorExpr[j]);
 
                 current = current is null ? keyExpr : Expression.AndAlso(current, keyExpr);
+            }
+
+            var keyIsNullable = IsNullable(key.Expression);
+
+            if (keyIsNullable && nullOrdering == NullOrdering.Unspecified)
+            {
+                throw new Exception(
+                    "The NullOrdering option must be specified in the paging options or " +
+                    "arguments when using nullable keys.");
             }
 
             var greaterThan = forward
                 ? key.Direction == CursorKeyDirection.Ascending
                 : key.Direction == CursorKeyDirection.Descending;
 
-            keyExpr = greaterThan
-                ? Expression.GreaterThan(
-                    Expression.Call(ReplaceParameter(key.Expression, parameter), key.CompareMethod, cursorExpr[i]),
-                    zero)
-                : Expression.LessThan(
-                    Expression.Call(ReplaceParameter(key.Expression, parameter), key.CompareMethod, cursorExpr[i]),
-                    zero);
+            if (greaterThan)
+            {
+                keyExpr =
+                    BuildGreaterThanKeyExpr(
+                        key,
+                        parameter,
+                        cursor.Values[i],
+                        keyIsNullable,
+                        nullOrdering,
+                        cursorExpr[i]);
+            }
+            else
+            {
+                keyExpr =
+                    BuildLessThanKeyExpr(
+                        key,
+                        parameter,
+                        cursor.Values[i],
+                        keyIsNullable,
+                        nullOrdering,
+                        cursorExpr[i]);
+            }
 
             current = current is null ? keyExpr : Expression.AndAlso(current, keyExpr);
             expression = expression is null ? current : Expression.OrElse(expression, current);
@@ -102,6 +138,193 @@ internal static class ExpressionHelpers
         }
 
         return (Expression.Lambda<Func<T, bool>>(expression!, parameter), cursor.Offset ?? 0);
+    }
+
+    private static Expression BuildEqualToKeyExpr(
+        CursorKey cursorKey,
+        ParameterExpression parameter,
+        object? cursorValue,
+        Expression cursorExpr)
+    {
+        var keyIsNullable = IsNullable(cursorKey.Expression);
+        var keyExpr = ReplaceParameter(cursorKey.Expression, parameter);
+
+        // Access the value of the key if it is a nullable value type.
+        var keyValueExpr = cursorKey.Expression.ReturnType.IsValueType && keyIsNullable
+            ? Expression.Property(keyExpr, "Value")
+            : keyExpr;
+
+        if (keyIsNullable)
+        {
+            if (cursorValue is null)
+            {
+                // SQL: WHERE key IS NULL.
+                keyExpr = Expression.Equal(keyExpr, s_null);
+            }
+            else
+            {
+                // SQL: WHERE key = cursorValue.
+                keyExpr = Expression.Equal(
+                    Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
+                    s_zero);
+            }
+        }
+        else
+        {
+            // SQL: WHERE key = cursorValue.
+            keyExpr = Expression.Equal(
+                Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
+                s_zero);
+        }
+
+        return keyExpr;
+    }
+
+    private static Expression BuildGreaterThanKeyExpr(
+        CursorKey cursorKey,
+        ParameterExpression parameter,
+        object? cursorValue,
+        bool keyIsNullable,
+        NullOrdering nullOrdering,
+        Expression cursorExpr)
+    {
+        var keyExpr = ReplaceParameter(cursorKey.Expression, parameter);
+
+        // Access the value of the key if it is a nullable value type.
+        var keyValueExpr =
+            cursorKey.Expression.ReturnType.IsValueType && keyIsNullable
+                ? Expression.Property(keyExpr, "Value")
+                : keyExpr;
+
+        if (keyIsNullable)
+        {
+            if (cursorValue is null)
+            {
+                keyExpr = nullOrdering == NullOrdering.NativeNullsFirst
+                    // With nulls first, any non-null value is greater than null.
+                    // SQL: WHERE key IS NOT NULL.
+                    ? Expression.NotEqual(keyExpr, s_null)
+                    // With nulls last, no value is greater than null.
+                    // SQL: WHERE false.
+                    : s_false;
+            }
+            else
+            {
+                if (nullOrdering == NullOrdering.NativeNullsFirst)
+                {
+                    // SQL: WHERE key > cursorValue.
+                    keyExpr = Expression.GreaterThan(
+                        Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
+                        s_zero);
+                }
+                else
+                {
+                    // When nulls are last, null is greater than any non-null value.
+                    // SQL: WHERE key > cursorValue OR key IS NULL.
+                    keyExpr = Expression.Or(
+                        Expression.GreaterThan(
+                            Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
+                            s_zero),
+                        Expression.Equal(keyExpr, s_null));
+                }
+            }
+        }
+        else
+        {
+            // SQL: WHERE key > cursorValue.
+            keyExpr = Expression.GreaterThan(
+                Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
+                s_zero);
+        }
+
+        return keyExpr;
+    }
+
+    private static Expression BuildLessThanKeyExpr(
+        CursorKey cursorKey,
+        ParameterExpression parameter,
+        object? cursorValue,
+        bool keyIsNullable,
+        NullOrdering nullOrdering,
+        Expression cursorExpr)
+    {
+        var keyExpr = ReplaceParameter(cursorKey.Expression, parameter);
+
+        // Access the value of the key if it is a nullable value type.
+        var keyValueExpr =
+            cursorKey.Expression.ReturnType.IsValueType && keyIsNullable
+                ? Expression.Property(keyExpr, "Value")
+                : keyExpr;
+
+        if (keyIsNullable)
+        {
+            if (cursorValue is null)
+            {
+                keyExpr = nullOrdering == NullOrdering.NativeNullsFirst
+                    // With nulls first, no value is less than null.
+                    // SQL: WHERE false.
+                    ? s_false
+                    // With nulls last, any non-null value is less than null.
+                    // SQL: WHERE key IS NOT NULL.
+                    : Expression.NotEqual(keyExpr, s_null);
+            }
+            else
+            {
+                if (nullOrdering == NullOrdering.NativeNullsFirst)
+                {
+                    // With nulls first, null is less than any non-null value.
+                    // SQL: WHERE key < cursorValue OR key IS NULL.
+                    keyExpr = Expression.Or(
+                        Expression.LessThan(
+                            Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
+                            s_zero),
+                        Expression.Equal(keyExpr, s_null));
+                }
+                else
+                {
+                    // SQL: WHERE key < cursorValue.
+                    keyExpr = Expression.LessThan(
+                        Expression.Call(keyValueExpr, cursorKey.CompareMethod, cursorExpr),
+                        s_zero);
+                }
+            }
+        }
+        else
+        {
+            // SQL: WHERE key < cursorValue.
+            keyExpr = Expression.LessThan(
+                Expression.Call(keyExpr, cursorKey.CompareMethod, cursorExpr),
+                s_zero);
+        }
+
+        return keyExpr;
+    }
+
+    private static bool IsNullable(LambdaExpression expression)
+    {
+        if (expression.ReturnType.IsValueType)
+        {
+            return Nullable.GetUnderlyingType(expression.ReturnType) is not null;
+        }
+
+        if (expression.Body is MemberExpression { Member: PropertyInfo property })
+        {
+            var nullability = s_nullabilityInfoContext.Create(property).ReadState;
+
+            switch (nullability)
+            {
+                case NullabilityState.Nullable:
+                    return true;
+                case NullabilityState.NotNull:
+                    return false;
+                case NullabilityState.Unknown:
+                    break;
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
+
+        throw new Exception("The nullability of the cursor key could not be determined.");
     }
 
     /// <summary>
@@ -184,7 +407,11 @@ internal static class ExpressionHelpers
         if (arguments.After is not null)
         {
             cursor = CursorParser.Parse(arguments.After, keys);
-            var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(keys, cursor, forward: true);
+            var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(
+                keys,
+                cursor,
+                forward: true,
+                arguments.NullOrdering);
             source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
             offset = cursorOffset;
 
@@ -204,7 +431,12 @@ internal static class ExpressionHelpers
             }
 
             cursor = CursorParser.Parse(arguments.Before, keys);
-            var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(keys, cursor, forward: false);
+            var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(
+                keys,
+                cursor,
+                forward:
+                false,
+                arguments.NullOrdering);
             source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
             offset = cursorOffset;
         }

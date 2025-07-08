@@ -1,6 +1,7 @@
 #nullable enable
 
 using System.Collections.Immutable;
+using GreenDonut.Data;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -65,6 +66,9 @@ public class PagingOptions
     /// Defines whether relative cursors are allowed.
     /// </summary>
     public bool? EnableRelativeCursors { get; set; }
+
+    /// <summary>Defines the null ordering to be used.</summary>
+    public NullOrdering NullOrdering { get; set; }
 
     /// <summary>
     /// Gets or sets the fields that represent relative cursors.

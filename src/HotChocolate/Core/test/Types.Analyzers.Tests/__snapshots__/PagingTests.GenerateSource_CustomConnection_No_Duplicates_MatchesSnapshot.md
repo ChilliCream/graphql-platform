@@ -272,7 +272,8 @@ namespace TestNamespace.Types.Nodes
                     args1_before,
                     args1_includeTotalCount)
                     {
-                        EnableRelativeCursors = args1_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor)
+                        EnableRelativeCursors = args1_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor),
+                        NullOrdering = args1_options.NullOrdering
                     };
                 var args2 = context.RequestAborted;
                 var result = await global::TestNamespace.Types.Nodes.AuthorNode.GetAuthorsAsync(args0, args1, args2);
@@ -382,7 +383,8 @@ namespace TestNamespace.Types.Root
                     args0_before,
                     args0_includeTotalCount)
                     {
-                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor)
+                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor),
+                        NullOrdering = args0_options.NullOrdering
                     };
                 var args1 = context.RequestAborted;
                 var result = await global::TestNamespace.Types.Root.AuthorQueries.GetAuthorsAsync(args0, args1);
@@ -425,7 +427,8 @@ namespace TestNamespace.Types.Root
                     args0_before,
                     args0_includeTotalCount)
                     {
-                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor)
+                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor),
+                        NullOrdering = args0_options.NullOrdering
                     };
                 var args1 = context.RequestAborted;
                 var result = await global::TestNamespace.Types.Root.AuthorQueries.GetAuthors2Async(args0, args1);

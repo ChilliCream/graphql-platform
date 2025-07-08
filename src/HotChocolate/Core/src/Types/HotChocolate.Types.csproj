@@ -58,6 +58,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.Primitives\GreenDonut.Data.Primitives.csproj" />
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut\GreenDonut.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />

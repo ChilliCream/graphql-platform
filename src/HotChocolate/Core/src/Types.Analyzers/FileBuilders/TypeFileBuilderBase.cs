@@ -943,9 +943,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         using (Writer.IncreaseIndent())
                         {
                             Writer.WriteIndentedLine(
-                                "EnableRelativeCursors = args{0}_flags.HasFlag(global::{1}.RelativeCursor)",
+                                "EnableRelativeCursors = args{0}_flags.HasFlag(global::{1}.RelativeCursor),",
                                 i,
                                 WellKnownTypes.ConnectionFlags);
+                            Writer.WriteIndentedLine(
+                                "NullOrdering = args{0}_options.NullOrdering",
+                                i);
                         }
 
                         Writer.WriteIndentedLine("};");

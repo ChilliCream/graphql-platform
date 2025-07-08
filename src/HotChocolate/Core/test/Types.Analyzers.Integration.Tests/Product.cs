@@ -1,3 +1,5 @@
+using GreenDonut.Data;
+
 namespace HotChocolate.Types;
 
 [InterfaceType]
@@ -21,5 +23,16 @@ public class Book : Product
 [QueryType]
 public static partial class Query
 {
+    [GraphQLIgnore]
+    public static PagingArguments PagingArguments { get; private set; }
+
     public static Product GetProduct() => new Book { Id = "1", Title = "GraphQL in Action" };
+
+    [UsePaging]
+    public static IEnumerable<int> GetInts(PagingArguments pagingArguments)
+    {
+        PagingArguments = pagingArguments;
+
+        return [];
+    }
 }
