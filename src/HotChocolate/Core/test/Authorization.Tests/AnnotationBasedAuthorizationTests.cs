@@ -837,7 +837,7 @@ public class AnnotationBasedAuthorizationTests
                 {
                   "errors": [
                     {
-                      "message": "Could not resolve the actual object type from `HotChocolate.Error` for the abstract type `nodes`.",
+                      "message": "The current user is not authorized to access this resource.",
                       "locations": [
                         {
                           "line": 2,
@@ -847,7 +847,10 @@ public class AnnotationBasedAuthorizationTests
                       "path": [
                         "nodes",
                         1
-                      ]
+                      ],
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
                     }
                   ],
                   "data": {
