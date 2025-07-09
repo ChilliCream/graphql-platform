@@ -328,7 +328,6 @@ internal sealed class FetchResultStore : IDisposable
                 var d = buffer.GetSpan(rawValue.Length);
                 rawValue.CopyTo(d);
                 buffer.Advance(rawValue.Length);
-                //buffer.Write(rawValue);
 
                 return new IntValueNode(buffer.GetWrittenMemorySegment(start, length));
             }
