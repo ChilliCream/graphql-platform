@@ -3,6 +3,9 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+#if NET8_0
+using System.Text;
+#endif
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Clients;
@@ -314,7 +317,7 @@ internal sealed class FetchResultStore : IDisposable
                 var length = rawValue.Length;
                 buffer.Write(rawValue);
 
-                return new FloatValueNode(buffer.WrittenMemory.Slice(start, length), FloatFormat.FixedPoint);
+                return new FloatValueNode(buffer.GetWrittenMemorySegment(start, length), FloatFormat.FixedPoint);
             }
             else
             {
@@ -322,9 +325,11 @@ internal sealed class FetchResultStore : IDisposable
 
                 var start = buffer.Length;
                 var length = rawValue.Length;
-                buffer.Write(rawValue);
+                var d = buffer.GetSpan(rawValue.Length);
+                rawValue.CopyTo(d);
+                buffer.Advance(rawValue.Length);
 
-                return new IntValueNode(buffer.WrittenMemory.Slice(start, length));
+                return new IntValueNode(buffer.GetWrittenMemorySegment(start, length));
             }
         }
 
@@ -338,7 +343,7 @@ internal sealed class FetchResultStore : IDisposable
             var length = rawValue.Length;
             buffer.Write(rawValue);
 
-            return new StringValueNode(null, buffer.WrittenMemory.Slice(start, length), false);
+            return new StringValueNode(null, buffer.GetWrittenMemorySegment(start, length), false);
         }
 
         if (value.ValueKind == JsonValueKind.True)

@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-<PropertyGroup>
+  <PropertyGroup>
+    <TargetFrameworks>$(ExtendedTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <AssemblyName>HotChocolate.Buffers</AssemblyName>
     <RootNamespace>HotChocolate.Buffers</RootNamespace>
     <PackageId>HotChocolate.Utilities.Buffers</PackageId>
@@ -9,7 +13,14 @@
 
   <PropertyGroup>
     <IsAotCompliant>true</IsAotCompliant>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Bcl.HashCode" />
+    <PackageReference Include="System.Memory" />
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Update="Properties\BuffersResources.resx">
