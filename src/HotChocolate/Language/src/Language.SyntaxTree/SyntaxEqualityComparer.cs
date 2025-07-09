@@ -1089,9 +1089,8 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
 
-        for (var i = 0; i < node.Fields.Count; i++)
+        foreach (var field in node.Fields.OrderBy(field => field.Name.Value, StringComparer.Ordinal))
         {
-            var field = node.Fields[i];
             hashCode.Add(GetHashCode(field));
         }
 
