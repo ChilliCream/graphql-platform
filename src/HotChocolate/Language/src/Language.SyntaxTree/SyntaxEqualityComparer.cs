@@ -357,7 +357,36 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             Equals(x.Fields, y.Fields);
 
     private bool Equals(ObjectValueNode x, ObjectValueNode y)
-        => Equals(x.Fields, y.Fields);
+    {
+        if (x.Fields.Count != y.Fields.Count)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < x.Fields.Count; i++)
+        {
+            var xField = x.Fields[i];
+            ObjectFieldNode? matchingField = null;
+
+            for (var j = 0; j < y.Fields.Count; j++)
+            {
+                var yField = y.Fields[j];
+
+                if (Equals(xField.Name, yField.Name))
+                {
+                    matchingField = yField;
+                    break;
+                }
+            }
+
+            if (matchingField is null || !Equals(xField.Value, matchingField.Value))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     private bool Equals(OperationDefinitionNode x, OperationDefinitionNode y)
         => SyntaxComparer.BySyntax.Equals(x.Name, y.Name) &&

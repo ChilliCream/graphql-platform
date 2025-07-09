@@ -370,7 +370,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
                 if (BySyntax.Equals(argumentA.Name, argumentB.Name))
                 {
-                    if (AreValuesIdentical(argumentA.Value, argumentB.Value))
+                    if (BySyntax.Equals(argumentA.Value, argumentB.Value))
                     {
                         validPairs++;
                     }
@@ -381,61 +381,6 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         }
 
         return fieldA.Arguments.Count == validPairs;
-    }
-
-    private static bool AreValuesIdentical(IValueNode valueA, IValueNode valueB)
-    {
-        var stack = new Stack<(IValueNode ValueA, IValueNode ValueB)>();
-        stack.Push((valueA, valueB));
-
-        while (stack.Count > 0)
-        {
-            var (currentA, currentB) = stack.Pop();
-
-            if (currentA is ListValueNode listA && currentB is ListValueNode listB)
-            {
-                if (listA.Items.Count != listB.Items.Count)
-                {
-                    return false;
-                }
-
-                for (var i = 0; i < listA.Items.Count; i++)
-                {
-                    stack.Push((listA.Items[i], listB.Items[i]));
-                }
-            }
-            else if (currentA is ObjectValueNode objectA && currentB is ObjectValueNode objectB)
-            {
-                if (objectA.Fields.Count != objectB.Fields.Count)
-                {
-                    return false;
-                }
-
-                if (objectA.Fields.Count == 0)
-                {
-                    continue;
-                }
-
-                var fieldDictB = objectB.Fields
-                    .ToDictionary(f => f.Name, f => f.Value, BySyntax);
-
-                foreach (var fieldA in objectA.Fields)
-                {
-                    if (!fieldDictB.TryGetValue(fieldA.Name, out var fieldBValue))
-                    {
-                        return false;
-                    }
-
-                    stack.Push((fieldA.Value, fieldBValue));
-                }
-            }
-            else if (!BySyntax.Equals(currentA, currentB))
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     private static bool SameResponseShape(IType typeA, IType typeB)
