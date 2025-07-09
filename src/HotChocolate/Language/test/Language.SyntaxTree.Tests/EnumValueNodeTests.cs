@@ -7,13 +7,13 @@ public class EnumValueNodeTests
     {
         var a = new EnumValueNode(
             TestLocations.Location1,
-            new("AA"));
+            "AA");
         var b = new EnumValueNode(
             TestLocations.Location1,
-            new("AA"));
+            "AA");
         var c = new EnumValueNode(
             TestLocations.Location1,
-            new("AB"));
+            "AB");
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
@@ -34,13 +34,13 @@ public class EnumValueNodeTests
         // arrange
         var a = new EnumValueNode(
             TestLocations.Location1,
-            new("AA"));
+            "AA");
         var b = new EnumValueNode(
             TestLocations.Location2,
-            new("AA"));
+            "AA");
         var c = new EnumValueNode(
             TestLocations.Location1,
-            new("AB"));
+            "AB");
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
@@ -61,16 +61,16 @@ public class EnumValueNodeTests
         // arrange
         var a = new EnumValueNode(
             TestLocations.Location1,
-            new("AA"));
+            "AA");
         var b = new EnumValueNode(
             TestLocations.Location2,
-            new("AA"));
+            "AA");
         var c = new EnumValueNode(
             TestLocations.Location1,
-            new("AB"));
+            "AB");
         var d = new EnumValueNode(
             TestLocations.Location2,
-            new("AB"));
+            "AB");
 
         // act
         var aHash = SyntaxComparer.BySyntax.GetHashCode(a);

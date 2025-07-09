@@ -1,5 +1,7 @@
 using System.Buffers;
+#if NET8_0_OR_GREATER
 using System.Runtime.InteropServices;
+#endif
 using static HotChocolate.Buffers.Properties.BuffersResources;
 
 namespace HotChocolate.Buffers;
@@ -54,7 +56,11 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IMemoryOwner<byte>
     /// A <see cref="ReadOnlyMemory{T}"/> of the written portion of the buffer.
     /// </returns>
     public ReadOnlyMemory<byte> WrittenMemory
+#if NETSTANDARD2_0
+        => _buffer.AsMemory().Slice(0, _start);
+#else
         => _buffer.AsMemory()[.._start];
+#endif
 
     Memory<byte> IMemoryOwner<byte>.Memory
         => _buffer.AsMemory(0, _start);
@@ -66,7 +72,35 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IMemoryOwner<byte>
     /// A <see cref="ReadOnlySpan{T}"/> of the written portion of the buffer.
     /// </returns>
     public ReadOnlySpan<byte> WrittenSpan
+#if NETSTANDARD2_0
+        => _buffer.AsSpan(0, _start);
+#else
         => MemoryMarshal.CreateSpan(ref _buffer[0], _start);
+#endif
+
+    /// <summary>
+    /// Gets the buffer as an <see cref="ArraySegment{T}"/>
+    /// </summary>
+    /// <returns>
+    /// A <see cref="ArraySegment{T}"/> to reference to a certain part of the written memory.
+    /// </returns>
+    public ArraySegment<byte> WrittenArraySegment
+        => new(_buffer, 0, _start);
+
+    /// <summary>
+    /// Gets a read-only memory segment to reference to a certain part of the written memory.
+    /// </summary>
+    /// <param name="start">
+    /// The start index of the memory segment.
+    /// </param>
+    /// <param name="length">
+    /// The length of the memory segment.
+    /// </param>
+    /// <returns>
+    /// A <see cref="ReadOnlyMemorySegment"/> to reference to a certain part of the written memory.
+    /// </returns>
+    public ReadOnlyMemorySegment GetWrittenMemorySegment(int start, int length)
+        => new(this, start, length);
 
     /// <summary>
     /// Advances the writer by the specified number of bytes.
@@ -81,8 +115,20 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IMemoryOwner<byte>
     /// </exception>
     public void Advance(int count)
     {
+#if NETSTANDARD2_0
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(typeof(PooledArrayWriter).FullName!);
+        }
+
+        if (count < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(count));
+        }
+#else
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentOutOfRangeException.ThrowIfNegative(count);
+#endif
 
         if (count > _capacity)
         {
@@ -110,8 +156,20 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IMemoryOwner<byte>
     /// </exception>
     public Memory<byte> GetMemory(int sizeHint = 0)
     {
+#if NETSTANDARD2_0
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(typeof(PooledArrayWriter).FullName!);
+        }
+
+        if (sizeHint < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(sizeHint));
+        }
+#else
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentOutOfRangeException.ThrowIfNegative(sizeHint);
+#endif
 
         var size = sizeHint < 1
             ? InitialBufferSize
@@ -134,20 +192,30 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IMemoryOwner<byte>
     /// </exception>
     public Span<byte> GetSpan(int sizeHint = 0)
     {
+#if NETSTANDARD2_0
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(typeof(PooledArrayWriter).FullName!);
+        }
+
+        if (sizeHint < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(sizeHint));
+        }
+#else
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentOutOfRangeException.ThrowIfNegative(sizeHint);
+#endif
 
         var size = sizeHint < 1 ? InitialBufferSize : sizeHint;
         EnsureBufferCapacity(size);
 
+#if NETSTANDARD2_0
+        return _buffer.AsSpan(_start, size);
+#else
         return MemoryMarshal.CreateSpan(ref _buffer[_start], size);
+#endif
     }
-
-    /// <summary>
-    /// Gets the buffer as an <see cref="ArraySegment{T}"/>
-    /// </summary>
-    /// <returns></returns>
-    public ArraySegment<byte> ToArraySegment() => new(_buffer, 0, _start);
 
     /// <summary>
     /// Ensures that the internal buffer has the necessary capacity.
