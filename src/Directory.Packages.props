@@ -143,6 +143,7 @@
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="6.0.0" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'debug'">
     <PackageVersion Include="Roslynator.Analyzers" Version="4.13.1" />

@@ -1,4 +1,6 @@
+using System.Buffers;
 using System.Text;
+using HotChocolate.Buffers;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
@@ -9,7 +11,7 @@ namespace HotChocolate.Language;
 /// </summary>
 public sealed class StringValueNode : IValueNode<string>, IHasSpan
 {
-    private ReadOnlyMemory<byte> _memory;
+    private ReadOnlyMemorySegment _memorySegment;
     private string? _value;
 
     /// <summary>
@@ -58,11 +60,11 @@ public sealed class StringValueNode : IValueNode<string>, IHasSpan
     /// </param>
     public StringValueNode(
         Location? location,
-        ReadOnlyMemory<byte> value,
+        ReadOnlyMemorySegment value,
         bool block)
     {
         Location = location;
-        _memory = value;
+        _memorySegment = value;
         Block = block;
     }
 
@@ -79,11 +81,20 @@ public sealed class StringValueNode : IValueNode<string>, IHasSpan
             if (_value is null)
             {
                 var span = AsSpan();
-                fixed (byte* b = span)
+
+                if (span.Length == 0)
                 {
-                    _value = Encoding.UTF8.GetString(b, span.Length);
+                    _value = string.Empty;
+                }
+                else
+                {
+                    fixed (byte* b = span)
+                    {
+                        _value = Encoding.UTF8.GetString(b, span.Length);
+                    }
                 }
             }
+
             return _value;
         }
     }
@@ -124,21 +135,43 @@ public sealed class StringValueNode : IValueNode<string>, IHasSpan
     /// </returns>
     public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
-    internal ReadOnlyMemory<byte> AsMemory()
-    {
-        if (_memory.IsEmpty)
-        {
-            _memory = Encoding.UTF8.GetBytes(_value!);
-        }
-        return _memory;
-    }
-
-    internal bool IsMemory => _memory.IsEmpty;
-
     /// <summary>
     /// Gets a readonly span to access the string value memory.
     /// </summary>
-    public ReadOnlySpan<byte> AsSpan() => AsMemory().Span;
+    public ReadOnlySpan<byte> AsSpan()
+        => AsMemorySegment().Span;
+
+    public ReadOnlyMemorySegment AsMemorySegment()
+    {
+        if (!_memorySegment.IsEmpty || _value is null)
+        {
+            return _memorySegment;
+        }
+
+        var encoding = Encoding.UTF8;
+
+        byte[]? rented = null;
+        var requiredLength = encoding.GetByteCount(_value!);
+        Span<byte> buffer = requiredLength < 256
+            ? stackalloc byte[256]
+            : (rented = ArrayPool<byte>.Shared.Rent(requiredLength)).AsSpan();
+
+        try
+        {
+            var written = encoding.GetBytes(_value!, buffer);
+            buffer = buffer.Slice(0, written);
+            _memorySegment = new ReadOnlyMemorySegment(buffer.ToArray());
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
+
+        return _memorySegment;
+    }
 
     public StringValueNode WithLocation(Location? location)
         => new(location, Value, Block);

@@ -23,8 +23,20 @@ public sealed class JsonDocumentOwner : IDisposable
     /// </param>
     public JsonDocumentOwner(JsonDocument document, IMemoryOwner<byte> memory)
     {
+#if NET8_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(memory);
+#else
+        if (document is null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        if (memory is null)
+        {
+            throw new ArgumentNullException(nameof(memory));
+        }
+#endif
 
         Document = document;
         _memory = memory;

@@ -16,7 +16,14 @@ public static class PooledArrayWriterMarshal
     /// </returns>
     public static byte[] GetUnderlyingBuffer(PooledArrayWriter writer)
     {
+#if NET8_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(writer);
+#else
+        if(writer is null)
+        {
+            throw new ArgumentNullException(nameof(writer));
+        }
+#endif
         return writer.GetInternalBuffer();
     }
 }
