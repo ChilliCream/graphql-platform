@@ -319,8 +319,8 @@ public class FloatTypeTests
 
     private FloatValueNode CreateExponentialLiteral() =>
         new FloatValueNode(
-            new ReadOnlyMemorySegment("1.000000E+000"u8.ToArray())
-            , FloatFormat.Exponential);
+            new ReadOnlyMemorySegment("1.000000E+000"u8.ToArray()),
+            FloatFormat.Exponential);
 
     private FloatValueNode CreateFixedPointLiteral() =>
         new FloatValueNode(
