@@ -59,7 +59,7 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
         _value = new byte[17];
         _value[0] = FloatValueKind.Double;
 #if NET8_0_OR_GREATER
-        MemoryMarshal.Write(_value[1..], in value);
+        MemoryMarshal.Write(_value.AsSpan(1), in value);
 #else
         MemoryMarshal.Write(_value.AsSpan(1), ref value);
 #endif
@@ -92,7 +92,7 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
         _value = new byte[17];
         _value[0] = FloatValueKind.Decimal;
 #if NET8_0_OR_GREATER
-        MemoryMarshal.Write(_value[1..], in value);
+        MemoryMarshal.Write(_value.AsSpan(1), in value);
 #else
         MemoryMarshal.Write(_value.AsSpan(1), ref value);
 #endif

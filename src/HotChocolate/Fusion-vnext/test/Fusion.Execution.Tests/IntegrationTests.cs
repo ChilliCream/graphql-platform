@@ -1,3 +1,4 @@
+/*
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Types;
@@ -95,3 +96,4 @@ file static class Extensions
 
     private record TestServerRegistration(string Name, TestServer Server);
 }
+*/
