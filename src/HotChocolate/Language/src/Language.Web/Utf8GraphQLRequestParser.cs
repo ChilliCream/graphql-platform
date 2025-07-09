@@ -11,6 +11,7 @@ public ref partial struct Utf8GraphQLRequestParser
     private readonly bool _useCache;
     private readonly ParserOptions _options;
     private Utf8GraphQLReader _reader;
+    private Utf8MemoryBuilder? _memory;
 
     public Utf8GraphQLRequestParser(
         ReadOnlySpan<byte> requestData,
@@ -27,21 +28,35 @@ public ref partial struct Utf8GraphQLRequestParser
 
     public GraphQLRequest ParsePersistedOperation(string operationId, string? operationName)
     {
-        _reader.MoveNext();
-
-        if (_reader.Kind == TokenKind.LeftBrace)
+        try
         {
-            var request = ParseMutableRequest(operationId);
+            _reader.MoveNext();
 
-            return new GraphQLRequest
-            (
-                null,
-                request.DocumentId,
-                null,
-                operationName ?? request.OperationName,
-                request.Variables,
-                request.Extensions
-            );
+            if (_reader.Kind == TokenKind.LeftBrace)
+            {
+                var request = ParseMutableRequest(operationId);
+
+                return new GraphQLRequest
+                (
+                    null,
+                    request.DocumentId,
+                    null,
+                    operationName ?? request.OperationName,
+                    request.Variables,
+                    request.Extensions
+                );
+            }
+        }
+        catch
+        {
+            _memory?.Abandon();
+            _memory = null;
+            throw;
+        }
+        finally
+        {
+            _memory?.Seal();
+            _memory = null;
         }
 
         throw ThrowHelper.InvalidRequestStructure(_reader);
@@ -49,17 +64,31 @@ public ref partial struct Utf8GraphQLRequestParser
 
     public IReadOnlyList<GraphQLRequest> Parse()
     {
-        _reader.MoveNext();
-
-        if (_reader.Kind == TokenKind.LeftBrace)
+        try
         {
-            var singleRequest = ParseRequest();
-            return [singleRequest];
+            _reader.MoveNext();
+
+            if (_reader.Kind == TokenKind.LeftBrace)
+            {
+                var singleRequest = ParseRequest();
+                return [singleRequest];
+            }
+
+            if (_reader.Kind == TokenKind.LeftBracket)
+            {
+                return ParseBatchRequest();
+            }
         }
-
-        if (_reader.Kind == TokenKind.LeftBracket)
+        catch
         {
-            return ParseBatchRequest();
+            _memory?.Abandon();
+            _memory = null;
+            throw;
+        }
+        finally
+        {
+            _memory?.Seal();
+            _memory = null;
         }
 
         throw ThrowHelper.InvalidRequestStructure(_reader);
@@ -67,14 +96,28 @@ public ref partial struct Utf8GraphQLRequestParser
 
     public GraphQLSocketMessage ParseMessage()
     {
-        _reader.MoveNext();
-        _reader.Expect(TokenKind.LeftBrace);
-
         var message = new Message();
 
-        while (_reader.Kind != TokenKind.RightBrace)
+        try
         {
-            ParseMessageProperty(ref message);
+            _reader.MoveNext();
+            _reader.Expect(TokenKind.LeftBrace);
+
+            while (_reader.Kind != TokenKind.RightBrace)
+            {
+                ParseMessageProperty(ref message);
+            }
+        }
+        catch
+        {
+            _memory?.Abandon();
+            _memory = null;
+            throw;
+        }
+        finally
+        {
+            _memory?.Seal();
+            _memory = null;
         }
 
         if (message.Type is null)
@@ -93,8 +136,22 @@ public ref partial struct Utf8GraphQLRequestParser
 
     public object? ParseJson()
     {
-        _reader.MoveNext();
-        return ParseValue();
+        try
+        {
+            _reader.MoveNext();
+            return ParseValue();
+        }
+        catch
+        {
+            _memory?.Abandon();
+            _memory = null;
+            throw;
+        }
+        finally
+        {
+            _memory?.Seal();
+            _memory = null;
+        }
     }
 
     private IReadOnlyList<GraphQLRequest> ParseBatchRequest()
@@ -179,15 +236,17 @@ public ref partial struct Utf8GraphQLRequestParser
             case I:
                 if (fieldName.SequenceEqual(IdProperty))
                 {
-                    request.DocumentId = ParseOperationId(_reader);
+                    request.DocumentId = ParseOperationId();
                 }
+
                 break;
 
             case D:
                 if (fieldName.SequenceEqual(DocumentIdProperty))
                 {
-                    request.DocumentId = ParseOperationId(_reader);
+                    request.DocumentId = ParseOperationId();
                 }
+
                 break;
 
             case Q:
@@ -204,6 +263,7 @@ public ref partial struct Utf8GraphQLRequestParser
                     request.DocumentBody = _reader.Value;
                     _reader.MoveNext();
                 }
+
                 break;
 
             case O:
@@ -211,6 +271,7 @@ public ref partial struct Utf8GraphQLRequestParser
                 {
                     request.OperationName = ParseStringOrNull();
                 }
+
                 break;
 
             case V:
@@ -218,6 +279,7 @@ public ref partial struct Utf8GraphQLRequestParser
                 {
                     request.Variables = ParseVariables();
                 }
+
                 break;
 
             case E:
@@ -225,6 +287,7 @@ public ref partial struct Utf8GraphQLRequestParser
                 {
                     request.Extensions = ParseObjectOrNull();
                 }
+
                 break;
 
             default:
@@ -245,6 +308,7 @@ public ref partial struct Utf8GraphQLRequestParser
                 {
                     message.Type = ParseStringOrNull();
                 }
+
                 break;
 
             case I:
@@ -252,6 +316,7 @@ public ref partial struct Utf8GraphQLRequestParser
                 {
                     message.Id = ParseStringOrNull();
                 }
+
                 break;
 
             case P:
@@ -264,6 +329,7 @@ public ref partial struct Utf8GraphQLRequestParser
                         ? _reader.GraphQLData.Slice(start, end - start)
                         : default;
                 }
+
                 break;
 
             default:
@@ -288,7 +354,7 @@ public ref partial struct Utf8GraphQLRequestParser
 
             if (_useCache)
             {
-                if (request.DocumentId.HasValue
+                if (request.DocumentId.HasValue 
                     && _cache!.TryGetDocument(request.DocumentId.Value.Value, out var cachedDocument))
                 {
                     document = cachedDocument.Body;
