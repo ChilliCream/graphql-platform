@@ -92,6 +92,7 @@ public ref partial struct Utf8GraphQLParser
         finally
         {
             _memory?.Seal();
+            _memory = null;
         }
     }
 
