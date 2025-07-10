@@ -1,8 +1,8 @@
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
-using HotChocolate.Serialization;
 using HotChocolate.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Fusion.Types;
 
@@ -43,6 +43,9 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
     /// </value>
     public string? Description { get; }
 
+    /// <inheritdoc />
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: true);
+
     /// <summary>
     /// Defines if this directive is repeatable and can be applied multiple times.
     /// </summary>
@@ -65,19 +68,23 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
     public DirectiveLocation Locations { get; }
 
     /// <summary>
+    /// Gets the runtime type of the directive.
+    /// </summary>
+    public Type RuntimeType { get; } = typeof(object);
+
+    /// <summary>
     /// Gets a string that represents the current object.
     /// </summary>
     /// <returns>
     /// A string that represents the current object.
     /// </returns>
-    public override string ToString()
-        => SchemaDebugFormatter.Format(this).ToString(true);
+    public override string ToString() => Format(this).ToString(true);
 
     /// <summary>
     /// Creates a <see cref="DirectiveDefinitionNode"/>
     /// from a <see cref="FusionDirectiveDefinition"/>.
     /// </summary>
-    public DirectiveDefinitionNode ToSyntaxNode() => SchemaDebugFormatter.Format(this);
+    public DirectiveDefinitionNode ToSyntaxNode() => Format(this);
 
-    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => SchemaDebugFormatter.Format(this);
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => Format(this);
 }

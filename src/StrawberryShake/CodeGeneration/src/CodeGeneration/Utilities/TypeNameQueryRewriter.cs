@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.Utilities;
 
 internal sealed class TypeNameQueryRewriter : SyntaxRewriter<TypeNameQueryRewriter.Context>
 {
-    private static readonly FieldNode _typeNameField = new(
+    private static readonly FieldNode s_typeNameField = new(
         null,
         new NameNode(TypeName),
         null,
@@ -68,7 +68,7 @@ internal sealed class TypeNameQueryRewriter : SyntaxRewriter<TypeNameQueryRewrit
                 .Any(t => t.Alias is null && t.Name.Value.EqualsOrdinal(TypeName)))
         {
             var selections = current.Selections.ToList();
-            selections.Insert(0, _typeNameField);
+            selections.Insert(0, s_typeNameField);
             current = current.WithSelections(selections);
         }
 

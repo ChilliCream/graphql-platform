@@ -48,7 +48,7 @@ public class IdTypeTests
         var kind = type.Kind;
 
         // assert
-        Assert.Equal(TypeKind.Scalar, type.Kind);
+        Assert.Equal(TypeKind.Scalar, kind);
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public class IdTypeTests
     {
         // arrange
         var type = new IdType();
-        var input = "123456";
+        const string input = "123456";
 
         // act
         var serializedValue = type.Serialize(input);
@@ -152,7 +152,7 @@ public class IdTypeTests
     {
         // arrange
         var type = new IdType();
-        var serialized = "123456";
+        const string serialized = "123456";
 
         // act
         var success = type.TryDeserialize(serialized, out var value);
@@ -173,8 +173,9 @@ public class IdTypeTests
                 .Type<IdType>()
                 .Resolve("abc"))
             .Create()
+            .Types
             .GetType<IdType>("ID");
-        var serialized = 123456;
+        const int serialized = 123456;
 
         // act
         var success = type.TryDeserialize(serialized, out var value);
@@ -192,7 +193,7 @@ public class IdTypeTests
         object serialized = null;
 
         // act
-        var success = type.TryDeserialize(serialized, out var value);
+        type.TryDeserialize(serialized, out var value);
 
         // assert
         Assert.Null(value);
@@ -203,10 +204,10 @@ public class IdTypeTests
     {
         // arrange
         var type = new IdType();
-        var serialized = 1.1f;
+        const float serialized = 1.1f;
 
         // act
-        var success = type.TryDeserialize(serialized, out var value);
+        var success = type.TryDeserialize(serialized, out _);
 
         // assert
         Assert.False(success);

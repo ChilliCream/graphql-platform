@@ -7,10 +7,10 @@ namespace HotChocolate.Fetching;
 /// </summary>
 public sealed class BatchScheduler : IBatchHandler
 {
-    private static List<Func<ValueTask>>? _localTasks;
-    private static List<Task<Exception?>>? _localProcessing;
+    private static List<Func<ValueTask>>? s_localTasks;
+    private static List<Task<Exception?>>? s_localProcessing;
 
-    private const int _waitTimeout = 30_000;
+    private const int WaitTimeout = 30_000;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly object _sync = new();
     private readonly object _syncTaskEnqueued = new();
@@ -111,7 +111,7 @@ public sealed class BatchScheduler : IBatchHandler
 
                 default:
                     // we will try to reuse the pooled list.
-                    tasks = Exchange(ref _localTasks, null) ?? [];
+                    tasks = Exchange(ref s_localTasks, null) ?? [];
                     tasks.AddRange(_tasks);
                     _tasks.Clear();
                     break;
@@ -157,7 +157,7 @@ public sealed class BatchScheduler : IBatchHandler
         await Task.Yield();
 
         // First we will get a list to hold on to the tasks.
-        var processing = Exchange(ref _localProcessing, null) ?? [];
+        var processing = Exchange(ref s_localProcessing, null) ?? [];
 
         foreach (var task in tasks)
         {
@@ -170,8 +170,8 @@ public sealed class BatchScheduler : IBatchHandler
         tasks.Clear();
 
         // if there is no new instance for processing we will return our processing instances.
-        CompareExchange(ref _localProcessing, processing, null);
-        CompareExchange(ref _localTasks, tasks, null);
+        CompareExchange(ref s_localProcessing, processing, null);
+        CompareExchange(ref s_localTasks, tasks, null);
     }
 
     private static async Task<Exception?> ExecuteBatchAsync(
@@ -209,7 +209,7 @@ public sealed class BatchScheduler : IBatchHandler
 
     private async Task DispatchOnEnqueue(Func<ValueTask> dispatch)
     {
-        await _semaphore.WaitAsync(_waitTimeout).ConfigureAwait(false);
+        await _semaphore.WaitAsync(WaitTimeout).ConfigureAwait(false);
 
         try
         {

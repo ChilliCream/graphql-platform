@@ -1,7 +1,8 @@
 namespace HotChocolate.Fusion.Language;
 
 /// <summary>
-/// TODO: Add summary.
+/// A <c>SelectedValue</c> consists of one or more <c>SelectedValueEntry</c> components, which may
+/// be joined by a pipe (<c>|</c>) operator to indicate alternative selections based on type.
 /// </summary>
 public sealed class SelectedValueNode(
     SelectedValueEntryNode selectedValueEntry,

@@ -2,6 +2,7 @@ using Moq;
 
 namespace HotChocolate.Types;
 
+[Obsolete("Use IsStructurallyEqual(this IType x, IType y) instead.")]
 public class TypeExtensionsTests
 {
     [Fact]
@@ -129,14 +130,14 @@ public class TypeExtensionsTests
                     new StringType())));
 
         // act & assert
-        Assert.Throws<ArgumentException>(() => type.NamedType<ObjectType>());
+        Assert.Throws<ArgumentException>(type.NamedType<ObjectType>);
     }
 
     [Fact]
     public static void NamedType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.NamedType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.NamedType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -172,7 +173,7 @@ public class TypeExtensionsTests
     public static void IsNonNullType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsNonNullType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsNonNullType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -182,7 +183,7 @@ public class TypeExtensionsTests
     public static void IsCompositeType_ObjectType_True()
     {
         // arrange
-        IType type = Mock.Of<ObjectType>();
+        IType type = Mock.Of<ObjectType>(t => t.Kind == TypeKind.Object);
 
         // act
         var result = type.IsCompositeType();
@@ -195,7 +196,7 @@ public class TypeExtensionsTests
     public static void IsCompositeType_InterfaceType_True()
     {
         // arrange
-        IType type = Mock.Of<InterfaceType>();
+        IType type = Mock.Of<InterfaceType>(t => t.Kind == TypeKind.Interface);
 
         // act
         var result = type.IsCompositeType();
@@ -208,7 +209,7 @@ public class TypeExtensionsTests
     public static void IsCompositeType_UnionType_True()
     {
         // arrange
-        IType type = Mock.Of<UnionType>();
+        IType type = Mock.Of<UnionType>(t => t.Kind == TypeKind.Union);
 
         // act
         var result = type.IsCompositeType();
@@ -234,7 +235,7 @@ public class TypeExtensionsTests
     public static void IsCompositeType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsCompositeType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsCompositeType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -244,7 +245,7 @@ public class TypeExtensionsTests
     public static void IsComplexType_ObjectType_True()
     {
         // arrange
-        IType type = Mock.Of<ObjectType>();
+        IType type = Mock.Of<ObjectType>(t => t.Kind == TypeKind.Object);
 
         // act
         var result = type.IsComplexType();
@@ -257,7 +258,7 @@ public class TypeExtensionsTests
     public static void IsComplexType_InterfaceType_True()
     {
         // arrange
-        IType type = Mock.Of<InterfaceType>();
+        IType type = Mock.Of<InterfaceType>(t => t.Kind == TypeKind.Interface);
 
         // act
         var result = type.IsComplexType();
@@ -270,11 +271,10 @@ public class TypeExtensionsTests
     public static void IsComplexType_UnionType_False()
     {
         // arrange
-        var type = new Mock<UnionType>();
-        type.SetupGet(t => t.Kind).Returns(TypeKind.Union);
+        IType type = Mock.Of<UnionType>(t => t.Kind == TypeKind.Union);
 
         // act
-        var result = type.Object.IsComplexType();
+        var result = type.IsComplexType();
 
         // assert
         Assert.False(result);
@@ -297,7 +297,7 @@ public class TypeExtensionsTests
     public static void IsComplexType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsComplexType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsComplexType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -320,11 +320,10 @@ public class TypeExtensionsTests
     public static void IsLeafType_EnumType_True()
     {
         // arrange
-        var type = new Mock<EnumType>();
-        type.SetupGet(t => t.Kind).Returns(TypeKind.Enum);
+        IType type = Mock.Of<EnumType>(t => t.Kind == TypeKind.Enum);
 
         // act
-        var result = type.Object.IsLeafType();
+        var result = type.IsLeafType();
 
         // assert
         Assert.True(result);
@@ -334,7 +333,7 @@ public class TypeExtensionsTests
     public static void IsLeafType_UnionType_False()
     {
         // arrange
-        IType type = Mock.Of<UnionType>();
+        IType type = Mock.Of<UnionType>(t => t.Kind == TypeKind.Union);
 
         // act
         var result = type.IsLeafType();
@@ -347,7 +346,7 @@ public class TypeExtensionsTests
     public static void IsLeafType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsLeafType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsLeafType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -370,7 +369,7 @@ public class TypeExtensionsTests
     public static void IsListType_UnionType_False()
     {
         // arrange
-        IType type = Mock.Of<UnionType>();
+        IType type = Mock.Of<UnionType>(t => t.Kind == TypeKind.Union);
 
         // act
         var result = type.IsListType();
@@ -383,7 +382,7 @@ public class TypeExtensionsTests
     public static void IsListType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsListType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsListType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -406,7 +405,7 @@ public class TypeExtensionsTests
     public static void IsScalarType_UnionType_False()
     {
         // arrange
-        IType type = Mock.Of<UnionType>();
+        IType type = Mock.Of<UnionType>(t => t.Kind == TypeKind.Union);
 
         // act
         var result = type.IsScalarType();
@@ -419,7 +418,7 @@ public class TypeExtensionsTests
     public static void IsScalarType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsScalarType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsScalarType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -429,11 +428,10 @@ public class TypeExtensionsTests
     public static void IsObjectType_True()
     {
         // arrange
-        var type = new Mock<ObjectType>();
-        type.SetupGet(t => t.Kind).Returns(TypeKind.Object);
+        IType type = Mock.Of<ObjectType>(t => t.Kind == TypeKind.Object);
 
         // act
-        var result = type.Object.IsObjectType();
+        var result = type.IsObjectType();
 
         // assert
         Assert.True(result);
@@ -443,7 +441,7 @@ public class TypeExtensionsTests
     public static void IsObjectType_False()
     {
         // arrange
-        IType type = Mock.Of<UnionType>();
+        IType type = Mock.Of<UnionType>(t => t.Kind == TypeKind.Union);
 
         // act
         var result = type.IsObjectType();
@@ -456,7 +454,7 @@ public class TypeExtensionsTests
     public static void IsObjectType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsObjectType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsObjectType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -466,7 +464,7 @@ public class TypeExtensionsTests
     public static void IsInterfaceType_True()
     {
         // arrange
-        IType type = Mock.Of<InterfaceType>();
+        IType type = Mock.Of<InterfaceType>(t => t.Kind == TypeKind.Interface);
 
         // act
         var result = type.IsInterfaceType();
@@ -476,24 +474,10 @@ public class TypeExtensionsTests
     }
 
     [Fact]
-    public static void IsScalarType_False()
-    {
-        // arrange
-        var type = new Mock<UnionType>();
-        type.SetupGet(t => t.Kind).Returns(TypeKind.Union);
-
-        // act
-        var result = type.Object.IsScalarType();
-
-        // assert
-        Assert.False(result);
-    }
-
-    [Fact]
     public static void IsInterfaceType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsInterfaceType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsInterfaceType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -503,11 +487,10 @@ public class TypeExtensionsTests
     public static void IsEnumType_True()
     {
         // arrange
-        var type = new Mock<EnumType>();
-        type.SetupGet(t => t.Kind).Returns(TypeKind.Enum);
+        IType type = Mock.Of<EnumType>(t => t.Kind == TypeKind.Enum);
 
         // act
-        var result = type.Object.IsEnumType();
+        var result = type.IsEnumType();
 
         // assert
         Assert.True(result);
@@ -517,7 +500,7 @@ public class TypeExtensionsTests
     public static void IsEnumType_False()
     {
         // arrange
-        IType type = Mock.Of<UnionType>();
+        IType type = Mock.Of<UnionType>(t => t.Kind == TypeKind.Union);
 
         // act
         var result = type.IsEnumType();
@@ -530,7 +513,7 @@ public class TypeExtensionsTests
     public static void IsEnumType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsEnumType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsEnumType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -540,11 +523,10 @@ public class TypeExtensionsTests
     public static void IsUnionType_True()
     {
         // arrange
-        var type = new Mock<UnionType>();
-        type.SetupGet(t => t.Kind).Returns(TypeKind.Union);
+        IType type = Mock.Of<UnionType>(t => t.Kind == TypeKind.Union);
 
         // act
-        var result = type.Object.IsUnionType();
+        var result = type.IsUnionType();
 
         // assert
         Assert.True(result);
@@ -554,7 +536,7 @@ public class TypeExtensionsTests
     public static void IsUnionType_False()
     {
         // arrange
-        IType type = Mock.Of<ObjectType>();
+        IType type = Mock.Of<ObjectType>(t => t.Kind == TypeKind.Object);
 
         // act
         var result = type.IsUnionType();
@@ -567,7 +549,7 @@ public class TypeExtensionsTests
     public static void IsUnionType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsUnionType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsUnionType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -577,11 +559,10 @@ public class TypeExtensionsTests
     public static void IsInputObjectType_True()
     {
         // arrange
-        var type = new Mock<InputObjectType>();
-        type.SetupGet(t => t.Kind).Returns(TypeKind.InputObject);
+        IType type = Mock.Of<InputObjectType>(t => t.Kind == TypeKind.InputObject);
 
         // act
-        var result = type.Object.IsInputObjectType();
+        var result = type.IsInputObjectType();
 
         // assert
         Assert.True(result);
@@ -591,7 +572,7 @@ public class TypeExtensionsTests
     public static void IsInputObjectType_False()
     {
         // arrange
-        IType type = Mock.Of<UnionType>();
+        IType type = Mock.Of<UnionType>(t => t.Kind == TypeKind.Union);
 
         // act
         var result = type.IsInputObjectType();
@@ -604,7 +585,7 @@ public class TypeExtensionsTests
     public static void IsInputObjectType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsInputObjectType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsInputObjectType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -640,7 +621,7 @@ public class TypeExtensionsTests
     public static void IsInputType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsInputType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsInputType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -650,7 +631,7 @@ public class TypeExtensionsTests
     public static void IsOutputType_True()
     {
         // arrange
-        IType type = Mock.Of<UnionType>();
+        IType type = Mock.Of<UnionType>(t => t.Kind == TypeKind.Union);
 
         // act
         var result = type.IsOutputType();
@@ -663,7 +644,7 @@ public class TypeExtensionsTests
     public static void IsOutputType_False()
     {
         // arrange
-        IType type = Mock.Of<InputObjectType>();
+        IType type = Mock.Of<InputObjectType>(t => t.Kind == TypeKind.InputObject);
 
         // act
         var result = type.IsOutputType();
@@ -676,7 +657,7 @@ public class TypeExtensionsTests
     public static void IsOutputType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsOutputType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsOutputType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -686,7 +667,7 @@ public class TypeExtensionsTests
     public static void IsAbstractType_InterfaceType_True()
     {
         // arrange
-        IType type = Mock.Of<InterfaceType>();
+        IType type = Mock.Of<InterfaceType>(t => t.Kind == TypeKind.Interface);
 
         // act
         var result = type.IsAbstractType();
@@ -699,7 +680,7 @@ public class TypeExtensionsTests
     public static void IsAbstractType_UnionType_True()
     {
         // arrange
-        IType type = Mock.Of<UnionType>();
+        IType type = Mock.Of<UnionType>(t => t.Kind == TypeKind.Union);
 
         // act
         var result = type.IsAbstractType();
@@ -712,11 +693,10 @@ public class TypeExtensionsTests
     public static void IsAbstractType_False()
     {
         // arrange
-        var type = new Mock<InputObjectType>();
-        type.SetupGet(t => t.Kind).Returns(TypeKind.InputObject);
+        IType type = Mock.Of<InputObjectType>(t => t.Kind == TypeKind.InputObject);
 
         // act
-        var result = type.Object.IsAbstractType();
+        var result = type.IsAbstractType();
 
         // assert
         Assert.False(result);
@@ -726,7 +706,7 @@ public class TypeExtensionsTests
     public static void IsAbstractType_Type_Is_Null()
     {
         // act
-        void Action() => TypeExtensions.IsAbstractType(null!);
+        void Action() => HotChocolateTypesAbstractionsTypeExtensions.IsAbstractType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -769,15 +749,5 @@ public class TypeExtensionsTests
 
         // assert
         Assert.False(result);
-    }
-
-    [Fact]
-    public static void IsType_Type_Is_Null()
-    {
-        // act
-        void Action() => TypeExtensions.IsAbstractType(null!);
-
-        // assert
-        Assert.Throws<ArgumentNullException>(Action);
     }
 }

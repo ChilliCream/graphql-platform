@@ -1,12 +1,12 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Filters;
 
 public class FilterOperationFieldDescriptor
-    : ArgumentDescriptorBase<FilterOperationFieldDefinition>
+    : ArgumentDescriptorBase<FilterOperationFieldConfiguration>
     , IFilterOperationFieldDescriptor
 {
     protected FilterOperationFieldDescriptor(
@@ -16,40 +16,41 @@ public class FilterOperationFieldDescriptor
         : base(context)
     {
         var convention = context.GetFilterConvention(scope);
-        Definition.Id = operationId;
-        Definition.Name = convention.GetOperationName(operationId);
-        Definition.Description = convention.GetOperationDescription(operationId);
-        Definition.Scope = scope;
-        Definition.Flags = FieldFlags.FilterOperationField;
+        Configuration.Id = operationId;
+        Configuration.Name = convention.GetOperationName(operationId);
+        Configuration.Description = convention.GetOperationDescription(operationId);
+        Configuration.Scope = scope;
+        Configuration.Flags = CoreFieldFlags.FilterOperationField;
     }
 
-    protected internal new FilterOperationFieldDefinition Definition => base.Definition;
+    protected internal new FilterOperationFieldConfiguration Configuration
+        => base.Configuration;
 
-    protected override void OnCreateDefinition(
-        FilterOperationFieldDefinition definition)
+    protected override void OnCreateConfiguration(
+        FilterOperationFieldConfiguration configuration)
     {
         Context.Descriptors.Push(this);
 
-        if (Definition is { AttributesAreApplied: false, Property: not null })
+        if (Configuration is { AttributesAreApplied: false, Property: not null })
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Definition.Property);
-            Definition.AttributesAreApplied = true;
+            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.Property);
+            Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(configuration);
 
         Context.Descriptors.Pop();
     }
 
     public IFilterOperationFieldDescriptor Name(string value)
     {
-        Definition.Name = value;
+        Configuration.Name = value;
         return this;
     }
 
     public IFilterOperationFieldDescriptor Ignore(bool ignore = true)
     {
-        Definition.Ignore = ignore;
+        Configuration.Ignore = ignore;
         return this;
     }
 
@@ -88,7 +89,7 @@ public class FilterOperationFieldDescriptor
 
     public IFilterOperationFieldDescriptor Operation(int operation)
     {
-        Definition.Id = operation;
+        Configuration.Id = operation;
         return this;
     }
 
@@ -128,7 +129,7 @@ public class FilterOperationFieldDescriptor
         return this;
     }
 
-    public InputFieldDefinition CreateFieldDefinition() => CreateDefinition();
+    public InputFieldConfiguration CreateFieldConfiguration() => CreateConfiguration();
 
     public static FilterOperationFieldDescriptor New(
         IDescriptorContext context,

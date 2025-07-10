@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Types.Helpers.CompleteInterfacesHelper;
@@ -12,26 +12,26 @@ namespace HotChocolate.Types;
 
 public partial class InterfaceType
 {
-    private InterfaceType[] _implements = [];
+    private InterfaceTypeCollection _implements = InterfaceTypeCollection.Empty;
     private Action<IInterfaceTypeDescriptor>? _configure;
     private ResolveAbstractType? _resolveAbstractType;
-    private ISchema _schema = default!;
+    private Schema _schema = null!;
 
-    protected override InterfaceTypeDefinition CreateDefinition(
+    protected override InterfaceTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = InterfaceTypeDescriptor.FromSchemaType(
                     context.DescriptorContext,
                     GetType());
                 _configure!(descriptor);
-                return descriptor.CreateDefinition();
+                return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -41,31 +41,31 @@ public partial class InterfaceType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        context.RegisterDependencies(definition);
+        base.OnRegisterDependencies(context, configuration);
+        context.RegisterDependencies(configuration);
         SetTypeIdentity(typeof(InterfaceType<>));
     }
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
-        Fields = OnCompleteFields(context, definition);
+        Fields = OnCompleteFields(context, configuration);
         context.DescriptorContext.OnSchemaCreated(schema => _schema = schema);
 
-        CompleteAbstractTypeResolver(definition.ResolveAbstractType);
-        _implements = CompleteInterfaces(context, definition.GetInterfaces(), this);
+        CompleteAbstractTypeResolver(configuration.ResolveAbstractType);
+        _implements = CompleteInterfaces(context, configuration.GetInterfaces(), this);
     }
 
     protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration configuration)
     {
-        base.OnCompleteMetadata(context, definition);
+        base.OnCompleteMetadata(context, configuration);
 
         foreach (IFieldCompletion field in Fields)
         {
@@ -75,9 +75,9 @@ public partial class InterfaceType
 
     protected override void OnMakeExecutable(
         ITypeCompletionContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration configuration)
     {
-        base.OnMakeExecutable(context, definition);
+        base.OnMakeExecutable(context, configuration);
 
         foreach (IFieldCompletion field in Fields)
         {
@@ -87,9 +87,9 @@ public partial class InterfaceType
 
     protected override void OnFinalizeType(
         ITypeCompletionContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration configuration)
     {
-        base.OnFinalizeType(context, definition);
+        base.OnFinalizeType(context, configuration);
 
         foreach (IFieldCompletion field in Fields)
         {
@@ -97,12 +97,17 @@ public partial class InterfaceType
         }
     }
 
-    protected virtual FieldCollection<InterfaceField> OnCompleteFields(
+    protected virtual InterfaceFieldCollection OnCompleteFields(
         ITypeCompletionContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration definition)
     {
-        return CompleteFields(context, this, definition.Fields, CreateField);
-        static InterfaceField CreateField(InterfaceFieldDefinition fieldDef, int index)
+        return new InterfaceFieldCollection(
+            CompleteFields(
+                context,
+                this,
+                definition.Fields,
+                CreateField));
+        static InterfaceField CreateField(InterfaceFieldConfiguration fieldDef, int index)
             => new(fieldDef, index);
     }
 

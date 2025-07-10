@@ -17,10 +17,10 @@ testatestAndtestb SQL:
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE NOT EXISTS (
-    SELECT 1
+WHERE "d"."Bar" NOT IN (
+    SELECT "p"."value"
     FROM json_each(@__p_0) AS "p"
-    WHERE "p"."value" = "d"."Bar" OR ("p"."value" IS NULL AND "d"."Bar" IS NULL))
+) OR "d"."Bar" IS NULL
 ---------------
 
 testbtestAndNull Result:
@@ -38,14 +38,14 @@ testbtestAndNull Result:
 
 testbtestAndNull SQL:
 ---------------
-.param set @__p_0 '["testbtest",null]'
+.param set @__p_0_without_nulls '["testbtest"]'
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM json_each(@__p_0) AS "p"
-    WHERE "p"."value" = "d"."Bar" OR ("p"."value" IS NULL AND "d"."Bar" IS NULL))
+WHERE "d"."Bar" NOT IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0_without_nulls) AS "p"
+) AND "d"."Bar" IS NOT NULL
 ---------------
 
 testatest Result:
@@ -70,8 +70,8 @@ testatest SQL:
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE NOT EXISTS (
-    SELECT 1
+WHERE "d"."Bar" NOT IN (
+    SELECT "p"."value"
     FROM json_each(@__p_0) AS "p"
-    WHERE "p"."value" = "d"."Bar" OR ("p"."value" IS NULL AND "d"."Bar" IS NULL))
+) OR "d"."Bar" IS NULL
 ---------------

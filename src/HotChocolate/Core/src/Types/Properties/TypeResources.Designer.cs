@@ -881,6 +881,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Interface field {0}.{1} is not deprecated, so implementation field {2}.{3} must not be deprecated..
+        /// </summary>
+        internal static string ErrorHelper_InvalidFieldDeprecation {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InvalidFieldDeprecation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Field `{0}` must return a type which is equal to or a subtype of (covariant) the return type `{1}` of the interface field..
         /// </summary>
         internal static string ErrorHelper_InvalidFieldType {
@@ -1340,7 +1349,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339.
+        ///   Looks up a localized string similar to The `LocalDate` scalar type represents an ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339.
         /// </summary>
         internal static string LocalDateType_Description {
             get {
@@ -1731,15 +1740,6 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified type `{0}` does not exist..
-        /// </summary>
-        internal static string Schema_GetDirectiveType_DoesNotExist {
-            get {
-                return ResourceManager.GetString("Schema_GetDirectiveType_DoesNotExist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to If this server supports mutation, the type that mutation operations will be rooted at..
         /// </summary>
         internal static string Schema_MutationType {
@@ -1803,6 +1803,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type `System.Object` cannot be implicitly bound to a schema type..
+        /// </summary>
+        internal static string SchemaBuilder_BindRuntimeType_ObjectNotAllowed {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_BindRuntimeType_ObjectNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified convention type is not supported..
         /// </summary>
         internal static string SchemaBuilder_Convention_NotSupported {
@@ -1817,15 +1826,6 @@ namespace HotChocolate.Properties {
         internal static string SchemaBuilder_Interceptor_NotSupported {
             get {
                 return ResourceManager.GetString("SchemaBuilder_Interceptor_NotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The given schema has to inherit from TypeSystemObjectBase in order to be initializable..
-        /// </summary>
-        internal static string SchemaBuilder_ISchemaNotTso {
-            get {
-                return ResourceManager.GetString("SchemaBuilder_ISchemaNotTso", resourceCulture);
             }
         }
         
@@ -1970,24 +1970,6 @@ namespace HotChocolate.Properties {
         internal static string SchemaBuilderExtensions_MustBeDirectiveType {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_MustBeDirectiveType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The schema string cannot be null or empty..
-        /// </summary>
-        internal static string SchemaBuilderExtensions_SchemaIsEmpty {
-            get {
-                return ResourceManager.GetString("SchemaBuilderExtensions_SchemaIsEmpty", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The error message mustn&apos;t be null or empty..
-        /// </summary>
-        internal static string SchemaErrorBuilder_MessageIsNull {
-            get {
-                return ResourceManager.GetString("SchemaErrorBuilder_MessageIsNull", resourceCulture);
             }
         }
         
@@ -2163,7 +2145,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The tag name must follow the GraphQL type name rules..
+        ///   Looks up a localized string similar to Tag names may only include alphanumeric characters (a-z, A-Z, 0-9), hyphens, and underscores..
         /// </summary>
         internal static string TagDirective_Name_NotValid {
             get {
@@ -2678,15 +2660,6 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type structure is invalid..
-        /// </summary>
-        internal static string TypeExtensions_InvalidStructure {
-            get {
-                return ResourceManager.GetString("TypeExtensions_InvalidStructure", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The specified type kind is not supported..
         /// </summary>
         internal static string TypeExtensions_KindIsNotSupported {
@@ -2876,15 +2849,6 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The typeName mustn&apos;t be null or empty..
-        /// </summary>
-        internal static string TypeResourceHelper_TypeNameEmptyOrNull {
-            get {
-                return ResourceManager.GetString("TypeResourceHelper_TypeNameEmptyOrNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The description becomes immutable once it was assigned..
         /// </summary>
         internal static string TypeSystemObject_DescriptionImmutable {
@@ -2940,7 +2904,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The union type extension can only be merged with an union type..
+        ///   Looks up a localized string similar to The union type extension can only be merged with a union type..
         /// </summary>
         internal static string UnionTypeExtension_CannotMerge {
             get {

@@ -2,21 +2,35 @@ using GreenDonut.Data;
 using HotChocolate.Data.Models;
 using HotChocolate.Data.Services;
 using HotChocolate.Types;
-using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data.Types.Products;
-
 
 [QueryType]
 public static partial class ProductQueries
 {
-    [UsePaging(IncludeTotalCount = true)]
+    [UseConnection(IncludeTotalCount = true, EnableRelativeCursors = true)]
     [UseFiltering]
     [UseSorting]
-    public static async Task<Connection<Product>> GetProductsAsync(
+    public static async Task<ProductConnection> GetProductsAsync(
         PagingArguments pagingArgs,
         QueryContext<Product> query,
         ProductService productService,
         CancellationToken cancellationToken)
-        => await productService.GetProductsAsync(pagingArgs, query, cancellationToken).ToConnectionAsync();
+    {
+        var page = await productService.GetProductsAsync(pagingArgs, query, cancellationToken);
+        return new ProductConnection(page);
+    }
+
+    [UseConnection(IncludeTotalCount = true)]
+    [UseFiltering]
+    [UseSorting]
+    public static async Task<ProductConnection> GetProductsNonRelativeAsync(
+        PagingArguments pagingArgs,
+        QueryContext<Product> query,
+        ProductService productService,
+        CancellationToken cancellationToken)
+    {
+        var page = await productService.GetProductsAsync(pagingArgs, query, cancellationToken);
+        return new ProductConnection(page);
+    }
 }

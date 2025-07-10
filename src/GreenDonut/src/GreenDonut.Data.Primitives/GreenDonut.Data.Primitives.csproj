@@ -7,4 +7,9 @@
     <Description>This package contains the basic building blocks of the DataLoader linq query integration.</Description>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="GreenDonut.Data" />
+    <InternalsVisibleTo Include="GreenDonut.Data.EntityFramework" />
+  </ItemGroup>
+
 </Project>

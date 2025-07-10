@@ -8,7 +8,7 @@ namespace HotChocolate.Utilities;
 /// </summary>
 public static class NameUtils
 {
-    private const byte _underscore = (byte)'_';
+    private const byte Underscore = (byte)'_';
 
     /// <summary>
     /// Ensures that the name is a valid GraphQL type- or field-name.
@@ -162,7 +162,7 @@ public static class NameUtils
             return true;
         }
 
-        if (_underscore == c)
+        if (Underscore == c)
         {
             return true;
         }
@@ -178,7 +178,7 @@ public static class NameUtils
             return true;
         }
 
-        if (_underscore == c)
+        if (Underscore == c)
         {
             return true;
         }

@@ -9,11 +9,11 @@ namespace HotChocolate.Resolvers;
 
 internal static class ResolveResultHelper
 {
-    private static readonly MethodInfo _awaitTaskHelper =
+    private static readonly MethodInfo s_awaitTaskHelper =
         typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitTaskHelper))!;
-    private static readonly MethodInfo _awaitValueTaskHelper =
+    private static readonly MethodInfo s_awaitValueTaskHelper =
         typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitValueTaskHelper))!;
-    private static readonly MethodInfo _wrapResultHelper =
+    private static readonly MethodInfo s_wrapResultHelper =
         typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.WrapResultHelper))!;
 
     public static Expression EnsureResolveResult(Expression resolver, Type result)
@@ -45,21 +45,21 @@ internal static class ResolveResultHelper
     private static MethodCallExpression AwaitTaskMethodCall(
         Expression taskExpression, Type value)
     {
-        var awaitHelper = _awaitTaskHelper.MakeGenericMethod(value);
+        var awaitHelper = s_awaitTaskHelper.MakeGenericMethod(value);
         return Call(awaitHelper, taskExpression);
     }
 
     private static MethodCallExpression AwaitValueTaskMethodCall(
         Expression taskExpression, Type value)
     {
-        var awaitHelper = _awaitValueTaskHelper.MakeGenericMethod(value);
+        var awaitHelper = s_awaitValueTaskHelper.MakeGenericMethod(value);
         return Call(awaitHelper, taskExpression);
     }
 
     private static MethodCallExpression WrapResult(
         Expression taskExpression, Type value)
     {
-        var wrapResultHelper = _wrapResultHelper.MakeGenericMethod(value);
+        var wrapResultHelper = s_wrapResultHelper.MakeGenericMethod(value);
         return Call(wrapResultHelper, taskExpression);
     }
 }

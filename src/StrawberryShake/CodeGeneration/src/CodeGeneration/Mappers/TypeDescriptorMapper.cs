@@ -114,13 +114,12 @@ public static partial class TypeDescriptorMapper
         TypeKind? kind = null,
         OperationModel? operationModel = null)
     {
-        if (typeDescriptors.TryGetValue(
-            outputType.Name,
-            out var descriptorModel))
+        if (typeDescriptors.ContainsKey(outputType.Name))
         {
             return;
         }
 
+        TypeDescriptorModel descriptorModel;
         if (operationModel is not null && outputType.IsInterface)
         {
             descriptorModel = CreateInterfaceTypeModel(
@@ -165,11 +164,11 @@ public static partial class TypeDescriptorMapper
                 {
                     // if the output type is a union of which all types are entities,
                     // then the union is an also considered an entity.
-                    case UnionType typeA when typeA.Types.Values.All(t => t.IsEntity()):
+                    case UnionType typeA when typeA.Types.All(t => t.IsEntity()):
                         fallbackKind = TypeKind.Entity;
                         break;
 
-                    case UnionType typeB when typeB.Types.Values.Any(t => t.IsEntity()):
+                    case UnionType typeB when typeB.Types.Any(t => t.IsEntity()):
                         fallbackKind = TypeKind.EntityOrData;
                         parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
                         break;
@@ -234,7 +233,7 @@ public static partial class TypeDescriptorMapper
                     outputType.Implements.Single(),
                     kind);
 
-            return new[] { runtimeType.Name, };
+            return new[] { runtimeType.Name };
         }
 
         return outputType.Implements
@@ -468,7 +467,7 @@ public static partial class TypeDescriptorMapper
     private static INamedTypeDescriptor GetFieldTypeDescriptor(
         ClientModel model,
         FieldNode fieldSyntax,
-        INamedType fieldNamedType,
+        ITypeDefinition fieldNamedType,
         Dictionary<string, TypeDescriptorModel> typeDescriptors)
     {
         foreach (var operation in model.Operations)
@@ -498,13 +497,13 @@ public static partial class TypeDescriptorMapper
             if (kind == PropertyKind.SkipOrIncludeField)
             {
                 return BuildFieldType(
-                    nnt.Type,
+                    nnt.NullableType,
                     namedTypeDescriptor);
             }
 
             return new NonNullTypeDescriptor(
                 BuildFieldType(
-                    nnt.Type,
+                    nnt.NullableType,
                     namedTypeDescriptor));
         }
 
@@ -516,7 +515,7 @@ public static partial class TypeDescriptorMapper
                     namedTypeDescriptor));
         }
 
-        if (original is INamedType)
+        if (original is ITypeDefinition)
         {
             return namedTypeDescriptor;
         }

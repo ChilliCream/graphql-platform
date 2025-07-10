@@ -20,7 +20,7 @@ public sealed record SortDefinition<T>
     /// </param>
     public SortDefinition(params ISortBy<T>[] operations)
     {
-        Operations = [..operations];
+        Operations = [.. operations];
     }
 
     /// <summary>
@@ -31,7 +31,7 @@ public sealed record SortDefinition<T>
     /// </param>
     public SortDefinition(IEnumerable<ISortBy<T>> operations)
     {
-        Operations = [..operations];
+        Operations = [.. operations];
     }
 
     /// <summary>
@@ -63,10 +63,7 @@ public sealed record SortDefinition<T>
     public SortDefinition<T> AddAscending<TResult>(
         Expression<Func<T, TResult>> keySelector)
     {
-        if (keySelector == null)
-        {
-            throw new ArgumentNullException(nameof(keySelector));
-        }
+        ArgumentNullException.ThrowIfNull(keySelector);
 
         var operations = Operations.Add(SortBy<T>.Ascending(keySelector));
         return new SortDefinition<T>(operations);
@@ -87,10 +84,7 @@ public sealed record SortDefinition<T>
     public SortDefinition<T> AddDescending<TResult>(
         Expression<Func<T, TResult>> keySelector)
     {
-        if (keySelector == null)
-        {
-            throw new ArgumentNullException(nameof(keySelector));
-        }
+        ArgumentNullException.ThrowIfNull(keySelector);
 
         var operations = Operations.Add(SortBy<T>.Descending(keySelector));
         return new SortDefinition<T>(operations);
@@ -111,10 +105,7 @@ public sealed record SortDefinition<T>
     public SortDefinition<T> IfEmpty(
         Func<SortDefinition<T>, SortDefinition<T>> applyIfEmpty)
     {
-        if (applyIfEmpty == null)
-        {
-            throw new ArgumentNullException(nameof(applyIfEmpty));
-        }
+        ArgumentNullException.ThrowIfNull(applyIfEmpty);
 
         if (Operations.Length == 0)
         {

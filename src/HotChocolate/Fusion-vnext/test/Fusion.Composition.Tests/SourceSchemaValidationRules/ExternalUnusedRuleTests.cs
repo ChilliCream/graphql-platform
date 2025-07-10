@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class ExternalUnusedRuleTests : CompositionTestBase
+public sealed class ExternalUnusedRuleTests
 {
     private static readonly object s_rule = new ExternalUnusedRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -79,6 +80,68 @@ public sealed class ExternalUnusedRuleTests : CompositionTestBase
                     }
                     """
                 ]
+            },
+            // From https://graphql.github.io/composite-schemas-spec/draft/#sec--provides.
+            {
+                [
+                    """
+                    # Source schema A
+                    type Review {
+                        id: ID!
+                        product: Product @provides(fields: "sku variation { size }")
+                    }
+
+                    type Product @key(fields: "sku variation { id }") {
+                        sku: String! @external
+                        variation: ProductVariation!
+                        name: String!
+                    }
+
+                    type ProductVariation {
+                        id: String!
+                        size: String! @external
+                    }
+                    """
+                ]
+            },
+            {
+                [
+                    """"
+                    # Source schema A
+                    type Review {
+                        id: ID!
+                        # The @provides directive tells us that this source schema can supply
+                        # different fields depending on which concrete type of Product is returned.
+                        product: Product
+                            @provides(
+                                fields: """
+                                ... on Book { author }
+                                ... on Clothing { size }
+                                """
+                            )
+                    }
+
+                    interface Product @key(fields: "id") {
+                        id: ID!
+                    }
+
+                    type Book implements Product {
+                        id: ID!
+                        title: String!
+                        author: String! @external
+                    }
+
+                    type Clothing implements Product {
+                        id: ID!
+                        name: String!
+                        size: String! @external
+                    }
+
+                    type Query {
+                        reviews: [Review!]!
+                    }
+                    """"
+                ]
             }
         };
     }
@@ -87,20 +150,20 @@ public sealed class ExternalUnusedRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // In this example, the "name" field is marked with @external but is not used by the
+            // In this example, the "name" field is marked with @external but is not used by a
             // @provides directive, violating the rule.
             {
                 [
                     """
                     # Source schema A
                     type Product {
-                        title: String @external
-                        author: Author
+                        id: ID
+                        name: String @external
                     }
                     """
                 ],
                 [
-                    "The external field 'Product.title' in schema 'A' is not referenced by a " +
+                    "The external field 'Product.name' in schema 'A' is not referenced by a " +
                     "@provides directive in the schema."
                 ]
             },
@@ -122,6 +185,83 @@ public sealed class ExternalUnusedRuleTests : CompositionTestBase
                 [
                     "The external field 'Product.title' in schema 'A' is not referenced by a " +
                     "@provides directive in the schema."
+                ]
+            },
+            // Subselections.
+            {
+                [
+                    """
+                    # Source schema A
+                    type Review {
+                        id: ID!
+                        product: Product @provides(fields: "name variation { id }")
+                    }
+
+                    type Product @key(fields: "sku variation { id }") {
+                        sku: String! @external
+                        variation: ProductVariation!
+                        name: String!
+                    }
+
+                    type ProductVariation {
+                        id: String!
+                        size: String! @external
+                    }
+                    """
+                ],
+                [
+                    "The external field 'Product.sku' in schema 'A' is not referenced by a " +
+                    "@provides directive in the schema.",
+
+                    "The external field 'ProductVariation.size' in schema 'A' is not referenced " +
+                    "by a @provides directive in the schema."
+                ]
+            },
+            // Fragments.
+            {
+                [
+                    """"
+                    # Source schema A
+                    type Review {
+                        id: ID!
+                        # The @provides directive tells us that this source schema can supply
+                        # different fields depending on which concrete type of Product is returned.
+                        product: Product
+                            @provides(
+                                fields: """
+                                ... on Book { id }
+                                ... on Clothing { id }
+                                """
+                            )
+                    }
+
+                    interface Product @key(fields: "id") {
+                        id: ID!
+                    }
+
+                    type Book implements Product {
+                        id: ID!
+                        title: String!
+                        author: String! @external
+                    }
+
+                    type Clothing implements Product {
+                        id: ID!
+                        name: String!
+                        size: String! @external
+                    }
+
+                    type Query {
+                        reviews: [Review!]!
+                    }
+                    """"
+                ],
+                [
+                    "The external field 'Book.author' in schema 'A' is not referenced by a " +
+                    "@provides directive in the schema.",
+
+                    "The external field 'Clothing.size' in schema 'A' is not referenced " +
+                    "by a @provides directive in the schema."
                 ]
             }
         };

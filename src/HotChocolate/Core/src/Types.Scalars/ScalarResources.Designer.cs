@@ -141,7 +141,7 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Hsl scalar type represents a a valid a CSS HSL color defined in https://www.w3.org/TR/css-color-3/#hsl-color..
+        ///   Looks up a localized string similar to The Hsl scalar type represents a valid CSS HSL color defined in https://www.w3.org/TR/css-color-3/#hsl-color..
         /// </summary>
         internal static string HslType_Description {
             get {
@@ -168,7 +168,7 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The IPv4 scalar type represents a valid a IPv4 address as defined in RFC791.
+        ///   Looks up a localized string similar to The IPv4 scalar type represents a valid IPv4 address as defined in RFC791.
         /// </summary>
         internal static string IPv4Type_Description {
             get {
@@ -195,7 +195,7 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The IPv6 scalar type represents a valid a IPv6 address as defined in RFC8064.
+        ///   Looks up a localized string similar to The IPv6 scalar type represents a valid IPv6 address as defined in RFC8064.
         /// </summary>
         internal static string IPv6Type_Description {
             get {
@@ -222,7 +222,7 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The ISBN scalar type is a ISBN-10 or ISBN-13 number: https://en.wikipedia.org/wiki/International_Standard_Book_Number..
+        ///   Looks up a localized string similar to The ISBN scalar type is an ISBN-10 or ISBN-13 number: https://en.wikipedia.org/wiki/International_Standard_Book_Number..
         /// </summary>
         internal static string IsbnType_Description {
             get {
@@ -330,7 +330,7 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `MacAddress` scalar type represents a IEEE 802 48-bit or 64-bit Mac address, represented as UTF-8 character sequences. The scalar follows the specifications defined in RFC7042 and RFC7043 respectively..
+        ///   Looks up a localized string similar to The `MacAddress` scalar type represents an IEEE 802 48-bit or 64-bit Mac address, represented as UTF-8 character sequences. The scalar follows the specifications defined in RFC7042 and RFC7043 respectively..
         /// </summary>
         internal static string MacAddressType_Description {
             get {
@@ -636,7 +636,7 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to PostalCodeType cannot parse the provided literal. The provided value is a invalid postal code..
+        ///   Looks up a localized string similar to PostalCodeType cannot parse the provided literal. The provided value is an invalid postal code..
         /// </summary>
         internal static string PostalCodeType_IsInvalid_ParseLiteral {
             get {
@@ -645,7 +645,7 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to PostalCodeType cannot parse the provided value. The provided value is a invalid postal code..
+        ///   Looks up a localized string similar to PostalCodeType cannot parse the provided value. The provided value is an invalid postal code..
         /// </summary>
         internal static string PostalCodeType_IsInvalid_ParseValue {
             get {
@@ -672,7 +672,7 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Rgba scalar type represents a  valid CSS RGBA color as defined in https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba(). .
+        ///   Looks up a localized string similar to The Rgba scalar type represents a valid CSS RGBA color as defined in https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()..
         /// </summary>
         internal static string RgbaType_Description {
             get {
@@ -699,7 +699,7 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Rgb scalar type represents a  valid CSS RGB color as defined in https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba(). .
+        ///   Looks up a localized string similar to The Rgb scalar type represents a valid CSS RGB color as defined in https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()..
         /// </summary>
         internal static string RgbType_Description {
             get {

@@ -28,15 +28,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<InputParserOptions> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         builder.Services.AddInputParser(configure);
         return builder;
@@ -63,15 +56,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IServiceCollection services,
         Action<InputParserOptions> configure)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configure);
 
         var options = new InputParserOptions();
         configure(options);

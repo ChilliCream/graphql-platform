@@ -8,7 +8,7 @@ internal static class UriHelper
     /// <summary>
     /// The set of characters that are unreserved in RFC 2396 but are NOT unreserved in RFC 3986.
     /// </summary>
-    private static readonly char[] UriRfc3986CharsToEscape = ['!', '*', '\'', '(', ')'];
+    private static readonly char[] s_uriRfc3986CharsToEscape = ['!', '*', '\'', '(', ')'];
 
     /// <summary>
     /// Escapes a string according to the URI data string rules given in RFC 3986.
@@ -24,7 +24,7 @@ internal static class UriHelper
         var escaped = new StringBuilder(Uri.EscapeDataString(value));
 
         // Upgrade the escaping to RFC 3986, if necessary.
-        foreach (var character in UriRfc3986CharsToEscape)
+        foreach (var character in s_uriRfc3986CharsToEscape)
         {
             escaped.Replace(character.ToString(), Uri.HexEscape(character));
         }

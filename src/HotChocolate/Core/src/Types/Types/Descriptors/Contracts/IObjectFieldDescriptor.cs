@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 /// A fluent configuration API for GraphQL object type fields.
 /// </summary>
 public interface IObjectFieldDescriptor
-    : IDescriptor<ObjectFieldDefinition>
+    : IDescriptor<ObjectFieldConfiguration>
     , IFluent
 {
     /// <summary>
@@ -182,7 +182,7 @@ public interface IObjectFieldDescriptor
     /// private sealed class Resolvers
     /// {
     ///    public ValueTask<string> GetFoo(
-    ///        [Service] IFooService service,
+    ///        IFooService service,
     ///        CancellationToken cancellationToken) =>
     ///        service.GetFooAsync(cancellationToken);
     /// }
@@ -215,7 +215,7 @@ public interface IObjectFieldDescriptor
     /// private sealed class Resolvers
     /// {
     ///    public ValueTask<string> GetFoo(
-    ///        [Service] IFooService service,
+    ///        IFooService service,
     ///        CancellationToken cancellationToken) =>
     ///        service.GetFooAsync(cancellationToken);
     /// }

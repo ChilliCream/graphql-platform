@@ -20,15 +20,15 @@ public sealed class GeoJsonMultiPointType
             .Description(GeoJson_Field_Coordinates_Description_MultiPoint);
 
         descriptor
-            .Field<GeoJsonResolvers>(x => x.GetType(default!))
+            .Field<GeoJsonResolvers>(x => x.GetType(null!))
             .Description(GeoJson_Field_Type_Description);
 
         descriptor
-            .Field<GeoJsonResolvers>(x => x.GetBbox(default!))
+            .Field<GeoJsonResolvers>(x => x.GetBbox(null!))
             .Description(GeoJson_Field_Bbox_Description);
 
         descriptor
-            .Field<GeoJsonResolvers>(x => x.GetCrs(default!))
+            .Field<GeoJsonResolvers>(x => x.GetCrs(null!))
             .Description(GeoJson_Field_Crs_Description);
     }
 }

@@ -6,18 +6,17 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
-using HotChocolate.Types.Relay;
 
 namespace HotChocolate;
 
 internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
 {
     private ITypeInspector _typeInspector = null!;
-    private ExtendedTypeReference _nodeTypeReference = null!;
+    private ObjectTypeConfiguration? _mutationDef;
 
-    internal override bool IsEnabled(IDescriptorContext context)
+    public override bool IsEnabled(IDescriptorContext context)
         => context.Options.EnableSemanticNonNull;
 
     internal override void InitializeContext(
@@ -28,70 +27,38 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
         TypeReferenceResolver typeReferenceResolver)
     {
         _typeInspector = context.TypeInspector;
-
-        _nodeTypeReference = _typeInspector.GetTypeRef(typeof(NodeType));
     }
 
-    /// <summary>
-    /// After the root types have been resolved, we go through all the fields of the mutation type
-    /// and undo semantic non-nullability. This is because mutations can be chained and we want to retain
-    /// the null-bubbling so execution is aborted once one non-null mutation field produces an error.
-    /// We have to do this in a different hook because the mutation type is not yet fully resolved in the
-    /// <see cref="OnAfterCompleteName"/> hook.
-    /// </summary>
-    public override void OnAfterResolveRootType(
-        ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+    public override void OnAfterResolveRootType(ITypeCompletionContext completionContext, ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
-        if (operationType == OperationType.Mutation)
+        if (operationType is OperationType.Mutation)
         {
-            foreach (var field in definition.Fields)
-            {
-                if (field.IsIntrospectionField)
-                {
-                    continue;
-                }
-
-                if (!field.HasDirectives)
-                {
-                    continue;
-                }
-
-                var semanticNonNullDirective =
-                    field.Directives.FirstOrDefault(d => d.Value is SemanticNonNullDirective);
-
-                if (semanticNonNullDirective is not null)
-                {
-                    field.Directives.Remove(semanticNonNullDirective);
-                }
-
-                var semanticNonNullFormatterDefinition =
-                    field.FormatterDefinitions.FirstOrDefault(fd => fd.Key == WellKnownMiddleware.SemanticNonNull);
-
-                if (semanticNonNullFormatterDefinition is not null)
-                {
-                    field.FormatterDefinitions.Remove(semanticNonNullFormatterDefinition);
-                }
-            }
+            _mutationDef = configuration;
         }
     }
 
-    public override void OnAfterCompleteName(ITypeCompletionContext completionContext, DefinitionBase definition)
+    public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, TypeSystemConfiguration configuration)
     {
         if (completionContext.IsIntrospectionType)
         {
             return;
         }
 
-        if (definition is ObjectTypeDefinition objectDef)
+        if (configuration is ObjectTypeConfiguration objectDef)
         {
             if (objectDef.Name is "CollectionSegmentInfo" or "PageInfo")
             {
                 return;
             }
 
-            var implementsNode = objectDef.Interfaces.Any(i => i.Equals(_nodeTypeReference));
+            // We undo semantic non-nullability on each mutation field, since mutations can be chained
+            // and we want to retain the null-bubbling so execution is aborted if a non-null mutation field
+            // produces an error.
+            if (objectDef == _mutationDef)
+            {
+                return;
+            }
 
             foreach (var field in objectDef.Fields)
             {
@@ -100,7 +67,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
                     continue;
                 }
 
-                if (implementsNode && field.Name == "id")
+                if (field.Name == "id")
                 {
                     continue;
                 }
@@ -119,10 +86,10 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
 
                 ApplySemanticNonNullDirective(field, completionContext, levels);
 
-                field.FormatterDefinitions.Add(CreateSemanticNonNullResultFormatterDefinition(levels));
+                field.FormatterConfigurations.Add(CreateSemanticNonNullResultFormatterConfiguration(levels));
             }
         }
-        else if (definition is InterfaceTypeDefinition interfaceDef)
+        else if (configuration is InterfaceTypeConfiguration interfaceDef)
         {
             if (interfaceDef.Name == "Node")
             {
@@ -133,6 +100,11 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
             foreach (var field in interfaceDef.Fields)
             {
                 if (field.Type is null)
+                {
+                    continue;
+                }
+
+                if (field.Name == "id")
                 {
                     continue;
                 }
@@ -150,7 +122,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
     }
 
     private void ApplySemanticNonNullDirective(
-        OutputFieldDefinitionBase field,
+        OutputFieldConfiguration field,
         ITypeCompletionContext completionContext,
         HashSet<int> levels)
     {
@@ -235,7 +207,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
             else if (currentType is NonNullType nonNullType)
             {
                 levels.Add(index);
-                currentType = nonNullType.Type;
+                currentType = nonNullType.NullableType;
             }
             else
             {
@@ -274,7 +246,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
         return levels;
     }
 
-    private static readonly bool?[] _fullNullablePattern = Enumerable.Range(0, 32).Select(_ => (bool?)true).ToArray();
+    private static readonly bool?[] s_fullNullablePattern = Enumerable.Range(0, 32).Select(_ => (bool?)true).ToArray();
 
     private static TypeReference BuildNullableTypeStructure(
         TypeReference typeReference,
@@ -283,7 +255,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
         if (typeReference is ExtendedTypeReference extendedTypeRef)
         {
             return extendedTypeRef.WithType(typeInspector.ChangeNullability(extendedTypeRef.Type,
-                _fullNullablePattern));
+                s_fullNullablePattern));
         }
 
         if (typeReference is SchemaTypeReference schemaRef)
@@ -308,7 +280,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
 
         if (typeSystemMember is NonNullType nonNullType)
         {
-            return BuildNullableTypeStructure(nonNullType.Type);
+            return BuildNullableTypeStructure(nonNullType.NullableType);
         }
 
         return (IType)typeSystemMember;
@@ -329,15 +301,15 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
         return typeNode;
     }
 
-    private static ResultFormatterDefinition CreateSemanticNonNullResultFormatterDefinition(HashSet<int> levels)
+    private static ResultFormatterConfiguration CreateSemanticNonNullResultFormatterConfiguration(HashSet<int> levels)
         => new((context, result) =>
             {
                 CheckResultForSemanticNonNullViolations(result, context, context.Path, levels, 0);
 
                 return result;
             },
-            key: WellKnownMiddleware.SemanticNonNull,
-            isRepeatable: false);
+            isRepeatable: false,
+            key: WellKnownMiddleware.SemanticNonNull);
 
     private static void CheckResultForSemanticNonNullViolations(object? result, IResolverContext context, Path path,
         HashSet<int> levels,

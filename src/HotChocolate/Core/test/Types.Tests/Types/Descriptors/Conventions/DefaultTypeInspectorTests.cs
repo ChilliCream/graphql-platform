@@ -435,7 +435,7 @@ public class DefaultTypeInspectorTests
         var typeInspector = new DefaultTypeInspector();
 
         // act
-        void Action() => typeInspector.GetType(typeof(Foo), default!);
+        void Action() => typeInspector.GetType(typeof(Foo), null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -585,7 +585,7 @@ public class DefaultTypeInspectorTests
         var nullability = typeInspector.CollectNullability(extendedType);
 
         // assert
-        Assert.Collection(nullability, item => Assert.True(item));
+        Assert.Collection(nullability, Assert.True);
     }
 
     [Fact]
@@ -599,7 +599,7 @@ public class DefaultTypeInspectorTests
         var nullability = typeInspector.CollectNullability(extendedType);
 
         // assert
-        Assert.Collection(nullability, item => Assert.False(item));
+        Assert.Collection(nullability, Assert.False);
     }
 
     [Fact]
@@ -649,7 +649,7 @@ public class DefaultTypeInspectorTests
     {
         public object ShouldNotBeFound { get; }
 
-        [SomeAttribute]
+        [Some]
         public object ShouldBeFound { get; }
     }
 
@@ -671,7 +671,7 @@ public class DefaultTypeInspectorTests
     {
         public object ShouldNotBeFound() => null;
 
-        [SomeAttribute]
+        [Some]
         public object ShouldBeFound() => null;
     }
 
@@ -723,7 +723,7 @@ public class DefaultTypeInspectorTests
     {
         public ValueTask<object> ShouldNotBeFound() => default;
 
-        [SomeAttribute]
+        [Some]
         public ValueTask<object> ShouldBeFound() => default;
     }
 
@@ -753,7 +753,7 @@ public class DefaultTypeInspectorTests
     public enum BarEnum
     {
         Bar,
-        Baz,
+        Baz
     }
 
     public class DoNotInfer
@@ -764,7 +764,7 @@ public class DefaultTypeInspectorTests
 
         public void ReturnsVoid() { }
 
-        public object ObjectProp { get; } = null;
+        public object ObjectProp { get; }
 
         public string ByRefParameter(ref string s) => s;
 

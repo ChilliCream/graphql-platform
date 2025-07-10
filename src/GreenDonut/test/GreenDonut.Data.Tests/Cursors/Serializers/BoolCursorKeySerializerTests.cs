@@ -2,7 +2,7 @@ namespace GreenDonut.Data.Cursors.Serializers;
 
 public class BoolCursorKeySerializerTests
 {
-    private static readonly BoolCursorKeySerializer Serializer = new();
+    private static readonly BoolCursorKeySerializer s_serializer = new();
 
     [Theory]
     [MemberData(nameof(Data))]
@@ -12,7 +12,7 @@ public class BoolCursorKeySerializerTests
         Span<byte> buffer = stackalloc byte[1];
 
         // act
-        var success = Serializer.TryFormat(boolean, buffer, out var written);
+        var success = s_serializer.TryFormat(boolean, buffer, out var written);
 
         // assert
         Assert.True(success);
@@ -25,7 +25,7 @@ public class BoolCursorKeySerializerTests
     public void Parse(bool result, byte[] formattedKey)
     {
         // arrange & act
-        var boolean = (bool)Serializer.Parse(formattedKey);
+        var boolean = (bool)s_serializer.Parse(formattedKey);
 
         // assert
         Assert.Equal(result, boolean);

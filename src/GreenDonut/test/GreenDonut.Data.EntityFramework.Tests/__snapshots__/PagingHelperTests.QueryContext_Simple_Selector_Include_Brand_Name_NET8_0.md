@@ -18,6 +18,6 @@ ORDER BY t."Id"
 ## Expression 0
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderByDescending(t => t.Id).Select(root => new Product() {Id = root.Id, Name = root.Name, Brand = new Brand() {Name = root.Brand.Name}}).Reverse().Take(3)
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Id).Select(root => new Product() {Id = root.Id, Name = root.Name, Brand = new Brand() {Name = root.Brand.Name}}).Take(3)
 ```
 

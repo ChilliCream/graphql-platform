@@ -13,10 +13,7 @@ public static class ProjectionProviderDescriptorExtensions
     public static IProjectionProviderDescriptor RegisterQueryableHandler(
         this IProjectionProviderDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.RegisterFieldHandler<QueryableProjectionScalarHandler>();
         descriptor.RegisterFieldHandler<QueryableProjectionListHandler>();

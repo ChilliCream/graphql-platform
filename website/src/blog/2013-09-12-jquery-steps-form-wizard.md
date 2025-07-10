@@ -122,7 +122,7 @@ Actually, we are done but to offer users a rich and intuitive experience we will
 | `onFinishing`    | Fires before finishing and can be used to prevent completion by returning `false`. Very useful for form validation or checking preconditions.           |
 | `onFinished`     | Fires after completion.                                                                                                                                 |
 
-These useful events will help us realizing pretty neat functionality. So the events ending on -ing will be invoked right after an user interaction but before any internal logic gets executed. Those events will be very helpful to prevent step changing and submission. The events ending with -ed will happen after everything is executed and let us execute custom logic (e.g. skipping a step and submitting a form via AJAX).
+These useful events will help us realizing pretty neat functionality. So the events ending on -ing will be invoked right after a user interaction but before any internal logic gets executed. Those events will be very helpful to prevent step changing and submission. The events ending with -ed will happen after everything is executed and let us execute custom logic (e.g. skipping a step and submitting a form via AJAX).
 
 Internally, it's implemented like this:
 

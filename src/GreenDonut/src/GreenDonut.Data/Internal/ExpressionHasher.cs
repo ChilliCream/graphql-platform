@@ -71,7 +71,7 @@ internal sealed class ExpressionHasher : ExpressionVisitor
 
     public string Compute()
     {
-        var hashBytes = MD5.HashData(_buffer.AsSpan().Slice(0, _start));
+        var hashBytes = MD5.HashData(_buffer.AsSpan()[.._start]);
 
 #if NET9_0_OR_GREATER
         var hashString = Convert.ToHexStringLower(hashBytes);
@@ -79,7 +79,7 @@ internal sealed class ExpressionHasher : ExpressionVisitor
         var hashString = Convert.ToHexString(hashBytes).ToLowerInvariant();
 #endif
 
-        _buffer.AsSpan().Slice(0, _start).Clear();
+        _buffer.AsSpan()[.._start].Clear();
 
         if (_buffer.Length > _initialSize)
         {
@@ -211,10 +211,10 @@ internal sealed class ExpressionHasher : ExpressionVisitor
     {
         int written;
 
-        while (!Utf8Formatter.TryFormat(i, _buffer.AsSpan().Slice(_start), out written))
+        while (!Utf8Formatter.TryFormat(i, _buffer.AsSpan()[_start..], out written))
         {
             var newBuffer = ArrayPool<byte>.Shared.Rent(_buffer.Length * 2);
-            _buffer.AsSpan().Slice(0, _start).CopyTo(newBuffer);
+            _buffer.AsSpan()[.._start].CopyTo(newBuffer);
             ArrayPool<byte>.Shared.Return(_buffer);
             _buffer = newBuffer;
         }
@@ -287,17 +287,17 @@ internal sealed class ExpressionHasher : ExpressionVisitor
 
     private void Append(string s)
     {
-        var span = _buffer.AsSpan().Slice(_start);
+        var span = _buffer.AsSpan()[_start..];
         var chars = s.AsSpan();
         int written;
 
         while (!Encoding.UTF8.TryGetBytes(chars, span, out written))
         {
             var newBuffer = ArrayPool<byte>.Shared.Rent(_buffer.Length * 2);
-            _buffer.AsSpan().Slice(0, _start).CopyTo(newBuffer);
+            _buffer.AsSpan()[.._start].CopyTo(newBuffer);
             ArrayPool<byte>.Shared.Return(_buffer);
             _buffer = newBuffer;
-            span = _buffer.AsSpan().Slice(_start);
+            span = _buffer.AsSpan()[_start..];
         }
 
         _start += written;
@@ -305,16 +305,16 @@ internal sealed class ExpressionHasher : ExpressionVisitor
 
     private void Append(ReadOnlySpan<char> s)
     {
-        var span = _buffer.AsSpan().Slice(_start);
+        var span = _buffer.AsSpan()[_start..];
         int written;
 
         while (!Encoding.UTF8.TryGetBytes(s, span, out written))
         {
             var newBuffer = ArrayPool<byte>.Shared.Rent(_buffer.Length * 2);
-            _buffer.AsSpan().Slice(0, _start).CopyTo(newBuffer);
+            _buffer.AsSpan()[.._start].CopyTo(newBuffer);
             ArrayPool<byte>.Shared.Return(_buffer);
             _buffer = newBuffer;
-            span = _buffer.AsSpan().Slice(_start);
+            span = _buffer.AsSpan()[_start..];
         }
 
         _start += written;
@@ -335,15 +335,15 @@ internal sealed class ExpressionHasher : ExpressionVisitor
 
     private void Append(ReadOnlySpan<byte> span)
     {
-        var bufferSpan = _buffer.AsSpan().Slice(_start);
+        var bufferSpan = _buffer.AsSpan()[_start..];
 
         while (!span.TryCopyTo(bufferSpan))
         {
             var newBuffer = ArrayPool<byte>.Shared.Rent(_buffer.Length * 2);
-            _buffer.AsSpan().Slice(0, _start).CopyTo(newBuffer);
+            _buffer.AsSpan()[.._start].CopyTo(newBuffer);
             ArrayPool<byte>.Shared.Return(_buffer);
             _buffer = newBuffer;
-            bufferSpan = _buffer.AsSpan().Slice(_start);
+            bufferSpan = _buffer.AsSpan()[_start..];
         }
 
         _start += span.Length;

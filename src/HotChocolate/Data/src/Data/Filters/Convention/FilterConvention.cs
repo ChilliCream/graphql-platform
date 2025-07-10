@@ -13,21 +13,21 @@ namespace HotChocolate.Data.Filters;
 /// The filter convention provides defaults for inferring filters.
 /// </summary>
 public class FilterConvention
-    : Convention<FilterConventionDefinition>
+    : Convention<FilterConventionConfiguration>
         , IFilterConvention
 {
-    private const string _inputPostFix = "FilterInput";
-    private const string _inputTypePostFix = "FilterInputType";
+    private const string InputPostFix = "FilterInput";
+    private const string InputTypePostFix = "FilterInputType";
 
     private Action<IFilterConventionDescriptor>? _configure;
-    private INamingConventions _namingConventions = default!;
-    private IReadOnlyDictionary<int, FilterOperation> _operations = default!;
-    private IDictionary<Type, Type> _bindings = default!;
-    private IDictionary<TypeReference, List<ConfigureFilterInputType>> _configs = default!;
+    private INamingConventions _namingConventions = null!;
+    private IReadOnlyDictionary<int, FilterOperation> _operations = null!;
+    private IDictionary<Type, Type> _bindings = null!;
+    private IDictionary<TypeReference, List<ConfigureFilterInputType>> _configs = null!;
 
-    private string _argumentName = default!;
-    private IFilterProvider _provider = default!;
-    private ITypeInspector _typeInspector = default!;
+    private string _argumentName = null!;
+    private IFilterProvider _provider = null!;
+    private ITypeInspector _typeInspector = null!;
     private bool _useAnd;
     private bool _useOr;
 
@@ -42,10 +42,11 @@ public class FilterConvention
             throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new FilterConventionDefinition? Definition => base.Definition;
+    internal new FilterConventionConfiguration? Configuration => base.Configuration;
 
     /// <inheritdoc />
-    protected override FilterConventionDefinition CreateDefinition(IConventionContext context)
+    protected override FilterConventionConfiguration CreateConfiguration(
+        IConventionContext context)
     {
         if (_configure is null)
         {
@@ -60,7 +61,7 @@ public class FilterConvention
         _configure!(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     /// <summary>
@@ -77,35 +78,35 @@ public class FilterConvention
     /// <inheritdoc />
     protected internal override void Complete(IConventionContext context)
     {
-        if (Definition?.Provider is null)
+        if (Configuration?.Provider is null)
         {
-            throw FilterConvention_NoProviderFound(GetType(), Definition?.Scope);
+            throw FilterConvention_NoProviderFound(GetType(), Configuration?.Scope);
         }
 
-        if (Definition.ProviderInstance is null)
+        if (Configuration.ProviderInstance is null)
         {
             _provider =
-                (IFilterProvider)GetServiceOrCreateInstance(context.Services, Definition.Provider) ??
-                throw FilterConvention_NoProviderFound(GetType(), Definition.Scope);
+                (IFilterProvider)GetServiceOrCreateInstance(context.Services, Configuration.Provider) ??
+                throw FilterConvention_NoProviderFound(GetType(), Configuration.Scope);
         }
         else
         {
-            _provider = Definition.ProviderInstance;
+            _provider = Configuration.ProviderInstance;
         }
 
         _namingConventions = context.DescriptorContext.Naming;
         _operations =
-            Definition.Operations.ToDictionary(x => x.Id, FilterOperation.FromDefinition);
-        _bindings = Definition.Bindings;
-        _configs = Definition.Configurations;
-        _argumentName = Definition.ArgumentName;
-        _useAnd = Definition.UseAnd;
-        _useOr = Definition.UseOr;
+            Configuration.Operations.ToDictionary(x => x.Id, FilterOperation.FromConfiguration);
+        _bindings = Configuration.Bindings;
+        _configs = Configuration.Configurations;
+        _argumentName = Configuration.ArgumentName;
+        _useAnd = Configuration.UseAnd;
+        _useOr = Configuration.UseOr;
 
         if (_provider is IFilterProviderConvention init)
         {
             var extensions =
-                CollectExtensions(context.Services, Definition);
+                CollectExtensions(context.Services, Configuration);
             init.Initialize(context, this);
             MergeExtensions(context, init, extensions);
             init.Complete(context);
@@ -114,17 +115,14 @@ public class FilterConvention
         _typeInspector = context.DescriptorContext.TypeInspector;
 
         // It is important to always call base to continue the cleanup and the disposal of the
-        // definition
+        // configuration
         base.Complete(context);
     }
 
     /// <inheritdoc />
     public virtual string GetTypeName(Type runtimeType)
     {
-        if (runtimeType is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeType));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeType);
 
         if (typeof(IEnumOperationFilterInputType).IsAssignableFrom(runtimeType) &&
             runtimeType.GenericTypeArguments.Length == 1 &&
@@ -160,22 +158,22 @@ public class FilterConvention
         var name = _namingConventions.GetTypeName(runtimeType);
 
         var isInputObjectType = typeof(FilterInputType).IsAssignableFrom(runtimeType);
-        var isEndingInput = name.EndsWith(_inputPostFix, StringComparison.Ordinal);
-        var isEndingInputType = name.EndsWith(_inputTypePostFix, StringComparison.Ordinal);
+        var isEndingInput = name.EndsWith(InputPostFix, StringComparison.Ordinal);
+        var isEndingInputType = name.EndsWith(InputTypePostFix, StringComparison.Ordinal);
 
         if (isInputObjectType && isEndingInputType)
         {
-            return name.Substring(0, name.Length - 4);
+            return name[..^4];
         }
 
         if (isInputObjectType && !isEndingInput && !isEndingInputType)
         {
-            return name + _inputPostFix;
+            return name + InputPostFix;
         }
 
         if (!isInputObjectType && !isEndingInput)
         {
-            return name + _inputPostFix;
+            return name + InputPostFix;
         }
 
         return name;
@@ -196,10 +194,7 @@ public class FilterConvention
     /// <inheritdoc />
     public virtual ExtendedTypeReference GetFieldType(MemberInfo member)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         if (TryCreateFilterType(_typeInspector.GetReturnType(member, true), out var rt))
         {
@@ -268,13 +263,13 @@ public class FilterConvention
 
     public bool TryGetHandler(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition,
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration,
         [NotNullWhen(true)] out IFilterFieldHandler? handler)
     {
         foreach (var filterFieldHandler in _provider.FieldHandlers)
         {
-            if (filterFieldHandler.CanHandle(context, typeDefinition, fieldDefinition))
+            if (filterFieldHandler.CanHandle(context, typeConfiguration, fieldConfiguration))
             {
                 handler = filterFieldHandler;
 
@@ -289,9 +284,9 @@ public class FilterConvention
 
     public IFilterMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
-        => _provider.CreateMetaData(context, typeDefinition, fieldDefinition);
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration)
+        => _provider.CreateMetaData(context, typeConfiguration, fieldConfiguration);
 
     protected bool TryCreateFilterType(
         IExtendedType runtimeType,
@@ -320,7 +315,7 @@ public class FilterConvention
             return true;
         }
 
-        if (runtimeType.Type is { IsValueType: true, IsPrimitive: false, })
+        if (runtimeType.Type is { IsValueType: true, IsPrimitive: false })
         {
             type = typeof(FilterInputType<>).MakeGenericType(runtimeType.Type);
 
@@ -341,12 +336,12 @@ public class FilterConvention
 
     private static IReadOnlyList<IFilterProviderExtension> CollectExtensions(
         IServiceProvider serviceProvider,
-        FilterConventionDefinition definition)
+        FilterConventionConfiguration configuration)
     {
         var extensions = new List<IFilterProviderExtension>();
-        extensions.AddRange(definition.ProviderExtensions);
+        extensions.AddRange(configuration.ProviderExtensions);
 
-        foreach (var extensionType in definition.ProviderExtensionsTypes)
+        foreach (var extensionType in configuration.ProviderExtensionsTypes)
         {
             extensions.Add((IFilterProviderExtension)GetServiceOrCreateInstance(serviceProvider, extensionType));
         }

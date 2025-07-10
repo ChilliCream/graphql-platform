@@ -25,19 +25,20 @@ public class ClientModel
     /// The input types that could be passed in.
     /// </param>
     public ClientModel(
-        ISchema schema,
+        Schema schema,
         IReadOnlyList<OperationModel> operations,
         IReadOnlyList<LeafTypeModel> leafTypes,
         IReadOnlyList<InputObjectTypeModel> inputObjectTypes)
     {
-        Operations = operations ??
-                     throw new ArgumentNullException(nameof(operations));
-        LeafTypes = leafTypes ??
-                    throw new ArgumentNullException(nameof(leafTypes));
-        InputObjectTypes = inputObjectTypes ??
-                           throw new ArgumentNullException(nameof(inputObjectTypes));
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(operations);
+        ArgumentNullException.ThrowIfNull(leafTypes);
+        ArgumentNullException.ThrowIfNull(inputObjectTypes);
 
         Schema = schema;
+        Operations = operations;
+        LeafTypes = leafTypes;
+        InputObjectTypes = inputObjectTypes;
 
         var outputTypes = new Dictionary<string, OutputTypeModel>(StringComparer.Ordinal);
         var entities = new Dictionary<string, EntityModel>(StringComparer.Ordinal);
@@ -46,17 +47,13 @@ public class ClientModel
         {
             foreach (var outputType in operation.OutputTypes)
             {
-                if (!outputTypes.ContainsKey(outputType.Name))
+                if (outputTypes.TryAdd(outputType.Name, outputType) &&
+                    !outputType.IsInterface &&
+                    outputType.Type.IsEntity() &&
+                    !entities.ContainsKey(outputType.Type.Name) &&
+                    outputType.Type is IComplexTypeDefinition complexOutputType)
                 {
-                    outputTypes.Add(outputType.Name, outputType);
-
-                    if (!outputType.IsInterface &&
-                        outputType.Type.IsEntity() &&
-                        !entities.ContainsKey(outputType.Type.Name) &&
-                        outputType.Type is IComplexOutputType complexOutputType)
-                    {
-                        entities.Add(outputType.Type.Name, new EntityModel(complexOutputType));
-                    }
+                    entities.Add(outputType.Type.Name, new EntityModel(complexOutputType));
                 }
             }
         }
@@ -68,7 +65,7 @@ public class ClientModel
     /// <summary>
     /// The analyzed schema
     /// </summary>
-    public ISchema Schema { get; }
+    public Schema Schema { get; }
 
     /// <summary>
     /// Gets the operations

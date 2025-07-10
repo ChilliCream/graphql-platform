@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 namespace GreenDonut;
 
 public class PromiseCacheTests
@@ -6,9 +8,10 @@ public class PromiseCacheTests
     public void ConstructorNoException()
     {
         // arrange
-        var cacheSize = 1;
+        const int cacheSize = 1;
 
         // act
+        // ReSharper disable once ObjectCreationAsStatement
         void Verify() => new PromiseCache(cacheSize);
 
         // assert
@@ -33,16 +36,16 @@ public class PromiseCacheTests
         Assert.Equal(expectedCacheSize, result);
     }
 
-    [InlineData(new[] { "Foo", }, 1)]
-    [InlineData(new[] { "Foo", "Bar", }, 2)]
-    [InlineData(new[] { "Foo", "Bar", "Baz", }, 3)]
+    [InlineData(new[] { "Foo" }, 1)]
+    [InlineData(new[] { "Foo", "Bar" }, 2)]
+    [InlineData(new[] { "Foo", "Bar", "Baz" }, 3)]
     [InlineData(new[] { "Foo", "Bar", "Baz", "Qux", "Quux", "Corge",
-        "Grault", "Graply", "Waldo", "Fred", "Plugh", "xyzzy", }, 10)]
+        "Grault", "Graply", "Waldo", "Fred", "Plugh", "xyzzy" }, 10)]
     [Theory(DisplayName = "Usage: Should return the expected cache usage")]
     public void Usage(string[] values, int expectedUsage)
     {
         // arrange
-        var cacheSize = 10;
+        const int cacheSize = 10;
         var cache = new PromiseCache(cacheSize);
 
         foreach (var value in values)
@@ -61,7 +64,7 @@ public class PromiseCacheTests
     public void ClearNoException()
     {
         // arrange
-        var cacheSize = 10;
+        const int cacheSize = 10;
         var cache = new PromiseCache(cacheSize);
 
         // act
@@ -75,7 +78,7 @@ public class PromiseCacheTests
     public void ClearEmptyCache()
     {
         // arrange
-        var cacheSize = 10;
+        const int cacheSize = 10;
         var cache = new PromiseCache(cacheSize);
 
         // act
@@ -89,7 +92,7 @@ public class PromiseCacheTests
     public void ClearAllEntries()
     {
         // arrange
-        var cacheSize = 10;
+        const int cacheSize = 10;
         var cache = new PromiseCache(cacheSize);
 
         cache.TryAdd(new PromiseCacheKey("a", "Foo"), new Promise<string>("Bar"));
@@ -106,9 +109,9 @@ public class PromiseCacheTests
     public void RemoveNoException()
     {
         // arrange
-        var cacheSize = 10;
+        const int cacheSize = 10;
         var cache = new PromiseCache(cacheSize);
-        var key = "Foo";
+        const string key = "Foo";
 
         // act
         bool Verify() => cache.TryRemove(new("a", key));
@@ -121,7 +124,7 @@ public class PromiseCacheTests
     public void RemoveEntry()
     {
         // arrange
-        var cacheSize = 10;
+        const int cacheSize = 10;
         var cache = new PromiseCache(cacheSize);
         var key = new PromiseCacheKey("a", "Foo");
         var value = Task.FromResult("Bar");
@@ -140,7 +143,7 @@ public class PromiseCacheTests
     public void TryAddValueNull()
     {
         // arrange
-        var cacheSize = 10;
+        const int cacheSize = 10;
         var cache = new PromiseCache(cacheSize);
         var key = new PromiseCacheKey("a", "Foo");
 
@@ -155,7 +158,7 @@ public class PromiseCacheTests
     public void TryAddNewCacheEntry()
     {
         // arrange
-        var cacheSize = 10;
+        const int cacheSize = 10;
         var cache = new PromiseCache(cacheSize);
         var key = new PromiseCacheKey("a", "Foo");
         var expected = new Promise<string>("Bar");
@@ -174,7 +177,7 @@ public class PromiseCacheTests
     public void TryAddNewCacheEntryWithFactory()
     {
         // arrange
-        var cacheSize = 10;
+        const int cacheSize = 10;
         var cache = new PromiseCache(cacheSize);
         var key = new PromiseCacheKey("a", "Foo");
         var expected = new Promise<string>(Task.FromResult("Bar"));
@@ -193,7 +196,7 @@ public class PromiseCacheTests
     public void TryAddTwice()
     {
         // arrange
-        var cacheSize = 10;
+        const int cacheSize = 10;
         var cache = new PromiseCache(cacheSize);
         var key = new PromiseCacheKey("a", "Foo");
         var expected = Task.FromResult("Bar");
@@ -215,7 +218,7 @@ public class PromiseCacheTests
     public async Task GetOrAddTaskWhenNothingIsCached()
     {
         // arrange
-        var cacheSize = 10;
+        const int cacheSize = 10;
         var cache = new PromiseCache(cacheSize);
         var key = new PromiseCacheKey("a", "Foo");
 
@@ -230,7 +233,7 @@ public class PromiseCacheTests
     public async Task GetOrAddTaskWhenNothingIsCached_IntegerKey()
     {
         // arrange
-        var cacheSize = 10;
+        const int cacheSize = 10;
         var cache = new PromiseCache(cacheSize);
         var key = new PromiseCacheKey("a", 1);
 
@@ -239,5 +242,91 @@ public class PromiseCacheTests
 
         // assert
         Assert.Equal("Quox", await resolved);
+    }
+
+    [Fact]
+    public async Task GetOrAddTask_When_SecondLevelEntry_Exists()
+    {
+        // arrange
+        const int cacheSize = 10;
+        var secondLevel = new SecondLevelCache();
+        var cache = new PromiseCache(cacheSize) { Interceptor = secondLevel };
+        var key = new PromiseCacheKey("abc", "abc");
+
+        // act
+        var resolved = cache.GetOrAddTask(key, _ => new Promise<string>(Task.FromResult("Quox")));
+
+        // assert
+        Assert.Equal("def", await resolved);
+    }
+
+    [Fact]
+    public async Task GetOrAddTask_When_SecondLevelEntry_Not_Exists()
+    {
+        // arrange
+        const int cacheSize = 10;
+        var secondLevel = new SecondLevelCache();
+        var cache = new PromiseCache(cacheSize) { Interceptor = secondLevel };
+        var key = new PromiseCacheKey("abc", "123");
+
+        // act
+        await cache.GetOrAddTask(key, _ => new Promise<string>(Task.FromResult("quox")));
+
+        // assert
+        var secondLevelEntry = (Task<string>)secondLevel.Cache[key];
+        Assert.Equal("quox", await secondLevelEntry);
+    }
+
+    [Fact]
+    public async Task TryAddTask_To_SecondLevelCache_1()
+    {
+        // arrange
+        const int cacheSize = 10;
+        var secondLevel = new SecondLevelCache();
+        var cache = new PromiseCache(cacheSize) { Interceptor = secondLevel };
+        var key = new PromiseCacheKey("abc", "123");
+
+        // act
+        cache.TryAdd(key, () => new Promise<string>(Task.FromResult("quox")));
+
+        // assert
+        var secondLevelEntry = (Task<string>)secondLevel.Cache[key];
+        Assert.Equal("quox", await secondLevelEntry);
+    }
+
+    [Fact]
+    public async Task TryAddTask_To_SecondLevelCache_2()
+    {
+        // arrange
+        const int cacheSize = 10;
+        var secondLevel = new SecondLevelCache();
+        var cache = new PromiseCache(cacheSize) { Interceptor = secondLevel };
+        var key = new PromiseCacheKey("abc", "123");
+
+        // act
+        cache.TryAdd(key, new Promise<string>(Task.FromResult("quox")));
+
+        // assert
+        var secondLevelEntry = (Task<string>)secondLevel.Cache[key];
+        Assert.Equal("quox", await secondLevelEntry);
+    }
+
+    public class SecondLevelCache : IPromiseCacheInterceptor
+    {
+        private readonly ConcurrentDictionary<PromiseCacheKey, Task> _cache = new()
+        {
+            [new PromiseCacheKey("abc", "abc")] = Task.FromResult("def")
+        };
+
+        public ConcurrentDictionary<PromiseCacheKey, Task> Cache => _cache;
+
+        public Promise<T> GetOrAddPromise<T>(PromiseCacheKey key, Func<PromiseCacheKey, Promise<T>> createPromise)
+        {
+            var entry = _cache.GetOrAdd(key, _ => createPromise(key).Task);
+            return new Promise<T>((Task<T>)entry);
+        }
+
+        public bool TryAdd<T>(PromiseCacheKey key, Promise<T> promise)
+            => _cache.TryAdd(key, promise.Task);
     }
 }

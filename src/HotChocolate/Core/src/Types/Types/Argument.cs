@@ -1,8 +1,10 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Internal.FieldInitHelper;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 #nullable enable
 
@@ -11,9 +13,9 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a field or directive argument.
 /// </summary>
-public class Argument : FieldBase, IInputField
+public class Argument : FieldBase, IInputValueDefinition, IInputValueInfo
 {
-    private Type _runtimeType = default!;
+    private Type _runtimeType = null!;
 
     /// <summary>
     /// Initializes a new <see cref="Argument"/>.
@@ -24,7 +26,7 @@ public class Argument : FieldBase, IInputField
     /// <param name="index">
     /// The position of this argument within its field collection.
     /// </param>
-    public Argument(ArgumentDefinition definition, int index)
+    public Argument(ArgumentConfiguration definition, int index)
         : base(definition, index)
     {
         DefaultValue = definition.DefaultValue;
@@ -43,29 +45,22 @@ public class Argument : FieldBase, IInputField
         {
             Formatter = new AggregateInputValueFormatter(formatters);
         }
-
-        IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
-        DeprecationReason = definition.DeprecationReason;
     }
 
     /// <summary>
-    /// Gets the type system member that declares this argument.
+    /// Gets the type that declares the field to which this argument belongs to.
     /// </summary>
-    public ITypeSystemMember DeclaringMember { get; private set; } = default!;
+    public new IOutputTypeDefinition DeclaringType => Unsafe.As<IOutputTypeDefinition>(base.DeclaringType);
 
-    /// <inheritdoc />
-    public IInputType Type { get; private set; } = default!;
-
-    /// <inheritdoc />
-    public bool IsDeprecated { get; }
-
-    /// <inheritdoc />
-    public string? DeprecationReason { get; }
+    /// <summary>
+    /// Gets the type of this field.
+    /// </summary>
+    public new IInputType Type => Unsafe.As<IInputType>(base.Type);
 
     /// <inheritdoc />
     public override Type RuntimeType => _runtimeType;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IInputValueDefinition.DefaultValue" />
     public IValueNode? DefaultValue { get; private set; }
 
     /// <inheritdoc />
@@ -79,13 +74,13 @@ public class Argument : FieldBase, IInputField
     protected sealed override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnCompleteField(context, declaringMember, (ArgumentDefinition)definition);
+        FieldConfiguration definition)
+        => OnCompleteField(context, declaringMember, (ArgumentConfiguration)definition);
 
     protected virtual void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        ArgumentDefinition definition)
+        ArgumentConfiguration definition)
     {
         if (definition.Type is null)
         {
@@ -100,23 +95,21 @@ public class Argument : FieldBase, IInputField
 
         base.OnCompleteField(context, declaringMember, definition);
 
-        Type = context.GetType<IInputType>(definition.Type!).EnsureInputType();
         _runtimeType = definition.GetRuntimeType()!;
         _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
         IsOptional = isOptional;
-        DeclaringMember = declaringMember;
     }
 
     protected sealed override void OnCompleteMetadata(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnCompleteMetadata(context, declaringMember, (ArgumentDefinition)definition);
+        FieldConfiguration definition)
+        => OnCompleteMetadata(context, declaringMember, (ArgumentConfiguration)definition);
 
     protected virtual void OnCompleteMetadata(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        ArgumentDefinition definition)
+        ArgumentConfiguration definition)
     {
         DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
         base.OnCompleteMetadata(context, declaringMember, definition);
@@ -125,32 +118,28 @@ public class Argument : FieldBase, IInputField
     protected sealed override void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnMakeExecutable(context, declaringMember, (ArgumentDefinition)definition);
+        FieldConfiguration definition)
+        => OnMakeExecutable(context, declaringMember, (ArgumentConfiguration)definition);
 
     protected virtual void OnMakeExecutable(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        ArgumentDefinition definition) =>
+        ArgumentConfiguration definition) =>
         base.OnMakeExecutable(context, declaringMember, definition);
 
     protected sealed override void OnFinalizeField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        FieldDefinitionBase definition)
-        => OnFinalizeField(context, declaringMember, (ArgumentDefinition)definition);
+        FieldConfiguration definition)
+        => OnFinalizeField(context, declaringMember, (ArgumentConfiguration)definition);
 
     protected virtual void OnFinalizeField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        ArgumentDefinition definition) =>
+        ArgumentConfiguration definition) =>
         base.OnFinalizeField(context, declaringMember, definition);
 
-    /// <summary>
-    /// Returns a string that represents the current argument.
-    /// </summary>
-    /// <returns>
-    /// A string that represents the current argument.
-    /// </returns>
-    public override string ToString() => $"{Name}:{Type.Print()}";
+    public InputValueDefinitionNode ToSyntaxNode() => Format(this);
+
+    protected override ISyntaxNode FormatField() => ToSyntaxNode();
 }

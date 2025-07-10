@@ -32,19 +32,6 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
 {
     /// <summary>
     /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
-    /// that defines the name of the argument for filtering
-    /// </summary>
-    public static readonly string ContextArgumentNameKey = "FilterArgumentName";
-
-    /// <summary>
-    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
-    /// that holds the delegate which does the visitation of the filtering argument.
-    /// <see cref="VisitFilterArgument"/>
-    /// </summary>
-    public static readonly string ContextVisitFilterArgumentKey = nameof(VisitFilterArgument);
-
-    /// <summary>
-    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that holds the delegate which applies the filtering to input
     /// <see cref="ApplyFiltering"/>
     /// </summary>
@@ -100,11 +87,8 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         string argumentName,
         IObjectFieldDescriptor descriptor)
     {
-        var contextData = descriptor.Extend().Definition.ContextData;
-        var argumentKey = (VisitFilterArgument)VisitFilterArgumentExecutor;
-        contextData[ContextVisitFilterArgumentKey] = argumentKey;
-        contextData[ContextArgumentNameKey] = argumentName;
-        return;
+        var feature = new FilterFeature(argumentName, VisitFilterArgumentExecutor);
+        descriptor.Extend().Configuration.Features.Set(feature);
 
         QueryableFilterContext VisitFilterArgumentExecutor(
             IValueNode valueNode,
@@ -123,25 +107,25 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
     /// <inheritdoc />
     public override IFilterMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration)
     {
-        if (fieldDefinition.Expression is null)
+        if (fieldConfiguration.Expression is null)
         {
             return null;
         }
 
-        if (fieldDefinition.Expression is not LambdaExpression lambda ||
+        if (fieldConfiguration.Expression is not LambdaExpression lambda ||
             lambda.Parameters.Count != 1 ||
-            lambda.Parameters[0].Type != typeDefinition.EntityType)
+            lambda.Parameters[0].Type != typeConfiguration.EntityType)
         {
             throw ThrowHelper.QueryableFilterProvider_ExpressionParameterInvalid(
                 context.Type,
-                typeDefinition,
-                fieldDefinition);
+                typeConfiguration,
+                fieldConfiguration);
         }
 
-        return new ExpressionFilterMetadata(fieldDefinition.Expression);
+        return new ExpressionFilterMetadata(fieldConfiguration.Expression);
     }
 
     /// <summary>
@@ -157,7 +141,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
     /// </returns>
     protected virtual bool IsInMemoryQuery<TEntityType>(object? input)
     {
-        return input is IQueryableExecutable<TEntityType> { IsInMemory: var inMemory, }
+        return input is IQueryableExecutable<TEntityType> { IsInMemory: var inMemory }
             ? inMemory
             : input is not IQueryable or EnumerableQuery;
     }
@@ -177,7 +161,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
             IQueryable<TEntityType> q => q.Where(where),
             IEnumerable<TEntityType> q => q.AsQueryable().Where(where),
             IQueryableExecutable<TEntityType> q => q.WithSource(q.Source.Where(where)),
-            _ => input,
+            _ => input
         };
 
     private ApplyFiltering CreateApplicator<TEntityType>(string argumentName)
@@ -222,12 +206,10 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
             return null;
         }
 
-        if (argument.Type is IFilterInputType filterInput &&
-            context.Selection.Field.ContextData.TryGetValue(ContextVisitFilterArgumentKey,
-                out var executorObj) &&
-            executorObj is VisitFilterArgument executor)
+        if (argument.Type is IFilterInputType filterInput
+            && context.Selection.Field.Features.TryGet(out FilterFeature? feature))
         {
-            var visitorContext = executor(filter, filterInput, isInMemory);
+            var visitorContext = feature.ArgumentVisitor.Invoke(filter, filterInput, isInMemory);
 
             // compile expression tree
             if (visitorContext.Errors.Count == 0)

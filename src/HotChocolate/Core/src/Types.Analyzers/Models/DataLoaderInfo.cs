@@ -90,7 +90,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
             {
                 foreach (var method in MethodSymbol.ContainingType.GetMembers()
                     .OfType<IMethodSymbol>()
-                    .Where(m => m.Name == lookup))
+                    .Where(m => m.Name == lookup && m.MethodKind is MethodKind.Ordinary))
                 {
                     if (method.Parameters.Length == 1
                         && method.Parameters[0].Type.Equals(valueType, SymbolEqualityComparer.Default)
@@ -110,7 +110,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
             return builder.ToImmutable();
         }
 
-        return ImmutableArray<CacheLookup>.Empty;
+        return [];
     }
 
     private void Validate(
@@ -306,7 +306,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
     public override bool Equals(object? obj)
         => obj is DataLoaderInfo other && Equals(other);
 
-    public override bool Equals(SyntaxInfo obj)
+    public override bool Equals(SyntaxInfo? obj)
         => obj is DataLoaderInfo other && Equals(other);
 
     private bool Equals(DataLoaderInfo other)

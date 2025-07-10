@@ -8,6 +8,4 @@ namespace HotChocolate.Data.Filters;
 /// <see cref="FilterOperationHandler{TContext,T}"/> easier.
 /// <example><see cref="QueryableListAnyOperationHandler"/></example>
 /// </summary>
-public interface IListFilterInputType
-{
-}
+public interface IListFilterInputType;

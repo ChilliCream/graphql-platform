@@ -1,0 +1,18 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo: LocalTime
+}
+
+"""
+LocalTime represents a time of day, with no reference to a particular calendar, time zone, or date.
+
+Allowed patterns:
+- `hh:mm:ss.sssssssss`
+
+Examples:
+- `20:00:00.999`
+"""
+scalar LocalTime

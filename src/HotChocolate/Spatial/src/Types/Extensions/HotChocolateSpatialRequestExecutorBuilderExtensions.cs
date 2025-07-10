@@ -28,10 +28,7 @@ public static class HotChocolateSpatialRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Func<SpatialConvention> conventionFactory)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder
             .ConfigureSchema(x => x.AddSpatialTypes(conventionFactory));

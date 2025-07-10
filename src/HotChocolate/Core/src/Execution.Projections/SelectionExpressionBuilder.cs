@@ -5,20 +5,43 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Requirements;
 using HotChocolate.Features;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Execution.Projections;
 
 internal sealed class SelectionExpressionBuilder
 {
-    private static readonly NullabilityInfoContext _nullabilityInfoContext = new();
+    private static readonly HashSet<Type> s_runtimeLeafTypes =
+    [
+        typeof(string),
+        typeof(byte),
+        typeof(short),
+        typeof(int),
+        typeof(long),
+        typeof(float),
+        typeof(byte),
+        typeof(decimal),
+        typeof(Guid),
+        typeof(bool),
+        typeof(char),
+        typeof(byte?),
+        typeof(short?),
+        typeof(int?),
+        typeof(long?),
+        typeof(float?),
+        typeof(byte?),
+        typeof(decimal?),
+        typeof(Guid?),
+        typeof(bool?),
+        typeof(char?)
+    ];
 
     public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(ISelection selection)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
-        var context = new Context(parameter, rootType, requirements);
+        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext());
         var root = new TypeContainer();
 
         CollectTypes(context, selection, root);
@@ -38,7 +61,7 @@ internal sealed class SelectionExpressionBuilder
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
-        var context = new Context(parameter, rootType, requirements);
+        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext());
         var root = new TypeContainer();
 
         var entityType = selection.DeclaringOperation
@@ -184,9 +207,9 @@ internal sealed class SelectionExpressionBuilder
             return;
         }
 
-        var flags = ((ObjectField)selection.Field).Flags;
-        if ((flags & FieldFlags.Connection) == FieldFlags.Connection
-            || (flags & FieldFlags.CollectionSegment) == FieldFlags.CollectionSegment)
+        var flags = selection.Field.Flags;
+        if ((flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection
+            || (flags & CoreFieldFlags.CollectionSegment) == CoreFieldFlags.CollectionSegment)
         {
             return;
         }
@@ -203,7 +226,7 @@ internal sealed class SelectionExpressionBuilder
 
     private static void TryAddAnyLeafField(
         TypeNode parent,
-        IObjectType selectionType)
+        ObjectType selectionType)
     {
         // if we could not collect anything it means that either all fields
         // are skipped or that __typename is the only field that is selected.
@@ -216,10 +239,26 @@ internal sealed class SelectionExpressionBuilder
         }
         else
         {
+            // if id does not exist we will try to select any leaf field from the type.
             var anyProperty = selectionType.Fields.FirstOrDefault(t => t.Type.IsLeafType() && t.Member is PropertyInfo);
+
             if (anyProperty?.Member is PropertyInfo anyPropertyInfo)
             {
                 parent.AddOrGetNode(anyPropertyInfo);
+            }
+            else
+            {
+                // if we still have not found any leaf we will inspect the runtime type and
+                // try to select any leaf property.
+                var properties = selectionType.RuntimeType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                foreach (var property in properties)
+                {
+                    if (s_runtimeLeafTypes.Contains(property.PropertyType))
+                    {
+                        parent.AddOrGetNode(property);
+                        break;
+                    }
+                }
             }
         }
     }
@@ -252,7 +291,7 @@ internal sealed class SelectionExpressionBuilder
 
         if (node.Nodes.Count == 0)
         {
-            if (IsNullableType(node.Property))
+            if (IsNullableType(context, node.Property))
             {
                 var nullCheck = Expression.Condition(
                     Expression.Equal(propertyAccessor, Expression.Constant(null)),
@@ -273,7 +312,7 @@ internal sealed class SelectionExpressionBuilder
         var newContext = context with { Parent = propertyAccessor, ParentType = node.Property.PropertyType };
         var nestedExpression = BuildTypeSwitchExpression(newContext, node);
 
-        if (IsNullableType(node.Property))
+        if (IsNullableType(context, node.Property))
         {
             var nullCheck = Expression.Condition(
                 Expression.Equal(propertyAccessor, Expression.Constant(null)),
@@ -286,27 +325,27 @@ internal sealed class SelectionExpressionBuilder
         return nestedExpression is null ? null : Expression.Bind(node.Property, nestedExpression);
     }
 
-    private static bool IsNullableType(PropertyInfo propertyInfo)
+    private static bool IsNullableType(Context context, PropertyInfo propertyInfo)
     {
         if (propertyInfo.PropertyType.IsValueType)
         {
             return Nullable.GetUnderlyingType(propertyInfo.PropertyType) != null;
         }
 
-        var nullabilityInfo = _nullabilityInfoContext.Create(propertyInfo);
-
+        var nullabilityInfo = context.NullabilityInfoContext.Create(propertyInfo);
         return nullabilityInfo.WriteState == NullabilityState.Nullable;
     }
 
     private readonly record struct Context(
         Expression Parent,
         Type ParentType,
-        FieldRequirementsMetadata Requirements)
+        FieldRequirementsMetadata Requirements,
+        NullabilityInfoContext NullabilityInfoContext)
     {
         public TypeNode? GetRequirements(ISelection selection)
         {
-            var flags = ((ObjectField)selection.Field).Flags;
-            return (flags & FieldFlags.WithRequirements) == FieldFlags.WithRequirements
+            var flags = selection.Field.Flags;
+            return (flags & CoreFieldFlags.WithRequirements) == CoreFieldFlags.WithRequirements
                 ? Requirements.GetRequirements(selection.Field)
                 : null;
         }

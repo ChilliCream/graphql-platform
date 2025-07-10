@@ -1,0 +1,74 @@
+a Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+a SQL:
+---------------
+.param set @p 'a'
+
+SELECT "d"."Id"
+FROM "Data" AS "d"
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM "FooNested" AS "f"
+    WHERE "d"."Id" = "f"."FooId" AND ("f"."Bar" <> @p OR "f"."Bar" IS NULL))
+---------------
+
+d Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+d SQL:
+---------------
+.param set @p 'd'
+
+SELECT "d"."Id"
+FROM "Data" AS "d"
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM "FooNested" AS "f"
+    WHERE "d"."Id" = "f"."FooId" AND ("f"."Bar" <> @p OR "f"."Bar" IS NULL))
+---------------
+
+null Result:
+---------------
+{
+  "data": {
+    "root": []
+  }
+}
+---------------
+
+null SQL:
+---------------
+SELECT "d"."Id"
+FROM "Data" AS "d"
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM "FooNested" AS "f"
+    WHERE "d"."Id" = "f"."FooId" AND "f"."Bar" IS NOT NULL)
+---------------

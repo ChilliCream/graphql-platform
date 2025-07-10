@@ -10,29 +10,29 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
     public async Task Evict_Default_Schema()
     {
         // arrange
-        var newExecutorCreatedResetEvent = new AutoResetEvent(false);
+        var newExecutorCreatedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var server = CreateStarWarsServer();
 
-        var time1 = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ time }", });
+        var time1 = await server.GetAsync(new ClientQueryRequest { Query = "{ time }" });
 
-        var resolver = server.Services.GetRequiredService<IRequestExecutorResolver>();
-        resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
-        {
-            if (@event.Type == RequestExecutorEventType.Created)
-            {
-                newExecutorCreatedResetEvent.Set();
-            }
-        }));
+        var events = server.Services.GetRequiredService<IRequestExecutorEvents>();
+        events.Subscribe(
+            new RequestExecutorEventObserver(
+                @event =>
+                {
+                    if (@event.Type == RequestExecutorEventType.Created)
+                    {
+                        newExecutorCreatedResetEvent.Set();
+                    }
+                }));
 
         // act
-        await server.GetAsync(
-            new ClientQueryRequest { Query = "{ evict }", });
-        newExecutorCreatedResetEvent.WaitOne(5000);
+        await server.GetAsync(new ClientQueryRequest { Query = "{ evict }" });
+        newExecutorCreatedResetEvent.Wait(cts.Token);
 
         // assert
-        var time2 = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ time }", });
+        var time2 = await server.GetAsync(new ClientQueryRequest { Query = "{ time }" });
         Assert.False(((long)time1.Data!["time"]!).Equals((long)time2.Data!["time"]!));
     }
 
@@ -40,15 +40,16 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
     public async Task Evict_Named_Schema()
     {
         // arrange
-        var newExecutorCreatedResetEvent = new AutoResetEvent(false);
+        var newExecutorCreatedResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var server = CreateStarWarsServer();
 
         var time1 = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ time }", },
+            new ClientQueryRequest { Query = "{ time }" },
             "/evict");
 
-        var resolver = server.Services.GetRequiredService<IRequestExecutorResolver>();
-        resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
+        var events = server.Services.GetRequiredService<IRequestExecutorEvents>();
+        events.Subscribe(new RequestExecutorEventObserver(@event =>
         {
             if (@event.Type == RequestExecutorEventType.Created)
             {
@@ -58,13 +59,13 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
 
         // act
         await server.GetAsync(
-            new ClientQueryRequest { Query = "{ evict }", },
+            new ClientQueryRequest { Query = "{ evict }" },
             "/evict");
-        newExecutorCreatedResetEvent.WaitOne(5000);
+        newExecutorCreatedResetEvent.Wait(cts.Token);
 
         // assert
         var time2 = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ time }", },
+            new ClientQueryRequest { Query = "{ time }" },
             "/evict");
         Assert.False(((long)time1.Data!["time"]!).Equals((long)time2.Data!["time"]!));
     }

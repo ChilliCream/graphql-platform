@@ -1,6 +1,6 @@
 #pragma warning disable IDE1006 // Naming Styles
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __TypeKind : EnumType
 {
-    protected override EnumTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override EnumTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
         => new(Names.__TypeKind, TypeKind_Description, typeof(TypeKind))
         {
             Values =
@@ -23,8 +23,8 @@ internal sealed class __TypeKind : EnumType
                 new(Names.Enum, TypeKind_Enum, TypeKind.Enum),
                 new(Names.InputObject, TypeKind_InputObject, TypeKind.InputObject),
                 new(Names.List, TypeKind_List, TypeKind.List),
-                new(Names.NonNull, TypeKind_NonNull, TypeKind.NonNull),
-            },
+                new(Names.NonNull, TypeKind_NonNull, TypeKind.NonNull)
+            }
         };
 
     public static class Names

@@ -10,7 +10,7 @@ namespace HotChocolate.Configuration;
 
 internal sealed class TypeRegistry
 {
-    private readonly Dictionary<TypeReference, RegisteredType> _typeRegister = new();
+    private readonly Dictionary<TypeReference, RegisteredType> _typeRegister = [];
     private readonly Dictionary<ExtendedTypeReference, TypeReference> _runtimeTypeRefs =
         new(new ExtendedTypeRefEqualityComparer());
     private readonly Dictionary<string, TypeReference> _nameRefs = new(StringComparer.Ordinal);
@@ -34,10 +34,7 @@ internal sealed class TypeRegistry
 
     public bool IsRegistered(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         if (_typeRegister.ContainsKey(typeReference))
         {
@@ -57,10 +54,7 @@ internal sealed class TypeRegistry
         TypeReference typeRef,
         [NotNullWhen(true)] out RegisteredType? registeredType)
     {
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
+        ArgumentNullException.ThrowIfNull(typeRef);
 
         if (typeRef is ExtendedTypeReference clrTypeRef &&
             _runtimeTypeRefs.TryGetValue(clrTypeRef, out var internalRef))
@@ -75,10 +69,7 @@ internal sealed class TypeRegistry
         ExtendedTypeReference runtimeTypeRef,
         [NotNullWhen(true)] out TypeReference? typeRef)
     {
-        if (runtimeTypeRef is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeTypeRef));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeTypeRef);
 
         return _runtimeTypeRefs.TryGetValue(runtimeTypeRef, out typeRef);
     }
@@ -102,28 +93,15 @@ internal sealed class TypeRegistry
 
     public void TryRegister(ExtendedTypeReference runtimeTypeRef, TypeReference typeRef)
     {
-        if (runtimeTypeRef is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeTypeRef));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeTypeRef);
+        ArgumentNullException.ThrowIfNull(typeRef);
 
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
-
-        if (!_runtimeTypeRefs.ContainsKey(runtimeTypeRef))
-        {
-            _runtimeTypeRefs.Add(runtimeTypeRef, typeRef);
-        }
+        _runtimeTypeRefs.TryAdd(runtimeTypeRef, typeRef);
     }
 
     public void Register(RegisteredType registeredType)
     {
-        if (registeredType is null)
-        {
-            throw new ArgumentNullException(nameof(registeredType));
-        }
+        ArgumentNullException.ThrowIfNull(registeredType);
 
         var addToTypes = !_typeRegister.ContainsValue(registeredType);
 
@@ -156,7 +134,7 @@ internal sealed class TypeRegistry
         if (!registeredType.IsExtension)
         {
             if (registeredType.IsNamedType &&
-                registeredType.Type is IHasTypeDefinition { Definition: { } typeDef, } &&
+                registeredType.Type is ITypeConfigurationProvider { Configuration: { } typeDef } &&
                 !_nameRefs.ContainsKey(typeDef.Name))
             {
                 _nameRefs.Add(typeDef.Name, registeredType.References[0]);
@@ -169,19 +147,16 @@ internal sealed class TypeRegistry
             }
             else if (registeredType.Kind == TypeKind.Directive &&
                 registeredType.Type is DirectiveType directive &&
-                !_nameRefs.ContainsKey(directive.Definition!.Name))
+                !_nameRefs.ContainsKey(directive.Configuration!.Name))
             {
-                _nameRefs.Add(directive.Definition.Name, registeredType.References[0]);
+                _nameRefs.Add(directive.Configuration.Name, registeredType.References[0]);
             }
         }
     }
 
     public void Register(string typeName, ExtendedTypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         typeName.EnsureGraphQLName();
 
@@ -190,22 +165,15 @@ internal sealed class TypeRegistry
 
     public void Register(string typeName, RegisteredType registeredType)
     {
-        if (registeredType is null)
-        {
-            throw new ArgumentNullException(nameof(registeredType));
-        }
-
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
+        ArgumentNullException.ThrowIfNull(registeredType);
 
         if (registeredType.IsExtension)
         {
             return;
         }
 
-        if (registeredType is { IsNamedType: false, IsDirectiveType: false, })
+        if (registeredType is { IsNamedType: false, IsDirectiveType: false })
         {
             return;
         }

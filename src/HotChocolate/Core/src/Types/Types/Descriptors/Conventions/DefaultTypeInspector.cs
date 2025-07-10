@@ -3,6 +3,7 @@
 using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -22,14 +23,14 @@ namespace HotChocolate.Types.Descriptors;
 /// </summary>
 public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Convention, ITypeInspector
 {
-    private const string _toString = "ToString";
-    private const string _getHashCode = "GetHashCode";
-    private const string _compareTo = "CompareTo";
-    private const string _equals = "Equals";
-    private const string _clone = "<Clone>$";
+    private const string ToStringMethodName = "ToString";
+    private const string GetHashCodeMethodName = "GetHashCode";
+    private const string CompareToMethodName = "CompareTo";
+    private const string EqualsMethodName = "Equals";
+    private const string CloneMethodName = "<Clone>$";
 
     private readonly TypeCache _typeCache = new();
-    private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods = new();
+    private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods = [];
     private readonly ConcurrentDictionary<(Type, bool, bool), MemberInfo[]> _memberCache = new();
 
     /// <summary>
@@ -44,10 +45,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         bool includeStatic = false,
         bool allowObject = false)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         var cacheKey = (type, includeIgnored, includeStatic);
 
@@ -71,7 +69,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             }
         }
 
-        var span = temp.AsSpan().Slice(0, next);
+        var span = temp.AsSpan()[..next];
         var selectedMembers = new MemberInfo[next];
         span.CopyTo(selectedMembers);
         span.Clear();
@@ -84,10 +82,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     /// <inheritdoc />
     public virtual bool IsMemberIgnored(MemberInfo member)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         return member.IsDefined(typeof(GraphQLIgnoreAttribute));
     }
@@ -99,10 +94,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         string? scope = null,
         bool ignoreAttributes = false)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         TypeReference typeRef = TypeReference.Create(GetReturnType(member), context, scope);
 
@@ -121,10 +113,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         MemberInfo member,
         bool ignoreAttributes = false)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         IExtendedType returnType = ExtendedType.FromMember(member, _typeCache);
 
@@ -139,10 +128,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         string? scope = null,
         bool ignoreAttributes = false)
     {
-        if (parameter is null)
-        {
-            throw new ArgumentNullException(nameof(parameter));
-        }
+        ArgumentNullException.ThrowIfNull(parameter);
 
         TypeReference typeRef = TypeReference.Create(
             GetArgumentType(
@@ -166,10 +152,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         ParameterInfo parameter,
         bool ignoreAttributes = false)
     {
-        if (parameter is null)
-        {
-            throw new ArgumentNullException(nameof(parameter));
-        }
+        ArgumentNullException.ThrowIfNull(parameter);
 
         var argumentType = GetArgumentTypeInternal(parameter);
         return ignoreAttributes
@@ -200,10 +183,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     /// <inheritdoc />
     public IExtendedType GetType(Type type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return ExtendedType.FromType(type, _typeCache);
     }
@@ -211,19 +191,12 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     /// <inheritdoc />
     public IExtendedType GetType(Type type, params bool?[] nullable)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (nullable is null)
-        {
-            throw new ArgumentNullException(nameof(nullable));
-        }
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(nullable);
 
         var extendedType = ExtendedType.FromType(type, _typeCache);
 
-        return nullable is { Length: > 0, }
+        return nullable is { Length: > 0 }
             ? ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
             : extendedType;
     }
@@ -231,14 +204,11 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     /// <inheritdoc />
     public IExtendedType GetType(Type type, ReadOnlySpan<bool?> nullable)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         var extendedType = ExtendedType.FromType(type, _typeCache);
 
-        return nullable is { Length: > 0, }
+        return nullable is { Length: > 0 }
             ? ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
             : extendedType;
     }
@@ -246,10 +216,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     /// <inheritdoc />
     public virtual IEnumerable<object> GetEnumValues(Type enumType)
     {
-        if (enumType is null)
-        {
-            throw new ArgumentNullException(nameof(enumType));
-        }
+        ArgumentNullException.ThrowIfNull(enumType);
 
         if (enumType != typeof(object) && enumType.IsEnum)
         {
@@ -262,10 +229,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     /// <inheritdoc />
     public MemberInfo? GetEnumValueMember(object value)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         var enumType = value.GetType();
 
@@ -279,10 +243,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
 
     public virtual MemberInfo? GetNodeIdMember(Type type)
     {
-        if (type == null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         foreach (var member in GetMembers(type))
         {
@@ -299,10 +260,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
 
     public virtual MethodInfo? GetNodeResolverMethod(Type nodeType, Type? resolverType = null)
     {
-        if (nodeType is null)
-        {
-            throw new ArgumentNullException(nameof(nodeType));
-        }
+        ArgumentNullException.ThrowIfNull(nodeType);
 
         // if we are inspecting the node type itself the method mus be static and does
         // not need to include the node name.
@@ -386,10 +344,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     /// <inheritdoc />
     public Type ExtractNamedType(Type type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NativeType<>))
         {
@@ -402,10 +357,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     /// <inheritdoc />
     public bool IsSchemaType(Type type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return ExtendedType.Tools.IsSchemaType(type);
     }
@@ -430,7 +382,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
 
         Array.Sort(temp, 0, i, DescriptorAttributeComparer.Default);
 
-        var span = temp.AsSpan().Slice(0, i);
+        var span = temp.AsSpan()[..i];
 
         foreach (var attribute in span)
         {
@@ -506,15 +458,8 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     /// <inheritdoc />
     public IExtendedType ChangeNullability(IExtendedType type, params bool?[] nullable)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (nullable is null)
-        {
-            throw new ArgumentNullException(nameof(nullable));
-        }
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(nullable);
 
         if (nullable.Length > 32)
         {
@@ -532,15 +477,8 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
 
     private IExtendedType ChangeNullabilityInternal(IExtendedType type, params bool[] nullable)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (nullable is null)
-        {
-            throw new ArgumentNullException(nameof(nullable));
-        }
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(nullable);
 
         if (nullable.Length > 32)
         {
@@ -566,10 +504,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     /// <inheritdoc />
     public IExtendedType ChangeNullability(IExtendedType type, ReadOnlySpan<bool?> nullable)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (nullable.Length > 32)
         {
@@ -588,10 +523,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     /// <inheritdoc />
     public bool?[] CollectNullability(IExtendedType type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return ExtendedType.Tools.CollectNullability(type);
     }
@@ -599,10 +531,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     /// <inheritdoc />
     public bool CollectNullability(IExtendedType type, Span<bool?> buffer, out int written)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return ExtendedType.Tools.CollectNullability(type, buffer, out written);
     }
@@ -714,14 +643,21 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             return false;
         }
 
+        if ((member.IsDefined(typeof(GraphQLTypeAttribute), true) ||
+                member.IsDefined(typeof(DescriptorAttribute), true)) &&
+            member is PropertyInfo or MethodInfo)
+        {
+            return true;
+        }
+
         if (member.DeclaringType == typeof(object))
         {
             return false;
         }
 
-        if (member is PropertyInfo { CanRead: false, } ||
-            member is PropertyInfo { IsSpecialName: true, } ||
-            member is MethodInfo { IsSpecialName: true, })
+        if (member is PropertyInfo { CanRead: false } ||
+            member is PropertyInfo { IsSpecialName: true } ||
+            member is MethodInfo { IsSpecialName: true })
         {
             return false;
         }
@@ -732,7 +668,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
                 property.GetIndexParameters().Length == 0;
         }
 
-        if (member is MethodInfo { IsGenericMethodDefinition: false, } method &&
+        if (member is MethodInfo { IsGenericMethodDefinition: false } method &&
             CanHandleReturnType(member, method.ReturnType, allowObjectType))
         {
             foreach (var parameter in method.GetParameters())
@@ -784,6 +720,33 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             return false;
         }
 
+        if (typeof(IEnumerable<object>) == returnType ||
+            typeof(IAsyncEnumerable<object>) == returnType ||
+            typeof(IReadOnlyCollection<object>) == returnType ||
+            typeof(IReadOnlyList<object>) == returnType ||
+            typeof(ICollection<object>) == returnType ||
+            typeof(IList<object>) == returnType ||
+            typeof(IList) == returnType ||
+            typeof(ICollection) == returnType ||
+            typeof(List<object>) == returnType ||
+            typeof(Array) == returnType ||
+            typeof(object[]) == returnType ||
+            typeof(ImmutableArray<object>) == returnType ||
+            typeof(ImmutableList<object>) == returnType ||
+            typeof(ImmutableHashSet<object>) == returnType ||
+            typeof(ImmutableDictionary<object, object>) == returnType ||
+            typeof(HashSet<object>) == returnType ||
+            typeof(Dictionary<object, object>) == returnType ||
+            typeof(ConcurrentBag<object>) == returnType ||
+            typeof(ConcurrentDictionary<object, object>) == returnType ||
+            typeof(ConcurrentQueue<object>) == returnType ||
+            typeof(ConcurrentStack<object>) == returnType ||
+            typeof(Queue<object>) == returnType ||
+            typeof(Stack<object>) == returnType)
+        {
+            return false;
+        }
+
         // All other types may cause errors and need to have an explicit configuration.
         if (typeof(ITypeSystemMember).IsAssignableFrom(returnType))
         {
@@ -813,12 +776,12 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     private static bool CanHandleParameter(ParameterInfo parameter, bool allowObjectType)
     {
         // schema, object type and object field can be injected into a resolver, so
-        // we allow these as parameter type.
+        // we allow these as a parameter type.
         var parameterType = parameter.ParameterType;
 
-        if (typeof(ISchema).IsAssignableFrom(parameterType) ||
-            typeof(IObjectType).IsAssignableFrom(parameterType) ||
-            typeof(IOutputField).IsAssignableFrom(parameterType))
+        if (typeof(ISchemaDefinition).IsAssignableFrom(parameterType) ||
+            typeof(IObjectTypeDefinition).IsAssignableFrom(parameterType) ||
+            typeof(IOutputFieldDefinition).IsAssignableFrom(parameterType))
         {
             return true;
         }
@@ -887,11 +850,11 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     private static bool IsSystemMember(MemberInfo member)
     {
         if (member is MethodInfo m &&
-            (m.Name.EqualsOrdinal(_toString) ||
-                m.Name.EqualsOrdinal(_getHashCode) ||
-                m.Name.EqualsOrdinal(_equals) ||
-                m.Name.EqualsOrdinal(_compareTo) ||
-                m.Name.EqualsOrdinal(_clone)))
+            (m.Name.EqualsOrdinal(ToStringMethodName) ||
+                m.Name.EqualsOrdinal(GetHashCodeMethodName) ||
+                m.Name.EqualsOrdinal(EqualsMethodName) ||
+                m.Name.EqualsOrdinal(CompareToMethodName) ||
+                m.Name.EqualsOrdinal(CloneMethodName)))
         {
             return true;
         }

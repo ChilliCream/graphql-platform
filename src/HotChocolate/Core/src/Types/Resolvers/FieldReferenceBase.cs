@@ -14,10 +14,7 @@ public class FieldReferenceBase : IFieldReference
 
     protected FieldReferenceBase(FieldReferenceBase fieldReference)
     {
-        if (fieldReference is null)
-        {
-            throw new ArgumentNullException(nameof(fieldReference));
-        }
+        ArgumentNullException.ThrowIfNull(fieldReference);
 
         TypeName = fieldReference.TypeName;
         FieldName = fieldReference.FieldName;

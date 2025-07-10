@@ -1,7 +1,7 @@
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -71,47 +71,48 @@ public class TypeModuleTests
         // arrange
         var typeModule = new TriggerableTypeModule();
         var warmups = 0;
-        var warmupResetEvent = new AutoResetEvent(false);
+        var warmupResetEvent = new ManualResetEventSlim(false);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         var services = new ServiceCollection();
         services
             .AddGraphQL()
             .AddTypeModule(_ => typeModule)
-            .InitializeOnStartup(keepWarm: true, warmup: (_, _) =>
-            {
-                warmups++;
-                warmupResetEvent.Set();
-                return Task.CompletedTask;
-            })
+            .InitializeOnStartup(
+                warmup: (_, _) =>
+                {
+                    warmups++;
+                    warmupResetEvent.Set();
+                    return Task.CompletedTask;
+                },
+                keepWarm: true)
             .AddQueryType(d => d.Field("foo").Resolve(""));
         var provider = services.BuildServiceProvider();
         var warmupService = provider.GetRequiredService<IHostedService>();
 
-        using var cts = new CancellationTokenSource();
         _ = Task.Run(async () =>
         {
             await warmupService.StartAsync(CancellationToken.None);
         }, cts.Token);
 
-        var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
-
-        await resolver.GetRequestExecutorAsync(null, cts.Token);
+        await provider.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
 
         // act
         // assert
-        warmupResetEvent.WaitOne();
+        warmupResetEvent.Wait(cts.Token);
+        warmupResetEvent.Reset();
 
         Assert.Equal(1, warmups);
-        warmupResetEvent.Reset();
 
         typeModule.TriggerChange();
-        warmupResetEvent.WaitOne();
+        warmupResetEvent.Wait(cts.Token);
+        warmupResetEvent.Reset();
 
         Assert.Equal(2, warmups);
-        warmupResetEvent.Reset();
 
         typeModule.TriggerChange();
-        warmupResetEvent.WaitOne();
+        warmupResetEvent.Wait(cts.Token);
+        warmupResetEvent.Reset();
 
         Assert.Equal(3, warmups);
     }
@@ -133,14 +134,14 @@ public class TypeModuleTests
         {
             var list = new List<ITypeSystemMember>();
 
-            var typeDefinition = new ObjectTypeDefinition("Query");
+            var typeDefinition = new ObjectTypeConfiguration("Query");
             typeDefinition.Fields.Add(new(
                 "hello",
                 type: TypeReference.Parse("String!"),
                 pureResolver: _ => "world"));
             list.Add(ObjectType.CreateUnsafe(typeDefinition));
 
-            var typeExtensionDefinition = new ObjectTypeDefinition("Person");
+            var typeExtensionDefinition = new ObjectTypeConfiguration("Person");
             typeExtensionDefinition.Fields.Add(new(
                 "dynamic",
                 type: TypeReference.Parse("String!"),

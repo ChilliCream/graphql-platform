@@ -52,5 +52,5 @@ public class InputWithOptionalFile
 public class InputWithFile
 {
     [GraphQLType<NonNullType<UploadType>>]
-    public IFile File { get; set; } = default!;
+    public IFile File { get; set; } = null!;
 }

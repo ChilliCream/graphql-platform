@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Data/HotChocolate.Data.MongoDb.csproj" />
+    <Project Path="src/Types/HotChocolate.Types.MongoDb.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Data.MongoDb.Filters.Tests/HotChocolate.Data.MongoDb.Filters.Tests.csproj" />
+    <Project Path="test/Data.MongoDb.Paging.Tests/HotChocolate.Data.MongoDb.Paging.Tests.csproj" />
+    <Project Path="test/Data.MongoDb.Projections.Tests/HotChocolate.Data.MongoDb.Projections.Tests.csproj" />
+    <Project Path="test/Data.MongoDb.Sorting.Tests/HotChocolate.Data.MongoDb.Sorting.Tests.csproj" />
+    <Project Path="test/Types.MongoDb/HotChocolate.Types.MongoDb.Tests.csproj" />
+  </Folder>
+</Solution>

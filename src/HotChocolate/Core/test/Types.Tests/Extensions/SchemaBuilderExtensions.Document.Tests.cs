@@ -27,7 +27,7 @@ public class SchemaBuilderExtensionsDocumentTests
             SchemaBuilderExtensions.AddDocumentFromFile(builder, null);
 
         // assert
-        Assert.Throws<ArgumentException>(action);
+        Assert.Throws<ArgumentNullException>(action);
     }
 
     [Fact]

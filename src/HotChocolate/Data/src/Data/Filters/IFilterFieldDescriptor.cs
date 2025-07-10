@@ -4,7 +4,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Filters;
 
 public interface IFilterFieldDescriptor
-    : IDescriptor<FilterFieldDefinition>
+    : IDescriptor<FilterFieldConfiguration>
     , IFluent
 {
     IFilterFieldDescriptor Name(string value);

@@ -35,14 +35,14 @@ public class SortConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new[] { new Foo { Bar = "a", }, new Foo { Bar = "b", }, new Foo { Bar = "c", }, };
+        var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
         Assert.Collection(
             func(a),
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
 
-        var b = new[] { new Foo { Bar = "c", }, new Foo { Bar = "b", }, new Foo { Bar = "a", }, };
+        var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
         Assert.Collection(
             func(b),
             x => Assert.Equal("a", x.Bar),
@@ -71,8 +71,7 @@ public class SortConventionTests
         var type = new FooSortType();
 
         //act
-        var error =
-            Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+        var error = Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
         error.Errors.MatchSnapshot();
@@ -257,14 +256,14 @@ public class SortConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new[] { new Foo { Bar = "a", }, new Foo { Bar = "b", }, new Foo { Bar = "c", }, };
+        var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
         Assert.Collection(
             func(a),
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
 
-        var b = new[] { new Foo { Bar = "c", }, new Foo { Bar = "b", }, new Foo { Bar = "a", }, };
+        var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
         Assert.Collection(
             func(b),
             x => Assert.Equal("a", x.Bar),
@@ -303,14 +302,14 @@ public class SortConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new[] { new Foo { Bar = "a", }, new Foo { Bar = "b", }, new Foo { Bar = "c", }, };
+        var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
         Assert.Collection(
             func(a),
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
 
-        var b = new[] { new Foo { Bar = "c", }, new Foo { Bar = "b", }, new Foo { Bar = "a", }, };
+        var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
         Assert.Collection(
             func(b),
             x => Assert.Equal("a", x.Bar),
@@ -352,14 +351,14 @@ public class SortConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new[] { new Foo { Bar = "a", }, new Foo { Bar = "b", }, new Foo { Bar = "c", }, };
+        var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
         Assert.Collection(
             func(a),
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
 
-        var b = new[] { new Foo { Bar = "c", }, new Foo { Bar = "b", }, new Foo { Bar = "a", }, };
+        var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
         Assert.Collection(
             func(b),
             x => Assert.Equal("a", x.Bar),
@@ -367,7 +366,36 @@ public class SortConventionTests
             x => Assert.Equal("c", x.Bar));
     }
 
-    protected ISchema CreateSchemaWithTypes(
+    [Fact]
+    public void GetTypeName_TypeNameEndingWithSortInputType_RemovesTypeSuffix()
+    {
+        // arrange
+        var provider = new QueryableSortProvider(
+            descriptor =>
+            {
+                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
+            });
+        var convention = new SortConvention(descriptor =>
+        {
+            descriptor.Operation(DefaultSortOperations.Ascending).Name("asc");
+            descriptor.Provider(provider);
+        });
+        var sortInputType = new SortInputType(
+            d => d.Field("x").Type<TestEnumType>()
+                .ExtendWith(
+                    x => x.Configuration.Handler = new MatchAnyQueryableFieldHandler()));
+
+        // act
+        var schema = CreateSchemaWith(sortInputType, convention);
+
+        // assert
+        Assert.Equal(
+            "SortInput",
+            schema.Types.First(t => t.IsInputType() && !t.IsIntrospectionType()).Name);
+    }
+
+    protected Schema CreateSchemaWithTypes(
         ISortInputType type,
         SortConvention convention,
         params Type[] extensions)
@@ -391,7 +419,7 @@ public class SortConventionTests
         return builder.Create();
     }
 
-    protected ISchema CreateSchemaWith(
+    protected Schema CreateSchemaWith(
         ISortInputType type,
         SortConvention convention,
         params SortConventionExtension[] extensions)
@@ -442,7 +470,7 @@ public class SortConventionTests
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     public class FooSortType

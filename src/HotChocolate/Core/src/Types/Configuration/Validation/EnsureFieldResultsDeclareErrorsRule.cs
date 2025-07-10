@@ -6,11 +6,11 @@ namespace HotChocolate.Configuration.Validation;
 
 internal sealed class EnsureFieldResultsDeclareErrorsRule : ISchemaValidationRule
 {
-    private const string _errorKey = "HotChocolate.Types.Errors.ErrorDefinitions";
+    private const string ErrorKey = "HotChocolate.Types.ErrorFieldFeature";
 
     public void Validate(
         IDescriptorContext context,
-        ISchema schema,
+        ISchemaDefinition schema,
         ICollection<ISchemaError> errors)
     {
         var mutationType = schema.MutationType;
@@ -28,25 +28,25 @@ internal sealed class EnsureFieldResultsDeclareErrorsRule : ISchemaValidationRul
                 if (member is not null)
                 {
                     var returnType = member.GetReturnType();
-                    if (returnType is not null
-                        && returnType.IsGenericType
-                        && returnType.GenericTypeArguments.Length == 1)
+                    if (returnType is not { IsGenericType: true, GenericTypeArguments.Length: 1 })
                     {
-                        var typeDefinition = returnType.GetGenericTypeDefinition();
+                        continue;
+                    }
 
-                        if (typeDefinition == typeof(FieldResult<>))
+                    var typeDefinition = returnType.GetGenericTypeDefinition();
+
+                    if (typeDefinition == typeof(FieldResult<>))
+                    {
+                        EnsureErrorsAreDefined(field, errors);
+                    }
+                    else if (typeDefinition == typeof(ValueTask<>) || typeDefinition == typeof(Task<>))
+                    {
+                        var type = returnType.GenericTypeArguments[0];
+                        if (type.IsGenericType
+                            && type.GenericTypeArguments.Length == 1
+                            && type.GetGenericTypeDefinition() == typeof(FieldResult<>))
                         {
                             EnsureErrorsAreDefined(field, errors);
-                        }
-                        else if (typeDefinition == typeof(ValueTask<>) || typeDefinition == typeof(Task<>))
-                        {
-                            var type = returnType.GenericTypeArguments[0];
-                            if (type.IsGenericType
-                                && type.GenericTypeArguments.Length == 1
-                                && type.GetGenericTypeDefinition() == typeof(FieldResult<>))
-                            {
-                                EnsureErrorsAreDefined(field, errors);
-                            }
                         }
                     }
                 }
@@ -58,7 +58,7 @@ internal sealed class EnsureFieldResultsDeclareErrorsRule : ISchemaValidationRul
         ObjectField field,
         ICollection<ISchemaError> errors)
     {
-        if (!field.ContextData.ContainsKey(_errorKey))
+        if (!field.Features.Any(t => ErrorKey.Equals(t.Key.FullName, StringComparison.Ordinal)))
         {
             errors.Add(
                 SchemaErrorBuilder.New()

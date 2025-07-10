@@ -24,15 +24,22 @@ internal static class FieldSelectionMapUtilities
         return current;
     }
 
+#nullable disable
     public static SelectionSetNode ToSelectionSetNode(this ImmutableArray<FieldPath> paths)
     {
-        var selections = new ISelectionNode[paths.Length];
+        var selections = new List<ISelectionNode>();
 
-        for (var i = 0; i < paths.Length; i++)
+        foreach (var path in paths)
         {
-            selections[i] = paths[i].ToFieldNode();
+            if (path is null)
+            {
+                continue;
+            }
+
+            selections.Add(path.ToFieldNode());
         }
 
         return new SelectionSetNode(selections);
     }
+#nullable restore
 }

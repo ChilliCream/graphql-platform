@@ -15,14 +15,14 @@ public static class GreenDonutQueryContextExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        if(propertySelector is null)
+        if (propertySelector is null)
         {
             return context;
         }
 
         var normalizedSelector = ExpressionHelpers.Rewrite(propertySelector);
 
-        if(context.Selector is null)
+        if (context.Selector is null)
         {
             return context with
             {
@@ -44,12 +44,12 @@ public static class GreenDonutQueryContextExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        if(selector is null)
+        if (selector is null)
         {
             return context;
         }
 
-        if(context.Selector is null)
+        if (context.Selector is null)
         {
             return context with
             {

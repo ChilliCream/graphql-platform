@@ -1,4 +1,6 @@
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Configurations;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 #nullable enable
 
@@ -19,11 +21,11 @@ namespace HotChocolate.Types;
 /// </code>
 /// </summary>
 public partial class InputObjectType
-    : NamedTypeBase<InputObjectTypeDefinition>
-    , IInputObjectType
+    : NamedTypeBase<InputObjectTypeConfiguration>
+    , IInputObjectTypeDefinition
 {
     /// <summary>
-    /// Initializes a new  instance of <see cref="InputObjectType"/>.
+    /// Initializes a new instance of <see cref="InputObjectType"/>.
     /// </summary>
     protected InputObjectType()
     {
@@ -31,7 +33,7 @@ public partial class InputObjectType
     }
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="InputObjectType"/>.
+    /// Initializes a new instance of <see cref="InputObjectType"/>.
     /// </summary>
     /// <param name="configure">
     /// A delegate to specify the properties of this type.
@@ -54,8 +56,8 @@ public partial class InputObjectType
     /// <returns>
     /// Returns the newly created input object type.
     /// </returns>
-    public static InputObjectType CreateUnsafe(InputObjectTypeDefinition definition)
-        => new() { Definition = definition, };
+    public static InputObjectType CreateUnsafe(InputObjectTypeConfiguration definition)
+        => new() { Configuration = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.InputObject;
@@ -68,9 +70,10 @@ public partial class InputObjectType
     /// <summary>
     /// Gets the fields of this type.
     /// </summary>
-    public FieldCollection<InputField> Fields { get; private set; } = default!;
+    public InputFieldCollection Fields { get; private set; } = null!;
 
-    IFieldCollection<IInputField> IInputObjectType.Fields => Fields;
+    IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IInputObjectTypeDefinition.Fields
+        => Fields.AsReadOnlyFieldDefinitionCollection();
 
     internal object CreateInstance(object?[] fieldValues)
         => _createInstance(fieldValues);
@@ -87,4 +90,17 @@ public partial class InputObjectType
     protected virtual void Configure(IInputObjectTypeDescriptor descriptor)
     {
     }
+
+    /// <summary>
+    /// Creates a <see cref="InputObjectTypeDefinitionNode"/> that represents the input object type.
+    /// </summary>
+    /// <returns>
+    /// The GraphQL syntax node that represents the input object type.
+    /// </returns>
+    public new InputObjectTypeDefinitionNode ToSyntaxNode()
+        => Format(this);
+
+    /// <inheritdoc />
+    protected override ITypeDefinitionNode FormatType()
+        => Format(this);
 }

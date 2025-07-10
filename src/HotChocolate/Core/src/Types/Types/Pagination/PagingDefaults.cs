@@ -10,6 +10,8 @@ public static class PagingDefaults
 
     public const bool AllowBackwardPagination = true;
 
+    public const bool EnableRelativeCursors = false;
+
     public const bool InferConnectionNameFromField = true;
 
     public const bool InferCollectionSegmentNameFromField = true;
@@ -17,4 +19,17 @@ public static class PagingDefaults
     public const bool RequirePagingBoundaries = false;
 
     public const bool IncludeNodesField = true;
+
+    public static void Apply(PagingOptions options)
+    {
+        options.DefaultPageSize ??= DefaultPageSize;
+        options.MaxPageSize ??= MaxPageSize;
+        options.IncludeTotalCount ??= IncludeTotalCount;
+        options.AllowBackwardPagination ??= AllowBackwardPagination;
+        options.EnableRelativeCursors ??= EnableRelativeCursors;
+        options.InferConnectionNameFromField ??= InferConnectionNameFromField;
+        options.InferCollectionSegmentNameFromField ??= InferCollectionSegmentNameFromField;
+        options.RequirePagingBoundaries ??= RequirePagingBoundaries;
+        options.IncludeNodesField ??= IncludeNodesField;
+    }
 }

@@ -18,7 +18,7 @@ public static class SnapshotExtensions
             formatter: SnapshotValueFormatters.GraphQL);
 
     public static void MatchSnapshot(
-        this ISchema? value,
+        this ISchemaDefinition? value,
         string? postFix = null)
         => Snapshot.Match(
             value,

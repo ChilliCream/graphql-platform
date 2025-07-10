@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Models;
@@ -9,13 +10,15 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public sealed class OperationInspector : ISyntaxInspector
 {
-    public IReadOnlyList<ISyntaxFilter> Filters => [MethodWithAttribute.Instance];
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [MethodWithAttribute.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = [SyntaxKind.MethodDeclaration];
 
     public bool TryHandle(
         GeneratorSyntaxContext context,
         [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
-        if (context.Node is MethodDeclarationSyntax { AttributeLists.Count: > 0, } methodSyntax)
+        if (context.Node is MethodDeclarationSyntax { AttributeLists.Count: > 0 } methodSyntax)
         {
             foreach (var attributeListSyntax in methodSyntax.AttributeLists)
             {
@@ -32,7 +35,7 @@ public sealed class OperationInspector : ISyntaxInspector
                     var fullName = attributeContainingTypeSymbol.ToDisplayString();
                     var operationType = ParseOperationType(fullName);
 
-                    if(operationType == OperationType.No)
+                    if (operationType == OperationType.No)
                     {
                         continue;
                     }

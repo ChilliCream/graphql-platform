@@ -9,7 +9,7 @@ public class ToStringTests
     public void ObjectType_ToString()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             type Foo {
                 field: String
@@ -34,7 +34,7 @@ public class ToStringTests
     public void InterfaceType_ToString()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             interface Foo {
                 field: String
@@ -59,7 +59,7 @@ public class ToStringTests
     public void InputObjectType_ToString()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             input Foo {
                 field: String
@@ -84,7 +84,7 @@ public class ToStringTests
     public void OutputField_ToString()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             type Foo {
                 field: String
@@ -108,7 +108,7 @@ public class ToStringTests
     public void OutputField_WithArg_ToString()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             type Foo {
                 field(a: String): String
@@ -132,7 +132,7 @@ public class ToStringTests
     public void InputField_ToString()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             input Foo {
                 field: String

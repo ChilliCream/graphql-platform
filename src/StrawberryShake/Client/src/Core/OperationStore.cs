@@ -8,7 +8,7 @@ namespace StrawberryShake;
 
 public sealed partial class OperationStore : IOperationStore
 {
-    private static readonly MethodInfo _setGeneric = typeof(OperationStore)
+    private static readonly MethodInfo s_setGeneric = typeof(OperationStore)
         .GetMethods(BindingFlags.Instance | BindingFlags.Public)
         .First(t =>
             t.IsGenericMethodDefinition &&
@@ -34,20 +34,9 @@ public sealed partial class OperationStore : IOperationStore
         IOperationResult<T> operationResult)
         where T : class
     {
-        if (operationRequest is null)
-        {
-            throw new ArgumentNullException(nameof(operationRequest));
-        }
-
-        if (operationResult is null)
-        {
-            throw new ArgumentNullException(nameof(operationResult));
-        }
-
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ArgumentNullException.ThrowIfNull(operationRequest);
+        ArgumentNullException.ThrowIfNull(operationResult);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         var storedOperation = GetOrAddStoredOperation<T>(operationRequest);
         storedOperation.SetResult(operationResult);
@@ -56,22 +45,15 @@ public sealed partial class OperationStore : IOperationStore
 
     public void Set(OperationRequest operationRequest, IOperationResult operationResult)
     {
-        _setGeneric
+        s_setGeneric
             .MakeGenericMethod(operationResult.DataType)
-            .Invoke(this, [operationRequest, operationResult,]);
+            .Invoke(this, [operationRequest, operationResult]);
     }
 
     public void Reset(OperationRequest operationRequest)
     {
-        if (operationRequest is null)
-        {
-            throw new ArgumentNullException(nameof(operationRequest));
-        }
-
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ArgumentNullException.ThrowIfNull(operationRequest);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_results.TryGetValue(operationRequest, out var storedOperation))
         {
@@ -83,15 +65,8 @@ public sealed partial class OperationStore : IOperationStore
 
     public void Remove(OperationRequest operationRequest)
     {
-        if (operationRequest == null)
-        {
-            throw new ArgumentNullException(nameof(operationRequest));
-        }
-
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ArgumentNullException.ThrowIfNull(operationRequest);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_results.TryRemove(operationRequest, out var storedOperation))
         {
@@ -103,10 +78,7 @@ public sealed partial class OperationStore : IOperationStore
 
     public void Clear()
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         var results = _results.Values;
         _results.Clear();
@@ -135,18 +107,11 @@ public sealed partial class OperationStore : IOperationStore
         [NotNullWhen(true)] out IOperationResult<T>? result)
         where T : class
     {
-        if (operationRequest == null)
-        {
-            throw new ArgumentNullException(nameof(operationRequest));
-        }
-
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ArgumentNullException.ThrowIfNull(operationRequest);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_results.TryGetValue(operationRequest, out var storedOperation) &&
-            storedOperation is StoredOperation<T> { LastResult: not null, } casted)
+            storedOperation is StoredOperation<T> { LastResult: not null } casted)
         {
             result = casted.LastResult!;
             return true;
@@ -158,10 +123,7 @@ public sealed partial class OperationStore : IOperationStore
 
     public IEnumerable<StoredOperationVersion> GetAll()
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         return _results.Values.Select(
             op => new StoredOperationVersion(
@@ -173,10 +135,7 @@ public sealed partial class OperationStore : IOperationStore
 
     public IReadOnlyList<EntityId> GetUsedEntityIds()
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         return _results.Values.SelectMany(t => t.EntityIds).ToArray();
     }
@@ -185,25 +144,15 @@ public sealed partial class OperationStore : IOperationStore
         OperationRequest operationRequest)
         where T : class
     {
-        if (operationRequest is null)
-        {
-            throw new ArgumentNullException(nameof(operationRequest));
-        }
-
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ArgumentNullException.ThrowIfNull(operationRequest);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         return GetOrAddStoredOperation<T>(operationRequest);
     }
 
     public IObservable<OperationUpdate> Watch()
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(OperationStore));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         return _operationStoreObservable;
     }
@@ -261,7 +210,7 @@ public sealed partial class OperationStore : IOperationStore
                     operation.Request,
                     operation.LastResult,
                     operation.Subscribers,
-                    operation.LastModified),
+                    operation.LastModified)
             },
             kind);
 

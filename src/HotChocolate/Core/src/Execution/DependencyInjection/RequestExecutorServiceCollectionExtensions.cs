@@ -1,4 +1,3 @@
-using System.Text;
 using GreenDonut;
 using HotChocolate;
 using HotChocolate.Execution;
@@ -11,6 +10,7 @@ using HotChocolate.Fetching;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 
@@ -20,28 +20,24 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class RequestExecutorServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds the <see cref="IRequestExecutorResolver"/> and related services
+    /// Adds the <see cref="IRequestExecutorProvider"/> and related services
     /// to the <see cref="IServiceCollection"/>.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/>.</param>
     /// <returns>The <see cref="IServiceCollection"/>.</returns>
     public static IServiceCollection AddGraphQLCore(this IServiceCollection services)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.AddOptions();
 
-        services.TryAddSingleton<ITimeProvider, DefaultTimeProvider>();
         services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
         services.TryAddSingleton<DefaultRequestContextAccessor>();
         services.TryAddSingleton<IRequestContextAccessor>(sp => sp.GetRequiredService<DefaultRequestContextAccessor>());
         services.TryAddSingleton<AggregateServiceScopeInitializer>();
         services.TryAddSingleton<IParameterBindingResolver, DefaultParameterBindingResolver>();
 
-        services.TryAddSingleton<ObjectPool<StringBuilder>>(sp =>
+        services.TryAddSingleton(sp =>
         {
             var provider = sp.GetRequiredService<ObjectPoolProvider>();
             var policy = new StringBuilderPooledObjectPolicy();
@@ -67,7 +63,8 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddResolverTaskPool()
             .TryAddOperationContextPool()
             .TryAddDeferredWorkStatePool()
-            .TryAddOperationCompilerPool();
+            .TryAddOperationCompilerPool()
+            .TryAddSingleton<ObjectPool<DocumentValidatorContext>>(new DocumentValidatorContextPool());
 
         // global executor services
         services
@@ -103,76 +100,75 @@ public static class RequestExecutorServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds the <see cref="IRequestExecutorResolver"/> and related services to the
+    /// Adds the <see cref="IRequestExecutorProvider"/> and related services to the
     /// <see cref="IServiceCollection"/> and configures a named <see cref="IRequestExecutor"/>.
     /// </summary>
     /// <param name="services">
     /// The <see cref="IServiceCollection"/>.
     /// </param>
     /// <param name="schemaName">
-    /// The logical name of the <see cref="ISchema"/> to configure.
+    /// The logical name of the <see cref="ISchemaDefinition"/> to configure.
     /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure the executor.
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQL(
         this IServiceCollection services,
-        string? schemaName = default)
+        string? schemaName = null)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.AddGraphQLCore();
-        schemaName ??= Schema.DefaultName;
+        schemaName ??= ISchemaDefinition.DefaultName;
         return CreateBuilder(services, schemaName);
     }
 
     /// <summary>
-    /// Adds the <see cref="IRequestExecutorResolver"/> and related services to the
+    /// Adds the <see cref="IRequestExecutorProvider"/> and related services to the
     /// <see cref="IServiceCollection"/> and configures a named <see cref="IRequestExecutor"/>.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="schemaName">
-    /// The logical name of the <see cref="ISchema"/> to configure.
+    /// The logical name of the <see cref="ISchemaDefinition"/> to configure.
     /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure the executor.
     /// </returns>
     public static IRequestExecutorBuilder AddGraphQL(
         this IRequestExecutorBuilder builder,
-        string? schemaName = default)
+        string? schemaName = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
-        schemaName ??= Schema.DefaultName;
+        schemaName ??= ISchemaDefinition.DefaultName;
         return CreateBuilder(builder.Services, schemaName);
     }
 
-    private static IRequestExecutorBuilder CreateBuilder(
+    private static DefaultRequestExecutorBuilder CreateBuilder(
         IServiceCollection services,
         string schemaName)
     {
         var builder = new DefaultRequestExecutorBuilder(services, schemaName);
 
-        builder.Services.AddValidation(schemaName);
-
         builder.TryAddNoOpTransactionScopeHandler();
         builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();
         builder.TryAddTypeInterceptor<RequirementsTypeInterceptor>();
+
+        if (!ISchemaDefinition.DefaultName.Equals(schemaName, StringComparison.OrdinalIgnoreCase))
+        {
+            builder.TryAddTypeInterceptor(_ => new SchemaNameTypeInterceptor(schemaName));
+        }
+
+        builder.ConfigureSchemaServices(static s => s.TryAddSingleton<ITimeProvider, DefaultTimeProvider>());
 
         return builder;
     }
 
     public static IServiceCollection AddDocumentCache(
         this IServiceCollection services,
-        int capacity = 100)
+        int capacity = 256)
     {
         services.RemoveAll<IDocumentCache>();
         services.AddSingleton<IDocumentCache>(
@@ -182,11 +178,10 @@ public static class RequestExecutorServiceCollectionExtensions
 
     public static IServiceCollection AddOperationCache(
         this IServiceCollection services,
-        int capacity = 100)
+        int capacity = 256)
     {
         services.RemoveAll<PreparedOperationCacheOptions>();
-        services.AddSingleton<PreparedOperationCacheOptions>(
-            _ => new PreparedOperationCacheOptions{ Capacity = capacity });
+        services.AddSingleton(_ => new PreparedOperationCacheOptions { Capacity = capacity });
         return services;
     }
 
