@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 
@@ -16,24 +15,23 @@ public class FragmentsMustBeUsedRuleTests
     public void UnusedFragment()
     {
         // arrange
-        var context = ValidationUtils.CreateContext();
-        context.MaxAllowedErrors = int.MaxValue;
+        var document = Utf8GraphQLParser.Parse(
+            """
+            fragment nameFragment on Dog { # unused
+              name
+            }
 
-        var query = Utf8GraphQLParser.Parse(@"
-                fragment nameFragment on Dog { # unused
-                    name
-                }
+            {
+              dog {
+                name
+              }
+            }
+            """);
 
-                {
-                    dog {
-                        name
-                    }
-                }
-            ");
-        context.Prepare(query);
+        var context = ValidationUtils.CreateContext(document, maxAllowedErrors: int.MaxValue);
 
         // act
-        Rule.Validate(context, query);
+        Rule.Validate(context, document);
 
         // assert
         Assert.Collection(context.Errors,
@@ -47,23 +45,24 @@ public class FragmentsMustBeUsedRuleTests
     public void UsedFragment()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        var query = Utf8GraphQLParser.Parse(@"
-                fragment nameFragment on Dog {
-                    name
-                }
+        var document = Utf8GraphQLParser.Parse(
+            """
+            fragment nameFragment on Dog {
+              name
+            }
 
-                {
-                    dog {
-                        name
-                        ... nameFragment
-                    }
-                }
-            ");
-        context.Prepare(query);
+            {
+              dog {
+                name
+                ... nameFragment
+              }
+            }
+            """);
+
+        var context = ValidationUtils.CreateContext(document);
 
         // act
-        Rule.Validate(context, query);
+        Rule.Validate(context, document);
 
         // assert
         Assert.Empty(context.Errors);
@@ -73,28 +72,29 @@ public class FragmentsMustBeUsedRuleTests
     public void UsedNestedFragment()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        var query = Utf8GraphQLParser.Parse(@"
-                fragment nameFragment on Dog {
-                    name
-                    ... nestedNameFragment
-                }
+        var document = Utf8GraphQLParser.Parse(
+            """
+            fragment nameFragment on Dog {
+              name
+              ... nestedNameFragment
+            }
 
-                fragment nestedNameFragment on Dog {
-                    name
-                }
+            fragment nestedNameFragment on Dog {
+              name
+            }
 
-                {
-                    dog {
-                        name
-                        ... nameFragment
-                    }
-                }
-            ");
-        context.Prepare(query);
+            {
+              dog {
+                name
+                ... nameFragment
+              }
+            }
+            """);
+
+        var context = ValidationUtils.CreateContext(document);
 
         // act
-        Rule.Validate(context, query);
+        Rule.Validate(context, document);
 
         // assert
         Assert.Empty(context.Errors);

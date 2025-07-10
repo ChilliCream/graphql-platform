@@ -1,6 +1,4 @@
 using System.Text.Json;
-using CookieCrumble;
-using Xunit;
 using static HotChocolate.Utilities.Introspection.IntrospectionClient;
 
 namespace HotChocolate.Utilities.Introspection;

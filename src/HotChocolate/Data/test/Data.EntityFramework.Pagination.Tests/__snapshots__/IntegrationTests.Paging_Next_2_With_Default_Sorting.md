@@ -13,12 +13,12 @@
         }
       ],
       "pageInfo": {
-        "endCursor": "MTI="
+        "endCursor": "e30xMg=="
       }
     }
   },
   "extensions": {
-    "sql": "-- @__p_0='10'\n-- @__p_1='3'\nSELECT b.\"Id\", b.\"AlwaysNull\", b.\"DisplayName\", b.\"Name\", b.\"BrandDetails_Country_Name\"\nFROM \"Brands\" AS b\nWHERE b.\"Id\" > @__p_0\nORDER BY b.\"Id\"\nLIMIT @__p_1"
+    "sql": "-- @__value_0='10'\n-- @__p_1='3'\nSELECT b.\"Id\", b.\"AlwaysNull\", b.\"DisplayName\", b.\"Name\", b.\"BrandDetails_Country_Name\"\nFROM \"Brands\" AS b\nWHERE b.\"Id\" > @__value_0\nORDER BY b.\"Id\"\nLIMIT @__p_1"
   }
 }
 ```

@@ -10,10 +10,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 {
     public bool TrySerialize(IType type, object? runtimeValue, out object? resultValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         try
         {
@@ -29,15 +26,8 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
     public bool IsInstanceOfType(IType type, IValueNode valueSyntax)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         if (valueSyntax is NullValueNode)
         {
@@ -55,10 +45,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
     public bool IsInstanceOfType(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return runtimeValue is Geometry &&
             SerializersByType.TryGetValue(runtimeValue.GetType(), out var serializer) &&
@@ -67,10 +54,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
     public object? ParseLiteral(IType type, IValueNode valueSyntax)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (valueSyntax.Kind is SyntaxKind.NullValue)
         {
@@ -88,10 +72,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
     public IValueNode ParseResult(IType type, object? resultValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (resultValue is null)
         {
@@ -126,10 +107,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
     public IValueNode ParseValue(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is null)
         {
@@ -142,7 +120,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
             return ParseResult(type, runtimeValue);
         }
 
-        if (!(runtimeValue is Geometry geometry))
+        if (runtimeValue is not Geometry geometry)
         {
             throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
         }
@@ -162,10 +140,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
     public object? Serialize(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is null)
         {
@@ -193,10 +168,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
     public object? Deserialize(IType type, object? resultValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (resultValue is null)
         {
@@ -236,10 +208,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
     public bool TryDeserialize(IType type, object? resultValue, out object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         try
         {

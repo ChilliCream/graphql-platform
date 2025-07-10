@@ -1,4 +1,4 @@
-using CookieCrumble;
+using GreenDonut.Data;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,21 +31,76 @@ public class IntegrationTests
         // assert
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task Sorting_Should_Work_When_Nested()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddSorting()
+            .BuildRequestExecutorAsync();
+
+        const string query = @"
+        {
+            books(order: [{ author: { name: ASC, age: ASC }, title: DESC }]) {
+                title
+                author {
+                    name
+                }
+            }
+        }
+        ";
+
+        // act
+        var result = await executor.ExecuteAsync(query);
+
+        // assert
+        result.MatchSnapshot();
+    }
 }
 
 public class Query
 {
     [UseSorting]
-    public IEnumerable<Foo> Foos() => new[]
-    {
-        new Foo { CreatedUtc = new DateTime(2000, 1, 1, 1, 1, 1), },
-        new Foo { CreatedUtc = new DateTime(2010, 1, 1, 1, 1, 1), },
-        new Foo { CreatedUtc = new DateTime(2020, 1, 1, 1, 1, 1), },
-    };
+    public IEnumerable<Foo> Foos() =>
+    [
+        new Foo { CreatedUtc = new DateTime(2000, 1, 1, 1, 1, 1) },
+        new Foo { CreatedUtc = new DateTime(2010, 1, 1, 1, 1, 1) },
+        new Foo { CreatedUtc = new DateTime(2020, 1, 1, 1, 1, 1) }
+    ];
+
+    [UseSorting]
+    public IEnumerable<Book> GetBooks(QueryContext<Book> queryContext)
+        => new[]
+            {
+                new Book { Title = "Book5", Author = new Author { Age = 30, Name = "Author6" } },
+                new Book { Title = "Book7", Author = new Author { Age = 34, Name = "Author17" } },
+                new Book { Title = "Book1", Author = new Author { Age = 50, Name = "Author5" } }
+            }
+            .AsQueryable()
+            .With(queryContext);
 }
 
 public class Foo
 {
     [GraphQLType(typeof(NonNullType<DateType>))]
     public DateTime CreatedUtc { get; set; }
+}
+
+public class Author
+{
+    public string Name { get; set; } = string.Empty;
+
+    public int Age { get; set; }
+
+    [UseSorting]
+    public Book[] Books { get; set; } = [];
+}
+
+public class Book
+{
+    public string Title { get; set; } = string.Empty;
+    public Author? Author { get; set; }
 }

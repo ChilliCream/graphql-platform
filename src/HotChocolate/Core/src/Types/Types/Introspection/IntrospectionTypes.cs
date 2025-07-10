@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Introspection;
 /// </summary>
 public static class IntrospectionTypes
 {
-    private static readonly HashSet<string> _typeNames =
+    private static readonly HashSet<string> s_typeNames =
     [
         __Directive.Names.__Directive,
         __DirectiveLocation.Names.__DirectiveLocation,
@@ -18,7 +18,7 @@ public static class IntrospectionTypes
         __Type.Names.__Type,
         __TypeKind.Names.__TypeKind,
         __AppliedDirective.Names.__AppliedDirective,
-        __DirectiveArgument.Names.__DirectiveArgument,
+        __DirectiveArgument.Names.__DirectiveArgument
     ];
 
     internal static IReadOnlyList<TypeReference> CreateReferences(
@@ -33,7 +33,7 @@ public static class IntrospectionTypes
                 context.TypeInspector.GetTypeRef(typeof(__InputValue)),
                 context.TypeInspector.GetTypeRef(typeof(__Schema)),
                 context.TypeInspector.GetTypeRef(typeof(__Type)),
-                context.TypeInspector.GetTypeRef(typeof(__TypeKind)),
+                context.TypeInspector.GetTypeRef(typeof(__TypeKind))
             };
 
         if (context.Options.EnableDirectiveIntrospection)
@@ -49,11 +49,11 @@ public static class IntrospectionTypes
     /// Defines if the type name represents an introspection type.
     /// </summary>
     public static bool IsIntrospectionType(string typeName)
-        => !string.IsNullOrEmpty(typeName)  && _typeNames.Contains(typeName);
+        => !string.IsNullOrEmpty(typeName) && s_typeNames.Contains(typeName);
 
     /// <summary>
     /// Defines if the type represents an introspection type.
     /// </summary>
-    public static bool IsIntrospectionType(INamedType type)
+    public static bool IsIntrospectionType(ITypeDefinition type)
         => IsIntrospectionType(type.Name);
 }

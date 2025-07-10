@@ -1,0 +1,23 @@
+[
+  {
+    "Kind": "LeftSquareBracket",
+    "Start": 0,
+    "End": 1,
+    "Line": 1,
+    "Column": 1
+  },
+  {
+    "Kind": "Name",
+    "Start": 1,
+    "End": 7,
+    "Line": 1,
+    "Column": 2
+  },
+  {
+    "Kind": "RightSquareBracket",
+    "Start": 7,
+    "End": 8,
+    "Line": 1,
+    "Column": 8
+  }
+]

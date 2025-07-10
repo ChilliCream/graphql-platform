@@ -5,8 +5,8 @@ using HotChocolate.Language.Visitors;
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
-/// The base of a operation handler that can be bound to a <see cref="FilterOperationField"/>.
-/// The is executed during the visitation of a input object. This base is optimized to handle
+/// The base of an operation handler that can be bound to a <see cref="FilterOperationField"/>.
+/// The is executed during the visitation of an input object. This base is optimized to handle
 /// filter operations
 /// </summary>
 public abstract class FilterOperationHandler<TContext, T>
@@ -35,7 +35,7 @@ public abstract class FilterOperationHandler<TContext, T>
     }
 
     /// <summary>
-    /// Maps a operation field to a provider specific result.
+    /// Maps an operation field to a provider specific result.
     /// This method is called when the <see cref="FilterVisitor{TContext,T}"/> enters a
     /// field
     /// </summary>

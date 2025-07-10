@@ -13,17 +13,17 @@ namespace HotChocolate.Types.Descriptors;
 
 public class XmlDocumentationProvider : IDocumentationProvider
 {
-    private const string _summaryElementName = "summary";
-    private const string _exceptionElementName = "exception";
-    private const string _returnsElementName = "returns";
-    private const string _inheritdoc = "inheritdoc";
-    private const string _see = "see";
-    private const string _langword = "langword";
-    private const string _cref = "cref";
-    private const string _href = "href";
-    private const string _code = "code";
-    private const string _paramref = "paramref";
-    private const string _name = "name";
+    private const string SummaryElementName = "summary";
+    private const string ExceptionElementName = "exception";
+    private const string ReturnsElementName = "returns";
+    private const string Inheritdoc = "inheritdoc";
+    private const string See = "see";
+    private const string Langword = "langword";
+    private const string Cref = "cref";
+    private const string Href = "href";
+    private const string Code = "code";
+    private const string Paramref = "paramref";
+    private const string Name = "name";
 
     private readonly IXmlDocumentationFileResolver _fileResolver;
     private readonly ObjectPool<StringBuilder> _stringBuilderPool;
@@ -72,9 +72,9 @@ public class XmlDocumentationProvider : IDocumentationProvider
         }
 
         var description = ComposeMemberDescription(
-            element.Element(_summaryElementName),
-            element.Element(_returnsElementName),
-            element.Elements(_exceptionElementName));
+            element.Element(SummaryElementName),
+            element.Element(ReturnsElementName),
+            element.Elements(ExceptionElementName));
 
         return RemoveLineBreakWhiteSpaces(description);
     }
@@ -122,7 +122,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
         var errorCount = 0;
         foreach (var error in errors)
         {
-            var code = error.Attribute(_code);
+            var code = error.Attribute(Code);
             if (code is { }
                 && !string.IsNullOrEmpty(error.Value)
                 && !string.IsNullOrEmpty(code.Value))
@@ -156,16 +156,19 @@ public class XmlDocumentationProvider : IDocumentationProvider
 
         foreach (var node in element.Nodes())
         {
-            var currentElement = node as XElement;
-            if (currentElement is null)
+            if (node is not XElement currentElement)
             {
-                description.Append(node);
+                if (node is XText text)
+                {
+                    description.Append(text.Value);
+                }
+
                 continue;
             }
 
-            if (currentElement.Name == _paramref)
+            if (currentElement.Name == Paramref)
             {
-                var nameAttribute = currentElement.Attribute(_name);
+                var nameAttribute = currentElement.Attribute(Name);
 
                 if (nameAttribute != null)
                 {
@@ -174,13 +177,13 @@ public class XmlDocumentationProvider : IDocumentationProvider
                 }
             }
 
-            if (currentElement.Name != _see)
+            if (currentElement.Name != See)
             {
                 description.Append(currentElement.Value);
                 continue;
             }
 
-            var attribute = currentElement.Attribute(_langword);
+            var attribute = currentElement.Attribute(Langword);
             if (attribute != null)
             {
                 description.Append(attribute.Value);
@@ -193,7 +196,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
             }
             else
             {
-                attribute = currentElement.Attribute(_cref);
+                attribute = currentElement.Attribute(Cref);
                 if (attribute != null)
                 {
                     description.Append(attribute.Value
@@ -202,7 +205,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
                 }
                 else
                 {
-                    attribute = currentElement.Attribute(_href);
+                    attribute = currentElement.Attribute(Href);
                     if (attribute != null)
                     {
                         description.Append(attribute.Value);
@@ -301,7 +304,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
         var children = element.Nodes().ToList();
         foreach (var child in children.OfType<XElement>())
         {
-            if (string.Equals(child.Name.LocalName, _inheritdoc,
+            if (string.Equals(child.Name.LocalName, Inheritdoc,
                 StringComparison.OrdinalIgnoreCase))
             {
                 var baseType =
@@ -380,7 +383,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
         char prefixCode;
 
         var memberName =
-            member is Type { FullName: { Length: > 0, }, } memberType
+            member is Type { FullName: { Length: > 0 } } memberType
             ? memberType.FullName
             : member.DeclaringType is null
                 ? member.Name
@@ -402,7 +405,8 @@ public class XmlDocumentationProvider : IDocumentationProvider
                             "(`[0-9]+)|(, .*?PublicKeyToken=[0-9a-z]*)",
                             string.Empty)
                         .Replace("[[", "{")
-                        .Replace("]]", "}"))
+                        .Replace("]]", "}")
+                        .Replace("],[", ","))
                     .ToArray());
 
                 if (!string.IsNullOrEmpty(paramTypesList))
@@ -444,21 +448,20 @@ public class XmlDocumentationProvider : IDocumentationProvider
 
     private ref struct MemberName
     {
-        private const string _getMemberDocPath =
-            "/doc/members/member[@name='{0}']";
-        private const string _returnsPath = "{0}/returns";
-        private const string _paramsPath = "{0}/param[@name='{1}']";
+        private const string GetMemberDocPathFormat = "/doc/members/member[@name='{0}']";
+        private const string ReturnsPathFormat = "{0}/returns";
+        private const string ParamsPathFormat = "{0}/param[@name='{1}']";
 
         public MemberName(string name)
         {
             Value = name;
             Path = string.Format(
                 CultureInfo.InvariantCulture,
-                _getMemberDocPath,
+                GetMemberDocPathFormat,
                 name);
             ReturnsPath = string.Format(
                 CultureInfo.InvariantCulture,
-                _returnsPath,
+                ReturnsPathFormat,
                 Path);
         }
 
@@ -472,7 +475,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
         {
             return string.Format(
                 CultureInfo.InvariantCulture,
-                _paramsPath,
+                ParamsPathFormat,
                 Path,
                 name);
         }

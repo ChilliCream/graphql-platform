@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using HotChocolate.PersistedOperations;
 
 namespace HotChocolate.Execution.Options;
 
@@ -8,9 +9,9 @@ namespace HotChocolate.Execution.Options;
 /// </summary>
 public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
 {
-    private static readonly TimeSpan _minExecutionTimeout = TimeSpan.FromMilliseconds(100);
+    private static readonly TimeSpan s_minExecutionTimeout = TimeSpan.FromMilliseconds(100);
     private TimeSpan _executionTimeout;
-    private IError _onlyPersistedOperationsAreAllowedError = ErrorHelper.OnlyPersistedOperationsAreAllowed();
+    private PersistedOperationOptions _persistedOperations = new();
 
     /// <summary>
     /// <para>Initializes a new instance of <see cref="RequestExecutorOptions"/>.</para>
@@ -36,45 +37,31 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
         get => _executionTimeout;
         set
         {
-            _executionTimeout = value < _minExecutionTimeout
-                ? _minExecutionTimeout
+            _executionTimeout = value < s_minExecutionTimeout
+                ? s_minExecutionTimeout
                 : value;
         }
     }
 
     /// <summary>
+    /// <para>
     /// Gets or sets a value indicating whether the <c>GraphQL</c> errors
     /// should be extended with exception details.
-    ///
-    /// The default value is <see cref="Debugger.IsAttached"/>.
+    /// </para>
+    /// <para>The default value is <see cref="Debugger.IsAttached"/>.</para>
     /// </summary>
     public bool IncludeExceptionDetails { get; set; } = Debugger.IsAttached;
 
     /// <summary>
-    /// Specifies if only persisted operations are allowed when using
-    /// the persisted operation pipeline.
-    ///
-    /// The default is <c>false</c>.
+    /// Specifies the behavior of the persisted operation pipeline.
     /// </summary>
-    public bool OnlyAllowPersistedOperations { get; set; } = false;
-
-    /// <summary>
-    /// The error that will be thrown when only persisted
-    /// operations are allowed and a normal operation is issued.
-    /// </summary>
-    public IError OnlyPersistedOperationsAreAllowedError
+    public PersistedOperationOptions PersistedOperations
     {
-        get => _onlyPersistedOperationsAreAllowedError;
+        get => _persistedOperations;
         set
         {
-            _onlyPersistedOperationsAreAllowedError = value
-                ?? throw new ArgumentNullException(
-                    nameof(OnlyPersistedOperationsAreAllowedError));
+            ArgumentNullException.ThrowIfNull(value, nameof(PersistedOperationOptions));
+            _persistedOperations = value;
         }
     }
-
-    /// <summary>
-    /// Specifies that the transport is allowed to provide the schema SDL document as a file.
-    /// </summary>
-    public bool EnableSchemaFileSupport { get; set; } = true;
 }

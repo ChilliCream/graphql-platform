@@ -13,5 +13,5 @@ public enum RequestStrategy
     /// <summary>
     /// An id is send representing the operation that is stored on the server.
     /// </summary>
-    PersistedOperation,
+    PersistedOperation
 }

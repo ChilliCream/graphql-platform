@@ -3,7 +3,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
 #nullable enable
@@ -14,16 +14,15 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __Directive : ObjectType<DirectiveType>
 {
-    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var stringType = Create(ScalarNames.String);
         var nonNullStringType = Parse($"{ScalarNames.String}!");
         var nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
-        var booleanType = Parse($"{ScalarNames.Boolean}");
         var argumentListType = Parse($"[{nameof(__InputValue)}!]!");
         var locationListType = Parse($"[{nameof(__DirectiveLocation)}!]!");
 
-        return new ObjectTypeDefinition(
+        return new ObjectTypeConfiguration(
             Names.__Directive,
             TypeResources.Directive_Description,
             typeof(DirectiveType))
@@ -37,12 +36,12 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                 {
                     Arguments =
                     {
-                        new(Names.IncludeDeprecated, type: booleanType)
+                        new(Names.IncludeDeprecated, type: nonNullBooleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false,
-                        },
-                    },
+                            RuntimeDefaultValue = false
+                        }
+                    }
                 },
                 new(Names.IsRepeatable,
                     type: nonNullBooleanType,
@@ -51,21 +50,21 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                     type: nonNullBooleanType,
                     pureResolver: Resolvers.OnOperation)
                 {
-                    DeprecationReason = TypeResources.Directive_UseLocation,
+                    DeprecationReason = TypeResources.Directive_UseLocation
                 },
                 new(Names.OnFragment,
                     type: nonNullBooleanType,
                     pureResolver: Resolvers.OnFragment)
                 {
-                    DeprecationReason = TypeResources.Directive_UseLocation,
+                    DeprecationReason = TypeResources.Directive_UseLocation
                 },
                 new(Names.OnField,
                     type: nonNullBooleanType,
                     pureResolver: Resolvers.OnField)
                 {
-                    DeprecationReason = TypeResources.Directive_UseLocation,
-                },
-            },
+                    DeprecationReason = TypeResources.Directive_UseLocation
+                }
+            }
         };
     }
 

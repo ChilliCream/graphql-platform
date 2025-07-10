@@ -1,13 +1,14 @@
 #nullable enable
 using System.Reflection;
-using HotChocolate.Types.Descriptors.Definitions;
+using System.Runtime.CompilerServices;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
 /// <summary>
 /// Represents a directive argument.
 /// </summary>
-public sealed class DirectiveArgument : Argument, IHasProperty
+public sealed class DirectiveArgument : Argument, IPropertyProvider
 {
     /// <summary>
     /// Initializes a new <see cref="DirectiveArgument"/>.
@@ -18,11 +19,16 @@ public sealed class DirectiveArgument : Argument, IHasProperty
     /// <param name="index">
     /// The position of the argument within the field collection.
     /// </param>
-    public DirectiveArgument(DirectiveArgumentDefinition definition, int index)
+    public DirectiveArgument(DirectiveArgumentConfiguration definition, int index)
         : base(definition, index)
     {
         Property = definition.Property;
     }
+
+    /// <summary>
+    /// Gets the directive type that declares this argument.
+    /// </summary>
+    public new DirectiveType DeclaringType => Unsafe.As<DirectiveType>(base.DeclaringType);
 
     /// <summary>
     /// Gets the property this argument is bound to.

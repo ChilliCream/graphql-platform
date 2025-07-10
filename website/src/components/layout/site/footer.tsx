@@ -45,9 +45,6 @@ export const Footer: FC = () => {
           path
           title
           latestStableVersion
-          versions {
-            path
-          }
         }
       }
     }
@@ -87,7 +84,7 @@ export const Footer: FC = () => {
                 <NavLink to="/platform/collaboration">Collaboration</NavLink>
               )}
               <NavLink to="/platform/ecosystem">Ecosystem</NavLink>
-              <NavLink to="/products/bananacakepop">Banana Cake Pop</NavLink>
+              <NavLink to="/products/nitro">Nitro</NavLink>
             </Navigation>
           </Links>
           <Links>
@@ -104,8 +101,11 @@ export const Footer: FC = () => {
               {products!.map((product, index) => (
                 <NavLink
                   key={`doc-item-${index}`}
-                  to={`/docs/${product!.path!}/${product!
-                    .latestStableVersion!}`}
+                  to={`/docs/${product!.path!}${
+                    product?.latestStableVersion
+                      ? "/" + product.latestStableVersion
+                      : ""
+                  }`}
                 >
                   {product!.title}
                 </NavLink>

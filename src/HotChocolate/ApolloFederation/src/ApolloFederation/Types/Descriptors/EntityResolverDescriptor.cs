@@ -2,20 +2,19 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.ApolloFederation.Resolvers;
-using HotChocolate.Internal;
+using HotChocolate.Features;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
-using static HotChocolate.ApolloFederation.FederationContextData;
 
 namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
-/// The entity descriptor allows to specify a reference resolver.
+/// The entity descriptor allows specifying a reference resolver.
 /// </summary>
 public sealed class EntityResolverDescriptor<TEntity>
-    : DescriptorBase<EntityResolverDefinition>
+    : DescriptorBase<EntityResolverConfiguration>
     , IEntityResolverDescriptor
     , IEntityResolverDescriptor<TEntity>
 {
@@ -36,36 +35,24 @@ public sealed class EntityResolverDescriptor<TEntity>
 
         _typeDescriptor
             .Extend()
-            .OnBeforeCreate(OnCompleteDefinition);
+            .OnBeforeCreate(OnCompleteConfiguration);
 
-        Definition.EntityType = entityType;
+        Configuration.EntityType = entityType;
     }
 
-    private void OnCompleteDefinition(ObjectTypeDefinition definition)
+    private void OnCompleteConfiguration(ObjectTypeConfiguration typeConfiguration)
     {
-        if (Definition.ResolverDefinition is not null)
+        if (Configuration.Resolver is not null)
         {
-            if (definition.ContextData.TryGetValue(EntityResolver, out var value) &&
-                value is List<ReferenceResolverDefinition> resolvers)
-            {
-                resolvers.Add(Definition.ResolverDefinition.Value);
-            }
-            else
-            {
-                definition.ContextData.Add(
-                    EntityResolver,
-                    new List<ReferenceResolverDefinition>
-                    {
-                        Definition.ResolverDefinition.Value,
-                    });
-            }
+            var resolvers = typeConfiguration.Features.GetOrSet<List<ReferenceResolverConfiguration>>();
+            resolvers.Add(Configuration.Resolver);
         }
     }
 
     /// <inheritdoc cref="IEntityResolverDescriptor"/>
     public IObjectTypeDescriptor ResolveReference(
         FieldResolverDelegate fieldResolver)
-        => ResolveReference(fieldResolver, Array.Empty<string[]>());
+        => ResolveReference(fieldResolver, []);
 
     /// <inheritdoc cref="IEntityResolverDescriptor{T}"/>
     public IObjectTypeDescriptor ResolveReferenceWith(
@@ -102,7 +89,7 @@ public sealed class EntityResolverDescriptor<TEntity>
                 method,
                 sourceType: typeof(object),
                 resolverType: method.DeclaringType ?? typeof(object),
-                parameterExpressionBuilders: new IParameterExpressionBuilder[] { argumentBuilder, });
+                parameterExpressionBuilders: [argumentBuilder]);
 
         return ResolveReference(resolver.Resolver!, argumentBuilder.Required);
     }
@@ -115,7 +102,7 @@ public sealed class EntityResolverDescriptor<TEntity>
     public IObjectTypeDescriptor ResolveReferenceWith(Type type)
         => ResolveReferenceWith(
             Context.TypeInspector.GetNodeResolverMethod(
-                Definition.EntityType ?? type,
+                Configuration.EntityType ?? type,
                 type)!);
 
     private IObjectTypeDescriptor ResolveReference(
@@ -123,12 +110,11 @@ public sealed class EntityResolverDescriptor<TEntity>
         IReadOnlyList<string[]> required)
     {
         ArgumentNullException.ThrowIfNull(fieldResolver);
-
         ArgumentNullException.ThrowIfNull(required);
 
-        Definition.ResolverDefinition = new(fieldResolver, required);
+        Configuration.Resolver = new ReferenceResolverConfiguration(fieldResolver, required);
         return _typeDescriptor;
     }
 
-    protected internal override EntityResolverDefinition Definition { get; protected set; } = new();
+    protected internal override EntityResolverConfiguration Configuration { get; protected set; } = new();
 }

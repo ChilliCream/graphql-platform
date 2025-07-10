@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>CookieCrumble.HotChocolate</AssemblyName>
+    <RootNamespace>CookieCrumble.HotChocolate</RootNamespace>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CookieCrumble\CookieCrumble.csproj" />
+    <ProjectReference Include="..\..\..\HotChocolate\AspNetCore\src\Transport.Abstractions\HotChocolate.Transport.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\HotChocolate\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
+    <ProjectReference Include="..\..\..\HotChocolate\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\HotChocolate\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\..\..\HotChocolate\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+  </ItemGroup>
+
+</Project>

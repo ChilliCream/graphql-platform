@@ -1,5 +1,5 @@
 using System.Text;
-using Xunit;
+using HotChocolate.Buffers;
 using static HotChocolate.Language.SyntaxComparison;
 
 namespace HotChocolate.Language.SyntaxTree;
@@ -57,7 +57,7 @@ public class StringValueNodeTests
     public void Create_StringValueNode_3_Location_Is_Null()
     {
         // arrange
-        var stringValue = Encoding.UTF8.GetBytes("abc");
+        var stringValue = new ReadOnlyMemorySegment("abc"u8.ToArray());
 
         // act
         var value = new StringValueNode(null, stringValue, true);
@@ -75,7 +75,7 @@ public class StringValueNodeTests
     {
         // arrange
         var location = new Location(1, 1, 1, 1);
-        var stringValue = Encoding.UTF8.GetBytes("abc");
+        var stringValue = new ReadOnlyMemorySegment("abc"u8.ToArray());
 
         // act
         var value = new StringValueNode(location, stringValue, true);
@@ -93,7 +93,7 @@ public class StringValueNodeTests
     {
         // arrange
         var location = new Location(1, 1, 1, 1);
-        var stringValue = Encoding.UTF8.GetBytes("abc");
+        var stringValue = new ReadOnlyMemorySegment("abc"u8.ToArray());
         var value = new StringValueNode(location, stringValue, true);
 
         // act
@@ -108,7 +108,7 @@ public class StringValueNodeTests
     {
         // arrange
         var location = new Location(1, 1, 1, 1);
-        var stringValue = Encoding.UTF8.GetBytes("abc");
+        var stringValue = new ReadOnlyMemorySegment("abc"u8.ToArray());
         var value = new StringValueNode(location, stringValue, true);
 
         // act
@@ -140,11 +140,11 @@ public class StringValueNodeTests
     {
         // arrange
         var location = new Location(1, 1, 1, 1);
-        var stringValue = Encoding.UTF8.GetBytes("abc");
+        var stringValue = new ReadOnlyMemorySegment("abc"u8.ToArray());
         var value = new StringValueNode(location, stringValue, true);
 
         // act
-        var equals = value.Equals((IValueNode)null!, Syntax);
+        var equals = value.Equals(null, Syntax);
 
         // assert
         Assert.False(equals);
@@ -155,11 +155,11 @@ public class StringValueNodeTests
     {
         // arrange
         var location = new Location(1, 1, 1, 1);
-        var stringValue = Encoding.UTF8.GetBytes("abc");
+        var stringValue = new ReadOnlyMemorySegment("abc"u8.ToArray());
         var value = new StringValueNode(location, stringValue, true);
 
         // act
-        var equals = value.Equals((IValueNode)value);
+        var equals = value.Equals(value);
 
         // assert
         Assert.True(equals);
@@ -176,7 +176,7 @@ public class StringValueNodeTests
         var value2 = new StringValueNode(location, value, true);
 
         // act
-        var equals = value1.Equals((IValueNode)value2, Syntax);
+        var equals = value1.Equals(value2, Syntax);
 
         // assert
         Assert.Equal(expected, equals);
@@ -187,7 +187,7 @@ public class StringValueNodeTests
     {
         // arrange
         var location = new Location(1, 1, 1, 1);
-        var stringValue = Encoding.UTF8.GetBytes("abc");
+        var stringValue = new ReadOnlyMemorySegment("abc"u8.ToArray());
         var value = new StringValueNode(location, stringValue, true);
 
         // act

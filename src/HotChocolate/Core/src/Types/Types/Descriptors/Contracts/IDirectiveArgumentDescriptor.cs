@@ -1,17 +1,17 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
 public interface IDirectiveArgumentDescriptor
-    : IDescriptor<DirectiveArgumentDefinition>
+    : IDescriptor<DirectiveArgumentConfiguration>
     , IFluent
 {
     /// <inheritdoc cref="IArgumentDescriptor.Deprecated(string)"/>
-    IDirectiveArgumentDescriptor  Deprecated(string reason);
+    IDirectiveArgumentDescriptor Deprecated(string reason);
 
     /// <inheritdoc cref="IArgumentDescriptor.Deprecated()"/>
-    IDirectiveArgumentDescriptor  Deprecated();
+    IDirectiveArgumentDescriptor Deprecated();
 
     /// <summary>
     /// Sets the name of the argument

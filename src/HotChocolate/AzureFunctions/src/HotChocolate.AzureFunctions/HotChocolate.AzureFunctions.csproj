@@ -18,8 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BananaCakePop.Middleware" />
+    <PackageReference Include="ChilliCream.Nitro.App" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" />
+    <!-- TODO: https://github.com/Azure/azure-functions-dotnet-extensions/issues/75 -->
+    <PackageReference Include="Microsoft.Azure.WebJobs" VersionOverride="3.0.41" />
   </ItemGroup>
 
   <ItemGroup>

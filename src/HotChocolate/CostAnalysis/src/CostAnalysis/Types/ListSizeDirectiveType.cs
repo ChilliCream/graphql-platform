@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.CostAnalysis.WellKnownArgumentNames;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
@@ -18,12 +18,12 @@ namespace HotChocolate.CostAnalysis.Types;
 /// </seealso>
 public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
 {
-    private const string _name = "listSize";
+    private const string DirectiveName = "listSize";
 
     protected override void Configure(IDirectiveTypeDescriptor<ListSizeDirective> descriptor)
     {
         descriptor
-            .Name(_name)
+            .Name(DirectiveName)
             .Description(
                 "The purpose of the `@listSize` directive is to either inform the static " +
                 "analysis about the size of returned lists (if that information is statically " +
@@ -49,6 +49,14 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
                 "of multiple slicing arguments.");
 
         descriptor
+            .Argument(t => t.SlicingArgumentDefaultValue)
+            .Name(SlicingArgumentDefaultValue)
+            .Type<IntType>()
+            .Description(
+                "The `slicingArgumentDefaultValue` argument can be used to define a default value " +
+                "for a slicing argument, which is used if the argument is not present in a query.");
+
+        descriptor
             .Argument(t => t.SizedFields)
             .Name(SizedFields)
             .Type<ListType<NonNullType<StringType>>>()
@@ -72,7 +80,7 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
 
     protected override Func<DirectiveNode, object> OnCompleteParse(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
         => ParseLiteral;
 
     private static object ParseLiteral(DirectiveNode directiveNode)
@@ -81,6 +89,7 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
         var slicingArguments = ImmutableArray<string>.Empty;
         var sizedFields = ImmutableArray<string>.Empty;
         var requireOneSlicingArgument = false;
+        int? slicingArgumentDefaultValue = null;
 
         foreach (var argument in directiveNode.Arguments)
         {
@@ -107,22 +116,31 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
                     requireOneSlicingArgument = argument.Value.ExpectBoolean();
                     break;
 
+                case SlicingArgumentDefaultValue:
+                    slicingArgumentDefaultValue = argument.Value.ExpectInt();
+                    break;
+
                 default:
                     throw new InvalidOperationException("Invalid argument name.");
             }
         }
 
-        return new ListSizeDirective(assumedSize, slicingArguments, sizedFields, requireOneSlicingArgument);
+        return new ListSizeDirective(
+            assumedSize,
+            slicingArguments,
+            sizedFields,
+            requireOneSlicingArgument,
+            slicingArgumentDefaultValue);
     }
 
     protected override Func<object, DirectiveNode> OnCompleteFormat(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
         => FormatValue;
 
     private static DirectiveNode FormatValue(object value)
     {
-        if(value is not ListSizeDirective directive)
+        if (value is not ListSizeDirective directive)
         {
             throw new InvalidOperationException("The value is not a list size directive.");
         }
@@ -137,6 +155,14 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
         if (directive.SlicingArguments.Length > 0)
         {
             arguments.Add(new ArgumentNode(SlicingArguments, directive.SlicingArguments.ToListValueNode()));
+
+            if (directive.SlicingArgumentDefaultValue.HasValue)
+            {
+                arguments.Add(
+                    new ArgumentNode(
+                        SlicingArgumentDefaultValue,
+                        directive.SlicingArgumentDefaultValue.Value));
+            }
         }
 
         if (directive.SizedFields.Length > 0)
@@ -146,7 +172,7 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
 
         arguments.Add(new ArgumentNode(RequireOneSlicingArgument, directive.RequireOneSlicingArgument));
 
-        return new DirectiveNode(_name, arguments.ToImmutableArray());
+        return new DirectiveNode(DirectiveName, arguments.ToImmutableArray());
     }
 }
 

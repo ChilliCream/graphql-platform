@@ -1,5 +1,7 @@
+using System.Globalization;
 using HotChocolate.Execution;
 using NodaTime;
+using NodaTime.Text;
 
 namespace HotChocolate.Types.NodaTime.Tests;
 
@@ -45,7 +47,7 @@ public class LocalDateTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-21" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-21" } })
                 .Build());
 
         Assert.Equal("2020-02-24", result.ExpectOperationResult().Data!["test"]);
@@ -57,7 +59,7 @@ public class LocalDateTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-20T17:42:59" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-20T17:42:59" } })
                 .Build());
 
         Assert.Null(result.ExpectOperationResult().Data);
@@ -96,5 +98,34 @@ public class LocalDateTypeIntegrationTests
     {
         static object Call() => new LocalDateType([]);
         Assert.Throws<SchemaException>(Call);
+    }
+
+    [Fact]
+    public void LocalDateType_DescriptionKnownPatterns_MatchesSnapshot()
+    {
+        var localDateType = new LocalDateType(LocalDatePattern.Iso, LocalDatePattern.FullRoundtrip);
+
+        localDateType.Description.MatchInlineSnapshot(
+            """
+            LocalDate represents a date within the calendar, with no reference to a particular time zone or time of day.
+
+            Allowed patterns:
+            - `YYYY-MM-DD`
+            - `YYYY-MM-DD (calendar)`
+
+            Examples:
+            - `2000-01-01`
+            - `2000-01-01 (ISO)`
+            """);
+    }
+
+    [Fact]
+    public void LocalDateType_DescriptionUnknownPatterns_MatchesSnapshot()
+    {
+        var localDateType = new LocalDateType(
+            LocalDatePattern.Create("MM", CultureInfo.InvariantCulture));
+
+        localDateType.Description.MatchInlineSnapshot(
+            "LocalDate represents a date within the calendar, with no reference to a particular time zone or time of day.");
     }
 }

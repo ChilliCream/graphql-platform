@@ -138,7 +138,7 @@ public sealed class DocumentNode : ISyntaxNode
             {
                 var node = stack.Pop();
 
-                if(node.Kind == SyntaxKind.Field)
+                if (node.Kind == SyntaxKind.Field)
                 {
                     count++;
                 }

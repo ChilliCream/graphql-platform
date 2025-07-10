@@ -12,7 +12,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
 {
     public void Validate(
         IDescriptorContext context,
-        ISchema schema,
+        ISchemaDefinition schema,
         ICollection<ISchemaError> errors)
     {
         if (!context.Options.StrictValidation)
@@ -24,9 +24,9 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         CycleValidationContext cycleValidationContext = new()
         {
             Visited = [],
-            CycleStartIndex = new Dictionary<InputObjectType, int>(),
+            CycleStartIndex = [],
             Errors = errors,
-            FieldPath = [],
+            FieldPath = []
         };
 
         foreach (var type in schema.Types)
@@ -97,7 +97,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         {
             if (type.Kind == TypeKind.NonNull)
             {
-                type = ((NonNullType)type).Type;
+                type = ((NonNullType)type).NullableType;
             }
             else
             {
@@ -123,7 +123,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         ICollection<ISchemaError> errors,
         ref List<string>? temp)
     {
-        if (!type.Directives.ContainsDirective(WellKnownDirectives.OneOf))
+        if (!type.Directives.ContainsDirective(DirectiveNames.OneOf.Name))
         {
             return;
         }

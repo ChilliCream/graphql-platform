@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <PackageId>GreenDonut.Abstractions</PackageId>
+    <AssemblyName>GreenDonut.Abstractions</AssemblyName>
+    <RootNamespace>GreenDonut</RootNamespace>
+    <Description>This package provided GreenDonut DataLoader interfaces and base types.</Description>
+  </PropertyGroup>
+
+</Project>

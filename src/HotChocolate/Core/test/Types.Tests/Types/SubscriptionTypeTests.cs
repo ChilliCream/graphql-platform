@@ -3,10 +3,9 @@
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
 
-#pragma warning disable CS0618 // Type or member is obsolete
 #nullable enable
 
-using CookieCrumble;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions;
 using HotChocolate.Tests;
@@ -30,7 +29,7 @@ public class SubscriptionTypeTests : TypeTestBase
                                     .Field("test")
                                     .Type<StringType>()
                                     .Resolve(ctx => ctx.GetEventMessage<string>())
-                                    .Subscribe(_ => new List<string> { "a", "b", "c", }))
+                                    .Subscribe(_ => new List<string> { "a", "b", "c" }))
                             .ModifyOptions(t => t.StrictValidation = false)
                             .BuildRequestExecutorAsync(cancellationToken: ct);
 
@@ -66,7 +65,7 @@ public class SubscriptionTypeTests : TypeTestBase
                                     .Resolve(ctx => ctx.GetEventMessage<string>())
                                     .Subscribe(
                                         _ => Task.FromResult<IEnumerable<string>>(
-                                            new List<string> { "a", "b", "c", })))
+                                            new List<string> { "a", "b", "c" })))
                             .ModifyOptions(t => t.StrictValidation = false)
                             .BuildRequestExecutorAsync(cancellationToken: ct);
 
@@ -230,167 +229,6 @@ public class SubscriptionTypeTests : TypeTestBase
                         snapshot.Add(queryResult);
                     }
                 })
-            .MatchAsync();
-
-    [InlineData("onSomething")]
-    [InlineData("onSomethingTask")]
-    [InlineData("onSomethingValueTask")]
-    [InlineData("onSomethingObj")]
-    [InlineData("onSomethingObjTask")]
-    [InlineData("onSomethingObjValueTask")]
-    [Theory]
-    public async Task SubscribeAndResolve_Attribute_AsyncEnumerable(string field)
-        => await SnapshotTest
-            .Create(
-                async (snapshot, ct) =>
-                {
-                    var executor =
-                        await new ServiceCollection()
-                            .AddGraphQL()
-                            .AddSubscriptionType<PureCodeFirstAsyncEnumerable>()
-                            .ModifyOptions(t => t.StrictValidation = false)
-                            .BuildRequestExecutorAsync(cancellationToken: ct);
-
-                    var result = await executor.ExecuteAsync(
-                        $"subscription {{ {field} }}",
-                        ct);
-
-                    await foreach (var queryResult in result.ExpectResponseStream()
-                        .ReadResultsAsync().WithCancellation(ct))
-                    {
-                        snapshot.Add(queryResult);
-                    }
-                },
-                postFix: field)
-            .MatchAsync();
-
-    [InlineData("onSomething")]
-    [Theory]
-    public async Task SubscribeAndResolve_Attribute_ISourceStream(string field)
-        => await SnapshotTest
-            .Create(
-                async (snapshot, ct) =>
-                {
-                    var executor = await TestHelper.CreateExecutorAsync(
-                        r => r
-                            .AddInMemorySubscriptions()
-                            .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                            .AddMutationType<MyMutation>()
-                            .AddSubscriptionType<PureCodeFirstSourceStream>());
-
-                    var subscriptionResult = await executor.ExecuteAsync(
-                        "subscription { " + field + " (userId: \"1\") }",
-                        ct);
-
-                    var mutationResult = await executor.ExecuteAsync(
-                        "mutation { writeBoolean(userId: \"1\" message: true) }",
-                        ct);
-                    Assert.Null(mutationResult.ExpectOperationResult().Errors);
-
-                    await foreach (var queryResult in subscriptionResult.ExpectResponseStream()
-                        .ReadResultsAsync().WithCancellation(ct))
-                    {
-                        snapshot.Add(queryResult);
-                        break;
-                    }
-                },
-                postFix: field)
-            .MatchAsync();
-
-    [InlineData("onSomething")]
-    [InlineData("onSomethingTask")]
-    [InlineData("onSomethingValueTask")]
-    [InlineData("onSomethingObj")]
-    [InlineData("onSomethingObjTask")]
-    [InlineData("onSomethingObjValueTask")]
-    [Theory]
-    public async Task SubscribeAndResolve_Attribute_Enumerable(string field)
-        => await SnapshotTest
-            .Create(
-                async (snapshot, ct) =>
-                {
-                    var executor =
-                        await new ServiceCollection()
-                            .AddGraphQL()
-                            .AddSubscriptionType<PureCodeFirstEnumerable>()
-                            .ModifyOptions(t => t.StrictValidation = false)
-                            .BuildRequestExecutorAsync(cancellationToken: ct);
-
-                    var result = await executor.ExecuteAsync(
-                        $"subscription {{ {field} }}",
-                        ct);
-
-                    await foreach (var queryResult in result.ExpectResponseStream()
-                        .ReadResultsAsync().WithCancellation(ct))
-                    {
-                        snapshot.Add(queryResult);
-                    }
-                },
-                postFix: field)
-            .MatchAsync();
-
-    [InlineData("onSomething")]
-    [InlineData("onSomethingTask")]
-    [InlineData("onSomethingValueTask")]
-    [InlineData("onSomethingObj")]
-    [InlineData("onSomethingObjTask")]
-    [InlineData("onSomethingObjValueTask")]
-    [Theory]
-    public async Task SubscribeAndResolve_Attribute_Queryable(string field)
-        => await SnapshotTest
-            .Create(
-                async (snapshot, ct) =>
-                {
-                    var executor =
-                        await new ServiceCollection()
-                            .AddGraphQL()
-                            .AddSubscriptionType<PureCodeFirstQueryable>()
-                            .ModifyOptions(t => t.StrictValidation = false)
-                            .BuildRequestExecutorAsync(cancellationToken: ct);
-
-                    var result = await executor.ExecuteAsync(
-                        $"subscription {{ {field} }}",
-                        ct);
-
-                    await foreach (var queryResult in result.ExpectResponseStream()
-                        .ReadResultsAsync().WithCancellation(ct))
-                    {
-                        snapshot.Add(queryResult);
-                    }
-                },
-                postFix: field)
-            .MatchAsync();
-
-    [InlineData("onSomething")]
-    [InlineData("onSomethingTask")]
-    [InlineData("onSomethingValueTask")]
-    [InlineData("onSomethingObj")]
-    [InlineData("onSomethingObjTask")]
-    [InlineData("onSomethingObjValueTask")]
-    [Theory]
-    public async Task SubscribeAndResolve_Attribute_Observable(string field)
-        => await SnapshotTest
-            .Create(
-                async (snapshot, ct) =>
-                {
-                    var executor =
-                        await new ServiceCollection()
-                            .AddGraphQL()
-                            .AddSubscriptionType<PureCodeFirstObservable>()
-                            .ModifyOptions(t => t.StrictValidation = false)
-                            .BuildRequestExecutorAsync(cancellationToken: ct);
-
-                    var result = await executor.ExecuteAsync(
-                        $"subscription {{ {field} }}",
-                        ct);
-
-                    await foreach (var queryResult in result.ExpectResponseStream()
-                        .ReadResultsAsync().WithCancellation(ct))
-                    {
-                        snapshot.Add(queryResult);
-                    }
-                },
-                postFix: field)
             .MatchAsync();
 
     [Fact]
@@ -647,6 +485,44 @@ public class SubscriptionTypeTests : TypeTestBase
             """);
     }
 
+    [Fact]
+    public async Task Subscription_Directives_Are_Allowed()
+    {
+        // arrange
+        // act
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddDocumentFromString(
+                """
+                type Subscription {
+                  bookAdded: String!
+                }
+
+                directive @bug(test: Int!) on SUBSCRIPTION
+                """)
+            .BindRuntimeType<SubscriptionWithDirective>("Subscription")
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            subscription test @bug(test: 123) {
+              bookAdded
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "bookAdded": "foo"
+              }
+            }
+
+            """);
+    }
+
     public class TestObservable : IObservable<string>, IDisposable
     {
         public bool DisposeRaised { get; private set; }
@@ -658,7 +534,7 @@ public class SubscriptionTypeTests : TypeTestBase
                 {
                     await Task.Delay(250);
 
-                    foreach (var s in new[] { "a", "b", "c", })
+                    foreach (var s in new[] { "a", "b", "c" })
                     {
                         observer.OnNext(s);
                     }
@@ -688,233 +564,12 @@ public class SubscriptionTypeTests : TypeTestBase
         }
     }
 
-    public class PureCodeFirstAsyncEnumerable
-    {
-        [SubscribeAndResolve]
-        public async IAsyncEnumerable<string?> OnSomething()
-        {
-            await Task.Delay(50);
-            yield return "a";
-            yield return "b";
-            yield return "c";
-        }
-
-        [SubscribeAndResolve]
-        public Task<IAsyncEnumerable<string?>> OnSomethingTask()
-        {
-            return Task.FromResult(OnSomething());
-        }
-
-        [SubscribeAndResolve]
-        public ValueTask<IAsyncEnumerable<string?>> OnSomethingValueTask()
-        {
-            return new(OnSomething());
-        }
-
-        [GraphQLType(typeof(StringType))]
-        [SubscribeAndResolve]
-        public async IAsyncEnumerable<object?> OnSomethingObj()
-        {
-            await Task.Delay(50);
-            yield return "a";
-            yield return "b";
-            yield return "c";
-        }
-
-        [GraphQLType(typeof(StringType))]
-        [SubscribeAndResolve]
-        public Task<IAsyncEnumerable<object?>> OnSomethingObjTask()
-        {
-            return Task.FromResult(OnSomethingObj());
-        }
-
-        [GraphQLType(typeof(StringType))]
-        [SubscribeAndResolve]
-        public ValueTask<IAsyncEnumerable<object?>> OnSomethingObjValueTask()
-        {
-            return new(OnSomethingObj());
-        }
-    }
-
-    public class PureCodeFirstSourceStream
-    {
-        [SubscribeAndResolve]
-        public ValueTask<ISourceStream<bool>> OnSomething(
-            string userId,
-            [Service] ITopicEventReceiver receiver)
-            => receiver.SubscribeAsync<bool>(userId);
-    }
-
-    public class PureCodeFirstEnumerable
-    {
-        [SubscribeAndResolve]
-        public IEnumerable<string?> OnSomething()
-        {
-            yield return "a";
-            yield return "b";
-            yield return "c";
-        }
-
-        [SubscribeAndResolve]
-        public Task<IEnumerable<string?>> OnSomethingTask()
-        {
-            return Task.FromResult(OnSomething());
-        }
-
-        [SubscribeAndResolve]
-        public ValueTask<IEnumerable<string?>> OnSomethingValueTask()
-        {
-            return new(OnSomething());
-        }
-
-        [GraphQLType(typeof(StringType))]
-        [SubscribeAndResolve]
-        public IEnumerable<object?> OnSomethingObj()
-        {
-            yield return "a";
-            yield return "b";
-            yield return "c";
-        }
-
-        [GraphQLType(typeof(StringType))]
-        [SubscribeAndResolve]
-        public Task<IEnumerable<object?>> OnSomethingObjTask()
-        {
-            return Task.FromResult(OnSomethingObj());
-        }
-
-        [GraphQLType(typeof(StringType))]
-        [SubscribeAndResolve]
-        public ValueTask<IEnumerable<object?>> OnSomethingObjValueTask()
-        {
-            return new(OnSomethingObj());
-        }
-    }
-
-    public class PureCodeFirstQueryable
-    {
-        private readonly List<string> _strings = ["a", "b", "c",];
-
-        [SubscribeAndResolve]
-        public IQueryable<string?> OnSomething() => _strings.AsQueryable();
-
-        [SubscribeAndResolve]
-        public Task<IQueryable<string?>> OnSomethingTask()
-        {
-            return Task.FromResult(OnSomething());
-        }
-
-        [SubscribeAndResolve]
-        public ValueTask<IQueryable<string?>> OnSomethingValueTask()
-        {
-            return new(OnSomething());
-        }
-
-        [GraphQLType(typeof(StringType))]
-        [SubscribeAndResolve]
-        public IQueryable<object?> OnSomethingObj() => _strings.Cast<object>().AsQueryable();
-
-        [GraphQLType(typeof(StringType))]
-        [SubscribeAndResolve]
-        public Task<IQueryable<object?>> OnSomethingObjTask()
-        {
-            return Task.FromResult(OnSomethingObj());
-        }
-
-        [GraphQLType(typeof(StringType))]
-        [SubscribeAndResolve]
-        public ValueTask<IQueryable<object?>> OnSomethingObjValueTask()
-        {
-            return new(OnSomethingObj());
-        }
-    }
-
-    public class PureCodeFirstObservable
-    {
-        [SubscribeAndResolve]
-        public IObservable<string?> OnSomething() => new StringObservable();
-
-        [SubscribeAndResolve]
-        public Task<IObservable<string?>> OnSomethingTask()
-        {
-            return Task.FromResult(OnSomething());
-        }
-
-        [SubscribeAndResolve]
-        public ValueTask<IObservable<string?>> OnSomethingValueTask()
-        {
-            return new(OnSomething());
-        }
-
-        [GraphQLType(typeof(StringType))]
-        [SubscribeAndResolve]
-        public IObservable<object?> OnSomethingObj() => new StringObservable();
-
-        [GraphQLType(typeof(StringType))]
-        [SubscribeAndResolve]
-        public Task<IObservable<object?>> OnSomethingObjTask()
-        {
-            return Task.FromResult(OnSomethingObj());
-        }
-
-        [GraphQLType(typeof(StringType))]
-        [SubscribeAndResolve]
-        public ValueTask<IObservable<object?>> OnSomethingObjValueTask()
-        {
-            return new(OnSomethingObj());
-        }
-
-        private sealed class StringObservable
-            : IObservable<string>
-                , IObservable<object>
-        {
-            public IDisposable Subscribe(IObserver<string> observer)
-            {
-                return new Subscription(observer);
-            }
-
-            public IDisposable Subscribe(IObserver<object> observer)
-            {
-                return new Subscription(observer);
-            }
-
-            private sealed class Subscription : IDisposable
-            {
-                public Subscription(IObserver<string> observer)
-                {
-                    new Thread(
-                        () =>
-                        {
-                            observer.OnNext("a");
-                            observer.OnNext("b");
-                            observer.OnNext("c");
-                            observer.OnCompleted();
-                        }).Start();
-                }
-
-                public Subscription(IObserver<object> observer)
-                {
-                    new Thread(
-                        () =>
-                        {
-                            observer.OnNext("a");
-                            observer.OnNext("b");
-                            observer.OnNext("c");
-                            observer.OnCompleted();
-                        }).Start();
-                }
-
-                public void Dispose() { }
-            }
-        }
-    }
-
     public class MyMutation
     {
         public bool WriteBoolean(
             string userId,
             bool message,
-            [Service] ITopicEventSender eventSender)
+            ITopicEventSender eventSender)
         {
             eventSender.SendAsync(userId, message);
             return message;
@@ -923,7 +578,7 @@ public class SubscriptionTypeTests : TypeTestBase
         public string WriteMessage(
             string userId,
             string message,
-            [Service] ITopicEventSender eventSender)
+            ITopicEventSender eventSender)
         {
             eventSender.SendAsync(userId, message);
             return message;
@@ -931,7 +586,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
         public string WriteSysMessage(
             string message,
-            [Service] ITopicEventSender eventSender)
+            ITopicEventSender eventSender)
         {
             eventSender.SendAsync("OnSysMessage", message);
             return message;
@@ -939,7 +594,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
         public string WriteFixedMessage(
             string message,
-            [Service] ITopicEventSender eventSender)
+            ITopicEventSender eventSender)
         {
             eventSender.SendAsync("Fixed", message);
             return message;
@@ -947,7 +602,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
         public string WriteOnInferTopic(
             string message,
-            [Service] ITopicEventSender eventSender)
+            ITopicEventSender eventSender)
         {
             eventSender.SendAsync("OnInferTopic", message);
             return message;
@@ -955,7 +610,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
         public string WriteOnExplicit(
             string message,
-            [Service] ITopicEventSender eventSender)
+            ITopicEventSender eventSender)
         {
             eventSender.SendAsync("explicit", message);
             return message;
@@ -989,7 +644,7 @@ public class SubscriptionTypeTests : TypeTestBase
             message;
 
         public ValueTask<ISourceStream<string>> SubscribeToOnExplicit(
-            [Service] ITopicEventReceiver eventReceiver) =>
+            ITopicEventReceiver eventReceiver) =>
             eventReceiver.SubscribeAsync<string>("explicit");
 
         [Subscribe(With = nameof(SubscribeToOnExplicit))]
@@ -998,7 +653,7 @@ public class SubscriptionTypeTests : TypeTestBase
             message;
 
         public ValueTask<ISourceStream> SubscribeToOnExplicitNonGeneric(
-            [Service] ITopicEventReceiver eventReceiver) =>
+            ITopicEventReceiver eventReceiver) =>
             default;
 
         [Subscribe(With = nameof(SubscribeToOnExplicitNonGeneric))]
@@ -1007,8 +662,8 @@ public class SubscriptionTypeTests : TypeTestBase
             message;
 
         public ISourceStream SubscribeToOnExplicitNonGenericSync(
-            [Service] ITopicEventReceiver eventReceiver) =>
-            default!;
+            ITopicEventReceiver eventReceiver) =>
+            null!;
 
         [Subscribe(With = nameof(SubscribeToOnExplicitNonGenericSync))]
         public string OnExplicitNonGenericSync(
@@ -1016,8 +671,8 @@ public class SubscriptionTypeTests : TypeTestBase
             message;
 
         public ISourceStream<string> SubscribeToOnExplicitSync(
-            [Service] ITopicEventReceiver eventReceiver) =>
-            default!;
+            ITopicEventReceiver eventReceiver) =>
+            null!;
 
         [Subscribe(With = nameof(SubscribeToOnExplicitSync))]
         public string OnExplicitSync(
@@ -1046,5 +701,18 @@ public class SubscriptionTypeTests : TypeTestBase
         public string OnExplicit(
             [EventMessage] string message) =>
             message;
+    }
+
+    public class SubscriptionWithDirective
+    {
+        [Subscribe(With = nameof(GetStream))]
+        public string BookAdded([EventMessage] string foo) => foo;
+
+        private async IAsyncEnumerable<string> GetStream(
+            [EnumeratorCancellation] CancellationToken ct = default)
+        {
+            await Task.Delay(200, ct);
+            yield return "foo";
+        }
     }
 }

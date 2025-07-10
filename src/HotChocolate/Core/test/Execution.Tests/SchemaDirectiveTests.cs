@@ -1,6 +1,4 @@
-using CookieCrumble;
 using HotChocolate.Types;
-using HotChocolate.Tests;
 
 namespace HotChocolate.Execution;
 
@@ -63,7 +61,7 @@ public class SchemaDirectiveTests
         result.MatchSnapshot();
     }
 
-    public static ISchema CreateSchema()
+    public static Schema CreateSchema()
         => SchemaBuilder.New()
             .AddDirectiveType<ResolveDirective>()
             .AddDirectiveType<BDirectiveType>()
@@ -107,7 +105,7 @@ public class SchemaDirectiveTests
             {
                 await next.Invoke(context);
 
-                var s = directive.AsValue<BDirective>().Append;
+                var s = directive.ToValue<BDirective>().Append;
                 context.Result += s;
             });
         }
@@ -124,7 +122,7 @@ public class SchemaDirectiveTests
             {
                 await next.Invoke(context);
 
-                var s = directive.AsValue<CDirective>().Append;
+                var s = directive.ToValue<CDirective>().Append;
                 context.Result += s;
             });
         }

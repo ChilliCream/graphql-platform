@@ -160,6 +160,8 @@ public static class TypeNames
     public const string Object = "global::System.Object";
     public const string Guid = "global::System.Guid";
     public const string DateTime = "global::System.DateTime";
+    public const string DateOnly = "global::System.DateOnly";
+    public const string TimeOnly = "global::System.TimeOnly";
     public const string TimeSpan = "global::System.TimeSpan";
     public const string EncodingUtf8 = "global::System.Text.Encoding.UTF8";
     public const string List = GenericCollectionsNamespace + "List";
@@ -240,7 +242,7 @@ public static class TypeNames
     public const string UseSubscription =
         StrawberryShakeNamespace + "Razor." + nameof(UseSubscription);
 
-    public const string Upload = StrawberryShakeNamespace +  nameof(Upload);
+    public const string Upload = StrawberryShakeNamespace + nameof(Upload);
 
     public const string StringSerializer =
         StrawberryShakeNamespace + "Serialization.StringSerializer";
@@ -279,6 +281,15 @@ public static class TypeNames
 
     public const string DateSerializer =
         StrawberryShakeNamespace + "Serialization.DateSerializer";
+
+    public const string LocalDateSerializer =
+        StrawberryShakeNamespace + "Serialization.LocalDateSerializer";
+
+    public const string LocalDateTimeSerializer =
+        StrawberryShakeNamespace + "Serialization.LocalDateTimeSerializer";
+
+    public const string LocalTimeSerializer =
+        StrawberryShakeNamespace + "Serialization.LocalTimeSerializer";
 
     public const string ByteArraySerializer =
         StrawberryShakeNamespace + "Serialization.ByteArraySerializer";

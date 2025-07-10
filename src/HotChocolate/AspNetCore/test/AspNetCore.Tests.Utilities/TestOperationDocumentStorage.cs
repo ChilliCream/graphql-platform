@@ -1,11 +1,12 @@
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.PersistedOperations;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 
 public sealed class TestOperationDocumentStorage : IOperationDocumentStorage
 {
-    private readonly Dictionary<string, DocumentNode> _cache = new();
+    private readonly Dictionary<string, DocumentNode> _cache = [];
 
     public TestOperationDocumentStorage()
     {
@@ -15,7 +16,11 @@ public sealed class TestOperationDocumentStorage : IOperationDocumentStorage
 
         _cache.Add(
             "abc123",
-            Utf8GraphQLParser.Parse(@"query Test($if: Boolean) { hero { name @skip(if: $if) } }"));
+            Utf8GraphQLParser.Parse(@"query Test($if: Boolean!) { hero { name @skip(if: $if) } }"));
+
+        _cache.Add(
+            "a73defcdf38e5891e91b9ba532cf4c36",
+            Utf8GraphQLParser.Parse(@"query GetHeroName { hero { name } }"));
     }
 
     public async ValueTask<IOperationDocument?> TryReadAsync(

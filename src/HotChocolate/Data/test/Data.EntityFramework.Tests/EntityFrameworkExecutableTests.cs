@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Data;
 
 public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
@@ -43,10 +41,10 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
             .AsDbContextExecutable();
 
         // act
-        object result = await executable.ToListAsync(default);
+        object result = await executable.ToListAsync(CancellationToken.None);
 
         // assert
-        new { result, executable = executable.Print(), }.MatchSnapshot();
+        new { result, executable = executable.Print() }.MatchSnapshot();
     }
 
     [Fact]
@@ -56,10 +54,13 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
         IExecutable executable = _context.Authors.Take(1).AsDbContextExecutable();
 
         // act
-        var result = await executable.SingleOrDefaultAsync(default);
+        var result = await executable.SingleOrDefaultAsync(CancellationToken.None);
 
         // assert
-        new { result, executable = executable.Print(), }.MatchSnapshot();
+        new { result, executable = executable.Print() }.MatchSnapshot(
+            postFix: TestEnvironment.TargetFramework == "NET10_0"
+                ? TestEnvironment.TargetFramework
+                : null);
     }
 
     [Fact]
@@ -69,9 +70,9 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
         IExecutable executable = _context.Authors.AsDbContextExecutable();
 
         // act
-        var result = await executable.FirstOrDefaultAsync(default);
+        var result = await executable.FirstOrDefaultAsync(CancellationToken.None);
 
         // assert
-        new { result, executable = executable.Print(), }.MatchSnapshot();
+        new { result, executable = executable.Print() }.MatchSnapshot();
     }
 }

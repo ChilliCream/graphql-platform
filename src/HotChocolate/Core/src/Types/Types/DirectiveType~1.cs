@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -22,7 +22,7 @@ public class DirectiveType<TDirective> : DirectiveType where TDirective : class
         _configure = Configure;
     }
 
-    protected override DirectiveTypeDefinition CreateDefinition(
+    protected override DirectiveTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
         var descriptor = DirectiveTypeDescriptor.New<TDirective>(context.DescriptorContext);
@@ -30,7 +30,7 @@ public class DirectiveType<TDirective> : DirectiveType where TDirective : class
         _configure!(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected virtual void Configure(IDirectiveTypeDescriptor<TDirective> descriptor)

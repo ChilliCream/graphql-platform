@@ -5,9 +5,9 @@ using HotChocolate.Language;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// This interface aggregates the most important attributes of a input-field.
+/// This interface aggregates the most important attributes of an input value definition.
 /// </summary>
-public interface IInputFieldInfo : IHasName, IHasSchemaCoordinate, IHasRuntimeType
+public interface IInputValueInfo : INameProvider, ISchemaCoordinateProvider, IHasRuntimeType
 {
     /// <summary>
     /// Gets the type of this input field.

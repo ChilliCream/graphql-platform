@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -54,8 +53,8 @@ public class ExternalDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var query = schema.GetType<ObjectType>("User");
-        var address = schema.GetType<ObjectType>("Address");
+        var query = schema.Types.GetType<ObjectType>("User");
+        var address = schema.Types.GetType<ObjectType>("Address");
 
         // assert
         Assert.Collection(
@@ -81,8 +80,8 @@ public class ExternalDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var query = schema.GetType<ObjectType>("User");
-        var address = schema.GetType<ObjectType>("Address");
+        var query = schema.Types.GetType<ObjectType>("User");
+        var address = schema.Types.GetType<ObjectType>("Address");
 
         // assert
         Assert.Collection(
@@ -100,7 +99,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
 
 public class Query
 {
-    public User GetEntity(int id) => default!;
+    public User GetEntity(int id) => null!;
 }
 
 public class User
@@ -108,14 +107,14 @@ public class User
     [Key]
     public int Id { get; set; }
     [External]
-    public string IdCode { get; set; } = default!;
+    public string IdCode { get; set; } = null!;
     [External]
-    public Address Address { get; set; } = default!;
+    public Address Address { get; set; } = null!;
 }
 
 [External]
 public class Address
 {
-    public string Street { get; } = default!;
-    public string City { get; } = default!;
+    public string Street { get; } = null!;
+    public string City { get; } = null!;
 }

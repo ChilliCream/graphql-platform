@@ -12,7 +12,12 @@ internal sealed class Operation : IOperation
     private readonly object _writeLock = new();
     private SelectionVariants[] _selectionVariants = [];
     private IncludeCondition[] _includeConditions = [];
-    private ImmutableDictionary<string, object?> _contextData = ImmutableDictionary<string, object?>.Empty;
+    private ImmutableDictionary<string, object?> _contextData =
+#if NET10_0_OR_GREATER
+        [];
+#else
+        ImmutableDictionary<string, object?>.Empty;
+#endif
     private bool _sealed;
 
     public Operation(
@@ -20,7 +25,7 @@ internal sealed class Operation : IOperation
         DocumentNode document,
         OperationDefinitionNode definition,
         ObjectType rootType,
-        ISchema schema)
+        ISchemaDefinition schema)
     {
         Id = id;
         Document = document;
@@ -47,7 +52,7 @@ internal sealed class Operation : IOperation
 
     public OperationType Type { get; }
 
-    public ISelectionSet RootSelectionSet { get; private set; } = default!;
+    public ISelectionSet RootSelectionSet { get; private set; } = null!;
 
     public IReadOnlyList<ISelectionVariants> SelectionVariants
         => _selectionVariants;
@@ -59,19 +64,12 @@ internal sealed class Operation : IOperation
 
     public IReadOnlyDictionary<string, object?> ContextData => _contextData;
 
-    public ISchema Schema { get; }
+    public ISchemaDefinition Schema { get; }
 
-    public ISelectionSet GetSelectionSet(ISelection selection, IObjectType typeContext)
+    public ISelectionSet GetSelectionSet(ISelection selection, ObjectType typeContext)
     {
-        if (selection is null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
-
-        if (typeContext is null)
-        {
-            throw new ArgumentNullException(nameof(typeContext));
-        }
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentNullException.ThrowIfNull(typeContext);
 
         var selectionSetId = ((Selection)selection).SelectionSetId;
 
@@ -83,12 +81,9 @@ internal sealed class Operation : IOperation
         return _selectionVariants[selectionSetId].GetSelectionSet(typeContext);
     }
 
-    public IEnumerable<IObjectType> GetPossibleTypes(ISelection selection)
+    public IEnumerable<ObjectType> GetPossibleTypes(ISelection selection)
     {
-        if (selection is null)
-        {
-            throw new ArgumentNullException(nameof(selection));
-        }
+        ArgumentNullException.ThrowIfNull(selection);
 
         var selectionSetId = ((Selection)selection).SelectionSetId;
 
@@ -117,6 +112,25 @@ internal sealed class Operation : IOperation
         return context;
     }
 
+    public bool TryGetState<TState>(out TState? state)
+    {
+        var key = typeof(TState).FullName ?? throw new InvalidOperationException();
+        return TryGetState(key, out state);
+    }
+
+    public bool TryGetState<TState>(string key, out TState? state)
+    {
+        if (_contextData.TryGetValue(key, out var value)
+            && value is TState casted)
+        {
+            state = casted;
+            return true;
+        }
+
+        state = default;
+        return false;
+    }
+
     public TState GetOrAddState<TState>(Func<TState> createState)
         => GetOrAddState<TState, object?>(_ => createState(), null);
 
@@ -125,11 +139,11 @@ internal sealed class Operation : IOperation
         var key = typeof(TState).FullName ?? throw new InvalidOperationException();
 
         // ReSharper disable once InconsistentlySynchronizedField
-        if(!_contextData.TryGetValue(key, out var state))
+        if (!_contextData.TryGetValue(key, out var state))
         {
             lock (_writeLock)
             {
-                if(!_contextData.TryGetValue(key, out state))
+                if (!_contextData.TryGetValue(key, out state))
                 {
                     var newState = createState(context);
                     _contextData = _contextData.SetItem(key, newState);
@@ -152,11 +166,11 @@ internal sealed class Operation : IOperation
         TContext context)
     {
         // ReSharper disable once InconsistentlySynchronizedField
-        if(!_contextData.TryGetValue(key, out var state))
+        if (!_contextData.TryGetValue(key, out var state))
         {
             lock (_writeLock)
             {
-                if(!_contextData.TryGetValue(key, out state))
+                if (!_contextData.TryGetValue(key, out state))
                 {
                     var newState = createState(key, context);
                     _contextData = _contextData.SetItem(key, newState);

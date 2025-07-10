@@ -111,7 +111,7 @@
     <value>The variable `{0}` is not compatible with the type of the current location.</value>
   </data>
   <data name="ErrorHelper_DirectiveNotValidInLocation" xml:space="preserve">
-    <value>The specified directive is not valid the current location.</value>
+    <value>The specified directive is not valid in the current location.</value>
   </data>
   <data name="ErrorHelper_DirectiveNotSupported" xml:space="preserve">
     <value>The specified directive `{0}` is not supported by the current schema.</value>
@@ -126,7 +126,7 @@
     <value>The field `{0}` does not exist on the type `{1}`.</value>
   </data>
   <data name="ErrorHelper_LeafFieldsCannotHaveSelections" xml:space="preserve">
-    <value>`{0}` returns {1} value. Selections on scalars or enums are never allowed, because they are the leaf nodes of any GraphQL query.</value>
+    <value>Field "{0}" must not have a selection since type "{1}" has no subfields.</value>
   </data>
   <data name="ErrorHelper_ArgumentValueIsNotCompatible" xml:space="preserve">
     <value>The specified argument value does not match the argument type.</value>
@@ -138,10 +138,10 @@
     <value>The specified value type of variable `{0}` does not match the variable type.</value>
   </data>
   <data name="ErrorHelper_NoSelectionOnCompositeField" xml:space="preserve">
-    <value>`{0}` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.</value>
+    <value>Field "{0}" of type "{1}" must have a selection of subfields. Did you mean "{0} {{ ... }}"?</value>
   </data>
   <data name="ErrorHelper_NoSelectionOnRootType" xml:space="preserve">
-    <value>Operation `{0}` has a empty selection set. Root types without subfields are disallowed.</value>
+    <value>Operation `{0}` has an empty selection set. Root types without subfields are disallowed.</value>
   </data>
   <data name="ErrorHelper_FieldIsRequiredButNull" xml:space="preserve">
     <value>`{0}` is a required field and cannot be null.</value>
@@ -221,6 +221,9 @@
   <data name="ErrorHelper_OneOfVariablesMustBeNonNull" xml:space="preserve">
     <value>The variable `${0}` assigned to the field `{1}` of the Oneof Input Object `{2}` must be non-null.</value>
   </data>
+  <data name="ErrorHelper_SkipAndIncludeNotAllowedOnSubscriptionRootField" xml:space="preserve">
+    <value>The skip and include directives are not allowed to be used on root fields of the subscription type.</value>
+  </data>
   <data name="ErrorHelper_DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot" xml:space="preserve">
     <value>The defer and stream directives are not allowed to be used on root fields of the mutation or subscription type.</value>
   </data>
@@ -229,5 +232,8 @@
   </data>
   <data name="ErrorHelper_DeferAndStreamLabelIsVariable" xml:space="preserve">
     <value>If a label for @defer or @stream is passed, it must not be a variable.</value>
+  </data>
+  <data name="ErrorHelper_OperationNotSupported" xml:space="preserve">
+    <value>This GraphQL schema does not support `{0}` operations.</value>
   </data>
 </root>

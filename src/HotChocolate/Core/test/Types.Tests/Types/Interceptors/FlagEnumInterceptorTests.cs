@@ -1,5 +1,4 @@
 using System.Text;
-using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Types.Interceptors.FlagEnumInterceptorTests.FlagsEnum;
@@ -18,7 +17,7 @@ public class FlagEnumInterceptorTests
             .AddQueryType<OutputQuery>()
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -34,7 +33,7 @@ public class FlagEnumInterceptorTests
                         .Resolve(FlagsWithDescription.Bar))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -48,7 +47,7 @@ public class FlagEnumInterceptorTests
             .AddType<Impl>()
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -68,7 +67,7 @@ public class FlagEnumInterceptorTests
                             .Type(typeof(FlagsEnum))))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -79,7 +78,7 @@ public class FlagEnumInterceptorTests
             .AddQueryType<InputQuery>()
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -122,14 +121,14 @@ public class FlagEnumInterceptorTests
     {
         var executor1 = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x.Name("Query").Field("test").Resolve(new[] { Bar, }))
+            .AddQueryType(x => x.Name("Query").Field("test").Resolve(new[] { Bar }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         var result1 = await executor1.ExecuteAsync("{ test {isBar isBaz isFoo }}");
 
         var executor2 = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x.Name("Query").Field("test").Resolve(new[] { new[] { Baz | Bar, }, }))
+            .AddQueryType(x => x.Name("Query").Field("test").Resolve(new[] { new[] { Baz | Bar } }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         var result2 = await executor2.ExecuteAsync("{ test {isBar isBaz isFoo }}");
@@ -194,7 +193,7 @@ public class FlagEnumInterceptorTests
     {
         var executor1 = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x.Name("Query").Field("test").Resolve(new FlagsEnum?[] { Bar, }))
+            .AddQueryType(x => x.Name("Query").Field("test").Resolve(new FlagsEnum?[] { Bar }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         var result1 = await executor1.ExecuteAsync("{ test {isBar isBaz isFoo }}");
@@ -204,14 +203,14 @@ public class FlagEnumInterceptorTests
             .AddQueryType(
                 x
                     => x.Name("Query").Field("test")
-                        .Resolve(new[] { new FlagsEnum?[] { Baz | Bar, }, }))
+                        .Resolve(new[] { new FlagsEnum?[] { Baz | Bar } }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         var result2 = await executor2.ExecuteAsync("{ test {isBar isBaz isFoo }}");
 
         var executor3 = await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(x => x.Name("Query").Field("test").Resolve(new FlagsEnum?[] { null, }))
+            .AddQueryType(x => x.Name("Query").Field("test").Resolve(new FlagsEnum?[] { null }))
             .ModifyOptions(x => x.EnableFlagEnums = true)
             .BuildRequestExecutorAsync();
         var result3 = await executor3.ExecuteAsync("{ test {isBar isBaz isFoo }}");
@@ -434,16 +433,16 @@ public class FlagEnumInterceptorTests
     {
         public FlagsEnum Single() => Bar | FlagsEnum.Foo;
 
-        public FlagsEnum[] List() => [Bar | FlagsEnum.Foo,];
+        public FlagsEnum[] List() => [Bar | FlagsEnum.Foo];
 
-        public FlagsEnum[][] NestedList() => [[Bar | FlagsEnum.Foo,],];
+        public FlagsEnum[][] NestedList() => [[Bar | FlagsEnum.Foo]];
 
         public FlagsEnum? NullableSingle() => Bar | FlagsEnum.Foo;
 
-        public FlagsEnum?[]? NullableList() => [Bar | FlagsEnum.Foo,];
+        public FlagsEnum?[]? NullableList() => [Bar | FlagsEnum.Foo];
 
         public FlagsEnum?[]?[]? NullableNestedList()
-            => [[Bar | FlagsEnum.Foo,],];
+            => [[Bar | FlagsEnum.Foo]];
     }
 
     [GraphQLDescription("This is the type desc")]
@@ -452,7 +451,7 @@ public class FlagEnumInterceptorTests
     {
         [GraphQLDescription("Foo has a desc")] Foo = 1,
         [GraphQLDescription("Bar has a desc")] Bar = 2,
-        [GraphQLDescription("Baz has a desc")] Baz = 3,
+        [GraphQLDescription("Baz has a desc")] Baz = 3
     }
 
     [InterfaceType()]
@@ -485,9 +484,9 @@ public class FlagEnumInterceptorTests
     {
         public FlagsEnum Single { get; set; }
 
-        public FlagsEnum[] List { get; set; } = default!;
+        public FlagsEnum[] List { get; set; } = null!;
 
-        public FlagsEnum[][] NestedList { get; set; } = default!;
+        public FlagsEnum[][] NestedList { get; set; } = null!;
 
         public FlagsEnum? NullableSingle { get; set; }
 
@@ -501,7 +500,7 @@ public class FlagEnumInterceptorTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4,
+        Baz = 4
     }
 
     [Flags]
@@ -509,7 +508,7 @@ public class FlagEnumInterceptorTests
     {
         Foo = 0x1,
         Bar = 0x2,
-        Baz = 0x4,
+        Baz = 0x4
     }
 
     [Flags]
@@ -517,7 +516,7 @@ public class FlagEnumInterceptorTests
     {
         Foo = 0x1,
         Bar = 0x2,
-        Baz = 0x4,
+        Baz = 0x4
     }
 
     [Flags]
@@ -525,7 +524,7 @@ public class FlagEnumInterceptorTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4,
+        Baz = 4
     }
 
     [Flags]
@@ -533,7 +532,7 @@ public class FlagEnumInterceptorTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4,
+        Baz = 4
     }
 
     [Flags]
@@ -541,7 +540,7 @@ public class FlagEnumInterceptorTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4,
+        Baz = 4
     }
 
     [Flags]
@@ -549,7 +548,7 @@ public class FlagEnumInterceptorTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4,
+        Baz = 4
     }
 
     [Flags]
@@ -557,7 +556,7 @@ public class FlagEnumInterceptorTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4,
+        Baz = 4
     }
 
     [Flags]
@@ -565,6 +564,6 @@ public class FlagEnumInterceptorTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4,
+        Baz = 4
     }
 }

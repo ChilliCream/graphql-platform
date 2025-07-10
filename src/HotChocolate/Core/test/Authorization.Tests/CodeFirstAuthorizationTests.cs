@@ -1,10 +1,8 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Authorization;
 
@@ -86,7 +84,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -269,7 +267,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -323,7 +321,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -377,7 +375,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -431,7 +429,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -485,7 +483,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -513,7 +511,7 @@ public class CodeFirstAuthorizationTests
                 .Type<PersonType>();
 
             descriptor
-                .Field(t => t.GetCityOrStreet(default))
+                .Field(t => t.GetCityOrStreet(false))
                 .Type<CityOrStreetType>();
 
             descriptor

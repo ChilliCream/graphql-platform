@@ -1,8 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
-using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -39,13 +37,13 @@ public readonly ref struct SelectionSetOptimizerContext
     /// <summary>
     /// Gets the schema for which the query is compiled.
     /// </summary>
-    public ISchema Schema
+    public Schema Schema
         => _compilerContext.Schema;
 
     /// <summary>
     /// Gets the type context of the current selection-set.
     /// </summary>
-    public IObjectType Type
+    public ObjectType Type
         => _compilerContext.Type;
 
     /// <summary>
@@ -97,7 +95,7 @@ public readonly ref struct SelectionSetOptimizerContext
     /// <returns>
     /// Returns a <see cref="FieldDelegate" /> representing the field resolver pipeline.
     /// </returns>
-    public FieldDelegate CompileResolverPipeline(IObjectField field, FieldNode selection)
+    public FieldDelegate CompileResolverPipeline(ObjectField field, FieldNode selection)
         => _createFieldPipeline(Schema, field, selection);
 
     /// <summary>
@@ -111,47 +109,9 @@ public readonly ref struct SelectionSetOptimizerContext
     /// </exception>
     public void AddSelection(Selection newSelection)
     {
-        if (newSelection is null)
-        {
-            throw new ArgumentNullException(nameof(newSelection));
-        }
+        ArgumentNullException.ThrowIfNull(newSelection);
 
         _compilerContext.Fields.Add(newSelection.ResponseName, newSelection);
-        _compiler.RegisterNewSelection(newSelection);
-    }
-
-    /// <summary>
-    /// Adds an additional selection for internal purposes.
-    /// </summary>
-    /// <param name="responseName">
-    /// The selection response name.
-    /// </param>
-    /// <param name="newSelection">
-    /// The new optimized selection.
-    /// </param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="newSelection"/> is <c>null</c>.
-    /// </exception>
-    /// <exception cref="ArgumentException">
-    /// The <paramref name="responseName"/> is not a valid GraphQL field name.
-    /// </exception>
-    [Obsolete("Use AddSelection(Selection) instead.")]
-    public void AddSelection(string responseName, Selection newSelection)
-    {
-        if (newSelection is null)
-        {
-            throw new ArgumentNullException(nameof(newSelection));
-        }
-
-        responseName.EnsureGraphQLName();
-
-        if (!newSelection.ResponseName.EqualsOrdinal(responseName))
-        {
-            throw new ArgumentException(
-                SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame);
-        }
-
-        _compilerContext.Fields.Add(responseName, newSelection);
         _compiler.RegisterNewSelection(newSelection);
     }
 
@@ -170,10 +130,7 @@ public readonly ref struct SelectionSetOptimizerContext
     /// </exception>
     public void ReplaceSelection(Selection newSelection)
     {
-        if (newSelection is null)
-        {
-            throw new ArgumentNullException(nameof(newSelection));
-        }
+        ArgumentNullException.ThrowIfNull(newSelection);
 
         if (!_compilerContext.Fields.TryGetValue(
             newSelection.ResponseName,
@@ -183,51 +140,6 @@ public readonly ref struct SelectionSetOptimizerContext
         }
 
         _compilerContext.Fields[newSelection.ResponseName] = newSelection;
-
-        if (_selectionLookup.TryGetValue(currentSelection, out var selectionSetInfos))
-        {
-            _selectionLookup.Remove(currentSelection);
-            _selectionLookup.Add(newSelection, selectionSetInfos);
-        }
-    }
-
-    /// <summary>
-    /// Replaces an existing selection with an optimized version.
-    /// </summary>
-    /// <param name="responseName">
-    /// The selection response name.
-    /// </param>
-    /// <param name="newSelection">
-    /// The new optimized selection.
-    /// </param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="newSelection"/> is <c>null</c>.
-    /// </exception>
-    /// <exception cref="ArgumentException">
-    /// - The <paramref name="responseName"/> is not a valid GraphQL field name.
-    /// - There is no existing selection with the specified <paramref name="responseName"/>.
-    /// - <see cref="Selection.ResponseName"/> is not equal to <paramref name="responseName"/>.
-    /// </exception>
-    [Obsolete("Use ReplaceSelection(Selection) instead.")]
-    public void ReplaceSelection(string responseName, Selection newSelection)
-    {
-        if (!responseName.IsValidGraphQLName())
-        {
-            throw new ArgumentException(
-                string.Format(SelectionSetOptimizerContext_InvalidFieldName, responseName));
-        }
-
-        if (newSelection is null)
-        {
-            throw new ArgumentNullException(nameof(newSelection));
-        }
-
-        if (!_compilerContext.Fields.TryGetValue(responseName, out var currentSelection))
-        {
-            throw new ArgumentException($"The `{responseName}` does not exist.");
-        }
-
-        _compilerContext.Fields[responseName] = newSelection;
 
         if (_selectionLookup.TryGetValue(currentSelection, out var selectionSetInfos))
         {

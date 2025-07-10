@@ -15,18 +15,18 @@ public partial class TypeMapperGenerator
         bool isNonNullable)
     {
         method
-            .AddParameter(_dataParameterName)
+            .AddParameter(DataParameterName)
             .SetType(TypeNames.EntityIdOrData.MakeNullable(!isNonNullable))
-            .SetName(_dataParameterName);
+            .SetName(DataParameterName);
 
         method
-            .AddParameter(_snapshot)
+            .AddParameter(Snapshot)
             .SetType(TypeNames.IEntityStoreSnapshot)
-            .SetName(_snapshot);
+            .SetName(Snapshot);
 
         if (!isNonNullable)
         {
-            method.AddCode(EnsureProperNullability(_dataParameterName, isNonNullable));
+            method.AddCode(EnsureProperNullability(DataParameterName, isNonNullable));
         }
 
         var dataHandlerMethodName =
@@ -69,7 +69,7 @@ public partial class TypeMapperGenerator
 
         method.AddEmptyLine();
 
-        var parameterName = isNonNullable ? _dataParameterName : $"{_dataParameterName}.Value";
+        var parameterName = isNonNullable ? DataParameterName : $"{DataParameterName}.Value";
 
         var ifBuilder = IfBuilder
             .New()
@@ -79,7 +79,7 @@ public partial class TypeMapperGenerator
                 .SetReturn()
                 .SetMethodName(entityDataHandlerMethodName)
                 .AddArgument("id")
-                .AddArgument(_snapshot))
+                .AddArgument(Snapshot))
             .AddIfElse(IfBuilder
                 .New()
                 .SetCondition(
@@ -89,7 +89,7 @@ public partial class TypeMapperGenerator
                     .SetReturn()
                     .SetMethodName(dataHandlerMethodName)
                     .AddArgument("d")
-                    .AddArgument(_snapshot)))
+                    .AddArgument(Snapshot)))
             .AddElse(ExceptionBuilder.New(TypeNames.ArgumentOutOfRangeException));
 
         method.AddCode(ifBuilder);

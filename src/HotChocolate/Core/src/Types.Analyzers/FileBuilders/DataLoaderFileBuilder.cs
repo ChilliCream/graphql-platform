@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
@@ -84,10 +83,11 @@ public sealed class DataLoaderFileBuilder : IDisposable
         bool isPublic,
         DataLoaderKind kind,
         ITypeSymbol key,
-        ITypeSymbol value)
+        ITypeSymbol value,
+        bool withInterface)
     {
         _writer.WriteIndentedLine(
-            "{0} sealed class {1}",
+            "{0} sealed partial class {1}",
             isPublic
                 ? "public"
                 : "internal",
@@ -99,7 +99,10 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 : ": global::GreenDonut.DataLoaderBase<{0}, {1}>",
             key.ToFullyQualified(),
             value.ToFullyQualified());
-        _writer.WriteIndentedLine(", {0}", interfaceName);
+        if (withInterface)
+        {
+            _writer.WriteIndentedLine(", {0}", interfaceName);
+        }
         _writer.DecreaseIndent();
         _writer.WriteIndentedLine("{");
         _writer.IncreaseIndent();
@@ -255,8 +258,85 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         isScoped ? "scope.ServiceProvider" : "_services",
                         parameter.Type.ToFullyQualified());
                 }
-                else if (parameter.Kind is DataLoaderParameterKind.SelectorBuilder
-                    || parameter.Kind is DataLoaderParameterKind.PagingArguments)
+                else if (parameter.Kind is DataLoaderParameterKind.SelectorBuilder)
+                {
+                    _writer.WriteIndentedLine(
+                        "var {0} = context.GetState<{1}>(\"{2}\")",
+                        parameter.VariableName,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.StateKey);
+                    _writer.IncreaseIndent();
+                    _writer.WriteIndentedLine(
+                        "?? global::GreenDonut.Data.DefaultSelectorBuilder.Empty;");
+                    _writer.DecreaseIndent();
+                }
+                else if (parameter.Kind is DataLoaderParameterKind.PredicateBuilder)
+                {
+                    _writer.WriteIndentedLine(
+                        "var {0} = context.GetState<{1}>(\"{2}\")",
+                        parameter.VariableName,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.StateKey);
+                    _writer.IncreaseIndent();
+                    _writer.WriteIndentedLine(
+                        "?? global::GreenDonut.Data.DefaultPredicateBuilder.Empty;");
+                    _writer.DecreaseIndent();
+                }
+                else if (parameter.Kind is DataLoaderParameterKind.SortDefinition)
+                {
+                    _writer.WriteIndentedLine(
+                        "var {0} = context.GetState<{1}>(\"{2}\")",
+                        parameter.VariableName,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.StateKey);
+                    _writer.IncreaseIndent();
+                    _writer.WriteIndentedLine(
+                        "?? {0}.Empty;",
+                        parameter.Type.ToFullyQualified());
+                    _writer.DecreaseIndent();
+                }
+                else if (parameter.Kind is DataLoaderParameterKind.QueryContext)
+                {
+                    _writer.WriteIndentedLine(
+                        "var {0}_selector = context.GetState<global::{1}>(\"{2}\")?.TryCompile<{3}>();",
+                        parameter.VariableName,
+                        WellKnownTypes.SelectorBuilder,
+                        DataLoaderInfo.Selector,
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified());
+                    _writer.WriteIndentedLine(
+                        "var {0}_predicate = context.GetState<global::{1}>(\"{2}\")?.TryCompile<{3}>();",
+                        parameter.VariableName,
+                        WellKnownTypes.PredicateBuilder,
+                        DataLoaderInfo.Predicate,
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified());
+                    _writer.WriteIndentedLine(
+                        "var {0}_sortDefinition = context.GetState<global::{1}<{2}>>(\"{3}\");",
+                        parameter.VariableName,
+                        WellKnownTypes.SortDefinition,
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified(),
+                        DataLoaderInfo.Sorting);
+                    _writer.WriteLine();
+
+                    _writer.WriteIndentedLine(
+                        "var {0} = global::{1}<{2}>.Empty;",
+                        parameter.VariableName,
+                        WellKnownTypes.QueryContext,
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified());
+                    _writer.WriteIndentedLine(
+                        "if({0}_selector is not null || {0}_predicate is not null || {0}_sortDefinition is not null)",
+                        parameter.VariableName);
+                    _writer.WriteIndentedLine("{");
+                    _writer.IncreaseIndent();
+                    _writer.WriteIndentedLine(
+                        "{0} = new global::{1}<{2}>({0}_selector, " +
+                        "{0}_predicate, {0}_sortDefinition);",
+                        parameter.VariableName,
+                        WellKnownTypes.QueryContext,
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified());
+                    _writer.DecreaseIndent();
+                    _writer.WriteIndentedLine("}");
+                }
+                else if (parameter.Kind is DataLoaderParameterKind.PagingArguments)
                 {
                     _writer.WriteIndentedLine(
                         "var {0} = context.GetRequiredState<{1}>(\"{2}\");",
@@ -368,8 +448,8 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 kind is DataLoaderKind.Group ? "[]" : string.Empty,
                 value.IsValueType ? string.Empty : "?");
             _writer.WriteIndentedLine(
-                "global::{0} resultMap)",
-                ExtractMapType(method.ReturnType));
+                "{0} resultMap)",
+                ExtractMapType(method.ReturnType).ToFullyQualifiedWithNullRefQualifier());
         }
 
         _writer.WriteIndentedLine("{");
@@ -457,7 +537,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
         DataLoaderKind kind,
         ImmutableArray<DataLoaderParameterInfo> parameters)
     {
-        _writer.Write("await {0}.{1}(", containingType, fetchMethod.Name);
+        _writer.Write("await global::{0}.{1}(", containingType, fetchMethod.Name);
 
         for (var i = 0; i < parameters.Length; i++)
         {
@@ -486,22 +566,45 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
     public void WriteDataLoaderGroupClass(
         string groupClassName,
-        IReadOnlyList<GroupedDataLoaderInfo> dataLoaders)
+        IReadOnlyList<GroupedDataLoaderInfo> dataLoaders,
+        bool withInterface,
+        bool isInterfacePublic,
+        bool isClassPublic)
     {
-        _writer.WriteIndentedLine("public interface I{0}", groupClassName);
-        _writer.WriteIndentedLine("{");
-        _writer.IncreaseIndent();
-
-        foreach (var dataLoader in dataLoaders)
+        if (withInterface)
         {
-            _writer.WriteIndentedLine("{0} {1} {{ get; }}", dataLoader.InterfaceName, dataLoader.Name);
+            _writer.WriteIndentedLine(
+                "{0} interface I{1}",
+                isInterfacePublic ? "public" : "internal",
+                groupClassName);
+            _writer.WriteIndentedLine("{");
+            _writer.IncreaseIndent();
+
+            foreach (var dataLoader in dataLoaders)
+            {
+                _writer.WriteIndentedLine("{0} {1} {{ get; }}", dataLoader.InterfaceName, dataLoader.Name);
+            }
+
+            _writer.DecreaseIndent();
+            _writer.WriteIndentedLine("}");
+            _writer.WriteLine();
         }
 
-        _writer.DecreaseIndent();
-        _writer.WriteIndentedLine("}");
-        _writer.WriteLine();
+        if (withInterface)
+        {
+            _writer.WriteIndentedLine(
+                "{0} sealed partial class {1} : I{1}",
+                isClassPublic ? "public" : "internal",
+                groupClassName);
+        }
+        else
+        {
+            _writer.WriteIndentedLine(
+                "{0} sealed partial class {1}",
+                isClassPublic ? "public" : "internal",
+                groupClassName);
+        }
 
-        _writer.WriteIndentedLine("public sealed class {0} : I{0}", groupClassName);
         _writer.WriteIndentedLine("{");
         _writer.IncreaseIndent();
 
@@ -570,7 +673,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
 
     private static ITypeSymbol ExtractMapType(ITypeSymbol returnType)
     {
-        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1, } namedType
+        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1 } namedType
             && namedType.TypeArguments[0] is INamedTypeSymbol { TypeArguments.Length: 2 } dict)
         {
             return dict;
@@ -593,8 +696,8 @@ public sealed class DataLoaderFileBuilder : IDisposable
         }
 
         PooledObjects.Return(_sb);
-        _sb = default!;
-        _writer = default!;
+        _sb = null!;
+        _writer = null!;
         _disposed = true;
     }
 }

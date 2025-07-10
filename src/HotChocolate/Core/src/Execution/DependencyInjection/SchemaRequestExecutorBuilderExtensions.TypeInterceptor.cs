@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
 
@@ -6,49 +7,76 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class SchemaRequestExecutorBuilderExtensions
 {
+    /// <summary>
+    /// Adds a type interceptor to the schema.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="typeInterceptor">
+    /// The type interceptor.
+    /// </param>
+    /// <param name="uniqueByType">
+    /// If set to <c>true</c> the type interceptor will only be added once per type.
+    /// </param>
+    /// <returns>
+    /// The request executor builder.
+    /// </returns>
     public static IRequestExecutorBuilder TryAddTypeInterceptor(
         this IRequestExecutorBuilder builder,
-        TypeInterceptor typeInterceptor)
+        TypeInterceptor typeInterceptor,
+        bool uniqueByType = false)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(typeInterceptor);
 
-        if (typeInterceptor is null)
-        {
-            throw new ArgumentNullException(nameof(typeInterceptor));
-        }
-
-        return builder.ConfigureSchema(b => b.TryAddTypeInterceptor(typeInterceptor));
+        return builder.ConfigureSchema(b => b.TryAddTypeInterceptor(typeInterceptor, uniqueByType));
     }
 
+    /// <summary>
+    /// Adds a type interceptor to the schema.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="typeInterceptor">
+    /// The type interceptor.
+    /// </param>
+    /// <returns>
+    /// The request executor builder.
+    /// </returns>
     public static IRequestExecutorBuilder TryAddTypeInterceptor(
         this IRequestExecutorBuilder builder,
         Type typeInterceptor)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (typeInterceptor is null)
-        {
-            throw new ArgumentNullException(nameof(typeInterceptor));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(typeInterceptor);
 
         return builder.ConfigureSchema(b => b.TryAddTypeInterceptor(typeInterceptor));
     }
 
+    /// <summary>
+    /// Adds a type interceptor to the schema.
+    /// </summary>
+    /// <typeparam name="T">
+    /// The type interceptor.
+    /// </typeparam>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="factory">
+    /// An optional factory function to create the type interceptor.
+    /// </param>
+    /// <returns>
+    /// The request executor builder.
+    /// </returns>
     public static IRequestExecutorBuilder TryAddTypeInterceptor<T>(
-        this IRequestExecutorBuilder builder)
+        this IRequestExecutorBuilder builder,
+        Func<IServiceProvider, T>? factory = null)
         where T : TypeInterceptor
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.ConfigureSchema(b => b.TryAddTypeInterceptor(typeof(T)));
+        return builder.ConfigureSchema(b => b.TryAddTypeInterceptor(factory));
     }
 }

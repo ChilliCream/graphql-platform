@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -18,10 +17,10 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { BarShort = 12, };
+        var a = new Foo { BarShort = 12 };
         Assert.True(func(a));
 
-        var b = new Foo { BarShort = 13, };
+        var b = new Foo { BarShort = 13 };
         Assert.False(func(b));
     }
 
@@ -36,10 +35,10 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { BarShort = 13, };
+        var a = new Foo { BarShort = 13 };
         Assert.True(func(a));
 
-        var b = new Foo { BarShort = 12, };
+        var b = new Foo { BarShort = 12 };
         Assert.False(func(b));
     }
 
@@ -55,13 +54,13 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { BarShort = 11, };
+        var a = new Foo { BarShort = 11 };
         Assert.False(func(a));
 
-        var b = new Foo { BarShort = 12, };
+        var b = new Foo { BarShort = 12 };
         Assert.False(func(b));
 
-        var c = new Foo { BarShort = 13, };
+        var c = new Foo { BarShort = 13 };
         Assert.True(func(c));
     }
 
@@ -77,13 +76,13 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { BarShort = 11, };
+        var a = new Foo { BarShort = 11 };
         Assert.True(func(a));
 
-        var b = new Foo { BarShort = 12, };
+        var b = new Foo { BarShort = 12 };
         Assert.True(func(b));
 
-        var c = new Foo { BarShort = 13, };
+        var c = new Foo { BarShort = 13 };
         Assert.False(func(c));
     }
 
@@ -99,13 +98,13 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { BarShort = 11, };
+        var a = new Foo { BarShort = 11 };
         Assert.False(func(a));
 
-        var b = new Foo { BarShort = 12, };
+        var b = new Foo { BarShort = 12 };
         Assert.True(func(b));
 
-        var c = new Foo { BarShort = 13, };
+        var c = new Foo { BarShort = 13 };
         Assert.True(func(c));
     }
 
@@ -121,13 +120,13 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { BarShort = 11, };
+        var a = new Foo { BarShort = 11 };
         Assert.True(func(a));
 
-        var b = new Foo { BarShort = 12, };
+        var b = new Foo { BarShort = 12 };
         Assert.False(func(b));
 
-        var c = new Foo { BarShort = 13, };
+        var c = new Foo { BarShort = 13 };
         Assert.False(func(c));
     }
 
@@ -143,13 +142,13 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { BarShort = 11, };
+        var a = new Foo { BarShort = 11 };
         Assert.True(func(a));
 
-        var b = new Foo { BarShort = 12, };
+        var b = new Foo { BarShort = 12 };
         Assert.False(func(b));
 
-        var c = new Foo { BarShort = 13, };
+        var c = new Foo { BarShort = 13 };
         Assert.False(func(c));
     }
 
@@ -165,13 +164,13 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { BarShort = 11, };
+        var a = new Foo { BarShort = 11 };
         Assert.False(func(a));
 
-        var b = new Foo { BarShort = 12, };
+        var b = new Foo { BarShort = 12 };
         Assert.True(func(b));
 
-        var c = new Foo { BarShort = 13, };
+        var c = new Foo { BarShort = 13 };
         Assert.True(func(c));
     }
 
@@ -186,13 +185,13 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { BarShort = 11, };
+        var a = new Foo { BarShort = 11 };
         Assert.True(func(a));
 
-        var b = new Foo { BarShort = 12, };
+        var b = new Foo { BarShort = 12 };
         Assert.True(func(b));
 
-        var c = new Foo { BarShort = 13, };
+        var c = new Foo { BarShort = 13 };
         Assert.False(func(c));
     }
 
@@ -207,13 +206,13 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { BarShort = 11, };
+        var a = new Foo { BarShort = 11 };
         Assert.False(func(a));
 
-        var b = new Foo { BarShort = 12, };
+        var b = new Foo { BarShort = 12 };
         Assert.False(func(b));
 
-        var c = new Foo { BarShort = 13, };
+        var c = new Foo { BarShort = 13 };
         Assert.True(func(c));
     }
 
@@ -228,10 +227,10 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { BarShort = 13, };
+        var a = new Foo { BarShort = 13 };
         Assert.True(func(a));
 
-        var b = new Foo { BarShort = 12, };
+        var b = new Foo { BarShort = 12 };
         Assert.False(func(b));
     }
 
@@ -246,10 +245,10 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { BarShort = 12, };
+        var a = new Foo { BarShort = 12 };
         Assert.True(func(a));
 
-        var b = new Foo { BarShort = 13, };
+        var b = new Foo { BarShort = 13 };
         Assert.False(func(b));
     }
 
@@ -264,13 +263,13 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { BarShort = 12, };
+        var a = new FooNullable { BarShort = 12 };
         Assert.True(func(a));
 
-        var b = new FooNullable { BarShort = 13, };
+        var b = new FooNullable { BarShort = 13 };
         Assert.False(func(b));
 
-        var c = new FooNullable { BarShort = null, };
+        var c = new FooNullable { BarShort = null };
         Assert.False(func(c));
     }
 
@@ -285,13 +284,13 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { BarShort = 13, };
+        var a = new FooNullable { BarShort = 13 };
         Assert.True(func(a));
 
-        var b = new FooNullable { BarShort = 12, };
+        var b = new FooNullable { BarShort = 12 };
         Assert.False(func(b));
 
-        var c = new FooNullable { BarShort = null, };
+        var c = new FooNullable { BarShort = null };
         Assert.True(func(c));
     }
 
@@ -307,16 +306,16 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { BarShort = 11, };
+        var a = new FooNullable { BarShort = 11 };
         Assert.False(func(a));
 
-        var b = new FooNullable { BarShort = 12, };
+        var b = new FooNullable { BarShort = 12 };
         Assert.False(func(b));
 
-        var c = new FooNullable { BarShort = 13, };
+        var c = new FooNullable { BarShort = 13 };
         Assert.True(func(c));
 
-        var d = new FooNullable { BarShort = null, };
+        var d = new FooNullable { BarShort = null };
         Assert.False(func(d));
     }
 
@@ -332,16 +331,16 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { BarShort = 11, };
+        var a = new FooNullable { BarShort = 11 };
         Assert.True(func(a));
 
-        var b = new FooNullable { BarShort = 12, };
+        var b = new FooNullable { BarShort = 12 };
         Assert.True(func(b));
 
-        var c = new FooNullable { BarShort = 13, };
+        var c = new FooNullable { BarShort = 13 };
         Assert.False(func(c));
 
-        var d = new FooNullable { BarShort = null, };
+        var d = new FooNullable { BarShort = null };
         Assert.True(func(d));
     }
 
@@ -357,16 +356,16 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { BarShort = 11, };
+        var a = new FooNullable { BarShort = 11 };
         Assert.False(func(a));
 
-        var b = new FooNullable { BarShort = 12, };
+        var b = new FooNullable { BarShort = 12 };
         Assert.True(func(b));
 
-        var c = new FooNullable { BarShort = 13, };
+        var c = new FooNullable { BarShort = 13 };
         Assert.True(func(c));
 
-        var d = new FooNullable { BarShort = null, };
+        var d = new FooNullable { BarShort = null };
         Assert.False(func(d));
     }
 
@@ -382,16 +381,16 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { BarShort = 11, };
+        var a = new FooNullable { BarShort = 11 };
         Assert.True(func(a));
 
-        var b = new FooNullable { BarShort = 12, };
+        var b = new FooNullable { BarShort = 12 };
         Assert.False(func(b));
 
-        var c = new FooNullable { BarShort = 13, };
+        var c = new FooNullable { BarShort = 13 };
         Assert.False(func(c));
 
-        var d = new FooNullable { BarShort = null, };
+        var d = new FooNullable { BarShort = null };
         Assert.True(func(d));
     }
 
@@ -407,16 +406,16 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { BarShort = 11, };
+        var a = new FooNullable { BarShort = 11 };
         Assert.True(func(a));
 
-        var b = new FooNullable { BarShort = 12, };
+        var b = new FooNullable { BarShort = 12 };
         Assert.False(func(b));
 
-        var c = new FooNullable { BarShort = 13, };
+        var c = new FooNullable { BarShort = 13 };
         Assert.False(func(c));
 
-        var d = new FooNullable { BarShort = null, };
+        var d = new FooNullable { BarShort = null };
         Assert.False(func(d));
     }
 
@@ -432,16 +431,16 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { BarShort = 11, };
+        var a = new FooNullable { BarShort = 11 };
         Assert.False(func(a));
 
-        var b = new FooNullable { BarShort = 12, };
+        var b = new FooNullable { BarShort = 12 };
         Assert.True(func(b));
 
-        var c = new FooNullable { BarShort = 13, };
+        var c = new FooNullable { BarShort = 13 };
         Assert.True(func(c));
 
-        var d = new FooNullable { BarShort = null, };
+        var d = new FooNullable { BarShort = null };
         Assert.True(func(d));
     }
 
@@ -457,16 +456,16 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { BarShort = 11, };
+        var a = new FooNullable { BarShort = 11 };
         Assert.True(func(a));
 
-        var b = new FooNullable { BarShort = 12, };
+        var b = new FooNullable { BarShort = 12 };
         Assert.True(func(b));
 
-        var c = new FooNullable { BarShort = 13, };
+        var c = new FooNullable { BarShort = 13 };
         Assert.False(func(c));
 
-        var d = new FooNullable { BarShort = null, };
+        var d = new FooNullable { BarShort = null };
         Assert.False(func(d));
     }
 
@@ -482,16 +481,16 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { BarShort = 11, };
+        var a = new FooNullable { BarShort = 11 };
         Assert.False(func(a));
 
-        var b = new FooNullable { BarShort = 12, };
+        var b = new FooNullable { BarShort = 12 };
         Assert.False(func(b));
 
-        var c = new FooNullable { BarShort = 13, };
+        var c = new FooNullable { BarShort = 13 };
         Assert.True(func(c));
 
-        var d = new FooNullable { BarShort = null, };
+        var d = new FooNullable { BarShort = null };
         Assert.True(func(d));
     }
 
@@ -507,13 +506,13 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { BarShort = 13, };
+        var a = new FooNullable { BarShort = 13 };
         Assert.True(func(a));
 
-        var b = new FooNullable { BarShort = 12, };
+        var b = new FooNullable { BarShort = 12 };
         Assert.False(func(b));
 
-        var c = new FooNullable { BarShort = null, };
+        var c = new FooNullable { BarShort = null };
         Assert.False(func(c));
     }
 
@@ -529,13 +528,13 @@ public class QueryableFilterVisitorComparableTests
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { BarShort = 12, };
+        var a = new FooNullable { BarShort = 12 };
         Assert.True(func(a));
 
-        var b = new FooNullable { BarShort = 13, };
+        var b = new FooNullable { BarShort = 13 };
         Assert.False(func(b));
 
-        var c = new FooNullable { BarShort = null, };
+        var c = new FooNullable { BarShort = null };
         Assert.True(func(c));
     }
 
@@ -566,14 +565,10 @@ public class QueryableFilterVisitorComparableTests
     }
 
     public class FooFilterInput
-        : FilterInputType<Foo>
-    {
-    }
+        : FilterInputType<Foo>;
 
     public class FooNullableFilterInput
-        : FilterInputType<FooNullable>
-    {
-    }
+        : FilterInputType<FooNullable>;
 
     public class EntityWithTypeAttribute
     {

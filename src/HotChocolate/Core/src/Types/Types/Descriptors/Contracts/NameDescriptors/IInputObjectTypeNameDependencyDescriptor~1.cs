@@ -1,3 +1,5 @@
+using HotChocolate.Types.Descriptors;
+
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
 
@@ -7,4 +9,6 @@ public interface IInputObjectTypeNameDependencyDescriptor<T>
         where TDependency : IType;
 
     IInputObjectTypeDescriptor<T> DependsOn(Type schemaType);
+
+    IInputObjectTypeDescriptor<T> DependsOn(TypeReference typeReference);
 }

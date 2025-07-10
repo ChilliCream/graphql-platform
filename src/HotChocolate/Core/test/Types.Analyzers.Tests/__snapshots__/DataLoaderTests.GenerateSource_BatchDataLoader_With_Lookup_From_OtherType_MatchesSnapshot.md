@@ -20,7 +20,7 @@ namespace TestNamespace
     {
     }
 
-    public sealed class EntityByIdDataLoader
+    public sealed partial class EntityByIdDataLoader
         : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.Entity2>
         , IEntityByIdDataLoader
     {
@@ -46,14 +46,14 @@ namespace TestNamespace
             global::GreenDonut.DataLoaderFetchContext<global::TestNamespace.Entity2> context,
             global::System.Threading.CancellationToken ct)
         {
-            var temp = await TestNamespace.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);
+            var temp = await global::TestNamespace.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }
 
         private void CopyResults(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
             global::System.Span<GreenDonut.Result<global::TestNamespace.Entity2?>> results,
-            global::System.Collections.Generic.IDictionary<int, TestNamespace.Entity2> resultMap)
+            global::System.Collections.Generic.IDictionary<int, global::TestNamespace.Entity2> resultMap)
         {
             for (var i = 0; i < keys.Count; i++)
             {

@@ -10,6 +10,7 @@
       }
     ],
     "Extensions": {
+      "code": "HC0046",
       "field": {
         "Kind": "Name",
         "Location": {
@@ -19,8 +20,7 @@
           "Column": 5
         },
         "Value": "__type"
-      },
-      "code": "HC0046"
+      }
     },
     "Exception": null
   }

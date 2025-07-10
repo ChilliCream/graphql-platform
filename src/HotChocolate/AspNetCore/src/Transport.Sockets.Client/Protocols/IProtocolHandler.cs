@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Text.Json;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols;
 
@@ -18,7 +19,6 @@ internal interface IProtocolHandler
     /// <summary>
     /// Initializes the protocol handler with the specified payload.
     /// </summary>
-    /// <typeparam name="T">The type of the payload.</typeparam>
     /// <param name="context">
     /// The <see cref="SocketClientContext"/> object representing the WebSocket
     /// client context.
@@ -32,9 +32,9 @@ internal interface IProtocolHandler
     /// <returns>
     /// A <see cref="ValueTask"/> that represents the asynchronous operation.
     /// </returns>
-    ValueTask InitializeAsync<T>(
+    ValueTask InitializeAsync(
         SocketClientContext context,
-        T payload,
+        JsonElement payload,
         CancellationToken cancellationToken = default);
 
     /// <summary>

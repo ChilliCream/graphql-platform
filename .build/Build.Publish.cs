@@ -8,8 +8,6 @@ using Nuke.Common.Tools.NuGet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Helpers;
 using static Nuke.Common.Tools.NuGet.NuGetTasks;
-using Nuke.Common.Utilities.Collections;
-using System.Linq;
 
 partial class Build
 {
@@ -55,12 +53,6 @@ partial class Build
             projFile = File.ReadAllText(Gateway13Proj);
             File.WriteAllText(Gateway13Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
 
-            projFile = File.ReadAllText(GatewayManaged13Proj);
-            File.WriteAllText(GatewayManaged13Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
-
-            projFile = File.ReadAllText(GatewayAspire13Proj);
-            File.WriteAllText(GatewayAspire13Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
-
             DotNetBuildSonarSolution(
                 PackSolutionFile,
                 include: file =>
@@ -73,15 +65,6 @@ partial class Build
                 .SetNoRestore(true)
                 .SetProjectFile(PackSolutionFile)
                 .SetConfiguration(Configuration)
-                .SetInformationalVersion(SemVersion)
-                .SetFileVersion(Version)
-                .SetAssemblyVersion(Version)
-                .SetVersion(SemVersion));
-
-            DotNetPack(c => c
-                .SetProject(FSharpTypes)
-                .SetConfiguration(Configuration)
-                .SetOutputDirectory(PackageDirectory)
                 .SetInformationalVersion(SemVersion)
                 .SetFileVersion(Version)
                 .SetAssemblyVersion(Version)

@@ -1,5 +1,7 @@
+using System.Globalization;
 using HotChocolate.Execution;
 using NodaTime;
+using NodaTime.Text;
 
 namespace HotChocolate.Types.NodaTime.Tests;
 
@@ -76,7 +78,7 @@ public class OffsetDateTimeTypeIntegrationTests
             .Execute(
                 OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T18:30:13+02" }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T18:30:13+02" } })
                     .Build());
 
         Assert.Equal("2020-12-31T18:40:13+02", result.ExpectOperationResult().Data!["test"]);
@@ -89,7 +91,7 @@ public class OffsetDateTimeTypeIntegrationTests
             .Execute(
                 OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T18:30:13+02:35" }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T18:30:13+02:35" } })
                     .Build());
 
         Assert.Equal("2020-12-31T18:40:13+02:35", result.ExpectOperationResult().Data!["test"]);
@@ -102,7 +104,7 @@ public class OffsetDateTimeTypeIntegrationTests
             .Execute(
                 OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T18:30:13" }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T18:30:13" } })
                     .Build());
 
         Assert.Null(result.ExpectOperationResult().Data);
@@ -155,5 +157,36 @@ public class OffsetDateTimeTypeIntegrationTests
     {
         static object Call() => new OffsetDateTimeType([]);
         Assert.Throws<SchemaException>(Call);
+    }
+
+    [Fact]
+    public void OffsetDateTimeType_DescriptionKnownPatterns_MatchesSnapshot()
+    {
+        var offsetDateTimeType = new OffsetDateTimeType(
+            OffsetDateTimePattern.ExtendedIso,
+            OffsetDateTimePattern.FullRoundtrip);
+
+        offsetDateTimeType.Description.MatchInlineSnapshot(
+            """
+            A local date and time in a particular calendar system, combined with an offset from UTC.
+
+            Allowed patterns:
+            - `YYYY-MM-DDThh:mm:ss.sssssssss±hh:mm`
+            - `YYYY-MM-DDThh:mm:ss.sssssssss±hh:mm (calendar)`
+
+            Examples:
+            - `2000-01-01T20:00:00.999Z`
+            - `2000-01-01T20:00:00.999Z (ISO)`
+            """);
+    }
+
+    [Fact]
+    public void OffsetDateTimeType_DescriptionUnknownPatterns_MatchesSnapshot()
+    {
+        var offsetDateTimeType = new OffsetDateTimeType(
+            OffsetDateTimePattern.Create("MM", CultureInfo.InvariantCulture, new OffsetDateTime()));
+
+        offsetDateTimeType.Description.MatchInlineSnapshot(
+            "A local date and time in a particular calendar system, combined with an offset from UTC.");
     }
 }

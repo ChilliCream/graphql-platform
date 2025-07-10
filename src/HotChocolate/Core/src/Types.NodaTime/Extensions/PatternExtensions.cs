@@ -55,7 +55,7 @@ internal static class PatternExtensions
             }
         }
 
-        output = default;
+        output = null;
         return false;
     }
 
@@ -73,7 +73,7 @@ internal static class PatternExtensions
             }
         }
 
-        output = default;
+        output = null;
         return false;
     }
 }

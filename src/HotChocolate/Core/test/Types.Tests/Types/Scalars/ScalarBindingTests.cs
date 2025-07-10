@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Language;
 
 #nullable enable
@@ -35,12 +34,12 @@ public class ScalarBindingTests
 
     public class QueryA
     {
-        public Bar? Bar([GraphQLType(typeof(ExplicitBindingScalar))]int id) => new Bar();
+        public Bar? Bar([GraphQLType(typeof(ExplicitBindingScalar))] int id) => new Bar();
     }
 
     public class QueryB
     {
-        public Bar? Bar([GraphQLType(typeof(ImplicitBindingScalar))]int id) => new Bar();
+        public Bar? Bar([GraphQLType(typeof(ImplicitBindingScalar))] int id) => new Bar();
     }
 
     public class Bar

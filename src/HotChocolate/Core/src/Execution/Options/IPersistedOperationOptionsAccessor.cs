@@ -1,3 +1,5 @@
+using HotChocolate.PersistedOperations;
+
 namespace HotChocolate.Execution.Options;
 
 /// <summary>
@@ -6,14 +8,7 @@ namespace HotChocolate.Execution.Options;
 public interface IPersistedOperationOptionsAccessor
 {
     /// <summary>
-    /// Specifies if only persisted operations are allowed when using
-    /// the persisted operation pipeline.
+    /// Gets the persisted operation options.
     /// </summary>
-    bool OnlyAllowPersistedOperations { get; }
-
-    /// <summary>
-    /// The error that will be thrown when only persisted
-    /// operations are allowed and a normal operation is issued.
-    /// </summary>
-    IError OnlyPersistedOperationsAreAllowedError { get; }
+    PersistedOperationOptions PersistedOperations { get; }
 }

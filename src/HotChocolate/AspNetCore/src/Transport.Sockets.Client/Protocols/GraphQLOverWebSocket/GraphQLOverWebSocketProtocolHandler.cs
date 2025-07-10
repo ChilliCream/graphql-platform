@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Net.WebSockets;
 using System.Text.Json;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 
@@ -9,11 +10,18 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 {
     public string Name => WellKnownProtocols.GraphQL_Transport_WS;
 
-    public async ValueTask InitializeAsync<T>(
+    public async ValueTask InitializeAsync(
         SocketClientContext context,
-        T payload,
+        JsonElement payload,
         CancellationToken cancellationToken = default)
     {
+        if (payload.ValueKind is not JsonValueKind.Object and not JsonValueKind.Null and not JsonValueKind.Undefined)
+        {
+            throw new ArgumentException(
+                "The payload must be an object, null, or undefined.",
+                nameof(payload));
+        }
+
         var observer = new ConnectionMessageObserver<ConnectionAcceptMessage>(cancellationToken);
         using var subscription = context.Messages.Subscribe(observer);
         await context.Socket.SendConnectionInitMessage(payload, cancellationToken);
@@ -32,7 +40,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
         await context.Socket.SendSubscribeMessageAsync(id, request, cancellationToken);
 
-        // if the user cancels this stream we will send the server a complete request
+        // if the user cancels this stream, we will send the server a complete request
         // so that we no longer receive new result messages.
         cancellationToken.Register(completion.TrySendCompleteMessage);
 
@@ -153,35 +161,33 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         {
             if (!_completed)
             {
-                Task.Factory.StartNew(
-                    async () =>
-                    {
-                        using var cts = new CancellationTokenSource(2000);
-
-                        try
-                        {
-                            if (socket.IsOpen())
-                            {
-                                await socket.SendCompleteMessageAsync(id, cts.Token);
-                            }
-                        }
-                        catch
-                        {
-                            // if we cannot send the complete message we will just abort the socket.
-                            try
-                            {
-                                socket.Abort();
-                            }
-                            catch
-                            {
-                                // ignore
-                            }
-                        }
-                    },
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    TaskScheduler.Default);
+                TrySendCompleteMessageInternalAsync(socket, id).FireAndForget();
                 _completed = true;
+            }
+        }
+    }
+
+    private static async Task TrySendCompleteMessageInternalAsync(WebSocket socket, string id)
+    {
+        using var cts = new CancellationTokenSource(2000);
+
+        try
+        {
+            if (socket.IsOpen())
+            {
+                await socket.SendCompleteMessageAsync(id, cts.Token);
+            }
+        }
+        catch
+        {
+            // if we cannot send the complete message we will just abort the socket.
+            try
+            {
+                socket.Abort();
+            }
+            catch
+            {
+                // ignore
             }
         }
     }
@@ -194,6 +200,6 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         Next,
         Error,
         Complete,
-        ConnectionAccept,
+        ConnectionAccept
     }
 }

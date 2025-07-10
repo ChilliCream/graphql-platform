@@ -1,11 +1,10 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 
 #nullable enable
 
 namespace HotChocolate.Types;
 
-public class InputObjectTypeNonNullTests
+public class InputObjectTypeDictionaryTests
     : TypeTestBase
 {
     [Fact]
@@ -49,7 +48,7 @@ public class InputObjectTypeNonNullTests
     {
         public string GetFoo(FooInput input)
         {
-            if (input.ContextData1 is { Count: 1, })
+            if (input.ContextData1 is { Count: 1 })
             {
                 return input.ContextData1.First().Value;
             }

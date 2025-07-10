@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
@@ -41,7 +40,7 @@ public class GeoJsonMultiPolygonSerializerTests
                     new IntValueNode(15),
                     new IntValueNode(5)))));
 
-    private Geometry _geometry = new MultiPolygon(
+    private readonly Geometry _geometry = new MultiPolygon(
     [
         new Polygon(
                     new LinearRing(
@@ -49,7 +48,7 @@ public class GeoJsonMultiPolygonSerializerTests
                         new Coordinate(30, 20),
                             new Coordinate(45, 40),
                             new Coordinate(10, 40),
-                            new Coordinate(30, 20),
+                            new Coordinate(30, 20)
                     ])),
                 new Polygon(
                     new LinearRing(
@@ -58,8 +57,8 @@ public class GeoJsonMultiPolygonSerializerTests
                             new Coordinate(40, 10),
                             new Coordinate(10, 20),
                             new Coordinate(5, 15),
-                            new Coordinate(15, 5),
-                    ])),
+                            new Coordinate(15, 5)
+                    ]))
     ]);
 
     private readonly string _geometryType = "MultiPolygon";
@@ -68,23 +67,23 @@ public class GeoJsonMultiPolygonSerializerTests
     {
         [
             [
-                [30.0, 20.0,],
-                [45.0, 40.0,],
-                [10.0, 40.0,],
-                [30.0, 20.0,],
-            ],
+                [30.0, 20.0],
+                [45.0, 40.0],
+                [10.0, 40.0],
+                [30.0, 20.0]
+            ]
         ],
             new[]
             {
                 new[]
                 {
-                    [15.0, 5.0,],
-                    [40.0, 10.0,],
-                    [10.0, 20.0,],
-                    [5.0, 15.0,],
-                    new[] { 15.0, 5.0, },
-                },
-            },
+                    [15.0, 5.0],
+                    [40.0, 10.0],
+                    [10.0, 20.0],
+                    [5.0, 15.0],
+                    new[] { 15.0, 5.0 }
+                }
+            }
     };
 
     [Theory]
@@ -190,7 +189,7 @@ public class GeoJsonMultiPolygonSerializerTests
         Assert.False(
             type.IsInstanceOfType(
                 GeometryFactory.Default.CreateGeometryCollection(
-                    [new Point(1, 2),])));
+                    [new Point(1, 2)])));
     }
 
     [Theory]
@@ -510,7 +509,7 @@ public class GeoJsonMultiPolygonSerializerTests
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
-                { WellKnownFields.CrsFieldName, 26912 },
+                { WellKnownFields.CrsFieldName, 26912 }
             };
 
         // act
@@ -531,7 +530,7 @@ public class GeoJsonMultiPolygonSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
-                { WellKnownFields.CoordinatesFieldName, _geometryParsed },
+                { WellKnownFields.CoordinatesFieldName, _geometryParsed }
             };
 
         // act
@@ -552,7 +551,7 @@ public class GeoJsonMultiPolygonSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
-                { WellKnownFields.CrsFieldName, new IntValueNode(0) },
+                { WellKnownFields.CrsFieldName, new IntValueNode(0) }
             };
 
         // act
@@ -571,7 +570,7 @@ public class GeoJsonMultiPolygonSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
-                { WellKnownFields.CrsFieldName, new IntValueNode(0) },
+                { WellKnownFields.CrsFieldName, new IntValueNode(0) }
             };
 
         // act
@@ -597,7 +596,7 @@ public class GeoJsonMultiPolygonSerializerTests
         Assert.Throws<SerializationException>(() => inputParser.ParseLiteral(valueNode, type));
     }
 
-    private ISchema CreateSchema() => SchemaBuilder.New()
+    private Schema CreateSchema() => SchemaBuilder.New()
         .AddSpatialTypes()
         .AddQueryType(
             d => d
@@ -627,13 +626,13 @@ public class GeoJsonMultiPolygonSerializerTests
         }
     }
 
-    private INamedInputType CreateInputType(string typeName)
+    private IInputTypeDefinition CreateInputType(string typeName)
     {
-        return CreateSchema().GetType<INamedInputType>(typeName);
+        return CreateSchema().Types.GetType<IInputTypeDefinition>(typeName);
     }
 
     private ILeafType CreateLeafType(string typeName)
     {
-        return CreateSchema().GetType<ILeafType>(typeName);
+        return CreateSchema().Types.GetType<ILeafType>(typeName);
     }
 }

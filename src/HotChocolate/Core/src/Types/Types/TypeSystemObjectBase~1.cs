@@ -1,27 +1,25 @@
-using System.Collections.Immutable;
 using System.Diagnostics;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
 namespace HotChocolate.Types;
 
-public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
-    where TDefinition : DefinitionBase
+/// <summary>
+/// A base class for all GraphQL type system objects that have a type system configuration.
+/// </summary>
+public abstract class TypeSystemObject<TConfiguration> : TypeSystemObject
+    where TConfiguration : TypeSystemConfiguration
 {
-    private TDefinition? _definition;
-    private IReadOnlyDictionary<string, object?>? _contextData;
+    private IFeatureCollection? _features;
 
-    public override IReadOnlyDictionary<string, object?> ContextData
-        => _contextData ?? throw new TypeInitializationException();
+    public override IFeatureCollection Features
+        => _features ?? throw new TypeInitializationException();
 
-    protected internal TDefinition? Definition
-    {
-        get => _definition;
-        protected set => _definition = value;
-    }
+    protected internal TConfiguration? Configuration { get; protected set; }
 
     internal sealed override void Initialize(ITypeDiscoveryContext context)
     {
@@ -30,44 +28,45 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         OnBeforeInitialize(context);
 
         Scope = context.Scope;
-        _definition = CreateDefinition(context);
+        Configuration = CreateConfiguration(context);
 
-        if (_definition is null)
+        if (Configuration is null)
         {
             throw new InvalidOperationException(
                 TypeResources.TypeSystemObjectBase_DefinitionIsNull);
         }
 
-        // if we at this point already know the name we will just commit it.
-        if (!string.IsNullOrEmpty(_definition.Name))
+        // if we at this point already know the name, we will just commit it.
+        if (!string.IsNullOrEmpty(Configuration.Name))
         {
-            Name = _definition.Name;
+            Name = Configuration.Name;
         }
 
-        RegisterConfigurationDependencies(context, _definition);
+        RegisterConfigurationDependencies(context, Configuration);
 
-        OnAfterInitialize(context, _definition);
+        OnAfterInitialize(context, Configuration);
 
         MarkInitialized();
     }
 
-    protected abstract TDefinition CreateDefinition(
+    protected abstract TConfiguration CreateConfiguration(
         ITypeDiscoveryContext context);
 
     protected virtual void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        TDefinition definition) { }
+        TConfiguration configuration)
+    { }
 
     internal sealed override void CompleteName(ITypeCompletionContext context)
     {
         AssertInitialized();
 
-        var definition = _definition!;
+        var config = Configuration!;
 
-        OnBeforeCompleteName(context, definition);
+        OnBeforeCompleteName(context, config);
 
-        ExecuteConfigurations(context, definition, ApplyConfigurationOn.BeforeNaming);
-        OnCompleteName(context, definition);
+        ExecuteConfigurations(context, config, ApplyConfigurationOn.BeforeNaming);
+        OnCompleteName(context, config);
 
         Debug.Assert(
             !string.IsNullOrEmpty(Name),
@@ -85,19 +84,19 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
                     .Build());
         }
 
-        OnAfterCompleteName(context, definition);
-        ExecuteConfigurations(context, definition, ApplyConfigurationOn.AfterNaming);
+        OnAfterCompleteName(context, config);
+        ExecuteConfigurations(context, config, ApplyConfigurationOn.AfterNaming);
 
         MarkNamed();
     }
 
     protected virtual void OnCompleteName(
         ITypeCompletionContext context,
-        TDefinition definition)
+        TConfiguration configuration)
     {
-        if (!string.IsNullOrEmpty(definition.Name))
+        if (!string.IsNullOrEmpty(configuration.Name))
         {
-            Name = definition.Name;
+            Name = configuration.Name;
         }
     }
 
@@ -105,79 +104,111 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
     {
         AssertNamed();
 
-        var definition = _definition!;
+        var config = Configuration!;
 
-        OnBeforeCompleteType(context, definition);
+        OnBeforeCompleteType(context, config);
 
-        ExecuteConfigurations(context, definition, ApplyConfigurationOn.BeforeCompletion);
-        Description = definition.Description;
-        OnCompleteType(context, definition);
+        ExecuteConfigurations(context, config, ApplyConfigurationOn.BeforeCompletion);
+        Description = config.Description;
+        OnCompleteType(context, config);
 
-        _contextData = definition.GetContextData();
+        _features = config.GetFeatures();
 
-        OnAfterCompleteType(context, definition);
-        ExecuteConfigurations(context, definition, ApplyConfigurationOn.AfterCompletion);
-
-        OnValidateType(context, definition);
+        OnAfterCompleteType(context, config);
+        ExecuteConfigurations(context, config, ApplyConfigurationOn.AfterCompletion);
 
         MarkCompleted();
     }
 
+    protected virtual void OnCompleteType(
+        ITypeCompletionContext context,
+        TConfiguration configuration)
+    { }
+
+    internal sealed override void CompleteMetadata(ITypeCompletionContext context)
+    {
+        AssertTypeCompleted();
+
+        var config = Configuration!;
+
+        OnBeforeCompleteMetadata(context, config);
+        OnCompleteMetadata(context, config);
+        OnAfterCompleteMetadata(context, config);
+
+        MarkMetadataCompleted();
+    }
+
+    protected virtual void OnCompleteMetadata(
+        ITypeCompletionContext context,
+        TConfiguration configuration)
+    { }
+
+    internal sealed override void MakeExecutable(ITypeCompletionContext context)
+    {
+        AssertMetadataCompleted();
+
+        var definition = Configuration!;
+
+        OnBeforeMakeExecutable(context, definition);
+        OnMakeExecutable(context, definition);
+        OnAfterMakeExecutable(context, definition);
+
+        MarkExecutable();
+    }
+
+    protected virtual void OnMakeExecutable(
+        ITypeCompletionContext context,
+        TConfiguration configuration)
+    { }
+
+    protected virtual void OnFinalizeType(
+        ITypeCompletionContext context,
+        TConfiguration configuration)
+    { }
+
     internal sealed override void FinalizeType(ITypeCompletionContext context)
     {
-        // we will release the definition here so that it can be collected by the GC.
-        _definition = null;
+        // first we will call the OnFinalizeType hook.
+        OnFinalizeType(context, Configuration!);
+        var config = Configuration!;
 
-        // if the ExtensionData object has no data we will release it so it can be
-        // collected by the GC.
-        if (_contextData!.Count == 0 && _contextData is not ImmutableDictionary<string, object?>)
-        {
-            _contextData = ImmutableDictionary<string, object?>.Empty;
-        }
+        // next we will release the configuration here so that it can be collected by the GC.
+        Configuration = null;
+        _features = _features?.ToReadOnly() ?? FeatureCollection.Empty;
 
-        // if contextData is still wrapped we will unwrap it here so that access is faster without
-        // any null checking.
-        else if (_contextData is ExtensionData extensionData &&
-            extensionData.TryGetInnerDictionary(out var dictionary))
-        {
-            _contextData = dictionary;
-        }
+        OnValidateType(context, config);
 
         MarkFinalized();
     }
 
-    protected virtual void OnCompleteType(
-        ITypeCompletionContext context,
-        TDefinition definition) { }
-
     private void RegisterConfigurationDependencies(
         ITypeDiscoveryContext context,
-        TDefinition definition)
+        TConfiguration configuration)
     {
-        OnBeforeRegisterDependencies(context, definition);
+        OnBeforeRegisterDependencies(context, configuration);
 
-        foreach (var configuration in definition.GetConfigurations())
+        foreach (var task in configuration.GetTasks())
         {
-            foreach (var dependency in configuration.Dependencies)
+            foreach (var dependency in task.Dependencies)
             {
                 context.Dependencies.Add(dependency);
             }
         }
 
-        OnRegisterDependencies(context, definition);
-        OnAfterRegisterDependencies(context, definition);
+        OnRegisterDependencies(context, configuration);
+        OnAfterRegisterDependencies(context, configuration);
     }
 
     private static void ExecuteConfigurations(
         ITypeCompletionContext context,
-        TDefinition definition,
+        TConfiguration configuration,
         ApplyConfigurationOn on)
     {
-        foreach (var config in definition.GetConfigurations())
+        foreach (var task in configuration.GetTasks())
         {
-            if (config.On == on)
+            if (task.On == on)
             {
-                ((CompleteConfiguration)config).Configure(context);
+                ((OnCompleteTypeSystemConfigurationTask)task).Configure(context);
             }
         }
     }
@@ -188,43 +219,63 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
 
     protected virtual void OnAfterInitialize(
         ITypeDiscoveryContext context,
-        DefinitionBase definition)
-        => context.TypeInterceptor.OnAfterInitialize(context, definition);
+        TypeSystemConfiguration configuration)
+        => context.TypeInterceptor.OnAfterInitialize(context, configuration);
 
     protected virtual void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext context,
-        DefinitionBase definition)
-        => context.TypeInterceptor.OnBeforeRegisterDependencies(context, definition);
+        TypeSystemConfiguration configuration)
+        => context.TypeInterceptor.OnBeforeRegisterDependencies(context, configuration);
 
     protected virtual void OnAfterRegisterDependencies(
         ITypeDiscoveryContext context,
-        DefinitionBase definition)
-        => context.TypeInterceptor.OnAfterRegisterDependencies(context, definition);
+        TypeSystemConfiguration configuration)
+        => context.TypeInterceptor.OnAfterRegisterDependencies(context, configuration);
 
     protected virtual void OnBeforeCompleteName(
         ITypeCompletionContext context,
-        DefinitionBase definition)
-        => context.TypeInterceptor.OnBeforeCompleteName(context, definition);
+        TypeSystemConfiguration configuration)
+        => context.TypeInterceptor.OnBeforeCompleteName(context, configuration);
 
     protected virtual void OnAfterCompleteName(
         ITypeCompletionContext context,
-        DefinitionBase definition)
-        => context.TypeInterceptor.OnAfterCompleteName(context, definition);
+        TypeSystemConfiguration configuration)
+        => context.TypeInterceptor.OnAfterCompleteName(context, configuration);
 
     protected virtual void OnBeforeCompleteType(
         ITypeCompletionContext context,
-        DefinitionBase definition)
-        => context.TypeInterceptor.OnBeforeCompleteType(context, definition);
+        TypeSystemConfiguration configuration)
+        => context.TypeInterceptor.OnBeforeCompleteType(context, configuration);
 
     protected virtual void OnAfterCompleteType(
         ITypeCompletionContext context,
-        DefinitionBase definition)
-        => context.TypeInterceptor.OnAfterCompleteType(context, definition);
+        TypeSystemConfiguration configuration)
+        => context.TypeInterceptor.OnAfterCompleteType(context, configuration);
+
+    protected virtual void OnBeforeCompleteMetadata(
+        ITypeCompletionContext context,
+        TypeSystemConfiguration configuration)
+        => context.TypeInterceptor.OnBeforeCompleteMetadata(context, configuration);
+
+    protected virtual void OnAfterCompleteMetadata(
+        ITypeCompletionContext context,
+        TypeSystemConfiguration configuration)
+        => context.TypeInterceptor.OnAfterCompleteMetadata(context, configuration);
+
+    protected virtual void OnBeforeMakeExecutable(
+        ITypeCompletionContext context,
+        TypeSystemConfiguration configuration)
+        => context.TypeInterceptor.OnBeforeMakeExecutable(context, configuration);
+
+    protected virtual void OnAfterMakeExecutable(
+        ITypeCompletionContext context,
+        TypeSystemConfiguration configuration)
+        => context.TypeInterceptor.OnAfterMakeExecutable(context, configuration);
 
     protected virtual void OnValidateType(
         ITypeSystemObjectContext context,
-        DefinitionBase definition)
-        => context.TypeInterceptor.OnValidateType(context, definition);
+        TypeSystemConfiguration configuration)
+        => context.TypeInterceptor.OnValidateType(context, configuration);
 
     private void AssertUninitialized()
     {
@@ -245,7 +296,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
             "The type must be initialized.");
 
         Debug.Assert(
-            _definition is not null,
+            Configuration is not null,
             "Initialize must have been invoked before completing the type name.");
 
         if (!IsInitialized)
@@ -253,7 +304,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
             throw new InvalidOperationException();
         }
 
-        if (_definition is null)
+        if (Configuration is null)
         {
             throw new InvalidOperationException(
                 TypeResources.TypeSystemObjectBase_DefinitionIsNull);
@@ -267,7 +318,7 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
             "The type must be initialized.");
 
         Debug.Assert(
-            _definition?.Name is not null,
+            Configuration?.Name is not null,
             "The name must have been completed before completing the type.");
 
         if (!IsNamed)
@@ -275,7 +326,43 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
             throw new InvalidOperationException();
         }
 
-        if (_definition is null)
+        if (Configuration is null)
+        {
+            throw new InvalidOperationException(
+                TypeResources.TypeSystemObjectBase_DefinitionIsNull);
+        }
+    }
+
+    private void AssertTypeCompleted()
+    {
+        Debug.Assert(
+            IsCompleted,
+            "The type must be initialized.");
+
+        if (!IsCompleted)
+        {
+            throw new InvalidOperationException();
+        }
+
+        if (Configuration is null)
+        {
+            throw new InvalidOperationException(
+                TypeResources.TypeSystemObjectBase_DefinitionIsNull);
+        }
+    }
+
+    private void AssertMetadataCompleted()
+    {
+        Debug.Assert(
+            IsMetadataCompleted,
+            "The type must be initialized.");
+
+        if (!IsMetadataCompleted)
+        {
+            throw new InvalidOperationException();
+        }
+
+        if (Configuration is null)
         {
             throw new InvalidOperationException(
                 TypeResources.TypeSystemObjectBase_DefinitionIsNull);
@@ -285,10 +372,10 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
     protected internal void AssertMutable()
     {
         Debug.Assert(
-            !IsCompleted,
+            !IsExecutable,
             "The type os no longer mutable.");
 
-        if (IsCompleted)
+        if (IsExecutable)
         {
             throw new InvalidOperationException("The type is no longer mutable.");
         }

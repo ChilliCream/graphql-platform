@@ -287,7 +287,7 @@ internal static class ClassBuilderExtensions
             {
                 NonNullTypeDescriptor d =>
                     BuildPropertyInternal(d.InnerType, false),
-                ILeafTypeDescriptor { SerializationType.IsValueType: true, } =>
+                ILeafTypeDescriptor { SerializationType.IsValueType: true } =>
                     CodeInlineBuilder
                         .New()
                         .SetText($"global::System.Object.{nameof(Equals)}({propertyName}, {other}.{propertyName})"),
@@ -308,7 +308,7 @@ internal static class ClassBuilderExtensions
                         .SetMethodName(TypeNames.SequenceEqual)
                         .AddArgument(propertyName)
                         .AddArgument($"{other}.{propertyName}"),
-                _ => throw new ArgumentOutOfRangeException(),
+                _ => throw new ArgumentOutOfRangeException()
             };
         }
     }

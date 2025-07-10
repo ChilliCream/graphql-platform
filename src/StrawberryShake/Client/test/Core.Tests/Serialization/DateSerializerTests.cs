@@ -10,15 +10,15 @@ public class DateSerializerTests
     public void Parse()
     {
         // arrange
-        var value = "2012-11-29";
+        const string value = "2012-11-29";
 
         // act
         var result = Serializer.Parse(value);
 
         // assert
-        Assert.Equal(2012, result.Date.Year);
-        Assert.Equal(11, result.Date.Month);
-        Assert.Equal(29, result.Date.Day);
+        Assert.Equal(2012, result.Year);
+        Assert.Equal(11, result.Month);
+        Assert.Equal(29, result.Day);
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class DateSerializerTests
     public void Format_Value()
     {
         // arrange
-        var value = new DateTime(2012, 11, 29);
+        var value = new DateOnly(2012, 11, 29);
 
         // act
         var result = Serializer.Format(value);
@@ -50,7 +50,7 @@ public class DateSerializerTests
     public void Format_Exception()
     {
         // arrange
-        var value = "1";
+        const string value = "1";
 
         // act
         void Action() => Serializer.Format(value);

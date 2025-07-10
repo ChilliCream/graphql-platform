@@ -165,6 +165,6 @@ public class SchemaTypeResolverTests
     public enum Foo
     {
         Bar,
-        Baz,
+        Baz
     }
 }

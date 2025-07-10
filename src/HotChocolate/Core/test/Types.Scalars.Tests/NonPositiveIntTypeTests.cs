@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -67,7 +66,7 @@ public class NonPositiveIntTypeTests : ScalarTypeTestBase
     [InlineData(typeof(NullValueNode), null, null)]
     public void ParseLiteral_GivenValueNode_MatchExpected(
         Type type,
-        object?value,
+        object? value,
         object? expected)
     {
         // arrange
