@@ -44,10 +44,11 @@ public sealed class DataLoaderModuleFileBuilder : IDisposable
         _writer.WriteIndentedLine("}");
     }
 
-    public void WriteBeginClass()
+    public void WriteBeginClass(bool isInternal)
     {
         _writer.WriteIndentedLine(
-            "public static partial class {0}DataLoaderServiceExtensions",
+            "{0} static partial class {1}DataLoaderServiceExtensions",
+            isInternal ? "internal" : "public",
             _moduleName);
         _writer.WriteIndentedLine("{");
         _writer.IncreaseIndent();
@@ -128,8 +129,8 @@ public sealed class DataLoaderModuleFileBuilder : IDisposable
         }
 
         PooledObjects.Return(_sb);
-        _sb = default!;
-        _writer = default!;
+        _sb = null!;
+        _writer = null!;
         _disposed = true;
     }
 }

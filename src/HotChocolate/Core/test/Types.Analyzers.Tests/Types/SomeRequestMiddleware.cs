@@ -4,7 +4,7 @@ namespace HotChocolate.Types;
 
 public class SomeRequestMiddleware(RequestDelegate next, Service1 service1, Service2 service2)
 {
-    public async ValueTask InvokeAsync(IRequestContext context, Service3 service3)
+    public async ValueTask InvokeAsync(RequestContext context, Service3 service3)
     {
         await next(context);
 
@@ -15,7 +15,7 @@ public class SomeRequestMiddleware(RequestDelegate next, Service1 service1, Serv
                     {
                         {
                             $"{service1.Say()} {service3.Hello()} {service2.World()}", true
-                        },
+                        }
                     })
                 .Build();
     }

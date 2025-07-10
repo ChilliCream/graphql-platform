@@ -1,6 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using HotChocolate;
 using HotChocolate.Execution;
+using HotChocolate.Features;
+using HotChocolate.Language;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -12,7 +16,7 @@ public class InMemoryClientTests
     public void Constructor_AllArgs_NoException()
     {
         // arrange
-        var name = "Foo";
+        const string name = "Foo";
 
         // act
         var ex = Record.Exception(() => new InMemoryClient(name));
@@ -25,10 +29,10 @@ public class InMemoryClientTests
     public void Constructor_NoName_ThrowException()
     {
         // arrange
-        string name = null!;
+        const string name = null!;
 
         // act
-        var ex = Record.Exception(() => new InMemoryClient(name));
+        var ex = Record.Exception(() => new InMemoryClient(name!));
 
         // assert
         Assert.IsType<ArgumentException>(ex);
@@ -91,8 +95,7 @@ public class InMemoryClientTests
         // arrange
         var interceptorMock = new Mock<IInMemoryRequestInterceptor>();
         var client = new InMemoryClient("Foo");
-        var variables = new Dictionary<string, object?>();
-        var operationRequest = new OperationRequest("foo", new StubDocument(), variables);
+        var operationRequest = new OperationRequest("foo", new StubDocument(), new Dictionary<string, object?>());
         var executor = new StubExecutor();
         client.Executor = executor;
         client.RequestInterceptors.Add(interceptorMock.Object);
@@ -100,7 +103,7 @@ public class InMemoryClientTests
         interceptorMock
             .Setup(x => x
                 .OnCreateAsync(
-                    StubExecutor.ApplicationServiceProvider,
+                    StubExecutor.RootServiceProvider,
                     operationRequest,
                     It.IsAny<OperationRequestBuilder>(),
                     It.IsAny<CancellationToken>()));
@@ -112,7 +115,7 @@ public class InMemoryClientTests
         interceptorMock
             .Verify(x => x
                     .OnCreateAsync(
-                        StubExecutor.ApplicationServiceProvider,
+                        StubExecutor.RootServiceProvider,
                         operationRequest,
                         It.IsAny<OperationRequestBuilder>(),
                         It.IsAny<CancellationToken>()),
@@ -121,9 +124,13 @@ public class InMemoryClientTests
 
     private sealed class StubExecutor : IRequestExecutor
     {
+        public ISchemaDefinition Schema => new StubSchema(Services);
+
         public IOperationRequest? Request { get; private set; }
 
         public ulong Version { get; }
+
+        public IFeatureCollection Features { get; } = new FeatureCollection();
 
         public Task<IExecutionResult> ExecuteAsync(
             IOperationRequest request,
@@ -138,31 +145,59 @@ public class InMemoryClientTests
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
-        public ISchema Schema => null!;
-
         public IServiceProvider Services { get; } =
             new ServiceCollection()
-                .AddSingleton(ApplicationServiceProvider)
+                .AddSingleton<IRootServiceProviderAccessor>(
+                    new StubRootServiceProviderAccessor { ServiceProvider = RootServiceProvider })
                 .BuildServiceProvider();
 
-        public static IApplicationServiceProvider ApplicationServiceProvider { get; } =
-            new DefaultApplicationServiceProvider(
-                new ServiceCollection()
-                    .BuildServiceProvider());
-    }
+        public static IServiceProvider RootServiceProvider { get; } =
+            new ServiceCollection().BuildServiceProvider();
 
-    private sealed class DefaultApplicationServiceProvider : IApplicationServiceProvider
-    {
-        private readonly IServiceProvider _applicationServices;
-
-        public DefaultApplicationServiceProvider(IServiceProvider applicationServices)
+        private class StubRootServiceProviderAccessor : IRootServiceProviderAccessor
         {
-            _applicationServices = applicationServices ??
-                throw new ArgumentNullException(nameof(applicationServices));
+            public required IServiceProvider ServiceProvider { get; set; }
         }
 
-        public object? GetService(Type serviceType) =>
-            _applicationServices.GetService(serviceType);
+        private class StubSchema(IServiceProvider services) : ISchemaDefinition
+        {
+            public string Name => null!;
+            public string? Description => null;
+            public IReadOnlyDirectiveCollection Directives => null!;
+            public IFeatureCollection Features => null!;
+            public ISyntaxNode ToSyntaxNode() => null!;
+
+            public IServiceProvider Services => services;
+            public IObjectTypeDefinition QueryType => null!;
+            public IObjectTypeDefinition? MutationType => null;
+            public IObjectTypeDefinition? SubscriptionType => null;
+            public IReadOnlyTypeDefinitionCollection Types => null!;
+            public IReadOnlyDirectiveDefinitionCollection DirectiveDefinitions => null!;
+            public IObjectTypeDefinition GetOperationType(OperationType operation)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool TryGetOperationType(OperationType operation, [NotNullWhen(true)] out IObjectTypeDefinition? type)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerable<IObjectTypeDefinition> GetPossibleTypes(ITypeDefinition abstractType)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerable<INameProvider> GetAllDefinitions()
+            {
+                throw new NotImplementedException();
+            }
+
+            public override string ToString()
+            {
+                return Name;
+            }
+        }
     }
 
     public class StubDocument : IDocument

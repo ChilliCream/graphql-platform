@@ -4,18 +4,18 @@ namespace HotChocolate.Language.Utilities;
 
 public class StringSyntaxWriter : ISyntaxWriter
 {
-    private static readonly StringSyntaxWriterPool _pool = new();
+    private static readonly StringSyntaxWriterPool s_pool = new();
     private readonly StringBuilder _stringBuilder = new();
     private int _indent;
 
     public static StringSyntaxWriter Rent()
     {
-        return _pool.Get();
+        return s_pool.Get();
     }
 
     public static void Return(StringSyntaxWriter writer)
     {
-        _pool.Return(writer);
+        s_pool.Return(writer);
     }
 
     internal StringBuilder StringBuilder => _stringBuilder;

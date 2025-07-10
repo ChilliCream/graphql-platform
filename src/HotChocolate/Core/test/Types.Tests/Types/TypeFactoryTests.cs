@@ -6,7 +6,7 @@ public class TypeFactoryTests : TypeTestBase
     public void CreateObjectType()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 type Simple {
                     a: String
                     b: [String]
@@ -15,7 +15,7 @@ public class TypeFactoryTests : TypeTestBase
 
         var resolvers = new
         {
-            Simple = new { A = "hello", B = new[] { "hello", }, },
+            Simple = new { A = "hello", B = new[] { "hello" } }
         };
 
         // act
@@ -32,7 +32,7 @@ public class TypeFactoryTests : TypeTestBase
     public void ObjectFieldDeprecationReason()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 type Simple {
                     a: String @deprecated(reason: ""reason123"")
                 }
@@ -52,7 +52,7 @@ public class TypeFactoryTests : TypeTestBase
     public void CreateObjectTypeDescriptions()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 ""SimpleDesc""
                 type Simple {
                     ""ADesc""
@@ -74,7 +74,7 @@ public class TypeFactoryTests : TypeTestBase
     public void CreateInterfaceType()
     {
         // arrange
-        var source = "interface Simple { a: String b: [String] }";
+        const string source = "interface Simple { a: String b: [String] }";
 
         // act
         var schema = SchemaBuilder.New()
@@ -84,7 +84,7 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Simple");
+        var type = schema.Types.GetType<InterfaceType>("Simple");
 
         Assert.Equal("Simple", type.Name);
         Assert.Equal(2, type.Fields.Count);
@@ -108,7 +108,7 @@ public class TypeFactoryTests : TypeTestBase
     public void InterfaceFieldDeprecationReason()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface Simple {
                     a: String @deprecated(reason: ""reason123"")
                 }";
@@ -121,7 +121,7 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Simple");
+        var type = schema.Types.GetType<InterfaceType>("Simple");
 
         Assert.True(type.Fields["a"].IsDeprecated);
         Assert.Equal("reason123", type.Fields["a"].DeprecationReason);
@@ -133,7 +133,7 @@ public class TypeFactoryTests : TypeTestBase
     public void InterfaceFieldDeprecationWithoutReason()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface Simple {
                     a: String @deprecated
                 }";
@@ -146,11 +146,11 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("Simple");
+        var type = schema.Types.GetType<InterfaceType>("Simple");
 
         Assert.True(type.Fields["a"].IsDeprecated);
         Assert.Equal(
-            WellKnownDirectives.DeprecationDefaultReason,
+            DirectiveNames.Deprecated.Arguments.DefaultReason,
             type.Fields["a"].DeprecationReason);
 
         schema.ToString().MatchSnapshot();
@@ -172,7 +172,7 @@ public class TypeFactoryTests : TypeTestBase
             .Type<StringType>()
             .Resolve("b"));
 
-        var source = "union X = A | B";
+        const string source = "union X = A | B";
 
         // act
         var schema = SchemaBuilder.New()
@@ -183,19 +183,19 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<UnionType>("X");
+        var type = schema.Types.GetType<UnionType>("X");
 
         Assert.Equal("X", type.Name);
         Assert.Equal(2, type.Types.Count);
-        Assert.Equal("A", type.Types.First().Key);
-        Assert.Equal("B", type.Types.Last().Key);
+        Assert.Equal("A", type.Types.First().Name);
+        Assert.Equal("B", type.Types.Last().Name);
     }
 
     [Fact]
     public void CreateEnum()
     {
         // arrange
-        var source = "enum Abc { A B C }";
+        const string source = "enum Abc { A B C }";
 
         // act
         var schema = SchemaBuilder.New()
@@ -204,7 +204,7 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Abc");
+        var type = schema.Types.GetType<EnumType>("Abc");
 
         Assert.Equal("Abc", type.Name);
         Assert.Collection(type.Values,
@@ -217,7 +217,7 @@ public class TypeFactoryTests : TypeTestBase
     public void EnumValueDeprecationReason()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 enum Abc {
                     A
                     B @deprecated(reason: ""reason123"")
@@ -231,7 +231,7 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Abc");
+        var type = schema.Types.GetType<EnumType>("Abc");
 
         var value = type.Values.FirstOrDefault(t => t.Name == "B");
         Assert.NotNull(value);
@@ -243,7 +243,7 @@ public class TypeFactoryTests : TypeTestBase
     public void CreateInputObjectType()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 input Simple {
                     a: String @bind(to: ""Name"")
                     b: [String] @bind(to: ""Friends"")
@@ -257,7 +257,7 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("Simple");
+        var type = schema.Types.GetType<InputObjectType>("Simple");
 
         Assert.Equal("Simple", type.Name);
         Assert.Equal(2, type.Fields.Count);
@@ -279,7 +279,7 @@ public class TypeFactoryTests : TypeTestBase
     public void CreateDirectiveType()
     {
         // arrange
-        var source = "directive @foo(a:String) on QUERY";
+        const string source = "directive @foo(a:String) on QUERY";
 
         // act
         var schema = SchemaBuilder.New()
@@ -288,7 +288,7 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetDirectiveType("foo");
+        var type = schema.DirectiveTypes["foo"];
 
         Assert.Equal("foo", type.Name);
         Assert.False(type.IsRepeatable);
@@ -310,7 +310,7 @@ public class TypeFactoryTests : TypeTestBase
     public void CreateRepeatableDirectiveType()
     {
         // arrange
-        var source = "directive @foo(a:String) repeatable on QUERY";
+        const string source = "directive @foo(a:String) repeatable on QUERY";
 
         // act
         var schema = SchemaBuilder.New()
@@ -319,7 +319,7 @@ public class TypeFactoryTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetDirectiveType("foo");
+        var type = schema.DirectiveTypes["foo"];
 
         Assert.Equal("foo", type.Name);
         Assert.True(type.IsRepeatable);

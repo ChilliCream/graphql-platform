@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CookieCrumble.Analyzers/CookieCrumble.Analyzers.csproj" />
+    <Project Path="src/CookieCrumble.Fusion/CookieCrumble.Fusion.csproj" />
+    <Project Path="src/CookieCrumble.HotChocolate.Language/CookieCrumble.HotChocolate.Language.csproj" />
+    <Project Path="src/CookieCrumble.HotChocolate/CookieCrumble.HotChocolate.csproj" />
+    <Project Path="src/CookieCrumble.TUnit/CookieCrumble.TUnit.csproj" />
+    <Project Path="src/CookieCrumble.Xunit/CookieCrumble.Xunit.csproj" />
+    <Project Path="src/CookieCrumble.Xunit3/CookieCrumble.Xunit3.csproj" />
+    <Project Path="src/CookieCrumble/CookieCrumble.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/CookieCrumble.Tests/CookieCrumble.Tests.csproj" />
+  </Folder>
+</Solution>

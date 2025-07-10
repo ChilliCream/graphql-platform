@@ -1,57 +1,30 @@
-using System.Collections.Immutable;
-using HotChocolate.Skimmed;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion;
 
 internal sealed class ValidationHelper
 {
-    public static bool FieldsAreMergeable(ImmutableArray<OutputFieldDefinition> fields)
-    {
-        for (var i = 0; i < fields.Length - 1; i++)
-        {
-            var typeA = fields[i].Type;
-            var typeB = fields[i + 1].Type;
-
-            if (!SameTypeShape(typeA, typeB))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public static bool IsAccessible(IDirectivesProvider type)
-    {
-        return !type.Directives.ContainsName(WellKnownDirectiveNames.Inaccessible);
-    }
-
-    public static bool IsExternal(IDirectivesProvider type)
-    {
-        return type.Directives.ContainsName(WellKnownDirectiveNames.External);
-    }
-
-    public static bool SameTypeShape(ITypeDefinition typeA, ITypeDefinition typeB)
+    public static bool SameTypeShape(IType typeA, IType typeB)
     {
         while (true)
         {
-            if (typeA is NonNullTypeDefinition && typeB is not NonNullTypeDefinition)
+            if (typeA is NonNullType && typeB is not NonNullType)
             {
                 typeA = typeA.InnerType();
 
                 continue;
             }
 
-            if (typeB is NonNullTypeDefinition && typeA is not NonNullTypeDefinition)
+            if (typeB is NonNullType && typeA is not NonNullType)
             {
                 typeB = typeB.InnerType();
 
                 continue;
             }
 
-            if (typeA is ListTypeDefinition || typeB is ListTypeDefinition)
+            if (typeA is ListType || typeB is ListType)
             {
-                if (typeA is not ListTypeDefinition || typeB is not ListTypeDefinition)
+                if (typeA is not ListType || typeB is not ListType)
                 {
                     return false;
                 }
@@ -62,17 +35,7 @@ internal sealed class ValidationHelper
                 continue;
             }
 
-            if (typeA.Kind != typeB.Kind)
-            {
-                return false;
-            }
-
-            if (typeA.NamedType().Name != typeB.NamedType().Name)
-            {
-                return false;
-            }
-
-            return true;
+            return typeA.Equals(typeB, TypeComparison.Structural);
         }
     }
 }

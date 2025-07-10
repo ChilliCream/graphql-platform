@@ -91,7 +91,7 @@ public class InterfaceTypeValidationRuleTests : TypeValidationTestBase
         ");
     }
 
-   [Fact]
+    [Fact]
     public void AcceptNonRequiredArgumentThatIsDeprecated()
     {
         ExpectValid(@"

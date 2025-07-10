@@ -9,7 +9,7 @@ namespace HotChocolate.Execution.Processing.Tasks;
 /// </summary>
 internal sealed class ExecutionTaskPool<T, TPolicy> : ObjectPool<T>
     where T : class, IExecutionTask
-    where  TPolicy : ExecutionTaskPoolPolicy<T>
+    where TPolicy : ExecutionTaskPoolPolicy<T>
 {
     private readonly ObjectWrapper[] _items;
     private readonly TPolicy _policy;

@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>fusion</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <PackAsTool>true</PackAsTool>
+    <PublishAot>false</PublishAot>
+    <RootNamespace>HotChocolate.Fusion</RootNamespace>
+    <PackageId>HotChocolate.Fusion.CommandLine</PackageId>
+    <ToolCommandName>fusion</ToolCommandName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.CommandLine.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\CommandLineResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\CommandLineResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandLineResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

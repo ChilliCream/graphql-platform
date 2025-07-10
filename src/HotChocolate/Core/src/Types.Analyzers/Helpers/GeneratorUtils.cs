@@ -21,7 +21,7 @@ internal static class GeneratorUtils
             }
         }
 
-        if(syntaxInfos.Any(t => t is DataLoaderModuleInfo))
+        if (syntaxInfos.Any(t => t is DataLoaderModuleInfo))
         {
             defaultModule = false;
             return new ModuleInfo(CreateModuleName(assemblyName), ModuleOptions.Disabled);
@@ -83,7 +83,7 @@ internal static class GeneratorUtils
 
         if (type.SpecialType == SpecialType.System_Boolean)
         {
-            return defaultValue.ToString().ToLower();
+            return defaultValue.ToString()!.ToLower();
         }
 
         if (type.SpecialType == SpecialType.System_Double ||
@@ -103,7 +103,7 @@ internal static class GeneratorUtils
             return $"{defaultValue}L";
         }
 
-        return defaultValue.ToString();
+        return defaultValue.ToString()!;
     }
 
     public static string SanitizeIdentifier(string input)

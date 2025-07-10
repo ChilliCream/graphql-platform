@@ -10,7 +10,7 @@ internal sealed class JsonElementSnapshotValueFormatter() : SnapshotValueFormatt
         new(JsonSerializerDefaults.Web)
         {
             WriteIndented = true,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
     protected override void Format(IBufferWriter<byte> snapshot, JsonElement value)

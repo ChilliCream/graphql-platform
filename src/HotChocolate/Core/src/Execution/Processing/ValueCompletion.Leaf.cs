@@ -21,7 +21,7 @@ internal static partial class ValueCompletion
         try
         {
             var leafType = (ILeafType)type;
-            var runtimeType = leafType.RuntimeType;
+            var runtimeType = leafType.ToRuntimeType();
 
             if (!runtimeType.IsInstanceOfType(result) &&
                 operationContext.Converter.TryConvert(runtimeType, result, out var c))
@@ -40,11 +40,7 @@ internal static partial class ValueCompletion
         catch (Exception ex)
         {
             var errorPath = CreatePathFromContext(selection, parent, index);
-            var error = UnexpectedLeafValueSerializationError(
-                ex,
-                operationContext.ErrorHandler,
-                selection.SyntaxNode,
-                errorPath);
+            var error = UnexpectedLeafValueSerializationError(ex, selection.SyntaxNode, errorPath);
             operationContext.ReportError(error, resolverContext, selection);
         }
 

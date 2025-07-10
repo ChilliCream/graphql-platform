@@ -191,7 +191,8 @@ public ref partial struct Utf8GraphQLReader
     /// </returns>
     public int Count()
     {
-        while(Read()) { }
+        while (Read())
+        { }
         return _tokenCount;
     }
 
@@ -210,7 +211,7 @@ public ref partial struct Utf8GraphQLReader
         var start = _position;
         var position = _position;
 
-        ReadNameToken_Next:
+ReadNameToken_Next:
 
         if (++position < _length && _graphQLData[position].IsLetterOrDigitOrUnderscore())
         {

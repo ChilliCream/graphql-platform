@@ -13,12 +13,12 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
         public string GetDefault() => "foo";
 
         [Authorize(Policy = Policies.HasDefinedAge)]
-        public string GetAge() => "foo";
+        public string? GetAge() => "foo";
 
-        [Authorize(Roles = ["a",])]
+        [Authorize(Roles = ["a"])]
         public string GetRoles() => "foo";
 
-        [Authorize(Roles = ["a", "b",])]
+        [Authorize(Roles = ["a", "b"])]
         [GraphQLName("roles_ab")]
         public string GetRolesAb() => "foo";
 
@@ -30,27 +30,30 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
         public string GetAfterResolver() => "foo";
     }
 
-    private Action<IRequestExecutorBuilder> CreateSchema() =>
-        builder => builder
+    private Action<IRequestExecutorBuilder, int> CreateSchema() =>
+        (builder, port) => builder
             .AddQueryType<Query>()
             .AddOpaAuthorization(
                 (_, o) =>
                 {
+                    o.BaseAddress = new Uri($"http://127.0.0.1:{port}/v1/data/");
                     o.Timeout = TimeSpan.FromMilliseconds(60000);
                 })
             .AddOpaResultHandler(
                 Policies.HasDefinedAge,
-                response => response.GetResult<HasAgeDefinedResponse>() switch
-                {
-                    { Allow: true, } => AuthorizeResult.Allowed,
-                    _ => AuthorizeResult.NotAllowed,
-                });
+                response => response.DecisionId is null
+                    ? AuthorizeResult.NotAllowed
+                    : response.GetResult<HasAgeDefinedResponse>() switch
+                    {
+                        { Allow: true } => AuthorizeResult.Allowed,
+                        _ => AuthorizeResult.NotAllowed
+                    });
 
     public IEnumerator<object[]> GetEnumerator()
     {
         yield return
         [
-            CreateSchema(),
+            CreateSchema()
         ];
     }
 

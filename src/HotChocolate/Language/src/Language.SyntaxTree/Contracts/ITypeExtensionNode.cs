@@ -5,6 +5,4 @@ namespace HotChocolate.Language;
 /// </summary>
 public interface ITypeExtensionNode
     : ITypeSystemExtensionNode
-    , INamedSyntaxNode
-{
-}
+    , INamedSyntaxNode;

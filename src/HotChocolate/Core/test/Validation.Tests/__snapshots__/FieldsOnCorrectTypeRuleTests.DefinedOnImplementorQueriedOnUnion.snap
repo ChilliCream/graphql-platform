@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "A union type cannot declare a field directly. Use inline fragments or fragments instead.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 2,
-        "Column": 73
+        "Line": 1,
+        "Column": 58
       }
     ],
     "Extensions": {

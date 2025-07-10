@@ -1,35 +1,34 @@
 using System.Diagnostics;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using HotChocolate.AspNetCore.Formatters;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
+using HotChocolate.Execution;
 using HotChocolate.Subscriptions.Diagnostics;
-using HotChocolate.Transport;
+using HotChocolate.Transport.Formatters;
 using HotChocolate.Transport.Sockets.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static System.Net.WebSockets.WebSocketCloseStatus;
+using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
 
-public class WebSocketProtocolTests : SubscriptionTestBase
+public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutputHelper output)
+    : SubscriptionTestBase(serverFactory)
 {
-    private readonly ITestOutputHelper _output;
-
-    public WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutputHelper output)
-        : base(serverFactory)
-    {
-        _output = output;
-    }
-
     [Fact]
     public Task Send_Connect_Accept()
         => TryTest(
             async ct =>
             {
                 // arrange
-                using var testServer = CreateStarWarsServer(output: _output);
+                using var testServer = CreateStarWarsServer(output: output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
@@ -39,7 +38,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 // assert
                 var message = await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.NotNull(message);
-                Assert.Equal(Messages.ConnectionAccept, message![MessageProperties.Type]);
+                Assert.Equal(Messages.ConnectionAccept, message[MessageProperties.Type]);
             });
 
     [Fact]
@@ -48,7 +47,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
-                using var testServer = CreateStarWarsServer(output: _output);
+                using var testServer = CreateStarWarsServer(output: output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
@@ -78,8 +77,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                             {
                                 ConnectionInitializationTimeout =
                                     TimeSpan.FromMilliseconds(1000),
-                                KeepAliveInterval = TimeSpan.FromMilliseconds(150),
-                            },
+                                KeepAliveInterval = TimeSpan.FromMilliseconds(150)
+                            }
                         }));
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
@@ -95,7 +94,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                     TimeSpan.FromSeconds(5),
                     ct);
                 Assert.NotNull(message);
-                Assert.Equal(Messages.Ping, message![MessageProperties.Type]);
+                Assert.Equal(Messages.Ping, message[MessageProperties.Type]);
             });
 
     [Fact]
@@ -111,8 +110,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                             Sockets =
                             {
                                 ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
-                                KeepAliveInterval = TimeSpan.FromMilliseconds(150),
-                            },
+                                KeepAliveInterval = TimeSpan.FromMilliseconds(150)
+                            }
                         }));
                 var client = CreateWebSocketClient(testServer);
 
@@ -142,12 +141,12 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
                 // act
-                await webSocket.SendConnectionInitAsync(new() { ["token"] = "abc ", }, ct);
+                await webSocket.SendConnectionInitAsync(new() { ["token"] = "abc " }, ct);
 
                 // assert
                 var message = await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.NotNull(message);
-                Assert.Equal(Messages.ConnectionAccept, message![MessageProperties.Type]);
+                Assert.Equal(Messages.ConnectionAccept, message[MessageProperties.Type]);
             });
 
     [Fact]
@@ -191,7 +190,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 // assert
                 var message = await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.NotNull(message);
-                Assert.Equal("connection_ack", message!["type"]);
+                Assert.Equal("connection_ack", message["type"]);
             });
 
     [Fact]
@@ -212,7 +211,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 // assert
                 var message = await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.NotNull(message);
-                Assert.Equal("connection_ack", message!["type"]);
+                Assert.Equal("connection_ack", message["type"]);
             });
 
     [Fact]
@@ -221,7 +220,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
-                using var testServer = CreateStarWarsServer(output: _output);
+                using var testServer = CreateStarWarsServer(output: output);
                 var client = testServer.CreateWebSocketClient();
 
                 // act
@@ -250,7 +249,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         c.AddGraphQL()
                             .AddDiagnosticEventListener(_ => diagnostics);
                     },
-                    output: _output);
+                    output: output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
 
@@ -279,7 +278,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                                     stars
                                 }
                             }
-                            """,
+                            """
                     });
 
                 // assert
@@ -296,7 +295,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
-                using var testServer = CreateStarWarsServer(output: _output);
+                using var testServer = CreateStarWarsServer(output: output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
 
@@ -321,7 +320,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
-                using var testServer = CreateStarWarsServer(output: _output);
+                using var testServer = CreateStarWarsServer(output: output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
@@ -343,7 +342,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
-                using var testServer = CreateStarWarsServer(output: _output);
+                using var testServer = CreateStarWarsServer(output: output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
 
@@ -363,7 +362,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
-                using var testServer = CreateStarWarsServer(output: _output);
+                using var testServer = CreateStarWarsServer(output: output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
 
@@ -390,7 +389,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         => services
                             .AddGraphQL()
                             .AddDiagnosticEventListener(_ => diagnostics),
-                    output: _output);
+                    output: output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
 
@@ -410,7 +409,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                                 }) {
                                     stars
                                 }
-                            }",
+                            }"
                     });
 
                 await WaitForMessage(webSocket, Messages.Next, ct);
@@ -429,7 +428,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         }) {
                             stars
                         }
-                    }",
+                    }"
                     });
 
                 // assert
@@ -454,7 +453,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         => services
                             .AddGraphQL()
                             .AddDiagnosticEventListener(_ => diagnostics),
-                    output: _output);
+                    output: output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
 
@@ -474,7 +473,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         }) {
                             stars
                         }
-                    }",
+                    }"
                     });
 
                 await WaitForMessage(webSocket, Messages.Next, ct);
@@ -486,7 +485,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         Query = @"
                     mutation {
                         complete(episode:NEW_HOPE)
-                    }",
+                    }"
                     });
 
                 // assert
@@ -510,7 +509,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         => services
                             .AddGraphQL()
                             .AddDiagnosticEventListener(_ => diagnostics),
-                    output: _output);
+                    output: output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
 
@@ -524,12 +523,12 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                     await webSocket.SendSubscribeAsync(i.ToString(), payload, ct);
                 }
 
-                while(diagnostics.Subscribed < 100)
+                while (diagnostics.Subscribed < 100)
                 {
                     await Task.Delay(10, ct);
                 }
 
-                _output.WriteLine($"Subscribed in {stopwatch.ElapsedMilliseconds}ms");
+                output.WriteLine($"Subscribed in {stopwatch.ElapsedMilliseconds}ms");
 
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
@@ -542,7 +541,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                                 }) {
                                     stars
                                 }
-                            }",
+                            }"
                     });
 
                 for (var i = 0; i < 100; i++)
@@ -554,7 +553,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"mutation { complete(episode:NEW_HOPE) }",
+                        Query = @"mutation { complete(episode:NEW_HOPE) }"
                     });
 
                 // assert
@@ -577,7 +576,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
-                using var testServer = CreateStarWarsServer(output: _output);
+                using var testServer = CreateStarWarsServer(output: output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
 
@@ -604,7 +603,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
-                using var testServer = CreateStarWarsServer(output: _output);
+                using var testServer = CreateStarWarsServer(output: output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
 
@@ -668,7 +667,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
                 // act
                 await webSocket.SendPingAsync(
-                    new Dictionary<string, object?> { ["abc"] = "def", },
+                    new Dictionary<string, object?> { ["abc"] = "def" },
                     ct);
 
                 // assert
@@ -720,7 +719,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
                 // act
                 await webSocket.SendPongAsync(
-                    new Dictionary<string, object?> { ["abc"] = "def", },
+                    new Dictionary<string, object?> { ["abc"] = "def" },
                     ct);
 
                 // assert
@@ -735,7 +734,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
-                using var testServer = CreateStarWarsServer(output: _output);
+                using var testServer = CreateStarWarsServer(output: output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
@@ -754,7 +753,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
-                using var testServer = CreateStarWarsServer(output: _output);
+                using var testServer = CreateStarWarsServer(output: output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
@@ -773,7 +772,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
-                using var testServer = CreateStarWarsServer(output: _output);
+                using var testServer = CreateStarWarsServer(output: output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);
 
@@ -792,7 +791,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
-                using var testServer = CreateStarWarsServer(output: _output);
+                using var testServer = CreateStarWarsServer(output: output);
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
@@ -821,10 +820,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 await webSocket.SendConnectionInitAsync(ct);
 
                 // act
-                async Task Close() => await webSocket.CloseAsync(
-                    NormalClosure,
-                    "I want to close.",
-                    ct);
+                // ReSharper disable once AccessToDisposedClosure
+                async Task Close() => await webSocket.CloseAsync(NormalClosure, "I want to close.", ct);
 
                 // assert
                 var error = await Assert.ThrowsAsync<IOException>(Close);
@@ -841,7 +838,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 var subscriptionRequest = new OperationRequest(
                     "subscription { onReview(episode: NEW_HOPE) { stars } }");
 
-                using var testServer = CreateStarWarsServer(output: _output);
+                using var testServer = CreateStarWarsServer(output: output);
                 var webSocketClient = CreateWebSocketClient(testServer);
                 using var webSocket = await webSocketClient.ConnectAsync(SubscriptionUri, ct);
 
@@ -862,7 +859,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 }
                 catch (TimeoutException)
                 {
-                    // ... we deliberately timeout here so we get back control ...
+                    // ... we deliberately time out here so we get back in control ...
                 }
 
                 // ... next we complete the subscription from the client-side ... essentially cancel it.
@@ -885,13 +882,76 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 }
                 catch (TimeoutException)
                 {
-                    // ... we deliberately timeout here so we get back control ...
+                    // ... we deliberately time out here so we get back in control ...
                 }
 
-                // .. and dispose it once more.
+                // ... and dispose of it once more.
                 socketResult.Dispose();
             });
     }
+
+    [Fact]
+    public Task Subscribe_ReceiveDataOnMutation_StripNull()
+        => TryTest(
+            async ct =>
+            {
+                // arrange
+                var diagnostics = new SubscriptionTestDiagnostics();
+                using var testServer = CreateStarWarsServer(
+                    configureServices: c =>
+                        c.AddGraphQL()
+                            .AddDiagnosticEventListener(_ => diagnostics)
+                            .AddWebSocketPayloadFormatter(
+                                _ => new DefaultWebSocketPayloadFormatter(
+                                    new WebSocketPayloadFormatterOptions
+                                    {
+                                        Json = new JsonResultFormatterOptions
+                                        {
+                                            NullIgnoreCondition = JsonNullIgnoreCondition.FieldsAndLists
+                                        }
+                                    })),
+                    output: output);
+                var client = CreateWebSocketClient(testServer);
+                using var webSocket = await ConnectToServerAsync(client, ct);
+
+                var payload = new SubscribePayload(
+                    "subscription { onReview(episode: NEW_HOPE) { stars, commentary } }");
+                const string subscriptionId = "abc";
+
+                // act
+                await webSocket.SendSubscribeAsync(subscriptionId, payload, ct);
+
+                while (diagnostics.Subscribed is not 1)
+                {
+                    await Task.Delay(10, ct);
+                }
+
+                await testServer.SendPostRequestAsync(
+                    new ClientQueryRequest
+                    {
+                        Query =
+                            """
+                            mutation {
+                                createReview(episode: NEW_HOPE review: {
+                                    stars: 5
+                                    commentary: null
+                                }) {
+                                    stars
+                                    commentary
+                                }
+                            }
+                            """
+                    });
+
+                // assert
+                var message = await WaitForMessage(webSocket, Messages.Next, ct);
+                Assert.NotNull(message);
+                var messagePayload = (Dictionary<string, object?>?)message["payload"];
+                var messageData = (Dictionary<string, object?>?)messagePayload?["data"];
+                var messageOnReview = (Dictionary<string, object?>?)messageData?["onReview"];
+                Assert.NotNull(messageOnReview);
+                Assert.DoesNotContain("commentary", messageOnReview);
+            });
 
     private class AuthInterceptor : DefaultSocketSessionInterceptor
     {
@@ -900,7 +960,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             IOperationMessagePayload connectionInitMessage,
             CancellationToken cancellationToken = default)
         {
-            var payload = connectionInitMessage.As<Auth>();
+            var payload = connectionInitMessage.Payload?.Deserialize<Auth>();
 
             if (payload?.Token is not null)
             {
@@ -912,7 +972,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
         private sealed class Auth
         {
-            public string? Token { get; set; }
+            [JsonPropertyName("token")]
+            public string? Token { get; init; }
         }
     }
 
@@ -927,8 +988,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             IOperationMessagePayload pingMessage,
             CancellationToken cancellationToken = default)
         {
-            var payload = pingMessage.As<Dictionary<string, string?>>();
-            var responsePayload = new Dictionary<string, object?> { ["touched"] = true, };
+            var payload = pingMessage.Payload?.Deserialize<Dictionary<string, string?>>();
+            var responsePayload = new Dictionary<string, object?> { ["touched"] = true };
 
             if (payload is not null)
             {
@@ -947,7 +1008,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             CancellationToken cancellationToken = default)
         {
             OnPongInvoked = true;
-            Payload = pongMessage.As<Dictionary<string, string?>>();
+            Payload = pongMessage.Payload?.Deserialize<Dictionary<string, string?>>();
             return base.OnPongAsync(session, pongMessage, cancellationToken);
         }
     }

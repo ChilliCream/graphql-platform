@@ -40,7 +40,7 @@ public class DataTypeMapperTests
             RequestStrategyGen.Default,
             new[]
             {
-                TransportProfile.Default,
+                TransportProfile.Default
             });
 
         TypeDescriptorMapper.Map(
@@ -121,7 +121,7 @@ public class DataTypeMapperTests
             RequestStrategyGen.Default,
             new[]
             {
-                TransportProfile.Default,
+                TransportProfile.Default
             });
         TypeDescriptorMapper.Map(
             clientModel,
@@ -214,7 +214,7 @@ public class DataTypeMapperTests
             RequestStrategyGen.Default,
             new[]
             {
-                TransportProfile.Default,
+                TransportProfile.Default
             });
         TypeDescriptorMapper.Map(
             clientModel,

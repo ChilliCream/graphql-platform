@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "@stream directive is only valid on list fields.",
     "Code": null,
@@ -6,7 +6,7 @@
     "Locations": [
       {
         "Line": 2,
-        "Column": 17
+        "Column": 3
       }
     ],
     "Extensions": {

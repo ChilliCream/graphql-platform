@@ -11,7 +11,7 @@ public class SelectionVisitorContext(IResolverContext context) : ISelectionVisit
 
     public Stack<SelectionSetNode?> SelectionSetNodes { get; } = new();
 
-    public Stack<INamedType?> ResolvedType { get; } = new();
+    public Stack<ITypeDefinition?> ResolvedType { get; } = new();
 
     public IResolverContext ResolverContext { get; } = context;
 }

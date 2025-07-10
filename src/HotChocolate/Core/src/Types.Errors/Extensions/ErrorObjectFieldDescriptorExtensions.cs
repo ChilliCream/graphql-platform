@@ -26,15 +26,8 @@ public static class ErrorObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Type errorType)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (errorType is null)
-        {
-            throw new ArgumentNullException(nameof(errorType));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(errorType);
 
         descriptor.Extend().OnBeforeCreate((ctx, d) => d.AddErrorType(ctx, errorType));
 

@@ -1,4 +1,4 @@
-﻿{
+{
   "errors": [
     {
       "message": "The cursor specified in `after` has an invalid format.",
@@ -12,9 +12,9 @@
         "letters"
       ],
       "extensions": {
+        "code": "HC0078",
         "argument": "after",
-        "cursor": "INVALID",
-        "code": "HC0078"
+        "cursor": "INVALID"
       }
     }
   ],

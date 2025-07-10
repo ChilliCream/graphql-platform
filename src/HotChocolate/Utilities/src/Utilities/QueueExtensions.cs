@@ -8,10 +8,7 @@ public static class QueueExtensions
         this Queue<T> queue,
         [NotNullWhen(true)] out T value)
     {
-        if (queue == null)
-        {
-            throw new ArgumentNullException(nameof(queue));
-        }
+        ArgumentNullException.ThrowIfNull(queue);
 
         if (queue.Count > 0)
         {

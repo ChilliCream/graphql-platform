@@ -49,8 +49,7 @@ public partial class EntityStore
     private sealed class EntityUpdateObservable : IObservable<EntityUpdate>
     {
         private readonly object _sync = new();
-        private ImmutableList<IObserver<EntityUpdate>> _observers =
-            ImmutableList<IObserver<EntityUpdate>>.Empty;
+        private ImmutableList<IObserver<EntityUpdate>> _observers = [];
 
         public IDisposable Subscribe(IObserver<EntityUpdate> observer)
         {

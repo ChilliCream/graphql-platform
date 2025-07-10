@@ -28,10 +28,7 @@ public static class CostAnalyzerObjectTypeDescriptorExtensions
     /// </exception>
     public static IObjectTypeDescriptor Cost(this IObjectTypeDescriptor descriptor, double weight)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(new CostDirective(weight));
     }

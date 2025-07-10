@@ -10,7 +10,7 @@ internal sealed class Fragment : IFragment
 
     public Fragment(
         int id,
-        IObjectType typeCondition,
+        IObjectTypeDefinition typeCondition,
         ISyntaxNode syntaxNode,
         IReadOnlyList<DirectiveNode> directives,
         ISelectionSet selectionSet,
@@ -30,7 +30,7 @@ internal sealed class Fragment : IFragment
 
     public int Id { get; }
 
-    public IObjectType TypeCondition { get; }
+    public IObjectTypeDefinition TypeCondition { get; }
 
     public ISyntaxNode SyntaxNode { get; }
 

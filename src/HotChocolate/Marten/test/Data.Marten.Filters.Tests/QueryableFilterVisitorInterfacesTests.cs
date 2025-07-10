@@ -1,17 +1,19 @@
 using System.ComponentModel.DataAnnotations;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data;
 
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableFilterVisitorInterfacesTests
 {
-    private static readonly BarInterface[] _barEntities =
+    private static readonly BarInterface[] s_barEntities =
     [
-        new() { Test = new InterfaceImpl1 { Prop = "a", }, },
-        new() { Test = new InterfaceImpl1 { Prop = "b", }, },
+        new() { Test = new InterfaceImpl1 { Prop = "a" } },
+        new() { Test = new InterfaceImpl1 { Prop = "b" } }
     ];
 
     private readonly SchemaCache _cache;
@@ -26,7 +28,7 @@ public class QueryableFilterVisitorInterfacesTests
     {
         // arrange
         var tester = await _cache
-            .CreateSchemaAsync<BarInterface, FilterInputType<BarInterface>>(_barEntities,
+            .CreateSchemaAsync<BarInterface, FilterInputType<BarInterface>>(s_barEntities,
                 configure: Configure);
 
         // act
@@ -63,7 +65,7 @@ public class QueryableFilterVisitorInterfacesTests
             .MatchAsync();
     }
 
-    private static void Configure(ISchemaBuilder builder)
+    private static void Configure(IRequestExecutorBuilder builder)
         => builder
             .AddObjectType<InterfaceImpl1>(x => x.Implements<InterfaceType<Test>>())
             .AddObjectType<InterfaceImpl2>(x => x.Implements<InterfaceType<Test>>())
@@ -74,17 +76,17 @@ public class QueryableFilterVisitorInterfacesTests
         [Key]
         public int Id { get; set; }
 
-        public string Prop { get; set; } = default!;
+        public string Prop { get; set; } = null!;
     }
 
     public class InterfaceImpl1 : Test
     {
-        public string Specific1 { get; set; } = default!;
+        public string Specific1 { get; set; } = null!;
     }
 
     public class InterfaceImpl2 : Test
     {
-        public string Specific2 { get; set; } = default!;
+        public string Specific2 { get; set; } = null!;
     }
 
     public class BarInterface
@@ -92,6 +94,6 @@ public class QueryableFilterVisitorInterfacesTests
         [Key]
         public int Id { get; set; }
 
-        public Test Test { get; set; } = default!;
+        public Test Test { get; set; } = null!;
     }
 }

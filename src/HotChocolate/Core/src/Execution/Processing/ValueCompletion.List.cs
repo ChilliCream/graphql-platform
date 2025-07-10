@@ -89,7 +89,7 @@ internal static partial class ValueCompletion
             return resultList;
         }
 
-        if (result is JsonElement { ValueKind: JsonValueKind.Array, } node)
+        if (result is JsonElement { ValueKind: JsonValueKind.Array } node)
         {
             var resultList = operationContext.Result.RentList(4);
             resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
@@ -158,7 +158,7 @@ internal static partial class ValueCompletion
 
     internal static void PropagateNullValues(ResultData result)
     {
-        if(result.IsInvalidated)
+        if (result.IsInvalidated)
         {
             return;
         }
@@ -170,7 +170,7 @@ internal static partial class ValueCompletion
             var index = result.ParentIndex;
             var parent = result.Parent;
 
-            if(parent.IsInvalidated)
+            if (parent.IsInvalidated)
             {
                 return;
             }
@@ -179,7 +179,7 @@ internal static partial class ValueCompletion
             {
                 case ObjectResult objectResult:
                     var field = objectResult[index];
-                    if(field.TrySetNull())
+                    if (field.TrySetNull())
                     {
                         return;
                     }

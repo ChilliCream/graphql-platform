@@ -23,7 +23,7 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
         TEntity[] entities,
         FilterConvention? convention = null,
         bool withPaging = false,
-        Action<ISchemaBuilder>? configure = null)
+        Action<IRequestExecutorBuilder>? configure = null)
         where TEntity : class
         where T : FilterInputType<TEntity>
     {
@@ -33,7 +33,10 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 
         var resolver = await BuildResolverAsync(store, entities);
 
-        var builder = SchemaBuilder.New()
+        var services = new ServiceCollection();
+        var builder = services.AddGraphQL();
+
+        builder
             .AddMartenFiltering()
             .AddQueryType(
                 c =>
@@ -54,15 +57,9 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 
         configure?.Invoke(builder);
 
-        var schema = builder.Create();
-
-        return await new ServiceCollection()
-            .Configure<RequestExecutorSetup>(
-                Schema.DefaultName,
-                o => o.Schema = schema)
-            .AddGraphQL()
+        builder
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("sql", out var queryString))
@@ -74,12 +71,14 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
                                 .Build();
                     }
                 })
+            .ModifyPagingOptions(o => o.IncludeTotalCount = true)
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
-            .UseDefaultPipeline()
-            .Services
+            .UseDefaultPipeline();
+
+        return await services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync();
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync();
     }
 
     private void ApplyConfigurationToField<TEntity, TType>(

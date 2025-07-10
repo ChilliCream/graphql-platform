@@ -13,15 +13,8 @@ internal sealed class QueryExecutor
         OperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContext)
     {
-        if (operationContext is null)
-        {
-            throw new ArgumentNullException(nameof(operationContext));
-        }
-
-        if (scopedContext is null)
-        {
-            throw new ArgumentNullException(nameof(scopedContext));
-        }
+        ArgumentNullException.ThrowIfNull(operationContext);
+        ArgumentNullException.ThrowIfNull(scopedContext);
 
         return ExecuteInternalAsync(operationContext, scopedContext);
     }

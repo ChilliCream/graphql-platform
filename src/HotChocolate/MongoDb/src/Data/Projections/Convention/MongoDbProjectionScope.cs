@@ -4,6 +4,4 @@ namespace HotChocolate.Data.MongoDb;
 
 /// <inheritdoc/>
 public class MongoDbProjectionScope
-    : ProjectionScope<MongoDbProjectionDefinition>
-{
-}
+    : ProjectionScope<MongoDbProjectionDefinition>;

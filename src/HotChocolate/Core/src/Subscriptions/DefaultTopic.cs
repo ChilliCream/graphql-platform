@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions.Diagnostics;
+using HotChocolate.Utilities;
 using static System.Runtime.InteropServices.CollectionsMarshal;
 using static System.Threading.Channels.Channel;
 
@@ -37,7 +38,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
-            FullMode = (BoundedChannelFullMode) (int) fullMode,
+            FullMode = fullMode.ToBoundedChannelFullMode()
         };
         _incoming = CreateUnbounded<TMessage>();
         _diagnosticEvents = diagnosticEvents;
@@ -53,7 +54,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
-            FullMode = (BoundedChannelFullMode) (int) fullMode,
+            FullMode = fullMode.ToBoundedChannelFullMode()
         };
         _incoming = incomingMessages;
         _diagnosticEvents = diagnosticEvents;
@@ -107,7 +108,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
     }
 
     /// <summary>
-    /// Allows to subscribe to this topic. If the topic is already completed, this method will
+    /// Allows subscribing to this topic. If the topic is already completed, this method will
     /// return null.
     /// </summary>
     /// <returns>
@@ -193,9 +194,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
     }
 
     private void BeginProcessing(IDisposable session)
-        => Task.Factory.StartNew(
-            async s => await ProcessMessagesSessionAsync((IDisposable)s!).ConfigureAwait(false),
-            session);
+        => ProcessMessagesSessionAsync(session).FireAndForget();
 
     private async Task ProcessMessagesSessionAsync(IDisposable session)
     {
@@ -209,7 +208,15 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
         finally
         {
-            session.Dispose();
+            if (session is IAsyncDisposable asyncDisposableSession)
+            {
+                await asyncDisposableSession.DisposeAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                session.Dispose();
+            }
+
             DiagnosticEvents.Disconnected(Name);
         }
     }
@@ -259,7 +266,8 @@ public abstract class DefaultTopic<TMessage> : ITopic
 
                 if (!allWritesSuccessful || iterations++ >= 8)
                 {
-                    // we will take a pause if we have dispatched 8 messages or if we could not dispatch all messages.
+                    // We will take a pause if we have dispatched 8 messages
+                    // or if we could not dispatch all messages.
                     // This will give time for subscribers to unsubscribe and
                     // others to hop on.
                     break;
@@ -345,7 +353,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         {
             Complete();
         }
-        else if(envelope.Body is { } body)
+        else if (envelope.Body is { } body)
         {
             Publish(body);
         }
@@ -357,7 +365,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         {
             return serializer.Deserialize<TMessage>(serializedMessage);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _diagnosticEvents.MessageProcessingError(Name, ex);
             throw;

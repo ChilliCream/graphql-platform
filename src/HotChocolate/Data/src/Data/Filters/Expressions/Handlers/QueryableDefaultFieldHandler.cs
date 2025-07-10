@@ -20,15 +20,15 @@ public class QueryableDefaultFieldHandler
     /// field
     /// </summary>
     /// <param name="context">The current context</param>
-    /// <param name="typeDefinition">The definition of the type that declares the field</param>
-    /// <param name="fieldDefinition">The definition of the field</param>
+    /// <param name="typeConfiguration">The configuration of the type that declares the field</param>
+    /// <param name="fieldConfiguration">The configuration of the field</param>
     /// <returns>True in case the field can be handled</returns>
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition) =>
-        fieldDefinition is not FilterOperationFieldDefinition &&
-        (fieldDefinition.Member is not null || fieldDefinition.Expression is not null);
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration) =>
+        fieldConfiguration is not FilterOperationFieldConfiguration &&
+        (fieldConfiguration.Member is not null || fieldConfiguration.Expression is not null);
 
     public override bool TryHandleEnter(
         QueryableFilterContext context,
@@ -54,10 +54,10 @@ public class QueryableDefaultFieldHandler
         }
 
         Expression nestedProperty;
-        if (field.Metadata is ExpressionFilterMetadata { Expression: LambdaExpression expression, })
+        if (field.Metadata is ExpressionFilterMetadata { Expression: LambdaExpression expression })
         {
             if (expression.Parameters.Count != 1 ||
-                expression.Parameters[0].Type != context.RuntimeTypes.Peek()!.Source)
+                expression.Parameters[0].Type != context.RuntimeTypes.Peek().Source)
             {
                 throw ThrowHelper.QueryableFiltering_ExpressionParameterInvalid(
                     field.RuntimeType.Source,
@@ -65,8 +65,7 @@ public class QueryableDefaultFieldHandler
             }
 
             nestedProperty = ReplaceVariableExpressionVisitor
-                .ReplaceParameter(expression, expression.Parameters[0], context.GetInstance())
-                .Body;
+                .ReplaceParameter(expression.Body, expression.Parameters[0], context.GetInstance());
         }
         else
         {
@@ -93,7 +92,7 @@ public class QueryableDefaultFieldHandler
 
                 null => throw ThrowHelper.QueryableFiltering_NoMemberDeclared(field),
 
-                _ => throw ThrowHelper.QueryableFiltering_MemberInvalid(field.Member, field),
+                _ => throw ThrowHelper.QueryableFiltering_MemberInvalid(field.Member, field)
             };
         }
 
@@ -123,9 +122,9 @@ public class QueryableDefaultFieldHandler
         context.PopInstance();
         context.RuntimeTypes.Pop();
 
-        // when we are in a in-memory context, it is possible that we have null reference exceptions
-        // To avoid these exceptions, we need to add null checks to the chain. We always wrap the
-        // field before in a null check.
+        // When we are in an in-memory context, it is possible that we have null reference
+        // exceptions. To avoid these exceptions, we need to add null checks to the chain. We always
+        // wrap the field before in a null check.
         //
         // reference types:
         //    previous.current > 10   ==>    previous is not null && previous.current > 10
@@ -172,16 +171,15 @@ public class QueryableDefaultFieldHandler
             return base.VisitParameter(node);
         }
 
-        public static LambdaExpression ReplaceParameter(
-            LambdaExpression lambda,
+        public static Expression ReplaceParameter(
+            Expression lambdaBody,
             ParameterExpression parameter,
             Expression replacement)
-            => (LambdaExpression)
-                new ReplaceVariableExpressionVisitor(replacement, parameter).Visit(lambda);
+            => new ReplaceVariableExpressionVisitor(replacement, parameter).Visit(lambdaBody);
     }
 }
 
-static file class LocalExtensions
+file static class LocalExtensions
 {
     public static bool TryGetPreviousRuntimeType(
         this QueryableFilterContext context,
@@ -192,17 +190,17 @@ static file class LocalExtensions
 
     public static bool IsNullableValueType(this IExtendedType type)
     {
-        return type.GetTypeOrElementType() is { Type.IsValueType: true, IsNullable: true, };
+        return type.GetTypeOrElementType() is { Type.IsValueType: true, IsNullable: true };
     }
 
     public static bool IsValueType(this IExtendedType type)
     {
-        return type.GetTypeOrElementType() is { Type.IsValueType: true, };
+        return type.GetTypeOrElementType() is { Type.IsValueType: true };
     }
 
     private static IExtendedType GetTypeOrElementType(this IExtendedType type)
     {
-        while (type is { IsArrayOrList: true, ElementType: { } nextType, })
+        while (type is { IsArrayOrList: true, ElementType: { } nextType })
         {
             type = nextType;
         }

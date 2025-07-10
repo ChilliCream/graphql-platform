@@ -83,7 +83,7 @@ internal sealed class MessagePipeline : IAsyncDisposable
     /// </summary>
     private static class State
     {
-        public static readonly int Stopped = 0;
-        public static readonly int Running = 1;
+        public const int Stopped = 0;
+        public const int Running = 1;
     }
 }

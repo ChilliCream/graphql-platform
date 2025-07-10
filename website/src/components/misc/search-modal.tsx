@@ -60,7 +60,7 @@ const DocSearchStyleOverwrite = createGlobalStyle`
     --docsearch-text-color: ${THEME_COLORS.text};
     --docsearch-spacing: 12px;
     --docsearch-icon-stroke-width: 1.4;
-    --docsearch-highlight-color: ${THEME_COLORS.primary};
+    --docsearch-highlight-color: ${THEME_COLORS.primaryButton};
     --docsearch-muted-color: ${THEME_COLORS.text};
     --docsearch-container-background: rgba(101,108,133,0.8);
     --docsearch-logo-color: ${THEME_COLORS.primary};
@@ -75,7 +75,7 @@ const DocSearchStyleOverwrite = createGlobalStyle`
     --docsearch-hit-height: 56px;
     --docsearch-hit-color: ${THEME_COLORS.text};
     --docsearch-hit-active-color: ${THEME_COLORS.textContrast};
-    --docsearch-hit-background: ${THEME_COLORS.textContrast};
+    --docsearch-hit-background: ${THEME_COLORS.primary};
     --docsearch-hit-shadow: none;
     --docsearch-key-gradient: none;
     --docsearch-key-shadow: none;

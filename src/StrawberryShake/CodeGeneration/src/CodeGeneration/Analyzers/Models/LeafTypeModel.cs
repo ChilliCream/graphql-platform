@@ -8,18 +8,15 @@ public class LeafTypeModel : ITypeModel
     public LeafTypeModel(
         string name,
         string? description,
-        ILeafType type,
+        ITypeDefinition type,
         string serializationType,
         string runtimeType)
     {
         Name = name.EnsureGraphQLName();
         Description = description;
-        Type = type ??
-               throw new ArgumentNullException(nameof(type));
-        SerializationType = serializationType ??
-                            throw new ArgumentNullException(nameof(serializationType));
-        RuntimeType = runtimeType ??
-                      throw new ArgumentNullException(nameof(runtimeType));
+        Type = type ?? throw new ArgumentNullException(nameof(type));
+        SerializationType = serializationType ?? throw new ArgumentNullException(nameof(serializationType));
+        RuntimeType = runtimeType ?? throw new ArgumentNullException(nameof(runtimeType));
     }
 
     /// <summary>
@@ -35,11 +32,15 @@ public class LeafTypeModel : ITypeModel
     /// <summary>
     /// Gets the leaf type.
     /// </summary>
-    public ILeafType Type { get; }
+    public ITypeDefinition Type { get; }
 
-    INamedType ITypeModel.Type => Type;
-
+    /// <summary>
+    /// Gets the serialization type.
+    /// </summary>
     public string SerializationType { get; }
 
+    /// <summary>
+    /// Gets the runtime type.
+    /// </summary>
     public string RuntimeType { get; }
 }

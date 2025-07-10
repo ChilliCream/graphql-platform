@@ -20,28 +20,21 @@ public sealed class DeferDirectiveType : DirectiveType<DeferDirective>
         IDirectiveTypeDescriptor<DeferDirective> descriptor)
     {
         descriptor
-            .Name(Names.Defer)
+            .Name(DirectiveNames.Defer.Name)
             .Description(TypeResources.DeferDirectiveType_Description)
             .Location(DirectiveLocation.FragmentSpread)
             .Location(DirectiveLocation.InlineFragment);
 
         descriptor
             .Argument(t => t.Label)
-            .Name(Names.Label)
+            .Name(DirectiveNames.Defer.Arguments.Label)
             .Description(TypeResources.DeferDirectiveType_Label_Description)
             .Type<StringType>();
 
         descriptor
             .Argument(t => t.If)
-            .Name(Names.If)
+            .Name(DirectiveNames.Defer.Arguments.If)
             .Description(TypeResources.DeferDirectiveType_If_Description)
             .Type<BooleanType>();
-    }
-
-    public static class Names
-    {
-        public const string Defer = "defer";
-        public const string Label = "label";
-        public const string If = "if";
     }
 }

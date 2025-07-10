@@ -22,6 +22,11 @@ public static class CursorPagingRequestExecutorBuilderExtension
     /// <param name="defaultProvider">
     /// Defines if the registered provider shall be registered as the default provider.
     /// </param>
+    /// <param name="inlineTotalCount">
+    /// Specifies that the paging provider shall inline the total count query into the
+    /// sliced query in order to have a single database call.
+    /// Some database providers might not support this feature.
+    /// </param>
     /// <returns>
     /// The request executor builder.
     /// </returns>
@@ -31,9 +36,11 @@ public static class CursorPagingRequestExecutorBuilderExtension
     public static IRequestExecutorBuilder AddQueryableCursorPagingProvider(
         this IRequestExecutorBuilder builder,
         string? providerName = null,
-        bool defaultProvider = false)
-        => AddCursorPagingProvider<QueryableCursorPagingProvider>(
+        bool defaultProvider = false,
+        bool? inlineTotalCount = null)
+        => AddCursorPagingProvider(
             builder,
+            _ => new QueryableCursorPagingProvider(inlineTotalCount),
             providerName,
             defaultProvider);
 
@@ -64,10 +71,7 @@ public static class CursorPagingRequestExecutorBuilderExtension
         bool defaultProvider = false)
         where TProvider : CursorPagingProvider
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.TryAddSingleton<TProvider>();
 
@@ -111,10 +115,7 @@ public static class CursorPagingRequestExecutorBuilderExtension
         bool defaultProvider = false)
         where TProvider : CursorPagingProvider
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         if (defaultProvider)
         {

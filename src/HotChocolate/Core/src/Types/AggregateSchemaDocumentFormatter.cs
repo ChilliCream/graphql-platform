@@ -11,12 +11,12 @@ internal sealed class AggregateSchemaDocumentFormatter(
 
     public DocumentNode Format(DocumentNode schemaDocument)
     {
-        if(_formatters.Length == 0)
+        if (_formatters.Length == 0)
         {
             return schemaDocument;
         }
 
-        if(_formatters.Length == 1)
+        if (_formatters.Length == 1)
         {
             return _formatters[0].Format(schemaDocument);
         }

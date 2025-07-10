@@ -14,13 +14,14 @@ public class VariableCoercionIntegrationTests
 
         var user = new ObjectValueNode(
             new ObjectFieldNode("name", "Oliver"),
-            new ObjectFieldNode("surname", "Smith"));
+            new ObjectFieldNode("surname", "Smith"),
+            new ObjectFieldNode("gender", "MALE"));
 
         var request =
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -38,7 +39,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -51,13 +52,14 @@ public class VariableCoercionIntegrationTests
 
         var user = new ObjectValueNode(
             new ObjectFieldNode("name", NullValueNode.Default),
-            new ObjectFieldNode("surname", "Smith"));
+            new ObjectFieldNode("surname", "Smith"),
+            new ObjectFieldNode("gender", "MALE"));
 
         var request =
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -69,13 +71,14 @@ public class VariableCoercionIntegrationTests
         var executor = await CreateSchemaAsync();
 
         var user = new ObjectValueNode(
-            new ObjectFieldNode("surname", "Smith"));
+            new ObjectFieldNode("surname", "Smith"),
+            new ObjectFieldNode("gender", "MALE"));
 
         var request =
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -92,7 +95,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -107,7 +110,7 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"user", null }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "user", null } })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -141,7 +144,47 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"user", user }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
+                .Build();
+
+        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Invalid_Field_Provided_When_Enum_Is_Present()
+    {
+        var executor = await CreateSchemaAsync();
+
+        var user = new ObjectValueNode(
+            new ObjectFieldNode("name", "Oliver"),
+            new ObjectFieldNode("surname", "Smith"),
+            new ObjectFieldNode("gender", "MALE"),
+            new ObjectFieldNode("foo", "bar"));
+
+        var request =
+            OperationRequestBuilder
+                .New()
+                .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
+                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
+                .Build();
+
+        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Invalid_Enum_Value_Provided()
+    {
+        var executor = await CreateSchemaAsync();
+
+        var user = new ObjectValueNode(
+            new ObjectFieldNode("name", "Oliver"),
+            new ObjectFieldNode("gender", "FOO"));
+
+        var request =
+            OperationRequestBuilder
+                .New()
+                .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
+                .SetVariableValues(new Dictionary<string, object?> { { "user", user } })
                 .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
@@ -160,7 +203,7 @@ public class VariableCoercionIntegrationTests
     {
         public string AddUser(User user)
         {
-            return user.Name + " " + user.Surname + " was added!";
+            return $"{user.Name} {user.Surname} ({user.Gender}) was added!";
         }
     }
 
@@ -181,7 +224,11 @@ public class VariableCoercionIntegrationTests
         public string Name { get; set; } = name;
 
         public string? Surname { get; set; }
+
+        public GenderEnum? Gender { get; set; }
     }
+
+    public enum GenderEnum { Male, Female }
 
     public class UserInputType : InputObjectType<User>
     {

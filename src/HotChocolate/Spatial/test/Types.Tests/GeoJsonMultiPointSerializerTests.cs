@@ -26,17 +26,17 @@ public class GeoJsonMultiPointSerializerTests
         new Point(new Coordinate(10, 40)),
         new Point(new Coordinate(40, 30)),
         new Point(new Coordinate(20, 20)),
-        new Point(new Coordinate(30, 10)),
+        new Point(new Coordinate(30, 10))
     ]);
 
-    private const string _geometryType = "MultiPoint";
+    private const string GeometryType = "MultiPoint";
 
     private readonly object _geometryParsed = new[]
     {
-        [10.0, 40.0,],
-        [40.0, 30.0,],
-        [20.0, 20.0,],
-        new[] { 30.0, 10.0, },
+        [10.0, 40.0],
+        [40.0, 30.0],
+        [20.0, 20.0],
+        new[] { 30.0, 10.0 }
     };
 
     [Theory]
@@ -127,7 +127,7 @@ public class GeoJsonMultiPointSerializerTests
         Assert.False(
             type.IsInstanceOfType(
                 GeometryFactory.Default.CreateGeometryCollection(
-                    [new Point(1, 2),])));
+                    [new Point(1, 2)])));
     }
 
     [Theory]
@@ -191,7 +191,7 @@ public class GeoJsonMultiPointSerializerTests
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
         var type = CreateInputType(typeName);
-        var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
+        var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, GeometryType);
         var coordField = new ObjectFieldNode(
             WellKnownFields.CoordinatesFieldName,
             _coordinatesSyntaxNode);
@@ -232,7 +232,7 @@ public class GeoJsonMultiPointSerializerTests
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
         var type = CreateInputType(typeName);
-        var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
+        var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, GeometryType);
         var crsField = new ObjectFieldNode(WellKnownFields.CrsFieldName, 0);
         var valueNode = new ObjectValueNode(typeField, crsField);
 
@@ -249,7 +249,7 @@ public class GeoJsonMultiPointSerializerTests
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
         var type = CreateInputType(typeName);
-        var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
+        var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, GeometryType);
         var coordField = new ObjectFieldNode(
             WellKnownFields.CoordinatesFieldName,
             _coordinatesSyntaxNode);
@@ -434,9 +434,9 @@ public class GeoJsonMultiPointSerializerTests
         var type = CreateInputType(typeName);
         var serialized = new Dictionary<string, object>
             {
-                { WellKnownFields.TypeFieldName, _geometryType },
+                { WellKnownFields.TypeFieldName, GeometryType },
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
-                { WellKnownFields.CrsFieldName, 26912 },
+                { WellKnownFields.CrsFieldName, 26912 }
             };
 
         // act
@@ -456,8 +456,8 @@ public class GeoJsonMultiPointSerializerTests
         var type = CreateInputType(typeName);
         var serialized = new Dictionary<string, object>
             {
-                { WellKnownFields.TypeFieldName, _geometryType },
-                { WellKnownFields.CoordinatesFieldName, _geometryParsed },
+                { WellKnownFields.TypeFieldName, GeometryType },
+                { WellKnownFields.CoordinatesFieldName, _geometryParsed }
             };
 
         // act
@@ -478,7 +478,7 @@ public class GeoJsonMultiPointSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
-                { WellKnownFields.CrsFieldName, new IntValueNode(0) },
+                { WellKnownFields.CrsFieldName, new IntValueNode(0) }
             };
 
         // act
@@ -496,8 +496,8 @@ public class GeoJsonMultiPointSerializerTests
         var type = CreateInputType(typeName);
         var serialized = new Dictionary<string, object>
             {
-                { WellKnownFields.TypeFieldName, _geometryType },
-                { WellKnownFields.CrsFieldName, new IntValueNode(0) },
+                { WellKnownFields.TypeFieldName, GeometryType },
+                { WellKnownFields.CrsFieldName, new IntValueNode(0) }
             };
 
         // act
@@ -516,7 +516,7 @@ public class GeoJsonMultiPointSerializerTests
         var coords = new ListValueNode(
             new IntValueNode(30),
             new IntValueNode(10));
-        var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
+        var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, GeometryType);
         var coordField = new ObjectFieldNode(WellKnownFields.CoordinatesFieldName, coords);
         var valueNode = new ObjectValueNode(typeField, coordField);
 
@@ -525,7 +525,7 @@ public class GeoJsonMultiPointSerializerTests
         Assert.Throws<SerializationException>(() => inputParser.ParseLiteral(valueNode, type));
     }
 
-    private ISchema CreateSchema() => SchemaBuilder.New()
+    private Schema CreateSchema() => SchemaBuilder.New()
         .AddSpatialTypes()
         .AddQueryType(d => d
             .Name("Query")
@@ -552,13 +552,13 @@ public class GeoJsonMultiPointSerializerTests
         }
     }
 
-    private INamedInputType CreateInputType(string typeName)
+    private IInputTypeDefinition CreateInputType(string typeName)
     {
-        return CreateSchema().GetType<INamedInputType>(typeName);
+        return CreateSchema().Types.GetType<IInputTypeDefinition>(typeName);
     }
 
     private ILeafType CreateLeafType(string typeName)
     {
-        return CreateSchema().GetType<ILeafType>(typeName);
+        return CreateSchema().Types.GetType<ILeafType>(typeName);
     }
 }

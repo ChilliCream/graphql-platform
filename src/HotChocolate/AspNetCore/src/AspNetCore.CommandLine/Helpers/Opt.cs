@@ -8,10 +8,10 @@ namespace HotChocolate.AspNetCore.CommandLine;
 /// </summary>
 internal static class Opt<TOption> where TOption : new()
 {
-    private static TOption? _instance;
+    private static TOption? s_instance;
 
     /// <summary>
     /// Gets the singleton instance of <typeparamref name="TOption"/>
     /// </summary>
-    public static TOption Instance { get => _instance ??= new(); }
+    public static TOption Instance { get => s_instance ??= new(); }
 }
