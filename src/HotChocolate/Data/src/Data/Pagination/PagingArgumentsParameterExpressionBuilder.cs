@@ -23,6 +23,7 @@ internal sealed class PagingArgumentsParameterExpressionBuilder()
 
     private static PagingArguments MapArguments(IResolverContext context)
     {
+        var pagingOptions = PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
         var pagingArguments = context.GetLocalState<CursorPagingArguments>(WellKnownContextData.PagingArguments);
         var includeTotalCount = IncludeTotalCount(context.Selection);
 
@@ -31,11 +32,20 @@ internal sealed class PagingArgumentsParameterExpressionBuilder()
             includeTotalCount = context.IsSelected("totalCount");
         }
 
-        return MapArguments(pagingArguments, includeTotalCount);
+        return MapArguments(pagingArguments, includeTotalCount, pagingOptions.NullOrdering);
     }
 
-    private static PagingArguments MapArguments(CursorPagingArguments arguments, bool includeTotalCount)
-        => new(arguments.First, arguments.After, arguments.Last, arguments.Before, includeTotalCount);
+    private static PagingArguments MapArguments(
+        CursorPagingArguments arguments,
+        bool includeTotalCount,
+        NullOrdering nullOrdering)
+        => new(
+            arguments.First,
+            arguments.After,
+            arguments.Last,
+            arguments.Before,
+            includeTotalCount)
+        { NullOrdering = nullOrdering };
 
     private static bool IncludeTotalCount(ISelection selection)
         => selection.Field.Features.Get<PagingOptions>()?.IncludeTotalCount is true;
