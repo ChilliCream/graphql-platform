@@ -1,7 +1,5 @@
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
-using Snapshooter;
-using Snapshooter.Xunit;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Configuration;
 
@@ -16,7 +14,7 @@ public class TypeInitializationOrderTests
             .AddType<QueryExtensionType_A>()
             .AddType<QueryExtensionType_B>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -28,8 +26,8 @@ public class TypeInitializationOrderTests
             .AddType<QueryExtensionType_B>()
             .AddType<QueryExtensionType_A>()
             .Create()
-            .Print()
-            .MatchSnapshot(new SnapshotNameExtension("BA"));
+            .ToString()
+            .MatchSnapshot(postFix: "BA");
     }
 
     public class QueryExtensionType_A : ObjectTypeExtension
@@ -40,15 +38,15 @@ public class TypeInitializationOrderTests
                 .Field("words")
                 .Type<ListType<ObjectType<Word>>>()
                 .Resolve(
-                    new Word[] { new() { Value = "Hello", }, new() { Value = "World", }, })
+                    new Word[] { new() { Value = "Hello" }, new() { Value = "World" } })
                 .Extend()
-                .OnBeforeCreate((c,d) =>
+                .OnBeforeCreate((c, d) =>
                 {
                     var reference =
                         c.TypeInspector.GetTypeRef(typeof(Word), TypeContext.Output);
 
-                    d.Configurations.Add(
-                        new CompleteConfiguration<ObjectFieldDefinition>(
+                    d.Tasks.Add(
+                        new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                             (context, _) =>
                             {
                                 var type = context.GetType<ObjectType>(reference);

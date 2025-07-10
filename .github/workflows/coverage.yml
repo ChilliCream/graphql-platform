@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - main-version-*
     paths:
       - 'src/**'
 
@@ -29,8 +30,9 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
-            7.x
             8.x
+            9.x
+            10.x
 
       - name: Generate Test Matrix
         run: dotnet run --project ./.build -- GenerateMatrix
@@ -43,6 +45,8 @@ jobs:
     name: Run ${{ matrix.name }}
     runs-on: ubuntu-latest
     needs: configure
+    env:
+      DOCKER_CONFIG: ${{ github.workspace }}/.docker
 
     strategy:
       fail-fast: false
@@ -58,14 +62,20 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
-            6.x
-            7.x
             8.x
+            9.x
+            10.x
 
       - name: Run Build
         id: run-build
-        run: dotnet build ${{ matrix.path }} --framework net8.0 --verbosity q
+        run: dotnet build ${{ matrix.path }} --framework net10.0 --verbosity q
         timeout-minutes: 5
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Run tests
         id: run-tests
@@ -74,7 +84,7 @@ jobs:
         run: >
           dotnet test ${{ matrix.path }}
           --collect:"XPlat Code Coverage;Format=opencover"
-          --framework net8.0
+          --framework net10.0
           --logger trx
           --no-build
           --verbosity q
@@ -84,14 +94,12 @@ jobs:
           CI_BUILD: true
 
       - name: Upload Test Results as Artifact
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/TestResults/*.trx
 
       - name: Upload Coverage File as Artifact
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.name }}
@@ -112,56 +120,24 @@ jobs:
           steps.run-tests.outcome == 'failure' ||
           steps.run-tests.outcome == 'cancelled'
 
-  merge-coverage:
-    name: Merge and Upload Coverage
+  upload-coverage:
+    name: Upload Coverage
     needs: library-tests
-    if: always() && needs.library-tests.result != 'cancelled'
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        show-progress: false
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./output/download
+          pattern: coverage-*
 
-    - name: Install .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: |
-          6.x
-          7.x
-          8.x
-
-    - name: Create All.sln
-      if: ${{ !cancelled() }}
-      run: ./build.sh CreateAllSln
-
-    - name: Build
-      if: ${{ !cancelled() }}
-      run: dotnet build ./src/All.sln
-
-    - name: Download all coverage artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: ./output/download
-        pattern: coverage-*
-
-    - name: Merge Coverage Files
-      if: ${{ !cancelled() }}
-      timeout-minutes: 10
-      run: |
-        dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator "-reports:./output/download/**/*.xml" "-targetdir:./output/coverage/merged" -reporttypes:Opencover -license:$ReportGenerator_License
-      env:
-        ReportGenerator_License: ${{ secrets.REPORTGENERATOR_LICENSE }}
-
-    - name: Upload Combined Coverage to Codecov
-      if: ${{ !cancelled() }}
-      uses: codecov/codecov-action@v4
-      timeout-minutes: 10
-      with:
-        file: ./output/coverage/merged/OpenCover.xml
-        token: ${{ secrets.CODECOV_TOKEN }}
-        name: graphql-platform
-        flags: unittests
-        fail_ci_if_error: true
-        disable_search: true
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        timeout-minutes: 10
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          name: graphql-platform
+          files: './output/download/coverage-*/*/coverage.opencover.xml'
+          disable_search: true
+          flags: unittests
+          fail_ci_if_error: true

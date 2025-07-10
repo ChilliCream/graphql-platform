@@ -1,7 +1,5 @@
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using Snapshooter;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Resolvers;
 
@@ -30,8 +28,7 @@ public class ResolverTaskNullTests
             $"{{ {field}(name: {arg}) }}");
 
         // assert
-        result.ToJson().MatchSnapshot(SnapshotNameExtension.Create(
-            field, argument ?? "null"));
+        result.ToJson().MatchSnapshot(postFix: $"{field}_{argument ?? "null"}");
     }
 
     public class QueryType : ObjectType<Query>
@@ -39,7 +36,7 @@ public class ResolverTaskNullTests
         protected override void Configure(
             IObjectTypeDescriptor<Query> descriptor)
         {
-            descriptor.Field<QueryResolver>(t => t.Case2(default));
+            descriptor.Field<QueryResolver>(t => t.Case2(null));
             descriptor.Field("case3")
                 .Argument("name", a => a.Type<StringType>())
                 .Type<StringType>()

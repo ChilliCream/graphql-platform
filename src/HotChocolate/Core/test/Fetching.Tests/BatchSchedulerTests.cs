@@ -1,6 +1,5 @@
 using HotChocolate.Execution;
 using Moq;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Fetching;
 

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,12 +15,61 @@ public static class DataLoaderAttributeHelper
                 "DataLoaderAttribute",
                 StringComparison.Ordinal));
 
+    public static ImmutableHashSet<string> GetDataLoaderGroupKeys(this IMethodSymbol methodSymbol)
+    {
+        var groupNamesBuilder = ImmutableHashSet.CreateBuilder(StringComparer.Ordinal);
+        AddGroupNames(groupNamesBuilder, methodSymbol.GetAttributes());
+        AddGroupNames(groupNamesBuilder, methodSymbol.ContainingType.GetAttributes());
+        return groupNamesBuilder.Count == 0 ? [] : groupNamesBuilder.ToImmutable();
+
+        static void AddGroupNames(ImmutableHashSet<string>.Builder builder, IEnumerable<AttributeData> attributes)
+        {
+            foreach (var attribute in attributes)
+            {
+                if (IsDataLoaderGroupAttribute(attribute.AttributeClass))
+                {
+                    var constructorArguments = attribute.ConstructorArguments;
+                    if (constructorArguments.Length > 0)
+                    {
+                        foreach (var arg in constructorArguments[0].Values)
+                        {
+                            if (arg.Value is string groupName)
+                            {
+                                builder.Add(groupName);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        static bool IsDataLoaderGroupAttribute(INamedTypeSymbol? attributeClass)
+        {
+            if (attributeClass == null)
+            {
+                return false;
+            }
+
+            while (attributeClass != null)
+            {
+                if (attributeClass.Name == "DataLoaderGroupAttribute")
+                {
+                    return true;
+                }
+
+                attributeClass = attributeClass.BaseType;
+            }
+
+            return false;
+        }
+    }
+
     public static string? GetDataLoaderStateKey(
         this IParameterSymbol parameter)
     {
         foreach (var attributeData in parameter.GetAttributes())
         {
-            if (!IsTypeName(attributeData.AttributeClass, "GreenDonut", "DataLoaderStateAttribute"))
+            if (!attributeData.AttributeClass.IsOrInheritsFrom("GreenDonut.DataLoaderStateAttribute"))
             {
                 continue;
             }
@@ -40,26 +90,6 @@ public static class DataLoaderAttributeHelper
         }
 
         return null;
-    }
-
-    private static bool IsTypeName(INamedTypeSymbol? type, string containingNamespace, string typeName)
-    {
-        if (type is null)
-        {
-            return false;
-        }
-
-        while (type != null)
-        {
-            if (type.MetadataName == typeName && type.ContainingNamespace?.ToDisplayString() == containingNamespace)
-            {
-                return true;
-            }
-
-            type = type.BaseType;
-        }
-
-        return false;
     }
 
     public static bool? IsScoped(
@@ -257,12 +287,54 @@ public static class DataLoaderAttributeHelper
         return null;
     }
 
+    public static bool IsModuleInternal(
+        this SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
+        GeneratorSyntaxContext context)
+    {
+        var argumentSyntax = arguments.FirstOrDefault(
+            t => t.NameEquals?.Name.ToFullString().Trim() == "IsInternal");
+
+        if (argumentSyntax is not null)
+        {
+            var valueExpression = argumentSyntax.Expression;
+            var value = context.SemanticModel.GetConstantValue(valueExpression).Value;
+
+            if (value is bool b)
+            {
+                return b;
+            }
+        }
+
+        return false;
+    }
+
     public static bool RegisterService(
         this SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
         GeneratorSyntaxContext context)
     {
         var argumentSyntax = arguments.FirstOrDefault(
             t => t.NameEquals?.Name.ToFullString().Trim() == "GenerateRegistrationCode");
+
+        if (argumentSyntax is not null)
+        {
+            var valueExpression = argumentSyntax.Expression;
+            var value = context.SemanticModel.GetConstantValue(valueExpression).Value;
+
+            if (value is bool b)
+            {
+                return b;
+            }
+        }
+
+        return true;
+    }
+
+    public static bool GenerateInterfaces(
+        this SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
+        GeneratorSyntaxContext context)
+    {
+        var argumentSyntax = arguments.FirstOrDefault(
+            t => t.NameEquals?.Name.ToFullString().Trim() == "GenerateInterfaces");
 
         if (argumentSyntax is not null)
         {

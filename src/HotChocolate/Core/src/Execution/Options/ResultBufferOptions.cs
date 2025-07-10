@@ -22,7 +22,7 @@ public sealed class ResultBufferOptions
         get => _maximumRetained;
         set
         {
-            if(value <= 16)
+            if (value <= 16)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(value),
@@ -47,7 +47,7 @@ public sealed class ResultBufferOptions
         }
         set
         {
-            if(value <= 8)
+            if (value <= 8)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(value),
@@ -69,7 +69,7 @@ public sealed class ResultBufferOptions
         get => _maximumAllowedCapacity;
         set
         {
-            if(value <= 16)
+            if (value <= 16)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(value),

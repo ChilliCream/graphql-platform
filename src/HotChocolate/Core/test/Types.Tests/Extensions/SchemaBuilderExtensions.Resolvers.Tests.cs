@@ -1,4 +1,3 @@
-using Snapshooter.Xunit;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
@@ -11,7 +10,7 @@ public class SchemaBuilderExtensionsResolversTests
     public void AddResolverContextObject_BuilderIsNull_ArgNullExcept()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -29,7 +28,7 @@ public class SchemaBuilderExtensionsResolversTests
     public void AddResolverContextObject_ResolverIsNull_ArgNullExcept()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -47,8 +46,7 @@ public class SchemaBuilderExtensionsResolversTests
     public async Task AddResolverContextObject_ResolveField()
     {
         // arrange
-        Snapshot.FullName();
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddDocumentFromString("type Query { foo: String }");
 
         // act
@@ -68,7 +66,7 @@ public class SchemaBuilderExtensionsResolversTests
     public void AddResolverContextTaskObject_BuilderIsNull_ArgNullExcept()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -87,7 +85,7 @@ public class SchemaBuilderExtensionsResolversTests
     public void AddResolverContextTaskObject_ResolverIsNull_ArgNullExcept()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -105,8 +103,7 @@ public class SchemaBuilderExtensionsResolversTests
     public async Task AddResolverContextTaskObject_ResolveField()
     {
         // arrange
-        Snapshot.FullName();
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddDocumentFromString("type Query { foo: String }");
 
         // act
@@ -129,7 +126,7 @@ public class SchemaBuilderExtensionsResolversTests
     public void AddResolverContextTResult_BuilderIsNull_ArgNullExcept()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -148,7 +145,7 @@ public class SchemaBuilderExtensionsResolversTests
     public void AddResolverContextTResult_ResolverIsNull_ArgNullExcept()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -166,8 +163,7 @@ public class SchemaBuilderExtensionsResolversTests
     public async Task AddResolverContextTResult_ResolveField()
     {
         // arrange
-        Snapshot.FullName();
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddDocumentFromString("type Query { foo: String }");
 
         // act
@@ -190,7 +186,7 @@ public class SchemaBuilderExtensionsResolversTests
     public void AddResolverContextTaskTResult_BuilderIsNull_ArgNullExcept()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -209,7 +205,7 @@ public class SchemaBuilderExtensionsResolversTests
     public void AddResolverContextTaskTResult_ResolverIsNull_ArgNullExcept()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -224,11 +220,10 @@ public class SchemaBuilderExtensionsResolversTests
     }
 
     [Fact]
-    public async  Task AddResolverContextTaskTResult_ResolveField()
+    public async Task AddResolverContextTaskTResult_ResolveField()
     {
         // arrange
-        Snapshot.FullName();
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddDocumentFromString("type Query { foo: String }");
 
         // act
@@ -251,7 +246,7 @@ public class SchemaBuilderExtensionsResolversTests
     public void AddResolverObject_BuilderIsNull_ArgNullExcept()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -269,7 +264,7 @@ public class SchemaBuilderExtensionsResolversTests
     public void AddResolverObject_ResolverIsNull_ArgNullExcept()
     {
         // arrange
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
 
         // act
         Action action = () => SchemaBuilderExtensions
@@ -287,8 +282,7 @@ public class SchemaBuilderExtensionsResolversTests
     public async Task AddResolverObject_ResolveField()
     {
         // arrange
-        Snapshot.FullName();
-        var builder = new SchemaBuilder();
+        var builder = SchemaBuilder.New();
         builder.AddDocumentFromString("type Query { foo: String }");
 
         // act

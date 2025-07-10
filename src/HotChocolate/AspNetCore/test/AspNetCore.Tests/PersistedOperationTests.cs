@@ -1,21 +1,16 @@
 using System.Text;
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Server.HttpSys;
+using HotChocolate.PersistedOperations;
 
 namespace HotChocolate.AspNetCore;
 
-public class PersistedOperationTests : ServerTestBase
+public class PersistedOperationTests(TestServerFactory serverFactory)
+    : ServerTestBase(serverFactory)
 {
-    public PersistedOperationTests(TestServerFactory serverFactory)
-        : base(serverFactory)
-    {
-    }
-
     [Fact]
     public async Task HotChocolateStyle_MD5Hash_Success()
     {
@@ -29,13 +24,13 @@ public class PersistedOperationTests : ServerTestBase
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
-        storage.AddOperation(key, query);
+        storage.AddOperation(key.Value, query);
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Id = key, },
+            new ClientQueryRequest { Id = key.Value },
             path: "/starwars");
 
         // assert
@@ -55,14 +50,14 @@ public class PersistedOperationTests : ServerTestBase
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
         // we are not adding the query to the store so the server request should fail
         // storage.AddOperation(key, query);
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Id = key, },
+            new ClientQueryRequest { Id = key.Value },
             path: "/starwars");
 
         // assert
@@ -83,13 +78,13 @@ public class PersistedOperationTests : ServerTestBase
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
-        storage.AddOperation(key, query);
+        storage.AddOperation(key.Value, query);
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Id = key, },
+            new ClientQueryRequest { Id = key.Value },
             path: "/starwars");
 
         // assert
@@ -110,13 +105,13 @@ public class PersistedOperationTests : ServerTestBase
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
-        storage.AddOperation(key, query);
+        storage.AddOperation(key.Value, query);
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Id = key, },
+            new ClientQueryRequest { Id = key.Value },
             path: "/starwars");
 
         // assert
@@ -137,15 +132,15 @@ public class PersistedOperationTests : ServerTestBase
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
-        storage.AddOperation(key, query);
+        storage.AddOperation(key.Value, query);
 
         // act
         var result = await server.PostAsync(
             new ClientQueryRequest
             {
-                Id = key,
+                Id = key.Value,
                 Query = string.Empty
             },
             path: "/starwars");
@@ -167,13 +162,13 @@ public class PersistedOperationTests : ServerTestBase
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
-        storage.AddOperation(key, query);
+        storage.AddOperation(key.Value, query);
 
         // act
         var result = await server.PostAsync(
-            CreateApolloStyleRequest(hashProvider.Name, key),
+            CreateApolloStyleRequest(hashProvider.Name, key.Value),
             path: "/starwars");
 
         // assert
@@ -193,14 +188,14 @@ public class PersistedOperationTests : ServerTestBase
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
         // we are not adding the query to the store so the server request should fail
         // storage.AddOperation(key, query);
 
         // act
         var result = await server.PostAsync(
-            CreateApolloStyleRequest(hashProvider.Name, key),
+            CreateApolloStyleRequest(hashProvider.Name, key.Value),
             path: "/starwars");
 
         // assert
@@ -221,13 +216,13 @@ public class PersistedOperationTests : ServerTestBase
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
-        storage.AddOperation(key, query);
+        storage.AddOperation(key.Value, query);
 
         // act
         var result = await server.PostAsync(
-            CreateApolloStyleRequest(hashProvider.Name, key),
+            CreateApolloStyleRequest(hashProvider.Name, key.Value),
             path: "/starwars");
 
         // assert
@@ -248,13 +243,13 @@ public class PersistedOperationTests : ServerTestBase
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var key = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
-        storage.AddOperation(key, query);
+        storage.AddOperation(key.Value, query);
 
         // act
         var result = await server.PostAsync(
-            CreateApolloStyleRequest(hashProvider.Name, key),
+            CreateApolloStyleRequest(hashProvider.Name, key.Value),
             path: "/starwars");
 
         // assert
@@ -273,11 +268,11 @@ public class PersistedOperationTests : ServerTestBase
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = query, },
+            new ClientQueryRequest { Query = query },
             path: "/starwars");
 
         // assert
@@ -293,15 +288,73 @@ public class PersistedOperationTests : ServerTestBase
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL("StarWars")
-                .ModifyRequestOptions(o => o.OnlyAllowPersistedOperations = true)
+                .ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = query, },
+            new ClientQueryRequest { Query = query },
+            path: "/starwars");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Standard_Query_Not_Allowed_Even_When_Persisted()
+    {
+        // arrange
+        var storage = new OperationStorage();
+        storage.AddOperation(
+            "a73defcdf38e5891e91b9ba532cf4c36",
+            "query GetHeroName { hero { name } }");
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL("StarWars")
+                .ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true)
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline());
+
+        const string query = "query GetHeroName { hero { name } }";
+
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest { Query = query },
+            path: "/starwars");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Standard_Query_Allowed_When_Persisted()
+    {
+        // arrange
+        var storage = new OperationStorage();
+        storage.AddOperation(
+            "a73defcdf38e5891e91b9ba532cf4c36",
+            "query GetHeroName { hero { name } }");
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL("StarWars")
+                .ModifyRequestOptions(o =>
+                {
+                    o.PersistedOperations.OnlyAllowPersistedDocuments = true;
+                    o.PersistedOperations.AllowDocumentBody = true;
+                })
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline());
+
+        const string query = "query GetHeroName { hero { name } }";
+
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest { Query = query },
             path: "/starwars");
 
         // assert
@@ -319,8 +372,8 @@ public class PersistedOperationTests : ServerTestBase
                 .AddGraphQL("StarWars")
                 .ModifyRequestOptions(o =>
                 {
-                    o.OnlyAllowPersistedOperations = true;
-                    o.OnlyPersistedOperationsAreAllowedError =
+                    o.PersistedOperations.OnlyAllowPersistedDocuments = true;
+                    o.PersistedOperations.OperationNotAllowedError =
                         ErrorBuilder.New()
                             .SetMessage("Not allowed!")
                             .Build();
@@ -328,11 +381,11 @@ public class PersistedOperationTests : ServerTestBase
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = query, },
+            new ClientQueryRequest { Query = query },
             path: "/starwars");
 
         // assert
@@ -350,34 +403,78 @@ public class PersistedOperationTests : ServerTestBase
                 .AddGraphQL("StarWars")
                 .ModifyRequestOptions(o =>
                 {
-                    o.OnlyAllowPersistedOperations = true;
+                    o.PersistedOperations.OnlyAllowPersistedDocuments = true;
                 })
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline()
                 .AddHttpRequestInterceptor<AllowNonPersistedOperationInterceptor>());
 
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = query, },
+            new ClientQueryRequest { Query = query },
             path: "/starwars");
 
         // assert
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Ensure_Pooled_Objects_Are_Cleared()
+    {
+        // arrange
+        // we have one operation in our storage that is allowed.
+        var storage = new OperationStorage();
+        storage.AddOperation(
+            "a73defcdf38e5891e91b9ba532cf4c36",
+            "query GetHeroName { hero { name } }");
+
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL("StarWars")
+                .ModifyRequestOptions(o =>
+                {
+                    // we only allow persisted operations, but we also allow standard requests
+                    // as long as they match a persisted operation.
+                    o.PersistedOperations.OnlyAllowPersistedDocuments = true;
+                    o.PersistedOperations.AllowDocumentBody = true;
+                })
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline());
+
+        // act
+        var result1ShouldBeOk = await server.PostAsync(
+            new ClientQueryRequest { Id = "a73defcdf38e5891e91b9ba532cf4c36" },
+            path: "/starwars");
+
+        var result2ShouldBeOk = await server.PostAsync(
+            new ClientQueryRequest { Query = "query GetHeroName { hero { name } }" },
+            path: "/starwars");
+
+        var result3ShouldFail = await server.PostAsync(
+            new ClientQueryRequest { Query = "{ __typename }" },
+            path: "/starwars");
+
+        // assert
+        await Snapshot.Create()
+            .Add(result1ShouldBeOk, "Result 1 - Should be OK")
+            .Add(result2ShouldBeOk, "Result 2 - Should be OK")
+            .Add(result3ShouldFail, "Result 3 - Should fail")
+            .MatchMarkdownAsync();
+    }
+
     private ClientQueryRequest CreateApolloStyleRequest(string hashName, string key)
-        =>  new()
+        => new()
         {
             Extensions = new Dictionary<string, object?>
             {
                 ["persistedQuery"] = new Dictionary<string, object?>
                 {
                     ["version"] = 1,
-                    [hashName] = key,
-                },
-            },
+                    [hashName] = key
+                }
+            }
         };
 
     private sealed class OperationStorage : IOperationDocumentStorage

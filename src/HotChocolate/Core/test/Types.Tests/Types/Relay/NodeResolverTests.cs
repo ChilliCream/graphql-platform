@@ -1,10 +1,10 @@
 #pragma warning disable RCS1102 // Make class static
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -43,7 +43,7 @@ public class NodeResolverTests
                 {
                     d.ImplementsNode()
                         .ResolveNode<string>(
-                            (_, id) => Task.FromResult(new Entity { Name = id, }))
+                            (_, id) => Task.FromResult(new Entity { Name = id }))
                         .Resolve(ctx => ctx.Parent<Entity>().Id);
                 })
                 .AddQueryType<Query>()
@@ -70,7 +70,7 @@ public class NodeResolverTests
                 {
                     d.ImplementsNode()
                         .ResolveNode<string>((_, id) =>
-                            Task.FromResult(new Entity { Name = id, }))
+                            Task.FromResult(new Entity { Name = id }))
                         .Resolve(ctx => ctx.Parent<Entity>().Id);
                 })
                 .AddQueryType<Query>()
@@ -98,7 +98,7 @@ public class NodeResolverTests
                     d.Name("Entity");
                     d.ImplementsNode()
                         .ResolveNode<string>(
-                            (_, id) => Task.FromResult<object>(new Entity { Name = id, }))
+                            (_, id) => Task.FromResult<object>(new Entity { Name = id }))
                         .Resolve(ctx => ctx.Parent<Entity>().Id);
                     d.Field("name")
                         .Type<StringType>()
@@ -109,7 +109,7 @@ public class NodeResolverTests
                     d.Name("Query")
                         .Field("entity")
                         .Type(new NamedTypeNode("Entity"))
-                        .Resolve(new Entity { Name = "foo", });
+                        .Resolve(new Entity { Name = "foo" });
                 })
                 .BuildRequestExecutorAsync();
 
@@ -135,7 +135,7 @@ public class NodeResolverTests
                     d.Name("Entity");
                     d.ImplementsNode()
                         .ResolveNode<string>(
-                            (_, id) => Task.FromResult<object>(new Entity { Name = id, }))
+                            (_, id) => Task.FromResult<object>(new Entity { Name = id }))
                         .Resolve(ctx => ctx.Parent<Entity>().Id);
                     d.Field("name")
                         .Type<StringType>()
@@ -146,7 +146,7 @@ public class NodeResolverTests
                     d.Name("Query")
                         .Field("entity")
                         .Type(new NamedTypeNode("Entity"))
-                        .Resolve(new Entity { Name = "foo", });
+                        .Resolve(new Entity { Name = "foo" });
                 })
                 .BuildRequestExecutorAsync();
 
@@ -190,8 +190,6 @@ public class NodeResolverTests
     [Fact]
     public async Task NodeAttribute_On_Extension()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -203,8 +201,6 @@ public class NodeResolverTests
     [Fact]
     public async Task NodeAttribute_On_Extension2()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -216,8 +212,6 @@ public class NodeResolverTests
     [Fact]
     public async Task NodeAttribute_On_Extension3()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -229,8 +223,6 @@ public class NodeResolverTests
     [Fact]
     public async Task NodeAttribute_On_Extension4()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -242,8 +234,6 @@ public class NodeResolverTests
     [Fact]
     public async Task NodeAttribute_On_Extension_Fetch_Through_Node_Field()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -262,11 +252,58 @@ public class NodeResolverTests
             .MatchSnapshotAsync();
     }
 
+    // Ensure Issue 7829 is fixed.
+    [Fact]
+    public async Task NodeAttribute_On_Extension_With_Renamed_Id()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryEntityRenamed>()
+            .AddTypeExtension<EntityExtensionRenamingId>()
+            .ExecuteRequestAsync(
+                """
+                {
+                  entity(id: 5) {
+                    id
+                    data
+                  }
+                }
+                """)
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task NodeResolver_And_AsSelector()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddTypeExtension<EntityExtension5>()
+                .AddTypeExtension<Entity2Extension1>()
+                .AddQueryType<Query>()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["RW50aXR5OmZvbw=="]) {
+                    id
+                }
+            }
+            """);
+
+        // assert
+        Assert.Null(result.ExpectOperationResult().Errors);
+    }
+
     public class Query
     {
-        public Entity GetEntity(string name) => new Entity { Name = name, };
+        public Entity GetEntity(string name) => new Entity { Name = name };
 
-        public Entity2 GetEntity2(string name) => new Entity2 { Name = name, };
+        public Entity2 GetEntity2(string name) => new Entity2 { Name = name };
     }
 
     public class EntityType : ObjectType<Entity>
@@ -277,13 +314,18 @@ public class NodeResolverTests
             descriptor
                 .ImplementsNode()
                 .IdField(t => t.Id)
-                .ResolveNode((_, id) => Task.FromResult(new Entity { Name = id, }));
+                .ResolveNode((_, id) => Task.FromResult(new Entity { Name = id }));
         }
     }
 
     public class Entity
     {
-        public string Id => Name;
+        public string Id
+        {
+            get => Name;
+            set => Name = value;
+        }
+
         public string Name { get; set; }
     }
 
@@ -292,7 +334,7 @@ public class NodeResolverTests
         public string Id => Name;
         public string Name { get; set; }
 
-        public static Entity2 Get(string id) => new() { Name = id, };
+        public static Entity2 Get(string id) => new() { Name = id };
     }
 
     [Node]
@@ -316,7 +358,7 @@ public class NodeResolverTests
 
     public class EntityExtension
     {
-        public static Entity GetEntity(string id) => new() { Name = id, };
+        public static Entity GetEntity(string id) => new() { Name = id };
     }
 
     [Node]
@@ -324,7 +366,7 @@ public class NodeResolverTests
     public class EntityExtension2
     {
         [NodeResolver]
-        public static Entity Foo(string id) => new() { Name = id, };
+        public static Entity Foo(string id) => new() { Name = id };
     }
 
     [Node]
@@ -332,14 +374,63 @@ public class NodeResolverTests
     public class EntityExtension3
     {
         [NodeResolver]
-        public static Entity Foo(string id) => new() { Name = id, };
+        public static Entity Foo(string id) => new() { Name = id };
     }
 
     [Node]
     [ExtendObjectType(typeof(Entity))]
     public class EntityExtension4
     {
-        public static Entity GetEntity(string id) => new() { Name = id, };
+        public static Entity GetEntity(string id) => new() { Name = id };
+    }
+
+    [Node]
+    [ExtendObjectType(typeof(Entity))]
+    public class EntityExtension5
+    {
+        [NodeResolver]
+        public static Entity GetEntity(string id, ISelection selection)
+        {
+            selection.AsSelector<Entity>();
+
+            return new Entity { Name = id };
+        }
+    }
+
+    [Node]
+    [ExtendObjectType(typeof(Entity2))]
+    public class Entity2Extension1
+    {
+        [NodeResolver]
+        public static Entity2 GetEntity2(string id, ISelection selection)
+        {
+            selection.AsSelector<Entity2>();
+
+            return new Entity2 { Name = id };
+        }
+    }
+
+    public class QueryEntityRenamed
+    {
+        public EntityNoId GetEntity(int id)
+            => new EntityNoId { Data = id };
+    }
+
+    public class EntityNoId
+    {
+        public int Data { get; set; }
+    }
+
+    [Node]
+    [ExtendObjectType(typeof(EntityNoId))]
+    public class EntityExtensionRenamingId
+    {
+        public int GetId([Parent] EntityNoId entity)
+            => entity.Data;
+
+        [NodeResolver]
+        public EntityNoId GetEntity(int id)
+            => new() { Data = id };
     }
 }
 #pragma warning restore RCS1102 // Make class static

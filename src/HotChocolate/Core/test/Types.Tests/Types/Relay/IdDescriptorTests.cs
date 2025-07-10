@@ -1,6 +1,5 @@
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types.Relay;
 
@@ -12,7 +11,7 @@ public class IdDescriptorTests
         // arrange
         var intId = Convert.ToBase64String("Query:1"u8);
         var stringId = Convert.ToBase64String("Query:abc"u8);
-        var guidId = Convert.ToBase64String(Combine("Query:"u8, Guid.Empty.ToByteArray()));
+        var guidId = Convert.ToBase64String(Combine("Another:"u8, Guid.Empty.ToByteArray()));
 
         // act
         var result =
@@ -34,7 +33,7 @@ public class IdDescriptorTests
                             {
                                 { "intId", intId },
                                 { "stringId", stringId },
-                                { "guidId", guidId },
+                                { "guidId", guidId }
                             })
                         .Build());
 
@@ -47,6 +46,7 @@ public class IdDescriptorTests
     {
         // arrange
         var someId = Convert.ToBase64String("Some:1"u8);
+        var anotherId = Convert.ToBase64String("Another:1"u8);
 
         // act
         var result =
@@ -58,12 +58,19 @@ public class IdDescriptorTests
                 .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(
-                            @"query foo ($someId: ID!) {
-                                foo(input: { someId: $someId }) {
+                            """
+                            query foo ($someId: ID!, $anotherId: ID!) {
+                                foo(input: { someId: $someId, anotherId: $anotherId }) {
                                     someId
+                                    anotherId
                                 }
-                            }")
-                        .SetVariableValues(new Dictionary<string, object> { { "someId", someId }, })
+                            }
+                            """)
+                        .SetVariableValues(new Dictionary<string, object>
+                        {
+                            { "someId", someId },
+                            { "anotherId", anotherId }
+                        })
                         .Build());
 
         // assert
@@ -71,6 +78,7 @@ public class IdDescriptorTests
         {
             result = result.ToJson(),
             someId,
+            anotherId
         }.MatchSnapshot();
     }
 
@@ -98,19 +106,19 @@ public class IdDescriptorTests
         protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
         {
             descriptor
-                .Field(t => t.IntId(default))
+                .Field(t => t.IntId(0))
                 .Argument("id", a => a.ID());
 
             descriptor
-                .Field(t => t.StringId(default))
+                .Field(t => t.StringId(null))
                 .Argument("id", a => a.ID());
 
             descriptor
-                .Field(t => t.GuidId(default))
-                .Argument("id", a => a.ID());
+                .Field(t => t.GuidId(Guid.Empty))
+                .Argument("id", a => a.ID<Another>());
 
             descriptor
-                .Field(t => t.Foo(default))
+                .Field(t => t.Foo(null))
                 .Argument("input", a => a.Type<FooInputType>())
                 .Type<FooPayloadInterfaceType>();
         }
@@ -123,6 +131,10 @@ public class IdDescriptorTests
             descriptor
                 .Field(t => t.SomeId)
                 .ID("Some");
+
+            descriptor
+                .Field(t => t.AnotherId)
+                .ID<Another>();
         }
     }
 
@@ -135,6 +147,10 @@ public class IdDescriptorTests
             descriptor
                 .Field(t => t.SomeId)
                 .ID("Bar");
+
+            descriptor
+                .Field(t => t.AnotherId)
+                .ID<Another>();
         }
     }
 
@@ -145,6 +161,10 @@ public class IdDescriptorTests
             descriptor
                 .Field(t => t.SomeId)
                 .ID();
+
+            descriptor
+                .Field(t => t.AnotherId)
+                .ID();
         }
     }
 
@@ -153,21 +173,27 @@ public class IdDescriptorTests
         public string IntId(int id) => id.ToString();
         public string StringId(string id) => id;
         public string GuidId(Guid id) => id.ToString();
-        public IFooPayload Foo(FooInput input) => new FooPayload { SomeId = input.SomeId, };
+        public IFooPayload Foo(FooInput input)
+            => new FooPayload { SomeId = input.SomeId, AnotherId = input.AnotherId };
     }
 
     public class FooInput
     {
         public string SomeId { get; set; }
+        public string AnotherId { get; set; }
     }
 
     public class FooPayload : IFooPayload
     {
         public string SomeId { get; set; }
+        public string AnotherId { get; set; }
     }
 
     public interface IFooPayload
     {
         string SomeId { get; set; }
+        string AnotherId { get; set; }
     }
+
+    private class Another;
 }

@@ -6,13 +6,13 @@ namespace HotChocolate.Language;
 // Implements the parsing rules in the Operations section.
 public ref partial struct Utf8GraphQLParser
 {
-    private static readonly List<VariableDefinitionNode> _emptyVariableDefinitions = [];
-    private static readonly List<ArgumentNode> _emptyArguments = [];
+    private static readonly List<VariableDefinitionNode> s_emptyVariableDefinitions = [];
+    private static readonly List<ArgumentNode> s_emptyArguments = [];
 
     /// <summary>
     /// Parses an operation definition.
     /// <see cref="OperationDefinitionNode" />:
-    /// OperationType? OperationName? ($x : Type = DefaultValue?)? SelectionSet
+    /// Description? OperationType? OperationName? ($x : Type = DefaultValue?)? SelectionSet
     /// </summary>
     private OperationDefinitionNode ParseOperationDefinition()
     {
@@ -28,6 +28,7 @@ public ref partial struct Utf8GraphQLParser
         return new OperationDefinitionNode(
             location,
             name,
+            TakeDescription(),
             operation,
             variableDefinitions,
             directives,
@@ -48,6 +49,7 @@ public ref partial struct Utf8GraphQLParser
         return new OperationDefinitionNode(
             location,
             name: null,
+            description: null,
             OperationType.Query,
             Array.Empty<VariableDefinitionNode>(),
             Array.Empty<DirectiveNode>(),
@@ -108,18 +110,19 @@ public ref partial struct Utf8GraphQLParser
             return list;
         }
 
-        return _emptyVariableDefinitions;
+        return s_emptyVariableDefinitions;
     }
 
     /// <summary>
     /// Parses a variable definition.
     /// <see cref="VariableDefinitionNode" />:
-    /// $variable : Type = DefaultValue?
+    /// Description? $variable : Type = DefaultValue?
     /// </summary>
     private VariableDefinitionNode ParseVariableDefinition()
     {
         var start = Start();
 
+        var description = ParseDescription();
         var variable = ParseVariable();
         ExpectColon();
         var type = ParseTypeReference();
@@ -134,6 +137,7 @@ public ref partial struct Utf8GraphQLParser
         return new VariableDefinitionNode(
             location,
             variable,
+            description,
             type,
             defaultValue,
             directives);
@@ -180,7 +184,8 @@ public ref partial struct Utf8GraphQLParser
         // skip opening token
         MoveNext();
 
-        while (_reader.Kind != TokenKind.RightBrace)
+        while (_reader.Kind != TokenKind.RightBrace
+            && _reader.Kind != TokenKind.EndOfFile)
         {
             selections.Add(ParseSelection());
         }
@@ -279,7 +284,7 @@ public ref partial struct Utf8GraphQLParser
 
             return list;
         }
-        return _emptyArguments;
+        return s_emptyArguments;
     }
 
     /// <summary>

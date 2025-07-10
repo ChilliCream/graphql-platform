@@ -1,5 +1,3 @@
-using Snapshooter.Xunit;
-
 namespace HotChocolate.Execution.Processing;
 
 public class ResultBuilderTests

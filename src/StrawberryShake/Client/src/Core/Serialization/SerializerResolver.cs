@@ -6,34 +6,24 @@ namespace StrawberryShake.Serialization;
 /// </summary>
 public class SerializerResolver : ISerializerResolver
 {
-    private readonly Dictionary<string, ISerializer> _serializers = new();
+    private readonly Dictionary<string, ISerializer> _serializers = [];
 
     /// <summary>
     /// Initializes a new <see cref="SerializerResolver"/>
     /// </summary>
     /// <param name="serializers">
-    /// A enumerable of <see cref="ISerializer"/> that shall be known to the resolver
+    /// An enumerable of <see cref="ISerializer"/> that shall be known to the resolver
     /// </param>
     /// <exception cref="ArgumentNullException">
     /// In case <paramref name="serializers" /> is <c>null</c>
     /// </exception>
     public SerializerResolver(IEnumerable<ISerializer> serializers)
     {
-        if (serializers is null)
-        {
-            throw new ArgumentNullException(nameof(serializers));
-        }
+        ArgumentNullException.ThrowIfNull(serializers);
 
         foreach (var serializer in serializers)
         {
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             _serializers.TryAdd(serializer.TypeName, serializer);
-#else
-            if (!_serializers.ContainsKey(serializer.TypeName))
-            {
-                _serializers[serializer.TypeName] = serializer;
-            }
-#endif
         }
 
         foreach (var serializer in
@@ -60,10 +50,7 @@ public class SerializerResolver : ISerializerResolver
     public ILeafValueParser<TSerialized, TRuntime> GetLeafValueParser<TSerialized, TRuntime>(
         string typeName)
     {
-        if (typeName is null)
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
+        ArgumentNullException.ThrowIfNull(typeName);
 
         if (_serializers.TryGetValue(typeName, out var serializer) &&
             serializer is ILeafValueParser<TSerialized, TRuntime> parser)
@@ -87,10 +74,7 @@ public class SerializerResolver : ISerializerResolver
     /// </exception>
     public IInputValueFormatter GetInputValueFormatter(string typeName)
     {
-        if (typeName is null)
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
+        ArgumentNullException.ThrowIfNull(typeName);
 
         if (_serializers.TryGetValue(typeName, out var serializer) &&
             serializer is IInputValueFormatter formatter)

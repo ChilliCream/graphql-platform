@@ -1,7 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using CookieCrumble;
 
 namespace HotChocolate.Types;
 
@@ -12,15 +11,15 @@ public class DirectiveTests : TypeTestBase
     {
         // arrange
         var schema = CreateSchema();
-        var directiveType = schema.GetDirectiveType("Foo");
-        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456", }, };
+        var directiveType = schema.DirectiveTypes["Foo"];
+        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456" } };
 
         // act
         var directive = new Directive(
             directiveType,
             directiveType.Format(fooDirective),
             fooDirective);
-        var directiveNode = directive.AsSyntaxNode();
+        var directiveNode = directive.ToSyntaxNode();
 
         // assert
         Assert.Equal(directiveType.Name, directiveNode.Name.Value);
@@ -51,14 +50,14 @@ public class DirectiveTests : TypeTestBase
     {
         // arrange
         var schema = CreateSchema();
-        var directiveType = schema.GetDirectiveType("Foo");
-        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456", }, };
+        var directiveType = schema.DirectiveTypes["Foo"];
+        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456" } };
 
         // act
         var syntaxNode = directiveType.Format(fooDirective);
         var value = directiveType.Parse(syntaxNode);
         var directive = new Directive(directiveType, syntaxNode, value);
-        var runtimeValue = directive.AsValue<FooDirective>();
+        var runtimeValue = directive.ToValue<FooDirective>();
 
         // assert
         Assert.Equal("123", runtimeValue.Bar);
@@ -70,8 +69,8 @@ public class DirectiveTests : TypeTestBase
     {
         // arrange
         var schema = CreateSchema();
-        var directiveType = schema.GetDirectiveType("Foo");
-        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456", }, };
+        var directiveType = schema.DirectiveTypes["Foo"];
+        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456" } };
 
         // act
         var syntaxNode = directiveType.Format(fooDirective);
@@ -79,7 +78,7 @@ public class DirectiveTests : TypeTestBase
         var directive = new Directive(directiveType, syntaxNode, value);
 
         // assert
-        var runtimeValue = Assert.IsType<FooDirective>(directive.AsValue<object>());
+        var runtimeValue = Assert.IsType<FooDirective>(directive.ToValue<object>());
         Assert.Equal("123", runtimeValue.Bar);
         Assert.Equal("456", runtimeValue.Child.Bar);
     }
@@ -89,15 +88,15 @@ public class DirectiveTests : TypeTestBase
     {
         // arrange
         var schema = CreateSchema();
-        var directiveType = schema.GetDirectiveType("Foo");
-        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456", }, };
+        var directiveType = schema.DirectiveTypes["Foo"];
+        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456" } };
 
         // act
         var directive = new Directive(
             directiveType,
             directiveType.Format(fooDirective),
             fooDirective);
-        var runtimeValue = directive.AsValue<FooDirective>();
+        var runtimeValue = directive.ToValue<FooDirective>();
 
         // assert
         Assert.Same(fooDirective, runtimeValue);
@@ -108,8 +107,8 @@ public class DirectiveTests : TypeTestBase
     {
         // arrange
         var schema = CreateSchema();
-        var directiveType = schema.GetDirectiveType("Foo");
-        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456", }, };
+        var directiveType = schema.DirectiveTypes["Foo"];
+        var fooDirective = new FooDirective { Bar = "123", Child = new FooChild { Bar = "456" } };
 
         // act
         var directive = new Directive(
@@ -137,7 +136,7 @@ public class DirectiveTests : TypeTestBase
             .BuildSchemaAsync();
 
         // act
-        var printedSchema = schema.Print();
+        var printedSchema = schema.ToString();
 
         // assert
         printedSchema.MatchSnapshot();
@@ -155,11 +154,11 @@ public class DirectiveTests : TypeTestBase
                     .Resolve("def")
                     .Directive(new FooDirective()))
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
-    private static ISchema CreateSchema()
+    private static Schema CreateSchema()
     {
         return CreateSchema(
             b =>

@@ -1,8 +1,4 @@
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
 
-  <PropertyGroup>
-    <TargetFrameworks>$(Library3TargetFrameworks)</TargetFrameworks>
-  </PropertyGroup>
-
 </Project>

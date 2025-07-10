@@ -41,10 +41,9 @@ else
     DOTNET_DIRECTORY="$TEMP_DIRECTORY/dotnet-unix"
 
     # install older frameworks for tests
-    "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "3.1.424" --no-path
-    "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "5.0.408" --no-path
-    "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "6.0.402" --no-path
-    "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "7.0.306" --no-path
+    "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "8.0.408" --no-path
+    "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "9.0.203" --no-path
+    "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "10.0.100-preview.5.25277.114" --no-path
 
     # If global.json exists, load expected version
     if [[ -f "$DOTNET_GLOBAL_FILE" ]]; then

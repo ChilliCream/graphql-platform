@@ -3,9 +3,8 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using HotChocolate.Language;
+using HotChocolate.Buffers;
 using HotChocolate.Transport.Serialization;
-using HotChocolate.Utilities;
 using static System.Net.Http.HttpCompletionOption;
 
 namespace HotChocolate.Transport.Http;
@@ -32,7 +31,9 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
     /// </exception>
     public DefaultGraphQLHttpClient(HttpClient httpClient, bool disposeInnerClient)
     {
-        _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        ArgumentNullException.ThrowIfNull(httpClient);
+
+        _http = httpClient;
         _disposeInnerClient = disposeInnerClient;
     }
 
@@ -71,10 +72,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         GraphQLHttpRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request == null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         if (request.Uri is null && _http.BaseAddress is null)
         {
@@ -96,26 +94,31 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         // We keep it up here so that the associated memory is being
         // kept until the request is done.
         // DO NOT move the writer out of this method.
-        using var arrayWriter = new ArrayWriter();
+        using var arrayWriter = new PooledArrayWriter();
         using var requestMessage = CreateRequestMessage(arrayWriter, request, requestUri);
-#if NET5_0_OR_GREATER
+
+        request.OnMessageCreated?.Invoke(request, requestMessage, request.State);
+
         requestMessage.Version = _http.DefaultRequestVersion;
         requestMessage.VersionPolicy = _http.DefaultVersionPolicy;
-#endif
+
         var responseMessage = await _http
             .SendAsync(requestMessage, ResponseHeadersRead, ct)
             .ConfigureAwait(false);
+
+        request.OnMessageReceived?.Invoke(request, responseMessage, request.State);
+
         return new GraphQLHttpResponse(responseMessage);
     }
 
     private static HttpRequestMessage CreateRequestMessage(
-        ArrayWriter arrayWriter,
+        PooledArrayWriter arrayWriter,
         GraphQLHttpRequest request,
         Uri requestUri)
     {
         var method = request.Method;
 
-        if(method == GraphQLHttpMethod.Get)
+        if (method == GraphQLHttpMethod.Get)
         {
             if (request.Body is not OperationRequest)
             {
@@ -139,9 +142,9 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
                 {
                     new MediaTypeWithQualityHeaderValue(ContentType.GraphQL),
                     new MediaTypeWithQualityHeaderValue(ContentType.Json),
-                    new MediaTypeWithQualityHeaderValue(ContentType.EventStream),
-                },
-            },
+                    new MediaTypeWithQualityHeaderValue(ContentType.EventStream)
+                }
+            }
         };
 
         if (method == GraphQLHttpMethod.Post)
@@ -167,30 +170,25 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             throw new NotSupportedException($"The HTTP method `{method}` is not supported.");
         }
 
-        request.OnMessageCreated?.Invoke(request, message);
-
         return message;
     }
 
-    private static HttpContent CreatePostContent(
-        ArrayWriter arrayWriter,
+    private static ByteArrayContent CreatePostContent(
+        PooledArrayWriter arrayWriter,
         GraphQLHttpRequest request)
     {
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         request.Body.WriteTo(jsonWriter);
         jsonWriter.Flush();
 
-        var content = new ByteArrayContent(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
-#if NET7_0_OR_GREATER
+        var internalBuffer = PooledArrayWriterMarshal.GetUnderlyingBuffer(arrayWriter);
+        var content = new ByteArrayContent(internalBuffer, 0, arrayWriter.Length);
         content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
-#else
-        content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8", };
-#endif
         return content;
     }
 
     private static HttpContent CreateMultipartContent(
-        ArrayWriter arrayWriter,
+        PooledArrayWriter arrayWriter,
         GraphQLHttpRequest request)
     {
         var fileInfos = WriteFileMapJson(arrayWriter, request);
@@ -203,26 +201,16 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 
         var start = arrayWriter.Length;
         WriteOperationJson(arrayWriter, request);
-        var buffer = arrayWriter.GetInternalBuffer();
+        var buffer = PooledArrayWriterMarshal.GetUnderlyingBuffer(arrayWriter);
 
         var form = new MultipartFormDataContent();
 
         var operation = new ByteArrayContent(buffer, start, arrayWriter.Length - start);
-#if NET7_0_OR_GREATER
         operation.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
-#else
-        operation.Headers.ContentType =
-            new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8", };
-#endif
         form.Add(operation, "operations");
 
         var fileMap = new ByteArrayContent(buffer, 0, start);
-#if NET7_0_OR_GREATER
         fileMap.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
-#else
-        fileMap.Headers.ContentType =
-            new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8", };
-#endif
         form.Add(fileMap, "map");
 
         foreach (var fileInfo in fileInfos)
@@ -234,14 +222,14 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         return form;
     }
 
-    private static void WriteOperationJson(ArrayWriter arrayWriter, GraphQLHttpRequest request)
+    private static void WriteOperationJson(PooledArrayWriter arrayWriter, GraphQLHttpRequest request)
     {
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         request.Body.WriteTo(jsonWriter);
     }
 
     private static IReadOnlyList<FileReferenceInfo> WriteFileMapJson(
-        ArrayWriter arrayWriter,
+        PooledArrayWriter arrayWriter,
         GraphQLHttpRequest request)
     {
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
@@ -249,11 +237,11 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
     }
 
     private static Uri CreateGetRequestUri(
-        ArrayWriter arrayWriter,
+        PooledArrayWriter arrayWriter,
         Uri baseAddress,
         IRequestBody body)
     {
-        if(body is not OperationRequest or)
+        if (body is not OperationRequest or)
         {
             throw new InvalidOperationException(
                 HttpResources.DefaultGraphQLHttpClient_BatchNotAllowed);
@@ -296,7 +284,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("variables=");
-            sb.Append(Uri.EscapeDataString(JsonSerializer.Serialize(or.Variables)));
+            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, or.Variables)));
         }
 
         if (or.ExtensionsNode is not null)
@@ -309,7 +297,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("extensions=");
-            sb.Append(Uri.EscapeDataString(JsonSerializer.Serialize(or.Extensions)));
+            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, or.Extensions)));
         }
 
         return new Uri(sb.ToString());
@@ -325,17 +313,15 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         }
     }
 
-    private static string FormatDocumentAsJson(ArrayWriter arrayWriter, ObjectValueNode obj)
+    private static string FormatDocumentAsJson(PooledArrayWriter arrayWriter, object? obj)
     {
+        arrayWriter.Reset();
+
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         Utf8JsonWriterHelper.WriteFieldValue(jsonWriter, obj);
         jsonWriter.Flush();
 
-#if NET6_0_OR_GREATER
-        return Encoding.UTF8.GetString(arrayWriter.GetWrittenSpan());
-#else
-        return Encoding.UTF8.GetString(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
-#endif
+        return Encoding.UTF8.GetString(arrayWriter.WrittenSpan);
     }
 
     protected override void Dispose(bool disposing)

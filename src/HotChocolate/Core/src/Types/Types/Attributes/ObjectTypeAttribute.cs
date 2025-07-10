@@ -52,7 +52,7 @@ public sealed class ObjectTypeAttribute
             descriptor.Name(Name);
         }
 
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
         definition.Fields.BindingBehavior = BindingBehavior.Implicit;
 
         if (IncludeStaticMembers)

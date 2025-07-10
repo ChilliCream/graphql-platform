@@ -75,9 +75,13 @@
                   "Name": "includeDeprecated",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "Boolean",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -404,9 +408,13 @@
                   "Name": "includeDeprecated",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "Boolean",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -737,9 +745,13 @@
                   "Name": "includeDeprecated",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "Boolean",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -808,9 +820,13 @@
                   "Name": "includeDeprecated",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "Boolean",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -839,9 +855,13 @@
                   "Name": "includeDeprecated",
                   "Description": null,
                   "Type": {
-                    "Kind": "Scalar",
-                    "Name": "Boolean",
-                    "OfType": null
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "Boolean",
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -881,6 +901,18 @@
               "Type": {
                 "Kind": "Scalar",
                 "Name": "String",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "oneOf",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "Boolean",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -2463,6 +2495,16 @@
               "DefaultValue": null
             },
             {
+              "Name": "slicingArgumentDefaultValue",
+              "Description": "The `slicingArgumentDefaultValue` argument can be used to define a default value for a slicing argument, which is used if the argument is not present in a query.",
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "Int",
+                "OfType": null
+              },
+              "DefaultValue": null
+            },
+            {
               "Name": "sizedFields",
               "Description": "The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields.",
               "Type": {
@@ -2663,15 +2705,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "Boolean",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -3184,15 +3237,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "Boolean",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -3798,15 +3862,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "Boolean",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -3943,15 +4018,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "Boolean",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -4004,15 +4090,26 @@
                   "Description": null,
                   "Type": {
                     "__typename": "__Type",
-                    "Name": "Boolean",
-                    "Kind": "Scalar",
+                    "Name": null,
+                    "Kind": "NonNull",
                     "Description": null,
                     "Fields": null,
                     "InputFields": null,
                     "Interfaces": null,
                     "EnumValues": null,
                     "PossibleTypes": null,
-                    "OfType": null
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Boolean",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
                   },
                   "DefaultValue": "false"
                 }
@@ -4082,6 +4179,26 @@
               "Type": {
                 "__typename": "__Type",
                 "Name": "String",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "oneOf",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "Boolean",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -6821,6 +6938,24 @@
                     "OfType": null
                   }
                 }
+              },
+              "DefaultValue": null
+            },
+            {
+              "__typename": "__InputValue",
+              "Name": "slicingArgumentDefaultValue",
+              "Description": "The `slicingArgumentDefaultValue` argument can be used to define a default value for a slicing argument, which is used if the argument is not present in a query.",
+              "Type": {
+                "__typename": "__Type",
+                "Name": "Int",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
               },
               "DefaultValue": null
             },

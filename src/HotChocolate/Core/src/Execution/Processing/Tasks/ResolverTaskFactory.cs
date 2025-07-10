@@ -10,7 +10,7 @@ namespace HotChocolate.Execution.Processing.Tasks;
 
 internal static class ResolverTaskFactory
 {
-    private static List<ResolverTask>? _pooled = [];
+    private static List<ResolverTask>? s_pooled = [];
 
     static ResolverTaskFactory() { }
 
@@ -29,7 +29,7 @@ internal static class ResolverTaskFactory
         var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
 
-        var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? [];
+        var bufferedTasks = Interlocked.Exchange(ref s_pooled, null) ?? [];
         Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
         try
@@ -66,11 +66,7 @@ internal static class ResolverTaskFactory
             }
             else
             {
-                #if NET6_0_OR_GREATER
                 scheduler.Register(CollectionsMarshal.AsSpan(bufferedTasks));
-                #else
-                scheduler.Register(bufferedTasks);
-                #endif
             }
 
             if (selectionSet.Fragments.Count > 0)
@@ -89,7 +85,7 @@ internal static class ResolverTaskFactory
         finally
         {
             bufferedTasks.Clear();
-            Interlocked.Exchange(ref _pooled!, bufferedTasks);
+            Interlocked.Exchange(ref s_pooled!, bufferedTasks);
         }
     }
 
@@ -103,7 +99,7 @@ internal static class ResolverTaskFactory
         IImmutableDictionary<string, object?> scopedContext)
     {
         var parentResult = operationContext.Result.RentObject(1);
-        var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? [];
+        var bufferedTasks = Interlocked.Exchange(ref s_pooled, null) ?? [];
         Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
         var resolverTask =
@@ -130,17 +126,13 @@ internal static class ResolverTaskFactory
             // if we have child tasks we need to register them.
             if (bufferedTasks.Count > 0)
             {
-                #if NET6_0_OR_GREATER
                 operationContext.Scheduler.Register(CollectionsMarshal.AsSpan(bufferedTasks));
-                #else
-                operationContext.Scheduler.Register(bufferedTasks);
-                #endif
             }
         }
         finally
         {
             bufferedTasks.Clear();
-            Interlocked.Exchange(ref _pooled, bufferedTasks);
+            Interlocked.Exchange(ref s_pooled, bufferedTasks);
         }
 
         return resolverTask;
@@ -199,7 +191,7 @@ internal static class ResolverTaskFactory
                         context.ResolverContext.ScopedContextData));
             }
 
-            NEXT:
+NEXT:
             selection = ref Unsafe.Add(ref selection, 1)!;
         }
 

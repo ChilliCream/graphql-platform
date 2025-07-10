@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
@@ -12,13 +12,13 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
     public void ApplyConfiguration(
         IDescriptorContext context,
         DirectiveNode directiveNode,
-        IDefinition definition,
-        Stack<IDefinition> path)
+        ITypeSystemConfiguration definition,
+        Stack<ITypeSystemConfiguration> path)
     {
-        if (definition is ObjectFieldDefinition fieldDef)
+        if (definition is ObjectFieldConfiguration fieldDef)
         {
-            fieldDef.Configurations.Add(
-                new CompleteConfiguration<ObjectFieldDefinition>(
+            fieldDef.Tasks.Add(
+                new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                     (ctx, def) =>
                     {
                         var propertyName = GetPropertyName(directiveNode);
@@ -34,8 +34,7 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
 
                         if (namedType is ScalarType scalarType)
                         {
-                            JsonObjectTypeExtensions.InferResolver(
-                                ctx.Type, def, scalarType, propertyName);
+                            JsonObjectTypeExtensions.InferResolver(ctx.Type, def, scalarType, propertyName);
                             return;
                         }
 
@@ -57,7 +56,7 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
         {
             var argument = directive.Arguments[0];
             if (argument.Name.Value.EqualsOrdinal("name") &&
-                argument.Value is StringValueNode { Value: { Length: > 0, } name, })
+                argument.Value is StringValueNode { Value: { Length: > 0 } name })
             {
                 return name;
             }

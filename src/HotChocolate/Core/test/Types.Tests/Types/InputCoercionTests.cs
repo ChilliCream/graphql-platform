@@ -1,6 +1,5 @@
 using HotChocolate.Language;
 using HotChocolate.Utilities;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 

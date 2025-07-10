@@ -9,14 +9,11 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class MiddlewareContext
 {
-    public IReadOnlyDictionary<string, ArgumentValue> Arguments { get; set; } = default!;
+    public IReadOnlyDictionary<string, ArgumentValue> Arguments { get; set; } = null!;
 
     public T ArgumentValue<T>(string name)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         if (!Arguments.TryGetValue(name, out var argument))
         {
@@ -28,10 +25,7 @@ internal partial class MiddlewareContext
 
     public Optional<T> ArgumentOptional<T>(string name)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         if (!Arguments.TryGetValue(name, out var argument))
         {
@@ -45,10 +39,7 @@ internal partial class MiddlewareContext
 
     public TValueNode ArgumentLiteral<TValueNode>(string name) where TValueNode : IValueNode
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         if (!Arguments.TryGetValue(name, out var argument))
         {
@@ -68,10 +59,7 @@ internal partial class MiddlewareContext
 
     public ValueKind ArgumentKind(string name)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         if (!Arguments.TryGetValue(name, out var argument))
         {
@@ -132,10 +120,7 @@ internal partial class MiddlewareContext
     public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
         IReadOnlyDictionary<string, ArgumentValue> argumentValues)
     {
-        if (argumentValues is null)
-        {
-            throw new ArgumentNullException(nameof(argumentValues));
-        }
+        ArgumentNullException.ThrowIfNull(argumentValues);
 
         var original = Arguments;
         Arguments = argumentValues;
@@ -145,10 +130,7 @@ internal partial class MiddlewareContext
     public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
         ReplaceArguments replace)
     {
-        if (replace is null)
-        {
-            throw new ArgumentNullException(nameof(replace));
-        }
+        ArgumentNullException.ThrowIfNull(replace);
 
         var original = Arguments;
         Arguments = replace(original) ??
@@ -159,15 +141,8 @@ internal partial class MiddlewareContext
 
     public ArgumentValue ReplaceArgument(string argumentName, ArgumentValue newArgumentValue)
     {
-        if (string.IsNullOrEmpty(argumentName))
-        {
-            throw new ArgumentNullException(nameof(argumentName));
-        }
-
-        if (newArgumentValue is null)
-        {
-            throw new ArgumentNullException(nameof(newArgumentValue));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(argumentName);
+        ArgumentNullException.ThrowIfNull(newArgumentValue);
 
         Dictionary<string, ArgumentValue> mutableArguments;
 
@@ -182,11 +157,7 @@ internal partial class MiddlewareContext
         // copy the argument state.
         else
         {
-#if NETSTANDARD2_0
-            mutableArguments = Arguments.ToDictionary(t => t.Key, t => t.Value);
-#else
             mutableArguments = new Dictionary<string, ArgumentValue>(Arguments);
-#endif
             Arguments = mutableArguments;
         }
 

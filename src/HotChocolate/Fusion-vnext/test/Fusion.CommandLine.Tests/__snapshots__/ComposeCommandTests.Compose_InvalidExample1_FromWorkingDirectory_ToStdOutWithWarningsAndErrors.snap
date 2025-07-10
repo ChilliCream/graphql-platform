@@ -1,0 +1,6 @@
+❌ [ERR] The root query type in schema 'Schema1' must be accessible. (QUERY_ROOT_TYPE_INACCESSIBLE)
+⚠️ [WRN] The lookup field 'Query.userById' in schema 'Schema1' should return a nullable type. (LOOKUP_RETURNS_NON_NULLABLE_TYPE)
+❌ [ERR] The root query type in schema 'Schema2' must be accessible. (QUERY_ROOT_TYPE_INACCESSIBLE)
+⚠️ [WRN] The lookup field 'Query.userByUsername' in schema 'Schema2' should return a nullable type. (LOOKUP_RETURNS_NON_NULLABLE_TYPE)
+
+Source schema validation failed.

@@ -8,8 +8,6 @@ using Nuke.Common.Tools.NuGet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Helpers;
 using static Nuke.Common.Tools.NuGet.NuGetTasks;
-using Nuke.Common.Utilities.Collections;
-using System.Linq;
 
 partial class Build
 {
@@ -46,26 +44,14 @@ partial class Build
         .Produces(PackageDirectory / "*.snupkg")
         .Executes(() =>
         {
-            var projFile = File.ReadAllText(StarWarsProj);
-            File.WriteAllText(StarWarsProj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
-
-            projFile = File.ReadAllText(EmptyServer12Proj);
+            var projFile = File.ReadAllText(EmptyServer12Proj);
             File.WriteAllText(EmptyServer12Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
 
             projFile = File.ReadAllText(EmptyAzf12Proj);
             File.WriteAllText(EmptyAzf12Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
 
-            projFile = File.ReadAllText(EmptyAzfUp12Proj);
-            File.WriteAllText(EmptyAzfUp12Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
-
             projFile = File.ReadAllText(Gateway13Proj);
             File.WriteAllText(Gateway13Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
-
-            projFile = File.ReadAllText(GatewayManaged13Proj);
-            File.WriteAllText(GatewayManaged13Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
-
-            projFile = File.ReadAllText(GatewayAspire13Proj);
-            File.WriteAllText(GatewayAspire13Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
 
             DotNetBuildSonarSolution(
                 PackSolutionFile,
@@ -79,15 +65,6 @@ partial class Build
                 .SetNoRestore(true)
                 .SetProjectFile(PackSolutionFile)
                 .SetConfiguration(Configuration)
-                .SetInformationalVersion(SemVersion)
-                .SetFileVersion(Version)
-                .SetAssemblyVersion(Version)
-                .SetVersion(SemVersion));
-
-            DotNetPack(c => c
-                .SetProject(FSharpTypes)
-                .SetConfiguration(Configuration)
-                .SetOutputDirectory(PackageDirectory)
                 .SetInformationalVersion(SemVersion)
                 .SetFileVersion(Version)
                 .SetAssemblyVersion(Version)
@@ -108,9 +85,7 @@ partial class Build
                 .SetVersion(SemVersion)
                 .SetOutputDirectory(PackageDirectory)
                 .SetConfiguration(Configuration)
-                .CombineWith(
-                    t => t.SetTargetPath(StarWarsTemplateNuSpec),
-                    t => t.SetTargetPath(TemplatesNuSpec)));
+                .CombineWith(t => t.SetTargetPath(TemplatesNuSpec)));
         });
 
     Target Publish => _ => _

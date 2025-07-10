@@ -1,14 +1,13 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
 
 public class FilteringAndPaging
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
     private readonly SchemaCache _cache = new();
@@ -18,7 +17,7 @@ public class FilteringAndPaging
     {
         // arrange
         var snapshot = new Snapshot();
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities, true);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities, true);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -52,12 +51,8 @@ public class FilteringAndPaging
     }
 
     public class FooFilterInput
-        : FilterInputType<Foo>
-    {
-    }
+        : FilterInputType<Foo>;
 
     public class FooNullableFilterInput
-        : FilterInputType<FooNullable>
-    {
-    }
+        : FilterInputType<FooNullable>;
 }

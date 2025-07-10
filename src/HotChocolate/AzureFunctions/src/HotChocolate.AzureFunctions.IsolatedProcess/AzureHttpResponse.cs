@@ -27,10 +27,7 @@ internal sealed class AzureHttpResponse : HttpResponse
             {
                 lock (_sync)
                 {
-                    if (_responseData is null)
-                    {
-                        _responseData = _requestData.CreateResponse();
-                    }
+                    _responseData ??= _requestData.CreateResponse();
                 }
             }
 
@@ -54,10 +51,7 @@ internal sealed class AzureHttpResponse : HttpResponse
             {
                 lock (_sync)
                 {
-                    if (_headers is null)
-                    {
-                        _headers = new AzureHeaderDictionary(_response, ResponseData);
-                    }
+                    _headers ??= new AzureHeaderDictionary(_response, ResponseData);
                 }
             }
             return _headers;
@@ -78,9 +72,7 @@ internal sealed class AzureHttpResponse : HttpResponse
 
     public override string? ContentType
     {
-#pragma warning disable CS8764
         get => Headers[HeaderNames.ContentType];
-#pragma warning restore CS8764
         set => Headers[HeaderNames.ContentType] = value;
     }
 

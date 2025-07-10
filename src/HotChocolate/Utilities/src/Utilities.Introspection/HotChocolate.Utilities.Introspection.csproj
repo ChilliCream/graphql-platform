@@ -11,10 +11,6 @@
     <InternalsVisibleTo Include="HotChocolate.Utilities.Introspection.Tests" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Text.Json" />
-  </ItemGroup>
-
   <ItemGroup>
     <None Remove="Queries\inspect_argument_deprecation.graphql" />
     <EmbeddedResource Include="Queries\inspect_argument_deprecation.graphql" />
@@ -30,6 +26,7 @@
     <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.Shared\HotChocolate.Types.Shared.csproj" />
     <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
+    <ProjectReference Include="..\Utilities\HotChocolate.Utilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>

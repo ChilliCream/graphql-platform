@@ -1,4 +1,3 @@
-using Snapshooter.Xunit;
 using IOPath = System.IO.Path;
 
 namespace HotChocolate;
@@ -28,7 +27,7 @@ public class SchemaBuilderExtensionsDocumentTests
             SchemaBuilderExtensions.AddDocumentFromFile(builder, null);
 
         // assert
-        Assert.Throws<ArgumentException>(action);
+        Assert.Throws<ArgumentNullException>(action);
     }
 
     [Fact]

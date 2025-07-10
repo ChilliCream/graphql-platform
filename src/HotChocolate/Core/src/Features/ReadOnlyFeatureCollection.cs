@@ -1,7 +1,6 @@
 using System.Collections;
-#if NET8_0_OR_GREATER
 using System.Collections.Frozen;
-#endif
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Features;
 
@@ -10,12 +9,8 @@ namespace HotChocolate.Features;
 /// </summary>
 public sealed class ReadOnlyFeatureCollection : IFeatureCollection
 {
-#if NET8_0_OR_GREATER
     private readonly FrozenDictionary<Type, object> _features;
-#else
-    private readonly Dictionary<Type, object> _features;
-#endif
-    private volatile int _containerRevision;
+    private readonly int _containerRevision;
 
     /// <summary>
     /// Initializes a new instance of <see cref="ReadOnlyFeatureCollection"/>.
@@ -25,15 +20,12 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     /// </param>
     public ReadOnlyFeatureCollection(IFeatureCollection features)
     {
-#if NET8_0_OR_GREATER
         _features = features.ToFrozenDictionary();
-#else
-        _features = features.ToDictionary(t => t.Key, t => t.Value);
-#endif
 
+        // todo: this has an issues as it will also seal the defaults.
         foreach (var feature in _features.Values)
         {
-            if (feature is ISealable sealable)
+            if (feature is ISealable { IsReadOnly: false } sealable)
             {
                 sealable.Seal();
             }
@@ -45,6 +37,8 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     /// <inheritdoc />
     public bool IsReadOnly => true;
 
+    /// <inheritdoc />
+    public bool IsEmpty => _features.Count > 0;
     /// <inheritdoc />
     public int Revision => _containerRevision;
 
@@ -72,6 +66,25 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
             return (TFeature?)feature;
         }
         return (TFeature?)this[typeof(TFeature)];
+    }
+
+    /// <inheritdoc />
+    public bool TryGet<TFeature>([NotNullWhen(true)] out TFeature? feature)
+    {
+        if (_features.TryGetValue(typeof(TFeature), out var result))
+        {
+            if (result is TFeature f)
+            {
+                feature = f;
+                return true;
+            }
+
+            feature = default;
+            return false;
+        }
+
+        feature = default;
+        return false;
     }
 
     /// <inheritdoc />

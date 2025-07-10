@@ -1,0 +1,22 @@
+---------------
+{
+  "Page": 9,
+  "TotalCount": 20,
+  "Items": [
+    "Quantumis",
+    "Radiantum"
+  ]
+}
+---------------
+
+SQL 0
+---------------
+-- @__value_0='Synerflux'
+-- @__value_1='19'
+-- @__p_2='3'
+SELECT b."Id", b."GroupId", b."Name"
+FROM "Brands" AS b
+WHERE b."Name" < @__value_0 OR (b."Name" = @__value_0 AND b."Id" < @__value_1)
+ORDER BY b."Name" DESC, b."Id" DESC
+LIMIT @__p_2
+---------------

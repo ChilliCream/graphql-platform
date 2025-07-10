@@ -23,16 +23,13 @@ public static class MutationObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         MutationFieldOptions options = default)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
-        descriptor.Extend().OnBeforeNaming((c, d) =>
+        descriptor.Extend().OnBeforeNaming((ctx, cfg) =>
         {
-            c.ContextData
-                .GetMutationFields()
-                .Add(new(d,
+            ctx.GetMutationFields().Add(
+                new MutationContextData(
+                    cfg,
                     options.InputTypeName,
                     options.InputArgumentName,
                     options.PayloadTypeName,

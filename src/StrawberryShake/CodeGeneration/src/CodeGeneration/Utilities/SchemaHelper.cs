@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -11,23 +12,19 @@ namespace StrawberryShake.CodeGeneration.Utilities;
 
 public static class SchemaHelper
 {
-    private const string _typeInfosKey = "StrawberryShake.CodeGeneration.Utilities.TypeInfos";
-
-    public static ISchema Load(
+    public static Schema Load(
         IReadOnlyCollection<GraphQLFile> schemaFiles,
         bool strictValidation = true,
         bool noStore = false)
     {
-        if (schemaFiles is null)
-        {
-            throw new ArgumentNullException(nameof(schemaFiles));
-        }
+        ArgumentNullException.ThrowIfNull(schemaFiles);
 
         var typeInfos = new TypeInfos();
         var lookup = new Dictionary<ISyntaxNode, string>();
         IndexSyntaxNodes(schemaFiles, lookup);
 
         var builder = SchemaBuilder.New();
+        builder.Features.Set(typeInfos);
 
         builder.ModifyOptions(o => o.StrictValidation = strictValidation);
 
@@ -95,10 +92,9 @@ public static class SchemaHelper
                     o.EnableTag = false;
                     o.EnableOneOf = false;
                     o.EnableFlagEnums = false;
-                    o.EnableTrueNullability = false;
                 })
             .SetSchema(d => d.Extend().OnBeforeCreate(
-                c => c.ContextData.Add(_typeInfosKey, typeInfos)))
+                c => c.Features.Set(typeInfos)))
             .TryAddTypeInterceptor(
                 new LeafTypeInterceptor(leafTypes))
             .TryAddTypeInterceptor(
@@ -108,10 +104,10 @@ public static class SchemaHelper
     }
 
     public static RuntimeTypeInfo GetOrCreateTypeInfo(
-        this ISchema schema,
+        this Schema schema,
         string typeName,
-        bool valueType = false) =>
-        ((TypeInfos)schema.ContextData[_typeInfosKey]!).GetOrAdd(typeName, valueType);
+        bool valueType = false)
+        => schema.Features.GetOrSet<TypeInfos>().GetOrAdd(typeName, valueType);
 
     private static void CollectScalarInfos(
         IEnumerable<ScalarTypeExtensionNode> scalarTypeExtensions,
@@ -120,7 +116,7 @@ public static class SchemaHelper
     {
         foreach (var scalarTypeExtension in scalarTypeExtensions)
         {
-            if (!leafTypes.TryGetValue(scalarTypeExtension.Name.Value, out var scalarInfo))
+            if (!leafTypes.ContainsKey(scalarTypeExtension.Name.Value))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -128,7 +124,7 @@ public static class SchemaHelper
                 TryRegister(typeInfos, runtimeType);
                 TryRegister(typeInfos, serializationType);
 
-                scalarInfo = new LeafTypeInfo(
+                var scalarInfo = new LeafTypeInfo(
                     scalarTypeExtension.Name.Value,
                     runtimeType?.Name,
                     serializationType?.Name);
@@ -145,9 +141,7 @@ public static class SchemaHelper
     {
         foreach (var scalarTypeExtension in enumTypeExtensions)
         {
-            if (!leafTypes.TryGetValue(
-                    scalarTypeExtension.Name.Value,
-                    out var scalarInfo))
+            if (!leafTypes.ContainsKey(scalarTypeExtension.Name.Value))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -155,7 +149,7 @@ public static class SchemaHelper
                 TryRegister(typeInfos, runtimeType);
                 TryRegister(typeInfos, serializationType);
 
-                scalarInfo = new LeafTypeInfo(
+                var scalarInfo = new LeafTypeInfo(
                     scalarTypeExtension.Name.Value,
                     runtimeType?.Name,
                     serializationType?.Name);
@@ -164,29 +158,27 @@ public static class SchemaHelper
         }
     }
 
-    private static RuntimeTypeDirective? GetRuntimeType(
-        HotChocolate.Language.IHasDirectives hasDirectives) =>
-        GetDirectiveValue(hasDirectives, "runtimeType");
+    private static RuntimeTypeDirective? GetRuntimeType(IHasDirectives hasDirectives)
+        => GetDirectiveValue(hasDirectives, "runtimeType");
 
-    private static RuntimeTypeDirective? GetSerializationType(
-        HotChocolate.Language.IHasDirectives hasDirectives) =>
-        GetDirectiveValue(hasDirectives, "serializationType");
+    private static RuntimeTypeDirective? GetSerializationType(IHasDirectives hasDirectives)
+        => GetDirectiveValue(hasDirectives, "serializationType");
 
     private static RuntimeTypeDirective? GetDirectiveValue(
-        HotChocolate.Language.IHasDirectives hasDirectives,
+        IHasDirectives hasDirectives,
         string directiveName)
     {
         var directive = hasDirectives.Directives.FirstOrDefault(
             t => directiveName.EqualsOrdinal(t.Name.Value));
 
-        if (directive is { Arguments.Count: > 0, })
+        if (directive is { Arguments.Count: > 0 })
         {
             var name = directive.Arguments.FirstOrDefault(
                 t => t.Name.Value.Equals("name"));
             var valueType = directive.Arguments.FirstOrDefault(
                 t => t.Name.Value.Equals("valueType"));
 
-            if (name is { Value: StringValueNode stringValue, })
+            if (name is { Value: StringValueNode stringValue })
             {
                 var valueTypeValue = valueType?.Value as BooleanValueNode;
                 return new(stringValue.Value, valueTypeValue?.Value);
@@ -246,7 +238,10 @@ public static class SchemaHelper
         TryAddLeafType(leafTypes, "Uuid", TypeNames.Guid, TypeNames.String);
         TryAddLeafType(leafTypes, "Guid", TypeNames.Guid, TypeNames.String);
         TryAddLeafType(leafTypes, ScalarNames.DateTime, TypeNames.DateTimeOffset);
-        TryAddLeafType(leafTypes, ScalarNames.Date, TypeNames.DateTime);
+        TryAddLeafType(leafTypes, ScalarNames.Date, TypeNames.DateOnly);
+        TryAddLeafType(leafTypes, ScalarNames.LocalDate, TypeNames.DateOnly);
+        TryAddLeafType(leafTypes, ScalarNames.LocalDateTime, TypeNames.DateTime);
+        TryAddLeafType(leafTypes, ScalarNames.LocalTime, TypeNames.TimeOnly);
         TryAddLeafType(leafTypes, ScalarNames.TimeSpan, TypeNames.TimeSpan);
         TryAddLeafType(
             leafTypes,
@@ -285,7 +280,7 @@ public static class SchemaHelper
     }
 
     private static bool TryGetKeys(
-        HotChocolate.Language.IHasDirectives directives,
+        IHasDirectives directives,
         [NotNullWhen(true)] out SelectionSetNode? selectionSet)
     {
         var directive = directives.Directives.FirstOrDefault(IsKeyDirective);
@@ -303,8 +298,8 @@ public static class SchemaHelper
         DirectiveNode directive,
         [NotNullWhen(true)] out SelectionSetNode? selectionSet)
     {
-        if (directive is { Arguments: { Count: 1, }, } &&
-            directive.Arguments[0] is { Name: { Value: "fields", }, Value: StringValueNode sv, })
+        if (directive is { Arguments: { Count: 1 } } &&
+            directive.Arguments[0] is { Name: { Value: "fields" }, Value: StringValueNode sv })
         {
             selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{sv.Value}}}");
             return true;
@@ -323,9 +318,9 @@ public static class SchemaHelper
         string runtimeType,
         string serializationType = TypeNames.String)
     {
-        if (!leafTypes.TryGetValue(typeName, out var leafType))
+        if (!leafTypes.ContainsKey(typeName))
         {
-            leafType = new LeafTypeInfo(typeName, runtimeType, serializationType);
+            var leafType = new LeafTypeInfo(typeName, runtimeType, serializationType);
             leafTypes.Add(typeName, leafType);
         }
     }

@@ -4,7 +4,6 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Types;
@@ -490,7 +489,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object> { { "foo", new List<object> { "abc", } }, })
+                .SetVariableValues(new Dictionary<string, object> { { "foo", new List<object> { "abc" } } })
                 .Build());
 
         // assert
@@ -525,10 +524,10 @@ public class AnyTypeTests
                             {
                                 new Dictionary<string, object>
                                 {
-                                    { "abc", "def" },
-                                },
+                                    { "abc", "def" }
+                                }
                             }
-                        },
+                        }
                     })
                 .Build());
 
@@ -556,7 +555,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object> { { "foo", "bar" }, })
+                .SetVariableValues(new Dictionary<string, object> { { "foo", "bar" } })
                 .Build());
 
         // assert
@@ -583,7 +582,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object> { { "foo", 123 }, })
+                .SetVariableValues(new Dictionary<string, object> { { "foo", 123 } })
                 .Build());
 
         // assert
@@ -610,7 +609,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object> { { "foo", 1.2 }, })
+                .SetVariableValues(new Dictionary<string, object> { { "foo", 1.2 } })
                 .Build());
 
         // assert
@@ -637,7 +636,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object> { { "foo", new { a = "b", } }, })
+                .SetVariableValues(new Dictionary<string, object> { { "foo", new { a = "b" } } })
                 .Build());
 
         // assert
@@ -667,7 +666,7 @@ public class AnyTypeTests
                 .SetVariableValues(
                     new Dictionary<string, object>
                     {
-                        { "foo", new Dictionary<string, object> { { "a", "b" }, } },
+                        { "foo", new Dictionary<string, object> { { "a", "b" } } }
                     })
                 .Build());
 
@@ -698,7 +697,7 @@ public class AnyTypeTests
                 .SetVariableValues(
                     new Dictionary<string, object>
                     {
-                        { "foo", new Dictionary<string, object> { { "a", "b" }, } },
+                        { "foo", new Dictionary<string, object> { { "a", "b" } } }
                     })
                 .Build());
 
@@ -726,7 +725,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object> { { "foo", false }, })
+                .SetVariableValues(new Dictionary<string, object> { { "foo", false } })
                 .Build());
 
         // assert
@@ -753,7 +752,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object> { { "foo", null }, })
+                .SetVariableValues(new Dictionary<string, object> { { "foo", null } })
                 .Build());
 
         // assert
@@ -774,7 +773,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         var result = type.IsInstanceOfType(new EnumValueNode("foo"));
@@ -797,7 +796,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         var result = type.IsInstanceOfType(new ObjectValueNode([]));
@@ -820,7 +819,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         var result = type.IsInstanceOfType(new ListValueNode([]));
@@ -843,7 +842,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         var result = type.IsInstanceOfType(new StringValueNode("foo"));
@@ -866,7 +865,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         var result = type.IsInstanceOfType(new IntValueNode(123));
@@ -889,7 +888,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         var result = type.IsInstanceOfType(new FloatValueNode(1.2));
@@ -912,7 +911,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         var result = type.IsInstanceOfType(new BooleanValueNode(true));
@@ -935,7 +934,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         var result = type.IsInstanceOfType(NullValueNode.Default);
@@ -958,7 +957,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         void Action() => type.IsInstanceOfType(null!);
@@ -969,7 +968,7 @@ public class AnyTypeTests
 
     [InlineData("abc", typeof(StringValueNode))]
     [InlineData((short)1, typeof(IntValueNode))]
-    [InlineData((int)1, typeof(IntValueNode))]
+    [InlineData(1, typeof(IntValueNode))]
     [InlineData((long)1, typeof(IntValueNode))]
     [InlineData((float)1, typeof(FloatValueNode))]
     [InlineData((double)1, typeof(FloatValueNode))]
@@ -989,7 +988,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         var literal = type.ParseValue(value);
@@ -1012,7 +1011,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         var literal = type.ParseValue((decimal)1);
@@ -1035,7 +1034,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         var literal = type.ParseValue(new List<object>());
@@ -1058,7 +1057,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         var literal = type.ParseValue(new List<string>());
@@ -1081,7 +1080,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
         var foo = new Foo();
         var bar = new Bar();
         foo.Bar1 = bar;
@@ -1108,7 +1107,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
         var fooCyclic = new FooCyclic();
         var barCyclic = new BarCyclic();
         fooCyclic.BarCyclic = barCyclic;
@@ -1137,7 +1136,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         var literal = type.ParseValue(new List<FooRecord> { new(), new() });
@@ -1160,7 +1159,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         var literal = type.ParseValue(new Foo());
@@ -1183,7 +1182,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
         var fooCyclic = new FooCyclic();
         var barCyclic = new BarCyclic();
         fooCyclic.BarCyclic = barCyclic;
@@ -1212,7 +1211,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         var literal = type.ParseValue(
@@ -1236,7 +1235,7 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         // act
         var value = type.Deserialize(new StringValueNode("Foo"));
@@ -1259,11 +1258,11 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         var toDeserialize = new Dictionary<string, object>
         {
-            { "Foo", new StringValueNode("Bar") },
+            { "Foo", new StringValueNode("Bar") }
         };
 
         // act
@@ -1287,11 +1286,11 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
 
         var toDeserialize = new Dictionary<string, object>
         {
-            { "Foo", new Dictionary<string, object> { { "Bar", new StringValueNode("Baz") }, } },
+            { "Foo", new Dictionary<string, object> { { "Bar", new StringValueNode("Baz") } } }
         };
 
         // act
@@ -1316,9 +1315,9 @@ public class AnyTypeTests
                     .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
-        var type = schema.GetType<AnyType>("Any");
+        var type = schema.Types.GetType<AnyType>("Any");
         var toDeserialize =
-            new List<object> { new StringValueNode("Foo"), new StringValueNode("Bar"), };
+            new List<object> { new StringValueNode("Foo"), new StringValueNode("Bar") };
 
         // act
         var value = type.Deserialize(toDeserialize);
@@ -1333,7 +1332,6 @@ public class AnyTypeTests
     [Fact]
     public async Task Dictionary_Is_Handled_As_Object()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 "{ someObject }",
                 configure: c => c.AddQueryType<QueryWithDictionary>())
@@ -1343,7 +1341,6 @@ public class AnyTypeTests
     [Fact]
     public async Task UseExpandoObjectWithAny()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 "{ something }",
                 configure: c => c.AddQueryType<SomeQuery>())
@@ -1353,7 +1350,6 @@ public class AnyTypeTests
     [Fact]
     public async Task UseImmutableDictWithAny()
     {
-        Snapshot.FullName();
         await ExpectValid(
                 "{ somethingImmutable }",
                 configure: c => c.AddQueryType<SomeQuery>())
@@ -1413,6 +1409,6 @@ public class AnyTypeTests
     {
         [GraphQLType(typeof(AnyType))]
         public IDictionary<string, object> SomeObject =>
-            new Dictionary<string, object> { { "a", "b" }, };
+            new Dictionary<string, object> { { "a", "b" } };
     }
 }

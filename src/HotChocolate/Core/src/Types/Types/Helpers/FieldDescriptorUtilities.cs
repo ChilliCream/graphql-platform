@@ -1,7 +1,7 @@
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -15,7 +15,7 @@ public static class FieldDescriptorUtilities
         IDictionary<string, TField> fields,
         ISet<TMember> handledMembers)
         where TMember : MemberInfo
-        where TField : FieldDefinitionBase
+        where TField : FieldConfiguration
     {
         foreach (var fieldDefinition in fieldDefinitions)
         {
@@ -39,7 +39,7 @@ public static class FieldDescriptorUtilities
         ISet<TMember> handledMembers)
         where TDescriptor : IHasRuntimeType, IHasDescriptorContext
         where TMember : MemberInfo
-        where TField : FieldDefinitionBase
+        where TField : FieldConfiguration
     {
         AddImplicitFields(
             descriptor,
@@ -59,7 +59,7 @@ public static class FieldDescriptorUtilities
         bool includeIgnoredMembers = false)
         where TDescriptor : IHasDescriptorContext
         where TMember : MemberInfo
-        where TField : FieldDefinitionBase
+        where TField : FieldConfiguration
     {
         if (fieldBindingType != typeof(object))
         {
@@ -95,15 +95,12 @@ public static class FieldDescriptorUtilities
 
     public static void DiscoverArguments(
         IDescriptorContext context,
-        ICollection<ArgumentDefinition> arguments,
+        ICollection<ArgumentConfiguration> arguments,
         MemberInfo? member,
         ParameterInfo[] parameters,
         IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders)
     {
-        if (arguments is null)
-        {
-            throw new ArgumentNullException(nameof(arguments));
-        }
+        ArgumentNullException.ThrowIfNull(arguments);
 
         if (member is MethodInfo)
         {
@@ -127,7 +124,7 @@ public static class FieldDescriptorUtilities
                     var argumentDefinition =
                         ArgumentDescriptor
                             .New(context, parameter)
-                            .CreateDefinition();
+                            .CreateConfiguration();
 
                     if (!string.IsNullOrEmpty(argumentDefinition.Name) &&
                         processedNames.Add(argumentDefinition.Name))

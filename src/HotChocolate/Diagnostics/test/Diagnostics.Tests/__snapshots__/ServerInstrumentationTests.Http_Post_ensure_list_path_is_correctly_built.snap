@@ -1,4 +1,4 @@
-﻿{
+{
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
@@ -12,14 +12,6 @@
         {
           "Key": "graphql.http.request.type",
           "Value": "single"
-        },
-        {
-          "Key": "graphql.http.request.query.id",
-          "Value": "c0513b4b6f0cf7430f64de4aa3dcd7c6"
-        },
-        {
-          "Key": "graphql.http.request.query.hash",
-          "Value": "c0513b4b6f0cf7430f64de4aa3dcd7c6"
         }
       ],
       "event": [],
@@ -46,18 +38,22 @@
               "Value": "c0513b4b6f0cf7430f64de4aa3dcd7c6"
             },
             {
+              "Key": "graphql.document.hash",
+              "Value": "668e9631148921208d08dbb69513fa8e"
+            },
+            {
               "Key": "graphql.operation.id",
-              "Value": "_Default-1-0-c0513b4b6f0cf7430f64de4aa3dcd7c6"
+              "Value": "_Default-1-c0513b4b6f0cf7430f64de4aa3dcd7c6"
             }
           ],
           "event": [
             {
               "Name": "AddedOperationToCache",
-              "Tags": {}
+              "Tags": []
             },
             {
               "Name": "AddedDocumentToCache",
-              "Tags": {}
+              "Tags": []
             }
           ],
           "activities": [
@@ -71,8 +67,24 @@
                   "Value": "c0513b4b6f0cf7430f64de4aa3dcd7c6"
                 },
                 {
+                  "Key": "graphql.document.hash",
+                  "Value": "668e9631148921208d08dbb69513fa8e"
+                },
+                {
                   "Key": "otel.status_code",
                   "Value": "OK"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "AnalyzeOperationCost",
+              "DisplayName": "Analyze Operation Complexity",
+              "Status": "Unset",
+              "tags": [
+                {
+                  "Key": "graphql.operation.id",
+                  "Value": "c0513b4b6f0cf7430f64de4aa3dcd7c6"
                 }
               ],
               "event": []

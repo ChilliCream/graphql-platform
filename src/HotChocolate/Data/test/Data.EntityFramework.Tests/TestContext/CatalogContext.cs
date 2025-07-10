@@ -3,11 +3,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data.TestContext;
 
-/// <remarks>
-/// Add migrations using the following command inside the 'Catalog.API' project directory:
-///
-/// dotnet ef migrations add --context CatalogContext [migration-name]
-/// </remarks>
 public class CatalogContext(string connectionString) : DbContext
 {
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -15,11 +10,11 @@ public class CatalogContext(string connectionString) : DbContext
         optionsBuilder.UseNpgsql(connectionString);
     }
 
-    public DbSet<Product> Products { get; set; } = default!;
+    public DbSet<Product> Products { get; set; } = null!;
 
-    public DbSet<ProductType> ProductTypes { get; set; } = default!;
+    public DbSet<ProductType> ProductTypes { get; set; } = null!;
 
-    public DbSet<Brand> Brands { get; set; } = default!;
+    public DbSet<Brand> Brands { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

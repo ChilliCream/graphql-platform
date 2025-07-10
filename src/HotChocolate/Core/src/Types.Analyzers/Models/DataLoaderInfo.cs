@@ -26,7 +26,8 @@ public sealed class DataLoaderInfo : SyntaxInfo
         _lookups = attribute.GetLookups();
         var declaringType = methodSymbol.ContainingType;
 
-        Name = GetDataLoaderName(methodSymbol.Name, attribute);
+        NameWithoutSuffix = GetDataLoaderName(methodSymbol.Name, attribute);
+        Name = NameWithoutSuffix + "DataLoader";
         InterfaceName = $"I{Name}";
         Namespace = methodSymbol.ContainingNamespace.ToDisplayString();
         FullName = $"{Namespace}.{Name}";
@@ -38,11 +39,16 @@ public sealed class DataLoaderInfo : SyntaxInfo
         KeyParameter = MethodSymbol.Parameters[0];
         ContainingType = declaringType.ToDisplayString();
         Parameters = CreateParameters(methodSymbol);
+        Groups = methodSymbol.GetDataLoaderGroupKeys();
     }
 
     public string Name { get; }
 
+    public string NameWithoutSuffix { get; }
+
     public string FullName { get; }
+
+    public ImmutableHashSet<string> Groups { get; }
 
     public string Namespace { get; }
 
@@ -72,6 +78,8 @@ public sealed class DataLoaderInfo : SyntaxInfo
 
     public ImmutableArray<DataLoaderParameterInfo> Parameters { get; }
 
+    public override string OrderByKey => FullName;
+
     public ImmutableArray<CacheLookup> GetLookups(ITypeSymbol keyType, ITypeSymbol valueType)
     {
         if (_lookups.Length > 0)
@@ -82,7 +90,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
             {
                 foreach (var method in MethodSymbol.ContainingType.GetMembers()
                     .OfType<IMethodSymbol>()
-                    .Where(m => m.Name == lookup))
+                    .Where(m => m.Name == lookup && m.MethodKind is MethodKind.Ordinary))
                 {
                     if (method.Parameters.Length == 1
                         && method.Parameters[0].Type.Equals(valueType, SymbolEqualityComparer.Default)
@@ -102,7 +110,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
             return builder.ToImmutable();
         }
 
-        return ImmutableArray<CacheLookup>.Empty;
+        return [];
     }
 
     private void Validate(
@@ -171,7 +179,19 @@ public sealed class DataLoaderInfo : SyntaxInfo
                         $"p{i}",
                         parameter,
                         DataLoaderParameterKind.SelectorBuilder,
-                        WellKnownTypes.SelectorBuilder));
+                        Selector));
+                continue;
+            }
+
+            // check for well-known state
+            if (IsPredicateBuilder(parameter))
+            {
+                builder.Add(
+                    new DataLoaderParameterInfo(
+                        $"p{i}",
+                        parameter,
+                        DataLoaderParameterKind.PredicateBuilder,
+                        Predicate));
                 continue;
             }
 
@@ -182,7 +202,28 @@ public sealed class DataLoaderInfo : SyntaxInfo
                         $"p{i}",
                         parameter,
                         DataLoaderParameterKind.PagingArguments,
-                        WellKnownTypes.PagingArguments));
+                        PagingArgs));
+                continue;
+            }
+
+            if (IsSortDefinition(parameter))
+            {
+                builder.Add(
+                    new DataLoaderParameterInfo(
+                        $"p{i}",
+                        parameter,
+                        DataLoaderParameterKind.SortDefinition,
+                        Sorting));
+                continue;
+            }
+
+            if (IsQueryContext(parameter))
+            {
+                builder.Add(
+                    new DataLoaderParameterInfo(
+                        $"p{i}",
+                        parameter,
+                        DataLoaderParameterKind.QueryContext));
                 continue;
             }
 
@@ -223,10 +264,28 @@ public sealed class DataLoaderInfo : SyntaxInfo
         return string.Equals(typeName, WellKnownTypes.SelectorBuilder, StringComparison.Ordinal);
     }
 
+    private static bool IsPredicateBuilder(IParameterSymbol parameter)
+    {
+        var typeName = parameter.Type.ToDisplayString();
+        return string.Equals(typeName, WellKnownTypes.PredicateBuilder, StringComparison.Ordinal);
+    }
+
     private static bool IsPagingArguments(IParameterSymbol parameter)
     {
         var typeName = parameter.Type.ToDisplayString();
         return string.Equals(typeName, WellKnownTypes.PagingArguments, StringComparison.Ordinal);
+    }
+
+    private static bool IsSortDefinition(IParameterSymbol parameter)
+    {
+        var typeName = parameter.Type.ToDisplayString();
+        return typeName.StartsWith(WellKnownTypes.SortDefinitionGeneric, StringComparison.Ordinal);
+    }
+
+    private static bool IsQueryContext(IParameterSymbol parameter)
+    {
+        var typeName = parameter.Type.ToDisplayString();
+        return typeName.StartsWith(WellKnownTypes.QueryContextGeneric, StringComparison.Ordinal);
     }
 
     public static bool IsKeyValuePair(ITypeSymbol returnTypeSymbol, ITypeSymbol keyType, ITypeSymbol valueType)
@@ -247,12 +306,13 @@ public sealed class DataLoaderInfo : SyntaxInfo
     public override bool Equals(object? obj)
         => obj is DataLoaderInfo other && Equals(other);
 
-    public override bool Equals(SyntaxInfo obj)
+    public override bool Equals(SyntaxInfo? obj)
         => obj is DataLoaderInfo other && Equals(other);
 
     private bool Equals(DataLoaderInfo other)
         => AttributeSyntax.IsEquivalentTo(other.AttributeSyntax)
-            && MethodSyntax.IsEquivalentTo(other.MethodSyntax);
+            && MethodSyntax.IsEquivalentTo(other.MethodSyntax)
+            && Groups.SequenceEqual(other.Groups, StringComparer.Ordinal);
 
     public override int GetHashCode()
         => HashCode.Combine(AttributeSyntax, MethodSyntax);
@@ -274,11 +334,13 @@ public sealed class DataLoaderInfo : SyntaxInfo
             name = name.Substring(0, name.Length - 5);
         }
 
-        if (name.EndsWith("DataLoader"))
-        {
-            return name;
-        }
-
-        return name + "DataLoader";
+        return name.EndsWith("DataLoader")
+            ? name.Substring(0, name.Length - 10)
+            : name;
     }
+
+    public const string Selector = "GreenDonut.Data.Selector";
+    public const string Predicate = "GreenDonut.Data.Predicate";
+    public const string Sorting = "GreenDonut.Data.Sorting";
+    public const string PagingArgs = "GreenDonut.Data.PagingArgs";
 }

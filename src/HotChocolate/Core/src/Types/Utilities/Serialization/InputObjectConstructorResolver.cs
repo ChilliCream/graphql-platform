@@ -14,7 +14,7 @@ internal static class InputObjectConstructorResolver
         FieldCollection<T> fields,
         Dictionary<string, T> fieldMap,
         HashSet<string> required)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider
     {
         var constructors = type.GetConstructors(NonPublic | Public | Instance);
 
@@ -70,7 +70,7 @@ internal static class InputObjectConstructorResolver
     }
 
     private static bool AllPropertiesCanWrite<T>(FieldCollection<T> fields)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider
     {
         foreach (var field in fields.AsSpan())
         {
@@ -87,7 +87,7 @@ internal static class InputObjectConstructorResolver
         ConstructorInfo constructor,
         IReadOnlyDictionary<string, T> fields,
         HashSet<string> required)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider
     {
         var count = required.Count;
 
@@ -131,7 +131,7 @@ internal static class InputObjectConstructorResolver
     private static void CollectReadOnlyProperties<T>(
         FieldCollection<T> fields,
         ISet<string> required)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider
     {
         required.Clear();
 
@@ -148,7 +148,7 @@ internal static class InputObjectConstructorResolver
         this IReadOnlyDictionary<string, T> fields,
         ParameterInfo parameter,
         [NotNullWhen(true)] out T? field)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider
     {
         var name = parameter.Name!;
         var alterName = GetAlternativeParameterName(parameter.Name!);
@@ -157,10 +157,6 @@ internal static class InputObjectConstructorResolver
 
     private static string GetAlternativeParameterName(string name)
         => name.Length > 1
-#if NET6_0_OR_GREATER
             ? string.Concat(name[..1].ToUpperInvariant(), name.AsSpan(1))
-#else
-            ? string.Concat(name.Substring(0, 1).ToUpperInvariant(), name.Substring(1))
-#endif
             : name.ToUpperInvariant();
 }

@@ -1,34 +1,24 @@
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Validation.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
-#nullable enable
-
 namespace HotChocolate.Validation;
 
 public static class ValidationUtils
 {
-    public static DocumentValidatorContext CreateContext(ISchema? schema = null)
-        => new()
-        {
-            Schema = schema ?? CreateSchema(),
-            ContextData = new Dictionary<string, object?>(),
-        };
-
-    public static void Prepare(this IDocumentValidatorContext context, DocumentNode document)
+    public static DocumentValidatorContext CreateContext(
+        DocumentNode document,
+        ISchemaDefinition? schema = null,
+        IFeatureCollection? features = null,
+        int maxAllowedErrors = 5)
     {
-        context.Fragments.Clear();
+        schema ??= CreateSchema();
 
-        for (var i = 0; i < document.Definitions.Count; i++)
-        {
-            var definitionNode = document.Definitions[i];
-            if (definitionNode.Kind == SyntaxKind.FragmentDefinition)
-            {
-                var fragmentDefinition = (FragmentDefinitionNode)definitionNode;
-                context.Fragments[fragmentDefinition.Name.Value] = fragmentDefinition;
-            }
-        }
+        var context = new DocumentValidatorContext();
+        context.Initialize(schema, default, document, maxAllowedErrors, features);
+        return context;
     }
 
     public static ISchemaBuilder AddDirectiveType(
@@ -45,7 +35,7 @@ public static class ValidationUtils
         builder.AddDirectiveType(new DirectiveType(x =>
             configure(x.Name(name).Location(location))));
 
-    public static ISchema CreateSchema()
+    public static ISchemaDefinition CreateSchema()
         => SchemaBuilder.New()
             .ModifyOptions(
                 o =>

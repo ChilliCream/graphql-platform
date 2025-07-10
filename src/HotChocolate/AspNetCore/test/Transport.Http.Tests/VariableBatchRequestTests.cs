@@ -1,6 +1,5 @@
 using System.Text;
 using System.Text.Json;
-using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using static HotChocolate.AspNetCore.Tests.Utilities.TestServerExtensions;
 
@@ -21,13 +20,13 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
                 new Dictionary<string, object?>
                 {
                     ["abc"] = "def",
-                    ["hij"] = null,
+                    ["hij"] = null
                 },
                 new Dictionary<string, object?>
                 {
                     ["abc"] = "xyz",
-                    ["hij"] = null,
-                },
+                    ["hij"] = null
+                }
             ]);
 
         using var memory = new MemoryStream();
@@ -67,7 +66,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         var httpClient = testServer.CreateClient();
         var client = new DefaultGraphQLHttpClient(httpClient);
 
-        var query =
+        const string query =
             """
             query($episode: Episode!) {
               hero(episode: $episode) {
@@ -78,12 +77,12 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
 
         var variables1 = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI",
+            ["episode"] = "JEDI"
         };
 
         var variables2 = new Dictionary<string, object?>
         {
-            ["episode"] = "EMPIRE",
+            ["episode"] = "EMPIRE"
         };
 
         var requestUri = new Uri(CreateUrl("/graphql"));
@@ -98,7 +97,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         // assert
         var snapshot = new Snapshot();
 
-        await foreach(var result in response.ReadAsResultStreamAsync(cts.Token))
+        await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cts.Token))
         {
             snapshot.Add(result);
         }
@@ -106,13 +105,25 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         snapshot.MatchInline(
             """
             ---------------
-            VariableIndex: 0
-            Data: {"hero":{"name":"R2-D2"}}
+            {
+              "variableIndex": 0,
+              "data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              }
+            }
             ---------------
 
             ---------------
-            VariableIndex: 1
-            Data: {"hero":{"name":"Luke Skywalker"}}
+            {
+              "variableIndex": 1,
+              "data": {
+                "hero": {
+                  "name": "Luke Skywalker"
+                }
+              }
+            }
             ---------------
 
             """);
@@ -127,7 +138,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         var httpClient = testServer.CreateClient();
         var client = new DefaultGraphQLHttpClient(httpClient);
 
-        var query =
+        const string query =
             """
             query($episode: Episode!) {
               hero(episode: $episode) {
@@ -138,12 +149,12 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
 
         var variables1 = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI",
+            ["episode"] = "JEDI"
         };
 
         var variables2 = new Dictionary<string, object?>
         {
-            ["episode"] = "EMPIRE",
+            ["episode"] = "EMPIRE"
         };
 
         var requestUri = new Uri(CreateUrl("/graphql"));
@@ -151,7 +162,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         // act
         var nestedVariableBatchRequest = new VariableBatchRequest(
             query,
-            variables: new[] { variables1, variables2 });
+            variables: [variables1, variables2]);
 
         var nestedSingleRequest = new OperationRequest(
             """
@@ -169,7 +180,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
 
         var sortedResults = new SortedList<(int?, int?), OperationResult>();
 
-        await foreach(var result in response.ReadAsResultStreamAsync(cts.Token))
+        await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cts.Token))
         {
             sortedResults.Add((result.RequestIndex, result.VariableIndex), result);
         }
@@ -184,20 +195,36 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         snapshot.MatchInline(
             """
             ---------------
-            RequestIndex: 0
-            VariableIndex: 0
-            Data: {"hero":{"name":"R2-D2"}}
+            {
+              "requestIndex": 0,
+              "variableIndex": 0,
+              "data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              }
+            }
             ---------------
 
             ---------------
-            RequestIndex: 0
-            VariableIndex: 1
-            Data: {"hero":{"name":"Luke Skywalker"}}
+            {
+              "requestIndex": 0,
+              "variableIndex": 1,
+              "data": {
+                "hero": {
+                  "name": "Luke Skywalker"
+                }
+              }
+            }
             ---------------
 
             ---------------
-            RequestIndex: 1
-            Data: {"__typename":"Query"}
+            {
+              "requestIndex": 1,
+              "data": {
+                "__typename": "Query"
+              }
+            }
             ---------------
 
             """);
@@ -212,7 +239,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
         var httpClient = testServer.CreateClient();
         var client = new DefaultGraphQLHttpClient(httpClient);
 
-        var query =
+        const string query =
             """
             query($episode: Episode!) {
               hero(episode: $episode) {
@@ -223,12 +250,12 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
 
         var variables1 = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI",
+            ["episode"] = "JEDI"
         };
 
         var variables2 = new Dictionary<string, object?>
         {
-            ["episode"] = "EMPIRE",
+            ["episode"] = "EMPIRE"
         };
 
         var requestUri = new Uri(CreateUrl("/graphql"));
@@ -258,7 +285,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
 
         var sortedResults = new SortedList<(int?, int?), OperationResult>();
 
-        await foreach(var result in response.ReadAsResultStreamAsync(cts.Token))
+        await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cts.Token))
         {
             sortedResults.Add((result.RequestIndex, result.VariableIndex), result);
         }
@@ -280,18 +307,34 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
             ---------------
 
             ---------------
-            RequestIndex: 0
-            Data: {"hero":{"name":"R2-D2"}}
+            {
+              "requestIndex": 0,
+              "data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              }
+            }
             ---------------
 
             ---------------
-            RequestIndex: 1
-            Data: {"hero":{"name":"Luke Skywalker"}}
+            {
+              "requestIndex": 1,
+              "data": {
+                "hero": {
+                  "name": "Luke Skywalker"
+                }
+              }
+            }
             ---------------
 
             ---------------
-            RequestIndex: 2
-            Data: {"__typename":"Query"}
+            {
+              "requestIndex": 2,
+              "data": {
+                "__typename": "Query"
+              }
+            }
             ---------------
 
             """);

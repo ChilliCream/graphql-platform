@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ComposeCommand_AbbreviatedSeverity_Error" xml:space="preserve">
+    <value>ERR</value>
+  </data>
+  <data name="ComposeCommand_AbbreviatedSeverity_Info" xml:space="preserve">
+    <value>INF</value>
+  </data>
+  <data name="ComposeCommand_AbbreviatedSeverity_Warning" xml:space="preserve">
+    <value>WRN</value>
+  </data>
+  <data name="ComposeCommand_CompositeSchemaFile_Description" xml:space="preserve">
+    <value>Specifies the path at which to write the composite schema file.</value>
+  </data>
+  <data name="ComposeCommand_CompositeSchemaFile_Written" xml:space="preserve">
+    <value>✅ Composite schema written to '{0}'.</value>
+  </data>
+  <data name="ComposeCommand_Description" xml:space="preserve">
+    <value>Composes multiple source schemas into a single composite schema.</value>
+  </data>
+  <data name="ComposeCommand_Error_NoSourceSchemaFilesFound" xml:space="preserve">
+    <value>❌ No GraphQL schema files were found in the working directory.</value>
+  </data>
+  <data name="ComposeCommand_Error_SourceSchemaFileDoesNotExist" xml:space="preserve">
+    <value>❌ Source schema file '{0}' does not exist.</value>
+  </data>
+  <data name="ComposeCommand_Error_WorkingDirectoryDoesNotExist" xml:space="preserve">
+    <value>❌ Working directory '{0}' does not exist.</value>
+  </data>
+  <data name="ComposeCommand_SourceSchemaFile_Description" xml:space="preserve">
+    <value>Specifies the path to a source schema file (.graphqls) to include in the composition.</value>
+  </data>
+  <data name="ComposeCommand_WorkingDirectory_Description" xml:space="preserve">
+    <value>Sets the working directory for the command.</value>
+  </data>
+  <data name="RootCommand_Description" xml:space="preserve">
+    <value>Fusion CLI</value>
+  </data>
+</root>

@@ -11,17 +11,17 @@ namespace HotChocolate.Utilities;
 
 internal sealed class ListTypeConverter : IChangeTypeProvider
 {
-    private static readonly MethodInfo _dictionaryConvert =
+    private static readonly MethodInfo s_dictionaryConvert =
         typeof(ListTypeConverter).GetMethod(
             nameof(GenericDictionaryConverter),
             BindingFlags.Static | BindingFlags.NonPublic)!;
 
-    private static readonly MethodInfo _setConvert =
+    private static readonly MethodInfo s_setConvert =
         typeof(ListTypeConverter).GetMethod(
             nameof(HashSetConverter),
             BindingFlags.Static | BindingFlags.NonPublic)!;
 
-    private static readonly MethodInfo _collectionConvert =
+    private static readonly MethodInfo s_collectionConvert =
         typeof(ListTypeConverter).GetMethod(
             nameof(GenericCollectionConverter),
             BindingFlags.Static | BindingFlags.NonPublic)!;
@@ -54,19 +54,19 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
                     || target.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>)))
             {
                 var converterMethod =
-                    _dictionaryConvert.MakeGenericMethod(targetElement.GetGenericArguments());
-                converter = s => converterMethod.Invoke(null, [s, elementConverter,]);
+                    s_dictionaryConvert.MakeGenericMethod(targetElement.GetGenericArguments());
+                converter = s => converterMethod.Invoke(null, [s, elementConverter]);
                 return true;
             }
 
-            if (target is { IsGenericType: true, IsInterface: true, })
+            if (target is { IsGenericType: true, IsInterface: true })
             {
                 var typeDefinition = target.GetGenericTypeDefinition();
 
                 if (typeDefinition == typeof(ISet<>))
                 {
-                    var converterMethod = _setConvert.MakeGenericMethod(targetElement);
-                    converter = s => converterMethod.Invoke(null, [s, elementConverter,]);
+                    var converterMethod = s_setConvert.MakeGenericMethod(targetElement);
+                    converter = s => converterMethod.Invoke(null, [s, elementConverter]);
                     return true;
                 }
 
@@ -82,18 +82,18 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
                 }
             }
 
-            if (target is { IsGenericType: true, IsClass: true, } &&
+            if (target is { IsGenericType: true, IsClass: true } &&
                 typeof(ICollection).IsAssignableFrom(target))
             {
                 converter = s => GenericListConverter((ICollection?)s, target, elementConverter);
                 return true;
             }
 
-            if (target is { IsGenericType: true, IsClass: true, } &&
+            if (target is { IsGenericType: true, IsClass: true } &&
                 IsGenericCollection(target))
             {
-                var converterMethod = _collectionConvert.MakeGenericMethod(targetElement);
-                converter = s => converterMethod.Invoke(null, [s, target, elementConverter,]);
+                var converterMethod = s_collectionConvert.MakeGenericMethod(targetElement);
+                converter = s => converterMethod.Invoke(null, [s, target, elementConverter]);
                 return true;
             }
         }
@@ -169,7 +169,7 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
             return null;
         }
 
-        var list = (ICollection<KeyValuePair<TKey, TValue>>)new Dictionary<TKey, TValue>();
+        ICollection<KeyValuePair<TKey, TValue>> list = new Dictionary<TKey, TValue>();
         ChangeListType(
             input,
             (item, _) => list.Add((KeyValuePair<TKey, TValue>)elementConverter(item)!));
@@ -198,11 +198,7 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
     private static bool IsGenericCollection(Type type)
     {
         var interfaces = type.GetInterfaces();
-#if NET6_0_OR_GREATER
         ref var start = ref MemoryMarshal.GetArrayDataReference(interfaces);
-#else
-        ref var start = ref MemoryMarshal.GetReference(interfaces.AsSpan());
-#endif
 
         for (var i = 0; i < interfaces.Length; i++)
         {

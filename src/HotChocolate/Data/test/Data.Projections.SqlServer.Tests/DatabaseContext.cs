@@ -17,7 +17,7 @@ public class DatabaseContext<T> : DbContext
         _onModelCreating = onModelCreating;
     }
 
-    public DbSet<T> Data { get; set; } = default!;
+    public DbSet<T> Data { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

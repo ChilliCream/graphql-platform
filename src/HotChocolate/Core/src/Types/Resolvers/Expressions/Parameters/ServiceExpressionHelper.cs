@@ -10,21 +10,18 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 /// </summary>
 internal static class ServiceExpressionHelper
 {
-    private const string _service = nameof(IResolverContext.Service);
+    private const string ServiceResolver = nameof(GetService);
+    private const string KeyedServiceResolver = nameof(GetKeyedService);
+    private static readonly Expression s_true = Expression.Constant(true);
+    private static readonly Expression s_false = Expression.Constant(false);
 
-    private static readonly MethodInfo _getServiceMethod =
-        ParameterExpressionBuilderHelpers.ContextType.GetMethods().First(
-            method => method.Name.Equals(_service, StringComparison.Ordinal) &&
-                method.IsGenericMethod &&
-                method.GetParameters().Length == 0);
+    private static readonly MethodInfo s_getServiceMethod =
+        typeof(ServiceExpressionHelper).GetMethods().First(
+            method => method.Name.Equals(ServiceResolver, StringComparison.Ordinal));
 
-#if NET8_0_OR_GREATER
-    private static readonly MethodInfo _getKeyedServiceMethod =
-        ParameterExpressionBuilderHelpers.ContextType.GetMethods().First(
-            method => method.Name.Equals(_service, StringComparison.Ordinal) &&
-                method.IsGenericMethod &&
-                method.GetParameters().Length == 1);
-#endif
+    private static readonly MethodInfo s_getKeyedServiceMethod =
+        typeof(ServiceExpressionHelper).GetMethods().First(
+            method => method.Name.Equals(KeyedServiceResolver, StringComparison.Ordinal));
 
     /// <summary>
     /// Builds the service expression.
@@ -34,7 +31,6 @@ internal static class ServiceExpressionHelper
         Expression context)
         => BuildDefaultService(parameter, context);
 
-#if NET8_0_OR_GREATER
     /// <summary>
     /// Builds the service expression.
     /// </summary>
@@ -43,22 +39,46 @@ internal static class ServiceExpressionHelper
         Expression context,
         string key)
         => BuildDefaultService(parameter, context, key);
-#endif
 
     private static Expression BuildDefaultService(ParameterInfo parameter, Expression context)
     {
         var parameterType = parameter.ParameterType;
-        var argumentMethod = _getServiceMethod.MakeGenericMethod(parameterType);
-        return Expression.Call(context, argumentMethod);
+        var argumentMethod = s_getServiceMethod.MakeGenericMethod(parameterType);
+        var nullabilityContext = new NullabilityInfoContext();
+        var nullabilityInfo = nullabilityContext.Create(parameter);
+        var isRequired = nullabilityInfo.ReadState == NullabilityState.NotNull;
+        return Expression.Call(argumentMethod, context, isRequired ? s_true : s_false);
     }
 
-#if NET8_0_OR_GREATER
     private static Expression BuildDefaultService(ParameterInfo parameter, Expression context, string key)
     {
         var parameterType = parameter.ParameterType;
-        var argumentMethod =  _getKeyedServiceMethod.MakeGenericMethod(parameterType);
+        var argumentMethod = s_getKeyedServiceMethod.MakeGenericMethod(parameterType);
         var keyExpression = Expression.Constant(key, typeof(object));
-        return Expression.Call(context, argumentMethod, keyExpression);
+        var nullabilityContext = new NullabilityInfoContext();
+        var nullabilityInfo = nullabilityContext.Create(parameter);
+        var isRequired = nullabilityInfo.ReadState == NullabilityState.NotNull;
+        return Expression.Call(argumentMethod, context, keyExpression, isRequired ? s_true : s_false);
     }
-#endif
+
+    public static TService? GetService<TService>(
+        IResolverContext context,
+        bool required)
+        where TService : notnull
+    {
+        return required
+            ? context.Services.GetRequiredService<TService>()
+            : context.Services.GetService<TService>();
+    }
+
+    public static TService? GetKeyedService<TService>(
+        IResolverContext context,
+        object? key,
+        bool required)
+        where TService : notnull
+    {
+        return required
+            ? context.Services.GetRequiredKeyedService<TService>(key)
+            : context.Services.GetKeyedService<TService>(key);
+    }
 }

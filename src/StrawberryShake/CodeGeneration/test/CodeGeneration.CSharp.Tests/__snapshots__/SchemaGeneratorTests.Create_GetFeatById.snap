@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -168,11 +169,8 @@ namespace Foo.Bar
         }
 
         public global::System.Guid Id { get; }
-
         public global::System.String Name { get; }
-
         public global::System.Int32 Level { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> Details { get; }
 
         public virtual global::System.Boolean Equals(GetFeatById_Feats_Items_Feat? other)
@@ -320,11 +318,8 @@ namespace Foo.Bar
     public partial interface IGetFeatById_Feats_Items
     {
         public global::System.Guid Id { get; }
-
         public global::System.String Name { get; }
-
         public global::System.Int32 Level { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> Details { get; }
     }
 
@@ -351,7 +346,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetFeatById GraphQL operation
     /// <code>
-    /// query GetFeatById($id: UUID!) {
+    /// query GetFeatById(
+    ///   $id: UUID!
+    /// ) {
     ///   feats(where: { id: { eq: $id } }) {
     ///     __typename
     ///     items {
@@ -383,8 +380,206 @@ namespace Foo.Bar
 
         public static GetFeatByIdQueryDocument Instance { get; } = new GetFeatByIdQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x46, 0x65, 0x61, 0x74, 0x42, 0x79, 0x49, 0x64, 0x28, 0x24, 0x69, 0x64, 0x3a, 0x20, 0x55, 0x55, 0x49, 0x44, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x66, 0x65, 0x61, 0x74, 0x73, 0x28, 0x77, 0x68, 0x65, 0x72, 0x65, 0x3a, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x3a, 0x20, 0x7b, 0x20, 0x65, 0x71, 0x3a, 0x20, 0x24, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x20, 0x64, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x47,
+            0x65,
+            0x74,
+            0x46,
+            0x65,
+            0x61,
+            0x74,
+            0x42,
+            0x79,
+            0x49,
+            0x64,
+            0x28,
+            0x24,
+            0x69,
+            0x64,
+            0x3a,
+            0x20,
+            0x55,
+            0x55,
+            0x49,
+            0x44,
+            0x21,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x66,
+            0x65,
+            0x61,
+            0x74,
+            0x73,
+            0x28,
+            0x77,
+            0x68,
+            0x65,
+            0x72,
+            0x65,
+            0x3a,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x3a,
+            0x20,
+            0x7b,
+            0x20,
+            0x65,
+            0x71,
+            0x3a,
+            0x20,
+            0x24,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x69,
+            0x74,
+            0x65,
+            0x6d,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6c,
+            0x65,
+            0x76,
+            0x65,
+            0x6c,
+            0x20,
+            0x64,
+            0x65,
+            0x74,
+            0x61,
+            0x69,
+            0x6c,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x74,
+            0x65,
+            0x78,
+            0x74,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x46,
+            0x65,
+            0x61,
+            0x74,
+            0x44,
+            0x65,
+            0x74,
+            0x61,
+            0x69,
+            0x6c,
+            0x73,
+            0x42,
+            0x6c,
+            0x6f,
+            0x63,
+            0x6b,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x46,
+            0x65,
+            0x61,
+            0x74,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "d036805a9b57f740e08b76f17d57f3de1b7e6d25");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -399,7 +594,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetFeatById GraphQL operation
     /// <code>
-    /// query GetFeatById($id: UUID!) {
+    /// query GetFeatById(
+    ///   $id: UUID!
+    /// ) {
     ///   feats(where: { id: { eq: $id } }) {
     ///     __typename
     ///     items {
@@ -427,16 +624,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetFeatByIdResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _uUIDFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetFeatByIdQuery(global::StrawberryShake.IOperationExecutor<IGetFeatByIdResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _uUIDFormatter = serializerResolver.GetInputValueFormatter("UUID");
         }
 
+        private GetFeatByIdQuery(global::StrawberryShake.IOperationExecutor<IGetFeatByIdResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter uUIDFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _uUIDFormatter = uUIDFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetFeatByIdResult);
+
+        public global::Foo.Bar.IGetFeatByIdQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.GetFeatByIdQuery(_operationExecutor, _configure.Add(configure), _uUIDFormatter);
+        }
+
+        public global::Foo.Bar.IGetFeatByIdQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IGetFeatByIdQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> ExecuteAsync(global::System.Guid id, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(id);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -473,7 +699,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetFeatById GraphQL operation
     /// <code>
-    /// query GetFeatById($id: UUID!) {
+    /// query GetFeatById(
+    ///   $id: UUID!
+    /// ) {
     ///   feats(where: { id: { eq: $id } }) {
     ///     __typename
     ///     items {
@@ -499,6 +727,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetFeatByIdQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IGetFeatByIdQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IGetFeatByIdQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IGetFeatByIdQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> ExecuteAsync(global::System.Guid id, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> Watch(global::System.Guid id, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -546,11 +777,8 @@ namespace Foo.Bar.State
         }
 
         public global::System.Guid Id { get; }
-
         public global::System.String Name { get; }
-
         public global::System.Int32 Level { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId> Details { get; }
     }
 
@@ -581,6 +809,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IGetFeatByIdResult);
+
         public GetFeatByIdResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -604,7 +833,7 @@ namespace Foo.Bar.State
             }
 
             IGetFeatById_Feats returnValue = default !;
-            if (data?.__typename.Equals("FeatCollectionSegment", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("FeatCollectionSegment", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetFeatById_Feats_FeatCollectionSegment(MapIGetFeatById_Feats_ItemsArray(data.Items, snapshot));
             }
@@ -693,9 +922,9 @@ namespace Foo.Bar.State
         }
 
         public global::Foo.Bar.State.FeatCollectionSegmentData? Feats { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetFeatByIdResultInfo(Feats, _entityIds, version);
@@ -918,7 +1147,6 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Items { get; }
     }
 
@@ -997,7 +1225,9 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;
@@ -1107,6 +1337,9 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);

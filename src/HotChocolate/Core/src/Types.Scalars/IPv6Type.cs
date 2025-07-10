@@ -4,16 +4,12 @@ using HotChocolate.Language;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The `IPv6` scalar type represents a valid a IPv6 address as defined in
+/// The `IPv6` scalar type represents a valid IPv6 address as defined in
 /// <a href="https://tools.ietf.org/html/rfc8064">RFC8064</a>
 /// </summary>
-#if NET7_0_OR_GREATER
 public partial class IPv6Type : RegexType
-#else
-public class IPv6Type : RegexType
-#endif
 {
-    private const string _validationPattern =
+    private const string ValidationPattern =
         "(^(?:(?:(?:[0-9A-Fa-f]{1,4}:){6}(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:(?:0?0?" +
         "[0-9]|0?[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\\.){3}(?:0?0?[0-9]|0?[1-9][" +
         "0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]))|::(?:[0-9A-Fa-f]{1,4}:){5}(?:[0-9A-Fa-f]" +
@@ -37,16 +33,8 @@ public class IPv6Type : RegexType
         "]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})?::)(?:\\/(?:0?0?[0-9]|0?[" +
         "1-9][0-9]|1[01][0-9]|12[0-8]))?)$)";
 
-#if NET7_0_OR_GREATER
-    [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(ValidationPattern, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
-#else
-    private static Regex CreateRegex()
-        => new Regex(
-            _validationPattern,
-            RegexOptions.Compiled | RegexOptions.IgnoreCase,
-            TimeSpan.FromMilliseconds(DefaultRegexTimeoutInMs));
-#endif
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IPv6Type"/> class.

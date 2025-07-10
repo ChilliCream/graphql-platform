@@ -8,7 +8,7 @@ namespace HotChocolate;
 
 /// <summary>
 /// <para>
-/// A <see cref="SchemaCoordinate"/> is a human readable string that uniquely identifies a
+/// A <see cref="SchemaCoordinate"/> is a human-readable string that uniquely identifies a
 /// schema element within a GraphQL Schema.
 /// A schema element is a specific instance of a named type, field, input field, enum value,
 /// field argument, directive, or directive argument.
@@ -108,7 +108,7 @@ public readonly struct SchemaCoordinate : IEquatable<SchemaCoordinate>
     public override string ToString() => ToSyntax().ToString();
 
     /// <summary>
-    /// Tries to parse a <see cref="SchemaCoordinate"/> from a <see cref="String"/>.
+    /// Tries to parse a <see cref="SchemaCoordinate"/> from a <see cref="string"/>.
     /// </summary>
     /// <param name="s">The string that may represent a <see cref="SchemaCoordinate"/>.</param>
     /// <param name="coordinate">
@@ -179,8 +179,8 @@ public readonly struct SchemaCoordinate : IEquatable<SchemaCoordinate>
     public bool Equals(SchemaCoordinate other)
         => OfDirective == other.OfDirective &&
             string.Equals(Name, other.Name, Ordinal) &&
-            Nullable.Equals(MemberName, other.MemberName) &&
-            Nullable.Equals(ArgumentName, other.ArgumentName);
+            Equals(MemberName, other.MemberName) &&
+            Equals(ArgumentName, other.ArgumentName);
 
     /// <summary>
     /// Indicates whether the current object is equal to another object of the same type.

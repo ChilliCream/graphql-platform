@@ -1,19 +1,18 @@
 using System.Text;
-using CookieCrumble;
 
 namespace StrawberryShake.Transport.WebSockets.Protocols;
 
-public class GraphQlWsSocketWriterExtensionTests
+public class GraphQLWebSocketWriterExtensionTests
 {
     [Fact]
     public async Task WriteStartOperationMessage_WithOperation_IsMatch()
     {
         // arrange
         await using var writer = new SocketMessageWriter();
-        var operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
+        const string operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
         var request = new OperationRequest("Foo",
             GetHeroQueryDocument.Instance,
-            new Dictionary<string, object?>() { { "Var1", "Value1" }, });
+            new Dictionary<string, object?>() { { "Var1", "Value1" } });
 
         // act
         writer.WriteStartOperationMessage(operationId, request);
@@ -29,7 +28,7 @@ public class GraphQlWsSocketWriterExtensionTests
         await using var writer = new SocketMessageWriter();
         var request = new OperationRequest("Foo",
             GetHeroQueryDocument.Instance,
-            new Dictionary<string, object?>() { { "Var1", "Value1" }, });
+            new Dictionary<string, object?>() { { "Var1", "Value1" } });
 
         // act
         var ex =
@@ -44,7 +43,7 @@ public class GraphQlWsSocketWriterExtensionTests
     {
         // arrange
         await using var writer = new SocketMessageWriter();
-        var operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
+        const string operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
 
         // act
         var ex =
@@ -59,7 +58,7 @@ public class GraphQlWsSocketWriterExtensionTests
     {
         // arrange
         await using var writer = new SocketMessageWriter();
-        var operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
+        const string operationId = "12f90cc5-2905-4d10-b33a-cb6d8f98a810";
 
         // act
         writer.WriteStopOperationMessage(operationId);
@@ -115,7 +114,7 @@ public class GraphQlWsSocketWriterExtensionTests
         await using var writer = new SocketMessageWriter();
 
         // act
-        writer.WriteInitializeMessage(new Dictionary<string, object> { ["Key"] = "Value", });
+        writer.WriteInitializeMessage(new Dictionary<string, object> { ["Key"] = "Value" });
 
         // assert
         Encoding.UTF8.GetString(writer.Body.Span).MatchSnapshot();
@@ -149,7 +148,7 @@ public class GraphQlWsSocketWriterExtensionTests
 
     private sealed class GetHeroQueryDocument : IDocument
     {
-        private const string _bodyString =
+        private const string BodyString =
             @"query GetHero {
                 hero {
                     __typename
@@ -167,17 +166,17 @@ public class GraphQlWsSocketWriterExtensionTests
                 version
             }";
 
-        private static readonly byte[] _body = Encoding.UTF8.GetBytes(_bodyString);
+        private static readonly byte[] s_body = Encoding.UTF8.GetBytes(BodyString);
 
         private GetHeroQueryDocument() { }
 
         public OperationKind Kind => OperationKind.Query;
 
-        public ReadOnlySpan<byte> Body => _body;
+        public ReadOnlySpan<byte> Body => s_body;
 
         public DocumentHash Hash { get; } = new("MD5", "ABC");
 
-        public override string ToString() => _bodyString;
+        public override string ToString() => BodyString;
 
         public static GetHeroQueryDocument Instance { get; } = new();
     }

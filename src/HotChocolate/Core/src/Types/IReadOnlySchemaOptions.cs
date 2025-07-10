@@ -166,6 +166,18 @@ public interface IReadOnlySchemaOptions
     bool EnableStream { get; }
 
     /// <summary>
+    /// Enables the @semanticNonNull directive and rewrites Non-Null types to nullable types
+    /// with this directive attached to indicate semantic non-nullability.
+    /// This feature is experimental and might be changed or removed in the future.
+    /// </summary>
+    bool EnableSemanticNonNull { get; }
+
+    /// <summary>
+    /// Enables the @schemaName directive.
+    /// </summary>
+    bool EnableSchemaNameDirective { get; }
+
+    /// <summary>
     /// Specifies the maximum allowed nodes that can be fetched at once through the nodes field.
     /// </summary>
     int MaxAllowedNodeBatchSize { get; }
@@ -174,11 +186,6 @@ public interface IReadOnlySchemaOptions
     /// Specified if the leading I shall be stripped from the interface name.
     /// </summary>
     bool StripLeadingIFromInterface { get; }
-
-    /// <summary>
-    /// Specifies that the true nullability proto type shall be enabled.
-    /// </summary>
-    bool EnableTrueNullability { get; }
 
     /// <summary>
     /// Specifies that the @tag directive shall be registered with the type system.
@@ -197,7 +204,7 @@ public interface IReadOnlySchemaOptions
 
     /// <summary>
     /// Specifies if the elements of paginated root fields should be published
-    /// to the DataLOader promise cache.
+    /// to the DataLoader promise cache.
     /// </summary>
     bool PublishRootFieldPagesToPromiseCache { get; }
 }

@@ -35,9 +35,7 @@ public readonly struct Optional<T>
     /// <summary>
     /// <c>true</c> if the optional was explicitly set.
     /// </summary>
-    #if NET5_0_OR_GREATER
     [MemberNotNullWhen(true, nameof(Value))]
-    #endif
     public bool HasValue { get; }
 
     /// <summary>
@@ -161,7 +159,7 @@ public readonly struct Optional<T>
     /// </summary>
     public static Optional<T> From(IOptional optional)
     {
-        if (optional.HasValue || optional.Value != default)
+        if (optional.HasValue || optional.Value != null)
         {
             return new Optional<T>((T?)optional.Value, optional.HasValue);
         }

@@ -5,7 +5,6 @@ using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -25,7 +24,7 @@ public class InterfaceTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("StringFoo");
+        var type = schema.Types.GetType<InterfaceType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -43,7 +42,7 @@ public class InterfaceTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("StringFoo");
+        var type = schema.Types.GetType<InterfaceType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -59,7 +58,7 @@ public class InterfaceTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("StringFoo");
+        var type = schema.Types.GetType<InterfaceType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -75,7 +74,7 @@ public class InterfaceTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<InterfaceType>("StringFoo");
+        var type = schema.Types.GetType<InterfaceType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -95,7 +94,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("bar", t.Name);
                 Assert.IsType<BooleanType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
             },
             t =>
             {
@@ -106,7 +105,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("qux", t.Name);
                 Assert.IsType<IntType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
                 Assert.Collection(t.Arguments,
                     a => Assert.Equal("a", a.Name));
             });
@@ -122,7 +121,7 @@ public class InterfaceTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<ObjectType>("FooImpl");
+        var type = schema.Types.GetType<ObjectType>("FooImpl");
         Assert.Collection(type.Implements, t => Assert.Equal("IFoo", t.Name));
     }
 
@@ -147,7 +146,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("qux", t.Name);
                 Assert.IsType<IntType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
                 Assert.Collection(t.Arguments,
                     a => Assert.Equal("a", a.Name));
             });
@@ -173,7 +172,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("bar", t.Name);
                 Assert.IsType<BooleanType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
             },
             t =>
             {
@@ -184,7 +183,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("qux", t.Name);
                 Assert.IsType<IntType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
                 Assert.Collection(t.Arguments,
                     a => Assert.Equal("a", a.Name));
             });
@@ -208,7 +207,7 @@ public class InterfaceTypeTests : TypeTestBase
             {
                 Assert.Equal("bar", t.Name);
                 Assert.IsType<BooleanType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
             });
     }
 
@@ -518,7 +517,7 @@ public class InterfaceTypeTests : TypeTestBase
             .AddType<Orange>()
             .AddType<Pineapple>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -530,7 +529,7 @@ public class InterfaceTypeTests : TypeTestBase
             .AddType<Canine>()
             .AddType<Dog>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -563,7 +562,7 @@ public class InterfaceTypeTests : TypeTestBase
             })
             .ModifyOptions(o => o.StrictValidation = false)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -580,7 +579,7 @@ public class InterfaceTypeTests : TypeTestBase
             })
             .ModifyOptions(o => o.StrictValidation = false)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -597,7 +596,7 @@ public class InterfaceTypeTests : TypeTestBase
             .BuildRequestExecutorAsync();
 
         // assert
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -642,7 +641,7 @@ public class InterfaceTypeTests : TypeTestBase
             .BuildRequestExecutorAsync();
 
         // assert
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -695,7 +694,7 @@ public class InterfaceTypeTests : TypeTestBase
             .BuildRequestExecutorAsync();
 
         // assert
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -807,9 +806,7 @@ public class InterfaceTypeTests : TypeTestBase
         }
     }
 
-    public class FooDirective
-    {
-    }
+    public class FooDirective;
 
     public class FooObsolete
     {
@@ -829,7 +826,7 @@ public class InterfaceTypeTests : TypeTestBase
     {
         public string Hello => "World!";
 
-        public IEnumerable<Fruit> GetFruits() => new Fruit[] { new Orange(), new Pineapple(), };
+        public IEnumerable<Fruit> GetFruits() => [new Orange(), new Pineapple()];
     }
 
     [InterfaceType]
@@ -839,9 +836,7 @@ public class InterfaceTypeTests : TypeTestBase
     }
 
     [InterfaceType]
-    public class DeprecatedImplementation : DeprecatedInterface
-    {
-    }
+    public class DeprecatedImplementation : DeprecatedInterface;
 
     [InterfaceType]
     public class DeprecatedNonNullInterface
@@ -850,9 +845,7 @@ public class InterfaceTypeTests : TypeTestBase
     }
 
     [InterfaceType]
-    public class DeprecatedNonNullImplementation : DeprecatedInterface
-    {
-    }
+    public class DeprecatedNonNullImplementation : DeprecatedInterface;
 
     [InterfaceType]
     public class Fruit
@@ -872,7 +865,7 @@ public class InterfaceTypeTests : TypeTestBase
 
     public class PetQuery
     {
-        public Pet GetDog() => new Dog { Name = "Foo", };
+        public Pet GetDog() => new Dog { Name = "Foo" };
     }
 
     [InterfaceType(Inherited = true)]
@@ -881,12 +874,8 @@ public class InterfaceTypeTests : TypeTestBase
         public string Name { get; set; }
     }
 
-    public class Canine : Pet
-    {
-    }
+    public class Canine : Pet;
 
     [ObjectType]
-    public class Dog : Canine
-    {
-    }
+    public class Dog : Canine;
 }

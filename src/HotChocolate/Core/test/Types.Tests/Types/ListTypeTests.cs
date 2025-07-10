@@ -1,6 +1,5 @@
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -40,7 +39,7 @@ public class ListTypeTests
         var type = new ListType(innerType);
 
         // act
-        var clrType = type.RuntimeType;
+        var clrType = type.ToRuntimeType();
 
         // assert
         Assert.Equal(typeof(List<string>), clrType);

@@ -74,7 +74,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
     {
         if (_ancestors.Count == 0)
         {
-            node = default;
+            node = null;
             return false;
         }
 
@@ -88,7 +88,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
     {
         if (_ancestors.Count == 0)
         {
-            node = default;
+            node = null;
             return false;
         }
 
@@ -101,7 +101,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
     {
         if (_ancestors.Count < count)
         {
-            node = default;
+            node = null;
             return false;
         }
 

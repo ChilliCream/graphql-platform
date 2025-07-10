@@ -15,10 +15,10 @@ public class SchemaTypeDiscoveryTests
             .Create();
 
         // assert
-        Assert.NotNull(schema.GetType<INamedOutputType>("Foo"));
-        Assert.NotNull(schema.GetType<INamedOutputType>("Bar"));
-        Assert.NotNull(schema.GetType<INamedInputType>("FooInput"));
-        Assert.NotNull(schema.GetType<INamedInputType>("BarInput"));
+        Assert.NotNull(schema.Types.GetType<IOutputTypeDefinition>("Foo"));
+        Assert.NotNull(schema.Types.GetType<IOutputTypeDefinition>("Bar"));
+        Assert.NotNull(schema.Types.GetType<IInputTypeDefinition>("FooInput"));
+        Assert.NotNull(schema.Types.GetType<IInputTypeDefinition>("BarInput"));
     }
 
     [Fact]
@@ -31,13 +31,13 @@ public class SchemaTypeDiscoveryTests
             .Create();
 
         // assert
-        var query = schema.GetType<ObjectType>("QueryField");
+        var query = schema.Types.GetType<ObjectType>("QueryField");
         Assert.NotNull(query);
         Assert.Collection(
             query.Fields.Where(t => !t.IsIntrospectionField),
             t => Assert.Equal("foo", t.Name));
-        Assert.NotNull(schema.GetType<ObjectType>("Foo"));
-        Assert.NotNull(schema.GetType<ObjectType>("Bar"));
+        Assert.NotNull(schema.Types.GetType<ObjectType>("Foo"));
+        Assert.NotNull(schema.Types.GetType<ObjectType>("Bar"));
     }
 
     [Fact]
@@ -50,13 +50,13 @@ public class SchemaTypeDiscoveryTests
             .Create();
 
         // assert
-        var query = schema.GetType<ObjectType>("QueryProperty");
+        var query = schema.Types.GetType<ObjectType>("QueryProperty");
         Assert.NotNull(query);
         Assert.Collection(
             query.Fields.Where(t => !t.IsIntrospectionField),
             t => Assert.Equal("foo", t.Name));
-        Assert.NotNull(schema.GetType<ObjectType>("Foo"));
-        Assert.NotNull(schema.GetType<ObjectType>("Bar"));
+        Assert.NotNull(schema.Types.GetType<ObjectType>("Foo"));
+        Assert.NotNull(schema.Types.GetType<ObjectType>("Bar"));
     }
 
     [Fact]
@@ -69,12 +69,12 @@ public class SchemaTypeDiscoveryTests
             .Create();
 
         // assert
-        var query = schema.GetType<ObjectType>("QueryMethodVoid");
+        var query = schema.Types.GetType<ObjectType>("QueryMethodVoid");
         Assert.NotNull(query);
         Assert.Collection(query.Fields.Where(t => !t.IsIntrospectionField),
             t => Assert.Equal("foo", t.Name));
-        Assert.NotNull(schema.GetType<ObjectType>("Foo"));
-        Assert.NotNull(schema.GetType<ObjectType>("Bar"));
+        Assert.NotNull(schema.Types.GetType<ObjectType>("Foo"));
+        Assert.NotNull(schema.Types.GetType<ObjectType>("Bar"));
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class SchemaTypeDiscoveryTests
             .Create();
 
         // assert
-        var fooBar = schema.GetType<EnumType>("FooBar");
+        var fooBar = schema.Types.GetType<EnumType>("FooBar");
         Assert.NotNull(fooBar);
         Assert.Collection(fooBar.Values,
             t => Assert.Equal("FOO", t.Name),
@@ -106,7 +106,7 @@ public class SchemaTypeDiscoveryTests
             .Create();
 
         // assert
-        var fooByte = schema.GetType<ObjectType>("FooByte");
+        var fooByte = schema.Types.GetType<ObjectType>("FooByte");
         Assert.NotNull(fooByte);
 
         var field = fooByte.Fields["bar"];
@@ -174,7 +174,7 @@ public class SchemaTypeDiscoveryTests
     public enum FooBar
     {
         Foo,
-        Bar,
+        Bar
     }
 
     public class ByteArrayType : ScalarType

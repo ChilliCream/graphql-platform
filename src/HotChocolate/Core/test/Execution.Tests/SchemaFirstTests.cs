@@ -1,6 +1,3 @@
-#nullable enable
-using CookieCrumble;
-using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
@@ -235,7 +232,7 @@ public class SchemaFirstTests
 
     public class Bar
     {
-        public string Baz { get; set; } = default!;
+        public string Baz { get; set; } = null!;
     }
 
     public class EnumQuery
@@ -265,7 +262,7 @@ public class SchemaFirstTests
     {
         Bar,
         Baz,
-        BazBar,
+        BazBar
     }
 
     public class Query5730
@@ -283,7 +280,7 @@ public class SchemaFirstTests
                 Assert.IsType<Dictionary<string, object>>(
                     input.ParameterChangeInfo[0].Value)["a"]);
 
-            return Task.FromResult(new ChangeChannelParameterPayload { Message = message, });
+            return Task.FromResult(new ChangeChannelParameterPayload { Message = message });
         }
     }
 

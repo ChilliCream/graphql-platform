@@ -63,6 +63,18 @@ namespace HotChocolate.Caching.Properties {
             }
         }
         
+        internal static string CacheControlDirectiveType_SharedMaxAge {
+            get {
+                return ResourceManager.GetString("CacheControlDirectiveType_SharedMaxAge", resourceCulture);
+            }
+        }
+        
+        internal static string CacheControlDirectiveType_Vary {
+            get {
+                return ResourceManager.GetString("CacheControlDirectiveType_Vary", resourceCulture);
+            }
+        }
+        
         internal static string CacheControlDirectiveType_Scope {
             get {
                 return ResourceManager.GetString("CacheControlDirectiveType_Scope", resourceCulture);
@@ -93,6 +105,12 @@ namespace HotChocolate.Caching.Properties {
             }
         }
         
+        internal static string ErrorHelper_CacheControlBothSharedMaxAgeAndInheritMaxAge {
+            get {
+                return ResourceManager.GetString("ErrorHelper_CacheControlBothSharedMaxAgeAndInheritMaxAge", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_CacheControlInheritMaxAgeOnQueryTypeField {
             get {
                 return ResourceManager.GetString("ErrorHelper_CacheControlInheritMaxAgeOnQueryTypeField", resourceCulture);
@@ -108,6 +126,12 @@ namespace HotChocolate.Caching.Properties {
         internal static string ErrorHelper_CacheControlNegativeMaxAge {
             get {
                 return ResourceManager.GetString("ErrorHelper_CacheControlNegativeMaxAge", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_CacheControlNegativeSharedMaxAge {
+            get {
+                return ResourceManager.GetString("ErrorHelper_CacheControlNegativeSharedMaxAge", resourceCulture);
             }
         }
         

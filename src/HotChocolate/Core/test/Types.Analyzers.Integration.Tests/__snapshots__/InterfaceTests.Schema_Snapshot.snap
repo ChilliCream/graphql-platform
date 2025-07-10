@@ -1,0 +1,18 @@
+schema {
+  query: Query
+}
+
+interface Product {
+  kind: String!
+  id: String!
+}
+
+type Book implements Product {
+  title: String!
+  id: String!
+  kind: String!
+}
+
+type Query {
+  product: Product!
+}

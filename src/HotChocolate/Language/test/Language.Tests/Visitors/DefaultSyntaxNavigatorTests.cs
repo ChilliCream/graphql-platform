@@ -1,6 +1,3 @@
-#nullable enable
-
-using Xunit;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Language.Visitors;

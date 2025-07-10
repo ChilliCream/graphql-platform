@@ -1,7 +1,7 @@
-﻿{
+{
   "errors": [
     {
-      "message": "The specified value type of field \u0060b\u0060 does not match the field type.",
+      "message": "The specified value type of field `b` does not match the field type.",
       "locations": [
         {
           "line": 1,

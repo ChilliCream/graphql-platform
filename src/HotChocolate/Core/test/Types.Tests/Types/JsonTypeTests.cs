@@ -1,6 +1,6 @@
 using System.Numerics;
 using System.Text.Json;
-using CookieCrumble;
+using CookieCrumble.Xunit.Attributes;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -124,6 +124,7 @@ public class JsonTypeTests
     }
 
     [Theory]
+    [UseCulture("en-US")]
     [InlineData(0)]
     [InlineData(-15)]
     [InlineData(-10.5)]
@@ -280,7 +281,7 @@ public class JsonTypeTests
                                 inputJson(input: $input)
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object> { {"input", input }, })
+                        .SetVariableValues(new Dictionary<string, object> { { "input", input } })
                         .Build());
 
         result.MatchInlineSnapshot(

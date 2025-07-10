@@ -152,6 +152,9 @@
             },
             {
               "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
             }
           ]
         },
@@ -193,12 +196,7 @@
                 },
                 {
                   "name": "bar",
-                  "args": [
-                    {
-                      "name": "baz",
-                      "value": "null"
-                    }
-                  ]
+                  "args": []
                 },
                 {
                   "name": "bar",

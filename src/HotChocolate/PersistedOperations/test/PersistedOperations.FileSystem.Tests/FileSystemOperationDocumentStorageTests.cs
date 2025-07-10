@@ -1,7 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using Snapshooter.Xunit;
 using IOPath = System.IO.Path;
 
 namespace HotChocolate.PersistedOperations.FileSystem;
@@ -112,7 +111,7 @@ public class FileSystemOperationDocumentStorageTests
 
             var storage = new FileSystemOperationDocumentStorage(new DefaultOperationDocumentFileMap(path));
 
-            var documentId = "1234";
+            const string documentId = "1234";
             await File.WriteAllTextAsync(IOPath.Combine(path, documentId + ".graphql"), "{ foo }");
 
             // act
@@ -120,7 +119,7 @@ public class FileSystemOperationDocumentStorageTests
 
             // assert
             Assert.NotNull(document);
-            Assert.IsType<OperationDocument>(document).Document!.ToString().MatchSnapshot();
+            Assert.IsType<OperationDocument>(document).Document.ToString().MatchSnapshot();
         }
         finally
         {

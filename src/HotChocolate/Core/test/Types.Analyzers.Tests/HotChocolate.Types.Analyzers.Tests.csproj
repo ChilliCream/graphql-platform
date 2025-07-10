@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-
     <IsPackable>false</IsPackable>
     <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);HotChocolate.Execution.Generated</InterceptorsPreviewNamespaces>
 
@@ -13,17 +11,25 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Analyzers.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
-    <NoWarn>GD0001</NoWarn>
+    <NoWarn>$(NoWarn);GD0001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.Abstractions\GreenDonut.Data.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.EntityFramework\GreenDonut.Data.EntityFramework.csproj" />
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.Primitives\GreenDonut.Data.Primitives.csproj" />
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data\GreenDonut.Data.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />
     <ProjectReference Include="..\..\src\Types.Analyzers\HotChocolate.Types.Analyzers.csproj" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Basic.Reference.Assemblies" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net80" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net90" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net100" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
 

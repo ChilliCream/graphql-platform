@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace StrawberryShake.Tools;
 
-public class JsonConsoleOutputCommand  : IDisposable
+public class JsonConsoleOutputCommand : IDisposable
 {
     private readonly JsonConsoleOutputData _data;
 
@@ -16,12 +16,8 @@ public class JsonConsoleOutputCommand  : IDisposable
     {
         var json = JsonSerializer.Serialize(_data, new JsonSerializerOptions
         {
-#if NET5_0_OR_GREATER
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-#else
-                IgnoreNullValues = true,
-#endif
-            IgnoreReadOnlyProperties = false,
+            IgnoreReadOnlyProperties = false
         });
         Console.WriteLine(json);
     }

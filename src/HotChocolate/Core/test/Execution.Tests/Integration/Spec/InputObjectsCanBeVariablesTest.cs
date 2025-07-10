@@ -1,6 +1,5 @@
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Integration.Spec;
@@ -11,8 +10,6 @@ public class InputObjectsCanBeVariablesTest
     [Fact]
     public async Task EnsureInputObjectsCanBeVariablesTest()
     {
-        Snapshot.FullName();
-
         await ExpectValid(
                 """
                 query ($a: String! $b: String!) {
@@ -30,7 +27,7 @@ public class InputObjectsCanBeVariablesTest
                     new Dictionary<string, object?>
                     {
                         { "a", "a" },
-                        { "b", "b" },
+                        { "b", "b" }
                     }))
             .MatchSnapshotAsync();
     }
@@ -38,8 +35,6 @@ public class InputObjectsCanBeVariablesTest
     [Fact]
     public async Task EnsureInputObjectsCanBeVariablesAndLiteralsTest()
     {
-        Snapshot.FullName();
-
         await ExpectValid(
             """
             query ($a: String!) {
@@ -53,15 +48,13 @@ public class InputObjectsCanBeVariablesTest
             }
             """,
             r => r.AddQueryType<Query>(),
-            r => r.SetVariableValues(new Dictionary<string, object?> { { "a", "a" }, }))
+            r => r.SetVariableValues(new Dictionary<string, object?> { { "a", "a" } }))
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task EnsureInputObjectsCanBeLiteralsTest()
     {
-        Snapshot.FullName();
-
         await ExpectValid(
             @"
                     {

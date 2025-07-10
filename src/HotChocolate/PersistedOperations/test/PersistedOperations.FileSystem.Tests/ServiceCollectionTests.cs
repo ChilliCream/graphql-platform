@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Utilities;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.PersistedOperations.FileSystem;
 
@@ -61,7 +60,7 @@ public class ServiceCollectionTests
                 .AddFileSystemOperationDocumentStorage(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>((Action) Action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]

@@ -8,7 +8,7 @@ internal class StoredOperation<T>
     where T : class
 {
     private readonly object _sync = new();
-    private ImmutableList<Subscription> _subscriptions = ImmutableList<Subscription>.Empty;
+    private ImmutableList<Subscription> _subscriptions = [];
     private bool _disposed;
     private IOperationResult<T>? _lastResult;
 
@@ -40,12 +40,9 @@ internal class StoredOperation<T>
     public void SetResult(
         IOperationResult<T> result)
     {
-        if (result is null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
+        ArgumentNullException.ThrowIfNull(result);
 
-        var updated = LastResult is null or { Data: null, } ||
+        var updated = LastResult is null or { Data: null } ||
             result.Data is null ||
             !result.Data.Equals(LastResult?.Data);
         LastResult = result;
@@ -75,7 +72,7 @@ internal class StoredOperation<T>
 
     public void UpdateResult(ulong version)
     {
-        if (LastResult is { DataInfo: { } dataInfo, } result)
+        if (LastResult is { DataInfo: { } dataInfo } result)
         {
             SetResult(
                 result.WithData(
@@ -96,16 +93,13 @@ internal class StoredOperation<T>
         }
 
         // clear subscribers
-        _subscriptions = ImmutableList<Subscription>.Empty;
+        _subscriptions = [];
     }
 
     public IDisposable Subscribe(
         IObserver<IOperationResult<T>> observer)
     {
-        if (observer is null)
-        {
-            throw new ArgumentNullException(nameof(observer));
-        }
+        ArgumentNullException.ThrowIfNull(observer);
 
         var subscription = new Subscription(observer, Unsubscribe);
 

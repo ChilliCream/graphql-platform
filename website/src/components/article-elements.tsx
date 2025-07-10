@@ -5,9 +5,19 @@ import { IsSmallDesktop, THEME_COLORS } from "@/style";
 export const ArticleHeader = styled.header`
   position: relative;
 
+  > .gatsby-image-wrapper {
+    margin-bottom: 36px;
+  }
+
   ${IsSmallDesktop(`
     padding-top: 72px;
   `)}
+
+  @media only screen and (min-width: 700px) {
+    > .gatsby-image-wrapper {
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+    }
+  }
 `;
 
 export interface ArticleVideoProps {
@@ -33,6 +43,7 @@ export const ArticleVideo = styled.iframe.attrs<ArticleVideoProps>(
 export const ArticleHeaderVideoContainer = styled.div`
   position: relative;
   padding-top: 56.22%;
+  margin-bottom: 36px;
   overflow: hidden;
 
   @media only screen and (min-width: 700px) {

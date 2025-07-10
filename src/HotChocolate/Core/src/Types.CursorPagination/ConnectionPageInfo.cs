@@ -1,7 +1,7 @@
 namespace HotChocolate.Types.Pagination;
 
 /// <summary>
-/// Represents the connection paging page info.
+/// Represents the connection page info.
 /// This class provides additional information about pagination in a connection.
 /// </summary>
 public class ConnectionPageInfo : IPageInfo

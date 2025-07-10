@@ -39,17 +39,21 @@ internal sealed class ExportCommand : Command
         string? schemaName,
         CancellationToken cancellationToken)
     {
-        schemaName ??= Schema.DefaultName;
+        schemaName ??= ISchemaDefinition.DefaultName;
 
         var schema = await host.Services
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync(schemaName, cancellationToken);
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync(schemaName, cancellationToken);
 
-        var sdl = schema.Schema.Print();
+        var sdl = schema.Schema.ToString();
 
         if (output is not null)
         {
-            await File.WriteAllTextAsync(output.FullName, sdl, Encoding.UTF8, cancellationToken);
+            await File.WriteAllTextAsync(
+                output.FullName,
+                sdl,
+                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
+                cancellationToken);
         }
         else
         {

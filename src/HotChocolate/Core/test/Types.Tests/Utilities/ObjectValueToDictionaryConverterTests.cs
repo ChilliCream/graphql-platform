@@ -1,5 +1,4 @@
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Utilities;
 
@@ -62,12 +61,12 @@ public class ObjectValueToDictionaryConverterTests
 
         var obj = new ObjectValueNode(
             new ObjectFieldNode("a",
-                new ListValueNode([child, child,])),
+                new ListValueNode([child, child])),
             new ObjectFieldNode("b",
                 new ListValueNode(
                 [
                     new StringValueNode("a"),
-                    new StringValueNode("b"),
+                    new StringValueNode("b")
                 ])));
 
         // act

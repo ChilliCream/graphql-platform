@@ -1,4 +1,5 @@
 using HotChocolate.Subscriptions.Diagnostics;
+using HotChocolate.Utilities;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using static HotChocolate.Subscriptions.RabbitMQ.RabbitMQResources;
@@ -7,7 +8,7 @@ namespace HotChocolate.Subscriptions.RabbitMQ;
 
 internal sealed class RabbitMQConnection : IRabbitMQConnection, IDisposable
 {
-    private const int _retryCount = 6;
+    private const int RetryCount = 6;
     private readonly object _sync = new();
     private readonly TaskCompletionSource<IConnection> _completionSource = new();
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
@@ -19,17 +20,14 @@ internal sealed class RabbitMQConnection : IRabbitMQConnection, IDisposable
     {
         _diagnosticEvents = diagnosticEvents ?? throw new ArgumentNullException(nameof(diagnosticEvents));
 
-        if (connectionFactory is null)
-        {
-            throw new ArgumentNullException(nameof(connectionFactory));
-        }
+        ArgumentNullException.ThrowIfNull(connectionFactory);
 
         InitializeConnection(connectionFactory);
     }
 
     public async Task<IModel> GetChannelAsync()
     {
-        ThrowIfDisposed();
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_channel is not null)
         {
@@ -65,58 +63,50 @@ internal sealed class RabbitMQConnection : IRabbitMQConnection, IDisposable
         _connection?.Dispose();
     }
 
-    private void ThrowIfDisposed()
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(typeof(RabbitMQResources).FullName);
-        }
-    }
-
     private void InitializeConnection(ConnectionFactory connectionFactory)
+        => InitializeConnectionAsync(connectionFactory).FireAndForget();
+
+    private async Task InitializeConnectionAsync(ConnectionFactory connectionFactory)
     {
-        Task.Run(async () =>
+        connectionFactory.AutomaticRecoveryEnabled = true;
+        connectionFactory.DispatchConsumersAsync = true;
+        var connectionAttempt = 0;
+
+        while (connectionAttempt < RetryCount)
         {
-            connectionFactory.AutomaticRecoveryEnabled = true;
-            connectionFactory.DispatchConsumersAsync = true;
-            var connectionAttempt = 0;
-
-            while (connectionAttempt < _retryCount)
+            try
             {
-                try
-                {
-                    var connection = connectionFactory.CreateConnection();
+                var connection = connectionFactory.CreateConnection();
 
-                    if (_completionSource.TrySetResult(connection))
-                    {
-                        return;
-                    }
-
-                    throw new InvalidOperationException(
-                        RabbitMQConnection_InitializeConnection_ConnectionSucceededButFailedUnexpectedly);
-                }
-                catch (BrokerUnreachableException)
+                if (_completionSource.TrySetResult(connection))
                 {
-                    connectionAttempt++;
-                    _diagnosticEvents.ProviderInfo(string.Format(
-                        RabbitMQConnection_InitializeConnection_ConnectionAttemptFailed,
-                        connectionAttempt));
+                    return;
                 }
 
-                if (connectionAttempt < _retryCount)
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, connectionAttempt))).ConfigureAwait(false);
-                }
+                throw new InvalidOperationException(
+                    RabbitMQConnection_InitializeConnection_ConnectionSucceededButFailedUnexpectedly);
+            }
+            catch (BrokerUnreachableException)
+            {
+                connectionAttempt++;
+                _diagnosticEvents.ProviderInfo(string.Format(
+                    RabbitMQConnection_InitializeConnection_ConnectionAttemptFailed,
+                    connectionAttempt));
             }
 
-            _diagnosticEvents.ProviderInfo(string.Format(
-                RabbitMQConnection_InitializeConnection_ConnectionFailedAfterRetry,
-                connectionAttempt));
-
-            if (!_completionSource.TrySetException(new RabbitMQConnectionFailedException(connectionAttempt)))
+            if (connectionAttempt < RetryCount)
             {
-                throw new InvalidOperationException(RabbitMQConnection_InitializeConnection_ConnectionFailedUnexpectedly);
+                await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, connectionAttempt))).ConfigureAwait(false);
             }
-        });
+        }
+
+        _diagnosticEvents.ProviderInfo(string.Format(
+            RabbitMQConnection_InitializeConnection_ConnectionFailedAfterRetry,
+            connectionAttempt));
+
+        if (!_completionSource.TrySetException(new RabbitMQConnectionFailedException(connectionAttempt)))
+        {
+            throw new InvalidOperationException(RabbitMQConnection_InitializeConnection_ConnectionFailedUnexpectedly);
+        }
     }
 }

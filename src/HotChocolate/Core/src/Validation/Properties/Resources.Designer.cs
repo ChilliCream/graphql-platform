@@ -159,7 +159,7 @@ namespace HotChocolate.Validation.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified directive is not valid the current location..
+        ///   Looks up a localized string similar to The specified directive is not valid in the current location..
         /// </summary>
         internal static string ErrorHelper_DirectiveNotValidInLocation {
             get {
@@ -303,7 +303,7 @@ namespace HotChocolate.Validation.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to `{0}` returns {1} value. Selections on scalars or enums are never allowed, because they are the leaf nodes of any GraphQL query..
+        ///   Looks up a localized string similar to Field &quot;{0}&quot; must not have a selection since type &quot;{1}&quot; has no subfields..
         /// </summary>
         internal static string ErrorHelper_LeafFieldsCannotHaveSelections {
             get {
@@ -321,7 +321,7 @@ namespace HotChocolate.Validation.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to `{0}` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed..
+        ///   Looks up a localized string similar to Field &quot;{0}&quot; of type &quot;{1}&quot; must have a selection of subfields. Did you mean &quot;{0} {{ ... }}&quot;?.
         /// </summary>
         internal static string ErrorHelper_NoSelectionOnCompositeField {
             get {
@@ -330,7 +330,7 @@ namespace HotChocolate.Validation.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Operation `{0}` has a empty selection set. Root types without subfields are disallowed..
+        ///   Looks up a localized string similar to Operation `{0}` has an empty selection set. Root types without subfields are disallowed..
         /// </summary>
         internal static string ErrorHelper_NoSelectionOnRootType {
             get {
@@ -371,6 +371,24 @@ namespace HotChocolate.Validation.Properties {
         internal static string ErrorHelper_OperationNameNotUnique {
             get {
                 return ResourceManager.GetString("ErrorHelper_OperationNameNotUnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This GraphQL schema does not support `{0}` operations..
+        /// </summary>
+        internal static string ErrorHelper_OperationNotSupported {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OperationNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The skip and include directives are not allowed to be used on root fields of the subscription type..
+        /// </summary>
+        internal static string ErrorHelper_SkipAndIncludeNotAllowedOnSubscriptionRootField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_SkipAndIncludeNotAllowedOnSubscriptionRootField", resourceCulture);
             }
         }
         

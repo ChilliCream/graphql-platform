@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // StarWarsOnReviewSubNoStoreClient
 
@@ -56,6 +57,9 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
@@ -176,9 +180,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubN
         /// The name of the current Object type at runtime.
         /// </summary>
         public global::System.String __typename { get; }
-
         public global::System.Int32 Stars { get; }
-
         public global::System.String? Commentary { get; }
 
         public virtual global::System.Boolean Equals(OnReviewSub_OnReview_Review? other)
@@ -253,9 +255,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubN
         /// The name of the current Object type at runtime.
         /// </summary>
         public global::System.String __typename { get; }
-
         public global::System.Int32 Stars { get; }
-
         public global::System.String? Commentary { get; }
     }
 
@@ -287,8 +287,99 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubN
 
         public static OnReviewSubSubscriptionDocument Instance { get; } = new OnReviewSubSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x73, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x4f, 0x6e, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x53, 0x75, 0x62, 0x20, 0x7b, 0x20, 0x6f, 0x6e, 0x52, 0x65, 0x76, 0x69, 0x65, 0x77, 0x28, 0x65, 0x70, 0x69, 0x73, 0x6f, 0x64, 0x65, 0x3a, 0x20, 0x4e, 0x45, 0x57, 0x5f, 0x48, 0x4f, 0x50, 0x45, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x73, 0x74, 0x61, 0x72, 0x73, 0x20, 0x63, 0x6f, 0x6d, 0x6d, 0x65, 0x6e, 0x74, 0x61, 0x72, 0x79, 0x20, 0x7d, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x73,
+            0x75,
+            0x62,
+            0x73,
+            0x63,
+            0x72,
+            0x69,
+            0x70,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x4f,
+            0x6e,
+            0x52,
+            0x65,
+            0x76,
+            0x69,
+            0x65,
+            0x77,
+            0x53,
+            0x75,
+            0x62,
+            0x20,
+            0x7b,
+            0x20,
+            0x6f,
+            0x6e,
+            0x52,
+            0x65,
+            0x76,
+            0x69,
+            0x65,
+            0x77,
+            0x28,
+            0x65,
+            0x70,
+            0x69,
+            0x73,
+            0x6f,
+            0x64,
+            0x65,
+            0x3a,
+            0x20,
+            0x4e,
+            0x45,
+            0x57,
+            0x5f,
+            0x48,
+            0x4f,
+            0x50,
+            0x45,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x73,
+            0x74,
+            0x61,
+            0x72,
+            0x73,
+            0x20,
+            0x63,
+            0x6f,
+            0x6d,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x61,
+            0x72,
+            0x79,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "92220fce37342d7ade3d63a2a81342eb1fb14bac");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -322,6 +413,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubN
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IOnReviewSubResult);
+
         public global::System.IObservable<global::StrawberryShake.IOperationResult<IOnReviewSubResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest();
@@ -402,6 +494,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubN
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubNoStore.IOnReviewSubResult);
+
         public OnReviewSubResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (dataInfo is OnReviewSubResultInfo info)
@@ -443,9 +536,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubN
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubNoStore.State.ReviewData OnReview { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => global::System.Array.Empty<global::StrawberryShake.EntityId>();
         public global::System.UInt64 Version => 0;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new OnReviewSubResultInfo(OnReview);
@@ -551,9 +644,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubN
         }
 
         public global::System.String __typename { get; }
-
         public global::System.Int32? Stars { get; }
-
         public global::System.String? Commentary { get; }
     }
 
@@ -564,6 +655,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubN
         public global::StrawberryShake.IOperationStore OperationStore => throw new global::System.NotSupportedException("OperationStore is not supported in store less mode");
         public global::StrawberryShake.IEntityStore EntityStore => throw new global::System.NotSupportedException("EntityStore is not supported in store less mode");
         public global::StrawberryShake.IEntityIdSerializer EntityIdSerializer => throw new global::System.NotSupportedException("EntityIdSerializer is not supported in store less mode");
+
         public global::StrawberryShake.IOperationRequestFactory GetOperationRequestFactory(global::System.Type resultType)
         {
             throw new global::System.NotSupportedException("GetOperationRequestFactory is not supported in store less mode");

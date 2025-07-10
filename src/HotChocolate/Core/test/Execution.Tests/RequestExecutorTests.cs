@@ -1,7 +1,6 @@
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution;
 
@@ -20,7 +19,7 @@ public class RequestExecutorTests
         var executor = schema.MakeExecutable();
 
         // act
-        Task Action() => executor.ExecuteAsync(null!, default);
+        Task Action() => executor.ExecuteAsync(null!, CancellationToken.None);
 
         // assert
         ArgumentException exception = await Assert.ThrowsAsync<ArgumentNullException>(Action);
@@ -98,8 +97,6 @@ public class RequestExecutorTests
     [Fact]
     public async Task Ensure_Errors_Do_Not_Result_In_Timeouts()
     {
-        Snapshot.FullName();
-
         using var cts = new CancellationTokenSource(1000);
 
         await new ServiceCollection()

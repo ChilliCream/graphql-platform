@@ -3,7 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 #nullable enable
 
@@ -20,12 +19,12 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("TestInput");
+        var type = schema.Types.GetType<InputObjectType>("TestInput");
 
         var fieldData = new Dictionary<string, object?>
         {
             { "field1", "abc" },
-            { "field2", 123 },
+            { "field2", 123 }
         };
 
         // act
@@ -45,7 +44,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("TestInput");
+        var type = schema.Types.GetType<InputObjectType>("TestInput");
 
         var fieldData = new ObjectValueNode(
             new ObjectFieldNode("field1", "abc"),
@@ -68,12 +67,12 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("Test2Input");
+        var type = schema.Types.GetType<InputObjectType>("Test2Input");
 
         var fieldData = new Dictionary<string, object?>
         {
             { "field1", "abc" },
-            { "field2", 123 },
+            { "field2", 123 }
         };
 
         // act
@@ -93,7 +92,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("Test2Input");
+        var type = schema.Types.GetType<InputObjectType>("Test2Input");
 
         var fieldData = new ObjectValueNode(
             new ObjectFieldNode("field1", "abc"),
@@ -116,11 +115,11 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("Test2Input");
+        var type = schema.Types.GetType<InputObjectType>("Test2Input");
 
         var fieldData = new Dictionary<string, object?>
         {
-            { "field2", 123 },
+            { "field2", 123 }
         };
 
         // act
@@ -140,7 +139,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("Test2Input");
+        var type = schema.Types.GetType<InputObjectType>("Test2Input");
 
         var fieldData = new ObjectValueNode(
             new ObjectFieldNode("field2", 123));
@@ -162,12 +161,12 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("TestInput");
+        var type = schema.Types.GetType<InputObjectType>("TestInput");
 
         var fieldData = new Dictionary<string, object?>
         {
             { "field2", 123 },
-            { "field3", 123 },
+            { "field3", 123 }
         };
 
         // act
@@ -189,7 +188,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("TestInput");
+        var type = schema.Types.GetType<InputObjectType>("TestInput");
 
         var fieldData = new ObjectValueNode(
             new ObjectFieldNode("field2", 123),
@@ -214,13 +213,13 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("TestInput");
+        var type = schema.Types.GetType<InputObjectType>("TestInput");
 
         var fieldData = new Dictionary<string, object?>
         {
             { "field2", 123 },
             { "field3", 123 },
-            { "field4", 123 },
+            { "field4", 123 }
         };
 
         // act
@@ -242,7 +241,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("TestInput");
+        var type = schema.Types.GetType<InputObjectType>("TestInput");
 
         var fieldData = new ObjectValueNode(
             new ObjectFieldNode("field2", 123),
@@ -268,7 +267,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("TestInput");
+        var type = schema.Types.GetType<InputObjectType>("TestInput");
 
         var fieldData = new ObjectValueNode(
             new ObjectFieldNode("field1", "abc"),
@@ -280,7 +279,7 @@ public class InputParserTests
 
         var options = new InputParserOptions
         {
-            IgnoreAdditionalInputFields = true,
+            IgnoreAdditionalInputFields = true
         };
 
         // act
@@ -300,7 +299,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("Test3Input");
+        var type = schema.Types.GetType<InputObjectType>("Test3Input");
 
         var fieldData = new ObjectValueNode(
             new ObjectFieldNode("field2", 123));
@@ -322,7 +321,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = new NonNullType(schema.GetType<InputObjectType>("Test3Input"));
+        var type = new NonNullType(schema.Types.GetType<InputObjectType>("Test3Input"));
 
         // act
         var parser = new InputParser();
@@ -346,7 +345,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = new NonNullType(schema.GetType<InputObjectType>("FooInput"));
+        var type = new NonNullType(schema.Types.GetType<InputObjectType>("FooInput"));
 
         var listData = new ListValueNode(
             NullValueNode.Default,
@@ -404,7 +403,7 @@ public class InputParserTests
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
-        var oneOfInput = schema.GetType<InputObjectType>(nameof(OneOfInput));
+        var oneOfInput = schema.Types.GetType<InputObjectType>(nameof(OneOfInput));
 
         var parser = new InputParser();
 
@@ -430,7 +429,7 @@ public class InputParserTests
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
-        var oneOfInput = schema.GetType<InputObjectType>(nameof(OneOfInput));
+        var oneOfInput = schema.Types.GetType<InputObjectType>(nameof(OneOfInput));
 
         var parser = new InputParser();
 
@@ -457,7 +456,7 @@ public class InputParserTests
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
-        var oneOfInput = schema.GetType<InputObjectType>(nameof(OneOfInput));
+        var oneOfInput = schema.Types.GetType<InputObjectType>(nameof(OneOfInput));
 
         var parser = new InputParser();
 
@@ -481,11 +480,11 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("Test4Input");
+        var type = schema.Types.GetType<InputObjectType>("Test4Input");
 
         var fieldData = new Dictionary<string, object?>
         {
-            { "field1", "abc" },
+            { "field1", "abc" }
         };
 
         // act
@@ -548,7 +547,7 @@ public class InputParserTests
 
     public enum Bar
     {
-        Baz,
+        Baz
     }
 
     [OneOf]
@@ -563,8 +562,8 @@ public class InputParserTests
 
     public class Test4Input
     {
-        public string Field1 { get; set; } = default!;
+        public string Field1 { get; set; } = null!;
 
-        public int Field2 { get; set; } = default!;
+        public int Field2 { get; set; }
     }
 }

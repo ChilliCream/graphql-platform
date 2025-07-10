@@ -1,5 +1,4 @@
 using System.Text;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Configuration.Validation;
 

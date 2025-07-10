@@ -6,17 +6,23 @@ namespace HotChocolate.Data.MongoDb;
 
 public static class BsonDocumentExtensions
 {
-    private static readonly IBsonSerializerRegistry _serializerRegistry =
+    private static readonly IBsonSerializerRegistry s_serializerRegistry =
         BsonSerializer.SerializerRegistry;
 
-    private static readonly IBsonSerializer<BsonDocument> _documentSerializer =
-        _serializerRegistry.GetSerializer<BsonDocument>();
+    private static readonly IBsonSerializer<BsonDocument> s_documentSerializer =
+        s_serializerRegistry.GetSerializer<BsonDocument>();
 
     public static BsonDocument DefaultRender(
         this FilterDefinition<BsonDocument> bsonQuery)
-        => bsonQuery.Render(_documentSerializer, _serializerRegistry);
+        => bsonQuery.Render(
+            new RenderArgs<BsonDocument>(
+                s_documentSerializer,
+                s_serializerRegistry));
 
     public static BsonDocument DefaultRender(
         this SortDefinition<BsonDocument> bsonQuery)
-        => bsonQuery.Render(_documentSerializer, _serializerRegistry);
+        => bsonQuery.Render(
+            new RenderArgs<BsonDocument>(
+                s_documentSerializer,
+                s_serializerRegistry));
 }

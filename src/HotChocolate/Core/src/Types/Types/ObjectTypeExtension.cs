@@ -2,7 +2,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -19,12 +19,12 @@ namespace HotChocolate.Types;
 /// which is itself an extension of another GraphQL service.
 /// </para>
 /// </summary>
-public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
+public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeConfiguration>
 {
     private Action<IObjectTypeDescriptor>? _configure;
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="ObjectType"/>.
+    /// Initializes a new instance of <see cref="ObjectType"/>.
     /// </summary>
     protected ObjectTypeExtension()
     {
@@ -32,7 +32,7 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
     }
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="ObjectType"/>.
+    /// Initializes a new instance of <see cref="ObjectType"/>.
     /// </summary>
     /// <param name="configure">
     /// A delegate to specify the properties of this type.
@@ -46,7 +46,7 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
     }
 
     /// <summary>
-    /// Create a object type from a type definition.
+    /// Create an object type from a type definition.
     /// </summary>
     /// <param name="definition">
     /// The object type definition that specifies the properties of the
@@ -55,24 +55,24 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
     /// <returns>
     /// Returns the newly created object type.
     /// </returns>
-    public static ObjectTypeExtension CreateUnsafe(ObjectTypeDefinition definition)
-        => new() { Definition = definition, };
+    public static ObjectTypeExtension CreateUnsafe(ObjectTypeConfiguration definition)
+        => new() { Configuration = definition };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;
 
-    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = ObjectTypeDescriptor.New(context.DescriptorContext);
                 _configure!(descriptor);
-                return descriptor.CreateDefinition();
+                return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -84,15 +84,15 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
-        context.RegisterDependencies(definition);
+        base.OnRegisterDependencies(context, configuration);
+        context.RegisterDependencies(configuration);
     }
 
     protected override void Merge(
         ITypeCompletionContext context,
-        INamedType type)
+        ITypeDefinition type)
     {
         if (type is ObjectType objectType)
         {
@@ -102,10 +102,10 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
             objectType.AssertMutable();
 
             ApplyGlobalFieldIgnores(
-                Definition!,
-                objectType.Definition!);
+                Configuration!,
+                objectType.Configuration!);
 
-            Definition!.MergeInto(objectType.Definition!);
+            Configuration!.MergeInto(objectType.Configuration!);
         }
         else
         {
@@ -116,14 +116,14 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
     }
 
     private void ApplyGlobalFieldIgnores(
-        ObjectTypeDefinition extensionDef,
-        ObjectTypeDefinition typeDef)
+        ObjectTypeConfiguration extensionDef,
+        ObjectTypeConfiguration typeDef)
     {
         var fieldIgnores = extensionDef.GetFieldIgnores();
 
         if (fieldIgnores.Count > 0)
         {
-            var fields = new List<ObjectFieldDefinition>();
+            var fields = new List<ObjectFieldConfiguration>();
 
             foreach (var binding in fieldIgnores)
             {

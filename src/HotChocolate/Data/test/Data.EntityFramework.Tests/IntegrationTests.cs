@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
@@ -37,13 +36,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
-                }
-                ");
+            """
+            {
+              executable {
+                name
+              }
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -69,13 +68,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -139,13 +138,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -171,13 +170,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -206,13 +205,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -235,7 +234,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // assert
         var result = await executor.ExecuteAsync(
-            @"query Test {
+            """
+            query Test {
                 authorOffsetPagingExecutable {
                     items {
                         name
@@ -245,7 +245,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                         hasPreviousPage
                     }
                 }
-            }");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -272,13 +273,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -307,13 +308,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -342,13 +343,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -377,13 +378,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -412,13 +413,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -447,13 +448,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();

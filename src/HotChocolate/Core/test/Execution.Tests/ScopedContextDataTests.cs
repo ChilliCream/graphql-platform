@@ -1,5 +1,3 @@
-using Snapshooter.Xunit;
-
 namespace HotChocolate.Execution;
 
 public class ScopedContextDataTests

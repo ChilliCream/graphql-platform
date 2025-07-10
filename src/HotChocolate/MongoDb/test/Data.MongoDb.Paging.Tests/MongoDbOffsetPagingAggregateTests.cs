@@ -1,10 +1,10 @@
-using CookieCrumble;
 using HotChocolate.Data.MongoDb.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using Squadron;
@@ -15,11 +15,11 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
 {
     private readonly List<Foo> _foos =
     [
-        new Foo { Bar = "a", },
-        new Foo { Bar = "b", },
-        new Foo { Bar = "d", },
-        new Foo { Bar = "e", },
-        new Foo { Bar = "f", },
+        new Foo { Bar = "a" },
+        new Foo { Bar = "b" },
+        new Foo { Bar = "d" },
+        new Foo { Bar = "e" },
+        new Foo { Bar = "f" }
     ];
 
     private readonly MongoResource _resource;
@@ -51,9 +51,9 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -78,9 +78,9 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -105,9 +105,9 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -132,9 +132,9 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
@@ -153,18 +153,19 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
             }");
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), result)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     private Func<IResolverContext, MongoDbAggregateFluentExecutable<TResult>>
@@ -204,10 +205,10 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
                                 }
                             })
                         .UseOffsetPaging<ObjectType<Foo>>(
-                            options: new PagingOptions { IncludeTotalCount = true, });
+                            options: new PagingOptions { IncludeTotalCount = true });
                 })
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
@@ -223,7 +224,7 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync();
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync();
     }
 }

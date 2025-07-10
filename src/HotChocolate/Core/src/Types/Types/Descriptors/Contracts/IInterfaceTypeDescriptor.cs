@@ -1,10 +1,10 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
 public interface IInterfaceTypeDescriptor
-    : IDescriptor<InterfaceTypeDefinition>
+    : IDescriptor<InterfaceTypeConfiguration>
     , IFluent
 {
     /// <summary>

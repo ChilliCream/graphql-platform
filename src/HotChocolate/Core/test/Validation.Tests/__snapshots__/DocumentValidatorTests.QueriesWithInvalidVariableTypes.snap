@@ -1,12 +1,12 @@
 [
   {
-    "Message": "Operation `takesCat` has a empty selection set. Root types without subfields are disallowed.",
+    "Message": "Operation `takesCat` has an empty selection set. Root types without subfields are disallowed.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 2,
-        "Column": 17
+        "Line": 1,
+        "Column": 1
       }
     ],
     "Extensions": {
@@ -17,13 +17,13 @@
     "Exception": null
   },
   {
-    "Message": "Operation `takesDogBang` has a empty selection set. Root types without subfields are disallowed.",
+    "Message": "Operation `takesDogBang` has an empty selection set. Root types without subfields are disallowed.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 6,
-        "Column": 17
+        "Line": 5,
+        "Column": 1
       }
     ],
     "Extensions": {
@@ -34,13 +34,13 @@
     "Exception": null
   },
   {
-    "Message": "Operation `takesListOfPet` has a empty selection set. Root types without subfields are disallowed.",
+    "Message": "Operation `takesListOfPet` has an empty selection set. Root types without subfields are disallowed.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 10,
-        "Column": 17
+        "Line": 9,
+        "Column": 1
       }
     ],
     "Extensions": {
@@ -51,13 +51,13 @@
     "Exception": null
   },
   {
-    "Message": "Operation `takesCatOrDog` has a empty selection set. Root types without subfields are disallowed.",
+    "Message": "Operation `takesCatOrDog` has an empty selection set. Root types without subfields are disallowed.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 14,
-        "Column": 17
+        "Line": 13,
+        "Column": 1
       }
     ],
     "Extensions": {
@@ -73,8 +73,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 2,
-        "Column": 32
+        "Line": 1,
+        "Column": 16
       }
     ],
     "Extensions": {
@@ -90,8 +90,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 2,
-        "Column": 17
+        "Line": 1,
+        "Column": 1
       }
     ],
     "Extensions": {
@@ -105,8 +105,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 6,
-        "Column": 36
+        "Line": 5,
+        "Column": 20
       }
     ],
     "Extensions": {
@@ -122,8 +122,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 6,
-        "Column": 17
+        "Line": 5,
+        "Column": 1
       }
     ],
     "Extensions": {
@@ -137,8 +137,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 10,
-        "Column": 38
+        "Line": 9,
+        "Column": 22
       }
     ],
     "Extensions": {
@@ -154,8 +154,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 10,
-        "Column": 17
+        "Line": 9,
+        "Column": 1
       }
     ],
     "Extensions": {
@@ -169,8 +169,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 14,
-        "Column": 37
+        "Line": 13,
+        "Column": 21
       }
     ],
     "Extensions": {
@@ -186,8 +186,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 14,
-        "Column": 17
+        "Line": 13,
+        "Column": 1
       }
     ],
     "Extensions": {

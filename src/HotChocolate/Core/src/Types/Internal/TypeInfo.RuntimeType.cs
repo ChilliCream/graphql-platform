@@ -63,7 +63,7 @@ internal sealed partial class TypeInfo
                         ? current
                         : ExtendedType.Tools.ChangeNullability(
                             current,
-                            [true,],
+                            [true],
                             cache);
 
                     list.Add((TypeComponentKind.List, rewritten));
@@ -75,7 +75,7 @@ internal sealed partial class TypeInfo
                         ? current
                         : ExtendedType.Tools.ChangeNullability(
                             current,
-                            [true,],
+                            [true],
                             cache);
 
                     list.Add((TypeComponentKind.Named, rewritten));
@@ -95,7 +95,6 @@ internal sealed partial class TypeInfo
             while (IsWrapperType(current) ||
                 IsTaskType(current) ||
                 IsOptional(current) ||
-                IsOption(current) ||
                 IsFieldResult(current))
             {
                 current = type.TypeArguments[0];
@@ -122,9 +121,6 @@ internal sealed partial class TypeInfo
         private static bool IsOptional(IExtendedType type) =>
             type.IsGeneric &&
             typeof(Optional<>) == type.Definition;
-
-        private static bool IsOption(IExtendedType type) =>
-            type is { IsGeneric: true, Definition.Name: "FSharpOption`1", };
 
         private static bool IsFieldResult(IExtendedType type) =>
             type.IsGeneric && typeof(IFieldResult).IsAssignableFrom(type);

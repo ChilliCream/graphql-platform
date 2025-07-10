@@ -2,7 +2,6 @@ using System.Globalization;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -22,7 +21,7 @@ public class DateTimeTypeTests
             14,
             DateTimeKind.Utc);
 
-        var expectedValue = "2018-06-11T08:46:14.000Z";
+        const string expectedValue = "2018-06-11T08:46:14.000Z";
 
         // act
         var serializedValue = (string)dateTimeType.Serialize(dateTime);
@@ -39,7 +38,7 @@ public class DateTimeTypeTests
         var dateTime = new DateTimeOffset(
             new DateTime(2018, 6, 11, 8, 46, 14),
             new TimeSpan(4, 0, 0));
-        var expectedValue = "2018-06-11T08:46:14.000+04:00";
+        const string expectedValue = "2018-06-11T08:46:14.000+04:00";
 
         // act
         var serializedValue = (string)dateTimeType.Serialize(dateTime);
@@ -86,8 +85,7 @@ public class DateTimeTypeTests
             new TimeSpan(4, 0, 0));
 
         // act
-        var dateTime = (DateTimeOffset)dateTimeType
-            .ParseLiteral(literal);
+        var dateTime = (DateTimeOffset)dateTimeType.ParseLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -148,8 +146,7 @@ public class DateTimeTypeTests
             new TimeSpan(4, 0, 0));
 
         // act
-        var dateTime = (DateTimeOffset)dateTimeType
-            .ParseLiteral(literal);
+        var dateTime = (DateTimeOffset)dateTimeType.ParseLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -165,8 +162,7 @@ public class DateTimeTypeTests
             new TimeSpan(4, 0, 0));
 
         // act
-        var deserializedValue = (DateTimeOffset)dateTimeType
-            .Deserialize("2018-06-11T08:46:14+04:00");
+        var deserializedValue = (DateTimeOffset)dateTimeType.Deserialize("2018-06-11T08:46:14+04:00")!;
 
         // assert
         Assert.Equal(dateTime, deserializedValue);
@@ -182,8 +178,7 @@ public class DateTimeTypeTests
             new TimeSpan(0, 0, 0));
 
         // act
-        var deserializedValue = (DateTimeOffset)dateTimeType
-            .Deserialize("2018-06-11T08:46:14.000Z");
+        var deserializedValue = (DateTimeOffset)dateTimeType.Deserialize("2018-06-11T08:46:14.000Z")!;
 
         // assert
         Assert.Equal(dateTime, deserializedValue);
@@ -204,8 +199,7 @@ public class DateTimeTypeTests
             DateTimeKind.Unspecified);
 
         // act
-        var deserializedValue = ((DateTimeOffset)dateTimeType
-            .Deserialize("2018-06-11T08:46:14+04:00")).DateTime;
+        var deserializedValue = ((DateTimeOffset)dateTimeType.Deserialize("2018-06-11T08:46:14+04:00")!).DateTime;
 
         // assert
         Assert.Equal(dateTime, deserializedValue);
@@ -227,8 +221,7 @@ public class DateTimeTypeTests
             DateTimeKind.Utc);
 
         // act
-        var deserializedValue = ((DateTimeOffset)dateTimeType
-            .Deserialize("2018-06-11T08:46:14.000Z"));
+        var deserializedValue = (DateTimeOffset)dateTimeType.Deserialize("2018-06-11T08:46:14.000Z")!;
 
         // assert
         Assert.Equal(dateTime, deserializedValue.UtcDateTime);
@@ -241,7 +234,7 @@ public class DateTimeTypeTests
         var type = new DateTimeType();
 
         // act
-        var success = type.TryDeserialize("abc", out var deserialized);
+        var success = type.TryDeserialize("abc", out _);
 
         // assert
         Assert.False(success);
@@ -347,7 +340,7 @@ public class DateTimeTypeTests
         var dateTime = new DateTimeOffset(
             new DateTime(2018, 6, 11, 8, 46, 14),
             new TimeSpan(4, 0, 0));
-        var expectedLiteralValue = "2018-06-11T08:46:14.000+04:00";
+        const string expectedLiteralValue = "2018-06-11T08:46:14.000+04:00";
 
         // act
         var stringLiteral =
@@ -364,7 +357,7 @@ public class DateTimeTypeTests
         var dateTimeType = new DateTimeType();
         DateTimeOffset dateTime =
             new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-        var expectedLiteralValue = "2018-06-11T08:46:14.000Z";
+        const string expectedLiteralValue = "2018-06-11T08:46:14.000Z";
 
         // act
         var stringLiteral =
@@ -397,7 +390,7 @@ public class DateTimeTypeTests
         var kind = type.Kind;
 
         // assert
-        Assert.Equal(TypeKind.Scalar, type.Kind);
+        Assert.Equal(TypeKind.Scalar, kind);
     }
 
     [Fact]
@@ -416,6 +409,20 @@ public class DateTimeTypeTests
         res.ToJson().MatchSnapshot();
     }
 
+    [Fact]
+    public void DateTime_Relaxed_Format_Check()
+    {
+        // arrange
+        const string s = "2011-08-30";
+
+        // act
+        var dateTimeType = new DateTimeType(disableFormatCheck: true);
+        var result = dateTimeType.Deserialize(s);
+
+        // assert
+        Assert.IsType<DateTimeOffset>(result);
+    }
+
     public class DefaultDateTime
     {
         public DateTime Test => default;
@@ -429,17 +436,17 @@ public class DateTimeTypeTests
             {
                 // A DateTime with UTC offset (+00:00).
                 "2011-08-30T13:22:53.108Z",
-                new(2011, 8, 30, 13, 22, 53, 108, new TimeSpan())
+                new(2011, 8, 30, 13, 22, 53, 108, TimeSpan.Zero)
             },
             {
                 // A DateTime with +00:00 which is the same as UTC.
                 "2011-08-30T13:22:53.108+00:00",
-                new(2011, 8, 30, 13, 22, 53, 108, new TimeSpan())
+                new(2011, 8, 30, 13, 22, 53, 108, TimeSpan.Zero)
             },
             {
                 // The z and t may be lower case.
                 "2011-08-30t13:22:53.108z",
-                new(2011, 8, 30, 13, 22, 53, 108, new TimeSpan())
+                new(2011, 8, 30, 13, 22, 53, 108, TimeSpan.Zero)
             },
             {
                 // A DateTime with -3h offset.
@@ -467,8 +474,8 @@ public class DateTimeTypeTests
 
     public static TheoryData<string> InvalidDateTimeScalarStrings()
     {
-        return new TheoryData<string>
-        {
+        return
+        [
             // https://www.graphql-scalars.com/date-time/#test-cases (invalid strings)
             // The minutes of the offset are missing.
             "2011-08-30T13:22:53.108-03",
@@ -494,6 +501,6 @@ public class DateTimeTypeTests
             // Additional test cases.
             // A DateTime with 8 fractional digits.
             "2011-08-30T13:22:53.12345678+03:30"
-        };
+        ];
     }
 }

@@ -16,7 +16,6 @@ import {
   MostRecentBlogPostsSection,
   NewsletterSection,
 } from "@/components/widgets";
-import { useAnimationIntersectionObserver } from "@/hooks";
 
 // Images
 import {
@@ -30,8 +29,6 @@ import {
 } from "../../components/images";
 
 const AnalyticsPage: FC = () => {
-  useAnimationIntersectionObserver();
-
   return (
     <SiteLayout>
       <SEO title="Analytics" />
@@ -43,7 +40,7 @@ const AnalyticsPage: FC = () => {
           insights. Make informed decisions and gain a deeper understanding of
           your system, driving smarter and more effective outcomes.
         </HeroTeaser>
-        <HeroLink to="/docs/bananacakepop/v2/open-telemetry/operation-monitoring">
+        <HeroLink to="/docs/nitro/open-telemetry/operation-monitoring">
           Get Started
         </HeroLink>
         <HeroImageContainer>
@@ -106,7 +103,7 @@ const AnalyticsPage: FC = () => {
         }
         primaryLink="mailto:contact@chillicream.com?subject=Demo"
         primaryLinkText="Book a Demo"
-        secondaryLink="https://eat.bananacakepop.com"
+        secondaryLink="https://nitro.chillicream.com"
         secondaryLinkText="Launch"
       />
       <NewsletterSection />

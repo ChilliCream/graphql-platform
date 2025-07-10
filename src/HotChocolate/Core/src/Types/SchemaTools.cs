@@ -1,6 +1,5 @@
-#if NET8_0_OR_GREATER
-using System.Collections.Frozen;
-#endif
+using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -12,77 +11,37 @@ internal static class SchemaTools
         this ISchemaBuilder builder,
         Action<ISchemaTypeDescriptor> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
-
-        List<Action<ISchemaTypeDescriptor>> options;
-
-        if (!builder.ContextData.TryGetValue(WellKnownContextData.InternalSchemaOptions, out var value))
-        {
-            options = [];
-            builder.ContextData.Add(WellKnownContextData.InternalSchemaOptions, options);
-            value = options;
-        }
-
-        options = (List<Action<ISchemaTypeDescriptor>>)value!;
-        options.Add(configure);
+        builder.Features.GetOrSet<TypeSystemFeature>().SchemaTypeOptions.Add(configure);
     }
 
     public static void AddSchemaConfiguration(
         this IDescriptorContext context,
         Action<ISchemaTypeDescriptor> configure)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(configure);
 
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
-
-        List<Action<ISchemaTypeDescriptor>> options;
-
-        if (!context.ContextData.TryGetValue(WellKnownContextData.InternalSchemaOptions, out var value))
-        {
-            options = [];
-            context.ContextData.Add(WellKnownContextData.InternalSchemaOptions, options);
-            value = options;
-        }
-
-        options = (List<Action<ISchemaTypeDescriptor>>)value!;
-        options.Add(configure);
+        context.Features.GetOrSet<TypeSystemFeature>().SchemaTypeOptions.Add(configure);
     }
 
     public static void ApplySchemaConfigurations(
         this IDescriptorContext context,
         ISchemaTypeDescriptor descriptor)
     {
-        if (context is null)
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(descriptor);
+
+        if (!context.Features.TryGet(out TypeSystemFeature feature))
         {
-            throw new ArgumentNullException(nameof(context));
+            return;
         }
 
-        if (descriptor is null)
+        foreach (var option in feature.SchemaTypeOptions)
         {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (context.ContextData.TryGetValue(WellKnownContextData.InternalSchemaOptions, out var value) &&
-            value is List<Action<ISchemaTypeDescriptor>> options)
-        {
-            foreach (var option in options)
-            {
-                option(descriptor);
-            }
+            option(descriptor);
         }
     }
 }

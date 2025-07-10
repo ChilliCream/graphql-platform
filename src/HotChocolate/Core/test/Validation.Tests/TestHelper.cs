@@ -1,14 +1,11 @@
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
-using HotChocolate.Validation.Options;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Validation;
 
 public static class TestHelper
 {
     public static void ExpectValid(
-        Action<IValidationBuilder> configure,
+        Action<DocumentValidatorBuilder> configure,
         string sourceText,
         IEnumerable<KeyValuePair<string, object?>>? contextData = null)
     {
@@ -20,29 +17,19 @@ public static class TestHelper
     }
 
     public static void ExpectValid(
-        ISchema schema,
-        Action<IValidationBuilder> configure,
+        ISchemaDefinition schema,
+        Action<DocumentValidatorBuilder> configure,
         string sourceText,
         IEnumerable<KeyValuePair<string, object?>>? contextData = null)
     {
         // arrange
-        var serviceCollection = new ServiceCollection();
-
-        var builder = serviceCollection
-            .AddValidation()
-            .ConfigureValidation(c => c.Modifiers.Add(o => o.Rules.Clear()));
+        var builder = DocumentValidatorBuilder.New();
         configure(builder);
+        var validator = builder.Build();
+        var rule = validator.Rules[0];
 
-        IServiceProvider services = serviceCollection.BuildServiceProvider();
-        var rule =
-            services.GetRequiredService<IValidationConfiguration>()
-                .GetRules(Schema.DefaultName).First();
-
-        var context = ValidationUtils.CreateContext(schema);
-        var query = Utf8GraphQLParser.Parse(sourceText);
-        context.Prepare(query);
-
-        context.ContextData = new Dictionary<string, object?>();
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var context = ValidationUtils.CreateContext(document, schema);
 
         if (contextData is not null)
         {
@@ -53,7 +40,32 @@ public static class TestHelper
         }
 
         // act
-        rule.Validate(context, query);
+        rule.Validate(context, document);
+
+        // assert
+        Assert.False(context.UnexpectedErrorsDetected);
+        Assert.Empty(context.Errors);
+    }
+
+    public static void ExpectValid(
+        ISchemaDefinition schema,
+        Action<DocumentValidatorBuilder> configure,
+        string sourceText,
+        Action<DocumentValidatorContext> configureContext)
+    {
+        // arrange
+        var builder = DocumentValidatorBuilder.New();
+        configure(builder);
+        var validator = builder.Build();
+        var rule = validator.Rules[0];
+
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var context = ValidationUtils.CreateContext(document, schema);
+
+        configureContext(context);
+
+        // act
+        rule.Validate(context, document);
 
         // assert
         Assert.False(context.UnexpectedErrorsDetected);
@@ -61,7 +73,7 @@ public static class TestHelper
     }
 
     public static void ExpectErrors(
-        Action<IValidationBuilder> configure,
+        Action<DocumentValidatorBuilder> configure,
         string sourceText,
         IEnumerable<KeyValuePair<string, object>>? contextData = null,
         params Action<IError>[] elementInspectors)
@@ -75,32 +87,20 @@ public static class TestHelper
     }
 
     public static void ExpectErrors(
-        ISchema schema,
-        Action<IValidationBuilder> configure,
+        ISchemaDefinition schema,
+        Action<DocumentValidatorBuilder> configure,
         string sourceText,
         IEnumerable<KeyValuePair<string, object>>? contextData = null,
         params Action<IError>[] elementInspectors)
     {
         // arrange
-        var serviceCollection = new ServiceCollection();
-
-        var builder = serviceCollection
-            .AddValidation()
-            .ConfigureValidation(c => c.Modifiers.Add(o => o.Rules.Clear()));
+        var builder = DocumentValidatorBuilder.New();
         configure(builder);
+        var validator = builder.Build();
+        var rule = validator.Rules[0];
 
-        IServiceProvider services = serviceCollection.BuildServiceProvider();
-        var rule =
-            services.GetRequiredService<IValidationConfiguration>()
-                .GetRules(Schema.DefaultName).First();
-
-        var context = ValidationUtils.CreateContext(schema);
-        context.MaxAllowedErrors = int.MaxValue;
-
-        var query = Utf8GraphQLParser.Parse(sourceText);
-        context.Prepare(query);
-
-        context.ContextData = new Dictionary<string, object?>();
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var context = ValidationUtils.CreateContext(document, schema);
 
         if (contextData is not null)
         {
@@ -111,7 +111,38 @@ public static class TestHelper
         }
 
         // act
-        rule.Validate(context, query);
+        rule.Validate(context, document);
+
+        // assert
+        Assert.NotEmpty(context.Errors);
+
+        if (elementInspectors.Length > 0)
+        {
+            Assert.Collection(context.Errors, elementInspectors);
+        }
+
+        context.Errors.MatchSnapshot();
+    }
+
+    public static void ExpectErrors(
+        ISchemaDefinition schema,
+        Action<DocumentValidatorBuilder> configure,
+        string sourceText,
+        Action<DocumentValidatorContext> configureContext,
+        params Action<IError>[] elementInspectors)
+    {
+        // arrange
+        var builder = DocumentValidatorBuilder.New();
+        configure(builder);
+        var validator = builder.Build();
+        var rule = validator.Rules[0];
+
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var context = ValidationUtils.CreateContext(document, schema);
+        configureContext(context);
+
+        // act
+        rule.Validate(context, document);
 
         // assert
         Assert.NotEmpty(context.Errors);

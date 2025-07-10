@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
-using HotChocolate.Pagination.Expressions;
+using GreenDonut.Data.Cursors;
+using GreenDonut.Data.Expressions;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Pagination.Utilities;
@@ -45,13 +46,15 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
         if (arguments.After is not null)
         {
             var cursor = CursorParser.Parse(arguments.After, keys);
-            query = query.Where(ExpressionHelpers.BuildWhereExpression<TEntity>(keys, cursor, forward));
+            var (whereExpr, _) = ExpressionHelpers.BuildWhereExpression<TEntity>(keys, cursor, true);
+            query = query.Where(whereExpr);
         }
 
         if (arguments.Before is not null)
         {
             var cursor = CursorParser.Parse(arguments.Before, keys);
-            query = query.Where(ExpressionHelpers.BuildWhereExpression<TEntity>(keys, cursor, forward));
+            var (whereExpr, _) = ExpressionHelpers.BuildWhereExpression<TEntity>(keys, cursor, false);
+            query = query.Where(whereExpr);
         }
 
         if (arguments.First is not null)
@@ -62,7 +65,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
 
         if (arguments.Last is not null)
         {
-            query = query.Reverse().Take(arguments.Last.Value);
+            query = query.Reverse().Take(arguments.Last.Value + 1);
             requestedCount = arguments.Last.Value;
         }
 
@@ -76,7 +79,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
 
         if (!edgesRequired)
         {
-            if(countRequired)
+            if (countRequired)
             {
                 totalCount ??= await executable.CountAsync(context.RequestAborted);
             }
@@ -103,14 +106,15 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
                 .ToAsyncEnumerable(context.RequestAborted)
                 .ConfigureAwait(false))
             {
-                builder.Add(new Edge<TEntity>(item.Item, CursorFormatter.Format(item.Item, keys)));
-                totalCount ??= item.TotalCount;
                 fetchCount++;
 
-                if (fetchCount >= requestedCount)
+                if (fetchCount > requestedCount)
                 {
                     break;
                 }
+
+                builder.Add(new Edge<TEntity>(item.Item, CursorFormatter.Format(item.Item, keys)));
+                totalCount ??= item.TotalCount;
             }
         }
         else
@@ -120,13 +124,14 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
                 .ToAsyncEnumerable(context.RequestAborted)
                 .ConfigureAwait(false))
             {
-                builder.Add(new Edge<TEntity>(item, CursorFormatter.Format(item, keys)));
                 fetchCount++;
 
-                if (fetchCount >= requestedCount)
+                if (fetchCount > requestedCount)
                 {
                     break;
                 }
+
+                builder.Add(new Edge<TEntity>(item, CursorFormatter.Format(item, keys)));
             }
         }
 
@@ -202,7 +207,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
             IQueryable<TEntity> q => q.AsDbContextExecutable(),
             IEnumerable<TEntity> e => e.AsQueryable().AsDbContextExecutable(),
             IQueryableExecutable<TEntity> e => e,
-            _ => throw new InvalidOperationException(EfQueryableCursorPagingHandler_SourceNotSupported),
+            _ => throw new InvalidOperationException(EfQueryableCursorPagingHandler_SourceNotSupported)
         };
 
     private static CursorKey[] ParseDataSetKeys<T>(IQueryable<T> source)

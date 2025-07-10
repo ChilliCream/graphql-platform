@@ -2,7 +2,6 @@ using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -33,7 +32,7 @@ public class NodeTypeTests : TypeTestBase
             {
                 Assert.Equal("id", t.Name);
                 Assert.IsType<IdType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
             });
     }
 
@@ -170,7 +169,7 @@ public class NodeTypeTests : TypeTestBase
                                 }
                             }
                         }")
-                    .SetVariableValues(new Dictionary<string, object> { { "id", id }, })
+                    .SetVariableValues(new Dictionary<string, object> { { "id", id } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -225,7 +224,7 @@ public class NodeTypeTests : TypeTestBase
                                 }
                             }
                         }")
-                    .SetVariableValues(new Dictionary<string, object> { { "id", id }, })
+                    .SetVariableValues(new Dictionary<string, object> { { "id", id } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -236,13 +235,25 @@ public class NodeTypeTests : TypeTestBase
         async Task Error() => await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query9>()
-            .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = true)
             .AddGlobalObjectIdentification()
             .BuildSchemaAsync();
 
         var error = await Assert.ThrowsAsync<SchemaException>(Error);
 
         error.Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task NodeResolver_Is_Missing_EnsureAllNodesCanBeResolved_False()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query9>()
+            .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
+            .AddGlobalObjectIdentification()
+            .BuildSchemaAsync();
+
+        Assert.NotNull(schema);
     }
 
     public class Query

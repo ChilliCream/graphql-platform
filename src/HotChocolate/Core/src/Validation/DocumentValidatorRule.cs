@@ -2,32 +2,34 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Validation;
 
-public class DocumentValidatorRule<TVisitor>
-    : IDocumentValidatorRule
-    where TVisitor : DocumentValidatorVisitor
+public sealed class DocumentValidatorRule : IDocumentValidatorRule
 {
-    private readonly TVisitor _visitor;
+    private readonly DocumentValidatorVisitor _visitor;
 
-    public DocumentValidatorRule(TVisitor visitor, bool isCacheable = true)
+    public DocumentValidatorRule(
+        DocumentValidatorVisitor visitor,
+        bool isCacheable = true,
+        ushort priority = ushort.MaxValue)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
+
         _visitor = visitor;
         IsCacheable = isCacheable;
+        Priority = priority;
     }
+
+    public ushort Priority { get; }
 
     public bool IsCacheable { get; }
 
-    public void Validate(IDocumentValidatorContext context, DocumentNode document)
+    public void Validate(DocumentValidatorContext context, DocumentNode document)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(document);
 
         _visitor.Visit(document, context);
     }
+
+    public override string? ToString()
+        => _visitor.GetType().FullName;
 }

@@ -15,11 +15,8 @@ import {
   MostRecentBlogPostsSection,
   NewsletterSection,
 } from "@/components/widgets";
-import { useAnimationIntersectionObserver } from "@/hooks";
 
 const PricingPage: FC = () => {
-  useAnimationIntersectionObserver();
-
   return (
     <SiteLayout>
       <SEO title="Pricing" />
@@ -43,7 +40,7 @@ const PricingPage: FC = () => {
                 "For personal or non-commercial projects, to start hacking.",
               features: ["Public Slack Channel"],
               ctaText: "Start for Free",
-              ctaLink: "https://eat.bananacakepop.com",
+              ctaLink: "https://nitro.chillicream.com",
             },
             {
               title: "Dedicated",

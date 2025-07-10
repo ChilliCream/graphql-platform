@@ -1,9 +1,9 @@
 using GreenDonut;
-using GreenDonut.Projections;
-using HotChocolate.Pagination;
+using GreenDonut.Data;
 
 namespace HotChocolate.Types;
 
+[DataLoaderGroup("Group1DataLoader", "Group2DataLoader")]
 public static class DataLoaders
 {
     [DataLoader(Lookups = [nameof(CreateLookupKey)])]
@@ -12,27 +12,28 @@ public static class DataLoaders
         => await Task.FromResult(keys.ToDictionary(k => k, k => k + " - some info"));
 
     public static int CreateLookupKey(string key)
-        => default!;
+        => 0;
 
     public static int CreateLookupKey(Guid key)
-        => default!;
+        => 0;
 
     [DataLoader]
     public static Task<ILookup<int, string>> GetSomeInfoGroupedById(
         IReadOnlyList<int> keys)
-        => default!;
+        => null!;
 
+    [DataLoaderGroup("Group3DataLoader", "Group2DataLoader")]
     [DataLoader]
     public static Task<string> GetSomeInfoCacheById(
         int key)
-        => default!;
+        => null!;
 
     [DataLoader]
     public static Task<string> GetSomeInfoCacheWithServiceById(
         int key,
         ChapterRepository repository,
         CancellationToken ct)
-        => default!;
+        => null!;
 
     [DataLoader]
     public static async Task<IDictionary<int, string>> GetSomeInfoWithServiceById(
@@ -71,7 +72,7 @@ public static class DataLoaders
         IQueryable<Author> query,
         ISelectorBuilder selector,
         CancellationToken ct)
-        => await Task.FromResult(query.Select(selector, t => t.Id).ToDictionary(t => t.Id));
+        => await Task.FromResult(query.Select(t => t.Id, selector).ToDictionary(t => t.Id));
 
     [DataLoader]
     public static async Task<IDictionary<int, Author>> GetAuthorWithPagingById(

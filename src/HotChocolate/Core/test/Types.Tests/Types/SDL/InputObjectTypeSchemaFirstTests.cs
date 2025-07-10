@@ -1,5 +1,3 @@
-using Snapshooter.Xunit;
-
 namespace HotChocolate.Types.SDL;
 
 public class InputObjectTypeSchemaFirstTests
@@ -8,7 +6,7 @@ public class InputObjectTypeSchemaFirstTests
     public void Declare_Simple_Input_Type()
     {
         // arrange
-        var sdl =
+        const string sdl =
             @"type Query {
                     hello(input: HelloInput): String
                 }
@@ -23,7 +21,7 @@ public class InputObjectTypeSchemaFirstTests
             .AddDocumentFromString(sdl)
             .BindRuntimeType<Query>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -31,7 +29,7 @@ public class InputObjectTypeSchemaFirstTests
     public void Declare_Input_Type_With_Type_Extension()
     {
         // arrange
-        var sdl =
+        const string sdl =
             @"type Query {
                     hello(input: HelloInput): String
                 }
@@ -50,7 +48,7 @@ public class InputObjectTypeSchemaFirstTests
             .AddDocumentFromString(sdl)
             .BindRuntimeType<Query>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -58,7 +56,7 @@ public class InputObjectTypeSchemaFirstTests
     public void Declare_Query_Type_With_Type_Extension_Add_Directive_To_Field()
     {
         // arrange
-        var sdl =
+        const string sdl =
             @"type Query {
                     hello(input: HelloInput): String
                 }
@@ -79,7 +77,7 @@ public class InputObjectTypeSchemaFirstTests
             .AddDocumentFromString(sdl)
             .BindRuntimeType<Query>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -87,7 +85,7 @@ public class InputObjectTypeSchemaFirstTests
     public void Declare_Query_Type_With_Type_Extension_Add_Directive_To_Type()
     {
         // arrange
-        var sdl =
+        const string sdl =
             @"type Query {
                     hello(input: HelloInput): String
                 }
@@ -106,7 +104,7 @@ public class InputObjectTypeSchemaFirstTests
             .AddDocumentFromString(sdl)
             .BindRuntimeType<Query>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 

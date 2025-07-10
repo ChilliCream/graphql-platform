@@ -29,20 +29,10 @@ public static class DirectiveArgumentDescriptorExtensions
     /// </exception>
     public static IDirectiveArgumentDescriptor DefaultValueSyntax(
         this IDirectiveArgumentDescriptor descriptor,
-#if NET7_0_OR_GREATER
-        [StringSyntax("graphql")]
-#endif
-        string syntax)
+        [StringSyntax("graphql")] string syntax)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (syntax is null)
-        {
-            throw new ArgumentNullException(nameof(syntax));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(syntax);
 
         var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(syntax);
         return descriptor.DefaultValue(value);

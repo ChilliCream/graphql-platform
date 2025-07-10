@@ -1,5 +1,4 @@
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -22,6 +21,7 @@ public class RgbaTypeTests : ScalarTypeTestBase
     [InlineData(typeof(IntValueNode), 1, false)]
     [InlineData(typeof(BooleanValueNode), true, false)]
     [InlineData(typeof(StringValueNode), "", false)]
+    [InlineData(typeof(StringValueNode), "rgba(٥١, ١٧٠, ٥١, .١)", false)]
     [InlineData(typeof(StringValueNode), "rgb(255,0,0)", true)]
     [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 0%)", true)]
     [InlineData(typeof(StringValueNode), "rgb(300,0,0)", true)]
@@ -54,6 +54,7 @@ public class RgbaTypeTests : ScalarTypeTestBase
     [InlineData(1, false)]
     [InlineData(true, false)]
     [InlineData("", false)]
+    [InlineData("rgba(٥١, ١٧٠, ٥١, .١)", false)]
     [InlineData("rgb(255,0,0)", true)]
     [InlineData("rgb(100%, 0%, 0%)", true)]
     [InlineData("rgb(300,0,0)", true)]
@@ -112,6 +113,7 @@ public class RgbaTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "rgb(1e2, .5e1, .5e0, +.25e2%)")]
     [InlineData(typeof(StringValueNode), "rgba(255, 0, 153.6, 1)")]
     [InlineData(typeof(StringValueNode), "rgba(1e2, .5e1, .5e0, +.25e2%)")]
+    [InlineData(typeof(StringValueNode), "rgba(٥١, ١٧٠, ٥١, .١)")]
     public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
     {
         // arrange
@@ -155,6 +157,7 @@ public class RgbaTypeTests : ScalarTypeTestBase
     [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
     [InlineData("rgba(255, 0, 153.6, 1)")]
     [InlineData("rgba(1e2, .5e1, .5e0, +.25e2%)")]
+    [InlineData("rgba(٥١, ١٧٠, ٥١, .١)")]
     public void Deserialize_GivenValue_ThrowSerializationException(object value)
     {
         // arrange
@@ -197,6 +200,7 @@ public class RgbaTypeTests : ScalarTypeTestBase
     [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
     [InlineData("rgba(255, 0, 153.6, 1)")]
     [InlineData("rgba(1e2, .5e1, .5e0, +.25e2%)")]
+    [InlineData("rgba(٥١, ١٧٠, ٥١, .١)")]
     public void Serialize_GivenObject_ThrowSerializationException(object value)
     {
         // arrange
@@ -237,6 +241,7 @@ public class RgbaTypeTests : ScalarTypeTestBase
     [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
     [InlineData("rgba(255, 0, 153.6, 1)")]
     [InlineData("rgba(1e2, .5e1, .5e0, +.25e2%)")]
+    [InlineData("rgba(٥١, ١٧٠, ٥١, .١)")]
     public void ParseValue_GivenObject_ThrowSerializationException(object value)
     {
         // arrange
@@ -277,6 +282,7 @@ public class RgbaTypeTests : ScalarTypeTestBase
     [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
     [InlineData("rgba(255, 0, 153.6, 1)")]
     [InlineData("rgba(1e2, .5e1, .5e0, +.25e2%)")]
+    [InlineData("rgba(٥١, ١٧٠, ٥١, .١)")]
     public void ParseResult_GivenObject_ThrowSerializationException(object value)
     {
         // arrange

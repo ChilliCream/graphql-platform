@@ -3,7 +3,6 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -14,8 +13,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task A_is_set_and_B_is_set_Error()
     {
-        Snapshot.FullName();
-
         // Error: Exactly one key must be specified
         await new ServiceCollection()
             .AddGraphQL()
@@ -28,8 +25,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task A_is_null_and_B_is_set_Error()
     {
-        Snapshot.FullName();
-
         // Error: Exactly one key must be specified
         await new ServiceCollection()
             .AddGraphQL()
@@ -42,8 +37,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task B_is_set_Valid()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -55,8 +48,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task A_is_variable_and_B_is_set_Error()
     {
-        Snapshot.FullName();
-
         // Error: Exactly one key must be specified
         await new ServiceCollection()
             .AddGraphQL()
@@ -65,7 +56,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument("query($var: String!) { example(input: { a: $var, b: 123 }) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", null }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "var", null } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -73,8 +64,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task B_is_variable_and_var_is_123_Valid()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -82,7 +71,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument("query($var: Int!) { example(input: { b: $var }) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", 123 }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "var", 123 } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -90,8 +79,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task Var_is_object_with_field_b_set_to_123_Valid()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -101,7 +88,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                     .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
                     .SetVariableValues(
                         new Dictionary<string, object?>
-                            { { "var", new ObjectValueNode(new ObjectFieldNode("b", 123)) }, })
+                            { { "var", new ObjectValueNode(new ObjectFieldNode("b", 123)) } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -109,8 +96,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task Input_is_set_to_string_abc123_Error()
     {
-        Snapshot.FullName();
-
         // Error: Incorrect value
 
         await new ServiceCollection()
@@ -127,8 +112,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task Var_is_string_abc123_and_passed_to_input_Error()
     {
-        Snapshot.FullName();
-
         // Error: Incorrect value
 
         await new ServiceCollection()
@@ -138,7 +121,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument("query($var: String!) { example(input: $var) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", "abc123" }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "var", "abc123" } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -146,8 +129,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task A_is_set_and_B_is_set_to_string_Error()
     {
-        Snapshot.FullName();
-
         // Error: Exactly one key must be specified
         await new ServiceCollection()
             .AddGraphQL()
@@ -160,8 +141,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task B_is_set_to_string_Error()
     {
-        Snapshot.FullName();
-
         // Error: Incorrect value for member field {b}
         await new ServiceCollection()
             .AddGraphQL()
@@ -174,8 +153,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task A_is_set_to_string_Error()
     {
-        Snapshot.FullName();
-
         // Error: Incorrect value for member field {b}
         await new ServiceCollection()
             .AddGraphQL()
@@ -188,8 +165,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task B_is_variable_and_var_not_set_Error()
     {
-        Snapshot.FullName();
-
         // Error: Value for member field {b} must be specified
         await new ServiceCollection()
             .AddGraphQL()
@@ -205,8 +180,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task Var_is_object_with_field_a_set_to_abc_Valid()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -216,7 +189,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                     .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
                     .SetVariableValues(
                         new Dictionary<string, object?>
-                            { { "var", new ObjectValueNode(new ObjectFieldNode("a", "abc")) }, })
+                            { { "var", new ObjectValueNode(new ObjectFieldNode("a", "abc")) } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -224,8 +197,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task A_is_set_and_B_is_null_Error()
     {
-        Snapshot.FullName();
-
         // Error: Exactly one key must be specified
         await new ServiceCollection()
             .AddGraphQL()
@@ -238,8 +209,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task B_is_variable_and_var_is_null_Valid()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -247,7 +216,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument("query($var: Int) { example(input: { b: $var }) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", null }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "var", null } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -255,8 +224,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     [Fact]
     public async Task B_is_set_and_C_is_invalid_prop_Error()
     {
-        Snapshot.FullName();
-
         // Error: Exactly one key must be specified
         await new ServiceCollection()
             .AddGraphQL()
@@ -332,14 +299,12 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<QueryType>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
 
     [Fact]
     public async Task Oneof_introspection()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
@@ -366,6 +331,43 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                         oneOf
                     }
                 }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task OneOf_DefaultValue_On_Directive_Argument()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddType<DefaultValue>()
+            .AddDocumentFromString(
+                """
+                type Query {
+                    foo: String @defaultValue(value: { string: "abc" })
+                }
+                """)
+            .AddResolver("Query", "foo", "abc")
+            .ModifyOptions(o => o.EnableOneOf = true)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task OneOf_DefaultValue_On_Directive_Argument_Fluent()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddType<DefaultValueDirectiveType>()
+            .AddType<DefaultValueType>()
+            .AddDocumentFromString(
+                """
+                type Query {
+                    foo: String @defaultValue(value: { string: "abc" })
+                }
+                """)
+            .AddResolver("Query", "foo", "abc")
+            .ModifyOptions(o => o.EnableOneOf = true)
+            .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
 
@@ -424,5 +426,40 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         public string? A { get; set; }
 
         public int? B { get; set; }
+    }
+
+    [DirectiveType(DirectiveLocation.FieldDefinition)]
+    public class DefaultValue
+    {
+        public DefaultValueInput? Value { get; set; }
+    }
+
+    [OneOf]
+    public class DefaultValueInput
+    {
+        public string? String { get; set; }
+
+        public int? Int { get; set; }
+    }
+
+    public class DefaultValueType : InputObjectType
+    {
+        protected override void Configure(IInputObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name("DefaultValue");
+            descriptor.OneOf();
+            descriptor.Field("string").Type<StringType>();
+            descriptor.Field("int").Type<IntType>();
+        }
+    }
+
+    public class DefaultValueDirectiveType : DirectiveType
+    {
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+            descriptor.Name("defaultValue");
+            descriptor.Argument("value").Type<DefaultValueType>();
+            descriptor.Location(DirectiveLocation.FieldDefinition);
+        }
     }
 }

@@ -19,7 +19,7 @@ namespace HotChocolate.Types;
 /// </remarks>
 /// <example>
 /// <para>
-/// A field can be rewritten to a id by adding <c>[ID]</c> to the resolver.
+/// A field can be rewritten to an ID by adding <c>[ID]</c> to the resolver.
 /// </para>
 /// <code>
 /// public class User
@@ -61,18 +61,15 @@ namespace HotChocolate.Types;
 public static class RelayIdFieldExtensions
 {
     /// <inheritdoc cref="RelayIdFieldExtensions"/>
-    /// <param name="descriptor">the the descriptor</param>
+    /// <param name="descriptor">the descriptor</param>
     /// <param name="typeName">
     /// Sets the <see cref="IDAttribute.TypeName">type name</see> of the relay id
     /// </param>
     public static IInputFieldDescriptor ID(
         this IInputFieldDescriptor descriptor,
-        string? typeName = default)
+        string? typeName = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
 
@@ -80,18 +77,29 @@ public static class RelayIdFieldExtensions
     }
 
     /// <inheritdoc cref="RelayIdFieldExtensions"/>
-    /// <param name="descriptor">the the descriptor</param>
+    /// <param name="descriptor">the descriptor</param>
+    /// <typeparam name="T">
+    /// the type from which the <see cref="IDAttribute.TypeName">type name</see> is derived
+    /// </typeparam>
+    public static IInputFieldDescriptor ID<T>(this IInputFieldDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+
+        RelayIdFieldHelpers.ApplyIdToField(descriptor, typeof(T).Name);
+
+        return descriptor;
+    }
+
+    /// <inheritdoc cref="RelayIdFieldExtensions"/>
+    /// <param name="descriptor">the descriptor</param>
     /// <param name="typeName">
     /// Sets the <see cref="IDAttribute.TypeName">type name</see> of the relay id
     /// </param>
     public static IArgumentDescriptor ID(
         this IArgumentDescriptor descriptor,
-        string? typeName = default)
+        string? typeName = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
 
@@ -99,18 +107,29 @@ public static class RelayIdFieldExtensions
     }
 
     /// <inheritdoc cref="RelayIdFieldExtensions"/>
-    /// <param name="descriptor">the the descriptor</param>
+    /// <param name="descriptor">the descriptor</param>
+    /// <typeparam name="T">
+    /// the type from which the <see cref="IDAttribute.TypeName">type name</see> is derived
+    /// </typeparam>
+    public static IArgumentDescriptor ID<T>(this IArgumentDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+
+        RelayIdFieldHelpers.ApplyIdToField(descriptor, typeof(T).Name);
+
+        return descriptor;
+    }
+
+    /// <inheritdoc cref="RelayIdFieldExtensions"/>
+    /// <param name="descriptor">the descriptor</param>
     /// <param name="typeName">
     /// Sets the <see cref="IDAttribute.TypeName">type name</see> of the relay id
     /// </param>
     public static IObjectFieldDescriptor ID(
         this IObjectFieldDescriptor descriptor,
-        string? typeName = default)
+        string? typeName = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
 
@@ -118,13 +137,24 @@ public static class RelayIdFieldExtensions
     }
 
     /// <inheritdoc cref="RelayIdFieldExtensions"/>
-    /// <param name="descriptor">the the descriptor</param>
+    /// <param name="descriptor">the descriptor</param>
+    /// <typeparam name="T">
+    /// the type from which the <see cref="IDAttribute.TypeName">type name</see> is derived
+    /// </typeparam>
+    public static IObjectFieldDescriptor ID<T>(this IObjectFieldDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+
+        RelayIdFieldHelpers.ApplyIdToField(descriptor, typeof(T).Name);
+
+        return descriptor;
+    }
+
+    /// <inheritdoc cref="RelayIdFieldExtensions"/>
+    /// <param name="descriptor">the descriptor</param>
     public static IInterfaceFieldDescriptor ID(this IInterfaceFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor);
 

@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -22,7 +21,7 @@ public class ServiceTypeTests
             .AddType<Address>()
             .BuildSchemaAsync();
 
-        var entityType = schema.GetType<ObjectType>(ServiceType_Name);
+        var entityType = schema.Types.GetType<ObjectType>(ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
 
         // act
@@ -33,7 +32,7 @@ public class ServiceTypeTests
             .Parse((string)value!)
             .MatchInlineSnapshot(
                 """
-                schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@key", "FieldSet" ]) {
+                schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@key", "@tag", "FieldSet" ]) {
                   query: Query
                 }
 
@@ -78,7 +77,7 @@ public class ServiceTypeTests
             .AddQueryType<Query>()
             .BuildSchemaAsync();
 
-        var entityType = schema.GetType<ObjectType>(ServiceType_Name);
+        var entityType = schema.Types.GetType<ObjectType>(ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
 
         // act
@@ -89,7 +88,7 @@ public class ServiceTypeTests
             .Parse((string)value!)
             .MatchInlineSnapshot(
                 """
-                schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.2", import: [ "@key", "FieldSet" ]) {
+                schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.2", import: [ "@key", "@tag", "FieldSet" ]) {
                   query: Query
                 }
 
@@ -127,7 +126,7 @@ public class ServiceTypeTests
 
     public class Query
     {
-        public Address GetAddress(int id) => default!;
+        public Address GetAddress(int id) => null!;
     }
 
     public class Address

@@ -1,9 +1,11 @@
 using System.Collections.Immutable;
+using System.Security.Cryptography;
 using System.Text;
 using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
@@ -11,158 +13,130 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 {
     public void Generate(
         SourceProductionContext context,
-        Compilation compilation,
-        ImmutableArray<SyntaxInfo> syntaxInfos)
+        string assemblyName,
+        ImmutableArray<SyntaxInfo> syntaxInfos,
+        Action<string, SourceText> addSource)
     {
         if (syntaxInfos.IsEmpty)
         {
             return;
         }
 
-        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out _);
+        var module = syntaxInfos.GetModuleInfo(assemblyName, out _);
 
         // the generator is disabled.
-        if(module.Options == ModuleOptions.Disabled)
+        if (module.Options == ModuleOptions.Disabled)
         {
             return;
         }
 
         var sb = PooledObjects.GetStringBuilder();
 
-        WriteTypes(context, syntaxInfos, sb);
+        WriteTypes(syntaxInfos, sb, addSource);
 
         sb.Clear();
-
-        WriteResolvers(context, syntaxInfos, sb);
-
         PooledObjects.Return(sb);
     }
 
     private static void WriteTypes(
-        SourceProductionContext context,
         ImmutableArray<SyntaxInfo> syntaxInfos,
-        StringBuilder sb)
+        StringBuilder sb,
+        Action<string, SourceText> addSource)
     {
-        var hasTypes = false;
-        var firstNamespace = true;
-        foreach (var group in syntaxInfos
-            .OfType<IOutputTypeInfo>()
-            .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
+        var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
+
+        foreach (var type in syntaxInfos.OrderBy(t => t.OrderByKey).OfType<IOutputTypeInfo>())
         {
-            var generator = new ObjectTypeExtensionFileBuilder(sb, group.Key);
+            sb.Clear();
 
-            if (firstNamespace)
+            if (type is ObjectTypeInfo objectType)
             {
-                generator.WriteHeader();
-                firstNamespace = false;
+                var file = new ObjectTypeFileBuilder(sb);
+                WriteFile(file, objectType, typeLookup);
+                addSource(CreateFileName(objectType), SourceText.From(sb.ToString(), Encoding.UTF8));
             }
 
-            generator.WriteBeginNamespace();
-
-            var firstClass = true;
-            foreach (var typeInfo in group)
+            if (type is InterfaceTypeInfo interfaceType)
             {
-                if (typeInfo.Diagnostics.Length > 0)
-                {
-                    continue;
-                }
-
-                var classGenerator = typeInfo is ObjectTypeExtensionInfo
-                    ? (IOutputTypeFileBuilder)new ObjectTypeExtensionFileBuilder(sb, group.Key)
-                    : new InterfaceTypeExtensionFileBuilder(sb, group.Key);
-
-                if (!firstClass)
-                {
-                    sb.AppendLine();
-                }
-
-                firstClass = false;
-
-                classGenerator.WriteBeginClass(typeInfo.Type.Name);
-                classGenerator.WriteInitializeMethod(typeInfo);
-                sb.AppendLine();
-                classGenerator.WriteConfigureMethod(typeInfo);
-                classGenerator.WriteEndClass();
-                hasTypes = true;
-
+                var file = new InterfaceTypeFileBuilder(sb);
+                WriteFile(file, interfaceType, typeLookup);
+                addSource(CreateFileName(interfaceType), SourceText.From(sb.ToString(), Encoding.UTF8));
             }
 
-            generator.WriteEndNamespace();
+            if (type is RootTypeInfo rootType)
+            {
+                var file = new RootTypeFileBuilder(sb);
+                WriteFile(file, rootType, typeLookup);
+                addSource(CreateFileName(rootType), SourceText.From(sb.ToString(), Encoding.UTF8));
+            }
+
+            if (type is ConnectionTypeInfo connectionType)
+            {
+                var file = new ConnectionTypeFileBuilder(sb);
+                WriteFile(file, connectionType, typeLookup);
+                addSource(CreateFileName(connectionType), SourceText.From(sb.ToString(), Encoding.UTF8));
+            }
+
+            if (type is EdgeTypeInfo edgeType)
+            {
+                var file = new EdgeTypeFileBuilder(sb);
+                WriteFile(file, edgeType, typeLookup);
+                addSource(CreateFileName(edgeType), SourceText.From(sb.ToString(), Encoding.UTF8));
+            }
         }
 
-        if (hasTypes)
+        static string CreateFileName(IOutputTypeInfo type)
         {
-            context.AddSource(WellKnownFileNames.TypesFile, sb.ToString());
+#if NET8_0_OR_GREATER
+            Span<byte> hash = stackalloc byte[64];
+            var bytes = Encoding.UTF8.GetBytes(type.Namespace);
+            MD5.HashData(bytes, hash);
+            Base64.EncodeToUtf8InPlace(hash, 16, out var written);
+            hash = hash[..written];
+
+            for (var i = 0; i < hash.Length; i++)
+            {
+                if (hash[i] == (byte)'+')
+                {
+                    hash[i] = (byte)'-';
+                }
+                else if (hash[i] == (byte)'/')
+                {
+                    hash[i] = (byte)'_';
+                }
+                else if (hash[i] == (byte)'=')
+                {
+                    hash = hash[..i];
+                    break;
+                }
+            }
+
+            return $"{type.Name}.{Encoding.UTF8.GetString(hash)}.hc.g.cs";
+#else
+            var bytes = Encoding.UTF8.GetBytes(type.Namespace);
+            var md5 = MD5.Create();
+            var hash = md5.ComputeHash(bytes);
+            var hashString = Convert.ToBase64String(hash, Base64FormattingOptions.None);
+            hashString = hashString.Replace("+", "-").Replace("/", "_").TrimEnd('=');
+            return $"{type.Name}.{hashString}.hc.g.cs";
+#endif
         }
     }
 
-    private static void WriteResolvers(
-        SourceProductionContext context,
-        ImmutableArray<SyntaxInfo> syntaxInfos,
-        StringBuilder sb)
+    private static void WriteFile(TypeFileBuilderBase file, IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
-        var hasResolvers = false;
-        var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
-
-        var generator = new ResolverFileBuilder(sb);
-        generator.WriteHeader();
-
-        var firstNamespace = true;
-        foreach (var group in syntaxInfos
-            .OfType<IOutputTypeInfo>()
-            .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
-        {
-            if (!firstNamespace)
-            {
-                sb.AppendLine();
-            }
-
-            firstNamespace = false;
-
-            generator.WriteBeginNamespace(group.Key);
-
-            var firstClass = true;
-            foreach (var typeInfo in group)
-            {
-                if (!firstClass)
-                {
-                    sb.AppendLine();
-                }
-
-                firstClass = false;
-
-                var resolvers = typeInfo.Resolvers;
-
-                if (typeInfo is ObjectTypeExtensionInfo { NodeResolver: { } nodeResolver })
-                {
-                    resolvers = resolvers.Add(nodeResolver);
-                }
-
-                generator.WriteBeginClass(typeInfo.Type.Name + "Resolvers");
-
-                if (generator.AddResolverDeclarations(resolvers))
-                {
-                    sb.AppendLine();
-                }
-
-                generator.AddParameterInitializer(resolvers, typeLookup);
-
-                foreach (var resolver in resolvers)
-                {
-                    sb.AppendLine();
-                    generator.AddResolver(resolver, typeLookup);
-                }
-
-                generator.WriteEndClass();
-                hasResolvers = true;
-            }
-
-            generator.WriteEndNamespace();
-        }
-
-        if (hasResolvers)
-        {
-            context.AddSource(WellKnownFileNames.ResolversFile, sb.ToString());
-        }
+        file.WriteHeader();
+        file.WriteBeginNamespace(type);
+        file.WriteBeginClass(type);
+        file.WriteInitializeMethod(type);
+        file.WriteConfigureMethod(type);
+        file.WriteBeginResolverClass();
+        file.WriteResolverFields(type);
+        file.WriteResolverConstructor(type, typeLookup);
+        file.WriteResolverMethods(type, typeLookup);
+        file.WriteEndResolverClass();
+        file.WriteEndClass();
+        file.WriteEndNamespace();
+        file.Flush();
     }
 }

@@ -31,7 +31,7 @@ public class QueryableProjectionScope
 
     public void AddAbstractType(Type type, Queue<MemberAssignment> memberAssignments)
     {
-        _abstractType ??= new Dictionary<Type, Queue<MemberAssignment>>();
+        _abstractType ??= [];
         _abstractType[type] = memberAssignments;
     }
 

@@ -1,0 +1,41 @@
+[
+  {
+    "Message": "Maximum allowed introspection depth exceeded.",
+    "Code": "HC0086",
+    "Path": {
+      "Name": "type",
+      "Parent": {
+        "Name": "fields",
+        "Parent": {
+          "Name": "types",
+          "Parent": {
+            "Name": "__schema",
+            "Parent": {
+              "Parent": null,
+              "Length": 0,
+              "IsRoot": true
+            },
+            "Length": 1,
+            "IsRoot": false
+          },
+          "Length": 2,
+          "IsRoot": false
+        },
+        "Length": 3,
+        "IsRoot": false
+      },
+      "Length": 4,
+      "IsRoot": false
+    },
+    "Locations": [
+      {
+        "Line": 37,
+        "Column": 7
+      }
+    ],
+    "Extensions": {
+      "code": "HC0086"
+    },
+    "Exception": null
+  }
+]

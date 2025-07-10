@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // StarWarsIntrospectionClient
 
@@ -59,6 +60,9 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
@@ -188,22 +192,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         /// The type that query operations will be rooted at.
         /// </summary>
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_QueryType QueryType { get; }
-
         /// <summary>
         /// If this server supports mutation, the type that mutation operations will be rooted at.
         /// </summary>
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_MutationType? MutationType { get; }
-
         /// <summary>
         /// If this server support subscription, the type that subscription operations will be rooted at.
         /// </summary>
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_SubscriptionType? SubscriptionType { get; }
-
         /// <summary>
         /// A list of all types supported by this server.
         /// </summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types> Types { get; }
-
         /// <summary>
         /// A list of all directives supported by this server.
         /// </summary>
@@ -515,19 +515,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::System.String? Description { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Fields>? Fields { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_InputFields>? InputFields { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces>? Interfaces { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_EnumValues>? EnumValues { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_PossibleTypes>? PossibleTypes { get; }
 
         public virtual global::System.Boolean Equals(IntrospectionQuery___schema_Types___Type? other)
@@ -651,15 +644,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::System.String Name { get; }
-
         public global::System.String? Description { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Directives_Args> Args { get; }
-
         public global::System.Boolean OnOperation { get; }
-
         public global::System.Boolean OnFragment { get; }
-
         public global::System.Boolean OnField { get; }
 
         public virtual global::System.Boolean Equals(IntrospectionQuery___schema_Directives___Directive? other)
@@ -744,15 +732,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::System.String Name { get; }
-
         public global::System.String? Description { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Fields_Args> Args { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Fields_Type Type { get; }
-
         public global::System.Boolean IsDeprecated { get; }
-
         public global::System.String? DeprecationReason { get; }
 
         public virtual global::System.Boolean Equals(IntrospectionQuery___schema_Types_Fields___Field? other)
@@ -839,11 +822,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::System.String Name { get; }
-
         public global::System.String? Description { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_InputFields_Type Type { get; }
-
         /// <summary>
         /// A GraphQL-formatted string representing the default value for this input value.
         /// </summary>
@@ -928,9 +908,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType? OfType { get; }
 
         public virtual global::System.Boolean Equals(IntrospectionQuery___schema_Types_Interfaces___Type? other)
@@ -1010,11 +988,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::System.String Name { get; }
-
         public global::System.String? Description { get; }
-
         public global::System.Boolean IsDeprecated { get; }
-
         public global::System.String? DeprecationReason { get; }
 
         public virtual global::System.Boolean Equals(IntrospectionQuery___schema_Types_EnumValues___EnumValue? other)
@@ -1096,9 +1071,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType? OfType { get; }
 
         public virtual global::System.Boolean Equals(IntrospectionQuery___schema_Types_PossibleTypes___Type? other)
@@ -1178,11 +1151,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::System.String Name { get; }
-
         public global::System.String? Description { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_InputFields_Type Type { get; }
-
         /// <summary>
         /// A GraphQL-formatted string representing the default value for this input value.
         /// </summary>
@@ -1266,11 +1236,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::System.String Name { get; }
-
         public global::System.String? Description { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_InputFields_Type Type { get; }
-
         /// <summary>
         /// A GraphQL-formatted string representing the default value for this input value.
         /// </summary>
@@ -1355,9 +1322,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType? OfType { get; }
 
         public virtual global::System.Boolean Equals(IntrospectionQuery___schema_Types_Fields_Type___Type? other)
@@ -1438,9 +1403,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType? OfType { get; }
 
         public virtual global::System.Boolean Equals(IntrospectionQuery___schema_Types_InputFields_Type___Type? other)
@@ -1521,9 +1484,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType? OfType { get; }
 
         public virtual global::System.Boolean Equals(IntrospectionQuery___schema_Types_Interfaces_OfType___Type? other)
@@ -1604,9 +1565,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType? OfType { get; }
 
         public virtual global::System.Boolean Equals(IntrospectionQuery___schema_Types_PossibleTypes_OfType___Type? other)
@@ -1687,9 +1646,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType? OfType { get; }
 
         public virtual global::System.Boolean Equals(IntrospectionQuery___schema_Directives_Args_Type___Type? other)
@@ -1770,9 +1727,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType? OfType { get; }
 
         public virtual global::System.Boolean Equals(IntrospectionQuery___schema_Types_Fields_Args_Type___Type? other)
@@ -1853,9 +1808,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType? OfType { get; }
 
         public virtual global::System.Boolean Equals(IntrospectionQuery___schema_Types_Fields_Type_OfType___Type? other)
@@ -1936,9 +1889,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType? OfType { get; }
 
         public virtual global::System.Boolean Equals(IntrospectionQuery___schema_Types_InputFields_Type_OfType___Type? other)
@@ -2019,9 +1970,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType? OfType { get; }
 
         public virtual global::System.Boolean Equals(IntrospectionQuery___schema_Types_Interfaces_OfType_OfType___Type? other)
@@ -2101,7 +2050,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
 
         public virtual global::System.Boolean Equals(IntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType___Type? other)
@@ -2181,22 +2129,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         /// The type that query operations will be rooted at.
         /// </summary>
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_QueryType QueryType { get; }
-
         /// <summary>
         /// If this server supports mutation, the type that mutation operations will be rooted at.
         /// </summary>
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_MutationType? MutationType { get; }
-
         /// <summary>
         /// If this server support subscription, the type that subscription operations will be rooted at.
         /// </summary>
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_SubscriptionType? SubscriptionType { get; }
-
         /// <summary>
         /// A list of all types supported by this server.
         /// </summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types> Types { get; }
-
         /// <summary>
         /// A list of all directives supported by this server.
         /// </summary>
@@ -2291,19 +2235,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial interface IFullType
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::System.String? Description { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Fields>? Fields { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_InputFields>? InputFields { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces>? Interfaces { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_EnumValues>? EnumValues { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_PossibleTypes>? PossibleTypes { get; }
     }
 
@@ -2339,15 +2276,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial interface IIntrospectionQuery___schema_Directives
     {
         public global::System.String Name { get; }
-
         public global::System.String? Description { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Directives_Args> Args { get; }
-
         public global::System.Boolean OnOperation { get; }
-
         public global::System.Boolean OnFragment { get; }
-
         public global::System.Boolean OnField { get; }
     }
 
@@ -2370,15 +2302,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial interface IIntrospectionQuery___schema_Types_Fields
     {
         public global::System.String Name { get; }
-
         public global::System.String? Description { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Fields_Args> Args { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Fields_Type Type { get; }
-
         public global::System.Boolean IsDeprecated { get; }
-
         public global::System.String? DeprecationReason { get; }
     }
 
@@ -2399,11 +2326,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial interface IInputValue
     {
         public global::System.String Name { get; }
-
         public global::System.String? Description { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_InputFields_Type Type { get; }
-
         /// <summary>
         /// A GraphQL-formatted string representing the default value for this input value.
         /// </summary>
@@ -2438,9 +2362,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial interface ITypeRef
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType? OfType { get; }
     }
 
@@ -2474,11 +2396,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial interface IIntrospectionQuery___schema_Types_EnumValues
     {
         public global::System.String Name { get; }
-
         public global::System.String? Description { get; }
-
         public global::System.Boolean IsDeprecated { get; }
-
         public global::System.String? DeprecationReason { get; }
     }
 
@@ -2603,9 +2522,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial interface IIntrospectionQuery___schema_Types_Interfaces_OfType
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType? OfType { get; }
     }
 
@@ -2630,9 +2547,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial interface IIntrospectionQuery___schema_Types_PossibleTypes_OfType
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType? OfType { get; }
     }
 
@@ -2701,9 +2616,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial interface IIntrospectionQuery___schema_Types_Fields_Type_OfType
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType? OfType { get; }
     }
 
@@ -2728,9 +2641,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial interface IIntrospectionQuery___schema_Types_InputFields_Type_OfType
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType? OfType { get; }
     }
 
@@ -2755,9 +2666,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial interface IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType? OfType { get; }
     }
 
@@ -2782,7 +2691,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial interface IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind Kind { get; }
-
         public global::System.String? Name { get; }
     }
 
@@ -2843,6 +2751,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial class __TypeKindSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, __TypeKind>
     {
         public global::System.String TypeName => "__TypeKind";
+
         public __TypeKind Parse(global::System.String serializedValue)
         {
             return serializedValue switch
@@ -2992,8 +2901,981 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
 
         public static IntrospectionQueryQueryDocument Instance { get; } = new IntrospectionQueryQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x49, 0x6e, 0x74, 0x72, 0x6f, 0x73, 0x70, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x71, 0x75, 0x65, 0x72, 0x79, 0x54, 0x79, 0x70, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x7d, 0x20, 0x6d, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x54, 0x79, 0x70, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x7d, 0x20, 0x73, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x54, 0x79, 0x70, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x7d, 0x20, 0x74, 0x79, 0x70, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x46, 0x75, 0x6c, 0x6c, 0x54, 0x79, 0x70, 0x65, 0x20, 0x7d, 0x20, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x76, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x61, 0x72, 0x67, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x20, 0x7d, 0x20, 0x6f, 0x6e, 0x4f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x6f, 0x6e, 0x46, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x6f, 0x6e, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x46, 0x75, 0x6c, 0x6c, 0x54, 0x79, 0x70, 0x65, 0x20, 0x6f, 0x6e, 0x20, 0x5f, 0x5f, 0x54, 0x79, 0x70, 0x65, 0x20, 0x7b, 0x20, 0x6b, 0x69, 0x6e, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x66, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x28, 0x69, 0x6e, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x44, 0x65, 0x70, 0x72, 0x65, 0x63, 0x61, 0x74, 0x65, 0x64, 0x3a, 0x20, 0x74, 0x72, 0x75, 0x65, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x61, 0x72, 0x67, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x20, 0x7d, 0x20, 0x74, 0x79, 0x70, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x54, 0x79, 0x70, 0x65, 0x52, 0x65, 0x66, 0x20, 0x7d, 0x20, 0x69, 0x73, 0x44, 0x65, 0x70, 0x72, 0x65, 0x63, 0x61, 0x74, 0x65, 0x64, 0x20, 0x64, 0x65, 0x70, 0x72, 0x65, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x61, 0x73, 0x6f, 0x6e, 0x20, 0x7d, 0x20, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x20, 0x7d, 0x20, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x66, 0x61, 0x63, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x54, 0x79, 0x70, 0x65, 0x52, 0x65, 0x66, 0x20, 0x7d, 0x20, 0x65, 0x6e, 0x75, 0x6d, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x28, 0x69, 0x6e, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x44, 0x65, 0x70, 0x72, 0x65, 0x63, 0x61, 0x74, 0x65, 0x64, 0x3a, 0x20, 0x74, 0x72, 0x75, 0x65, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x69, 0x73, 0x44, 0x65, 0x70, 0x72, 0x65, 0x63, 0x61, 0x74, 0x65, 0x64, 0x20, 0x64, 0x65, 0x70, 0x72, 0x65, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x61, 0x73, 0x6f, 0x6e, 0x20, 0x7d, 0x20, 0x70, 0x6f, 0x73, 0x73, 0x69, 0x62, 0x6c, 0x65, 0x54, 0x79, 0x70, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x54, 0x79, 0x70, 0x65, 0x52, 0x65, 0x66, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x20, 0x6f, 0x6e, 0x20, 0x5f, 0x5f, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x74, 0x79, 0x70, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x54, 0x79, 0x70, 0x65, 0x52, 0x65, 0x66, 0x20, 0x7d, 0x20, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x54, 0x79, 0x70, 0x65, 0x52, 0x65, 0x66, 0x20, 0x6f, 0x6e, 0x20, 0x5f, 0x5f, 0x54, 0x79, 0x70, 0x65, 0x20, 0x7b, 0x20, 0x6b, 0x69, 0x6e, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6f, 0x66, 0x54, 0x79, 0x70, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6b, 0x69, 0x6e, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6f, 0x66, 0x54, 0x79, 0x70, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6b, 0x69, 0x6e, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6f, 0x66, 0x54, 0x79, 0x70, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6b, 0x69, 0x6e, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x49,
+            0x6e,
+            0x74,
+            0x72,
+            0x6f,
+            0x73,
+            0x70,
+            0x65,
+            0x63,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x51,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x73,
+            0x63,
+            0x68,
+            0x65,
+            0x6d,
+            0x61,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x7d,
+            0x20,
+            0x6d,
+            0x75,
+            0x74,
+            0x61,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x7d,
+            0x20,
+            0x73,
+            0x75,
+            0x62,
+            0x73,
+            0x63,
+            0x72,
+            0x69,
+            0x70,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x7d,
+            0x20,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x46,
+            0x75,
+            0x6c,
+            0x6c,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x20,
+            0x7d,
+            0x20,
+            0x64,
+            0x69,
+            0x72,
+            0x65,
+            0x63,
+            0x74,
+            0x69,
+            0x76,
+            0x65,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x64,
+            0x65,
+            0x73,
+            0x63,
+            0x72,
+            0x69,
+            0x70,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x61,
+            0x72,
+            0x67,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x49,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x56,
+            0x61,
+            0x6c,
+            0x75,
+            0x65,
+            0x20,
+            0x7d,
+            0x20,
+            0x6f,
+            0x6e,
+            0x4f,
+            0x70,
+            0x65,
+            0x72,
+            0x61,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x46,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x6f,
+            0x6e,
+            0x46,
+            0x69,
+            0x65,
+            0x6c,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x46,
+            0x75,
+            0x6c,
+            0x6c,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x5f,
+            0x5f,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x6b,
+            0x69,
+            0x6e,
+            0x64,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x64,
+            0x65,
+            0x73,
+            0x63,
+            0x72,
+            0x69,
+            0x70,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x66,
+            0x69,
+            0x65,
+            0x6c,
+            0x64,
+            0x73,
+            0x28,
+            0x69,
+            0x6e,
+            0x63,
+            0x6c,
+            0x75,
+            0x64,
+            0x65,
+            0x44,
+            0x65,
+            0x70,
+            0x72,
+            0x65,
+            0x63,
+            0x61,
+            0x74,
+            0x65,
+            0x64,
+            0x3a,
+            0x20,
+            0x74,
+            0x72,
+            0x75,
+            0x65,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x64,
+            0x65,
+            0x73,
+            0x63,
+            0x72,
+            0x69,
+            0x70,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x61,
+            0x72,
+            0x67,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x49,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x56,
+            0x61,
+            0x6c,
+            0x75,
+            0x65,
+            0x20,
+            0x7d,
+            0x20,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x52,
+            0x65,
+            0x66,
+            0x20,
+            0x7d,
+            0x20,
+            0x69,
+            0x73,
+            0x44,
+            0x65,
+            0x70,
+            0x72,
+            0x65,
+            0x63,
+            0x61,
+            0x74,
+            0x65,
+            0x64,
+            0x20,
+            0x64,
+            0x65,
+            0x70,
+            0x72,
+            0x65,
+            0x63,
+            0x61,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x52,
+            0x65,
+            0x61,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7d,
+            0x20,
+            0x69,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x46,
+            0x69,
+            0x65,
+            0x6c,
+            0x64,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x49,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x56,
+            0x61,
+            0x6c,
+            0x75,
+            0x65,
+            0x20,
+            0x7d,
+            0x20,
+            0x69,
+            0x6e,
+            0x74,
+            0x65,
+            0x72,
+            0x66,
+            0x61,
+            0x63,
+            0x65,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x52,
+            0x65,
+            0x66,
+            0x20,
+            0x7d,
+            0x20,
+            0x65,
+            0x6e,
+            0x75,
+            0x6d,
+            0x56,
+            0x61,
+            0x6c,
+            0x75,
+            0x65,
+            0x73,
+            0x28,
+            0x69,
+            0x6e,
+            0x63,
+            0x6c,
+            0x75,
+            0x64,
+            0x65,
+            0x44,
+            0x65,
+            0x70,
+            0x72,
+            0x65,
+            0x63,
+            0x61,
+            0x74,
+            0x65,
+            0x64,
+            0x3a,
+            0x20,
+            0x74,
+            0x72,
+            0x75,
+            0x65,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x64,
+            0x65,
+            0x73,
+            0x63,
+            0x72,
+            0x69,
+            0x70,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x69,
+            0x73,
+            0x44,
+            0x65,
+            0x70,
+            0x72,
+            0x65,
+            0x63,
+            0x61,
+            0x74,
+            0x65,
+            0x64,
+            0x20,
+            0x64,
+            0x65,
+            0x70,
+            0x72,
+            0x65,
+            0x63,
+            0x61,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x52,
+            0x65,
+            0x61,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7d,
+            0x20,
+            0x70,
+            0x6f,
+            0x73,
+            0x73,
+            0x69,
+            0x62,
+            0x6c,
+            0x65,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x52,
+            0x65,
+            0x66,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x49,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x56,
+            0x61,
+            0x6c,
+            0x75,
+            0x65,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x5f,
+            0x5f,
+            0x49,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x56,
+            0x61,
+            0x6c,
+            0x75,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x64,
+            0x65,
+            0x73,
+            0x63,
+            0x72,
+            0x69,
+            0x70,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x52,
+            0x65,
+            0x66,
+            0x20,
+            0x7d,
+            0x20,
+            0x64,
+            0x65,
+            0x66,
+            0x61,
+            0x75,
+            0x6c,
+            0x74,
+            0x56,
+            0x61,
+            0x6c,
+            0x75,
+            0x65,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x52,
+            0x65,
+            0x66,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x5f,
+            0x5f,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x6b,
+            0x69,
+            0x6e,
+            0x64,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6f,
+            0x66,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6b,
+            0x69,
+            0x6e,
+            0x64,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6f,
+            0x66,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6b,
+            0x69,
+            0x6e,
+            0x64,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6f,
+            0x66,
+            0x54,
+            0x79,
+            0x70,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6b,
+            0x69,
+            0x6e,
+            0x64,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "5902e9f9fd92bc2e9785f0821db6ff925e660fde");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -3117,15 +3999,43 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial class IntrospectionQueryQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IIntrospectionQueryResult> _operationExecutor;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public IntrospectionQueryQuery(global::StrawberryShake.IOperationExecutor<IIntrospectionQueryResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
+        private IntrospectionQueryQuery(global::StrawberryShake.IOperationExecutor<IIntrospectionQueryResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IIntrospectionQueryResult);
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IntrospectionQueryQuery(_operationExecutor, _configure.Add(configure));
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IIntrospectionQueryResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -3263,6 +4173,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IIntrospectionQueryQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryQuery WithRequestUri(global::System.Uri requestUri);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IIntrospectionQueryResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IIntrospectionQueryResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -3308,6 +4221,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryResult);
+
         public IntrospectionQueryResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -3361,7 +4275,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             IIntrospectionQuery___schema_MutationType returnValue = default !;
-            if (data?.__typename.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("__Type", global::System.StringComparison.Ordinal))
             {
                 returnValue = new IntrospectionQuery___schema_MutationType___Type(data.Name);
             }
@@ -3381,7 +4295,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             IIntrospectionQuery___schema_SubscriptionType returnValue = default !;
-            if (data?.__typename.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("__Type", global::System.StringComparison.Ordinal))
             {
                 returnValue = new IntrospectionQuery___schema_SubscriptionType___Type(data.Name);
             }
@@ -3509,7 +4423,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             IIntrospectionQuery___schema_Types_Interfaces_OfType returnValue = default !;
-            if (data?.__typename.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("__Type", global::System.StringComparison.Ordinal))
             {
                 returnValue = new IntrospectionQuery___schema_Types_Interfaces_OfType___Type(data.Kind ?? throw new global::System.ArgumentNullException(), data.Name, MapIIntrospectionQuery___schema_Types_Interfaces_OfType_OfType(data.OfType, snapshot));
             }
@@ -3529,7 +4443,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType returnValue = default !;
-            if (data?.__typename.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("__Type", global::System.StringComparison.Ordinal))
             {
                 returnValue = new IntrospectionQuery___schema_Types_Interfaces_OfType_OfType___Type(data.Kind ?? throw new global::System.ArgumentNullException(), data.Name, MapIIntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType(data.OfType, snapshot));
             }
@@ -3549,7 +4463,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType returnValue = default !;
-            if (data?.__typename.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("__Type", global::System.StringComparison.Ordinal))
             {
                 returnValue = new IntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType___Type(data.Kind ?? throw new global::System.ArgumentNullException(), data.Name);
             }
@@ -3785,9 +4699,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         /// Access the current type schema of this server.
         /// </summary>
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__SchemaData __schema { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new IntrospectionQueryResultInfo(__schema, _entityIds, version);
@@ -4470,19 +5384,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::System.String __typename { get; }
-
         ///<summary>The type that query operations will be rooted at.</summary>
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData? QueryType { get; }
-
         ///<summary>If this server supports mutation, the type that mutation operations will be rooted at.</summary>
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData? MutationType { get; }
-
         ///<summary>If this server support subscription, the type that subscription operations will be rooted at.</summary>
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData? SubscriptionType { get; }
-
         ///<summary>A list of all types supported by this server.</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData>? Types { get; }
-
         ///<summary>A list of all directives supported by this server.</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__DirectiveData>? Directives { get; }
     }
@@ -4507,23 +5416,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::System.String __typename { get; }
-
         public global::System.String? Name { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.__TypeKind? Kind { get; }
-
         public global::System.String? Description { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__FieldData>? Fields { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData>? InputFields { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData>? Interfaces { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__EnumValueData>? EnumValues { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData>? PossibleTypes { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData? OfType { get; }
     }
 
@@ -4544,17 +5444,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::System.String __typename { get; }
-
         public global::System.String? Name { get; }
-
         public global::System.String? Description { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData>? Args { get; }
-
         public global::System.Boolean? OnOperation { get; }
-
         public global::System.Boolean? OnFragment { get; }
-
         public global::System.Boolean? OnField { get; }
     }
 
@@ -4575,17 +5469,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::System.String __typename { get; }
-
         public global::System.String? Name { get; }
-
         public global::System.String? Description { get; }
-
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData>? Args { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData? Type { get; }
-
         public global::System.Boolean? IsDeprecated { get; }
-
         public global::System.String? DeprecationReason { get; }
     }
 
@@ -4604,13 +5492,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::System.String __typename { get; }
-
         public global::System.String? Name { get; }
-
         public global::System.String? Description { get; }
-
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData? Type { get; }
-
         ///<summary>A GraphQL-formatted string representing the default value for this input value.</summary>
         public global::System.String? DefaultValue { get; }
     }
@@ -4630,13 +5514,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         }
 
         public global::System.String __typename { get; }
-
         public global::System.String? Name { get; }
-
         public global::System.String? Description { get; }
-
         public global::System.Boolean? IsDeprecated { get; }
-
         public global::System.String? DeprecationReason { get; }
     }
 
@@ -4645,7 +5525,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial class StarWarsIntrospectionClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;

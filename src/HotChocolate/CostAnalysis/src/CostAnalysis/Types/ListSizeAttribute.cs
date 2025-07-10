@@ -8,7 +8,7 @@ namespace HotChocolate.CostAnalysis.Types;
 /// <summary>
 /// Applies the <c>@listSize</c> directive. The purpose of the <c>@listSize</c> directive is to
 /// either inform the static analysis of the size of returned lists (if that information is
-/// statically available), or to point the analysis to where to find that information.
+/// statically available) or to point the analysis to where to find that information.
 /// </summary>
 public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
 {
@@ -28,6 +28,12 @@ public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
     /// determines the size of the returned list.
     /// </summary>
     public string[]? SlicingArguments { get; init; }
+
+    /// <summary>
+    /// The default value for a slicing argument, which is used if the argument is not present in a
+    /// query.
+    /// </summary>
+    public int? SlicingArgumentDefaultValue { get; init; }
 
     /// <summary>
     /// The subfield(s) that the list size applies to.

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -9,20 +10,20 @@ using HotChocolate.Types;
 namespace HotChocolate.Resolvers;
 
 /// <summary>
-/// The resolver context represent the execution context for a specific
+/// The resolver context represents the execution context for a specific
 /// field that is being resolved.
 /// </summary>
-public interface IResolverContext : IHasContextData
+public interface IResolverContext : IHasContextData, IFeatureProvider
 {
     /// <summary>
     /// Gets the GraphQL schema on which the query is executed.
     /// </summary>
-    ISchema Schema { get; }
+    Schema Schema { get; }
 
     /// <summary>
     /// Gets the object type on which the field resolver is being executed.
     /// </summary>
-    IObjectType ObjectType { get; }
+    ObjectType ObjectType { get; }
 
     /// <summary>
     /// Gets the operation from the query that is being executed.
@@ -120,7 +121,6 @@ public interface IResolverContext : IHasContextData
     /// </returns>
     T Service<T>() where T : notnull;
 
-#if NET8_0_OR_GREATER
     /// <summary>
     /// Gets as required service from the dependency injection container.
     /// </summary>
@@ -130,8 +130,7 @@ public interface IResolverContext : IHasContextData
     /// <returns>
     /// Returns the specified service.
     /// </returns>
-    T? Service<T>(object key) where T : notnull;
-#endif
+    T Service<T>(object key) where T : notnull;
 
     /// <summary>
     /// Gets a resolver object containing one or more resolvers.
@@ -232,7 +231,7 @@ public interface IResolverContext : IHasContextData
     /// <param name="configure">
     /// A delegate to further configure the error object.
     /// </param>
-    void ReportError(Exception exception, Action<IErrorBuilder>? configure = null);
+    void ReportError(Exception exception, Action<ErrorBuilder>? configure = null);
 
     /// <summary>
     /// Gets the pre-compiled selections for the selection-set
@@ -253,7 +252,7 @@ public interface IResolverContext : IHasContextData
     /// with the specified <paramref name="typeContext" />.
     /// </returns>
     IReadOnlyList<ISelection> GetSelections(
-        IObjectType typeContext,
+        ObjectType typeContext,
         ISelection? selection = null,
         bool allowInternals = false);
 

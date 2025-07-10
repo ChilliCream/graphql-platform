@@ -1,7 +1,5 @@
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 using HotChocolate.Execution;
-using Snapshooter;
 using HotChocolate.Types.Descriptors;
 using System.Reflection;
 
@@ -63,7 +61,7 @@ public class TimeSpanTypeTests
         // arrange
         var timeSpanType = new TimeSpanType();
         var timeSpan = TimeSpan.FromMinutes(5);
-        var expectedValue = "PT5M";
+        const string expectedValue = "PT5M";
 
         // act
         var serializedValue = (string)timeSpanType.Serialize(timeSpan);
@@ -156,7 +154,7 @@ public class TimeSpanTypeTests
 
         // act
         var success = timeSpanType
-            .TryDeserialize("PT5", out var deserialized);
+            .TryDeserialize("PT5", out _);
 
         // assert
         Assert.False(success);
@@ -204,7 +202,7 @@ public class TimeSpanTypeTests
 
         // act
         var success = timeSpanType
-            .TryDeserialize("bad", out var deserialized);
+            .TryDeserialize("bad", out _);
 
         // assert
         Assert.False(success);
@@ -275,7 +273,7 @@ public class TimeSpanTypeTests
             .MakeExecutable()
             .Execute("{ duration }")
             .ToJson()
-            .MatchSnapshot(new SnapshotNameExtension(format));
+            .MatchSnapshot(postFix: format);
     }
 
     [Fact]

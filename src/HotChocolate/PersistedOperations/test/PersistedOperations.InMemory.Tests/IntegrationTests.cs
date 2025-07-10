@@ -3,7 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.PersistedOperations.InMemory;
 
@@ -22,11 +21,11 @@ public class IntegrationTests
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddInMemoryOperationDocumentStorage()
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
                             .FromResult(r)
@@ -60,11 +59,11 @@ public class IntegrationTests
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddInMemoryOperationDocumentStorage()
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
                             .FromResult(r)

@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Transport.Http;
 using StrawberryShake.Internal;
 using static StrawberryShake.Properties.Resources;
@@ -8,24 +9,25 @@ namespace StrawberryShake.Transport.Http;
 
 internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocument>>
 {
-    private readonly Func<HttpClient> _createClient;
-    private readonly Func<GraphQLHttpRequest> _createRequest;
+    private readonly HttpClient _httpClient;
+    private readonly GraphQLHttpRequest _httpRequest;
+    private readonly Func<HttpResponseContext, Response<JsonDocument>> _createResponse;
 
     private ResponseEnumerable(
-        Func<HttpClient> createClient,
-        Func<GraphQLHttpRequest> createRequest)
+        HttpClient httpClient,
+        GraphQLHttpRequest httpRequest,
+        Func<HttpResponseContext, Response<JsonDocument>> createResponse)
     {
-        _createClient = createClient;
-        _createRequest = createRequest;
+        _httpClient = httpClient;
+        _httpRequest = httpRequest;
+        _createResponse = createResponse;
     }
 
     public async IAsyncEnumerator<Response<JsonDocument>> GetAsyncEnumerator(
         CancellationToken cancellationToken = default)
     {
-        using var client = new DefaultGraphQLHttpClient(_createClient());
-        var request = _createRequest();
-
-        var result = await client.SendAsync(request, cancellationToken);
+        using var client = new DefaultGraphQLHttpClient(_httpClient);
+        var result = await client.SendAsync(_httpRequest, cancellationToken);
 
         Exception? transportError = null;
         if (!result.IsSuccessStatusCode)
@@ -38,9 +40,9 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         try
         {
             enumerator = result
-                .ReadAsResultStreamAsync(cancellationToken)
-                .ConfigureAwait(false)
+                .ReadAsResultStreamAsync()
                 .WithCancellation(cancellationToken)
+                .ConfigureAwait(false)
                 .GetAsyncEnumerator();
         }
         catch (Exception ex)
@@ -66,15 +68,15 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
             if (hasNext)
             {
                 var parsedResult = ParseResult(enumerator.Current);
-
-                yield return new Response<JsonDocument>(parsedResult, transportError);
-
+                var responseContext = new HttpResponseContext(result, parsedResult, transportError);
+                yield return _createResponse(responseContext);
                 transportError = null;
             }
             else if (transportError is not null)
             {
                 var errorBody = CreateBodyFromException(transportError);
-                yield return new Response<JsonDocument>(errorBody, transportError);
+                var responseContext = new HttpResponseContext(result, errorBody, transportError);
+                yield return _createResponse(responseContext);
             }
         }
     }
@@ -86,14 +88,14 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
             return null;
         }
 
-        var buffer = new HotChocolate.Utilities.ArrayWriter();
+        using var buffer = new PooledArrayWriter();
         using var writer = new Utf8JsonWriter(buffer);
 
         writer.WriteStartObject();
         WriteProperty(writer, "data", result.Data);
 
         // in case we have just a "Internal Execution Error" we will not write the errors as this
-        // is a internal error of HotChocolate.Transport.Http. In strawberry shake we are used to
+        // is an internal error of HotChocolate.Transport.Http. In strawberry shake we are used to
         // handle the transport errors our self.
         // Strawberry Shake only outputs the exceptions though if there is no error in the errors
         // field
@@ -110,7 +112,7 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
 
         writer.Flush();
 
-        return JsonDocument.Parse(buffer.GetWrittenMemory());
+        return JsonDocument.Parse(buffer.WrittenMemory);
     }
 
     private static void WriteProperty(Utf8JsonWriter writer, string propertyName, JsonElement value)
@@ -123,30 +125,19 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
     }
 
     private static Exception CreateError(GraphQLHttpResponse response)
-    {
-#if NET5_0_OR_GREATER
-        return new HttpRequestException(
+        => new HttpRequestException(
             string.Format(
                 ResponseEnumerator_HttpNoSuccessStatusCode,
                 (int)response.StatusCode,
                 response.ReasonPhrase),
             null,
             response.StatusCode);
-#else
-        return new HttpRequestException(
-            string.Format(
-                ResponseEnumerator_HttpNoSuccessStatusCode,
-                (int)response.StatusCode,
-                response.ReasonPhrase),
-            null);
-#endif
-    }
 
     internal static JsonDocument CreateBodyFromException(Exception exception)
     {
         using var bufferWriter = new ArrayWriter();
-
         using var jsonWriter = new Utf8JsonWriter(bufferWriter);
+
         jsonWriter.WriteStartObject();
         jsonWriter.WritePropertyName("errors");
         jsonWriter.WriteStartArray();
@@ -161,19 +152,8 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
     }
 
     public static ResponseEnumerable Create(
-        Func<HttpClient> createClient,
-        Func<GraphQLHttpRequest> createRequest)
-    {
-        if (createClient is null)
-        {
-            throw new ArgumentNullException(nameof(createClient));
-        }
-
-        if (createRequest is null)
-        {
-            throw new ArgumentNullException(nameof(createRequest));
-        }
-
-        return new ResponseEnumerable(createClient, createRequest);
-    }
+        HttpClient httpClient,
+        GraphQLHttpRequest httpRequest,
+        Func<HttpResponseContext, Response<JsonDocument>> createResponse)
+        => new(httpClient, httpRequest, createResponse);
 }

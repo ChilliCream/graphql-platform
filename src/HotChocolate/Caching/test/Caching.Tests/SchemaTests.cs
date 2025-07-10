@@ -1,8 +1,6 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Caching.Tests;
 
@@ -13,11 +11,7 @@ public class SchemaTests
     {
         var schema =
             await new ServiceCollection()
-#if NET7_0_OR_GREATER
-                .AddGraphQLServer(disableCostAnalyzer: true)
-#else
-                .AddGraphQLServer()
-#endif
+                .AddGraphQLServer(disableDefaultSecurity: true)
                 .AddTypeExtension(typeof(Query))
                 .ConfigureSchema(
                     b => b.TryAddRootType(
@@ -52,7 +46,16 @@ public class SchemaTests
             }
 
             "The `@cacheControl` directive may be provided for individual fields or entire object, interface or union types to provide caching hints to the executor."
-            directive @cacheControl("The maximum amount of time this field's cached value is valid, in seconds." maxAge: Int "If `PRIVATE`, the field's value is specific to a single user. The default value is `PUBLIC`, which means the field's value is not tied to a single user." scope: CacheControlScope "If `true`, the field inherits the `maxAge` of its parent field." inheritMaxAge: Boolean) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
+            directive @cacheControl("The maximum amount of time this field's cached value is valid, in seconds." maxAge: Int "The maximum amount of time this field's cached value is valid in shared caches like CDNs, in seconds." sharedMaxAge: Int "If `true`, the field inherits the `maxAge` of its parent field." inheritMaxAge: Boolean "If `PRIVATE`, the field's value is specific to a single user. The default value is `PUBLIC`, which means the field's value is not tied to a single user." scope: CacheControlScope "The Vary HTTP response header describes the parts of the request message aside from the method and URL that influenced the content of the response it occurs in. Most often, this is used to create a cache key when content negotiation is in use." vary: [String]) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
+
+            """
+            The `@oneOf` directive is used within the type system definition language
+             to indicate:
+
+             - an Input Object is a Oneof Input Object, or
+             - an Object Type's Field is a Oneof Field.
+            """
+            directive @oneOf on INPUT_OBJECT
 
             """
             The @tag directive is used to apply arbitrary string
@@ -75,7 +78,7 @@ public class SchemaTests
     {
         public static Book GetBook()
             => new Book("C# in depth.", "abc");
-}
+    }
 
     public record Book(
         [property: CacheControl(5000)] string Title,

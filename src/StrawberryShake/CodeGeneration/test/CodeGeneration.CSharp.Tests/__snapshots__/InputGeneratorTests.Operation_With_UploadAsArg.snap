@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -94,7 +95,14 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test($upload: Upload!, $uploadNullable: Upload, $list: [Upload!]!, $listNullable: [Upload!], $nestedList: [[Upload!]!]!, $nestedListNullable: [[Upload!]]) {
+    /// query Test(
+    ///   $upload: Upload!
+    ///   $uploadNullable: Upload
+    ///   $list: [Upload!]!
+    ///   $listNullable: [Upload!]
+    ///   $nestedList: [[Upload!]!]!
+    ///   $nestedListNullable: [[Upload!]]
+    /// ) {
     ///   foo(upload: $upload, uploadNullable: $uploadNullable, list: $list, listNullable: $listNullable, nestedList: $nestedList, nestedListNullable: $nestedListNullable)
     /// }
     /// </code>
@@ -108,8 +116,337 @@ namespace Foo.Bar
 
         public static TestQueryDocument Instance { get; } = new TestQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x54, 0x65, 0x73, 0x74, 0x28, 0x24, 0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x3a, 0x20, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x21, 0x2c, 0x20, 0x24, 0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x4e, 0x75, 0x6c, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x3a, 0x20, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x2c, 0x20, 0x24, 0x6c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x5b, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x21, 0x5d, 0x21, 0x2c, 0x20, 0x24, 0x6c, 0x69, 0x73, 0x74, 0x4e, 0x75, 0x6c, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x3a, 0x20, 0x5b, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x21, 0x5d, 0x2c, 0x20, 0x24, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x5b, 0x5b, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x21, 0x5d, 0x21, 0x5d, 0x21, 0x2c, 0x20, 0x24, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x4e, 0x75, 0x6c, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x3a, 0x20, 0x5b, 0x5b, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x21, 0x5d, 0x5d, 0x29, 0x20, 0x7b, 0x20, 0x66, 0x6f, 0x6f, 0x28, 0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x3a, 0x20, 0x24, 0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x2c, 0x20, 0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x4e, 0x75, 0x6c, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x3a, 0x20, 0x24, 0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x4e, 0x75, 0x6c, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x2c, 0x20, 0x6c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x24, 0x6c, 0x69, 0x73, 0x74, 0x2c, 0x20, 0x6c, 0x69, 0x73, 0x74, 0x4e, 0x75, 0x6c, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x3a, 0x20, 0x24, 0x6c, 0x69, 0x73, 0x74, 0x4e, 0x75, 0x6c, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x2c, 0x20, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x24, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x2c, 0x20, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x4e, 0x75, 0x6c, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x3a, 0x20, 0x24, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x4e, 0x75, 0x6c, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x29, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x54,
+            0x65,
+            0x73,
+            0x74,
+            0x28,
+            0x24,
+            0x75,
+            0x70,
+            0x6c,
+            0x6f,
+            0x61,
+            0x64,
+            0x3a,
+            0x20,
+            0x55,
+            0x70,
+            0x6c,
+            0x6f,
+            0x61,
+            0x64,
+            0x21,
+            0x2c,
+            0x20,
+            0x24,
+            0x75,
+            0x70,
+            0x6c,
+            0x6f,
+            0x61,
+            0x64,
+            0x4e,
+            0x75,
+            0x6c,
+            0x6c,
+            0x61,
+            0x62,
+            0x6c,
+            0x65,
+            0x3a,
+            0x20,
+            0x55,
+            0x70,
+            0x6c,
+            0x6f,
+            0x61,
+            0x64,
+            0x2c,
+            0x20,
+            0x24,
+            0x6c,
+            0x69,
+            0x73,
+            0x74,
+            0x3a,
+            0x20,
+            0x5b,
+            0x55,
+            0x70,
+            0x6c,
+            0x6f,
+            0x61,
+            0x64,
+            0x21,
+            0x5d,
+            0x21,
+            0x2c,
+            0x20,
+            0x24,
+            0x6c,
+            0x69,
+            0x73,
+            0x74,
+            0x4e,
+            0x75,
+            0x6c,
+            0x6c,
+            0x61,
+            0x62,
+            0x6c,
+            0x65,
+            0x3a,
+            0x20,
+            0x5b,
+            0x55,
+            0x70,
+            0x6c,
+            0x6f,
+            0x61,
+            0x64,
+            0x21,
+            0x5d,
+            0x2c,
+            0x20,
+            0x24,
+            0x6e,
+            0x65,
+            0x73,
+            0x74,
+            0x65,
+            0x64,
+            0x4c,
+            0x69,
+            0x73,
+            0x74,
+            0x3a,
+            0x20,
+            0x5b,
+            0x5b,
+            0x55,
+            0x70,
+            0x6c,
+            0x6f,
+            0x61,
+            0x64,
+            0x21,
+            0x5d,
+            0x21,
+            0x5d,
+            0x21,
+            0x2c,
+            0x20,
+            0x24,
+            0x6e,
+            0x65,
+            0x73,
+            0x74,
+            0x65,
+            0x64,
+            0x4c,
+            0x69,
+            0x73,
+            0x74,
+            0x4e,
+            0x75,
+            0x6c,
+            0x6c,
+            0x61,
+            0x62,
+            0x6c,
+            0x65,
+            0x3a,
+            0x20,
+            0x5b,
+            0x5b,
+            0x55,
+            0x70,
+            0x6c,
+            0x6f,
+            0x61,
+            0x64,
+            0x21,
+            0x5d,
+            0x5d,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x66,
+            0x6f,
+            0x6f,
+            0x28,
+            0x75,
+            0x70,
+            0x6c,
+            0x6f,
+            0x61,
+            0x64,
+            0x3a,
+            0x20,
+            0x24,
+            0x75,
+            0x70,
+            0x6c,
+            0x6f,
+            0x61,
+            0x64,
+            0x2c,
+            0x20,
+            0x75,
+            0x70,
+            0x6c,
+            0x6f,
+            0x61,
+            0x64,
+            0x4e,
+            0x75,
+            0x6c,
+            0x6c,
+            0x61,
+            0x62,
+            0x6c,
+            0x65,
+            0x3a,
+            0x20,
+            0x24,
+            0x75,
+            0x70,
+            0x6c,
+            0x6f,
+            0x61,
+            0x64,
+            0x4e,
+            0x75,
+            0x6c,
+            0x6c,
+            0x61,
+            0x62,
+            0x6c,
+            0x65,
+            0x2c,
+            0x20,
+            0x6c,
+            0x69,
+            0x73,
+            0x74,
+            0x3a,
+            0x20,
+            0x24,
+            0x6c,
+            0x69,
+            0x73,
+            0x74,
+            0x2c,
+            0x20,
+            0x6c,
+            0x69,
+            0x73,
+            0x74,
+            0x4e,
+            0x75,
+            0x6c,
+            0x6c,
+            0x61,
+            0x62,
+            0x6c,
+            0x65,
+            0x3a,
+            0x20,
+            0x24,
+            0x6c,
+            0x69,
+            0x73,
+            0x74,
+            0x4e,
+            0x75,
+            0x6c,
+            0x6c,
+            0x61,
+            0x62,
+            0x6c,
+            0x65,
+            0x2c,
+            0x20,
+            0x6e,
+            0x65,
+            0x73,
+            0x74,
+            0x65,
+            0x64,
+            0x4c,
+            0x69,
+            0x73,
+            0x74,
+            0x3a,
+            0x20,
+            0x24,
+            0x6e,
+            0x65,
+            0x73,
+            0x74,
+            0x65,
+            0x64,
+            0x4c,
+            0x69,
+            0x73,
+            0x74,
+            0x2c,
+            0x20,
+            0x6e,
+            0x65,
+            0x73,
+            0x74,
+            0x65,
+            0x64,
+            0x4c,
+            0x69,
+            0x73,
+            0x74,
+            0x4e,
+            0x75,
+            0x6c,
+            0x6c,
+            0x61,
+            0x62,
+            0x6c,
+            0x65,
+            0x3a,
+            0x20,
+            0x24,
+            0x6e,
+            0x65,
+            0x73,
+            0x74,
+            0x65,
+            0x64,
+            0x4c,
+            0x69,
+            0x73,
+            0x74,
+            0x4e,
+            0x75,
+            0x6c,
+            0x6c,
+            0x61,
+            0x62,
+            0x6c,
+            0x65,
+            0x29,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "dd7323e985f8e99eb299dff04bcbef6ee01dcec9");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -124,7 +461,14 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test($upload: Upload!, $uploadNullable: Upload, $list: [Upload!]!, $listNullable: [Upload!], $nestedList: [[Upload!]!]!, $nestedListNullable: [[Upload!]]) {
+    /// query Test(
+    ///   $upload: Upload!
+    ///   $uploadNullable: Upload
+    ///   $list: [Upload!]!
+    ///   $listNullable: [Upload!]
+    ///   $nestedList: [[Upload!]!]!
+    ///   $nestedListNullable: [[Upload!]]
+    /// ) {
     ///   foo(upload: $upload, uploadNullable: $uploadNullable, list: $list, listNullable: $listNullable, nestedList: $nestedList, nestedListNullable: $nestedListNullable)
     /// }
     /// </code>
@@ -134,16 +478,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<ITestResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _uploadFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public TestQuery(global::StrawberryShake.IOperationExecutor<ITestResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _uploadFormatter = serializerResolver.GetInputValueFormatter("Upload");
         }
 
+        private TestQuery(global::StrawberryShake.IOperationExecutor<ITestResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter uploadFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _uploadFormatter = uploadFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ITestResult);
+
+        public global::Foo.Bar.ITestQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.TestQuery(_operationExecutor, _configure.Add(configure), _uploadFormatter);
+        }
+
+        public global::Foo.Bar.ITestQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.ITestQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestResult>> ExecuteAsync(global::StrawberryShake.Upload upload, global::StrawberryShake.Upload? uploadNullable, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload> list, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>? listNullable, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>> nestedList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>?>? nestedListNullable, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(upload, uploadNullable, list, listNullable, nestedList, nestedListNullable);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -359,7 +732,14 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Test GraphQL operation
     /// <code>
-    /// query Test($upload: Upload!, $uploadNullable: Upload, $list: [Upload!]!, $listNullable: [Upload!], $nestedList: [[Upload!]!]!, $nestedListNullable: [[Upload!]]) {
+    /// query Test(
+    ///   $upload: Upload!
+    ///   $uploadNullable: Upload
+    ///   $list: [Upload!]!
+    ///   $listNullable: [Upload!]
+    ///   $nestedList: [[Upload!]!]!
+    ///   $nestedListNullable: [[Upload!]]
+    /// ) {
     ///   foo(upload: $upload, uploadNullable: $uploadNullable, list: $list, listNullable: $listNullable, nestedList: $nestedList, nestedListNullable: $nestedListNullable)
     /// }
     /// </code>
@@ -367,6 +747,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ITestQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.ITestQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.ITestQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.ITestQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestResult>> ExecuteAsync(global::StrawberryShake.Upload upload, global::StrawberryShake.Upload? uploadNullable, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload> list, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>? listNullable, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>> nestedList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>?>? nestedListNullable, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ITestResult>> Watch(global::StrawberryShake.Upload upload, global::StrawberryShake.Upload? uploadNullable, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload> list, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>? listNullable, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>> nestedList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>?>? nestedListNullable, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -412,6 +795,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.ITestResult);
+
         public TestResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -447,9 +831,9 @@ namespace Foo.Bar.State
         }
 
         public global::System.String? Foo { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new TestResultInfo(Foo, _entityIds, version);
@@ -507,7 +891,9 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;
@@ -578,6 +964,9 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);

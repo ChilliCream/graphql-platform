@@ -1,8 +1,5 @@
 using HotChocolate.Execution;
 using HotChocolate.Tests;
-using Snapshooter.Xunit;
-
-#nullable enable
 
 namespace HotChocolate.Types.Pagination;
 
@@ -14,7 +11,7 @@ public class CustomCursorHandlerTests
         SchemaBuilder.New()
             .AddQueryType<Query>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -22,8 +19,6 @@ public class CustomCursorHandlerTests
     public async Task Use_Resolver_Result_If_It_Is_A_Page()
     {
         // arrange
-        Snapshot.FullName();
-
         var request =
             OperationRequestBuilder.New()
                 .SetDocument("{ items { nodes } }")
@@ -49,7 +44,7 @@ public class CustomCursorHandlerTests
             string? before = null)
         {
             return new(
-                new[] { new Edge<string>("hello", "abc"), },
+                [new Edge<string>("hello", "abc")],
                 new ConnectionPageInfo(false, false, "abc", "abc"),
                 2000);
         }

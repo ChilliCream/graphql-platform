@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -187,22 +188,18 @@ namespace Foo.Bar
         /// Field name
         /// </summary>
         public global::System.String Name { get; }
-
         /// <summary>
         /// Field email
         /// </summary>
         public global::System.String Email { get; }
-
         /// <summary>
         /// Field isOnline
         /// </summary>
         public global::System.Boolean IsOnline { get; }
-
         /// <summary>
         /// Field imageUri
         /// </summary>
         public global::System.Uri? ImageUri { get; }
-
         /// <summary>
         /// Field lastSeen
         /// </summary>
@@ -313,12 +310,10 @@ namespace Foo.Bar
         /// Field name
         /// </summary>
         public global::System.String Name { get; }
-
         /// <summary>
         /// Field email
         /// </summary>
         public global::System.String Email { get; }
-
         /// <summary>
         /// Field isOnline
         /// </summary>
@@ -336,7 +331,6 @@ namespace Foo.Bar
         /// Field imageUri
         /// </summary>
         public global::System.Uri? ImageUri { get; }
-
         /// <summary>
         /// Field lastSeen
         /// </summary>
@@ -600,27 +594,22 @@ namespace Foo.Bar
         /// Field id
         /// </summary>
         public global::System.String Id { get; }
-
         /// <summary>
         /// Field text
         /// </summary>
         public global::System.String Text { get; }
-
         /// <summary>
         /// Field direction
         /// </summary>
         public global::Foo.Bar.Direction Direction { get; }
-
         /// <summary>
         /// Fiejld recipient
         /// </summary>
         public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
-
         /// <summary>
         /// Field sender
         /// </summary>
         public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
-
         /// <summary>
         /// Field sent
         /// </summary>
@@ -700,12 +689,10 @@ namespace Foo.Bar
         /// Field name
         /// </summary>
         public global::System.String Name { get; }
-
         /// <summary>
         /// Field email
         /// </summary>
         public global::System.String Email { get; }
-
         /// <summary>
         /// Field isOnline
         /// </summary>
@@ -782,12 +769,10 @@ namespace Foo.Bar
         /// Field name
         /// </summary>
         public global::System.String Name { get; }
-
         /// <summary>
         /// Field email
         /// </summary>
         public global::System.String Email { get; }
-
         /// <summary>
         /// Field isOnline
         /// </summary>
@@ -914,27 +899,22 @@ namespace Foo.Bar
         /// Field id
         /// </summary>
         public global::System.String Id { get; }
-
         /// <summary>
         /// Field text
         /// </summary>
         public global::System.String Text { get; }
-
         /// <summary>
         /// Field direction
         /// </summary>
         public global::Foo.Bar.Direction Direction { get; }
-
         /// <summary>
         /// Fiejld recipient
         /// </summary>
         public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
-
         /// <summary>
         /// Field sender
         /// </summary>
         public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
-
         /// <summary>
         /// Field sent
         /// </summary>
@@ -1152,27 +1132,22 @@ namespace Foo.Bar
         /// Field id
         /// </summary>
         public global::System.String Id { get; }
-
         /// <summary>
         /// Field text
         /// </summary>
         public global::System.String Text { get; }
-
         /// <summary>
         /// Field direction
         /// </summary>
         public global::Foo.Bar.Direction Direction { get; }
-
         /// <summary>
         /// Fiejld recipient
         /// </summary>
         public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
-
         /// <summary>
         /// Field sender
         /// </summary>
         public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
-
         /// <summary>
         /// Field sent
         /// </summary>
@@ -1252,12 +1227,10 @@ namespace Foo.Bar
         /// Field name
         /// </summary>
         public global::System.String Name { get; }
-
         /// <summary>
         /// Field email
         /// </summary>
         public global::System.String Email { get; }
-
         /// <summary>
         /// Field isOnline
         /// </summary>
@@ -1334,12 +1307,10 @@ namespace Foo.Bar
         /// Field name
         /// </summary>
         public global::System.String Name { get; }
-
         /// <summary>
         /// Field email
         /// </summary>
         public global::System.String Email { get; }
-
         /// <summary>
         /// Field isOnline
         /// </summary>
@@ -1644,27 +1615,22 @@ namespace Foo.Bar
         /// Field id
         /// </summary>
         public global::System.String Id { get; }
-
         /// <summary>
         /// Field text
         /// </summary>
         public global::System.String Text { get; }
-
         /// <summary>
         /// Field direction
         /// </summary>
         public global::Foo.Bar.Direction Direction { get; }
-
         /// <summary>
         /// Fiejld recipient
         /// </summary>
         public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
-
         /// <summary>
         /// Field sender
         /// </summary>
         public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
-
         /// <summary>
         /// Field sent
         /// </summary>
@@ -1744,12 +1710,10 @@ namespace Foo.Bar
         /// Field name
         /// </summary>
         public global::System.String Name { get; }
-
         /// <summary>
         /// Field email
         /// </summary>
         public global::System.String Email { get; }
-
         /// <summary>
         /// Field isOnline
         /// </summary>
@@ -1826,12 +1790,10 @@ namespace Foo.Bar
         /// Field name
         /// </summary>
         public global::System.String Name { get; }
-
         /// <summary>
         /// Field email
         /// </summary>
         public global::System.String Email { get; }
-
         /// <summary>
         /// Field isOnline
         /// </summary>
@@ -2068,27 +2030,22 @@ namespace Foo.Bar
         /// Field id
         /// </summary>
         public global::System.String Id { get; }
-
         /// <summary>
         /// Field text
         /// </summary>
         public global::System.String Text { get; }
-
         /// <summary>
         /// Field direction
         /// </summary>
         public global::Foo.Bar.Direction Direction { get; }
-
         /// <summary>
         /// Fiejld recipient
         /// </summary>
         public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
-
         /// <summary>
         /// Field sender
         /// </summary>
         public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
-
         /// <summary>
         /// Field sent
         /// </summary>
@@ -2168,12 +2125,10 @@ namespace Foo.Bar
         /// Field name
         /// </summary>
         public global::System.String Name { get; }
-
         /// <summary>
         /// Field email
         /// </summary>
         public global::System.String Email { get; }
-
         /// <summary>
         /// Field isOnline
         /// </summary>
@@ -2250,12 +2205,10 @@ namespace Foo.Bar
         /// Field name
         /// </summary>
         public global::System.String Name { get; }
-
         /// <summary>
         /// Field email
         /// </summary>
         public global::System.String Email { get; }
-
         /// <summary>
         /// Field isOnline
         /// </summary>
@@ -2387,6 +2340,7 @@ namespace Foo.Bar
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
         public global::System.String TypeName => "SendMessageInput";
+
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
@@ -2535,6 +2489,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ISendMessageInputInfo.IsClientMutationIdSet => _set_clientMutationId;
+
         ///<summary>The email of the person to which a message shall be send.</summary>
         public global::System.String RecipientEmail
         {
@@ -2547,6 +2502,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ISendMessageInputInfo.IsRecipientEmailSet => _set_recipientEmail;
+
         ///<summary>The message text.</summary>
         public global::System.String Text
         {
@@ -2583,6 +2539,7 @@ namespace Foo.Bar
     public partial class DirectionSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Direction>
     {
         public global::System.String TypeName => "Direction";
+
         public Direction Parse(global::System.String serializedValue)
         {
             return serializedValue switch
@@ -2641,8 +2598,249 @@ namespace Foo.Bar
 
         public static GetPeopleQueryDocument Instance { get; } = new GetPeopleQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x50, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x20, 0x7b, 0x20, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x28, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x5f, 0x62, 0x79, 0x3a, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x3a, 0x20, 0x41, 0x53, 0x43, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x6f, 0x64, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x55, 0x72, 0x69, 0x20, 0x6c, 0x61, 0x73, 0x74, 0x53, 0x65, 0x65, 0x6e, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x20, 0x69, 0x73, 0x4f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x47,
+            0x65,
+            0x74,
+            0x50,
+            0x65,
+            0x6f,
+            0x70,
+            0x6c,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x70,
+            0x65,
+            0x6f,
+            0x70,
+            0x6c,
+            0x65,
+            0x28,
+            0x6f,
+            0x72,
+            0x64,
+            0x65,
+            0x72,
+            0x5f,
+            0x62,
+            0x79,
+            0x3a,
+            0x20,
+            0x7b,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x3a,
+            0x20,
+            0x41,
+            0x53,
+            0x43,
+            0x20,
+            0x7d,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6e,
+            0x6f,
+            0x64,
+            0x65,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x50,
+            0x61,
+            0x72,
+            0x74,
+            0x69,
+            0x63,
+            0x69,
+            0x70,
+            0x61,
+            0x6e,
+            0x74,
+            0x20,
+            0x69,
+            0x6d,
+            0x61,
+            0x67,
+            0x65,
+            0x55,
+            0x72,
+            0x69,
+            0x20,
+            0x6c,
+            0x61,
+            0x73,
+            0x74,
+            0x53,
+            0x65,
+            0x65,
+            0x6e,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x50,
+            0x61,
+            0x72,
+            0x74,
+            0x69,
+            0x63,
+            0x69,
+            0x70,
+            0x61,
+            0x6e,
+            0x74,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x65,
+            0x6d,
+            0x61,
+            0x69,
+            0x6c,
+            0x20,
+            0x69,
+            0x73,
+            0x4f,
+            0x6e,
+            0x6c,
+            0x69,
+            0x6e,
+            0x65,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "91253402b90b965c3f43c2d774692ae8366270c6");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -2687,15 +2885,43 @@ namespace Foo.Bar
     public partial class GetPeopleQuery : global::Foo.Bar.IGetPeopleQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetPeopleResult> _operationExecutor;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetPeopleQuery(global::StrawberryShake.IOperationExecutor<IGetPeopleResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
+        private GetPeopleQuery(global::StrawberryShake.IOperationExecutor<IGetPeopleResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetPeopleResult);
+
+        public global::Foo.Bar.IGetPeopleQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.GetPeopleQuery(_operationExecutor, _configure.Add(configure));
+        }
+
+        public global::Foo.Bar.IGetPeopleQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IGetPeopleQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPeopleResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -2754,6 +2980,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetPeopleQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IGetPeopleQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IGetPeopleQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IGetPeopleQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPeopleResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetPeopleResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -2762,7 +2991,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetMessages GraphQL operation
     /// <code>
-    /// query GetMessages($email: String!) {
+    /// query GetMessages(
+    ///   $email: String!
+    /// ) {
     ///   personByEmail(email: $email) {
     ///     __typename
     ///     messages(order_by: { sent: ASC }) {
@@ -2818,8 +3049,449 @@ namespace Foo.Bar
 
         public static GetMessagesQueryDocument Instance { get; } = new GetMessagesQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x28, 0x24, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x70, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x42, 0x79, 0x45, 0x6d, 0x61, 0x69, 0x6c, 0x28, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x3a, 0x20, 0x24, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x28, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x5f, 0x62, 0x79, 0x3a, 0x20, 0x7b, 0x20, 0x73, 0x65, 0x6e, 0x74, 0x3a, 0x20, 0x41, 0x53, 0x43, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x6f, 0x64, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x74, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x20, 0x69, 0x73, 0x4f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x71,
+            0x75,
+            0x65,
+            0x72,
+            0x79,
+            0x20,
+            0x47,
+            0x65,
+            0x74,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x73,
+            0x28,
+            0x24,
+            0x65,
+            0x6d,
+            0x61,
+            0x69,
+            0x6c,
+            0x3a,
+            0x20,
+            0x53,
+            0x74,
+            0x72,
+            0x69,
+            0x6e,
+            0x67,
+            0x21,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x70,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x42,
+            0x79,
+            0x45,
+            0x6d,
+            0x61,
+            0x69,
+            0x6c,
+            0x28,
+            0x65,
+            0x6d,
+            0x61,
+            0x69,
+            0x6c,
+            0x3a,
+            0x20,
+            0x24,
+            0x65,
+            0x6d,
+            0x61,
+            0x69,
+            0x6c,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x73,
+            0x28,
+            0x6f,
+            0x72,
+            0x64,
+            0x65,
+            0x72,
+            0x5f,
+            0x62,
+            0x79,
+            0x3a,
+            0x20,
+            0x7b,
+            0x20,
+            0x73,
+            0x65,
+            0x6e,
+            0x74,
+            0x3a,
+            0x20,
+            0x41,
+            0x53,
+            0x43,
+            0x20,
+            0x7d,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6e,
+            0x6f,
+            0x64,
+            0x65,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x74,
+            0x65,
+            0x78,
+            0x74,
+            0x20,
+            0x64,
+            0x69,
+            0x72,
+            0x65,
+            0x63,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x72,
+            0x65,
+            0x63,
+            0x69,
+            0x70,
+            0x69,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x50,
+            0x61,
+            0x72,
+            0x74,
+            0x69,
+            0x63,
+            0x69,
+            0x70,
+            0x61,
+            0x6e,
+            0x74,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x73,
+            0x65,
+            0x6e,
+            0x64,
+            0x65,
+            0x72,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x50,
+            0x61,
+            0x72,
+            0x74,
+            0x69,
+            0x63,
+            0x69,
+            0x70,
+            0x61,
+            0x6e,
+            0x74,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x73,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x50,
+            0x61,
+            0x72,
+            0x74,
+            0x69,
+            0x63,
+            0x69,
+            0x70,
+            0x61,
+            0x6e,
+            0x74,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x65,
+            0x6d,
+            0x61,
+            0x69,
+            0x6c,
+            0x20,
+            0x69,
+            0x73,
+            0x4f,
+            0x6e,
+            0x6c,
+            0x69,
+            0x6e,
+            0x65,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "c9975fca1ca78b7c96f298130fccfc181f3d5309");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -2834,7 +3506,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetMessages GraphQL operation
     /// <code>
-    /// query GetMessages($email: String!) {
+    /// query GetMessages(
+    ///   $email: String!
+    /// ) {
     ///   personByEmail(email: $email) {
     ///     __typename
     ///     messages(order_by: { sent: ASC }) {
@@ -2886,16 +3560,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetMessagesResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetMessagesQuery(global::StrawberryShake.IOperationExecutor<IGetMessagesResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
         }
 
+        private GetMessagesQuery(global::StrawberryShake.IOperationExecutor<IGetMessagesResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _stringFormatter = @stringFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetMessagesResult);
+
+        public global::Foo.Bar.IGetMessagesQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.GetMessagesQuery(_operationExecutor, _configure.Add(configure), _stringFormatter);
+        }
+
+        public global::Foo.Bar.IGetMessagesQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IGetMessagesQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetMessagesResult>> ExecuteAsync(global::System.String email, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(email);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -2937,7 +3640,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetMessages GraphQL operation
     /// <code>
-    /// query GetMessages($email: String!) {
+    /// query GetMessages(
+    ///   $email: String!
+    /// ) {
     ///   personByEmail(email: $email) {
     ///     __typename
     ///     messages(order_by: { sent: ASC }) {
@@ -2987,6 +3692,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetMessagesQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IGetMessagesQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IGetMessagesQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IGetMessagesQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetMessagesResult>> ExecuteAsync(global::System.String email, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetMessagesResult>> Watch(global::System.String email, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -2995,7 +3703,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageInput GraphQL operation
     /// <code>
-    /// mutation SendMessageInput($input: SendMessageInput!) {
+    /// mutation SendMessageInput(
+    ///   $input: SendMessageInput!
+    /// ) {
     ///   sendMessage(input: $input) {
     ///     __typename
     ///     message {
@@ -3045,8 +3755,397 @@ namespace Foo.Bar
 
         public static SendMessageInputMutationDocument Instance { get; } = new SendMessageInputMutationDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x6d, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x53, 0x65, 0x6e, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x28, 0x24, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x53, 0x65, 0x6e, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x28, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x24, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x74, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x20, 0x69, 0x73, 0x4f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x6d,
+            0x75,
+            0x74,
+            0x61,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x53,
+            0x65,
+            0x6e,
+            0x64,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x49,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x28,
+            0x24,
+            0x69,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x3a,
+            0x20,
+            0x53,
+            0x65,
+            0x6e,
+            0x64,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x49,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x21,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x73,
+            0x65,
+            0x6e,
+            0x64,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x28,
+            0x69,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x3a,
+            0x20,
+            0x24,
+            0x69,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x74,
+            0x65,
+            0x78,
+            0x74,
+            0x20,
+            0x64,
+            0x69,
+            0x72,
+            0x65,
+            0x63,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x72,
+            0x65,
+            0x63,
+            0x69,
+            0x70,
+            0x69,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x50,
+            0x61,
+            0x72,
+            0x74,
+            0x69,
+            0x63,
+            0x69,
+            0x70,
+            0x61,
+            0x6e,
+            0x74,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x73,
+            0x65,
+            0x6e,
+            0x64,
+            0x65,
+            0x72,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x50,
+            0x61,
+            0x72,
+            0x74,
+            0x69,
+            0x63,
+            0x69,
+            0x70,
+            0x61,
+            0x6e,
+            0x74,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x73,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x50,
+            0x61,
+            0x72,
+            0x74,
+            0x69,
+            0x63,
+            0x69,
+            0x70,
+            0x61,
+            0x6e,
+            0x74,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x65,
+            0x6d,
+            0x61,
+            0x69,
+            0x6c,
+            0x20,
+            0x69,
+            0x73,
+            0x4f,
+            0x6e,
+            0x6c,
+            0x69,
+            0x6e,
+            0x65,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "abbee600b2246c20ab39b641561c4a0312560356");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -3061,7 +4160,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageInput GraphQL operation
     /// <code>
-    /// mutation SendMessageInput($input: SendMessageInput!) {
+    /// mutation SendMessageInput(
+    ///   $input: SendMessageInput!
+    /// ) {
     ///   sendMessage(input: $input) {
     ///     __typename
     ///     message {
@@ -3107,16 +4208,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<ISendMessageInputResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _sendMessageInputFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public SendMessageInputMutation(global::StrawberryShake.IOperationExecutor<ISendMessageInputResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _sendMessageInputFormatter = serializerResolver.GetInputValueFormatter("SendMessageInput");
         }
 
+        private SendMessageInputMutation(global::StrawberryShake.IOperationExecutor<ISendMessageInputResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter sendMessageInputFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _sendMessageInputFormatter = sendMessageInputFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ISendMessageInputResult);
+
+        public global::Foo.Bar.ISendMessageInputMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.SendMessageInputMutation(_operationExecutor, _configure.Add(configure), _sendMessageInputFormatter);
+        }
+
+        public global::Foo.Bar.ISendMessageInputMutation WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.ISendMessageInputMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISendMessageInputResult>> ExecuteAsync(global::Foo.Bar.SendMessageInput input, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(input);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -3158,7 +4288,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageInput GraphQL operation
     /// <code>
-    /// mutation SendMessageInput($input: SendMessageInput!) {
+    /// mutation SendMessageInput(
+    ///   $input: SendMessageInput!
+    /// ) {
     ///   sendMessage(input: $input) {
     ///     __typename
     ///     message {
@@ -3202,6 +4334,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ISendMessageInputMutation : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.ISendMessageInputMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.ISendMessageInputMutation WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.ISendMessageInputMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISendMessageInputResult>> ExecuteAsync(global::Foo.Bar.SendMessageInput input, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ISendMessageInputResult>> Watch(global::Foo.Bar.SendMessageInput input, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -3210,7 +4345,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageMut GraphQL operation
     /// <code>
-    /// mutation SendMessageMut($email: String!, $text: String!) {
+    /// mutation SendMessageMut(
+    ///   $email: String!
+    ///   $text: String!
+    /// ) {
     ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
     ///     __typename
     ///     message {
@@ -3260,8 +4398,434 @@ namespace Foo.Bar
 
         public static SendMessageMutMutationDocument Instance { get; } = new SendMessageMutMutationDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x6d, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x53, 0x65, 0x6e, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x4d, 0x75, 0x74, 0x28, 0x24, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x21, 0x2c, 0x20, 0x24, 0x74, 0x65, 0x78, 0x74, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x28, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x7b, 0x20, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x45, 0x6d, 0x61, 0x69, 0x6c, 0x3a, 0x20, 0x24, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x2c, 0x20, 0x74, 0x65, 0x78, 0x74, 0x3a, 0x20, 0x24, 0x74, 0x65, 0x78, 0x74, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x74, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x20, 0x69, 0x73, 0x4f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x6d,
+            0x75,
+            0x74,
+            0x61,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x53,
+            0x65,
+            0x6e,
+            0x64,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x4d,
+            0x75,
+            0x74,
+            0x28,
+            0x24,
+            0x65,
+            0x6d,
+            0x61,
+            0x69,
+            0x6c,
+            0x3a,
+            0x20,
+            0x53,
+            0x74,
+            0x72,
+            0x69,
+            0x6e,
+            0x67,
+            0x21,
+            0x2c,
+            0x20,
+            0x24,
+            0x74,
+            0x65,
+            0x78,
+            0x74,
+            0x3a,
+            0x20,
+            0x53,
+            0x74,
+            0x72,
+            0x69,
+            0x6e,
+            0x67,
+            0x21,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x73,
+            0x65,
+            0x6e,
+            0x64,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x28,
+            0x69,
+            0x6e,
+            0x70,
+            0x75,
+            0x74,
+            0x3a,
+            0x20,
+            0x7b,
+            0x20,
+            0x72,
+            0x65,
+            0x63,
+            0x69,
+            0x70,
+            0x69,
+            0x65,
+            0x6e,
+            0x74,
+            0x45,
+            0x6d,
+            0x61,
+            0x69,
+            0x6c,
+            0x3a,
+            0x20,
+            0x24,
+            0x65,
+            0x6d,
+            0x61,
+            0x69,
+            0x6c,
+            0x2c,
+            0x20,
+            0x74,
+            0x65,
+            0x78,
+            0x74,
+            0x3a,
+            0x20,
+            0x24,
+            0x74,
+            0x65,
+            0x78,
+            0x74,
+            0x20,
+            0x7d,
+            0x29,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x6d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x74,
+            0x65,
+            0x78,
+            0x74,
+            0x20,
+            0x64,
+            0x69,
+            0x72,
+            0x65,
+            0x63,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x72,
+            0x65,
+            0x63,
+            0x69,
+            0x70,
+            0x69,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x50,
+            0x61,
+            0x72,
+            0x74,
+            0x69,
+            0x63,
+            0x69,
+            0x70,
+            0x61,
+            0x6e,
+            0x74,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x73,
+            0x65,
+            0x6e,
+            0x64,
+            0x65,
+            0x72,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x50,
+            0x61,
+            0x72,
+            0x74,
+            0x69,
+            0x63,
+            0x69,
+            0x70,
+            0x61,
+            0x6e,
+            0x74,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x73,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x50,
+            0x61,
+            0x72,
+            0x74,
+            0x69,
+            0x63,
+            0x69,
+            0x70,
+            0x61,
+            0x6e,
+            0x74,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x65,
+            0x6d,
+            0x61,
+            0x69,
+            0x6c,
+            0x20,
+            0x69,
+            0x73,
+            0x4f,
+            0x6e,
+            0x6c,
+            0x69,
+            0x6e,
+            0x65,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "0a0b8bf5246ce3dca815397d3d9be98e9a35a867");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -3276,7 +4840,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageMut GraphQL operation
     /// <code>
-    /// mutation SendMessageMut($email: String!, $text: String!) {
+    /// mutation SendMessageMut(
+    ///   $email: String!
+    ///   $text: String!
+    /// ) {
     ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
     ///     __typename
     ///     message {
@@ -3322,16 +4889,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<ISendMessageMutResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public SendMessageMutMutation(global::StrawberryShake.IOperationExecutor<ISendMessageMutResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
         }
 
+        private SendMessageMutMutation(global::StrawberryShake.IOperationExecutor<ISendMessageMutResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _stringFormatter = @stringFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ISendMessageMutResult);
+
+        public global::Foo.Bar.ISendMessageMutMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.SendMessageMutMutation(_operationExecutor, _configure.Add(configure), _stringFormatter);
+        }
+
+        public global::Foo.Bar.ISendMessageMutMutation WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.ISendMessageMutMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISendMessageMutResult>> ExecuteAsync(global::System.String email, global::System.String text, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(email, text);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -3384,7 +4980,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageMut GraphQL operation
     /// <code>
-    /// mutation SendMessageMut($email: String!, $text: String!) {
+    /// mutation SendMessageMut(
+    ///   $email: String!
+    ///   $text: String!
+    /// ) {
     ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
     ///     __typename
     ///     message {
@@ -3428,6 +5027,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ISendMessageMutMutation : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.ISendMessageMutMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.ISendMessageMutMutation WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.ISendMessageMutMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISendMessageMutResult>> ExecuteAsync(global::System.String email, global::System.String text, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ISendMessageMutResult>> Watch(global::System.String email, global::System.String text, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -3483,8 +5085,347 @@ namespace Foo.Bar
 
         public static ReadMessagesSubscriptionDocument Instance { get; } = new ReadMessagesSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x73, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x52, 0x65, 0x61, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x3a, 0x20, 0x6f, 0x6e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x64, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x74, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x20, 0x69, 0x73, 0x4f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
+        {
+            0x73,
+            0x75,
+            0x62,
+            0x73,
+            0x63,
+            0x72,
+            0x69,
+            0x70,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x52,
+            0x65,
+            0x61,
+            0x64,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x73,
+            0x20,
+            0x7b,
+            0x20,
+            0x6d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x3a,
+            0x20,
+            0x6f,
+            0x6e,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x52,
+            0x65,
+            0x63,
+            0x65,
+            0x69,
+            0x76,
+            0x65,
+            0x64,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x4d,
+            0x65,
+            0x73,
+            0x73,
+            0x61,
+            0x67,
+            0x65,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x74,
+            0x65,
+            0x78,
+            0x74,
+            0x20,
+            0x64,
+            0x69,
+            0x72,
+            0x65,
+            0x63,
+            0x74,
+            0x69,
+            0x6f,
+            0x6e,
+            0x20,
+            0x72,
+            0x65,
+            0x63,
+            0x69,
+            0x70,
+            0x69,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x50,
+            0x61,
+            0x72,
+            0x74,
+            0x69,
+            0x63,
+            0x69,
+            0x70,
+            0x61,
+            0x6e,
+            0x74,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x73,
+            0x65,
+            0x6e,
+            0x64,
+            0x65,
+            0x72,
+            0x20,
+            0x7b,
+            0x20,
+            0x5f,
+            0x5f,
+            0x74,
+            0x79,
+            0x70,
+            0x65,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x50,
+            0x61,
+            0x72,
+            0x74,
+            0x69,
+            0x63,
+            0x69,
+            0x70,
+            0x61,
+            0x6e,
+            0x74,
+            0x20,
+            0x2e,
+            0x2e,
+            0x2e,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x69,
+            0x64,
+            0x20,
+            0x7d,
+            0x20,
+            0x7d,
+            0x20,
+            0x73,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x7d,
+            0x20,
+            0x66,
+            0x72,
+            0x61,
+            0x67,
+            0x6d,
+            0x65,
+            0x6e,
+            0x74,
+            0x20,
+            0x50,
+            0x61,
+            0x72,
+            0x74,
+            0x69,
+            0x63,
+            0x69,
+            0x70,
+            0x61,
+            0x6e,
+            0x74,
+            0x20,
+            0x6f,
+            0x6e,
+            0x20,
+            0x50,
+            0x65,
+            0x72,
+            0x73,
+            0x6f,
+            0x6e,
+            0x20,
+            0x7b,
+            0x20,
+            0x6e,
+            0x61,
+            0x6d,
+            0x65,
+            0x20,
+            0x65,
+            0x6d,
+            0x61,
+            0x69,
+            0x6c,
+            0x20,
+            0x69,
+            0x73,
+            0x4f,
+            0x6e,
+            0x6c,
+            0x69,
+            0x6e,
+            0x65,
+            0x20,
+            0x7d
+        };
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "d814e26af4f48099826de75f91993d52b3568a02");
+
         public override global::System.String ToString()
         {
 #if NETCOREAPP3_1_OR_GREATER
@@ -3547,6 +5488,7 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IReadMessagesResult);
+
         public global::System.IObservable<global::StrawberryShake.IOperationResult<IReadMessagesResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest();
@@ -3684,19 +5626,14 @@ namespace Foo.Bar.State
 
         ///<summary>Field name</summary>
         public global::System.String Name { get; }
-
         ///<summary>Field email</summary>
         public global::System.String Email { get; }
-
         ///<summary>Field isOnline</summary>
         public global::System.Boolean IsOnline { get; }
-
         ///<summary>Field imageUri</summary>
         public global::System.Uri? ImageUri { get; }
-
         ///<summary>Field lastSeen</summary>
         public global::System.DateTimeOffset LastSeen { get; }
-
         ///<summary>Field messages</summary>
         public global::Foo.Bar.State.MessageConnectionData? Messages { get; }
     }
@@ -3718,19 +5655,14 @@ namespace Foo.Bar.State
 
         ///<summary>Field id</summary>
         public global::System.String Id { get; }
-
         ///<summary>Field text</summary>
         public global::System.String Text { get; }
-
         ///<summary>Field direction</summary>
         public global::Foo.Bar.Direction Direction { get; }
-
         ///<summary>Fiejld recipient</summary>
         public global::StrawberryShake.EntityId Recipient { get; }
-
         ///<summary>Field sender</summary>
         public global::StrawberryShake.EntityId Sender { get; }
-
         ///<summary>Field sent</summary>
         public global::System.DateTimeOffset Sent { get; }
     }
@@ -3748,6 +5680,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IGetPeopleResult);
+
         public GetPeopleResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -3771,7 +5704,7 @@ namespace Foo.Bar.State
             }
 
             IGetPeople_People returnValue = default !;
-            if (data?.__typename.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PersonConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetPeople_People_PersonConnection(MapIGetPeople_People_NodesArray(data.Nodes, snapshot));
             }
@@ -3837,9 +5770,9 @@ namespace Foo.Bar.State
         /// Gets access to all the people known to this service.
         /// </summary>
         public global::Foo.Bar.State.PersonConnectionData? People { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetPeopleResultInfo(People, _entityIds, version);
@@ -3859,6 +5792,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IGetMessagesResult);
+
         public GetMessagesResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -3907,9 +5841,9 @@ namespace Foo.Bar.State
         /// Field personByEmail
         /// </summary>
         public global::StrawberryShake.EntityId PersonByEmail { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetMessagesResultInfo(PersonByEmail, _entityIds, version);
@@ -3933,6 +5867,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.ISendMessageInputResult);
+
         public SendMessageInput_1Result Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -4016,9 +5951,9 @@ namespace Foo.Bar.State
         /// Field sendMessage
         /// </summary>
         public global::Foo.Bar.State.SendMessagePayloadData SendMessage { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new SendMessageInput_1ResultInfo(SendMessage, _entityIds, version);
@@ -4042,6 +5977,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.ISendMessageMutResult);
+
         public SendMessageMutResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -4125,9 +6061,9 @@ namespace Foo.Bar.State
         /// Field sendMessage
         /// </summary>
         public global::Foo.Bar.State.SendMessagePayloadData SendMessage { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new SendMessageMutResultInfo(SendMessage, _entityIds, version);
@@ -4147,6 +6083,7 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IReadMessagesResult);
+
         public ReadMessagesResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -4195,9 +6132,9 @@ namespace Foo.Bar.State
         /// field onMessageReceived
         /// </summary>
         public global::StrawberryShake.EntityId Message { get; }
-
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
+
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new ReadMessagesResultInfo(Message, _entityIds, version);
@@ -5280,7 +7217,6 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         ///<summary>A flattened list of the nodes.</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
@@ -5297,7 +7233,6 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         ///<summary>A flattened list of the nodes.</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
@@ -5314,7 +7249,6 @@ namespace Foo.Bar.State
         }
 
         public global::System.String __typename { get; }
-
         ///<summary>Field message</summary>
         public global::StrawberryShake.EntityId? Message { get; }
     }
@@ -5374,7 +7308,7 @@ namespace Foo.Bar.State
             }
 
             IGetMessages_PersonByEmail_Messages returnValue = default !;
-            if (data?.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetMessages_PersonByEmail_Messages_MessageConnection(MapIGetMessages_PersonByEmail_Messages_NodesArray(data.Nodes, snapshot));
             }
@@ -5791,7 +7725,9 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false};
+        {
+            Indented = false
+        };
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;
@@ -5923,6 +7859,9 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);

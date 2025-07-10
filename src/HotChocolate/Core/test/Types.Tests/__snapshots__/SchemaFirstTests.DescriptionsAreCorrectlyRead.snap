@@ -1,4 +1,4 @@
-﻿{
+{
   "data": {
     "__schema": {
       "queryType": {
@@ -20,9 +20,13 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "SCALAR",
-                    "name": "Boolean",
-                    "ofType": null
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
                   },
                   "defaultValue": "false",
                   "isDeprecated": false,
@@ -374,9 +378,13 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "SCALAR",
-                    "name": "Boolean",
-                    "ofType": null
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
                   },
                   "defaultValue": "false",
                   "isDeprecated": false,
@@ -709,9 +717,13 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "SCALAR",
-                    "name": "Boolean",
-                    "ofType": null
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
                   },
                   "defaultValue": "false",
                   "isDeprecated": false,
@@ -742,9 +754,13 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "SCALAR",
-                    "name": "Boolean",
-                    "ofType": null
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
                   },
                   "defaultValue": "false",
                   "isDeprecated": false,
@@ -775,9 +791,13 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "SCALAR",
-                    "name": "Boolean",
-                    "ofType": null
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
                   },
                   "defaultValue": "false",
                   "isDeprecated": false,
@@ -855,6 +875,18 @@
               "type": {
                 "kind": "OBJECT",
                 "name": "__Type",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "oneOf",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "Boolean",
                 "ofType": null
               },
               "isDeprecated": false,

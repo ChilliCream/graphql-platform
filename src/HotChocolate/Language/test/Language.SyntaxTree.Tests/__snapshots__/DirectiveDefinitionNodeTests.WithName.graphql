@@ -1,0 +1,2 @@
+"bar"
+directive @bar repeatable on FIELD

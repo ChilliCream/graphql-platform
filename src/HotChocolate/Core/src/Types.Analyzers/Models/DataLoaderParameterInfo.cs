@@ -2,21 +2,28 @@ using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public readonly struct DataLoaderParameterInfo(
-    string variableName,
-    IParameterSymbol parameter,
-    DataLoaderParameterKind kind,
-    string? stateKey = null)
+public sealed class DataLoaderParameterInfo
 {
-    public string VariableName { get; } = variableName;
+    public DataLoaderParameterInfo(string variableName,
+        IParameterSymbol parameter,
+        DataLoaderParameterKind kind,
+        string? stateKey = null)
+    {
+        VariableName = variableName;
+        StateKey = stateKey;
+        Parameter = parameter;
+        Kind = kind;
+    }
 
-    public string? StateKey { get; } = stateKey;
+    public string VariableName { get; }
+
+    public string? StateKey { get; }
 
     public int Index => Parameter.Ordinal;
 
     public ITypeSymbol Type => Parameter.Type;
 
-    public IParameterSymbol Parameter { get; } = parameter;
+    public IParameterSymbol Parameter { get; }
 
-    public DataLoaderParameterKind Kind { get; } = kind;
+    public DataLoaderParameterKind Kind { get; }
 }

@@ -6,11 +6,6 @@
     <RootNamespace>HotChocolate</RootNamespace>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
-    <PackageReference Include="System.Collections.Immutable" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
   </ItemGroup>
@@ -20,11 +15,6 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>AbstractionResources.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Properties\PrimitivesResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>PrimitivesResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 

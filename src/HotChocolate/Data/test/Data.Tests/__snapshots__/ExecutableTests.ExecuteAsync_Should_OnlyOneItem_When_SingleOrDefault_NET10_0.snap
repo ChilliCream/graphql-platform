@@ -1,0 +1,17 @@
+{
+  "result": {
+    "Id": 1,
+    "Name": "Foo",
+    "Books": [
+      {
+        "Id": 1,
+        "AuthorId": 0,
+        "Title": "Foo1",
+        "Author": null,
+        "Publisher": null
+      }
+    ],
+    "Publishers": []
+  },
+  "executable": "System.Linq.Enumerable+IListSkipTakeIterator`1[HotChocolate.Data.Author]"
+}

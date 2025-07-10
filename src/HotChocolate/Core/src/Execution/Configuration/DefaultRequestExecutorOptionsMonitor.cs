@@ -2,36 +2,28 @@ using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Execution.Configuration;
 
-internal sealed class DefaultRequestExecutorOptionsMonitor
+internal sealed class DefaultRequestExecutorOptionsMonitor(
+    IOptionsMonitor<RequestExecutorSetup> optionsMonitor,
+    IEnumerable<IRequestExecutorOptionsProvider> optionsProviders)
     : IRequestExecutorOptionsMonitor
     , IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly IOptionsMonitor<RequestExecutorSetup> _optionsMonitor;
-    private readonly IRequestExecutorOptionsProvider[] _optionsProviders;
-    private readonly Dictionary<string, List<IConfigureRequestExecutorSetup>> _configs =
-        new();
+    private readonly IRequestExecutorOptionsProvider[] _optionsProviders = optionsProviders.ToArray();
+    private readonly Dictionary<string, List<IConfigureRequestExecutorSetup>> _configs = [];
     private readonly List<IDisposable> _disposables = [];
     private readonly List<Action<string>> _listeners = [];
     private bool _initialized;
     private bool _disposed;
 
-    public DefaultRequestExecutorOptionsMonitor(
-        IOptionsMonitor<RequestExecutorSetup> optionsMonitor,
-        IEnumerable<IRequestExecutorOptionsProvider> optionsProviders)
-    {
-        _optionsMonitor = optionsMonitor;
-        _optionsProviders = optionsProviders.ToArray();
-    }
-
     public async ValueTask<RequestExecutorSetup> GetAsync(
         string schemaName,
         CancellationToken cancellationToken = default)
     {
-        await InitializeAsync(cancellationToken).ConfigureAwait(false);
+        await TryInitializeAsync(cancellationToken).ConfigureAwait(false);
 
         var options = new RequestExecutorSetup();
-        _optionsMonitor.Get(schemaName).CopyTo(options);
+        optionsMonitor.Get(schemaName).CopyTo(options);
 
         if (_configs.TryGetValue(schemaName, out var configurations))
         {
@@ -44,47 +36,57 @@ internal sealed class DefaultRequestExecutorOptionsMonitor
         return options;
     }
 
-    private async ValueTask InitializeAsync(CancellationToken cancellationToken)
+    private async ValueTask TryInitializeAsync(CancellationToken cancellationToken)
     {
         if (!_initialized)
         {
             await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!_initialized)
+            try
             {
-                _configs.Clear();
-
-                foreach (var provider in _optionsProviders)
-                {
-                    _disposables.Add(provider.OnChange(OnChange));
-
-                    var allConfigurations =
-                        await provider.GetOptionsAsync(cancellationToken)
-                            .ConfigureAwait(false);
-
-                    foreach (var configuration in allConfigurations)
-                    {
-                        if (!_configs.TryGetValue(
-                            configuration.SchemaName,
-                            out var configurations))
-                        {
-                            configurations = [];
-                            _configs.Add(configuration.SchemaName, configurations);
-                        }
-
-                        configurations.Add(configuration);
-                    }
-                }
-
-                _initialized = true;
+                await TryInitializeUnsafeAsync(cancellationToken).ConfigureAwait(false);
             }
-
-            _semaphore.Release();
+            finally
+            {
+                _semaphore.Release();
+            }
         }
     }
 
-    public IDisposable OnChange(Action<string> listener) =>
-        new Session(this, listener);
+    private async ValueTask TryInitializeUnsafeAsync(CancellationToken cancellationToken)
+    {
+        if (!_initialized)
+        {
+            _configs.Clear();
+
+            foreach (var provider in _optionsProviders)
+            {
+                _disposables.Add(provider.OnChange(OnChange));
+
+                var allConfigurations =
+                    await provider.GetOptionsAsync(cancellationToken)
+                        .ConfigureAwait(false);
+
+                foreach (var configuration in allConfigurations)
+                {
+                    if (!_configs.TryGetValue(
+                        configuration.SchemaName,
+                        out var configurations))
+                    {
+                        configurations = [];
+                        _configs.Add(configuration.SchemaName, configurations);
+                    }
+
+                    configurations.Add(configuration);
+                }
+            }
+
+            _initialized = true;
+        }
+    }
+
+    public IDisposable OnChange(Action<string> listener)
+        => new Session(this, listener);
 
     private void OnChange(IConfigureRequestExecutorSetup changes)
     {

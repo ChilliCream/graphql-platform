@@ -1,18 +1,17 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
-using IHasDirectives = HotChocolate.Types.IHasDirectives;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Caching;
 
 internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 {
-    private ITypeCompletionContext _queryContext = default!;
+    private ITypeCompletionContext _queryContext = null!;
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         if (operationType is OperationType.Query)
@@ -22,59 +21,59 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
     }
 
     public override void OnValidateType(
-        ITypeSystemObjectContext validationContext,
-        DefinitionBase definition)
+        ITypeSystemObjectContext context,
+        TypeSystemConfiguration configuration)
     {
-        if (validationContext.IsIntrospectionType)
+        if (context.IsIntrospectionType)
         {
             return;
         }
 
-        switch (validationContext.Type)
+        switch (context.Type)
         {
             case ObjectType objectType:
             {
-                var isQueryType = ReferenceEquals(validationContext, _queryContext);
+                var isQueryType = ReferenceEquals(context, _queryContext);
 
-                ValidateCacheControlOnType(validationContext, objectType);
+                ValidateCacheControlOnType(context, objectType);
 
                 var span = objectType.Fields.AsSpan();
 
                 for (var i = 0; i < span.Length; i++)
                 {
                     var field = span[i];
-                    ValidateCacheControlOnField(validationContext, field, objectType, isQueryType);
+                    ValidateCacheControlOnField(context, field, objectType, isQueryType);
                 }
                 break;
             }
 
             case InterfaceType interfaceType:
             {
-                ValidateCacheControlOnType(validationContext, interfaceType);
+                ValidateCacheControlOnType(context, interfaceType);
 
                 var span = interfaceType.Fields.AsSpan();
 
                 for (var i = 0; i < span.Length; i++)
                 {
                     var field = span[i];
-                    ValidateCacheControlOnField(validationContext, field, interfaceType, false);
+                    ValidateCacheControlOnField(context, field, interfaceType, false);
                 }
                 break;
             }
 
             case UnionType unionType:
-                ValidateCacheControlOnType(validationContext, unionType);
+                ValidateCacheControlOnType(context, unionType);
                 break;
         }
     }
 
     private static void ValidateCacheControlOnType(
         ITypeSystemObjectContext validationContext,
-        IHasDirectives type)
+        IDirectivesProvider type)
     {
-        var directive = type.Directives
-            .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName)?
-            .AsValue<CacheControlDirective>();
+        var directive = (type.Directives
+            .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName) as Directive)
+            ?.ToValue<CacheControlDirective>();
 
         if (directive is null)
         {
@@ -82,7 +81,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
         }
 
         if (directive.InheritMaxAge == true
-            && type is ITypeSystemObject typeSystemObject)
+            && type is TypeSystemObject typeSystemObject)
         {
             var error = ErrorHelper.CacheControlInheritMaxAgeOnType(typeSystemObject);
 
@@ -92,12 +91,13 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
     private static void ValidateCacheControlOnField(
         ITypeSystemObjectContext validationContext,
-        IField field, ITypeSystemObject obj,
+        IFieldDefinition field,
+        TypeSystemObject obj,
         bool isQueryTypeField)
     {
-        var directive = field.Directives
-            .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName)?
-            .AsValue<CacheControlDirective>();
+        var directive = (field.Directives
+            .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName) as Directive)
+            ?.ToValue<CacheControlDirective>();
 
         if (directive is null)
         {
@@ -130,6 +130,21 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
             if (inheritMaxAge)
             {
                 var error = ErrorHelper.CacheControlBothMaxAgeAndInheritMaxAge(obj, field);
+                validationContext.ReportError(error);
+            }
+        }
+
+        if (directive.SharedMaxAge.HasValue)
+        {
+            if (directive.SharedMaxAge.Value < 0)
+            {
+                var error = ErrorHelper.CacheControlNegativeSharedMaxAge(obj, field);
+                validationContext.ReportError(error);
+            }
+
+            if (inheritMaxAge)
+            {
+                var error = ErrorHelper.CacheControlBothSharedMaxAgeAndInheritMaxAge(obj, field);
                 validationContext.ReportError(error);
             }
         }

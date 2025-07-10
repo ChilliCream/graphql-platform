@@ -22,11 +22,7 @@ internal static class MessageReceiver
         PipeWriter writer,
         ISocketClient client,
         CancellationToken cancellationToken)
-        => Task.Factory.StartNew(
-            () => ReceiveAsync(client, writer, cancellationToken),
-            cancellationToken,
-            TaskCreationOptions.LongRunning,
-            TaskScheduler.Default);
+        => ReceiveAsync(client, writer, cancellationToken);
 
     private static async Task ReceiveAsync(
         ISocketClient client,

@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>HotChocolate.Transport.Abstractions</PackageId>
     <AssemblyName>HotChocolate.Transport.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate.Transport</RootNamespace>
     <Description>This package contains common abstractions and base classes for transport.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,11 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="System.Text.Json" />
+    <ProjectReference Include="..\..\..\Utilities\src\Utilities.Buffers\HotChocolate.Utilities.Buffers.csproj" />
   </ItemGroup>
 
   <ItemGroup>

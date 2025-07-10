@@ -1,6 +1,5 @@
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Validation;
 
@@ -16,22 +15,23 @@ public class FragmentSpreadTypeExistenceRuleTests
     public void CorrectTypeOnFragment()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        var query = Utf8GraphQLParser.Parse(@"
-                {
-                    dog {
-                        ...correctType
-                    }
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                dog {
+                    ...correctType
                 }
+            }
 
-                fragment correctType on Dog {
-                    name
-                }
-            ");
-        context.Prepare(query);
+            fragment correctType on Dog {
+                name
+            }
+            """);
+
+        var context = ValidationUtils.CreateContext(document);
 
         // act
-        Rule.Validate(context, query);
+        Rule.Validate(context, document);
 
         // assert
         Assert.Empty(context.Errors);
@@ -41,24 +41,25 @@ public class FragmentSpreadTypeExistenceRuleTests
     public void CorrectTypeOnInlineFragment()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        var query = Utf8GraphQLParser.Parse(@"
-                {
-                    dog {
-                        ...inlineFragment
-                    }
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                dog {
+                    ...inlineFragment
                 }
+            }
 
-                fragment inlineFragment on Dog {
-                    ... on Dog {
-                        name
-                    }
+            fragment inlineFragment on Dog {
+                ... on Dog {
+                    name
                 }
-            ");
-        context.Prepare(query);
+            }
+            """);
+
+        var context = ValidationUtils.CreateContext(document);
 
         // act
-        Rule.Validate(context, query);
+        Rule.Validate(context, document);
 
         // assert
         Assert.Empty(context.Errors);
@@ -68,24 +69,25 @@ public class FragmentSpreadTypeExistenceRuleTests
     public void CorrectTypeOnInlineFragment2()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        var query = Utf8GraphQLParser.Parse(@"
-                {
-                    dog {
-                        ...inlineFragment2
-                    }
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                dog {
+                    ...inlineFragment2
                 }
+            }
 
-                fragment inlineFragment2 on Dog {
-                    ... @include(if: true) {
-                        name
-                    }
+            fragment inlineFragment2 on Dog {
+                ... @include(if: true) {
+                    name
                 }
-            ");
-        context.Prepare(query);
+            }
+            """);
+
+        var context = ValidationUtils.CreateContext(document);
 
         // act
-        Rule.Validate(context, query);
+        Rule.Validate(context, document);
 
         // assert
         Assert.Empty(context.Errors);
@@ -95,24 +97,23 @@ public class FragmentSpreadTypeExistenceRuleTests
     public void NotOnExistingTypeOnFragment()
     {
         // arrange
-        var context = ValidationUtils.CreateContext();
-        context.MaxAllowedErrors = int.MaxValue;
-
-        var query = Utf8GraphQLParser.Parse(@"
-                {
-                    dog {
-                        ...notOnExistingType
-                    }
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                dog {
+                    ...notOnExistingType
                 }
+            }
 
-                fragment notOnExistingType on NotInSchema {
-                    name
-                }
-            ");
-        context.Prepare(query);
+            fragment notOnExistingType on NotInSchema {
+                name
+            }
+            """);
+
+        var context = ValidationUtils.CreateContext(document, maxAllowedErrors: int.MaxValue);
 
         // act
-        Rule.Validate(context, query);
+        Rule.Validate(context, document);
 
         // assert
         Assert.Collection(context.Errors,
@@ -129,26 +130,25 @@ public class FragmentSpreadTypeExistenceRuleTests
     public void NotExistingTypeOnInlineFragment()
     {
         // arrange
-        var context = ValidationUtils.CreateContext();
-        context.MaxAllowedErrors = int.MaxValue;
-
-        var query = Utf8GraphQLParser.Parse(@"
-                {
-                    dog {
-                        ...inlineNotExistingType
-                    }
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                dog {
+                    ...inlineNotExistingType
                 }
+            }
 
-                fragment inlineNotExistingType on Dog {
-                    ... on NotInSchema {
-                        name
-                    }
+            fragment inlineNotExistingType on Dog {
+                ... on NotInSchema {
+                    name
                 }
-            ");
-        context.Prepare(query);
+            }
+            """);
+
+        var context = ValidationUtils.CreateContext(document, maxAllowedErrors: int.MaxValue);
 
         // act
-        Rule.Validate(context, query);
+        Rule.Validate(context, document);
 
         // assert
         Assert.Collection(context.Errors,

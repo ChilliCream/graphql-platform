@@ -1,0 +1,63 @@
+testatest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}
+---------------
+
+testatest SQL:
+---------------
+.param set @p 'testatest'
+
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" = @p
+---------------
+
+testbtest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      }
+    ]
+  }
+}
+---------------
+
+testbtest SQL:
+---------------
+.param set @p 'testbtest'
+
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" = @p
+---------------
+
+null Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+null SQL:
+---------------
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" IS NULL
+---------------

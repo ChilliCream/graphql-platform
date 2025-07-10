@@ -7,8 +7,8 @@ namespace HotChocolate.Language.Utilities;
 /// </summary>
 public static class SyntaxPrinter
 {
-    private static readonly SyntaxSerializer _serializer = new(new() { Indented = true, });
-    private static readonly SyntaxSerializer _serializerNoIndent = new(new() { Indented = false, });
+    private static readonly SyntaxSerializer s_serializer = new(new() { Indented = true });
+    private static readonly SyntaxSerializer s_serializerNoIndent = new(new() { Indented = false });
 
     /// <summary>
     /// Prints a GraphQL syntax node`s string representation.
@@ -26,11 +26,11 @@ public static class SyntaxPrinter
         {
             if (indented)
             {
-                _serializer.Serialize(node, writer);
+                s_serializer.Serialize(node, writer);
             }
             else
             {
-                _serializerNoIndent.Serialize(node, writer);
+                s_serializerNoIndent.Serialize(node, writer);
             }
 
             return writer.ToString();
@@ -60,11 +60,14 @@ public static class SyntaxPrinter
 #if NETSTANDARD2_0
         using var streamWriter = new StreamWriter(
             stream,
-            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
+            -1,
+            leaveOpen: true);
 #else
         await using var streamWriter = new StreamWriter(
             stream,
-            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
+            leaveOpen: true);
 #endif
 
         var syntaxWriter = StringSyntaxWriter.Rent();
@@ -73,17 +76,17 @@ public static class SyntaxPrinter
         {
             if (indented)
             {
-                _serializer.Serialize(node, syntaxWriter);
+                s_serializer.Serialize(node, syntaxWriter);
             }
             else
             {
-                _serializerNoIndent.Serialize(node, syntaxWriter);
+                s_serializerNoIndent.Serialize(node, syntaxWriter);
             }
 
-#if NETSTANDARD2_0 || NETSTANDARD2_1
-                await streamWriter
-                    .WriteAsync(syntaxWriter.ToString())
-                    .ConfigureAwait(false);
+#if NETSTANDARD2_0
+            await streamWriter
+                .WriteAsync(syntaxWriter.ToString())
+                .ConfigureAwait(false);
 #else
             await streamWriter
                 .WriteAsync(syntaxWriter.StringBuilder, cancellationToken)

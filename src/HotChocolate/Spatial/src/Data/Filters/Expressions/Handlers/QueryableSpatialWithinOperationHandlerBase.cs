@@ -12,14 +12,14 @@ namespace HotChocolate.Data.Filters.Spatial;
 public abstract class QueryableSpatialWithinOperationHandlerBase
     : QueryableSpatialBooleanMethodHandler
 {
-    private static readonly MethodInfo _within =
+    private static readonly MethodInfo s_within =
         typeof(Geometry).GetMethod(nameof(Geometry.Within))!;
 
-    public QueryableSpatialWithinOperationHandlerBase(
+    protected QueryableSpatialWithinOperationHandlerBase(
         IFilterConvention convention,
         ITypeInspector inspector,
         InputParser inputParser)
-        : base(convention, inspector, inputParser, _within)
+        : base(convention, inspector, inputParser, s_within)
     {
     }
 

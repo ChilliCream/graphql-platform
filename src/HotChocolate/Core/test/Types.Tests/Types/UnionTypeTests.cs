@@ -1,5 +1,4 @@
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -20,7 +19,7 @@ public class UnionTypeTests
             .Create();
 
         // assert
-        var type = schema.GetType<UnionType>("StringFoo");
+        var type = schema.Types.GetType<UnionType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -38,7 +37,7 @@ public class UnionTypeTests
             .Create();
 
         // assert
-        var type = schema.GetType<UnionType>("StringFoo");
+        var type = schema.Types.GetType<UnionType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -56,7 +55,7 @@ public class UnionTypeTests
             .Create();
 
         // assert
-        var type = schema.GetType<UnionType>("StringFoo");
+        var type = schema.Types.GetType<UnionType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -74,7 +73,7 @@ public class UnionTypeTests
             .Create();
 
         // assert
-        var type = schema.GetType<UnionType>("StringFoo");
+        var type = schema.Types.GetType<UnionType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -89,7 +88,7 @@ public class UnionTypeTests
             .Type<BarType>()));
 
         // assert
-        Assert.Collection(fooBarType.Types.Values,
+        Assert.Collection(fooBarType.Types,
             t => Assert.Equal("Foo", t.Name),
             t => Assert.Equal("Bar", t.Name));
     }
@@ -104,7 +103,7 @@ public class UnionTypeTests
             b => b.AddTypes(new FooType(), new BarType()));
 
         // assert
-        Assert.Collection(fooBarType.Types.Values,
+        Assert.Collection(fooBarType.Types,
             t => Assert.Equal("Foo", t.Name),
             t => Assert.Equal("Bar", t.Name));
     }
@@ -119,7 +118,7 @@ public class UnionTypeTests
             b => b.AddTypes(new FooType(), new BarType()));
 
         // assert
-        Assert.Collection(fooBarType.Types.Values,
+        Assert.Collection(fooBarType.Types,
             t => Assert.Equal("Baz", t.Name),
             t => Assert.Equal("Foo", t.Name),
             t => Assert.Equal("Bar", t.Name));
@@ -223,17 +222,11 @@ public class UnionTypeTests
         ex.Message.MatchSnapshot();
     }
 
-    public class FooType : ObjectType<Foo>
-    {
-    }
+    public class FooType : ObjectType<Foo>;
 
-    public class BarType : ObjectType<Bar>
-    {
-    }
+    public class BarType : ObjectType<Bar>;
 
-    public class BazType : ObjectType<Baz>
-    {
-    }
+    public class BazType : ObjectType<Baz>;
 
     public class Foo : IFooOrBar
     {
@@ -250,9 +243,7 @@ public class UnionTypeTests
         public string BazField { get; set; }
     }
 
-    public interface IFooOrBar
-    {
-    }
+    public interface IFooOrBar;
 
     public class FooDirectiveType
         : DirectiveType<FooDirective>

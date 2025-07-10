@@ -21,6 +21,9 @@ public static class BuiltInScalarNames
     public const string Any = nameof(Any);
     public const string DateTime = nameof(DateTime);
     public const string Date = nameof(Date);
+    public const string LocalDate = nameof(LocalDate);
+    public const string LocalDateTime = nameof(LocalDateTime);
+    public const string LocalTime = nameof(LocalTime);
     public const string TimeSpan = nameof(TimeSpan);
     public const string Name = nameof(Name);
 }

@@ -1,22 +1,15 @@
-#if NET6_0_OR_GREATER
-#endif
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Authorization;
 
 internal sealed partial class AuthorizationTypeInterceptor
 {
-    private sealed class State
+    private sealed class State(AuthorizationOptions options)
     {
-        public State(AuthorizationOptions options)
-        {
-            Options = options;
-        }
-
         /// <summary>
         /// Provides access to the authorization options.
         /// </summary>
-        public AuthorizationOptions Options { get; }
+        public AuthorizationOptions Options { get; } = options;
 
         /// <summary>
         ///  Gets the types to which authorization middleware need to be applied.
@@ -31,7 +24,7 @@ internal sealed partial class AuthorizationTypeInterceptor
         /// <summary>
         /// Gets a lookup table from abstract types to concrete types that need authorization.
         /// </summary>
-        public Dictionary<TypeReference, List<TypeReference>> AbstractToConcrete { get; } = new();
+        public Dictionary<TypeReference, List<TypeReference>> AbstractToConcrete { get; } = [];
 
         /// <summary>
         /// Gets a helper queue for processing types.
