@@ -1,5 +1,5 @@
 // using BenchmarkDotNet.Attributes;
-// using HotChocolate.Execution;
+// using HotChocolate.Language;
 //
 // namespace HotChocolate.Validation.Benchmarks;
 //
@@ -10,13 +10,12 @@
 //     protected override string DocumentFile => "__resources__/many-fragments-query.graphql";
 //
 //     [Benchmark]
-//     public async Task<DocumentValidatorResult> ManyFragmentsValidation()
+//     public DocumentValidatorResult ManyFragmentsValidation()
 //     {
-//         return await Validator.ValidateAsync(
+//         return Validator.Validate(
 //             schema: Schema,
-//             document: Document,
 //             documentId: new OperationDocumentId("many-fragments-query"),
-//             contextData: new Dictionary<string, object?>(),
+//             document: Document,
 //             onlyNonCacheable: false);
 //     }
 // }

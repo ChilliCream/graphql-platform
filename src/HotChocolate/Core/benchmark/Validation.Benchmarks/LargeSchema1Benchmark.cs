@@ -1,5 +1,5 @@
 using BenchmarkDotNet.Attributes;
-using HotChocolate.Execution;
+using HotChocolate.Language;
 
 namespace HotChocolate.Validation.Benchmarks;
 
@@ -10,13 +10,12 @@ public class LargeSchema1Benchmark : ValidationBenchmarkBase
     protected override string DocumentFile => "__resources__/large-schema-1-query.graphql";
 
     [Benchmark]
-    public async Task<DocumentValidatorResult> LargeSchema1Validation()
+    public DocumentValidatorResult LargeSchema1Validation()
     {
-        return await Validator.ValidateAsync(
+        return Validator.Validate(
             schema: Schema,
-            document: Document,
             documentId: new OperationDocumentId("large-schema-1-query"),
-            contextData: new Dictionary<string, object?>(),
+            document: Document,
             onlyNonCacheable: false);
     }
 }

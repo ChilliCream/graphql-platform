@@ -10,15 +10,14 @@ public abstract class ValidationBenchmarkBase
     protected abstract string SchemaDocumentFile { get; }
     protected abstract string DocumentFile { get; }
 
-    protected ISchema Schema = null!;
-    protected IDocumentValidator Validator = null!;
+    protected Schema Schema = null!;
+    protected DocumentValidator Validator = null!;
     protected DocumentNode Document = null!;
 
     [GlobalSetup]
     public void GlobalSetup()
     {
         var schemaDocument = Utf8GraphQLParser.Parse(File.ReadAllText(SchemaDocumentFile));
-
         var schemaBuilder = SchemaBuilder.New();
 
         // Register stubs for custom scalars.
@@ -35,13 +34,7 @@ public abstract class ValidationBenchmarkBase
             .Use(next => next)
             .Create();
 
-        Validator = new ServiceCollection()
-            .AddValidation()
-            .Services
-            .BuildServiceProvider()
-            .GetRequiredService<IDocumentValidatorFactory>()
-            .CreateValidator();
-
+        Validator = DocumentValidatorBuilder.New().AddDefaultRules().Build();
         Document = Utf8GraphQLParser.Parse(File.ReadAllText(DocumentFile));
     }
 }
