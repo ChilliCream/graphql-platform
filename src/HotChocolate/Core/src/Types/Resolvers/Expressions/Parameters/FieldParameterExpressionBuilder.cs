@@ -3,8 +3,6 @@ using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class FieldParameterExpressionBuilder()

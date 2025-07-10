@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Types;
 
 [DirectiveType(DirectiveNames.SemanticNonNull.Name, DirectiveLocation.FieldDefinition, IsRepeatable = false)]

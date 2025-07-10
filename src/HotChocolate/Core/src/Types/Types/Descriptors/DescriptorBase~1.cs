@@ -1,8 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 public abstract class DescriptorBase<T>(IDescriptorContext context)

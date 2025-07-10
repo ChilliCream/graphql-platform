@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Features;
 
 namespace HotChocolate.Types.Relay;

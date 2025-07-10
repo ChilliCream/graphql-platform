@@ -7,8 +7,6 @@ using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.FieldBindingFlags;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 public class ObjectTypeDescriptor

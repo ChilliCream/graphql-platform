@@ -1,8 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 internal sealed partial class TypeInfo
