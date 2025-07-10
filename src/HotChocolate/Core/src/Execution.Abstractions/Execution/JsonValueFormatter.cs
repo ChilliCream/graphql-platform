@@ -159,7 +159,7 @@ public static class JsonValueFormatter
         }
     }
 
-    private static void WriteDictionary(
+    public static void WriteDictionary(
         Utf8JsonWriter writer,
         IReadOnlyDictionary<string, object?> dict,
         JsonSerializerOptions options,

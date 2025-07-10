@@ -41,9 +41,9 @@ internal sealed partial class ExtendedType
                                 typeArguments: new[] { elementType },
                                 source: source,
                                 definition: typeof(ListType<>),
-                                isNullable: nullable,
+                                elementType: elementType,
                                 isList: true,
-                                elementType: elementType);
+                                isNullable: nullable);
                         });
                 }
             }
@@ -62,8 +62,8 @@ internal sealed partial class ExtendedType
                         typeArguments: SystemType.GetGenericArguments(type, cache),
                         source: source,
                         definition: definition,
-                        isNullable: nullable,
-                        isNamedType: true);
+                        isNamedType: true,
+                        isNullable: nullable);
                 });
         }
     }

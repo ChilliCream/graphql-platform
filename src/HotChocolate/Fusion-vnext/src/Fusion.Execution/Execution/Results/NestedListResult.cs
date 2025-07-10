@@ -14,6 +14,15 @@ public sealed class NestedListResult : ListResult
     public List<ListResult?> Items { get; } = [];
 
     /// <summary>
+    /// Gets the capacity of the leaf list result.
+    /// </summary>
+    public override int Capacity
+    {
+        get => Items.Capacity;
+        protected set => Items.Capacity = value;
+    }
+
+    /// <summary>
     /// Adds a null value to the list.
     /// </summary>
     public override void SetNextValueNull()
@@ -35,6 +44,7 @@ public sealed class NestedListResult : ListResult
             throw new ArgumentException("Value is not a ListResult.", nameof(value));
         }
 
+        listResult.SetParent(this, Items.Count);
         Items.Add(listResult);
     }
 
@@ -87,12 +97,6 @@ public sealed class NestedListResult : ListResult
     public override bool Reset()
     {
         Items.Clear();
-
-        if (Items.Capacity > 512)
-        {
-            Items.Capacity = 512;
-        }
-
         return base.Reset();
     }
 }

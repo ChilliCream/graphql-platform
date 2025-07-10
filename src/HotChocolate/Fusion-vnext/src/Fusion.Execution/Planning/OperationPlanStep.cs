@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -11,6 +12,8 @@ public record OperationPlanStep : PlanStep
 
     public required ITypeDefinition Type { get; init; }
 
+    public required uint RootSelectionSetId { get; init; }
+
     public required ImmutableHashSet<uint> SelectionSets { get; init; }
 
     public required string SchemaName { get; init; }
@@ -18,7 +21,15 @@ public record OperationPlanStep : PlanStep
     public ImmutableHashSet<int> Dependents { get; init; } = [];
 
     public ImmutableDictionary<string, OperationRequirement> Requirements { get; init; }
+#if NET10_0_OR_GREATER
+        = [];
+#else
         = ImmutableDictionary<string, OperationRequirement>.Empty;
+#endif
+
+    public required SelectionPath Target { get; init; }
+
+    public required SelectionPath Source { get; init; }
 
     public bool DependsOn(OperationPlanStep otherStep, ImmutableList<PlanStep> allSteps)
         => DependsOnRecursive(otherStep, Id, allSteps, []);

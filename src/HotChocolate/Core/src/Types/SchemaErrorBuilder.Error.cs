@@ -31,7 +31,11 @@ public partial class SchemaErrorBuilder
         IReadOnlyCollection<ISyntaxNode> ISchemaError.SyntaxNodes => SyntaxNodes;
 
         public ImmutableDictionary<string, object> Extensions { get; set; }
+#if NET10_0_OR_GREATER
+            = [];
+#else
             = ImmutableDictionary<string, object>.Empty;
+#endif
 
         IReadOnlyDictionary<string, object> ISchemaError.Extensions => Extensions;
 
@@ -49,7 +53,7 @@ public partial class SchemaErrorBuilder
 
             writer.Flush();
 
-            fixed (byte* b = buffer.GetInternalBuffer())
+            fixed (byte* b = PooledArrayWriterMarshal.GetUnderlyingBuffer(buffer))
             {
                 return Encoding.UTF8.GetString(b, buffer.Length);
             }

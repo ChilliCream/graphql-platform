@@ -19,7 +19,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
 
         var uri = new Uri("http://localhost:5000/graphql");
 
-        var requestBody =
+        const string requestBody =
             """
             {
                 "query" : "query Test($id: String!){human(id: $id){name}}"
@@ -48,7 +48,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
 
         var uri = new Uri("http://localhost:5000/graphql");
 
-        var requestBody =
+        const string requestBody =
             """
             {
                 "query" : "query Test($id: String!){human(id: $id){name}}"
@@ -78,7 +78,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
 
         var uri = new Uri("http://localhost:5000/graphql");
 
-        var requestBody =
+        const string requestBody =
             """
             {
                 "query" : "query Test($id: String!){human(id: $id){name}}"
@@ -111,7 +111,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
 
         var uri = new Uri("http://localhost:5000/graphql");
 
-        var requestBody =
+        const string requestBody =
             """
             {
                 "query" : "query Test($id: String!){human(id: $id){name}}"

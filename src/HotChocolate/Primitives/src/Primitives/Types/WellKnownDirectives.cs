@@ -208,4 +208,28 @@ public static class DirectiveNames
             public const string Url = "url";
         }
     }
+
+    /// <summary>
+    /// The name constants of the @lookup directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--lookup"/>
+    /// </summary>
+    public static class Lookup
+    {
+        /// <summary>
+        /// The name of the @lookup directive.
+        /// </summary>
+        public const string Name = "lookup";
+    }
+
+    /// <summary>
+    /// The name constants of the @internal directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--internal"/>
+    /// </summary>
+    public static class Internal
+    {
+        /// <summary>
+        /// The name of the @internal directive.
+        /// </summary>
+        public const string Name = "internal";
+    }
 }

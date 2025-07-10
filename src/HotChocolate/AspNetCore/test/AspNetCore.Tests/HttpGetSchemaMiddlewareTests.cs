@@ -42,8 +42,10 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         // arrange
         var server = CreateStarWarsServer(
             configureServices: sp =>
-                sp.RemoveAll<ITimeProvider>()
-                    .AddSingleton<ITimeProvider, StaticTimeProvider>());
+                sp.AddGraphQLServer()
+                    .ConfigureSchemaServices( s =>
+                            s.RemoveAll<ITimeProvider>()
+                            .AddSingleton<ITimeProvider, StaticTimeProvider>()));
         var url = TestServerExtensions.CreateUrl(path);
         var request = new HttpRequestMessage(HttpMethod.Get, url);
 
@@ -66,10 +68,10 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         // arrange
         var server = CreateStarWarsServer(
             configureServices: sp =>
-                sp
-                    .RemoveAll<ITimeProvider>()
-                    .AddSingleton<ITimeProvider, StaticTimeProvider>()
-                    .AddGraphQL()
+                sp.AddGraphQLServer()
+                    .ConfigureSchemaServices( s =>
+                        s.RemoveAll<ITimeProvider>()
+                            .AddSingleton<ITimeProvider, StaticTimeProvider>())
                     .ModifyPagingOptions(o => o.RequirePagingBoundaries = true));
         var url = TestServerExtensions.CreateUrl(path);
         var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -92,9 +94,8 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
     {
         // arrange
         var server = CreateStarWarsServer(
-            configureServices: s =>
-                s.AddGraphQL()
-                    .ModifyRequestOptions(o => o.EnableSchemaFileSupport = false));
+            configureConventions: b =>
+                b.WithOptions(new GraphQLServerOptions { EnableSchemaFileSupport = false }));
 
         var url = TestServerExtensions.CreateUrl(path);
         var request = new HttpRequestMessage(HttpMethod.Get, url);

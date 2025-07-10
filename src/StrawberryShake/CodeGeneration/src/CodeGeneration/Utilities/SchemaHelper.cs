@@ -116,7 +116,7 @@ public static class SchemaHelper
     {
         foreach (var scalarTypeExtension in scalarTypeExtensions)
         {
-            if (!leafTypes.TryGetValue(scalarTypeExtension.Name.Value, out var scalarInfo))
+            if (!leafTypes.ContainsKey(scalarTypeExtension.Name.Value))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -124,7 +124,7 @@ public static class SchemaHelper
                 TryRegister(typeInfos, runtimeType);
                 TryRegister(typeInfos, serializationType);
 
-                scalarInfo = new LeafTypeInfo(
+                var scalarInfo = new LeafTypeInfo(
                     scalarTypeExtension.Name.Value,
                     runtimeType?.Name,
                     serializationType?.Name);
@@ -141,9 +141,7 @@ public static class SchemaHelper
     {
         foreach (var scalarTypeExtension in enumTypeExtensions)
         {
-            if (!leafTypes.TryGetValue(
-                    scalarTypeExtension.Name.Value,
-                    out var scalarInfo))
+            if (!leafTypes.ContainsKey(scalarTypeExtension.Name.Value))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -151,7 +149,7 @@ public static class SchemaHelper
                 TryRegister(typeInfos, runtimeType);
                 TryRegister(typeInfos, serializationType);
 
-                scalarInfo = new LeafTypeInfo(
+                var scalarInfo = new LeafTypeInfo(
                     scalarTypeExtension.Name.Value,
                     runtimeType?.Name,
                     serializationType?.Name);
@@ -320,9 +318,9 @@ public static class SchemaHelper
         string runtimeType,
         string serializationType = TypeNames.String)
     {
-        if (!leafTypes.TryGetValue(typeName, out var leafType))
+        if (!leafTypes.ContainsKey(typeName))
         {
-            leafType = new LeafTypeInfo(typeName, runtimeType, serializationType);
+            var leafType = new LeafTypeInfo(typeName, runtimeType, serializationType);
             leafTypes.Add(typeName, leafType);
         }
     }

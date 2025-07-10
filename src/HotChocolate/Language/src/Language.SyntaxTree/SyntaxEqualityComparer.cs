@@ -198,7 +198,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             SyntaxComparer.BySyntax.Equals(x.Description, y.Description);
 
     private bool Equals(EnumValueNode x, EnumValueNode y)
-        => x.Value.Equals(y.Value, StringComparison.Ordinal);
+        => x.AsSpan().SequenceEqual(y.AsSpan());
 
     private bool Equals(FieldDefinitionNode x, FieldDefinitionNode y)
         => Equals(x.Name, y.Name) &&
@@ -215,28 +215,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             SyntaxComparer.BySyntax.Equals(x.SelectionSet, y.SelectionSet);
 
     private bool Equals(FloatValueNode x, FloatValueNode y)
-    {
-        var ourMem = x.AsMemory();
-        var otherMem = y.AsMemory();
-
-        // memory is not doing a deep equality check,
-        // but it will be equal if we are referring to the same
-        // underlying array.
-        if (otherMem.Equals(ourMem))
-        {
-            return true;
-        }
-
-        // if the length is not equals we can do a quick exit.
-        if (ourMem.Length != otherMem.Length)
-        {
-            return false;
-        }
-
-        // last we will do a sequence equals and compare the utf8string representation of
-        // this value.
-        return ourMem.Span.SequenceEqual(otherMem.Span);
-    }
+        => x.AsSpan().SequenceEqual(y.AsSpan());
 
     private bool Equals(FragmentDefinitionNode x, FragmentDefinitionNode y)
         => Equals(x.Name, y.Name) &&
@@ -287,26 +266,10 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private bool Equals(IntValueNode x, IntValueNode y)
     {
-        var ourMem = x.AsMemory();
-        var otherMem = y.AsMemory();
+        var ourMem = x.AsSpan();
+        var otherMem = y.AsSpan();
 
-        // memory is not doing a deep equality check,
-        // but it will be equal if we are referring to the same
-        // underlying array.
-        if (otherMem.Equals(ourMem))
-        {
-            return true;
-        }
-
-        // if the length is not equals we can do a quick exit.
-        if (ourMem.Length != otherMem.Length)
-        {
-            return false;
-        }
-
-        // last we will do a sequence equals and compare the utf8string representation of
-        // this value.
-        return ourMem.Span.SequenceEqual(otherMem.Span);
+        return otherMem.SequenceEqual(ourMem);
     }
 
     private bool Equals(ListTypeNode x, ListTypeNode y)
@@ -398,28 +361,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         => Equals(x.Selections, y.Selections);
 
     private bool Equals(StringValueNode x, StringValueNode y)
-    {
-        var ourMem = x.AsMemory();
-        var otherMem = y.AsMemory();
-
-        // memory is not doing a deep equality check,
-        // but it will be equal if we are referring to the same
-        // underlying array.
-        if (otherMem.Equals(ourMem))
-        {
-            return true;
-        }
-
-        // if the length is not equals we can do a quick exit.
-        if (ourMem.Length != otherMem.Length)
-        {
-            return false;
-        }
-
-        // last we will do a sequence equals and compare the utf8string representation of
-        // this value.
-        return ourMem.Span.SequenceEqual(otherMem.Span);
-    }
+        => x.AsSpan().SequenceEqual(y.AsSpan());
 
     private bool Equals(UnionTypeDefinitionNode x, UnionTypeDefinitionNode y)
         => Equals(x.Name, y.Name) &&

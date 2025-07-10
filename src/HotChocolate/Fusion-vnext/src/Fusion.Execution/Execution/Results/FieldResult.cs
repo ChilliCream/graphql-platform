@@ -16,6 +16,11 @@ public abstract class FieldResult : ResultData
     public Selection Selection { get; protected set; } = null!;
 
     /// <summary>
+    /// Specifies if the field value is set to null.
+    /// </summary>
+    public abstract bool HasNullValue { get; }
+
+    /// <summary>
     /// Gets the key-value pair representation of this result.
     /// </summary>
     /// <returns>
@@ -26,11 +31,18 @@ public abstract class FieldResult : ResultData
     /// <summary>
     /// Initializes the <see cref="FieldResult"/> with the specified selection.
     /// </summary>
+    /// <param name="parent">
+    /// The parent result object.
+    /// </param>
+    /// <param name="parentIndex">
+    /// The position in the parent object this field was inserted.
+    /// </param>
     /// <param name="selection">
     /// The GraphQL field selection that this result corresponds to.
     /// </param>
-    protected internal virtual void Initialize(Selection selection)
+    protected internal virtual void Initialize(ResultData parent, int parentIndex, Selection selection)
     {
+        SetParent(parent, parentIndex);
         Selection = selection;
     }
 

@@ -733,7 +733,7 @@ public class DocumentValidatorTests
     [Fact]
     public void Ensure_That_Merged_Fields_Are_Not_In_Violation_Of_Duplicate_Directives_Rule()
     {
-        DocumentValidatorTests.ExpectValid(
+        ExpectValid(
             """
             query ($a: Boolean!) {
                 dog {

@@ -42,6 +42,51 @@ public ref partial struct Utf8GraphQLReader
         }
     }
 
+    public readonly int GetRawString(IBufferWriter<byte> writer)
+        => _value.Length == 0 ? 0 : GetRawString(_value, _kind == TokenKind.BlockString, writer);
+
+    public static int GetRawString(
+        ReadOnlySpan<byte> escapedValue,
+        bool isBlockString,
+        IBufferWriter<byte> writer)
+    {
+        // we have an empty string
+        if (escapedValue.Length == 0)
+        {
+            return 0;
+        }
+
+        var length = escapedValue.Length;
+        byte[]? unescapedArray = null;
+
+        var unescapedSpan = length <= GraphQLConstants.StackallocThreshold
+            ? stackalloc byte[length]
+            : unescapedArray = ArrayPool<byte>.Shared.Rent(length);
+
+        try
+        {
+            UnescapeValue(escapedValue, ref unescapedSpan, isBlockString);
+
+            // we have an empty string
+            if (unescapedSpan.Length == 0)
+            {
+                return 0;
+            }
+
+            unescapedSpan.CopyTo(writer.GetSpan(unescapedSpan.Length));
+            writer.Advance(unescapedSpan.Length);
+            return unescapedSpan.Length;
+        }
+        finally
+        {
+            if (unescapedArray != null)
+            {
+                unescapedSpan.Clear();
+                ArrayPool<byte>.Shared.Return(unescapedArray);
+            }
+        }
+    }
+
     internal static bool TryGetRawString(
         ReadOnlySpan<byte> escapedValue,
         bool isBlockString,
@@ -118,15 +163,11 @@ public ref partial struct Utf8GraphQLReader
         ref Span<byte> unescapedValue,
         bool isBlockString)
     {
-        Utf8Helper.Unescape(
-            in escaped,
-            ref unescapedValue,
-            isBlockString);
+        Utf8Helper.Unescape(in escaped, ref unescapedValue, isBlockString);
 
         if (isBlockString)
         {
-            StringHelper.TrimBlockStringToken(
-                unescapedValue, ref unescapedValue);
+            StringHelper.TrimBlockStringToken(unescapedValue, ref unescapedValue);
         }
     }
 

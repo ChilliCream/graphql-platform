@@ -75,9 +75,9 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             nodesField.Type,
             combinedField,
             CombinedEdgeField,
-            resolverPipeline: nodesPipeline,
             arguments: selection.Arguments,
-            isInternal: true);
+            isInternal: true,
+            resolverPipeline: nodesPipeline);
     }
 
     private static (string filedName, ObjectField field) TryGetObjectField(IPageType type)

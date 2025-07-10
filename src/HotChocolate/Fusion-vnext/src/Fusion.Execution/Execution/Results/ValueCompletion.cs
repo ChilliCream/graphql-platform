@@ -143,16 +143,17 @@ internal sealed class ValueCompletion
     {
         AssertDepthAllowed(ref depth);
 
-        var elementType = type.ListType().ElementType;
+        var elementType = type.ElementType();
         var isNullable = elementType.IsNullableType();
         var isLeaf = elementType.IsLeafType();
         var isNested = elementType.IsListType();
 
-        ResultData listResult = isNested
+        ListResult listResult = isNested
             ? _resultPoolSession.RentNestedListResult()
             : isLeaf
                 ? _resultPoolSession.RentLeafListResult()
                 : _resultPoolSession.RentObjectListResult();
+        listResult.Initialize(type);
 
 #if NET9_0_OR_GREATER
         for (int i = 0, len = data.GetArrayLength(); i < len; ++i)

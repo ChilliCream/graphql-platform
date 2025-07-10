@@ -91,7 +91,7 @@ public class DictionaryToObjectConverterTests
     public void Convert_String_Int()
     {
         // arrange
-        var input = "1";
+        const string input = "1";
 
         // assert
         var converter = new DictionaryToObjectConverter(

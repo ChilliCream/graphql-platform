@@ -6,7 +6,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.WellKnownContextData;
+using static HotChocolate.ExecutionContextData;
 
 namespace HotChocolate.Authorization;
 

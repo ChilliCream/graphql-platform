@@ -87,6 +87,6 @@ public class AuthorizeAttribute : DescriptorAttribute
 
     private AuthorizeDirective CreateDirective()
     {
-        return new AuthorizeDirective(apply: Apply, policy: Policy, roles: Roles);
+        return new AuthorizeDirective(Policy, Roles, Apply);
     }
 }

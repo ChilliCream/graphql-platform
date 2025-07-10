@@ -306,8 +306,8 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
 
                 return result;
             },
-            key: WellKnownMiddleware.SemanticNonNull,
-            isRepeatable: false);
+            isRepeatable: false,
+            key: WellKnownMiddleware.SemanticNonNull);
 
     private static void CheckResultForSemanticNonNullViolations(object? result, IResolverContext context, Path path,
         HashSet<int> levels,

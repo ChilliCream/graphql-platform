@@ -2,7 +2,7 @@
   "Kind": "SelectedValue",
   "Location": {
     "Start": 0,
-    "End": 17,
+    "End": 18,
     "Line": 1,
     "Column": 1
   },
@@ -10,7 +10,7 @@
     "Kind": "SelectedValueEntry",
     "Location": {
       "Start": 0,
-      "End": 17,
+      "End": 18,
       "Line": 1,
       "Column": 1
     },
@@ -21,7 +21,7 @@
           "Kind": "SelectedObjectField",
           "Location": {
             "Start": 2,
-            "End": 15,
+            "End": 16,
             "Line": 1,
             "Column": 3
           },
@@ -29,7 +29,7 @@
             "Kind": "Name",
             "Location": {
               "Start": 2,
-              "End": 15,
+              "End": 16,
               "Line": 1,
               "Column": 3
             },
@@ -40,18 +40,18 @@
         {
           "Kind": "SelectedObjectField",
           "Location": {
-            "Start": 9,
-            "End": 17,
+            "Start": 10,
+            "End": 18,
             "Line": 1,
-            "Column": 10
+            "Column": 11
           },
           "Name": {
             "Kind": "Name",
             "Location": {
-              "Start": 9,
-              "End": 17,
+              "Start": 10,
+              "End": 18,
               "Line": 1,
-              "Column": 10
+              "Column": 11
             },
             "Value": "field2"
           },
@@ -61,7 +61,7 @@
       "Kind": "SelectedObjectValue",
       "Location": {
         "Start": 0,
-        "End": 17,
+        "End": 18,
         "Line": 1,
         "Column": 1
       }

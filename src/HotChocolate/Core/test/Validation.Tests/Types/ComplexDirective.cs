@@ -12,7 +12,7 @@ public class ComplexDirective
 
         descriptor.Name("complex");
 
-        descriptor.Location(HotChocolate.Types.DirectiveLocation.Field);
+        descriptor.Location(DirectiveLocation.Field);
 
         descriptor.Argument("anyArg")
             .Type<AnyType>();
