@@ -528,7 +528,7 @@ NEXT:
         }
 
         var newBuffer = ArrayPool<ISelection>.Shared.Rent(capacity);
-        buffer.AsSpan().Slice(0, index).CopyTo(newBuffer);
+        buffer.AsSpan()[..index].CopyTo(newBuffer);
         ArrayPool<ISelection>.Shared.Return(buffer);
         buffer = newBuffer;
     }

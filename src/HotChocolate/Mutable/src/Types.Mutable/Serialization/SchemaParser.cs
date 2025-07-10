@@ -698,7 +698,7 @@ file static class SchemaParserExtensions
 
                 if (BuiltIns.IsBuiltInScalar(namedTypeRef.Name.Value))
                 {
-                    var scalar = new MutableScalarTypeDefinition(namedTypeRef.Name.Value) { IsSpecScalar = true, };
+                    var scalar = new MutableScalarTypeDefinition(namedTypeRef.Name.Value) { IsSpecScalar = true };
                     typesDefinition.Add(scalar);
                     return scalar;
                 }

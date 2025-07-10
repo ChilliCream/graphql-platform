@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal static class NodeFieldResolvers
 {
-    private static readonly Task<object?> _nullTask = Task.FromResult<object?>(null);
+    private static readonly Task<object?> s_nullTask = Task.FromResult<object?>(null);
 
     /// <summary>
     /// This is the resolver of the node field.
@@ -96,7 +96,7 @@ internal static class NodeFieldResolvers
                 }
                 else
                 {
-                    tasks[i] = _nullTask;
+                    tasks[i] = s_nullTask;
 
                     context.ReportError(
                         ErrorHelper.Relay_NoNodeResolver(

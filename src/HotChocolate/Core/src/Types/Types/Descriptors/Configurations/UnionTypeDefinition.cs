@@ -35,5 +35,5 @@ public class UnionTypeConfiguration : TypeConfiguration
     /// <summary>
     /// The types that make up the union type set.
     /// </summary>
-    public IList<TypeReference> Types { get; } = new List<TypeReference>();
+    public IList<TypeReference> Types { get; } = [];
 }

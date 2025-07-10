@@ -26,7 +26,7 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddInstrumentation(
         this IRequestExecutorBuilder builder,
-        Action<InstrumentationOptions>? options = default)
+        Action<InstrumentationOptions>? options = null)
         => AddInstrumentation(builder, (_, opt) => options?.Invoke(opt));
 
     /// <summary>
@@ -45,15 +45,8 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IServiceProvider, InstrumentationOptions> options)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(options);
 
         builder.Services.TryAddSingleton(
             sp =>

@@ -1,17 +1,21 @@
 using System.Diagnostics;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
-using HotChocolate.Execution.Serialization;
+using HotChocolate.Execution;
 using HotChocolate.Subscriptions.Diagnostics;
-using HotChocolate.Transport;
+using HotChocolate.Transport.Formatters;
 using HotChocolate.Transport.Sockets.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static System.Net.WebSockets.WebSocketCloseStatus;
+using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.AspNetCore.Subscriptions.GraphQLOverWebSocket;
 
@@ -73,8 +77,8 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                             {
                                 ConnectionInitializationTimeout =
                                     TimeSpan.FromMilliseconds(1000),
-                                KeepAliveInterval = TimeSpan.FromMilliseconds(150),
-                            },
+                                KeepAliveInterval = TimeSpan.FromMilliseconds(150)
+                            }
                         }));
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
@@ -106,8 +110,8 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                             Sockets =
                             {
                                 ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
-                                KeepAliveInterval = TimeSpan.FromMilliseconds(150),
-                            },
+                                KeepAliveInterval = TimeSpan.FromMilliseconds(150)
+                            }
                         }));
                 var client = CreateWebSocketClient(testServer);
 
@@ -137,7 +141,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
                 // act
-                await webSocket.SendConnectionInitAsync(new() { ["token"] = "abc ", }, ct);
+                await webSocket.SendConnectionInitAsync(new() { ["token"] = "abc " }, ct);
 
                 // assert
                 var message = await webSocket.ReceiveServerMessageAsync(ct);
@@ -274,7 +278,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                                     stars
                                 }
                             }
-                            """,
+                            """
                     });
 
                 // assert
@@ -405,7 +409,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                                 }) {
                                     stars
                                 }
-                            }",
+                            }"
                     });
 
                 await WaitForMessage(webSocket, Messages.Next, ct);
@@ -424,7 +428,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                         }) {
                             stars
                         }
-                    }",
+                    }"
                     });
 
                 // assert
@@ -469,7 +473,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                         }) {
                             stars
                         }
-                    }",
+                    }"
                     });
 
                 await WaitForMessage(webSocket, Messages.Next, ct);
@@ -481,7 +485,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                         Query = @"
                     mutation {
                         complete(episode:NEW_HOPE)
-                    }",
+                    }"
                     });
 
                 // assert
@@ -519,7 +523,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                     await webSocket.SendSubscribeAsync(i.ToString(), payload, ct);
                 }
 
-                while(diagnostics.Subscribed < 100)
+                while (diagnostics.Subscribed < 100)
                 {
                     await Task.Delay(10, ct);
                 }
@@ -537,7 +541,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                                 }) {
                                     stars
                                 }
-                            }",
+                            }"
                     });
 
                 for (var i = 0; i < 100; i++)
@@ -549,7 +553,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"mutation { complete(episode:NEW_HOPE) }",
+                        Query = @"mutation { complete(episode:NEW_HOPE) }"
                     });
 
                 // assert
@@ -663,7 +667,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 
                 // act
                 await webSocket.SendPingAsync(
-                    new Dictionary<string, object?> { ["abc"] = "def", },
+                    new Dictionary<string, object?> { ["abc"] = "def" },
                     ct);
 
                 // assert
@@ -715,7 +719,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 
                 // act
                 await webSocket.SendPongAsync(
-                    new Dictionary<string, object?> { ["abc"] = "def", },
+                    new Dictionary<string, object?> { ["abc"] = "def" },
                     ct);
 
                 // assert
@@ -901,9 +905,9 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                                 _ => new DefaultWebSocketPayloadFormatter(
                                     new WebSocketPayloadFormatterOptions
                                     {
-                                        Json = new JsonResultFormatterOptions()
+                                        Json = new JsonResultFormatterOptions
                                         {
-                                            NullIgnoreCondition = JsonNullIgnoreCondition.All
+                                            NullIgnoreCondition = JsonNullIgnoreCondition.FieldsAndLists
                                         }
                                     })),
                     output: output);
@@ -936,7 +940,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                                     commentary
                                 }
                             }
-                            """,
+                            """
                     });
 
                 // assert
@@ -956,7 +960,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             IOperationMessagePayload connectionInitMessage,
             CancellationToken cancellationToken = default)
         {
-            var payload = connectionInitMessage.As<Auth>();
+            var payload = connectionInitMessage.Payload?.Deserialize<Auth>();
 
             if (payload?.Token is not null)
             {
@@ -966,11 +970,10 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             return new(ConnectionStatus.Reject());
         }
 
-        // ReSharper disable once ClassNeverInstantiated.Local
         private sealed class Auth
         {
-            // ReSharper disable once UnusedAutoPropertyAccessor.Local
-            public string? Token { get; set; }
+            [JsonPropertyName("token")]
+            public string? Token { get; init; }
         }
     }
 
@@ -985,8 +988,8 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             IOperationMessagePayload pingMessage,
             CancellationToken cancellationToken = default)
         {
-            var payload = pingMessage.As<Dictionary<string, string?>>();
-            var responsePayload = new Dictionary<string, object?> { ["touched"] = true, };
+            var payload = pingMessage.Payload?.Deserialize<Dictionary<string, string?>>();
+            var responsePayload = new Dictionary<string, object?> { ["touched"] = true };
 
             if (payload is not null)
             {
@@ -1005,7 +1008,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             CancellationToken cancellationToken = default)
         {
             OnPongInvoked = true;
-            Payload = pongMessage.As<Dictionary<string, string?>>();
+            Payload = pongMessage.Payload?.Deserialize<Dictionary<string, string?>>();
             return base.OnPongAsync(session, pongMessage, cancellationToken);
         }
     }

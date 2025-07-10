@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // UploadScalar_InMemoryClient
 
@@ -549,7 +550,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
     /// <summary>
     /// Represents the operation service of the TestUpload GraphQL operation
     /// <code>
-    /// query TestUpload($nonUpload: String, $single: Upload, $list: [Upload], $nested: [[Upload]], $object: TestInput, $objectList: [TestInput], $objectNested: [[TestInput]]) {
+    /// query TestUpload(
+    ///   $nonUpload: String
+    ///   $single: Upload
+    ///   $list: [Upload]
+    ///   $nested: [[Upload]]
+    ///   $object: TestInput
+    ///   $objectList: [TestInput]
+    ///   $objectNested: [[TestInput]]
+    /// ) {
     ///   upload(nonUpload: $nonUpload, single: $single, list: $list, nested: $nested, object: $object, objectList: $objectList, objectNested: $objectNested)
     /// }
     /// </code>
@@ -901,7 +910,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
     /// <summary>
     /// Represents the operation service of the TestUpload GraphQL operation
     /// <code>
-    /// query TestUpload($nonUpload: String, $single: Upload, $list: [Upload], $nested: [[Upload]], $object: TestInput, $objectList: [TestInput], $objectNested: [[TestInput]]) {
+    /// query TestUpload(
+    ///   $nonUpload: String
+    ///   $single: Upload
+    ///   $list: [Upload]
+    ///   $nested: [[Upload]]
+    ///   $object: TestInput
+    ///   $objectList: [TestInput]
+    ///   $objectNested: [[TestInput]]
+    /// ) {
     ///   upload(nonUpload: $nonUpload, single: $single, list: $list, nested: $nested, object: $object, objectList: $objectList, objectNested: $objectNested)
     /// }
     /// </code>
@@ -1276,7 +1293,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
     /// <summary>
     /// Represents the operation service of the TestUpload GraphQL operation
     /// <code>
-    /// query TestUpload($nonUpload: String, $single: Upload, $list: [Upload], $nested: [[Upload]], $object: TestInput, $objectList: [TestInput], $objectNested: [[TestInput]]) {
+    /// query TestUpload(
+    ///   $nonUpload: String
+    ///   $single: Upload
+    ///   $list: [Upload]
+    ///   $nested: [[Upload]]
+    ///   $object: TestInput
+    ///   $objectList: [TestInput]
+    ///   $objectNested: [[TestInput]]
+    /// ) {
     ///   upload(nonUpload: $nonUpload, single: $single, list: $list, nested: $nested, object: $object, objectList: $objectList, objectNested: $objectNested)
     /// }
     /// </code>

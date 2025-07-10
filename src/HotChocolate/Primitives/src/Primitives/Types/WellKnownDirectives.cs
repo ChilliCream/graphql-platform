@@ -210,6 +210,30 @@ public static class DirectiveNames
     }
 
     /// <summary>
+    /// The name constants of the @lookup directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--lookup"/>
+    /// </summary>
+    public static class Lookup
+    {
+        /// <summary>
+        /// The name of the @lookup directive.
+        /// </summary>
+        public const string Name = "lookup";
+    }
+
+    /// <summary>
+    /// The name constants of the @internal directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--internal"/>
+    /// </summary>
+    public static class Internal
+    {
+        /// <summary>
+        /// The name of the @internal directive.
+        /// </summary>
+        public const string Name = "internal";
+    }
+
+    /// <summary>
     /// The name constants of the @requiresOptIn directive.
     /// </summary>
     public static class RequiresOptIn

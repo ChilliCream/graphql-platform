@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Net.Mime;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
@@ -26,10 +25,7 @@ public static class PagingHelper
         GetPagingProvider resolvePagingProvider,
         PagingOptions? options)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         FieldMiddlewareConfiguration placeholder = new(_ => _ => default, key: Paging);
 

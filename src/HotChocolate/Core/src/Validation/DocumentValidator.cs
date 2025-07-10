@@ -1,13 +1,11 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Validation;
-
 
 /// <summary>
 /// The <see cref="DocumentValidator"/> is used to validate if a GraphQL operation document

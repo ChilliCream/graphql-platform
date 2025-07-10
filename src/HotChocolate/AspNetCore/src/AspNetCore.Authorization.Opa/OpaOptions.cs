@@ -18,9 +18,9 @@ public sealed class OpaOptions
 
     public JsonSerializerOptions JsonSerializerOptions { get; set; } = new();
 
-    public Dictionary<string, ParseResult> PolicyResultHandlers { get; } = new();
+    public Dictionary<string, ParseResult> PolicyResultHandlers { get; } = [];
 
-    public Dictionary<string, OpaQueryRequestExtensionsHandler> OpaQueryRequestExtensionsHandlers { get; } = new();
+    public Dictionary<string, OpaQueryRequestExtensionsHandler> OpaQueryRequestExtensionsHandlers { get; } = [];
 
     public OpaQueryRequestExtensionsHandler? GetOpaQueryRequestExtensionsHandler(string policyPath)
     {

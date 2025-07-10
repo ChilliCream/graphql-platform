@@ -435,7 +435,7 @@ internal static class ThrowHelper
             string.Format(
                 CultureInfo.InvariantCulture,
                 ThrowHelper_Schema_GetMember_DirectiveArgumentNotFound,
-                coordinate.ArgumentName!,
+                coordinate.ArgumentName,
                 coordinate.Name),
             coordinate);
 
@@ -454,7 +454,7 @@ internal static class ThrowHelper
             string.Format(
                 CultureInfo.InvariantCulture,
                 ThrowHelper_Schema_GetMember_EnumValueNotFound,
-                coordinate.MemberName!,
+                coordinate.MemberName,
                 coordinate.Name),
             coordinate);
 
@@ -464,7 +464,7 @@ internal static class ThrowHelper
             string.Format(
                 CultureInfo.InvariantCulture,
                 ThrowHelper_Schema_GetMember_InputFieldNotFound,
-                coordinate.MemberName!,
+                coordinate.MemberName,
                 coordinate.Name),
             coordinate);
 
@@ -485,9 +485,9 @@ internal static class ThrowHelper
             string.Format(
                 CultureInfo.InvariantCulture,
                 ThrowHelper_Schema_GetMember_FieldArgNotFound,
-                coordinate.ArgumentName!,
+                coordinate.ArgumentName,
                 coordinate.Name,
-                coordinate.MemberName!),
+                coordinate.MemberName),
             coordinate);
 
     public static InvalidSchemaCoordinateException Schema_GetMember_FieldNotFound(
@@ -496,7 +496,7 @@ internal static class ThrowHelper
             string.Format(
                 CultureInfo.InvariantCulture,
                 ThrowHelper_Schema_GetMember_FieldNotFound,
-                coordinate.MemberName!,
+                coordinate.MemberName,
                 coordinate.Name),
             coordinate);
 

@@ -22,7 +22,7 @@ public static class FieldInitHelper
 
         try
         {
-            if(defaultValue is null && argumentDefinition.RuntimeDefaultValue is not null)
+            if (defaultValue is null && argumentDefinition.RuntimeDefaultValue is not null)
             {
                 defaultValue =
                     context.DescriptorContext.InputFormatter.FormatValue(
@@ -175,11 +175,11 @@ public static class FieldInitHelper
 
         if (duplicates?.Count > 0)
         {
-           context.ReportError(
-               DuplicateFieldName(
-                   context.Type,
-                   declaringMember,
-                   duplicates));
+            context.ReportError(
+                DuplicateFieldName(
+                    context.Type,
+                    declaringMember,
+                    duplicates));
         }
     }
 

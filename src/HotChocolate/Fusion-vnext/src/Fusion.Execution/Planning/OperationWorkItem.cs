@@ -9,6 +9,6 @@ public sealed record OperationWorkItem(
     string? RequirementKey = null)
     : WorkItem
 {
-    public static OperationWorkItem CreateRoot(SelectionSet selectionSet) =>
-        new(OperationWorkItemKind.Root, selectionSet);
+    public static OperationWorkItem CreateRoot(SelectionSet selectionSet)
+        => new(OperationWorkItemKind.Root, selectionSet);
 }

@@ -116,10 +116,7 @@ public static class RequiresOptInDirectiveExtensions
 
     private static void ApplyRequiresOptIn(this IDescriptor descriptor, string feature)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         switch (descriptor)
         {

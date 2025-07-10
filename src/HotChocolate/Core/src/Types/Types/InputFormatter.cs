@@ -15,10 +15,7 @@ public sealed class InputFormatter(ITypeConverter converter)
 
     public IValueNode FormatValue(object? runtimeValue, IType type, Path? path = null)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return FormatValueInternal(runtimeValue, type, path ?? Path.Root);
     }
@@ -108,7 +105,7 @@ public sealed class InputFormatter(ITypeConverter converter)
         if (runtimeValue is IEnumerable enumerable)
         {
             var items = new List<IValueNode>();
-            var i = 0;
+            const int i = 0;
 
             foreach (var item in enumerable)
             {
@@ -144,15 +141,8 @@ public sealed class InputFormatter(ITypeConverter converter)
 
     public DirectiveNode FormatDirective(object runtimeValue, DirectiveType type, Path? path = null)
     {
-        if (runtimeValue is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeValue));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeValue);
+        ArgumentNullException.ThrowIfNull(type);
 
         path ??= Path.Root.Append(type.Name);
 
@@ -191,10 +181,7 @@ public sealed class InputFormatter(ITypeConverter converter)
 
     public IValueNode FormatResult(object? resultValue, IType type, Path? path = null)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return FormatResultInternal(resultValue, type, path ?? Path.Root);
     }

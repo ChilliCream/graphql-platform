@@ -24,12 +24,12 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using var scope = services.CreateAsyncScope();
         await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-        await context.Authors.AddAsync(new Author { Name = "foo", });
+        await context.Authors.AddAsync(new Author { Name = "foo" });
         await context.SaveChangesAsync();
 
         // act
@@ -57,13 +57,13 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.SaveChangesAsync();
         }
 
@@ -92,13 +92,13 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.SaveChangesAsync();
         }
 
@@ -127,14 +127,14 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -177,14 +177,14 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -225,14 +225,14 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -273,14 +273,14 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -323,14 +323,14 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -370,14 +370,14 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -417,14 +417,14 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -466,13 +466,13 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.SaveChangesAsync();
         }
 
@@ -592,14 +592,14 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -640,14 +640,14 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -688,14 +688,14 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -738,14 +738,14 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -786,14 +786,14 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -833,14 +833,14 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -880,14 +880,14 @@ public class UseDbContextTests
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 

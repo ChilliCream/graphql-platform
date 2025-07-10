@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Language;
-using static HotChocolate.ExecutionAbstractionsResources;
 
 namespace HotChocolate.Execution;
 
@@ -12,7 +11,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
 {
     private IOperationDocument? _document;
     private OperationDocumentId? _documentId;
-    private string? _documentHash;
+    private OperationDocumentHash? _documentHash;
     private string? _operationName;
     private IReadOnlyList<IReadOnlyDictionary<string, object?>>? _readOnlyVariableValues;
     private List<IReadOnlyDictionary<string, object?>>? _variableValues;
@@ -20,7 +19,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     private Dictionary<string, object?>? _contextData;
     private IReadOnlyDictionary<string, object?>? _readOnlyContextData;
     private IServiceProvider? _services;
-    private GraphQLRequestFlags _flags = GraphQLRequestFlags.AllowAll;
+    private RequestFlags _flags = RequestFlags.AllowAll;
     private IFeatureCollection? _features;
 
     /// <summary>
@@ -42,12 +41,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// </exception>
     public OperationRequestBuilder SetDocument([StringSyntax("graphql")] string sourceText)
     {
-        if (string.IsNullOrEmpty(sourceText))
-        {
-            throw new ArgumentException(
-                OperationRequestBuilder_OperationIsNullOrEmpty,
-                nameof(sourceText));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(sourceText);
 
         _document = new OperationDocumentSourceText(sourceText);
         return this;
@@ -92,7 +86,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// </summary>
     /// <param name="documentHash"></param>
     /// <returns></returns>
-    public OperationRequestBuilder SetDocumentHash(string? documentHash)
+    public OperationRequestBuilder SetDocumentHash(OperationDocumentHash? documentHash)
     {
         _documentHash = documentHash;
         return this;
@@ -263,7 +257,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             _readOnlyContextData = null;
         }
 
-        _contextData ??= new Dictionary<string, object?>();
+        _contextData ??= [];
         _contextData.Add(name, value);
         return this;
     }
@@ -288,7 +282,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             _readOnlyContextData = null;
         }
 
-        _contextData ??= new Dictionary<string, object?>();
+        _contextData ??= [];
         _contextData.TryAdd(name, value);
         return this;
     }
@@ -358,7 +352,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// <returns>
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
-    public OperationRequestBuilder SetFlags(GraphQLRequestFlags flags)
+    public OperationRequestBuilder SetFlags(RequestFlags flags)
     {
         _flags = flags;
         return this;
@@ -383,7 +377,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
         _readOnlyContextData = null;
         _services = null;
         _features = null;
-        _flags = GraphQLRequestFlags.AllowAll;
+        _flags = RequestFlags.AllowAll;
         return this;
     }
 
@@ -405,7 +399,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             features = FeatureCollection.Empty;
         }
 
-        if (variableSet is { Count: > 1, })
+        if (variableSet is { Count: > 1 })
         {
             request = new VariableBatchRequest(
                 document: _document,
@@ -427,7 +421,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             documentId: _documentId,
             documentHash: _documentHash,
             operationName: _operationName,
-            variableValues: variableSet is { Count: 1, }
+            variableValues: variableSet is { Count: 1 }
                 ? variableSet[0]
                 : null,
             extensions: _readOnlyExtensions,
@@ -473,7 +467,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
                     _readOnlyContextData = batch.ContextData,
                     _readOnlyExtensions = batch.Extensions,
                     _services = batch.Services,
-                    _flags = batch.Flags,
+                    _flags = batch.Flags
                 },
             OperationRequest operation
                 => new OperationRequestBuilder
@@ -483,12 +477,12 @@ public sealed class OperationRequestBuilder : IFeatureProvider
                     _documentHash = operation.DocumentHash,
                     _operationName = operation.OperationName,
                     _readOnlyVariableValues = operation.VariableValues is not null
-                        ? new List<IReadOnlyDictionary<string, object?>>(1) { operation.VariableValues, }
+                        ? new List<IReadOnlyDictionary<string, object?>>(1) { operation.VariableValues }
                         : null,
                     _readOnlyContextData = operation.ContextData,
                     _readOnlyExtensions = operation.Extensions,
                     _services = operation.Services,
-                    _flags = operation.Flags,
+                    _flags = operation.Flags
                 },
             _ => throw new NotSupportedException("The request type is not supported.")
         };
@@ -507,15 +501,15 @@ public sealed class OperationRequestBuilder : IFeatureProvider
         var builder = New();
 
         builder
-            .SetDocumentId(request.QueryId)
-            .SetDocumentHash(request.QueryHash)
+            .SetDocumentId(request.DocumentId)
+            .SetDocumentHash(request.DocumentHash)
             .SetOperationName(request.OperationName)
             .SetVariableValuesSet(request.Variables)
             .SetExtensions(request.Extensions);
 
-        if (request.Query is not null)
+        if (request.Document is not null)
         {
-            builder.SetDocument(request.Query);
+            builder.SetDocument(request.Document);
         }
 
         return builder;

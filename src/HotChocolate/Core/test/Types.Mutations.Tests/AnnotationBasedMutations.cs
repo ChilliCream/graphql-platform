@@ -6,7 +6,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
-using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 
 namespace HotChocolate.Types;
 
@@ -20,7 +19,7 @@ public class AnnotationBasedMutations
                 .AddGraphQL()
                 .AddMutationType<SimpleMutation>()
                 .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true, })
+                    new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
 
@@ -107,7 +106,7 @@ public class AnnotationBasedMutations
                 .AddGraphQL()
                 .AddMutationType<SimpleMutationReturnList>()
                 .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true, })
+                    new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
 
@@ -122,7 +121,7 @@ public class AnnotationBasedMutations
                 .AddGraphQL()
                 .AddMutationType<SimpleMutationReturnList>()
                 .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true, })
+                    new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
                     """
@@ -145,7 +144,7 @@ public class AnnotationBasedMutations
                 .AddQueryType(d => d.Field("abc").Resolve("def"))
                 .AddMutationType<SimpleMutation>()
                 .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true, })
+                    new MutationConventionOptions { ApplyToAllMutations = true })
                 .AddQueryFieldToMutationPayloads()
                 .BuildSchemaAsync();
 
@@ -161,7 +160,7 @@ public class AnnotationBasedMutations
                 .AddMutationType()
                 .AddTypeExtension<SimpleMutationExtension>()
                 .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true, })
+                    new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
 
@@ -177,7 +176,7 @@ public class AnnotationBasedMutations
                 .AddMutationType()
                 .AddTypeExtension<SimpleMutationExtension>()
                 .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true, })
+                    new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
                     """
@@ -200,7 +199,7 @@ public class AnnotationBasedMutations
                 .AddMutationType()
                 .AddTypeExtension<SimpleJsonMutationExtension>()
                 .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true, })
+                    new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
                     """
@@ -236,7 +235,7 @@ public class AnnotationBasedMutations
                                 });
                         }))
                 .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true, })
+                    new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
                     """
@@ -293,7 +292,7 @@ public class AnnotationBasedMutations
                 .AddGraphQL()
                 .AddMutationType<SimpleMutationWithSingleError>()
                 .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true, })
+                    new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
 
@@ -349,7 +348,7 @@ public class AnnotationBasedMutations
                 .AddGraphQL()
                 .AddMutationType<SimpleMutationWithTwoErrors>()
                 .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true, })
+                    new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
 
@@ -370,7 +369,7 @@ public class AnnotationBasedMutations
                         InputTypeNamePattern = "{MutationName}In",
                         PayloadTypeNamePattern = "{MutationName}Out",
                         PayloadErrorTypeNamePattern = "{MutationName}Fault",
-                        ApplyToAllMutations = true,
+                        ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -386,7 +385,7 @@ public class AnnotationBasedMutations
                 .AddGraphQL()
                 .AddMutationType<SimpleMutationAttribute>()
                 .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true, })
+                    new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
 
@@ -1296,7 +1295,7 @@ public class AnnotationBasedMutations
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(d => d.Field("abc").Resolve("def"))
-                .AddMutationType<ExplicitMutation>(c => c.Field(t => t.DoSomething(default)))
+                .AddMutationType<ExplicitMutation>(c => c.Field(t => t.DoSomething(0)))
                 .AddMutationConventions()
                 .BuildSchemaAsync();
 
@@ -1343,7 +1342,7 @@ public class AnnotationBasedMutations
     public class SimpleMutationReturnList
     {
         public List<string> DoSomething(string something)
-            => [something,];
+            => [something];
     }
 
     [ExtendObjectType("Mutation")]
@@ -1401,9 +1400,9 @@ public class AnnotationBasedMutations
 
     public class DoSomethingPayload
     {
-        public string MyResult1 { get; set; } = default!;
+        public string MyResult1 { get; set; } = null!;
 
-        public string MyResult2 { get; set; } = default!;
+        public string MyResult2 { get; set; } = null!;
     }
 
     internal class SimpleMutation_ErrorViaTypeInterceptor : TypeInterceptor
@@ -1412,7 +1411,7 @@ public class AnnotationBasedMutations
             ITypeCompletionContext completionContext,
             TypeSystemConfiguration configuration)
         {
-            if (configuration is not ObjectTypeConfiguration objTypeDef)
+            if (configuration is not ObjectTypeConfiguration _)
             {
                 return;
             }
@@ -1455,16 +1454,16 @@ public class AnnotationBasedMutations
 
     public class DoSomethingInput
     {
-        public string MyInput1 { get; set; } = default!;
+        public string MyInput1 { get; set; } = null!;
 
-        public string MyInput2 { get; set; } = default!;
+        public string MyInput2 { get; set; } = null!;
     }
 
     public class MutationWithIds
     {
         public User? DoSomething([ID("Foo")] Guid id)
         {
-            return new User { Name = "Foo", Id = id, };
+            return new User { Name = "Foo", Id = id };
         }
     }
 
@@ -1472,25 +1471,23 @@ public class AnnotationBasedMutations
     {
         public User? DoSomething([ID<Foo>] Guid id)
         {
-            return new User { Name = "Foo", Id = id, };
+            return new User { Name = "Foo", Id = id };
         }
     }
 
-    public class Foo
-    {
-    }
+    public class Foo;
 
     public class MutationWithInputObject
     {
         public User? DoSomething(Test test)
         {
-            return new User { Name = test.Name, };
+            return new User { Name = test.Name };
         }
     }
 
     public class Test
     {
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 
     public class MultipleArgumentMutation
@@ -1505,7 +1502,7 @@ public class AnnotationBasedMutations
     {
         public User DoSomething(string name)
         {
-            return new User { Name = name, };
+            return new User { Name = name };
         }
     }
 
@@ -1713,9 +1710,12 @@ public class AnnotationBasedMutations
         [Error<CustomException>]
         public DoSomething2Payload DoSomething2(int? userId)
         {
-            var errors = new List<Exception>();
-            errors.Add(new CustomException());
-            errors.Add(new Custom2Exception());
+            var errors = new List<Exception>
+            {
+                new CustomException(),
+                new Custom2Exception()
+            };
+
             throw new AggregateException(errors);
         }
     }
@@ -1736,7 +1736,7 @@ public class AnnotationBasedMutations
             {
                 new(),
                 new(),
-                new(),
+                new()
             };
 
         public class AddItemInput
@@ -1796,14 +1796,14 @@ public class AnnotationBasedMutations
         [Error<ErrorAnnotatedAndNot>]
         public bool Annotated(string something) => true;
 
-        public ExampleResult ExampleResult(string something) => default!;
+        public ExampleResult ExampleResult(string something) => null!;
     }
 
     public class ExampleResult
     {
-        public ErrorNotAnnotated NotAnnotated(string something) => default!;
+        public ErrorNotAnnotated NotAnnotated(string something) => null!;
 
-        public ErrorAnnotatedAndNot Both(string something) => default!;
+        public ErrorAnnotatedAndNot Both(string something) => null!;
     }
 
     public class ErrorNotAnnotated : IErrorInterface
@@ -1842,9 +1842,9 @@ public class AnnotationBasedMutations
 
     public class ErrorWithInterface : IInterfaceError, IInterfaceError2
     {
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
 
-        public string Message { get; set; } = default!;
+        public string Message { get; set; } = null!;
     }
 
     public interface IErrorInterface

@@ -19,10 +19,10 @@ public static class ErrorHelper
             .Add(TitleExtensionKey, "Schema validation error")
             .Add("code", SchemaValidationError);
 
-        // TODO : we need to bring skimmed in and re-enable this.
+        // TODO : we need to bring Mutable in and re-enable this.
         // if the error has a syntax node we will try to lookup the
         // document and add the filename to the error.
-        // if (error is Error { SyntaxNode: { } node, } &&
+        // if (error is Error { SyntaxNode: { } node } &&
         //    fileLookup.TryGetValue(node, out var filename))
         // {
         //    extensions.Add(FileExtensionKey, filename);

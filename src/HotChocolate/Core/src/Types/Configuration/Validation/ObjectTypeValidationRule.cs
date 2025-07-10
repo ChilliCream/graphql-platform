@@ -3,7 +3,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
-using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 

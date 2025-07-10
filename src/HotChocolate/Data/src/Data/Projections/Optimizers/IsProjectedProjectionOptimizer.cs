@@ -57,9 +57,9 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
                 nodesField.Type,
                 nodesFieldNode,
                 alias,
-                resolverPipeline: nodesPipeline,
                 arguments: selection.Arguments,
-                isInternal: true);
+                isInternal: true,
+                resolverPipeline: nodesPipeline);
 
             context.AddSelection(compiledSelection);
         }

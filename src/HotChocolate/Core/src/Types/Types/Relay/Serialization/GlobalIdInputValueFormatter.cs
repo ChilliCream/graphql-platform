@@ -142,7 +142,7 @@ internal class GlobalIdInputValueFormatter(
 
     private void ValidateTypeName(string typeName)
     {
-        if(validateTypeName && !string.Equals(name, typeName, StringComparison.Ordinal))
+        if (validateTypeName && !string.Equals(name, typeName, StringComparison.Ordinal))
         {
             var error =
                 ErrorBuilder.New()

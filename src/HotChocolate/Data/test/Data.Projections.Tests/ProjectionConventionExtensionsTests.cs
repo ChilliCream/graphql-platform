@@ -111,7 +111,7 @@ public class ProjectionConventionExtensionsTests
 
     private sealed class MockProvider : IProjectionProvider
     {
-        public string? Scope => default;
+        public string? Scope => null;
 
         public IQueryBuilder CreateBuilder<TEntityType>()
             => throw new NotImplementedException();

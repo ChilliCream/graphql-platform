@@ -123,7 +123,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
     public class Query
     {
         [Policy(["p1, p1_1", "p2"])]
-        public Review SomeField(int id) => default!;
+        public Review SomeField(int id) => null!;
     }
 
     [Key("id")]

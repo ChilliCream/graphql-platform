@@ -189,7 +189,7 @@ internal sealed partial class ExtendedType
                 {
                     var typeArgument = type.TypeArguments[j];
                     var typeArgumentId =
-                        Tools.CreateId(typeArgument, nullable.Slice(position));
+                        Tools.CreateId(typeArgument, nullable[position..]);
 
                     args[j] = nullable.Length > position
                         ? ChangeNullability(
@@ -249,7 +249,7 @@ internal sealed partial class ExtendedType
             return CreateIdentifier(
                 type.Source,
                 type.Kind,
-                nullability.Slice(0, position));
+                nullability[..position]);
         }
 
         internal static ExtendedTypeId CreateIdentifier(
@@ -259,7 +259,7 @@ internal sealed partial class ExtendedType
             var position = 0;
             Span<bool> nullability = stackalloc bool[32];
             CollectNullability(type, nullability, ref position);
-            nullability = nullability.Slice(0, position);
+            nullability = nullability[..position];
 
             var length = nullability.Length < nullabilityChange.Length
                 ? nullability.Length

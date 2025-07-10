@@ -14,16 +14,13 @@ internal sealed class TimeoutMiddleware
         RequestDelegate next,
         [SchemaService] IRequestExecutorOptionsAccessor options)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
+        ArgumentNullException.ThrowIfNull(options);
 
         _next = next ?? throw new ArgumentNullException(nameof(next));
         _timeout = options.ExecutionTimeout;
     }
 
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
         // if the debugger is attached we will skip the current middleware.
         if (Debugger.IsAttached)
@@ -84,8 +81,8 @@ internal sealed class TimeoutMiddleware
         }
     }
 
-    public static RequestCoreMiddlewareConfiguration Create()
-        => new RequestCoreMiddlewareConfiguration(
+    public static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
             (core, next) =>
             {
                 var optionsAccessor = core.SchemaServices.GetRequiredService<IRequestExecutorOptionsAccessor>();

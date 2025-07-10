@@ -7,9 +7,9 @@ internal sealed class AuthorizeRequestMiddleware(
     RequestDelegate next,
     IServiceProvider applicationServices)
 {
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
-        if (context.Document is null || context.DocumentId is null)
+        if (!context.TryGetOperationDocument(out var document, out var documentId))
         {
             throw new InvalidOperationException(
                 "The document or document id is not set.");
@@ -26,8 +26,8 @@ internal sealed class AuthorizeRequestMiddleware(
                 applicationServices,
                 context.ContextData,
                 context.Features,
-                context.Document,
-                context.DocumentId.Value);
+                document,
+                documentId);
 
             var result = await handler.AuthorizeAsync(
                 authorizationContext,
@@ -48,7 +48,7 @@ internal sealed class AuthorizeRequestMiddleware(
     private static IOperationResult CreateErrorResult(AuthorizeResult result)
         => OperationResultBuilder.New()
             .AddError(CreateError(result))
-            .SetContextData(WellKnownContextData.HttpStatusCode, 401)
+            .SetContextData(ExecutionContextData.HttpStatusCode, 401)
             .Build();
 
     private static IError CreateError(AuthorizeResult result)
@@ -72,12 +72,12 @@ internal sealed class AuthorizeRequestMiddleware(
                     .SetCode(result == AuthorizeResult.NotAllowed
                         ? ErrorCodes.Authentication.NotAuthorized
                         : ErrorCodes.Authentication.NotAuthenticated)
-                    .Build(),
+                    .Build()
         };
     }
 
-    public static RequestCoreMiddlewareConfiguration Create()
-        => new RequestCoreMiddlewareConfiguration(
+    public static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
             static (context, next) =>
             {
                 var middleware = new AuthorizeRequestMiddleware(next, context.Services);

@@ -11,7 +11,7 @@ namespace HotChocolate.Features;
 /// </summary>
 public sealed class FeatureCollection : IFeatureCollection
 {
-    private static readonly KeyComparer _featureKeyComparer = new();
+    private static readonly KeyComparer s_featureKeyComparer = new();
     private readonly IFeatureCollection? _defaults;
     private readonly int _initialCapacity;
     private Dictionary<Type, object>? _features;
@@ -30,15 +30,12 @@ public sealed class FeatureCollection : IFeatureCollection
     /// <param name="initialCapacity">
     /// The initial number of elements that the collection can contain.
     /// </param>
-    /// <exception cref="System.ArgumentOutOfRangeException">
+    /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="initialCapacity"/> is less than 0
     /// </exception>
     public FeatureCollection(int initialCapacity)
     {
-        if (initialCapacity < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(initialCapacity));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(initialCapacity);
 
         _initialCapacity = initialCapacity;
     }
@@ -172,7 +169,7 @@ public sealed class FeatureCollection : IFeatureCollection
         if (_defaults != null)
         {
             // Don't return features masked by the wrapper.
-            foreach (var pair in _features == null ? _defaults : _defaults.Except(_features, _featureKeyComparer))
+            foreach (var pair in _features == null ? _defaults : _defaults.Except(_features, s_featureKeyComparer))
             {
                 yield return pair;
             }

@@ -35,8 +35,7 @@ public class InMemoryClient : IInMemoryClient
     public IRequestExecutor? Executor { get; set; }
 
     /// <inheritdoc />
-    public IList<IInMemoryRequestInterceptor> RequestInterceptors { get; } =
-        new List<IInMemoryRequestInterceptor>();
+    public IList<IInMemoryRequestInterceptor> RequestInterceptors { get; } = [];
 
     /// <inheritdoc />
     public string Name => _name;
@@ -46,10 +45,7 @@ public class InMemoryClient : IInMemoryClient
         OperationRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         if (Executor is null)
         {
@@ -72,7 +68,7 @@ public class InMemoryClient : IInMemoryClient
         requestBuilder.SetExtensions(request.GetExtensionsOrNull());
         requestBuilder.SetGlobalState(request.GetContextDataOrNull());
 
-        var applicationService = Executor.Services.GetRootServiceProvider();
+        var applicationService = Executor.Schema.Services.GetRootServiceProvider();
         foreach (var interceptor in RequestInterceptors)
         {
             await interceptor
@@ -149,7 +145,7 @@ public class InMemoryClient : IInMemoryClient
         {
             (Dictionary<string, object?> s, string prop) when s.ContainsKey(prop) => s[prop],
             (List<object> l, int i) when i < l.Count => l[i],
-            _ => null,
+            _ => null
         };
     }
 

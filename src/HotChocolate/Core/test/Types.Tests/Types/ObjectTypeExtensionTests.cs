@@ -8,7 +8,6 @@ using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 using static HotChocolate.Types.FieldBindingFlags;
 
 #nullable enable
@@ -365,7 +364,7 @@ public class ObjectTypeExtensionTests
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(new ObjectType<Foo>(t => t
-                .Field(f => f.GetName(default!))
+                .Field(f => f.GetName(null))
                 .Argument("a", a => a
                     .Type<StringType>()
                     .Directive("dummy_rep", new ArgumentNode("a", "a")))))
@@ -772,7 +771,7 @@ public class ObjectTypeExtensionTests
     {
         public string? Description => "hello";
 
-        public string? GetName(string? a) => default!;
+        public string? GetName(string? a) => null!;
     }
 
     public class FooExtension
@@ -905,9 +904,7 @@ public class ObjectTypeExtensionTests
         }
     }
 
-    public interface IMarker
-    {
-    }
+    public interface IMarker;
 
     public class BindResolver_With_Property_PersonDto
     {
@@ -924,7 +921,7 @@ public class ObjectTypeExtensionTests
     [ExtendObjectType(typeof(BindResolver_With_Property_PersonDto))]
     public class BindResolver_With_Field_PersonResolvers
     {
-        [BindFieldAttribute("friendId")]
+        [BindField("friendId")]
         public List<BindResolver_With_Property_PersonDto?> Friends() => [];
     }
 
@@ -937,10 +934,8 @@ public class ObjectTypeExtensionTests
 
     [ExtendObjectType(
         typeof(Remove_Properties_Globally_PersonDto),
-        IgnoreProperties = [nameof(Remove_Properties_Globally_PersonDto.InternalId),])]
-    public class Remove_Properties_Globally_PersonResolvers
-    {
-    }
+        IgnoreProperties = [nameof(Remove_Properties_Globally_PersonDto.InternalId)])]
+    public class Remove_Properties_Globally_PersonResolvers;
 
     public class Remove_Fields_Globally_PersonDto
     {
@@ -951,10 +946,8 @@ public class ObjectTypeExtensionTests
 
     [ExtendObjectType(
         typeof(Remove_Fields_Globally_PersonDto),
-        IgnoreProperties = ["internalId",])]
-    public class Remove_Fields_Globally_PersonResolvers
-    {
-    }
+        IgnoreProperties = ["internalId"])]
+    public class Remove_Fields_Globally_PersonResolvers;
 
     public class Remove_Fields_PersonDto
     {

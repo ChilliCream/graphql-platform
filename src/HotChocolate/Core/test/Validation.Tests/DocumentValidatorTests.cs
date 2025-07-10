@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
@@ -292,19 +291,19 @@ public class DocumentValidatorTests
                 }
                 """,
             t => Assert.Equal(
-                "Operation `takesCat` has a empty selection set. Root types without " +
+                "Operation `takesCat` has an empty selection set. Root types without " +
                 "subfields are disallowed.",
                 t.Message),
             t => Assert.Equal(
-                "Operation `takesDogBang` has a empty selection set. Root types without " +
+                "Operation `takesDogBang` has an empty selection set. Root types without " +
                 "subfields are disallowed.",
                 t.Message),
             t => Assert.Equal(
-                "Operation `takesListOfPet` has a empty selection set. Root types without " +
+                "Operation `takesListOfPet` has an empty selection set. Root types without " +
                 "subfields are disallowed.",
                 t.Message),
             t => Assert.Equal(
-                "Operation `takesCatOrDog` has a empty selection set. Root types without " +
+                "Operation `takesCatOrDog` has an empty selection set. Root types without " +
                 "subfields are disallowed.",
                 t.Message),
             t => Assert.Equal(
@@ -713,7 +712,7 @@ public class DocumentValidatorTests
             originalOperation.SelectionSet.WithSelections(
                 [
                     originalOperation.SelectionSet.Selections[0],
-                    originalOperation.SelectionSet.Selections[0],
+                    originalOperation.SelectionSet.Selections[0]
                 ]));
 
         document = document.WithDefinitions(
@@ -734,7 +733,7 @@ public class DocumentValidatorTests
     [Fact]
     public void Ensure_That_Merged_Fields_Are_Not_In_Violation_Of_Duplicate_Directives_Rule()
     {
-        DocumentValidatorTests.ExpectValid(
+        ExpectValid(
             """
             query ($a: Boolean!) {
                 dog {

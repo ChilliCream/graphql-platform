@@ -10,12 +10,15 @@ namespace HotChocolate.Collections.Immutable;
 /// <typeparam name="TKey">The type of keys in the dictionary.</typeparam>
 /// <typeparam name="TValue">The type of values in the dictionary.</typeparam>
 /// <remarks>
+/// <para>
 /// An immutable dictionary is a dictionary that never changes. Any operations that would normally modify a
 /// <see cref="Dictionary{TKey, TValue}"/> instead return a new immutable dictionary that represents the desired
 /// modification while leaving the original dictionary unchanged.
-///
+/// </para>
+/// <para>
 /// This implementation preserves the order of items based on when they were added, unlike the standard
 /// <see cref="ImmutableDictionary{TKey, TValue}"/> which does not guarantee any particular order.
+/// </para>
 /// </remarks>
 public sealed class ImmutableOrderedDictionary<TKey, TValue> : IImmutableDictionary<TKey, TValue>
     where TKey : IEquatable<TKey>
@@ -34,7 +37,11 @@ public sealed class ImmutableOrderedDictionary<TKey, TValue> : IImmutableDiction
     /// </summary>
     /// <value>An empty immutable ordered dictionary.</value>
     public static ImmutableOrderedDictionary<TKey, TValue> Empty { get; } =
+#if NET10_0_OR_GREATER
+        new([], []);
+#else
         new([], ImmutableDictionary<TKey, TValue>.Empty);
+#endif
 
     /// <summary>
     /// Gets the number of key/value pairs in the immutable ordered dictionary.

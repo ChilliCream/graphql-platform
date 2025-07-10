@@ -14,13 +14,6 @@ public class MutableSchemaDefinition
     , IFeatureProvider
 {
     private readonly List<SchemaCoordinate> _allDefinitionCoordinates = [];
-    private MutableObjectTypeDefinition? _queryType;
-    private MutableObjectTypeDefinition? _mutationType;
-    private MutableObjectTypeDefinition? _subscriptionType;
-    private TypeDefinitionCollection? _typeDefinitions;
-    private DirectiveDefinitionCollection? _directiveDefinitions;
-    private DirectiveCollection? _directives;
-    private IFeatureCollection? _features;
 
     /// <inheritdoc />
     public string Name { get; set; } = "default";
@@ -28,15 +21,18 @@ public class MutableSchemaDefinition
     /// <inheritdoc cref="IDescriptionProvider.Description" />
     public string? Description { get; set; }
 
+    /// <inheritdoc cref="ISchemaDefinition.Services" />
+    public IServiceProvider Services => EmptyServiceProvider.Instance;
+
     /// <summary>
     /// Gets or sets the query type.
     /// </summary>
     public MutableObjectTypeDefinition? QueryType
     {
-        get => _queryType;
+        get;
         set
         {
-            _queryType = value;
+            field = value;
 
             if (value is not null && !Types.Contains(value))
             {
@@ -53,10 +49,10 @@ public class MutableSchemaDefinition
     /// </summary>
     public MutableObjectTypeDefinition? MutationType
     {
-        get => _mutationType;
+        get;
         set
         {
-            _mutationType = value;
+            field = value;
 
             if (value is not null && !Types.Contains(value))
             {
@@ -72,10 +68,10 @@ public class MutableSchemaDefinition
     /// </summary>
     public MutableObjectTypeDefinition? SubscriptionType
     {
-        get => _subscriptionType;
+        get;
         set
         {
-            _subscriptionType = value;
+            field = value;
 
             if (value is not null && !Types.Contains(value))
             {
@@ -89,30 +85,34 @@ public class MutableSchemaDefinition
     /// <summary>
     /// Gets the types that are defined in this schema.
     /// </summary>
+    [field: AllowNull, MaybeNull]
     public TypeDefinitionCollection Types
-        => _typeDefinitions ??= new TypeDefinitionCollection(_allDefinitionCoordinates);
+        => field ??= new TypeDefinitionCollection(_allDefinitionCoordinates);
 
     IReadOnlyTypeDefinitionCollection ISchemaDefinition.Types => Types;
 
     /// <summary>
     /// Gets the directives that are defined in this schema.
     /// </summary>
+    [field: AllowNull, MaybeNull]
     public DirectiveDefinitionCollection DirectiveDefinitions
-        => _directiveDefinitions ??= new DirectiveDefinitionCollection(_allDefinitionCoordinates);
+        => field ??= new DirectiveDefinitionCollection(_allDefinitionCoordinates);
 
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions => DirectiveDefinitions;
 
     /// <summary>
     /// Gets the directives that are annotated to this schema.
     /// </summary>
+    [field: AllowNull, MaybeNull]
     public DirectiveCollection Directives
-        => _directives ??= [];
+        => field ??= [];
 
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
 
     /// <inheritdoc />
+    [field: AllowNull, MaybeNull]
     public IFeatureCollection Features
-        => _features ??= new FeatureCollection();
+        => field ??= new FeatureCollection();
 
     /// <summary>
     /// Tries to resolve a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
@@ -390,5 +390,12 @@ public class MutableSchemaDefinition
     /// <returns>
     /// Returns a new schema definition.
     /// </returns>
-    public static MutableSchemaDefinition Create(string name) => new() { Name = name, };
+    public static MutableSchemaDefinition Create(string name) => new() { Name = name };
+
+    private sealed class EmptyServiceProvider : IServiceProvider
+    {
+        public object? GetService(Type serviceType) => null;
+
+        public static EmptyServiceProvider Instance { get; } = new();
+    }
 }

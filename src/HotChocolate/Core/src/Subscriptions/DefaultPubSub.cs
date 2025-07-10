@@ -21,15 +21,8 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
         SubscriptionOptions options,
         ISubscriptionDiagnosticEvents diagnosticEvents)
     {
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
-
-        if (diagnosticEvents is null)
-        {
-            throw new ArgumentNullException(nameof(diagnosticEvents));
-        }
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(diagnosticEvents);
 
         _topicFormatter = new TopicFormatter(options.TopicPrefix);
         _diagnosticEvents = diagnosticEvents;
@@ -48,10 +41,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
         TopicBufferFullMode? bufferFullMode,
         CancellationToken cancellationToken = default)
     {
-        if (topicName is null)
-        {
-            throw new ArgumentNullException(nameof(topicName));
-        }
+        ArgumentNullException.ThrowIfNull(topicName);
 
         if (bufferCapacity < 8)
         {
@@ -134,10 +124,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
         TMessage message,
         CancellationToken cancellationToken = default)
     {
-        if (topicName is null)
-        {
-            throw new ArgumentNullException(nameof(topicName));
-        }
+        ArgumentNullException.ThrowIfNull(topicName);
 
         var formattedTopic = FormatTopicName(topicName);
         _diagnosticEvents.Send(formattedTopic, message);
@@ -152,10 +139,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
 
     public ValueTask CompleteAsync(string topicName)
     {
-        if (topicName is null)
-        {
-            throw new ArgumentNullException(nameof(topicName));
-        }
+        ArgumentNullException.ThrowIfNull(topicName);
 
         var formattedTopic = FormatTopicName(topicName);
         return OnCompleteAsync(formattedTopic);
@@ -206,7 +190,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
             throw new InvalidMessageTypeException(value.MessageType, typeof(TMessage));
         }
 
-        topic = default;
+        topic = null;
         return false;
     }
 
@@ -220,7 +204,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
             return true;
         }
 
-        topic = default;
+        topic = null;
         return false;
     }
 

@@ -27,10 +27,7 @@ internal sealed class RavenFilteringConvention : FilterConvention
 
     public override ExtendedTypeReference GetFieldType(MemberInfo member)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         var runtimeType = _typeInspector.GetReturnType(member, true);
 

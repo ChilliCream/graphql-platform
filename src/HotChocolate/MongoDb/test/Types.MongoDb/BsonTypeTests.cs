@@ -117,8 +117,8 @@ public class BsonTypeTests
             {
                 ["val"] = new Dictionary<string, object>
                 {
-                    ["foo"] = true,
-                },
+                    ["foo"] = true
+                }
             });
 
         // assert
@@ -152,7 +152,7 @@ public class BsonTypeTests
             "query Test($val: Bson){ in(val:$val) }",
             new Dictionary<string, object?>
             {
-                ["val"] = new List<string> { "foo", "bar", },
+                ["val"] = new List<string> { "foo", "bar" }
             });
 
         // assert
@@ -266,7 +266,7 @@ public class BsonTypeTests
             "query Test($val: Bson){ in(val:$val) }",
             new Dictionary<string, object?>
             {
-                ["val"] = value,
+                ["val"] = value
             });
 
         // assert
@@ -320,7 +320,7 @@ public class BsonTypeTests
                     .Name("Query")
                     .Field("foo")
                     .Type<BsonType>()
-                    .Resolve(_ => new BsonDocument { { "foo", "bar" }, }))
+                    .Resolve(_ => new BsonDocument { { "foo", "bar" } }))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -342,7 +342,7 @@ public class BsonTypeTests
                     .Name("Query")
                     .Field("foo")
                     .Type<BsonType>()
-                    .Resolve(_ => new BsonArray { new BsonDocument(), }))
+                    .Resolve(_ => new BsonArray { new BsonDocument() }))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -568,7 +568,7 @@ public class BsonTypeTests
                 .SetVariableValues(
                     new Dictionary<string, object?>
                     {
-                        { "foo", new List<object> { "abc", } },
+                        { "foo", new List<object> { "abc" } }
                     })
                 .Build());
 
@@ -601,8 +601,8 @@ public class BsonTypeTests
                     {
                         {
                             "foo",
-                            new List<object> { new Dictionary<string, object> { { "abc", "def" }, }, }
-                        },
+                            new List<object> { new Dictionary<string, object> { { "abc", "def" } } }
+                        }
                     })
                 .Build());
 
@@ -630,7 +630,7 @@ public class BsonTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "foo", "bar" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", "bar" } })
                 .Build());
 
         // assert
@@ -657,7 +657,7 @@ public class BsonTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "foo", 123 }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", 123 } })
                 .Build());
 
         // assert
@@ -684,7 +684,7 @@ public class BsonTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "foo", 1.2 }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", 1.2 } })
                 .Build());
 
         // assert
@@ -714,7 +714,7 @@ public class BsonTypeTests
                 .SetVariableValues(
                     new Dictionary<string, object?>
                     {
-                        { "foo", new BsonDocument { { "a", "b" }, } },
+                        { "foo", new BsonDocument { { "a", "b" } } }
                     })
                 .Build());
 
@@ -742,7 +742,7 @@ public class BsonTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "foo", false }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", false } })
                 .Build());
 
         // assert
@@ -769,7 +769,7 @@ public class BsonTypeTests
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "foo", null }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "foo", null } })
                 .Build());
 
         // assert
@@ -1171,7 +1171,7 @@ public class BsonTypeTests
 
         var toDeserialize = new Dictionary<string, object>
         {
-            { "Foo", new StringValueNode("Bar") },
+            { "Foo", new StringValueNode("Bar") }
         };
 
         // act
@@ -1199,7 +1199,7 @@ public class BsonTypeTests
 
         var toDeserialize = new Dictionary<string, object>
         {
-            { "Foo", new Dictionary<string, object> { { "Bar", new StringValueNode("Baz") }, } },
+            { "Foo", new Dictionary<string, object> { { "Bar", new StringValueNode("Baz") } } }
         };
 
         // act
@@ -1226,14 +1226,14 @@ public class BsonTypeTests
 
         var type = schema.Types.GetType<BsonType>("Bson");
         var toDeserialize =
-            new List<object> { new StringValueNode("Foo"), new StringValueNode("Bar"), };
+            new List<object> { new StringValueNode("Foo"), new StringValueNode("Bar") };
 
         // act
         var value = type.Deserialize(toDeserialize);
 
         // assert
         Assert.Collection(
-            Assert.IsType<BsonArray>(value)!,
+            Assert.IsType<BsonArray>(value),
             x => Assert.Equal("Foo", x),
             x => Assert.Equal("Bar", x));
     }
@@ -1252,7 +1252,7 @@ public class BsonTypeTests
     {
         [GraphQLType(typeof(BsonType))]
         public IDictionary<string, object> SomeObject =>
-            new Dictionary<string, object> { { "a", "b" }, };
+            new Dictionary<string, object> { { "a", "b" } };
     }
 
     public class OutputQuery
@@ -1274,7 +1274,7 @@ public class BsonTypeTests
             3,
             4,
             5,
-            6,
+            6
         ]);
 
         public BsonDecimal128 Decimal => new(42.123456789123456789123456789123456789123456789m);
@@ -1283,12 +1283,7 @@ public class BsonTypeTests
 
         public BsonBoolean Boolean => new(true);
 
-        public BsonArray BsonArray => new(
-            new[]
-            {
-                BsonBoolean.False,
-                BsonBoolean.True,
-            });
+        public BsonArray BsonArray => [BsonBoolean.False, BsonBoolean.True];
 
         public BsonString String => new("String");
 
@@ -1310,24 +1305,23 @@ public class BsonTypeTests
                 3,
                 4,
                 5,
-                6,
+                6
             ]),
             ["Double"] = new BsonDouble(42.23),
             ["Double"] = new BsonDouble(42.23),
             ["Boolean"] = new BsonBoolean(true),
             ["BsonArray"] = new BsonArray(
-                new[]
-                {
+                [
                     BsonBoolean.False,
-                    BsonBoolean.True,
-                }),
+                    BsonBoolean.True
+                ]),
             ["String"] = new BsonString("String"),
             ["Null"] = BsonNull.Value,
             ["Nested"] = new BsonDocument()
             {
                 ["Int32"] = new BsonInt32(42),
-                ["Int64"] = new BsonInt64(42),
-            },
+                ["Int64"] = new BsonInt64(42)
+            }
         };
     }
 }

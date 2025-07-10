@@ -1,5 +1,4 @@
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,7 +66,7 @@ public class SqlLiteCursorTestBase
                                 }
                             })
                         .UsePaging<ObjectType<TEntity>>(
-                            options: new() { IncludeTotalCount = true, });
+                            options: new() { IncludeTotalCount = true });
 
                     c.Field("root1")
                         .Resolve(
@@ -99,8 +98,8 @@ public class SqlLiteCursorTestBase
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync()
             .Result;
     }
 }

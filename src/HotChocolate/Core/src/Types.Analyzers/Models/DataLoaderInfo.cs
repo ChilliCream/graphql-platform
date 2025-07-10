@@ -110,7 +110,7 @@ public sealed class DataLoaderInfo : SyntaxInfo
             return builder.ToImmutable();
         }
 
-        return ImmutableArray<CacheLookup>.Empty;
+        return [];
     }
 
     private void Validate(

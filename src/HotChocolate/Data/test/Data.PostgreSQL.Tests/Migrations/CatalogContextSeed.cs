@@ -18,11 +18,11 @@ public sealed class CatalogContextSeed : IDbSeeder<CatalogContext>
 
             context.Brands.RemoveRange(context.Brands);
             await context.Brands.AddRangeAsync(
-                sourceItems.Select(x => x.Brand).Distinct().Select(brandName => new Brand { Name = brandName, }));
+                sourceItems.Select(x => x.Brand).Distinct().Select(brandName => new Brand { Name = brandName }));
 
             context.ProductTypes.RemoveRange(context.ProductTypes);
             await context.ProductTypes.AddRangeAsync(
-                sourceItems.Select(x => x.Type).Distinct().Select(typeName => new ProductType { Name = typeName, }));
+                sourceItems.Select(x => x.Type).Distinct().Select(typeName => new ProductType { Name = typeName }));
 
             await context.SaveChangesAsync();
 
@@ -41,10 +41,10 @@ public sealed class CatalogContextSeed : IDbSeeder<CatalogContext>
                     AvailableStock = 100,
                     MaxStockThreshold = 200,
                     RestockThreshold = 10,
-                    ImageFileName = $"images/{source.Id}.webp",
+                    ImageFileName = $"images/{source.Id}.webp"
                 }));
 
-            for(var i = 0; i < 100; i++)
+            for (var i = 0; i < 100; i++)
             {
                 await context.SingleProperties.AddAsync(
                     new SingleProperty

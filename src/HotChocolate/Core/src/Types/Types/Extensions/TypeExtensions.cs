@@ -113,22 +113,22 @@ public static class TypeExtensions
                     continue;
 
                 case TypeKind.List:
+                {
+                    if (literal.Kind is SyntaxKind.ListValue)
                     {
-                        if (literal.Kind is SyntaxKind.ListValue)
+                        var list = (ListValueNode)literal;
+
+                        if (list.Items.Count == 0)
                         {
-                            var list = (ListValueNode)literal;
-
-                            if (list.Items.Count == 0)
-                            {
-                                return true;
-                            }
-
-                            literal = list.Items[0];
+                            return true;
                         }
 
-                        type = (IInputType)((ListType)type).ElementType;
-                        continue;
+                        literal = list.Items[0];
                     }
+
+                    type = (IInputType)((ListType)type).ElementType;
+                    continue;
+                }
 
                 case TypeKind.InputObject:
                     return literal.Kind == SyntaxKind.ObjectValue;

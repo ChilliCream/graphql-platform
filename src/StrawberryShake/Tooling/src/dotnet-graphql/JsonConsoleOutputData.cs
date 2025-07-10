@@ -8,6 +8,6 @@ public class JsonConsoleOutputData
     public List<JsonConsoleOutputErrorData> Errors { get; } =
         [];
 
-    public  List<string> CreatedFiles { get; } =
+    public List<string> CreatedFiles { get; } =
         [];
 }

@@ -31,7 +31,7 @@ internal static class ReferenceResolverHelper
                 Message = "The entity for the given representation could not be resolved.",
                 Extensions = new Dictionary<string, object?>
                 {
-                    { nameof(representation), representation },
+                    { nameof(representation), representation }
                 }
             });
     }

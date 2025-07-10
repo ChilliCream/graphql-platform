@@ -40,9 +40,9 @@ internal sealed partial class ExtendedType
                 ExtendedTypeKind.Runtime,
                 typeArguments: typeArguments,
                 source: type,
-                isNullable: !type.IsValueType,
+                elementType: elementType,
                 isList: Helper.IsListType(type),
-                elementType: elementType);
+                isNullable: !type.IsValueType);
         }
 
         public static IReadOnlyList<ExtendedType> GetGenericArguments(

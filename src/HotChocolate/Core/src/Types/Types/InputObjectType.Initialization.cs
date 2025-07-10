@@ -19,8 +19,8 @@ namespace HotChocolate.Types;
 public partial class InputObjectType
 {
     private Action<IInputObjectTypeDescriptor>? _configure;
-    private Func<object?[], object> _createInstance = default!;
-    private Action<object, object?[]> _getFieldValues = default!;
+    private Func<object?[], object> _createInstance = null!;
+    private Action<object, object?[]> _getFieldValues = null!;
 
     protected override InputObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {

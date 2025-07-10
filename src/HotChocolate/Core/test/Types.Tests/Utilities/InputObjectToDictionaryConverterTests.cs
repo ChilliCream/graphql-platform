@@ -15,13 +15,13 @@ public class InputObjectToDictionaryConverterTests
 
         var type = schema.Types.GetType<InputObjectType>("FooInput");
 
-        var bar1 = new Bar { Number = 1, Baz = Baz.Bar, };
-        var bar2 = new Bar { Number = 2, Baz = Baz.Bar, };
-        var bar3 = new Bar { Number = 3, Baz = Baz.Foo, };
+        var bar1 = new Bar { Number = 1, Baz = Baz.Bar };
+        var bar2 = new Bar { Number = 2, Baz = Baz.Bar };
+        var bar3 = new Bar { Number = 3, Baz = Baz.Foo };
         var foo = new Foo
         {
             Bar = bar1,
-            Bars = [bar2, bar3,],
+            Bars = [bar2, bar3]
         };
 
         // act
@@ -44,12 +44,12 @@ public class InputObjectToDictionaryConverterTests
 
         var type = schema.Types.GetType<InputObjectType>("FooInput");
 
-        var bar2 = new Bar { Number = 2, Baz = Baz.Bar, };
-        var bar3 = new Bar { Number = 3, Baz = Baz.Foo, };
+        var bar2 = new Bar { Number = 2, Baz = Baz.Bar };
+        var bar3 = new Bar { Number = 3, Baz = Baz.Foo };
         var foo = new Foo
         {
             Bar = null,
-            Bars = [bar2, bar3,],
+            Bars = [bar2, bar3]
         };
 
         // act
@@ -72,12 +72,12 @@ public class InputObjectToDictionaryConverterTests
 
         var type = schema.Types.GetType<InputObjectType>("FooInput");
 
-        var bar1 = new Bar { Number = 1, Baz = Baz.Bar, };
-        var bar2 = new Bar { Number = 2, Baz = Baz.Bar, };
+        var bar1 = new Bar { Number = 1, Baz = Baz.Bar };
+        var bar2 = new Bar { Number = 2, Baz = Baz.Bar };
         var foo = new Foo
         {
             Bar = bar1,
-            Bars = [bar2, null,],
+            Bars = [bar2, null]
         };
 
         // act
@@ -106,7 +106,7 @@ public class InputObjectToDictionaryConverterTests
     public enum Baz
     {
         Foo,
-        Bar,
+        Bar
     }
 
     public class DummyQuery

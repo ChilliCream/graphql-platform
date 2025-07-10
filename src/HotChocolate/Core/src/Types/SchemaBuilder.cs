@@ -24,30 +24,31 @@ public partial class SchemaBuilder : ISchemaBuilder
     private readonly List<CreateRef> _types = [];
     private readonly Dictionary<OperationType, CreateRef> _operations = [];
 
-    private readonly List<object> _typeInterceptors =
-    [
-        typeof(IntrospectionTypeInterceptor),
-        typeof(InterfaceCompletionTypeInterceptor),
-        typeof(MiddlewareValidationTypeInterceptor),
-        typeof(SemanticNonNullTypeInterceptor),
-        typeof(StoreGlobalPagingOptionsTypeInterceptor),
-        typeof(OptInFeaturesTypeInterceptor)
-    ];
-
     private readonly SchemaOptions _options = new();
     private IsOfTypeFallback? _isOfType;
     private IServiceProvider? _services;
     private CreateRef? _schema;
+
+    private SchemaBuilder()
+    {
+        var typeInterceptors = new TypeInterceptorCollection();
+
+        typeInterceptors.TryAdd(new IntrospectionTypeInterceptor());
+        typeInterceptors.TryAdd(new InterfaceCompletionTypeInterceptor());
+        typeInterceptors.TryAdd(new MiddlewareValidationTypeInterceptor());
+        typeInterceptors.TryAdd(new SemanticNonNullTypeInterceptor());
+        typeInterceptors.TryAdd(new StoreGlobalPagingOptionsTypeInterceptor());
+        typeInterceptors.TryAdd(new OptInFeaturesTypeInterceptor());
+
+        Features.Set(typeInterceptors);
+    }
 
     public IFeatureCollection Features { get; } = new FeatureCollection();
 
     /// <inheritdoc />
     public ISchemaBuilder SetSchema(Type type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (typeof(Schema).IsAssignableFrom(type))
         {
@@ -81,10 +82,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder ModifyOptions(Action<SchemaOptions> configure)
     {
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(configure);
 
         configure(_options);
         return this;
@@ -93,10 +91,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder Use(FieldMiddleware middleware)
     {
-        if (middleware is null)
-        {
-            throw new ArgumentNullException(nameof(middleware));
-        }
+        ArgumentNullException.ThrowIfNull(middleware);
 
         _globalComponents.Add(middleware);
         return this;
@@ -105,10 +100,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// <inheritdoc />
     public ISchemaBuilder AddType(Type type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         _types.Add(ti => ti.GetTypeRef(type));
 
@@ -239,39 +231,6 @@ public partial class SchemaBuilder : ISchemaBuilder
         ArgumentNullException.ThrowIfNull(services);
 
         _services = _services is null ? services : new CombinedServiceProvider(_services, services);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public ISchemaBuilder TryAddTypeInterceptor(Type interceptor)
-    {
-        ArgumentNullException.ThrowIfNull(interceptor);
-
-        if (!typeof(TypeInterceptor).IsAssignableFrom(interceptor))
-        {
-            throw new ArgumentException(
-                TypeResources.SchemaBuilder_Interceptor_NotSupported,
-                nameof(interceptor));
-        }
-
-        if (!_typeInterceptors.Contains(interceptor))
-        {
-            _typeInterceptors.Add(interceptor);
-        }
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public ISchemaBuilder TryAddTypeInterceptor(TypeInterceptor interceptor)
-    {
-        ArgumentNullException.ThrowIfNull(interceptor);
-
-        if (!_typeInterceptors.Contains(interceptor))
-        {
-            _typeInterceptors.Add(interceptor);
-        }
 
         return this;
     }

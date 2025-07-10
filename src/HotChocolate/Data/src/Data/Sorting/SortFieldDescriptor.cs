@@ -66,7 +66,7 @@ public class SortFieldDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, Member: not null, })
+        if (Configuration is { AttributesAreApplied: false, Member: not null })
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Configuration.Member);
             Configuration.AttributesAreApplied = true;

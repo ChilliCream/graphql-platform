@@ -9,7 +9,7 @@ namespace HotChocolate.Types;
 
 public class DateType : ScalarType<DateOnly, StringValueNode>
 {
-    private const string _dateFormat = "yyyy-MM-dd";
+    private const string DateFormat = "yyyy-MM-dd";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DateType"/> class.
@@ -108,7 +108,7 @@ public class DateType : ScalarType<DateOnly, StringValueNode>
     }
 
     private static string Serialize(IFormattable value) =>
-        value.ToString(_dateFormat, CultureInfo.InvariantCulture);
+        value.ToString(DateFormat, CultureInfo.InvariantCulture);
 
     private static bool TryDeserializeFromString(
         string? serialized,
@@ -116,7 +116,7 @@ public class DateType : ScalarType<DateOnly, StringValueNode>
     {
         if (DateOnly.TryParseExact(
            serialized,
-           _dateFormat,
+           DateFormat,
            out var date))
         {
             value = date;

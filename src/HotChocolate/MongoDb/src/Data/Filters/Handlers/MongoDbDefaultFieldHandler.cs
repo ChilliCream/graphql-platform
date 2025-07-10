@@ -24,7 +24,7 @@ public class MongoDbDefaultFieldHandler
         ITypeCompletionContext context,
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration) =>
-        !(fieldConfiguration is FilterOperationFieldConfiguration);
+        fieldConfiguration is not FilterOperationFieldConfiguration;
 
     /// <inheritdoc />
     public override bool TryHandleEnter(

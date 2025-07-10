@@ -21,7 +21,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         var connectionString = resource.GetConnectionString(db);
         await using var services = CreateServer(connectionString);
         await using var scope = services.CreateAsyncScope();
-        var executor = await services.GetRequiredService<IRequestExecutorResolver>().GetRequestExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
         executor.Schema.MatchSnapshot();
     }
 
@@ -445,7 +445,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         await seeder.SeedAsync(context);
 
         // act
-        var executor = await services.GetRequiredService<IRequestExecutorResolver>().GetRequestExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
         await executor.ExecuteAsync(
             """
             {
@@ -484,7 +484,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             new Promise<Brand>(new Brand { Id = 1, Name = "Test" }));
 
         // act
-        var executor = await services.GetRequiredService<IRequestExecutorResolver>().GetRequestExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
         var result = await executor.ExecuteAsync(
             """
             {
@@ -552,7 +552,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<CatalogContext>>();
         await context.Database.EnsureCreatedAsync();
         await seeder.SeedAsync(context);
-        var executor = await services.GetRequiredService<IRequestExecutorResolver>().GetRequestExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
         return await executor.ExecuteAsync(sourceText);
     }
 
@@ -560,11 +560,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         IExecutionResult result,
         TestQueryInterceptor queryInterceptor)
     {
-#if NET9_0_OR_GREATER
-        var snapshot = Snapshot.Create();
-#else
-        var snapshot = Snapshot.Create(postFix: "_net_8_0");
-#endif
+        var snapshot = Snapshot.Create(postFix: TestEnvironment.TargetFramework);
 
         snapshot.Add(result.ToJson(), "Result", MarkdownLanguages.Json);
 

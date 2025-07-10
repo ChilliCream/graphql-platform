@@ -189,7 +189,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
                     // if the field contains the AnonymousAllowed flag, we will not
                     // apply authorization on it.
-                    if(fieldDef.IsAnonymousAllowed())
+                    if (fieldDef.IsAnonymousAllowed())
                     {
                         continue;
                     }
@@ -364,7 +364,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     {
         // if the field contains the AnonymousAllowed flag, we will not apply authorization
         // on it.
-        if(fieldDef.IsAnonymousAllowed())
+        if (fieldDef.IsAnonymousAllowed())
         {
             return;
         }
@@ -607,8 +607,8 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         {
             var directiveDef = Unsafe.Add(ref start, i);
 
-            if (directiveDef.Type is NameDirectiveReference { Name: Authorize, }
-                || (directiveDef.Type is ExtendedTypeDirectiveReference { Type.Type: { } type, }
+            if (directiveDef.Type is NameDirectiveReference { Name: Authorize }
+                || (directiveDef.Type is ExtendedTypeDirectiveReference { Type.Type: { } type }
                     && type == typeof(AuthorizeDirective)))
             {
                 return true;

@@ -10,7 +10,7 @@ public class LocalTimeSerializerTests
     public void Parse()
     {
         // arrange
-        var value = "13:22:53";
+        const string value = "13:22:53";
 
         // act
         var result = Serializer.Parse(value);
@@ -50,7 +50,7 @@ public class LocalTimeSerializerTests
     public void Format_Exception()
     {
         // arrange
-        var value = 1;
+        const int value = 1;
 
         // act
         void Action() => Serializer.Format(value);

@@ -19,7 +19,7 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
             context.HasIncrementalParts ||
             ContainsIntrospectionFields(context))
         {
-            // if this is an introspection query we will not cache it.
+            // if this is an introspection query, we will not cache it.
             return;
         }
 
@@ -35,22 +35,22 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
                     : null,
                 SharedMaxAge = constraints.SharedMaxAge is not null
                     ? TimeSpan.FromSeconds(constraints.SharedMaxAge.Value)
-                    : null,
+                    : null
             };
 
             context.ContextData.Add(
-                WellKnownContextData.CacheControlConstraints,
+                ExecutionContextData.CacheControlConstraints,
                 constraints);
 
             context.ContextData.Add(
-                WellKnownContextData.CacheControlHeaderValue,
+                ExecutionContextData.CacheControlHeaderValue,
                 headerValue);
         }
 
         if (constraints.Vary is { Length: > 0 })
         {
             context.ContextData.Add(
-                WellKnownContextData.VaryHeaderValue,
+                ExecutionContextData.VaryHeaderValue,
                 string.Join(", ", constraints.Vary));
         }
     }
@@ -80,7 +80,7 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
         }
         else
         {
-            vary = ImmutableArray<string>.Empty;
+            vary = [];
         }
 
         return new ImmutableCacheConstraints(

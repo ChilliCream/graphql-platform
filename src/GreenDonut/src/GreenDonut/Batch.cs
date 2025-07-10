@@ -3,7 +3,7 @@ namespace GreenDonut;
 internal class Batch<TKey> where TKey : notnull
 {
     private readonly List<TKey> _keys = [];
-    private readonly Dictionary<TKey, IPromise> _items = new();
+    private readonly Dictionary<TKey, IPromise> _items = [];
 
     public bool IsScheduled { get; set; }
 
@@ -13,7 +13,7 @@ internal class Batch<TKey> where TKey : notnull
 
     public Promise<TValue> GetOrCreatePromise<TValue>(TKey key, bool allowCachePropagation)
     {
-        if(_items.TryGetValue(key, out var value))
+        if (_items.TryGetValue(key, out var value))
         {
             return (Promise<TValue>)value;
         }

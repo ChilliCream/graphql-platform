@@ -1,4 +1,5 @@
 using HotChocolate;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -12,15 +13,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Func<IError, IError> errorFilter)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (errorFilter is null)
-        {
-            throw new ArgumentNullException(nameof(errorFilter));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(errorFilter);
 
         return builder.ConfigureSchemaServices(
             s => s.AddSingleton<IErrorFilter>(
@@ -32,15 +26,8 @@ public static partial class RequestExecutorBuilderExtensions
         Func<IServiceProvider, T> factory)
         where T : class, IErrorFilter
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
 
         return builder.ConfigureSchemaServices(
             s => s.AddSingleton<IErrorFilter, T>(
@@ -51,10 +38,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where T : class, IErrorFilter
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.TryAddSingleton<T>();
         return builder.ConfigureSchemaServices(
@@ -66,15 +50,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IServiceCollection services,
         Func<IError, IError> errorFilter)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (errorFilter is null)
-        {
-            throw new ArgumentNullException(nameof(errorFilter));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(errorFilter);
 
         return services.AddSingleton<IErrorFilter>(
             new FuncErrorFilterWrapper(errorFilter));
@@ -84,15 +61,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IServiceCollection services,
         Func<IServiceProvider, IErrorFilter> factory)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(factory);
 
         return services.AddSingleton(factory);
     }
@@ -101,10 +71,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IServiceCollection services)
         where T : class, IErrorFilter
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         return services.AddSingleton<IErrorFilter, T>();
     }

@@ -25,7 +25,7 @@ public static class TypeDescriptorExtensions
                     .Any(prop => prop.Type.IsEntity() || prop.Type.ContainsEntity()),
             NonNullTypeDescriptor nonNullTypeDescriptor =>
                 nonNullTypeDescriptor.InnerType.ContainsEntity(),
-            _ => false,
+            _ => false
         };
     }
 
@@ -47,7 +47,7 @@ public static class TypeDescriptorExtensions
 
             NonNullTypeDescriptor d => d.InnerType.IsOrContainsEntity(),
 
-            _ => false,
+            _ => false
         };
     }
 
@@ -62,7 +62,7 @@ public static class TypeDescriptorExtensions
 
     public static bool IsList(this ITypeDescriptor typeDescriptor) =>
         typeDescriptor is ListTypeDescriptor ||
-        typeDescriptor is NonNullTypeDescriptor { InnerType: ListTypeDescriptor, };
+        typeDescriptor is NonNullTypeDescriptor { InnerType: ListTypeDescriptor };
 
     public static ITypeDescriptor InnerType(this ITypeDescriptor typeDescriptor)
     {

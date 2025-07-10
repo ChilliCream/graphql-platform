@@ -96,9 +96,7 @@ type Starship {
 
 type Subscription {
   onReview(episode: Episode!): Review!
-  onNext: String! @cost(weight: "10")
-  onException: String! @cost(weight: "10")
-  delay(delay: Int! count: Int!): String! @cost(weight: "10")
+  delay(delay: Int! count: Int!): String!
 }
 
 union SearchResult = Starship | Human | Droid

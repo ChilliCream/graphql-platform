@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Fetching;
@@ -14,196 +13,6 @@ namespace HotChocolate.Execution.Integration.DataLoader;
 
 public class DataLoaderTests
 {
-    [Obsolete]
-    [Fact]
-    public async Task FetchOnceDataLoader()
-    {
-        var snapshot = new Snapshot();
-
-        snapshot.Add(
-            await ExpectValid(
-                "{ fetchItem }",
-                configure: b => b
-                    .AddGraphQL()
-                    .AddDocumentFromString("type Query { fetchItem: String }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .AddResolver(
-                        "Query",
-                        "fetchItem",
-                        async ctx => await ctx.FetchOnceAsync(_ => Task.FromResult("fooBar")))
-            ));
-
-        await snapshot.MatchMarkdownAsync();
-    }
-
-    [Obsolete]
-    [Fact]
-    public async Task FetchSingleDataLoader()
-    {
-        var snapshot = new Snapshot();
-
-        snapshot.Add(
-            await ExpectValid(
-                "{ fetchItem }",
-                configure: b => b
-                    .AddGraphQL()
-                    .AddDocumentFromString("type Query { fetchItem: String }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .AddResolver(
-                        "Query",
-                        "fetchItem",
-                        async ctx => await ctx.CacheDataLoader<string, string>(
-                                (key, _) => Task.FromResult(key))
-                            .LoadAsync("fooBar"))
-            ));
-
-        await snapshot.MatchMarkdownAsync();
-    }
-
-    [Obsolete]
-    [Fact]
-    public async Task FetchMultipleNodesDataLoader()
-    {
-        var batchFetchCount = 0;
-
-        await ExpectValid(
-            """
-            {
-                a: node(id: "RW50aXR5OjE==") { ... on Entity { id } }
-                b: node(id: "RW50aXR5OjI==") { ... on Entity { id } }
-            }
-            """,
-            configure: b => b
-                .AddGraphQL()
-                .AddGlobalObjectIdentification()
-                .AddObjectType<Entity>(descriptor =>
-                {
-                    descriptor
-                        .ImplementsNode()
-                        .IdField(e => e.Id)
-                        .ResolveNode(
-                            async (ctx, id) => await ctx.BatchDataLoader<int, Entity>(
-                                (keys, _) =>
-                                {
-                                    batchFetchCount++;
-
-                                    return Task.FromResult<IReadOnlyDictionary<int, Entity>>(
-                                        keys.ToDictionary(t => t, _ => new Entity { Id = id }));
-                                })
-                                .LoadAsync(id))
-                        .Resolve(ctx => ctx.Parent<Entity>().Id);
-                })
-                .AddQueryType());
-
-        Assert.Equal(1, batchFetchCount);
-    }
-
-    [Obsolete]
-    [LocalFact]
-    public async Task FetchDataLoader()
-    {
-        var snapshot = new Snapshot();
-
-        snapshot.Add(
-            await ExpectValid(
-                "{ fetchItem }",
-                configure: b => b
-                    .AddGraphQL()
-                    .AddDocumentFromString("type Query { fetchItem: String }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .AddResolver(
-                        "Query",
-                        "fetchItem",
-                        async ctx => await ctx.BatchDataLoader<string, string>(
-                                (keys, _) => Task.FromResult<IReadOnlyDictionary<string, string>>(
-                                    keys.ToDictionary(t => t)))
-                            .LoadAsync("fooBar"))
-            ));
-
-        await snapshot.MatchMarkdownAsync();
-    }
-
-    [Obsolete]
-    [Fact]
-    public async Task FetchGroupDataLoader()
-    {
-        var snapshot = new Snapshot();
-
-        snapshot.Add(
-            await ExpectValid(
-                "{ fetchItem }",
-                configure: b => b
-                    .AddGraphQL()
-                    .AddDocumentFromString("type Query { fetchItem: String }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .AddResolver(
-                        "Query",
-                        "fetchItem",
-                        async ctx => await ctx.GroupDataLoader<string, string>(
-                                (keys, _) => Task.FromResult(
-                                    keys.ToLookup(t => t)))
-                            .LoadAsync("fooBar"))
-            ));
-
-        await snapshot.MatchMarkdownAsync();
-    }
-
-    [Obsolete]
-    [Fact]
-    public async Task AddSingleDiagnosticEventListener()
-    {
-        var listener = new DataLoaderListener();
-
-        await ExpectValid(
-            "{ fetchItem }",
-            b => b
-                .AddGraphQL()
-                .AddDiagnosticEventListener(_ => listener)
-                .AddDocumentFromString("type Query { fetchItem: String }")
-                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                .AddResolver(
-                    "Query",
-                    "fetchItem",
-                    async ctx => await ctx.GroupDataLoader<string, string>(
-                            (keys, _) => Task.FromResult(
-                                keys.ToLookup(t => t)))
-                        .LoadAsync("fooBar"))
-        );
-
-        Assert.True(listener.ExecuteBatchTouched);
-        Assert.True(listener.BatchResultsTouched);
-    }
-
-    [Obsolete]
-    [LocalFact]
-    public async Task AddMultipleDiagnosticEventListener()
-    {
-        var listener1 = new DataLoaderListener();
-        var listener2 = new DataLoaderListener();
-
-        await ExpectValid(
-            "{ fetchItem }",
-            b => b
-                .AddGraphQL()
-                .AddDiagnosticEventListener(_ => listener1)
-                .AddDiagnosticEventListener(_ => listener2)
-                .AddDocumentFromString("type Query { fetchItem: String }")
-                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                .AddResolver(
-                    "Query",
-                    "fetchItem",
-                    async ctx => await ctx.GroupDataLoader<string, string>(
-                            (keys, _) => Task.FromResult(
-                                keys.ToLookup(t => t)))
-                        .LoadAsync("fooBar"))
-        );
-
-        Assert.True(listener1.ExecuteBatchTouched, "listener1.ExecuteBatchTouched");
-        Assert.True(listener1.BatchResultsTouched, "listener1.BatchResultsTouched");
-        Assert.True(listener2.ExecuteBatchTouched, "listener2.ExecuteBatchTouched");
-        Assert.True(listener2.BatchResultsTouched, "listener2.BatchResultsTouched");
-    }
-
     [Fact]
     public async Task ClassDataLoader()
     {
@@ -216,12 +25,12 @@ public class DataLoaderTests
                 .AddDataLoader<ITestDataLoader, TestDataLoader>()
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .UseRequest(
-                    next => async context =>
+                    (_, next) => async context =>
                     {
                         await next(context);
 
                         var dataLoader =
-                            context.Services
+                            context.RequestServices
                                 .GetRequiredService<IDataLoaderScope>()
                                 .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
@@ -277,12 +86,12 @@ public class DataLoaderTests
             .AddDataLoader<ITestDataLoader, TestDataLoader>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
 
                     var dataLoader =
-                        context.Services
+                        context.RequestServices
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
@@ -312,12 +121,12 @@ public class DataLoaderTests
             .AddDataLoader<ITestDataLoader, TestDataLoader>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
 
                     var dataLoader =
-                        context.Services
+                        context.RequestServices
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
@@ -350,12 +159,12 @@ public class DataLoaderTests
             .AddDataLoader<ITestDataLoader, TestDataLoader>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
 
                     var dataLoader =
-                        context.Services
+                        context.RequestServices
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
@@ -432,11 +241,11 @@ public class DataLoaderTests
                 .AddDataLoader<ITestDataLoader, TestDataLoader>()
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .UseRequest(
-                    next => async context =>
+                    (_, next) => async context =>
                     {
                         await next(context);
 
-                        var dataLoader = (TestDataLoader)context.Services.GetRequiredService<ITestDataLoader>();
+                        var dataLoader = (TestDataLoader)context.RequestServices.GetRequiredService<ITestDataLoader>();
 
                         context.Result = OperationResultBuilder
                             .FromResult(((IOperationResult)context.Result!))
@@ -493,14 +302,14 @@ public class DataLoaderTests
                         new DataLoaderOptions()))
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .UseRequest(
-                    next => async context =>
+                    (_, next) => async context =>
                     {
                         await next(context);
 
-                        var dataLoader = (TestDataLoader)context.Services.GetRequiredService<ITestDataLoader>();
+                        var dataLoader = (TestDataLoader)context.RequestServices.GetRequiredService<ITestDataLoader>();
 
                         context.Result = OperationResultBuilder
-                            .FromResult(((IOperationResult)context.Result!))
+                            .FromResult((IOperationResult)context.Result!)
                             .AddExtension("loads", dataLoader.Loads)
                             .Build();
                     })
@@ -657,7 +466,6 @@ public class DataLoaderTests
             await FooObject.Get(context, "hello", ct);
     }
 
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
     [GraphQLName("Foo")]
     [Node]
     public class FooObject(string field)

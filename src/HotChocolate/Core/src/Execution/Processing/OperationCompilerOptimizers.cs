@@ -15,7 +15,7 @@ internal sealed class OperationCompilerOptimizers
         get => _operationOptimizers;
         set
         {
-            if((_initFlags & PropertyInitFlags.OperationOptimizers) == PropertyInitFlags.OperationOptimizers)
+            if ((_initFlags & PropertyInitFlags.OperationOptimizers) == PropertyInitFlags.OperationOptimizers)
             {
                 throw new InvalidOperationException(
                     "OperationOptimizers can only be set once.");
@@ -31,7 +31,7 @@ internal sealed class OperationCompilerOptimizers
         get => _selectionSetOptimizers;
         set
         {
-            if((_initFlags & PropertyInitFlags.SelectionSetOptimizers) == PropertyInitFlags.SelectionSetOptimizers)
+            if ((_initFlags & PropertyInitFlags.SelectionSetOptimizers) == PropertyInitFlags.SelectionSetOptimizers)
             {
                 throw new InvalidOperationException(
                     "OperationOptimizers can only be set once.");
@@ -68,8 +68,8 @@ public readonly struct OperationCompilerRequest
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         RootType = rootType ?? throw new ArgumentNullException(nameof(rootType));
         Schema = schema ?? throw new ArgumentNullException(nameof(schema));
-        OperationOptimizers = operationOptimizers ?? ImmutableArray<IOperationOptimizer>.Empty;
-        SelectionSetOptimizers = selectionSetOptimizers ?? ImmutableArray<ISelectionSetOptimizer>.Empty;
+        OperationOptimizers = operationOptimizers ?? [];
+        SelectionSetOptimizers = selectionSetOptimizers ?? [];
     }
 
     /// <summary>

@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Introspection;
 /// </summary>
 public static class IntrospectionTypes
 {
-    private static readonly HashSet<string> _typeNames =
+    private static readonly HashSet<string> s_typeNames =
     [
         __Directive.Names.__Directive,
         __DirectiveLocation.Names.__DirectiveLocation,
@@ -54,7 +54,7 @@ public static class IntrospectionTypes
     /// Defines if the type name represents an introspection type.
     /// </summary>
     public static bool IsIntrospectionType(string typeName)
-        => !string.IsNullOrEmpty(typeName)  && _typeNames.Contains(typeName);
+        => !string.IsNullOrEmpty(typeName) && s_typeNames.Contains(typeName);
 
     /// <summary>
     /// Defines if the type represents an introspection type.

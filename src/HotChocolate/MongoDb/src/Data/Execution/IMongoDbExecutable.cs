@@ -1,7 +1,7 @@
 namespace HotChocolate.Data.MongoDb;
 
 /// <summary>
-/// Represents a executable for the MongoDb.
+/// Represents an executable for the MongoDb.
 /// </summary>
 public interface IMongoDbExecutable : IExecutable
 {

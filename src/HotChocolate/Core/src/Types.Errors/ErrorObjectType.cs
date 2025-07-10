@@ -1,5 +1,3 @@
-using HotChocolate.Types.Descriptors.Configurations;
-
 namespace HotChocolate.Types;
 
 internal sealed class ErrorObjectType<T> : ObjectType<T>

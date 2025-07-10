@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // StarWarsGetHeroWithFragmentIncludeAndSkipDirectiveClient
 
@@ -650,7 +651,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     /// <summary>
     /// Represents the operation service of the GetHeroWithFragmentIncludeAndSkipDirective GraphQL operation
     /// <code>
-    /// query GetHeroWithFragmentIncludeAndSkipDirective($includePageInfo: Boolean = false, $skipPageInfo: Boolean = true) {
+    /// query GetHeroWithFragmentIncludeAndSkipDirective(
+    ///   $includePageInfo: Boolean = false
+    ///   $skipPageInfo: Boolean = true
+    /// ) {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
     ///     ... HeroFragment
@@ -1299,7 +1303,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     /// <summary>
     /// Represents the operation service of the GetHeroWithFragmentIncludeAndSkipDirective GraphQL operation
     /// <code>
-    /// query GetHeroWithFragmentIncludeAndSkipDirective($includePageInfo: Boolean = false, $skipPageInfo: Boolean = true) {
+    /// query GetHeroWithFragmentIncludeAndSkipDirective(
+    ///   $includePageInfo: Boolean = false
+    ///   $skipPageInfo: Boolean = true
+    /// ) {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
     ///     ... HeroFragment
@@ -1436,7 +1443,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     /// <summary>
     /// Represents the operation service of the GetHeroWithFragmentIncludeAndSkipDirective GraphQL operation
     /// <code>
-    /// query GetHeroWithFragmentIncludeAndSkipDirective($includePageInfo: Boolean = false, $skipPageInfo: Boolean = true) {
+    /// query GetHeroWithFragmentIncludeAndSkipDirective(
+    ///   $includePageInfo: Boolean = false
+    ///   $skipPageInfo: Boolean = true
+    /// ) {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
     ///     ... HeroFragment
@@ -1855,7 +1865,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends returnValue = default !;
-            if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_FriendsConnection(MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(data.IncludedPageInfo, snapshot), MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(data.SkippedPageInfo, snapshot));
             }
@@ -1875,7 +1885,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo returnValue = default !;
-            if (data?.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo_PageInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException());
             }
@@ -1895,7 +1905,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo returnValue = default !;
-            if (data?.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo_PageInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException());
             }
@@ -1936,7 +1946,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends returnValue = default !;
-            if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_FriendsConnection(MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(data.IncludedPageInfo, snapshot), MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(data.SkippedPageInfo, snapshot));
             }
@@ -1956,7 +1966,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo returnValue = default !;
-            if (data?.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo_PageInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException());
             }
@@ -1976,7 +1986,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo returnValue = default !;
-            if (data?.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo_PageInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException());
             }

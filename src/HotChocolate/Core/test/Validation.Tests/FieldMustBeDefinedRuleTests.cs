@@ -1,7 +1,5 @@
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Validation;
 

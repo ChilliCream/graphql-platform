@@ -103,8 +103,8 @@ public class EntityTypeTests
     public sealed class UserWithClassAttribute
     {
         public int Id { get; set; }
-        public string IdCode { get; set; } = default!;
-        public Review[] Reviews { get; set; } = default!;
+        public string IdCode { get; set; } = null!;
+        public Review[] Reviews { get; set; } = null!;
     }
 
     public sealed class UserWithPropertyAttributes
@@ -112,19 +112,19 @@ public class EntityTypeTests
         [Key]
         public int Id { get; set; }
         [Key]
-        public string IdCode { get; set; } = default!;
+        public string IdCode { get; set; } = null!;
     }
 
     [Key("id address { matchCode }")]
     public sealed class UserWithNestedKeyClassAttribute
     {
         public int Id { get; set; }
-        public Address Address { get; set; } = default!;
+        public Address Address { get; set; } = null!;
     }
 
     public sealed class Address
     {
-        public string MatchCode { get; set; } = default!;
+        public string MatchCode { get; set; } = null!;
     }
 
     [Key("id")]

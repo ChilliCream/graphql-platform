@@ -9,8 +9,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDescriptor>
 {
-    private const string _strategy = "strategy";
-    private const string _cancellationToken = "cancellationToken";
+    private const string Strategy = "strategy";
+    private const string CancellationToken = "cancellationToken";
 
     protected override void Generate(OperationDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings,
@@ -76,7 +76,7 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
         }
 
         watchMethod.AddParameter()
-            .SetName(_strategy)
+            .SetName(Strategy)
             .SetType(TypeNames.ExecutionStrategy.MakeNullable())
             .SetDefault("null");
 
@@ -104,7 +104,7 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
         }
 
         executeMethod
-            .AddParameter(_cancellationToken)
+            .AddParameter(CancellationToken)
             .SetType(TypeNames.CancellationToken)
             .SetDefault();
 

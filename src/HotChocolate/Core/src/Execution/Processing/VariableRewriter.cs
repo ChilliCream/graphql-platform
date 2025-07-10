@@ -72,7 +72,7 @@ public static class VariableRewriter
                     throw ThrowHelper.OneOfFieldMustBeNonNull(field.Coordinate);
                 }
 
-                return node.WithFields(new[] { rewritten, });
+                return node.WithFields(new[] { rewritten });
             }
             else
             {
@@ -168,7 +168,7 @@ public static class VariableRewriter
                 NullValueNode.Default,
                 variableValues,
                 out var rewritten)
-                ? node.WithItems(new[] { rewritten, })
+                ? node.WithItems(new[] { rewritten })
                 : node;
         }
 
@@ -274,7 +274,7 @@ public static class VariableRewriter
         VariableNode node,
         IValueNode defaultValue,
         IVariableValueCollection variableValues) =>
-        variableValues.TryGetVariable(node.Name.Value, out IValueNode? value)
+        variableValues.TryGetValue(node.Name.Value, out IValueNode? value)
             ? value ?? NullValueNode.Default
             : defaultValue;
 }

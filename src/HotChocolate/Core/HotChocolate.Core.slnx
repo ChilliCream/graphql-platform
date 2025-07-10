@@ -1,31 +1,11 @@
 <Solution>
-  <Configurations>
-    <Platform Name="Any CPU" />
-    <Platform Name="x64" />
-    <Platform Name="x86" />
-  </Configurations>
-  <Folder Name="/.referenced/">
-    <Project Path="../../CookieCrumble/src/CookieCrumble/CookieCrumble.csproj" />
-    <Project Path="../../GreenDonut/src/GreenDonut/GreenDonut.csproj" />
-    <Project Path="../AspNetCore/src/AspNetCore/HotChocolate.AspNetCore.csproj" />
-    <Project Path="../AspNetCore/src/Transport.Abstractions/HotChocolate.Transport.Abstractions.csproj" />
-    <Project Path="../AspNetCore/src/Transport.Http/HotChocolate.Transport.Http.csproj" />
-    <Project Path="../AspNetCore/src/Transport.Sockets.Client/HotChocolate.Transport.Sockets.Client.csproj" />
-    <Project Path="../AspNetCore/src/Transport.Sockets/HotChocolate.Transport.Sockets.csproj" />
-    <Project Path="../Language/src/Language.SyntaxTree/HotChocolate.Language.SyntaxTree.csproj" />
-    <Project Path="../Language/src/Language.Utf8/HotChocolate.Language.Utf8.csproj" />
-    <Project Path="../Language/src/Language.Visitors/HotChocolate.Language.Visitors.csproj" />
-    <Project Path="../Language/src/Language.Web/HotChocolate.Language.Web.csproj" />
-    <Project Path="../Language/src/Language/HotChocolate.Language.csproj" />
-    <Project Path="../Utilities/src/Utilities.Introspection/HotChocolate.Utilities.Introspection.csproj" />
-    <Project Path="../Utilities/src/Utilities/HotChocolate.Utilities.csproj" />
-  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Abstractions/HotChocolate.Abstractions.csproj" />
     <Project Path="src/Authorization/HotChocolate.Authorization.csproj" />
     <Project Path="src/Core/HotChocolate.Core.csproj" />
     <Project Path="src/Execution.Abstractions/HotChocolate.Execution.Abstractions.csproj" />
     <Project Path="src/Execution.Configuration.Abstractions/HotChocolate.Execution.Configuration.Abstractions.csproj" />
+    <Project Path="src/Execution.Pipeline/HotChocolate.Execution.Pipeline.csproj" />
     <Project Path="src/Execution.Projections/HotChocolate.Execution.Projections.csproj" />
     <Project Path="src/Execution/HotChocolate.Execution.csproj" />
     <Project Path="src/Features/HotChocolate.Features.csproj" />

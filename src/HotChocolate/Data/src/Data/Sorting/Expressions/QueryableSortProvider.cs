@@ -85,7 +85,7 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
     /// </returns>
     protected virtual bool IsInMemoryQuery<TEntityType>(object? input)
     {
-        if (input is IQueryableExecutable<TEntityType> { IsInMemory: var inMemory, })
+        if (input is IQueryableExecutable<TEntityType> { IsInMemory: var inMemory })
         {
             return inMemory;
         }
@@ -155,7 +155,7 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
             IQueryable<TEntityType> q => sort(q),
             IEnumerable<TEntityType> q => sort(q.AsQueryable()),
             IQueryableExecutable<TEntityType> q => q.WithSource(sort(q.Source)),
-            _ => input,
+            _ => input
         };
 
     private object? ApplyPostActionToResult<TEntityType>(
@@ -167,7 +167,7 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
             IQueryable<TEntityType> q => postAction(sortingApplied, q),
             IEnumerable<TEntityType> q => postAction(sortingApplied, q.AsQueryable()),
             IQueryableExecutable<TEntityType> q => q.WithSource(postAction(sortingApplied, q.Source)),
-            _ => input,
+            _ => input
         };
 
     private ApplySorting CreateApplicatorAsync<TEntityType>(string argumentName)

@@ -11,13 +11,13 @@ namespace HotChocolate.Data.Filters;
 
 public sealed class FilterTypeInterceptor : TypeInterceptor
 {
-    private readonly Dictionary<string, IFilterConvention> _conventions = new();
+    private readonly Dictionary<string, IFilterConvention> _conventions = [];
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
         TypeSystemConfiguration configuration)
     {
-        if (configuration is not FilterInputTypeConfiguration { EntityType: { }, } def)
+        if (configuration is not FilterInputTypeConfiguration { EntityType: { } } def)
         {
             return;
         }
@@ -71,7 +71,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if (configuration is not FilterInputTypeConfiguration { EntityType: { }, } def)
+        if (configuration is not FilterInputTypeConfiguration { EntityType: { } } def)
         {
             return;
         }

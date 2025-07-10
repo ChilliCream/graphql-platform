@@ -114,7 +114,7 @@ public abstract class FieldConfiguration
 
         if (_directives is { Count: > 0 })
         {
-            target._directives = [.._directives];
+            target._directives = [.. _directives];
         }
 
         target.Type = Type;

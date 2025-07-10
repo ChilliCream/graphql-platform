@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Utilities;
@@ -44,7 +43,7 @@ public class DescriptorContextTests
                 new XmlDocumentationFileResolver(),
                 new NoOpStringBuilderPool()));
 
-        var namingConventionKey =new ConventionKey(typeof(INamingConventions), null);
+        var namingConventionKey = new ConventionKey(typeof(INamingConventions), null);
         var conventionRegistration = new ConventionRegistration(namingConventionKey, _ => naming);
 
         var features = new FeatureCollection();

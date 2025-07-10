@@ -64,7 +64,7 @@ public class FilterInputTypeDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, EntityType: not null, })
+        if (Configuration is { AttributesAreApplied: false, EntityType: not null })
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Configuration.EntityType);
             Configuration.AttributesAreApplied = true;

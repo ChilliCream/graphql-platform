@@ -81,7 +81,7 @@ internal sealed class IsSelectedPatternValidation : ISchemaValidationRule
                 message.AppendLine();
                 message.Append("The field declaring type ");
                 message.Append($"`{typeContext.Name}`");
-                message.Append(" must be a object type or interface type.");
+                message.Append(" must be an object type or interface type.");
 
                 context.Error =
                     SchemaErrorBuilder.New()

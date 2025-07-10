@@ -10,8 +10,8 @@ public sealed class RequestExecutorSetup
 {
     private readonly List<OnConfigureSchemaBuilderAction> _onConfigureSchemaBuilderHooks = [];
     private readonly List<OnConfigureRequestExecutorOptionsAction> _onConfigureRequestExecutorOptionsHooks = [];
-    private readonly List<RequestCoreMiddlewareConfiguration> _pipeline = [];
-    private readonly List<Action<IList<RequestCoreMiddlewareConfiguration>>> _pipelineModifiers = [];
+    private readonly List<RequestMiddlewareConfiguration> _pipeline = [];
+    private readonly List<Action<IList<RequestMiddlewareConfiguration>>> _pipelineModifiers = [];
     private readonly List<OnConfigureSchemaServices> _onConfigureSchemaServicesHooks = [];
     private readonly List<OnRequestExecutorCreatedAction> _onRequestExecutorCreatedHooks = [];
     private readonly List<OnRequestExecutorEvictedAction> _onRequestExecutorEvictedHooks = [];
@@ -19,7 +19,7 @@ public sealed class RequestExecutorSetup
     private readonly List<Action<IServiceProvider, DocumentValidatorBuilder>> _onBuildDocumentValidatorHooks = [];
 
     /// <summary>
-    /// This allows to specify a schema and short-circuit the schema creation.
+    /// This allows specifying a schema and short-circuit the schema creation.
     /// </summary>
     public Schema? Schema { get; set; }
 
@@ -83,19 +83,19 @@ public sealed class RequestExecutorSetup
     /// <summary>
     /// Gets the middleware that make up the request pipeline.
     /// </summary>
-    public IList<RequestCoreMiddlewareConfiguration> Pipeline
+    public IList<RequestMiddlewareConfiguration> Pipeline
         => _pipeline;
 
     /// <summary>
     /// Gets the pipeline modifiers that allow to mutate the pipeline before it is compiled.
     /// </summary>
-    public IList<Action<IList<RequestCoreMiddlewareConfiguration>>> PipelineModifiers
+    public IList<Action<IList<RequestMiddlewareConfiguration>>> PipelineModifiers
         => _pipelineModifiers;
 
     /// <summary>
     /// Gets or sets the default pipeline factory.
     /// </summary>
-    public Action<IList<RequestCoreMiddlewareConfiguration>>? DefaultPipelineFactory { get; set; }
+    public Action<IList<RequestMiddlewareConfiguration>>? DefaultPipelineFactory { get; set; }
 
     /// <summary>
     /// Copies the options to the specified other options object.
@@ -124,4 +124,3 @@ public sealed class RequestExecutorSetup
         }
     }
 }
-

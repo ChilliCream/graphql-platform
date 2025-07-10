@@ -10,7 +10,7 @@ namespace HotChocolate.Data.MongoDb.Sorting;
 
 /// <summary>
 /// Represents a mongodb handler that can be bound to a <see cref="SortField"/>. The handler is
-/// executed during the visitation of a input object.
+/// executed during the visitation of an input object.
 /// </summary>
 public abstract class MongoDbSortOperationHandlerBase(
     int operation,

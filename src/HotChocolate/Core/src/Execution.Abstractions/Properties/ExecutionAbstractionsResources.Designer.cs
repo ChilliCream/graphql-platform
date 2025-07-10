@@ -9,21 +9,21 @@
 
 namespace HotChocolate {
     using System;
-
-
+    
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ExecutionAbstractionsResources {
-
+        
         private static System.Resources.ResourceManager resourceMan;
-
+        
         private static System.Globalization.CultureInfo resourceCulture;
-
+        
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal ExecutionAbstractionsResources() {
         }
-
+        
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
@@ -34,7 +34,7 @@ namespace HotChocolate {
                 return resourceMan;
             }
         }
-
+        
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Globalization.CultureInfo Culture {
             get {
@@ -44,28 +44,64 @@ namespace HotChocolate {
                 resourceCulture = value;
             }
         }
-
-        internal static string OperationDocumentId_InvalidOperationIdFormat {
-            get {
-                return ResourceManager.GetString("OperationDocumentId_InvalidOperationIdFormat", resourceCulture);
-            }
-        }
-
+        
         internal static string OperationRequest_DocumentOrIdMustBeSet {
             get {
                 return ResourceManager.GetString("OperationRequest_DocumentOrIdMustBeSet", resourceCulture);
             }
         }
-
-        internal static string OperationRequestBuilder_OperationIsNullOrEmpty {
-            get {
-                return ResourceManager.GetString("OperationRequestBuilder_OperationIsNullOrEmpty", resourceCulture);
-            }
-        }
-
+        
         internal static string AggregateError_Message {
             get {
                 return ResourceManager.GetString("AggregateError_Message", resourceCulture);
+            }
+        }
+        
+        internal static string QueryResult_DataAndResultAreNull {
+            get {
+                return ResourceManager.GetString("QueryResult_DataAndResultAreNull", resourceCulture);
+            }
+        }
+        
+        internal static string OperationResultBatch_ResponseStreamOrOperationResult {
+            get {
+                return ResourceManager.GetString("OperationResultBatch_ResponseStreamOrOperationResult", resourceCulture);
+            }
+        }
+        
+        internal static string ExecutionResultExtensions_ExpectOperationResultBatch_NotOperationResultBatch {
+            get {
+                return ResourceManager.GetString("ExecutionResultExtensions_ExpectOperationResultBatch_NotOperationResultBatch", resourceCulture);
+            }
+        }
+        
+        internal static string ExecutionResultExtensions_ExpectOperationResult_NotOperationResult {
+            get {
+                return ResourceManager.GetString("ExecutionResultExtensions_ExpectOperationResult_NotOperationResult", resourceCulture);
+            }
+        }
+        
+        internal static string ResponseStream_InvalidResultKind {
+            get {
+                return ResourceManager.GetString("ResponseStream_InvalidResultKind", resourceCulture);
+            }
+        }
+        
+        internal static string SubscriptionResult_ResultHasErrors {
+            get {
+                return ResourceManager.GetString("SubscriptionResult_ResultHasErrors", resourceCulture);
+            }
+        }
+        
+        internal static string ExecutionResultExtensions_ExpectResponseStream_NotResponseStream {
+            get {
+                return ResourceManager.GetString("ExecutionResultExtensions_ExpectResponseStream_NotResponseStream", resourceCulture);
+            }
+        }
+        
+        internal static string SubscriptionResult_ReadOnlyOnce {
+            get {
+                return ResourceManager.GetString("SubscriptionResult_ReadOnlyOnce", resourceCulture);
             }
         }
     }

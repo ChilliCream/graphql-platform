@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Sorting.Expressions;
 
 public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new()
         {
@@ -22,18 +22,18 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
                 //ScalarArray = new[] { "c", "d", "a" },
-                ObjectArray = new List<Bar>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new Foo
                         {
                             // ScalarArray = new[] { "c", "d", "a" }
-                            BarShort = 12, BarString = "a",
-                        },
-                    },
-                },
-            },
+                            BarShort = 12, BarString = "a"
+                        }
+                    }
+                ]
+            }
         },
         new()
         {
@@ -44,18 +44,18 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
                 //ScalarArray = new[] { "c", "d", "b" },
-                ObjectArray = new List<Bar>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new Foo
                         {
                             //ScalarArray = new[] { "c", "d", "b" }
-                            BarShort = 14, BarString = "d",
-                        },
-                    },
-                },
-            },
+                            BarShort = 14, BarString = "d"
+                        }
+                    }
+                ]
+            }
         },
         new()
         {
@@ -66,12 +66,12 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 BarEnum = BarEnum.FOO,
                 BarString = "testctest",
                 //ScalarArray = null,
-                ObjectArray = null,
-            },
-        },
+                ObjectArray = null
+            }
+        }
     ];
 
-    private static readonly BarNullable?[] _barNullableEntities =
+    private static readonly BarNullable?[] s_barNullableEntities =
     [
         new()
         {
@@ -82,18 +82,18 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
                 //ScalarArray = new[] { "c", "d", "a" },
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
                         {
                             //ScalarArray = new[] { "c", "d", "a" }
-                            BarShort = 12,
-                        },
-                    },
-                },
-            },
+                            BarShort = 12
+                        }
+                    }
+                ]
+            }
         },
         new()
         {
@@ -104,18 +104,18 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
                 //ScalarArray = new[] { "c", "d", "b" },
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
                         {
                             //ScalarArray = new[] { "c", "d", "b" }
-                            BarShort = null,
-                        },
-                    },
-                },
-            },
+                            BarShort = null
+                        }
+                    }
+                ]
+            }
         },
         new()
         {
@@ -126,18 +126,18 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 BarEnum = BarEnum.QUX,
                 BarString = "testctest",
                 //ScalarArray = null,
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
                         {
                             //ScalarArray = new[] { "c", "d", "b" }
-                            BarShort = 14,
-                        },
-                    },
-                },
-            },
+                            BarShort = 14
+                        }
+                    }
+                ]
+            }
         },
         new()
         {
@@ -148,14 +148,14 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 BarEnum = BarEnum.FOO,
                 BarString = "testdtest",
                 //ScalarArray = null,
-                ObjectArray = null,
-            },
+                ObjectArray = null
+            }
         },
         new()
         {
-            Foo =null,
+            Foo =null
         },
-        null,
+        null
     ];
 
     private readonly SchemaCache _cache;
@@ -169,7 +169,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectShort_OrderBy()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -199,7 +199,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
     {
         // arrange
         var tester =
-            _cache.CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities);
+            _cache.CreateSchema<BarNullable, BarNullableSortType>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -228,7 +228,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectEnum_OrderBy()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -257,7 +257,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectNullableEnum_OrderBy()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities);
+        var tester = _cache.CreateSchema<BarNullable, BarNullableSortType>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -286,7 +286,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectString_OrderBy()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -315,7 +315,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectNullableString_OrderBy()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities);
+        var tester = _cache.CreateSchema<BarNullable, BarNullableSortType>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -344,7 +344,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectBool_OrderBy()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -373,7 +373,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectNullableBool_OrderBy()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities);
+        var tester = _cache.CreateSchema<BarNullable, BarNullableSortType>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -402,7 +402,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectString_OrderBy_TwoProperties()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -477,7 +477,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 }));
         });
         var tester = _cache.CreateSchema<Bar, ComplexBarSortType>(
-            _barEntities,
+            s_barEntities,
             convention: convention);
 
         // act
@@ -611,7 +611,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         FOO,
         BAR,
         BAZ,
-        QUX,
+        QUX
     }
 
     class ComplexOrderSumHandler(ISortConvention convention, InputParser inputParser)

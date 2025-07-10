@@ -11,20 +11,9 @@ public static partial class RequestExecutorBuilderExtensions
         string feature,
         string stability)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (feature is null)
-        {
-            throw new ArgumentNullException(nameof(feature));
-        }
-
-        if (stability is null)
-        {
-            throw new ArgumentNullException(nameof(stability));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(feature);
+        ArgumentNullException.ThrowIfNull(stability);
 
         return Configure(
             builder,

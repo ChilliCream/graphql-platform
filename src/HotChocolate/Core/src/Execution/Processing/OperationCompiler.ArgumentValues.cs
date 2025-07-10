@@ -70,7 +70,7 @@ public sealed partial class OperationCompiler
         if (argumentValue is not null && validationResult.HasErrors)
         {
             return new ArgumentValue(
-                (IInputValueInfo)argument,
+                argument,
                 ErrorHelper.ArgumentNonNullError(
                     argumentValue,
                     responseName,
@@ -82,7 +82,7 @@ public sealed partial class OperationCompiler
             try
             {
                 return new ArgumentValue(
-                    (IInputValueInfo)argument,
+                    argument,
                     value.GetValueKind(),
                     true,
                     isDefaultValue,
@@ -94,18 +94,18 @@ public sealed partial class OperationCompiler
                 if (argumentValue is not null)
                 {
                     return new ArgumentValue(
-                        (IInputValueInfo)argument,
+                        argument,
                         ErrorHelper.ArgumentValueIsInvalid(argumentValue, responseName, ex));
                 }
 
                 return new ArgumentValue(
-                    (IInputValueInfo)argument,
+                    argument,
                     ErrorHelper.ArgumentDefaultValueIsInvalid(responseName, ex));
             }
         }
 
         return new ArgumentValue(
-            (IInputValueInfo)argument,
+            argument,
             value.GetValueKind(),
             false,
             isDefaultValue,
@@ -143,7 +143,7 @@ public sealed partial class OperationCompiler
         HashSet<string> processed,
         List<FieldMiddleware> pipelineComponents)
     {
-        var pipeline = ((ObjectField)field).Middleware;
+        var pipeline = field.Middleware;
 
         if (selection.Directives.Count == 0)
         {

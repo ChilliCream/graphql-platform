@@ -6,7 +6,7 @@ public class OperationPlannerTests : FusionTestBase
     public void Plan_Simple_Operation_1_Source_Schema()
     {
         // arrange
-        var schema = CreateSchema();
+        var schema = CreateCompositeSchema();
 
         // act
         var plan = PlanOperation(
@@ -28,6 +28,13 @@ public class OperationPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
+            operation: >-
+              {
+                productBySlug(slug: "1") {
+                  id
+                  name
+                }
+              }
             nodes:
               - id: 1
                 schema: PRODUCTS
@@ -45,7 +52,7 @@ public class OperationPlannerTests : FusionTestBase
     public void Plan_Simple_Operation_2_Source_Schema()
     {
         // arrange
-        var compositeSchema = CreateSchema();
+        var compositeSchema = CreateCompositeSchema();
 
         // act
         var plan = PlanOperation(
@@ -68,6 +75,15 @@ public class OperationPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
+            operation: >-
+              {
+                productBySlug(slug: "1") {
+                  id
+                  name
+                  estimatedDelivery(postCode: "12345")
+                  id @fusion_internal
+                }
+              }
             nodes:
               - id: 1
                 schema: PRODUCTS
@@ -85,20 +101,24 @@ public class OperationPlannerTests : FusionTestBase
               - id: 2
                 schema: SHIPPING
                 operation: >-
-                  {
+                  query(
+                    $__fusion_1_id: ID!
+                    $__fusion_2_height: Int!
+                    $__fusion_2_width: Int!
+                  ) {
                     productById(id: $__fusion_1_id) {
                       estimatedDelivery(postCode: "12345", height: $__fusion_2_height, width: $__fusion_2_width)
                     }
                   }
                 requirements:
                   - name: __fusion_1_id
-                    selectionSet: productBySlug
+                    selectionSet: $.productBySlug
                     selectionMap: id
                   - name: __fusion_2_height
-                    selectionSet: productBySlug
+                    selectionSet: $.productBySlug
                     selectionMap: dimension.height
                   - name: __fusion_2_width
-                    selectionSet: productBySlug
+                    selectionSet: $.productBySlug
                     selectionMap: dimension.width
                 dependencies:
                   - id: 1
@@ -109,7 +129,7 @@ public class OperationPlannerTests : FusionTestBase
     public void Plan_Simple_Operation_3_Source_Schema()
     {
         // arrange
-        var compositeSchema = CreateSchema();
+        var compositeSchema = CreateCompositeSchema();
 
         // act
         var plan = PlanOperation(
@@ -147,6 +167,23 @@ public class OperationPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
+            operation: >-
+              {
+                productBySlug(slug: "1") {
+                  name
+                  reviews(first: 10) {
+                    nodes {
+                      body
+                      stars
+                      author {
+                        displayName
+                        id @fusion_internal
+                      }
+                    }
+                  }
+                  id @fusion_internal
+                }
+              }
             nodes:
               - id: 1
                 schema: PRODUCTS
@@ -160,7 +197,9 @@ public class OperationPlannerTests : FusionTestBase
               - id: 2
                 schema: REVIEWS
                 operation: >-
-                  {
+                  query(
+                    $__fusion_1_id: ID!
+                  ) {
                     productById(id: $__fusion_1_id) {
                       reviews(first: 10) {
                         nodes {
@@ -175,28 +214,30 @@ public class OperationPlannerTests : FusionTestBase
                   }
                 requirements:
                   - name: __fusion_1_id
-                    selectionSet: productBySlug
+                    selectionSet: $.productBySlug
                     selectionMap: id
                 dependencies:
                   - id: 1
               - id: 3
                 schema: ACCOUNTS
                 operation: >-
-                  {
+                  query(
+                    $__fusion_2_id: ID!
+                  ) {
                     userById(id: $__fusion_2_id) {
                       displayName
                     }
                   }
                 requirements:
                   - name: __fusion_2_id
-                    selectionSet: productBySlug.author.nodes.reviews
+                    selectionSet: $.reviews.nodes.author.productBySlug
                     selectionMap: id
                 dependencies:
                   - id: 2
             """);
     }
 
-    [Fact(Skip = "Fix satisfiability (consider using @inaccessible on some of the lookup fields)")]
+    [Fact]
     public void Plan_Simple_Lookup()
     {
         // arrange
@@ -223,7 +264,7 @@ public class OperationPlannerTests : FusionTestBase
             }
 
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @internal
             }
 
             type Product {
@@ -253,34 +294,45 @@ public class OperationPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
-            nodes:
-            - id: 1
-              schema: A
-              operation: >-
-              query GetTopProducts_1 {
+            operation: >-
+              query GetTopProducts {
                 topProducts {
                   id
                   name
-                }
-              }
-            - id: 2
-              schema: B
-              operation: >-
-              query GetTopProducts_2 {
-                productById(id: $__fusion_1_id) {
                   price
+                  id @fusion_internal
                 }
               }
-              requirements:
-                - name: __fusion_1_id
-                  selectionSet: topProducts
-                  selectionMap: id
-              dependencies:
-                - id: 1
+            nodes:
+              - id: 1
+                schema: A
+                operation: >-
+                  query GetTopProducts_1 {
+                    topProducts {
+                      id
+                      name
+                    }
+                  }
+              - id: 2
+                schema: B
+                operation: >-
+                  query GetTopProducts_2(
+                    $__fusion_1_id: ID!
+                  ) {
+                    productById(id: $__fusion_1_id) {
+                      price
+                    }
+                  }
+                requirements:
+                  - name: __fusion_1_id
+                    selectionSet: $.topProducts
+                    selectionMap: id
+                dependencies:
+                  - id: 1
             """);
     }
 
-    [Fact(Skip = "Fix satisfiability (consider using @inaccessible on some of the lookup fields)")]
+    [Fact]
     public void Plan_Simple_Requirement()
     {
         // arrange
@@ -308,7 +360,7 @@ public class OperationPlannerTests : FusionTestBase
             }
 
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @internal
             }
 
             type Product {
@@ -340,6 +392,15 @@ public class OperationPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
+            operation: >-
+              query GetTopProducts {
+                topProducts {
+                  id
+                  name
+                  price
+                  id @fusion_internal
+                }
+              }
             nodes:
               - id: 1
                 schema: A
@@ -354,24 +415,27 @@ public class OperationPlannerTests : FusionTestBase
               - id: 2
                 schema: B
                 operation: >-
-                  query GetTopProducts_2 {
+                  query GetTopProducts_2(
+                    $__fusion_1_id: ID!
+                    $__fusion_2_region: String!
+                  ) {
                     productById(id: $__fusion_1_id) {
                       price(region: $__fusion_2_region)
                     }
                   }
                 requirements:
                   - name: __fusion_1_id
-                    selectionSet: topProducts
+                    selectionSet: $.topProducts
                     selectionMap: id
                   - name: __fusion_2_region
-                    selectionSet: topProducts
+                    selectionSet: $.topProducts
                     selectionMap: region
                 dependencies:
                   - id: 1
             """);
     }
 
-    [Fact(Skip = "Fix satisfiability (consider using @inaccessible on some of the lookup fields)")]
+    [Fact]
     public void Plan_Requirement_That_Cannot_Be_Inlined()
     {
         // arrange
@@ -399,7 +463,7 @@ public class OperationPlannerTests : FusionTestBase
             }
 
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @internal
             }
 
             type Product {
@@ -431,6 +495,15 @@ public class OperationPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
+            operation: >-
+              query GetTopProducts {
+                topProducts {
+                  id
+                  name
+                  price
+                  id @fusion_internal
+                }
+              }
             nodes:
               - id: 1
                 schema: A
@@ -445,24 +518,27 @@ public class OperationPlannerTests : FusionTestBase
               - id: 2
                 schema: B
                 operation: >-
-                  query GetTopProducts_2 {
+                  query GetTopProducts_2(
+                    $__fusion_1_id: ID!
+                    $__fusion_2_region: String!
+                  ) {
                     productById(id: $__fusion_1_id) {
                       price(region: $__fusion_2_region)
                     }
                   }
                 requirements:
                   - name: __fusion_1_id
-                    selectionSet: topProducts
+                    selectionSet: $.topProducts
                     selectionMap: id
                   - name: __fusion_2_region
-                    selectionSet: topProducts
+                    selectionSet: $.topProducts
                     selectionMap: region
                 dependencies:
                   - id: 1
             """);
     }
 
-    [Fact(Skip = "Fix satisfiability (consider using @inaccessible on some of the lookup fields)")]
+    [Fact]
     public void Plan_Key_Requirement()
     {
         // arrange
@@ -489,7 +565,7 @@ public class OperationPlannerTests : FusionTestBase
             }
 
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @internal
             }
 
             type Product {
@@ -509,7 +585,7 @@ public class OperationPlannerTests : FusionTestBase
             }
 
             type Query {
-              productBySku(sku: String!): Product @lookup
+              productBySku(sku: String!): Product @lookup @internal
             }
 
             type Product {
@@ -540,6 +616,15 @@ public class OperationPlannerTests : FusionTestBase
         MatchInline(
             plan,
             """
+            operation: >-
+              query GetTopProducts {
+                topProducts {
+                  id
+                  name
+                  sku @fusion_internal
+                  id @fusion_internal
+                }
+              }
             nodes:
               - id: 1
                 schema: A
@@ -553,31 +638,36 @@ public class OperationPlannerTests : FusionTestBase
               - id: 2
                 schema: C
                 operation: >-
-                  query GetTopProducts_2 {
+                  query GetTopProducts_2(
+                    $__fusion_1_sku: String!
+                  ) {
                     productBySku(sku: $__fusion_1_sku) {
                       name
                     }
                   }
                 requirements:
                   - name: __fusion_1_sku
-                    selectionSet: topProducts
+                    selectionSet: $.topProducts
                     selectionMap: sku
                 dependencies:
                   - id: 3
               - id: 3
                 schema: B
                 operation: >-
-                  query GetTopProducts_3 {
+                  query GetTopProducts_3(
+                    $__fusion_2_id: ID!
+                    $__fusion_3_region: String!
+                  ) {
                     productById(id: $__fusion_2_id) {
                       sku(region: $__fusion_3_region)
                     }
                   }
                 requirements:
                   - name: __fusion_2_id
-                    selectionSet: topProducts
+                    selectionSet: $.topProducts
                     selectionMap: id
                   - name: __fusion_3_region
-                    selectionSet: topProducts
+                    selectionSet: $.topProducts
                     selectionMap: region
                 dependencies:
                   - id: 1

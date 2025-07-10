@@ -16,14 +16,13 @@ using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.StringUtilities;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
-using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 using TypeNames = HotChocolate.Fusion.WellKnownTypeNames;
 
 namespace HotChocolate.Fusion;
 
 internal sealed class SourceSchemaMerger
 {
-    private static readonly RemoveDirectiveNodesSyntaxRewriter _removeDirectivesRewriter = new();
+    private static readonly RemoveDirectiveNodesSyntaxRewriter s_removeDirectivesRewriter = new();
     private readonly ImmutableSortedSet<MutableSchemaDefinition> _schemas;
     private readonly FrozenDictionary<MutableSchemaDefinition, string> _schemaConstantNames;
     private readonly SourceSchemaMergerOptions _options;
@@ -985,10 +984,10 @@ internal sealed class SourceSchemaMerger
                 ? selectionSets[0]
                 : GetMergeSelectionSetRewriter(sourceSchema).Merge(selectionSets, type);
             var keyArgument =
-                mergedSelectionSet.ToString(indented: false).AsSpan()[2 .. ^2].ToString();
+                mergedSelectionSet.ToString(indented: false).AsSpan()[2..^2].ToString();
 
             var fieldArgument =
-                _removeDirectivesRewriter
+                s_removeDirectivesRewriter
                     .Rewrite(sourceField.ToSyntaxNode())!
                     .ToString(indented: false);
 
@@ -1067,10 +1066,10 @@ internal sealed class SourceSchemaMerger
                     ? selectionSets[0]
                     : GetMergeSelectionSetRewriter(sourceSchema).Merge(selectionSets, complexType);
                 var requirementsArgument =
-                    mergedSelectionSet.ToString(indented: false).AsSpan()[2 .. ^2].ToString();
+                    mergedSelectionSet.ToString(indented: false).AsSpan()[2..^2].ToString();
 
                 var fieldArgument =
-                    _removeDirectivesRewriter
+                    s_removeDirectivesRewriter
                         .Rewrite(sourceField.ToSyntaxNode())!
                         .ToString(indented: false);
 

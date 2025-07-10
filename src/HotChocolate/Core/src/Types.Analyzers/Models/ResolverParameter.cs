@@ -149,12 +149,12 @@ public sealed class ResolverParameter
             return ResolverParameterKind.QueryContext;
         }
 
-        if(parameter.IsPagingArguments())
+        if (parameter.IsPagingArguments())
         {
             return ResolverParameterKind.PagingArguments;
         }
 
-        if(compilation.IsConnectionFlagsType(parameter.Type))
+        if (compilation.IsConnectionFlagsType(parameter.Type))
         {
             return ResolverParameterKind.ConnectionFlags;
         }
@@ -170,6 +170,6 @@ public sealed class ResolverParameter
         }
 
         // Return null if it's not a generic type or index is out of bounds
-        return ImmutableArray<ITypeSymbol>.Empty;
+        return [];
     }
 }

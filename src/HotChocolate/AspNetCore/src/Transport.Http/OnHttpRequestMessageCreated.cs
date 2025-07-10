@@ -5,4 +5,5 @@ namespace HotChocolate.Transport.Http;
 /// </summary>
 public delegate void OnHttpRequestMessageCreated(
     GraphQLHttpRequest request,
-    HttpRequestMessage requestMessage);
+    HttpRequestMessage requestMessage,
+    object? state);

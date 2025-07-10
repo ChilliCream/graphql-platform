@@ -806,9 +806,7 @@ public class InterfaceTypeTests : TypeTestBase
         }
     }
 
-    public class FooDirective
-    {
-    }
+    public class FooDirective;
 
     public class FooObsolete
     {
@@ -828,7 +826,7 @@ public class InterfaceTypeTests : TypeTestBase
     {
         public string Hello => "World!";
 
-        public IEnumerable<Fruit> GetFruits() => new Fruit[] { new Orange(), new Pineapple(), };
+        public IEnumerable<Fruit> GetFruits() => [new Orange(), new Pineapple()];
     }
 
     [InterfaceType]
@@ -838,9 +836,7 @@ public class InterfaceTypeTests : TypeTestBase
     }
 
     [InterfaceType]
-    public class DeprecatedImplementation : DeprecatedInterface
-    {
-    }
+    public class DeprecatedImplementation : DeprecatedInterface;
 
     [InterfaceType]
     public class DeprecatedNonNullInterface
@@ -849,9 +845,7 @@ public class InterfaceTypeTests : TypeTestBase
     }
 
     [InterfaceType]
-    public class DeprecatedNonNullImplementation : DeprecatedInterface
-    {
-    }
+    public class DeprecatedNonNullImplementation : DeprecatedInterface;
 
     [InterfaceType]
     public class Fruit
@@ -871,7 +865,7 @@ public class InterfaceTypeTests : TypeTestBase
 
     public class PetQuery
     {
-        public Pet GetDog() => new Dog { Name = "Foo", };
+        public Pet GetDog() => new Dog { Name = "Foo" };
     }
 
     [InterfaceType(Inherited = true)]
@@ -880,12 +874,8 @@ public class InterfaceTypeTests : TypeTestBase
         public string Name { get; set; }
     }
 
-    public class Canine : Pet
-    {
-    }
+    public class Canine : Pet;
 
     [ObjectType]
-    public class Dog : Canine
-    {
-    }
+    public class Dog : Canine;
 }

@@ -1,4 +1,3 @@
-using HotChocolate;
 using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Features;

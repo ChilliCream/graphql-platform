@@ -1,7 +1,4 @@
 using System.Diagnostics;
-#if NET8_0
-using HotChocolate.Execution;
-#endif
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Diagnostics;
@@ -14,7 +11,7 @@ public static class ActivityTestHelper
         var listener = new ActivityListener();
         var root = new OrderedDictionary<string, object?>();
         var lookup = new Dictionary<Activity, OrderedDictionary<string, object?>>();
-        Activity rootActivity = default!;
+        Activity rootActivity = null!;
 
         listener.ShouldListenTo = source => source.Name.EqualsOrdinal("HotChocolate.Diagnostics");
         listener.ActivityStarted = a =>
@@ -79,7 +76,7 @@ public static class ActivityTestHelper
         data["DisplayName"] = activity.DisplayName;
         data["Status"] = activity.Status;
         data["tags"] = activity.Tags;
-        data["event"] = activity.Events.Select(t => new { t.Name, t.Tags, });
+        data["event"] = activity.Events.Select(t => new { t.Name, t.Tags });
     }
 
     private sealed class Session : IDisposable

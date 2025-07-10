@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.Types;
 
 public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
 {
-    private FusionDirectiveCollection _directives = default!;
+    private FusionDirectiveCollection _directives = null!;
     private bool _completed;
 
     public FusionScalarTypeDefinition(
@@ -114,7 +114,7 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
             SyntaxKind.BooleanValue => ValueKind.HasFlag(ScalarValueKind.Boolean),
             SyntaxKind.ListValue => ValueKind.HasFlag(ScalarValueKind.List),
             SyntaxKind.ObjectValue => ValueKind.HasFlag(ScalarValueKind.Object),
-            _ => false,
+            _ => false
         };
     }
 

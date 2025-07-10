@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // MultiProfileClient
 
@@ -1756,7 +1757,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// <summary>
     /// Represents the operation service of the CreateReviewMut GraphQL operation
     /// <code>
-    /// mutation CreateReviewMut($episode: Episode!, $review: ReviewInput!) {
+    /// mutation CreateReviewMut(
+    ///   $episode: Episode!
+    ///   $review: ReviewInput!
+    /// ) {
     ///   createReview(episode: $episode, review: $review) {
     ///     __typename
     ///     stars
@@ -1945,7 +1949,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// <summary>
     /// Represents the operation service of the CreateReviewMut GraphQL operation
     /// <code>
-    /// mutation CreateReviewMut($episode: Episode!, $review: ReviewInput!) {
+    /// mutation CreateReviewMut(
+    ///   $episode: Episode!
+    ///   $review: ReviewInput!
+    /// ) {
     ///   createReview(episode: $episode, review: $review) {
     ///     __typename
     ///     stars
@@ -2048,7 +2055,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// <summary>
     /// Represents the operation service of the CreateReviewMut GraphQL operation
     /// <code>
-    /// mutation CreateReviewMut($episode: Episode!, $review: ReviewInput!) {
+    /// mutation CreateReviewMut(
+    ///   $episode: Episode!
+    ///   $review: ReviewInput!
+    /// ) {
     ///   createReview(episode: $episode, review: $review) {
     ///     __typename
     ///     stars
@@ -2797,7 +2807,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             }
 
             IGetHero_Hero_Friends returnValue = default !;
-            if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHero_Hero_Friends_FriendsConnection(MapIGetHero_Hero_Friends_NodesArray(data.Nodes, snapshot));
             }
@@ -2878,7 +2888,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             }
 
             IGetHero_Hero_Friends returnValue = default !;
-            if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHero_Hero_Friends_FriendsConnection(MapIGetHero_Hero_Friends_NodesArray(data.Nodes, snapshot));
             }

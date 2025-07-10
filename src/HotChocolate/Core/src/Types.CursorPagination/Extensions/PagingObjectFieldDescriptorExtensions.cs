@@ -111,10 +111,7 @@ public static class PagingObjectFieldDescriptorExtensions
         string? connectionName = null,
         PagingOptions? options = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         resolvePagingProvider ??= ResolvePagingProvider;
 
@@ -205,10 +202,7 @@ public static class PagingObjectFieldDescriptorExtensions
         string? connectionName = null,
         PagingOptions? options = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor
             .Extend()
@@ -255,10 +249,7 @@ public static class PagingObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         bool allowBackwardPagination)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         CreatePagingArguments(
             descriptor.Extend().Configuration.Arguments,
@@ -275,10 +266,7 @@ public static class PagingObjectFieldDescriptorExtensions
         this IInterfaceFieldDescriptor descriptor,
         bool allowBackwardPagination)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         CreatePagingArguments(
             descriptor.Extend().Configuration.Arguments,
@@ -331,14 +319,11 @@ public static class PagingObjectFieldDescriptorExtensions
     {
         var typeInspector = context.TypeInspector;
 
-        if (nodeType is null)
-        {
-            // if there is no explicit node type provided we will try and
-            // infer the schema type from the resolver member.
-            nodeType = TypeReference.Create(
-                PagingHelper.GetSchemaType(context, resolverMember),
-                TypeContext.Output);
-        }
+        // if there is no explicit node type provided we will try and
+        // infer the schema type from the resolver member.
+        nodeType ??= TypeReference.Create(
+            PagingHelper.GetSchemaType(context, resolverMember),
+            TypeContext.Output);
 
         // if the node type is a syntax type reference we will try to preserve the actual
         // runtime type for later usage.
@@ -442,5 +427,5 @@ public static class PagingObjectFieldDescriptorExtensions
     private static string EnsureConnectionNameCasing(string connectionName)
         => char.IsUpper(connectionName[0])
             ? connectionName
-            : string.Concat(char.ToUpperInvariant(connectionName[0]), connectionName.Substring(1));
+            : string.Concat(char.ToUpperInvariant(connectionName[0]), connectionName[1..]);
 }

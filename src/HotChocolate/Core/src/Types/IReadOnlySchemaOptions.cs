@@ -173,6 +173,11 @@ public interface IReadOnlySchemaOptions
     bool EnableSemanticNonNull { get; }
 
     /// <summary>
+    /// Enables the @schemaName directive.
+    /// </summary>
+    bool EnableSchemaNameDirective { get; }
+
+    /// <summary>
     /// Specifies the maximum allowed nodes that can be fetched at once through the nodes field.
     /// </summary>
     int MaxAllowedNodeBatchSize { get; }

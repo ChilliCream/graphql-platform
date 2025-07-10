@@ -56,10 +56,7 @@ public sealed class Directive : IDirective
     /// </returns>
     public T GetArgumentValue<T>(string name)
     {
-        if (name is null)
-        {
-            throw new ArgumentNullException(name);
-        }
+        ArgumentNullException.ThrowIfNull(name);
 
         Arguments.TryGetValue(name, out var argumentValue);
         return Type.ParseArgument<T>(name, argumentValue);
@@ -96,7 +93,7 @@ public sealed class Directive : IDirective
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => ToSyntaxNode(removeDefaults: true);
 
-     /// <summary>
+    /// <summary>
     /// Gets the syntax node representation of the directive.
     /// </summary>
     /// <param name="removeDefaults">

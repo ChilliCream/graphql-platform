@@ -246,7 +246,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
         return levels;
     }
 
-    private static readonly bool?[] _fullNullablePattern = Enumerable.Range(0, 32).Select(_ => (bool?)true).ToArray();
+    private static readonly bool?[] s_fullNullablePattern = Enumerable.Range(0, 32).Select(_ => (bool?)true).ToArray();
 
     private static TypeReference BuildNullableTypeStructure(
         TypeReference typeReference,
@@ -255,7 +255,7 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
         if (typeReference is ExtendedTypeReference extendedTypeRef)
         {
             return extendedTypeRef.WithType(typeInspector.ChangeNullability(extendedTypeRef.Type,
-                _fullNullablePattern));
+                s_fullNullablePattern));
         }
 
         if (typeReference is SchemaTypeReference schemaRef)
@@ -308,8 +308,8 @@ internal sealed class SemanticNonNullTypeInterceptor : TypeInterceptor
 
                 return result;
             },
-            key: WellKnownMiddleware.SemanticNonNull,
-            isRepeatable: false);
+            isRepeatable: false,
+            key: WellKnownMiddleware.SemanticNonNull);
 
     private static void CheckResultForSemanticNonNullViolations(object? result, IResolverContext context, Path path,
         HashSet<int> levels,

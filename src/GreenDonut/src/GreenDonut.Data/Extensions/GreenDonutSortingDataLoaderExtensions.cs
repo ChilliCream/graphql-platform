@@ -34,10 +34,7 @@ public static class GreenDonutSortingDataLoaderExtensions
         SortDefinition<TValue>? sortDefinition)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (sortDefinition is null)
         {
@@ -75,10 +72,7 @@ public static class GreenDonutSortingDataLoaderExtensions
         SortDefinition<TValue>? sortDefinition)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (sortDefinition is null)
         {
@@ -116,10 +110,7 @@ public static class GreenDonutSortingDataLoaderExtensions
         SortDefinition<TValue>? sortDefinition)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (sortDefinition is null)
         {

@@ -81,7 +81,7 @@ public class TypeScopeInterceptorTests
             ITypeDiscoveryContext discoveryContext,
             TypeSystemConfiguration configuration)
         {
-            if (discoveryContext is { Scope: { }, } && configuration is ObjectTypeConfiguration def)
+            if (discoveryContext is { Scope: { } } && configuration is ObjectTypeConfiguration def)
             {
                 _contexts.Add(discoveryContext);
 
@@ -99,7 +99,7 @@ public class TypeScopeInterceptorTests
             ITypeCompletionContext completionContext,
             TypeSystemConfiguration configuration)
         {
-            if (completionContext is { Scope: { }, })
+            if (completionContext is { Scope: { } })
             {
                 configuration.Name = completionContext.Scope + "_" + configuration.Name;
             }

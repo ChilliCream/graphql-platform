@@ -29,7 +29,7 @@ public class LocalDateTypeFullRoundtripIntegrationTests
             .Execute(
                 OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-21 (Hebrew Civil)" }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-21 (Hebrew Civil)" } })
                     .Build());
 
         Assert.Equal("2020-02-24 (Hebrew Civil)", result.ExpectOperationResult().Data!["test"]);
@@ -43,7 +43,7 @@ public class LocalDateTypeFullRoundtripIntegrationTests
                 OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
                     .SetVariableValues(
-                        new Dictionary<string, object?> { { "arg", "2020-02-20T17:42:59 (Hebrew Civil)" }, })
+                        new Dictionary<string, object?> { { "arg", "2020-02-20T17:42:59 (Hebrew Civil)" } })
                     .Build());
 
         Assert.Null(result.ExpectOperationResult().Data);

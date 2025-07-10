@@ -44,7 +44,7 @@ public sealed class ErrorBuilder
 
         _extensions ??= ImmutableOrderedDictionary.CreateBuilder<string, object?>();
 
-        if(code is null)
+        if (code is null)
         {
             _extensions.Remove(nameof(code));
             return this;
@@ -200,5 +200,14 @@ public sealed class ErrorBuilder
             _extensions = extensions,
             _locations = locations
         };
+    }
+
+    public static ErrorBuilder FromException(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+
+        return New()
+            .SetMessage("Unexpected Execution Error")
+            .SetException(exception);
     }
 }

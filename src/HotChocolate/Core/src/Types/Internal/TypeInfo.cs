@@ -130,10 +130,7 @@ internal sealed partial class TypeInfo
         TypeCache cache,
         [NotNullWhen(true)] out TypeInfo? typeInfo)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         typeInfo = cache.GetOrCreateTypeInfo(
             type,

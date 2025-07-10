@@ -1,7 +1,4 @@
 using HotChocolate;
-#if NET8_0
-using HotChocolate.Execution;
-#endif
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -14,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 
 internal sealed class FieldCollector
 {
-    private readonly Dictionary<string, Fragment> _fragments = new();
+    private readonly Dictionary<string, Fragment> _fragments = [];
     private readonly Cache _cache = new();
     private readonly ISchemaDefinition _schema;
     private readonly DocumentNode _document;
@@ -30,20 +27,9 @@ internal sealed class FieldCollector
         IOutputTypeDefinition type,
         Path path)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (selectionSetSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(selectionSetSyntax));
-        }
-
-        if (path is null)
-        {
-            throw new ArgumentNullException(nameof(path));
-        }
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(selectionSetSyntax);
+        ArgumentNullException.ThrowIfNull(path);
 
         if (!_cache.TryGetValue(type, out var cache))
         {
@@ -319,13 +305,9 @@ internal sealed class FieldCollector
     private static string CreateInlineFragmentName(InlineFragmentNode inlineFragmentSyntax) =>
         $"^{inlineFragmentSyntax.Location!.Start}_{inlineFragmentSyntax.Location.End}";
 
-    private sealed class Cache : Dictionary<IOutputTypeDefinition, SelectionCache>
-    {
-    }
+    private sealed class Cache : Dictionary<IOutputTypeDefinition, SelectionCache>;
 
-    private sealed class SelectionCache : Dictionary<SelectionSetNode, SelectionSetVariants>
-    {
-    }
+    private sealed class SelectionCache : Dictionary<SelectionSetNode, SelectionSetVariants>;
 
     private sealed class TypeNameField : IOutputFieldDefinition
     {

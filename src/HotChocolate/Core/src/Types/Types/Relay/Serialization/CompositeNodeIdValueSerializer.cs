@@ -3,7 +3,6 @@ using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types.Relay;
 
@@ -15,9 +14,9 @@ namespace HotChocolate.Types.Relay;
 /// </typeparam>
 public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
 {
-    private const byte _partSeparator = (byte)':';
-    private const byte _escape = (byte)'\\';
-    private static readonly Encoding _utf8 = Encoding.UTF8;
+    private const byte PartSeparator = (byte)':';
+    private const byte Escape = (byte)'\\';
+    private static readonly Encoding s_utf8 = Encoding.UTF8;
 
     public virtual bool IsSupported(Type type) => type == typeof(T) || type == typeof(T?);
 
@@ -42,7 +41,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
         {
             var result = Format(buffer, t, out written);
 
-            if (result == NodeIdFormatterResult.Success && buffer[written - 1] == _partSeparator)
+            if (result == NodeIdFormatterResult.Success && buffer[written - 1] == PartSeparator)
             {
                 written--;
             }
@@ -88,20 +87,20 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
     /// </returns>
     protected static bool TryFormatIdPart(Span<byte> buffer, string value, out int written)
     {
-        var requiredCapacity = _utf8.GetByteCount(value) * 2 + 1; // * 2 to allow for escaping.
+        var requiredCapacity = s_utf8.GetByteCount(value) * 2 + 1; // * 2 to allow for escaping.
         if (buffer.Length < requiredCapacity)
         {
             written = 0;
             return false;
         }
 
-        Span<byte> utf8Bytes = stackalloc byte[_utf8.GetByteCount(value)];
-        _utf8.GetBytes(value, utf8Bytes);
+        Span<byte> utf8Bytes = stackalloc byte[s_utf8.GetByteCount(value)];
+        s_utf8.GetBytes(value, utf8Bytes);
 
         var bytesWritten = WriteEscapedBytes(utf8Bytes, buffer);
 
         buffer = buffer[bytesWritten..];
-        buffer[0] = _partSeparator;
+        buffer[0] = PartSeparator;
         written = bytesWritten + 1;
         return true;
     }
@@ -142,7 +141,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             var bytesWritten = WriteEscapedBytes(span, buffer);
 
             buffer = buffer[bytesWritten..];
-            buffer[0] = _partSeparator;
+            buffer[0] = PartSeparator;
             written = bytesWritten + 1;
             return true;
         }
@@ -155,7 +154,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
                 return false;
             }
 
-            buffer[0] = _partSeparator;
+            buffer[0] = PartSeparator;
             written++;
             return true;
         }
@@ -185,19 +184,19 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             return false;
         }
 
-        buffer = buffer.Slice(written);
+        buffer = buffer[written..];
         if (buffer.Length < 1)
         {
             return false;
         }
 
-        buffer[0] = _partSeparator;
+        buffer[0] = PartSeparator;
         written++;
         return true;
     }
 
     /// <summary>
-    /// Tries to format a int value into the buffer.
+    /// Tries to format an int value into the buffer.
     /// </summary>
     /// <param name="buffer">
     /// The buffer to write the value into.
@@ -218,13 +217,13 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             return false;
         }
 
-        buffer = buffer.Slice(written);
+        buffer = buffer[written..];
         if (buffer.Length < 1)
         {
             return false;
         }
 
-        buffer[0] = _partSeparator;
+        buffer[0] = PartSeparator;
         written++;
         return true;
     }
@@ -251,13 +250,13 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             return false;
         }
 
-        buffer = buffer.Slice(written);
+        buffer = buffer[written..];
         if (buffer.Length < 1)
         {
             return false;
         }
 
-        buffer[0] = _partSeparator;
+        buffer[0] = PartSeparator;
         written++;
         return true;
     }
@@ -286,7 +285,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
         }
 
         buffer[0] = (byte)(value ? '1' : '0');
-        buffer[1] = _partSeparator;
+        buffer[1] = PartSeparator;
         written = 2;
         return true;
     }
@@ -354,7 +353,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
         valueSpan = Unescape(valueSpan);
         fixed (byte* b = valueSpan)
         {
-            value = _utf8.GetString(b, valueSpan.Length);
+            value = s_utf8.GetString(b, valueSpan.Length);
         }
 
         consumed = index + 1;
@@ -394,7 +393,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
 
             if (valueSpan.Length != 16)
             {
-                value = default;
+                value = Guid.Empty;
                 consumed = 0;
                 return false;
             }
@@ -411,7 +410,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             return true;
         }
 
-        value = default;
+        value = Guid.Empty;
         consumed = 0;
         return false;
     }
@@ -436,8 +435,8 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
         out short value,
         out int consumed)
     {
-        var index = buffer.IndexOf(_partSeparator);
-        var valueSpan = index == -1 ? buffer : buffer.Slice(0, index);
+        var index = buffer.IndexOf(PartSeparator);
+        var valueSpan = index == -1 ? buffer : buffer[..index];
 
         if (Utf8Parser.TryParse(valueSpan, out short parsedValue, out _))
         {
@@ -446,13 +445,13 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             return true;
         }
 
-        value = default;
+        value = 0;
         consumed = 0;
         return false;
     }
 
     /// <summary>
-    /// Tries to parse a int value from the buffer.
+    /// Tries to parse an int value from the buffer.
     /// </summary>
     /// <param name="buffer">
     /// The buffer to read the value from.
@@ -471,8 +470,8 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
         out int value,
         out int consumed)
     {
-        var index = buffer.IndexOf(_partSeparator);
-        var valueSpan = index == -1 ? buffer : buffer.Slice(0, index);
+        var index = buffer.IndexOf(PartSeparator);
+        var valueSpan = index == -1 ? buffer : buffer[..index];
 
         if (Utf8Parser.TryParse(valueSpan, out int parsedValue, out _))
         {
@@ -481,7 +480,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             return true;
         }
 
-        value = default;
+        value = 0;
         consumed = 0;
         return false;
     }
@@ -506,8 +505,8 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
         out long value,
         out int consumed)
     {
-        var index = buffer.IndexOf(_partSeparator);
-        var valueSpan = index == -1 ? buffer : buffer.Slice(0, index);
+        var index = buffer.IndexOf(PartSeparator);
+        var valueSpan = index == -1 ? buffer : buffer[..index];
 
         if (Utf8Parser.TryParse(valueSpan, out long parsedValue, out _))
         {
@@ -516,7 +515,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             return true;
         }
 
-        value = default;
+        value = 0;
         consumed = 0;
         return false;
     }
@@ -541,8 +540,8 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
         out bool value,
         out int consumed)
     {
-        var index = buffer.IndexOf(_partSeparator);
-        var valueSpan = index == -1 ? buffer : buffer.Slice(0, index);
+        var index = buffer.IndexOf(PartSeparator);
+        var valueSpan = index == -1 ? buffer : buffer[..index];
 
         if (valueSpan.Length == 1)
         {
@@ -551,7 +550,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
             return true;
         }
 
-        value = default;
+        value = false;
         consumed = 0;
         return false;
     }
@@ -569,9 +568,9 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
 
         foreach (var b in unescapedBytes)
         {
-            if (b == _partSeparator)
+            if (b == PartSeparator)
             {
-                escapedBytes[index++] = _escape;
+                escapedBytes[index++] = Escape;
             }
 
             escapedBytes[index++] = b;
@@ -600,11 +599,11 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
                 continue;
             }
 
-            if (escapedBytes[i] == _escape
+            if (escapedBytes[i] == Escape
                 && i + 1 < escapedBytes.Length
-                && escapedBytes[i + 1] == _partSeparator)
+                && escapedBytes[i + 1] == PartSeparator)
             {
-                unescapedBytes[index++] = _partSeparator;
+                unescapedBytes[index++] = PartSeparator;
                 skipNext = true;
             }
             else
@@ -625,7 +624,7 @@ public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
     {
         for (var i = 0; i < buffer.Length; i++)
         {
-            if (buffer[i] == _partSeparator && (i == 0 || buffer[i - 1] != _escape))
+            if (buffer[i] == PartSeparator && (i == 0 || buffer[i - 1] != Escape))
             {
                 return i;
             }

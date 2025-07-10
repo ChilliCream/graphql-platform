@@ -1367,7 +1367,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339.
+        ///   Looks up a localized string similar to The `LocalDate` scalar type represents an ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339.
         /// </summary>
         internal static string LocalDateType_Description {
             get {
@@ -2078,15 +2078,6 @@ namespace HotChocolate.Properties {
         internal static string SchemaBuilderExtensions_MustBeDirectiveType {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_MustBeDirectiveType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The error message mustn&apos;t be null or empty..
-        /// </summary>
-        internal static string SchemaErrorBuilder_MessageIsNull {
-            get {
-                return ResourceManager.GetString("SchemaErrorBuilder_MessageIsNull", resourceCulture);
             }
         }
         
@@ -2966,15 +2957,6 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The typeName mustn&apos;t be null or empty..
-        /// </summary>
-        internal static string TypeResourceHelper_TypeNameEmptyOrNull {
-            get {
-                return ResourceManager.GetString("TypeResourceHelper_TypeNameEmptyOrNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The description becomes immutable once it was assigned..
         /// </summary>
         internal static string TypeSystemObject_DescriptionImmutable {
@@ -3030,7 +3012,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The union type extension can only be merged with an union type..
+        ///   Looks up a localized string similar to The union type extension can only be merged with a union type..
         /// </summary>
         internal static string UnionTypeExtension_CannotMerge {
             get {

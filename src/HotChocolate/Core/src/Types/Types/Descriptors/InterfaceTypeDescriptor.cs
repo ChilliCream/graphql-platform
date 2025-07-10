@@ -16,10 +16,7 @@ public class InterfaceTypeDescriptor
         Type clrType)
         : base(context)
     {
-        if (clrType is null)
-        {
-            throw new ArgumentNullException(nameof(clrType));
-        }
+        ArgumentNullException.ThrowIfNull(clrType);
 
         Configuration.RuntimeType = clrType;
         Configuration.Name = context.Naming.GetTypeName(clrType, TypeKind.Interface);
@@ -49,8 +46,7 @@ public class InterfaceTypeDescriptor
     protected internal override InterfaceTypeConfiguration Configuration { get; protected set; } =
         new();
 
-    protected ICollection<InterfaceFieldDescriptor> Fields { get; } =
-        new List<InterfaceFieldDescriptor>();
+    protected ICollection<InterfaceFieldDescriptor> Fields { get; } = [];
 
     protected override void OnCreateConfiguration(
         InterfaceTypeConfiguration definition)
@@ -120,10 +116,7 @@ public class InterfaceTypeDescriptor
     public IInterfaceTypeDescriptor Implements<T>(T type)
         where T : InterfaceType
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         Configuration.Interfaces.Add(new SchemaTypeReference(type));
         return this;
@@ -131,10 +124,7 @@ public class InterfaceTypeDescriptor
 
     public IInterfaceTypeDescriptor Implements(NamedTypeNode type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         Configuration.Interfaces.Add(TypeReference.Create(type, TypeContext.Output));
         return this;

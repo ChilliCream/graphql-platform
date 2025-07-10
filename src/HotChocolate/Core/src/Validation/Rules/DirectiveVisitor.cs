@@ -1,4 +1,3 @@
-using System.Reflection.Emit;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -47,7 +46,7 @@ namespace HotChocolate.Validation.Rules;
 /// https://spec.graphql.org/draft/#sec-Defer-And-Stream-Directive-Labels-Are-Unique
 /// </summary>
 internal sealed class DirectiveVisitor()
-    : DocumentValidatorVisitor(new SyntaxVisitorOptions { VisitDirectives = true, })
+    : DocumentValidatorVisitor(new SyntaxVisitorOptions { VisitDirectives = true })
 {
     protected override ISyntaxVisitorAction Enter(
         ISyntaxNode node,
