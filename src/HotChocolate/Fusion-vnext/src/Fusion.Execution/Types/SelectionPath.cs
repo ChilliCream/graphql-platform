@@ -51,17 +51,17 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     {
         if (_segments.IsEmpty)
         {
-            return string.Empty;
+            return "$";
         }
 
         var sb = new StringBuilder();
 
-        foreach (var seg in _segments)
+        sb.Append('$');
+
+        for (var i = _segments.Length - 1; i >= 0; i--)
         {
-            if (sb.Length > 0)
-            {
-                sb.Append('.');
-            }
+            var seg = _segments[i];
+            sb.Append('.');
 
             if (seg.Kind == SelectionPathSegmentKind.InlineFragment)
             {

@@ -36,6 +36,7 @@ public sealed class ObjectFieldResult : FieldResult
         }
 
         Value = objectResult;
+        objectResult.SetParent(Parent!, ParentIndex);
     }
 
     /// <summary>
@@ -70,6 +71,9 @@ public sealed class ObjectFieldResult : FieldResult
             Value.WriteTo(writer, options, nullIgnoreCondition);
         }
     }
+
+    /// <inheritdoc />
+    public override bool HasNullValue => Value is null;
 
     /// <summary>
     /// Returns the object result as a key-value pair.

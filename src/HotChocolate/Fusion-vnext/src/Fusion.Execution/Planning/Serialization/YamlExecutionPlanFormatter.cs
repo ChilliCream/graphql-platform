@@ -35,11 +35,11 @@ public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
 
         WriteOperation(node.Operation, writer);
 
-        if (node.Requirements.Any())
+        if (node.Requirements.Length > 0)
         {
             writer.WriteLine("requirements:");
             writer.Indent();
-            foreach (var requirement in node.Requirements.OrderBy(t => t.Key))
+            foreach (var requirement in node.Requirements.ToArray().OrderBy(t => t.Key))
             {
                 writer.WriteLine("- name: " + requirement.Key);
                 writer.Indent();
@@ -51,11 +51,11 @@ public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
             writer.Unindent();
         }
 
-        if (node.Dependencies.Any())
+        if (node.Dependencies.Length > 0)
         {
             writer.WriteLine("dependencies:");
             writer.Indent();
-            foreach (var dependency in node.Dependencies.OrderBy(t => t.Id))
+            foreach (var dependency in node.Dependencies.ToArray().OrderBy(t => t.Id))
             {
                 writer.WriteLine("- id: " + dependency.Id);
             }

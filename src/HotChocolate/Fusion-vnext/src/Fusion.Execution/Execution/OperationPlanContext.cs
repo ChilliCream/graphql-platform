@@ -17,7 +17,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     public OperationPlanContext(
         OperationExecutionPlan operationPlan,
         IVariableValueCollection variables,
-        RequestContext requestContext)
+        RequestContext requestContext,
+        ResultPoolSession resultPoolSession)
     {
         OperationPlan = operationPlan;
         RequestContext = requestContext;
@@ -26,7 +27,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         // TODO : fully implement and inject ResultPoolSession
         _resultStore = new FetchResultStore(
             RequestContext.Schema,
-            new ResultPoolSession(),
+            resultPoolSession,
             operationPlan.Operation,
             operationPlan.Operation.CreateIncludeFlags(variables));
 
@@ -49,8 +50,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     public ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
-        ImmutableArray<string> requiredVariables,
-        ImmutableArray<OperationRequirement> requiredData)
+        ReadOnlySpan<string> requiredVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
     {
         ArgumentNullException.ThrowIfNull(selectionSet);
 
@@ -79,11 +80,12 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         return OperationResultBuilder.New()
             .AddErrors(_resultStore.Errors)
             .SetData(_resultStore.Data)
+            .RegisterForCleanup(_resultStore.MemoryOwners)
             .Build();
     }
 
     private List<ObjectFieldNode> GetPathThroughVariables(
-        ImmutableArray<string> requiredVariables)
+        ReadOnlySpan<string> requiredVariables)
     {
         if (Variables.IsEmpty || requiredVariables.Length == 0)
         {
@@ -122,5 +124,24 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             _disposed = true;
             await ClientScope.DisposeAsync().ConfigureAwait(false);
         }
+    }
+}
+
+file static class OperationPlanContextExtensions
+{
+    public static OperationResultBuilder RegisterForCleanup(
+        this OperationResultBuilder builder,
+        IEnumerable<IDisposable> disposables)
+    {
+        foreach (var disposable in disposables)
+        {
+            builder.RegisterForCleanup(() =>
+            {
+                disposable.Dispose();
+                return ValueTask.CompletedTask;
+            });
+        }
+
+        return builder;
     }
 }

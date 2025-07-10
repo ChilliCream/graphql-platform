@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
@@ -8,6 +9,7 @@ internal sealed class OperationExecutionMiddleware
 
     public async ValueTask InvokeAsync(
         RequestContext context,
+        ResultPoolSession resultPoolSession,
         RequestDelegate next,
         CancellationToken cancellationToken)
     {
@@ -21,7 +23,8 @@ internal sealed class OperationExecutionMiddleware
         var operationPlanContext = new OperationPlanContext(
             operationPlan,
             context.VariableValues[0],
-            context);
+            context,
+            resultPoolSession);
 
         context.Result = await _queryExecutor.QueryAsync(operationPlanContext, cancellationToken);
 
@@ -31,10 +34,14 @@ internal sealed class OperationExecutionMiddleware
     public static RequestMiddlewareConfiguration Create()
     {
         return new RequestMiddlewareConfiguration(
-            (fc, next) =>
+            (_, next) =>
             {
                 var middleware = new OperationExecutionMiddleware();
-                return context => middleware.InvokeAsync(context, next, context.RequestAborted);
+                return context => middleware.InvokeAsync(
+                    context,
+                    context.RequestServices.GetRequiredService<ResultPoolSession>(),
+                    next,
+                    context.RequestAborted);
             },
             nameof(OperationExecutionMiddleware));
     }

@@ -62,8 +62,11 @@ public ref partial struct Utf8GraphQLParser
     {
         var start = Start();
 
+        _memory ??= new Utf8MemoryBuilder();
         var isBlock = _reader.Kind == TokenKind.BlockString;
-        var value = ExpectString();
+        var index = _memory.NextIndex;
+        var length = ExpectRawString(_memory);
+        var value = length > 0 ? _memory.GetMemorySegment(index, length) : default;
         var location = CreateLocation(in start);
 
         return new StringValueNode(location, value, isBlock);
@@ -182,8 +185,9 @@ public ref partial struct Utf8GraphQLParser
             throw new SyntaxException(_reader, Parser_InvalidScalarToken, _reader.Kind);
         }
 
-        ReadOnlyMemory<byte> value = _reader.Value.ToArray();
+        _memory ??= new Utf8MemoryBuilder();
         var format = _reader.FloatFormat;
+        var value = _memory.Write(_reader.Value);
         MoveNext();
 
         var location = CreateLocation(in start);
@@ -242,7 +246,10 @@ public ref partial struct Utf8GraphQLParser
             return NullValueNode.Default;
         }
 
-        var value = _reader.GetString();
+        _memory ??= new Utf8MemoryBuilder();
+        var index = _memory.NextIndex;
+        var length = _reader.GetRawString(_memory);
+        var value = length > 0 ? _memory.GetMemorySegment(index, length) : default;
         MoveNext();
         location = CreateLocation(in start);
 
