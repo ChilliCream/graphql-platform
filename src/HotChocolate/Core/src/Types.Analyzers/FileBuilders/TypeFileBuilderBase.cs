@@ -149,15 +149,11 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 "var pagingOptions = global::{0}.GetPagingOptions(c.Context, null);",
                 WellKnownTypes.PagingHelper);
             Writer.WriteIndentedLine(
-                "c.Definition.State = c.Definition.State.SetItem("
-                + "HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);");
-            Writer.WriteIndentedLine(
-                "c.Definition.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = "
-                + "pagingOptions;");
+                "c.Configuration.Features.Set(pagingOptions);");
         }
 
         Writer.WriteIndentedLine(
-            "c.Definition.Resolvers = r.{0}();",
+            "c.Configuration.Resolvers = r.{0}();",
             resolver.Member.Name);
 
         if (resolver.ResultKind is not ResolverResultKind.Pure
@@ -165,7 +161,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             && resolver.Member.IsListType(out var elementType))
         {
             Writer.WriteIndentedLine(
-                "c.Definition.ResultPostProcessor = global::{0}<{1}>.Default;",
+                "c.Configuration.ResultPostProcessor = global::{0}<{1}>.Default;",
                 WellKnownTypes.ListPostProcessor,
                 elementType);
         }
@@ -173,26 +169,26 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
     protected void WriteFieldFlags(Resolver resolver)
     {
-        Writer.WriteIndentedLine("c.Definition.SetSourceGeneratorFlags();");
+        Writer.WriteIndentedLine("c.Configuration.SetSourceGeneratorFlags();");
 
         if (resolver.Kind is ResolverKind.ConnectionResolver)
         {
-            Writer.WriteIndentedLine("c.Definition.SetConnectionFlags();");
+            Writer.WriteIndentedLine("c.Configuration.SetConnectionFlags();");
         }
 
         if ((resolver.Flags & FieldFlags.ConnectionEdgesField) == FieldFlags.ConnectionEdgesField)
         {
-            Writer.WriteIndentedLine("c.Definition.SetConnectionEdgesFieldFlags();");
+            Writer.WriteIndentedLine("c.Configuration.SetConnectionEdgesFieldFlags();");
         }
 
         if ((resolver.Flags & FieldFlags.ConnectionNodesField) == FieldFlags.ConnectionNodesField)
         {
-            Writer.WriteIndentedLine("c.Definition.SetConnectionNodesFieldFlags();");
+            Writer.WriteIndentedLine("c.Configuration.SetConnectionNodesFieldFlags();");
         }
 
         if ((resolver.Flags & FieldFlags.TotalCount) == FieldFlags.TotalCount)
         {
-            Writer.WriteIndentedLine("c.Definition.SetConnectionTotalCountFieldFlags();");
+            Writer.WriteIndentedLine("c.Configuration.SetConnectionTotalCountFieldFlags();");
         }
     }
 
@@ -702,19 +698,19 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     break;
 
                 case ResolverParameterKind.GetGlobalState when parameter.Parameter.HasExplicitDefaultValue:
-                    {
-                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+                {
+                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                        Writer.WriteIndentedLine(
-                            "var args{0} = context.GetGlobalStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                            parameter.Key,
-                            defaultValueString);
-                        break;
-                    }
+                    Writer.WriteIndentedLine(
+                        "var args{0} = context.GetGlobalStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                        parameter.Key,
+                        defaultValueString);
+                    break;
+                }
 
                 case ResolverParameterKind.GetGlobalState when !parameter.IsNullable:
                     Writer.WriteIndentedLine(
@@ -742,19 +738,19 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     break;
 
                 case ResolverParameterKind.GetScopedState when parameter.Parameter.HasExplicitDefaultValue:
-                    {
-                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+                {
+                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                        Writer.WriteIndentedLine(
-                            "var args{0} = context.GetScopedStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                            parameter.Key,
-                            defaultValueString);
-                        break;
-                    }
+                    Writer.WriteIndentedLine(
+                        "var args{0} = context.GetScopedStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                        parameter.Key,
+                        defaultValueString);
+                    break;
+                }
 
                 case ResolverParameterKind.GetScopedState when !parameter.IsNullable:
                     Writer.WriteIndentedLine(
@@ -782,19 +778,19 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     break;
 
                 case ResolverParameterKind.GetLocalState when parameter.Parameter.HasExplicitDefaultValue:
-                    {
-                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+                {
+                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                        Writer.WriteIndentedLine(
-                            "var args{0} = context.GetLocalStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                            parameter.Key,
-                            defaultValueString);
-                        break;
-                    }
+                    Writer.WriteIndentedLine(
+                        "var args{0} = context.GetLocalStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                        parameter.Key,
+                        defaultValueString);
+                    break;
+                }
 
                 case ResolverParameterKind.GetLocalState when !parameter.IsNullable:
                     Writer.WriteIndentedLine(
@@ -880,6 +876,10 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         "var args{0}_options = global::{1}.GetPagingOptions(context.Schema, context.Selection.Field);",
                         i,
                         WellKnownTypes.PagingHelper);
+                    Writer.WriteIndentedLine(
+                        "var args{0}_flags = global::{1}.GetConnectionFlags(context);",
+                        i,
+                        WellKnownTypes.ConnectionFlagsHelper);
                     Writer.WriteIndentedLine("var args{0}_first = context.ArgumentValue<int?>(\"first\");", i);
                     Writer.WriteIndentedLine("var args{0}_after = context.ArgumentValue<string?>(\"after\");", i);
                     Writer.WriteIndentedLine("int? args{0}_last = null;", i);
@@ -920,7 +920,10 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     Writer.WriteIndentedLine("{");
                     using (Writer.IncreaseIndent())
                     {
-                        Writer.WriteIndentedLine("args{0}_includeTotalCount = context.IsSelected(\"totalCount\");", i);
+                        Writer.WriteIndentedLine(
+                            "args{0}_includeTotalCount = args{0}_flags.HasFlag(global::{1}.TotalCount);",
+                            i,
+                            WellKnownTypes.ConnectionFlags);
                     }
 
                     Writer.WriteIndentedLine("}");
@@ -940,14 +943,9 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         using (Writer.IncreaseIndent())
                         {
                             Writer.WriteIndentedLine(
-                                "EnableRelativeCursors = args{0}_options.EnableRelativeCursors",
-                                i);
-                            using (Writer.IncreaseIndent())
-                            {
-                                Writer.WriteIndentedLine(
-                                    "?? global::{0}.EnableRelativeCursors",
-                                    WellKnownTypes.PagingDefaults);
-                            }
+                                "EnableRelativeCursors = args{0}_flags.HasFlag(global::{1}.RelativeCursor)",
+                                i,
+                                WellKnownTypes.ConnectionFlags);
                         }
 
                         Writer.WriteIndentedLine("};");
@@ -956,48 +954,9 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                 case ResolverParameterKind.ConnectionFlags:
                     Writer.WriteIndentedLine(
-                        "var args{0} = global::{1}.Nothing;",
+                        "var args{0} = global::{1}.GetConnectionFlags(context);",
                         i,
-                        WellKnownTypes.ConnectionFlags);
-                    Writer.WriteLine();
-
-                    Writer.WriteIndentedLine(
-                        "if(context.IsSelected(\"edges\"))");
-                    Writer.WriteIndentedLine("{");
-                    using (Writer.IncreaseIndent())
-                    {
-                        Writer.WriteIndentedLine(
-                            "args{0} |= global::{1}.Edges;",
-                            i,
-                            WellKnownTypes.ConnectionFlags);
-                    }
-                    Writer.WriteIndentedLine("}");
-                    Writer.WriteLine();
-
-                    Writer.WriteIndentedLine(
-                        "if(context.IsSelected(\"nodes\"))");
-                    Writer.WriteIndentedLine("{");
-                    using (Writer.IncreaseIndent())
-                    {
-                        Writer.WriteIndentedLine(
-                            "args{0} |= global::{1}.Nodes;",
-                            i,
-                            WellKnownTypes.ConnectionFlags);
-                    }
-                    Writer.WriteIndentedLine("}");
-                    Writer.WriteLine();
-
-                    Writer.WriteIndentedLine(
-                        "if(context.IsSelected(\"totalCount\"))");
-                    Writer.WriteIndentedLine("{");
-                    using (Writer.IncreaseIndent())
-                    {
-                        Writer.WriteIndentedLine(
-                            "args{0} |= global::{1}.TotalCount;",
-                            i,
-                            WellKnownTypes.ConnectionFlags);
-                    }
-                    Writer.WriteIndentedLine("}");
+                        WellKnownTypes.ConnectionFlagsHelper);
                     break;
 
                 case ResolverParameterKind.Unknown:

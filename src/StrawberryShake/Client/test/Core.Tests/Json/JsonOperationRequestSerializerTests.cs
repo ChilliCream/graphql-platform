@@ -19,22 +19,22 @@ public class JsonOperationRequestSerializerTests
                 {
                     new KeyValuePair<string, object?>[]
                     {
-                        new("s", "def"),
-                    },
+                        new("s", "def")
+                    }
                 }),
-                new("sl", new List<string> { "a", "b", "c", }),
-                new("il", new[] { 1, 2, 3, }),
+                new("sl", new List<string> { "a", "b", "c" }),
+                new("il", new[] { 1, 2, 3 })
         };
 
         // act
         using var stream = new MemoryStream();
-        using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true, });
+        using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true });
         var serializer = new JsonOperationRequestSerializer();
         serializer.Serialize(
             new OperationRequest(
                 "abc",
                 new Document(),
-                new Dictionary<string, object?> { { "abc", inputObject }, }),
+                new Dictionary<string, object?> { { "abc", inputObject } }),
             jsonWriter);
         jsonWriter.Flush();
 
@@ -50,13 +50,13 @@ public class JsonOperationRequestSerializerTests
 
         // act
         using var stream = new MemoryStream();
-        using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true, });
+        using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true });
         var serializer = new JsonOperationRequestSerializer();
         serializer.Serialize(
             new OperationRequest(
                 "abc",
                 new Document(),
-                new Dictionary<string, object?> { { "abc", json.RootElement }, }),
+                new Dictionary<string, object?> { { "abc", json.RootElement } }),
             jsonWriter);
         jsonWriter.Flush();
 
@@ -72,14 +72,14 @@ public class JsonOperationRequestSerializerTests
 
         // act
         using var stream = new MemoryStream();
-        using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true, });
+        using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true });
         var serializer = new JsonOperationRequestSerializer();
         serializer.Serialize(
             new OperationRequest(
                 "123",
                 "abc",
                 new EmptyDocument(),
-                new Dictionary<string, object?> { { "abc", json.RootElement }, },
+                new Dictionary<string, object?> { { "abc", json.RootElement } },
                 strategy: RequestStrategy.PersistedOperation),
             jsonWriter);
         jsonWriter.Flush();
@@ -117,16 +117,16 @@ public class JsonOperationRequestSerializerTests
             {
                     new KeyValuePair<string, object?>[]
                     {
-                        new("s", "def"),
-                    },
+                        new("s", "def")
+                    }
             });
-        operationRequest.Extensions.Add("sl", new List<string> { "a", "b", "c", });
-        operationRequest.Extensions.Add("il", new[] { 1, 2, 3, });
+        operationRequest.Extensions.Add("sl", new List<string> { "a", "b", "c" });
+        operationRequest.Extensions.Add("il", new[] { 1, 2, 3 });
         operationRequest.Extensions.Add("tuple", ("a", "b"));
 
         // act
         using var stream = new MemoryStream();
-        using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true, });
+        using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true });
         var serializer = new JsonOperationRequestSerializer();
         serializer.Serialize(operationRequest, jsonWriter);
         jsonWriter.Flush();

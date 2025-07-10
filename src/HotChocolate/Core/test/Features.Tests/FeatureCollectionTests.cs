@@ -67,7 +67,7 @@ public class FeatureCollectionTests
     public void GetStructFeature()
     {
         var interfaces = new FeatureCollection();
-        var value = 20;
+        const int value = 20;
         interfaces.Set(value);
 
         Assert.Equal(value, interfaces.Get<int>());
@@ -77,7 +77,7 @@ public class FeatureCollectionTests
     public void GetNullableStructFeatureWhenSetWithNonNullableStruct()
     {
         var interfaces = new FeatureCollection();
-        var value = 20;
+        const int value = 20;
         interfaces.Set(value);
 
         Assert.Null(interfaces.Get<int?>());
@@ -87,7 +87,7 @@ public class FeatureCollectionTests
     public void GetNullableStructFeatureWhenSetWithNullableStruct()
     {
         var interfaces = new FeatureCollection();
-        var value = 20;
+        const int value = 20;
         interfaces.Set<int?>(value);
 
         Assert.Equal(value, interfaces.Get<int?>());

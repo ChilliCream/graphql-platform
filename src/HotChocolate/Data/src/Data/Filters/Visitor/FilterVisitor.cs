@@ -37,7 +37,7 @@ public class FilterVisitor<TContext, T>
         IFilterField field,
         ObjectFieldNode node)
     {
-        if (field?.Handler is IFilterFieldHandler<TContext, T> handler &&
+        if (field.Handler is IFilterFieldHandler<TContext, T> handler &&
             handler.TryHandleLeave(
                 context,
                 field,

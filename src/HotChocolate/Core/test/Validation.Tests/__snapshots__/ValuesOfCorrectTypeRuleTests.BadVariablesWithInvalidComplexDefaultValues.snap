@@ -1,12 +1,12 @@
-﻿[
+[
   {
     "Message": "The specified input object field `requiredField` does not exist.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 3,
-        "Column": 46
+        "Line": 2,
+        "Column": 26
       }
     ],
     "Extensions": {
@@ -21,8 +21,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 3,
-        "Column": 66
+        "Line": 2,
+        "Column": 46
       }
     ],
     "Extensions": {

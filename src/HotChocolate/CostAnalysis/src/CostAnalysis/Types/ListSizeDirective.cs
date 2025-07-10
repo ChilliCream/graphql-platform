@@ -28,8 +28,8 @@ public sealed class ListSizeDirective
         int? slicingArgumentDefaultValue = null)
     {
         AssumedSize = assumedSize;
-        SlicingArguments = slicingArguments ?? ImmutableArray<string>.Empty;
-        SizedFields = sizedFields ?? ImmutableArray<string>.Empty;
+        SlicingArguments = slicingArguments ?? [];
+        SizedFields = sizedFields ?? [];
         SlicingArgumentDefaultValue = slicingArgumentDefaultValue;
         RequireOneSlicingArgument = requireOneSlicingArgument;
     }

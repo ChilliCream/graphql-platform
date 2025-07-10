@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Mutable;
 /// This type definition is used when building fields
 /// or arguments where the type cannot be yet set.
 /// </summary>
-public sealed class NotSetType : IType
+public sealed class NotSetType : IOutputType, IInputType
 {
     private NotSetType()
     {

@@ -19,7 +19,7 @@ public class NestedOptionalInt_2114
             return true;
         });
 
-        const string Query = @"
+        const string query = @"
                 mutation {
                     eat(topping: {
                         pickles: [ {
@@ -29,7 +29,7 @@ public class NestedOptionalInt_2114
                                 complexAssignedNull: null, complexList: [ { value: 2 } ] } } ] })
                 }";
         // act
-        var result = await executor.ExecuteAsync(Query);
+        var result = await executor.ExecuteAsync(query);
 
         // assert
         Assert.Null(result.ExpectOperationResult().Errors);
@@ -47,7 +47,7 @@ public class NestedOptionalInt_2114
             return true;
         });
 
-        const string Query = @"
+        const string query = @"
                 mutation a($input: ButterPickleInput!)
                 {
                     eat(topping: {
@@ -58,7 +58,7 @@ public class NestedOptionalInt_2114
 
         // act
         var result = await executor.ExecuteAsync(
-            Query,
+            query,
             new Dictionary<string, object?>
             {
                 {
@@ -70,7 +70,7 @@ public class NestedOptionalInt_2114
                             "complexAssigned",
                             new Dictionary<string, object?>
                             {
-                                { "value", 3 },
+                                { "value", 3 }
                             }
                         },
                         { "complexAssignedNull", null} ,
@@ -78,11 +78,11 @@ public class NestedOptionalInt_2114
                             "complexList",
                             new List<Dictionary<string, object?>>
                             {
-                                new() { { "value", 2 }, },
+                                new() { { "value", 2 } }
                             }
-                        },
+                        }
                     }
-                },
+                }
             });
 
         // assert
@@ -93,17 +93,17 @@ public class NestedOptionalInt_2114
     private static void Verify(ToppingInput? input)
     {
         Assert.NotNull(input);
-        var pickle = input?.Pickles!.First()?.ButterPickle;
+        var pickle = input.Pickles!.First().ButterPickle;
         Assert.NotNull(pickle);
-        Assert.Equal(5, pickle?.Size);
-        Assert.False(pickle?.Width.HasValue);
-        Assert.False(pickle?.ComplexUnassigned.HasValue);
-        Assert.True(pickle?.ComplexAssigned.HasValue);
-        Assert.Equal(3, pickle?.ComplexAssigned.Value?.Value);
-        Assert.True(pickle?.ComplexAssignedNull.HasValue);
-        Assert.Null(pickle?.ComplexAssignedNull.Value);
-        Assert.True(pickle?.ComplexList.HasValue);
-        Assert.Equal(2, pickle?.ComplexList.Value?.First().Value);
+        Assert.Equal(5, pickle.Size.Value);
+        Assert.False(pickle.Width.HasValue);
+        Assert.False(pickle.ComplexUnassigned.HasValue);
+        Assert.True(pickle.ComplexAssigned.HasValue);
+        Assert.Equal(3, pickle.ComplexAssigned.Value?.Value);
+        Assert.True(pickle.ComplexAssignedNull.HasValue);
+        Assert.Null(pickle.ComplexAssignedNull.Value);
+        Assert.True(pickle.ComplexList.HasValue);
+        Assert.Equal(2, pickle.ComplexList.Value?.First().Value);
     }
 
     private static IRequestExecutor CreateExecutor(Func<ToppingInput, bool>? onEat = null)

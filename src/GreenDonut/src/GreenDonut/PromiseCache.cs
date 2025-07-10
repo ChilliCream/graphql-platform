@@ -9,11 +9,11 @@ namespace GreenDonut;
 /// </summary>
 public sealed class PromiseCache : IPromiseCache
 {
-    private const int _minimumSize = 10;
+    private const int MinimumSize = 10;
     private readonly object _sync = new();
     private readonly ConcurrentDictionary<PromiseCacheKey, Entry> _map = new();
     private readonly ConcurrentDictionary<Type, ImmutableArray<Subscription>> _subscriptions = new();
-    private readonly List<IPromise> _promises = new();
+    private readonly List<IPromise> _promises = [];
     private readonly int _size;
     private readonly int _order;
     private List<(PromiseCacheKey? Key, IPromise Promise)>? _buffer;
@@ -28,7 +28,7 @@ public sealed class PromiseCache : IPromiseCache
     /// </param>
     public PromiseCache(int size)
     {
-        _size = size < _minimumSize ? _minimumSize : size;
+        _size = size < MinimumSize ? MinimumSize : size;
         _order = Convert.ToInt32(size * 0.9);
     }
 
@@ -38,6 +38,8 @@ public sealed class PromiseCache : IPromiseCache
     /// <inheritdoc />
     public int Usage => _usage;
 
+    public IPromiseCacheInterceptor? Interceptor { get; set; }
+
     /// <inheritdoc />
     public Task<T> GetOrAddTask<T>(PromiseCacheKey key, Func<PromiseCacheKey, Promise<T>> createPromise)
     {
@@ -46,17 +48,17 @@ public sealed class PromiseCache : IPromiseCache
             throw new ArgumentNullException(nameof(key));
         }
 
-        if (createPromise is null)
-        {
-            throw new ArgumentNullException(nameof(createPromise));
-        }
+        ArgumentNullException.ThrowIfNull(createPromise);
 
+        var interceptor = Interceptor;
         var read = true;
 
         var entry = _map.GetOrAdd(key, k =>
         {
             read = false;
-            return AddNewEntry(k, createPromise(k));
+            return interceptor is null
+                ? AddNewEntry(k, createPromise(k))
+                : new Entry(k, interceptor.GetOrAddPromise(k, createPromise));
         });
 
         if (read)
@@ -95,6 +97,11 @@ public sealed class PromiseCache : IPromiseCache
             return AddNewEntry(k, promise);
         });
 
+        if (!read)
+        {
+            Interceptor?.TryAdd(key, promise);
+        }
+
         if (!promise.IsClone)
         {
             promise.OnComplete(NotifySubscribers, new CacheAndKey(this, key));
@@ -111,10 +118,7 @@ public sealed class PromiseCache : IPromiseCache
             throw new ArgumentNullException(nameof(key));
         }
 
-        if (createPromise is null)
-        {
-            throw new ArgumentNullException(nameof(createPromise));
-        }
+        ArgumentNullException.ThrowIfNull(createPromise);
 
         var read = true;
 
@@ -123,6 +127,11 @@ public sealed class PromiseCache : IPromiseCache
             read = false;
             return AddNewEntry(k, createPromise());
         });
+
+        if (!read)
+        {
+            Interceptor?.TryAdd(key, (Promise<T>)entry.Value);
+        }
 
         var promise = (Promise<T>)entry.Value;
 
@@ -176,7 +185,7 @@ public sealed class PromiseCache : IPromiseCache
     public void PublishMany<T>(ReadOnlySpan<T> values)
     {
         var buffer = ArrayPool<Promise<T>>.Shared.Rent(values.Length);
-        var bufferedPromises = buffer.AsSpan().Slice(0, values.Length);
+        var bufferedPromises = buffer.AsSpan()[..values.Length];
 
         // first we add the promises tp the promise list, which we keep
         // for DataLoader that are not instantiated yet.
@@ -224,7 +233,7 @@ public sealed class PromiseCache : IPromiseCache
 
         _subscriptions.AddOrUpdate(
             type,
-            _ => ImmutableArray.Create<Subscription>(subscription),
+            _ => [subscription],
             (_, list) => list.Add(subscription));
 
         lock (_promises)
@@ -454,7 +463,7 @@ public sealed class PromiseCache : IPromiseCache
             {
                 subscriptions.AddOrUpdate(
                     type,
-                    _ => ImmutableArray.Create(this),
+                    _ => [this],
                     (_, list) => list.Remove(this));
 
                 _disposed = true;

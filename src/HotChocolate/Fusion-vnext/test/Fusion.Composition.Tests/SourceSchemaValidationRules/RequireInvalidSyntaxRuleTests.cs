@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class RequireInvalidSyntaxRuleTests : CompositionTestBase
+public sealed class RequireInvalidSyntaxRuleTests
 {
     private static readonly object s_rule = new RequireInvalidSyntaxRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -76,18 +77,19 @@ public sealed class RequireInvalidSyntaxRuleTests : CompositionTestBase
             {
                 [
                     """
-                    type Book {
+                    type User @key(fields: "id") {
                         id: ID!
-                        title(lang: String! @require(field: "author { name ")): String
+                        profile(name: String! @require(field: "{ name ")): Profile
                     }
 
-                    type Author {
+                    type Profile {
+                        id: ID!
                         name: String
                     }
                     """
                 ],
                 [
-                    "The @require directive on argument 'Book.title(lang:)' in schema 'A' " +
+                    "The @require directive on argument 'User.profile(name:)' in schema 'A' " +
                     "contains invalid syntax in the 'field' argument."
                 ]
             }

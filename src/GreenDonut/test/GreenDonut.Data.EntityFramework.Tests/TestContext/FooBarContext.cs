@@ -10,9 +10,9 @@ public class FooBarContext(string connectionString) : DbContext
         optionsBuilder.UseNpgsql(connectionString);
     }
 
-    public DbSet<Foo> Foos { get; set; }
+    public DbSet<Foo> Foos { get; set; } = null!;
 
-    public DbSet<Bar> Bars { get; set; }
+    public DbSet<Bar> Bars { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,7 +36,7 @@ public class Foo
     public int Id { get; set; }
 
     [MaxLength(100)]
-    public string Name { get; set; } = default!;
+    public string Name { get; set; } = null!;
 
     public int? BarId { get; set; }
 
@@ -51,7 +51,7 @@ public class Bar
     public string? Description { get; set; }
 
     [MaxLength(100)]
-    public string SomeField1 { get; set; } = default!;
+    public string SomeField1 { get; set; } = null!;
 
     [MaxLength(100)]
     public string? SomeField2 { get; set; }

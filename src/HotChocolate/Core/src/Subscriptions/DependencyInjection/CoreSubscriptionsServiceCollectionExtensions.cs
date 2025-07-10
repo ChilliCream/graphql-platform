@@ -25,10 +25,7 @@ public static class CoreSubscriptionsServiceCollectionExtensions
     public static IRequestExecutorBuilder AddSubscriptionDiagnostics(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.AddSubscriptionDiagnostics();
 
@@ -50,17 +47,14 @@ public static class CoreSubscriptionsServiceCollectionExtensions
     public static IServiceCollection AddSubscriptionDiagnostics(
         this IServiceCollection services)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.TryAddSingleton<ISubscriptionDiagnosticEvents>(
             sp =>
             {
                 var listeners = sp.GetService<IEnumerable<ISubscriptionDiagnosticEventsListener>>();
 
-                // if we do not have any listeners registered we will register a noop listener.
+                // if we do not have any listeners registered, we will register a noop listener.
                 if (listeners is null)
                 {
                     return NoopSubscriptionDiagnosticEventsListener.Default;
@@ -69,19 +63,19 @@ public static class CoreSubscriptionsServiceCollectionExtensions
                 var listenerArray = listeners.ToArray();
 
                 // we recheck if the array really has listeners; otherwise,
-                // if we do not have any listeners registered we will register a noop listener.
+                // if we do not have any listeners registered, we will register a noop listener.
                 if (listenerArray.Length == 0)
                 {
                     return NoopSubscriptionDiagnosticEventsListener.Default;
                 }
 
-                // if we only have a single listener we will just return this one.
+                // if we only have a single listener, we will just return this one.
                 if (listenerArray.Length == 1)
                 {
                     return listenerArray[0];
                 }
 
-                // if we have more than one listener we will return an aggregate listener,
+                // if we have more than one listener, we will return an aggregate listener,
                 // which will trigger for each event all listeners.
                 return new AggregateSubscriptionDiagnosticEventsListener(listenerArray);
             });

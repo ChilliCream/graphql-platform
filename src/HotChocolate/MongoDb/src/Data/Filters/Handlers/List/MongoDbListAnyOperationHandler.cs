@@ -8,7 +8,7 @@ using MongoDB.Driver;
 namespace HotChocolate.Data.MongoDb.Filters;
 
 /// <summary>
-/// This filter operation handler maps a Any operation field to a
+/// This filter operation handler maps an Any operation field to a
 /// <see cref="FilterDefinition{TDocument}"/>
 /// </summary>
 public class MongoDbListAnyOperationHandler
@@ -22,11 +22,11 @@ public class MongoDbListAnyOperationHandler
     /// <inheritdoc />
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration)
     {
         return context.Type is IListFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition operationField &&
+            fieldConfiguration is FilterOperationFieldConfiguration operationField &&
             operationField.Id is DefaultFilterOperations.Any;
     }
 
@@ -38,7 +38,7 @@ public class MongoDbListAnyOperationHandler
         object? parsedValue)
     {
         if (context.RuntimeTypes.Count > 0 &&
-            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0, } &&
+            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } &&
             parsedValue is bool parsedBool &&
             context.Scopes.Peek() is MongoDbFilterScope scope)
         {
@@ -51,7 +51,7 @@ public class MongoDbListAnyOperationHandler
                     new BsonDocument
                     {
                             { "$exists", true },
-                            { "$nin", new BsonArray { new BsonArray(), BsonNull.Value, } },
+                            { "$nin", new BsonArray { new BsonArray(), BsonNull.Value } }
                     });
             }
 
@@ -61,11 +61,11 @@ public class MongoDbListAnyOperationHandler
                     new BsonDocument
                     {
                             { "$exists", true },
-                            { "$in", new BsonArray { new BsonArray(), BsonNull.Value, } },
+                            { "$in", new BsonArray { new BsonArray(), BsonNull.Value } }
                     }),
                 new MongoDbFilterOperation(
                     path,
-                    new BsonDocument { { "$exists", false }, }));
+                    new BsonDocument { { "$exists", false } }));
         }
 
         throw new InvalidOperationException();

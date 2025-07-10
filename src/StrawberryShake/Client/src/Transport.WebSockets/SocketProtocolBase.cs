@@ -12,7 +12,7 @@ public abstract class SocketProtocolBase : ISocketProtocol
     private readonly HashSet<OnReceiveAsync> _listeners = [];
 
     /// <inheritdoc />
-    public event EventHandler Disposed = default!;
+    public event EventHandler Disposed = null!;
 
     /// <inheritdoc />
     public abstract Task StartOperationAsync(

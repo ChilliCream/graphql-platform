@@ -64,7 +64,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         }
 
         // Validate Satisfiability
-        var satisfiabilityResult = new SatisfiabilityValidator(mergedSchema).Validate();
+        var satisfiabilityResult = new SatisfiabilityValidator(mergedSchema, _log).Validate();
 
         if (satisfiabilityResult.IsFailure)
         {
@@ -80,6 +80,9 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new ExternalOnInterfaceRule(),
         new ExternalUnusedRule(),
         new InvalidShareableUsageRule(),
+        new IsInvalidFieldTypeRule(),
+        new IsInvalidSyntaxRule(),
+        new IsInvalidUsageRule(),
         new KeyDirectiveInFieldsArgumentRule(),
         new KeyFieldsHasArgumentsRule(),
         new KeyFieldsSelectInvalidTypeRule(),
@@ -93,16 +96,17 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new ProvidesDirectiveInFieldsArgumentRule(),
         new ProvidesFieldsHasArgumentsRule(),
         new ProvidesFieldsMissingExternalRule(),
+        new ProvidesInvalidFieldsRule(),
         new ProvidesInvalidFieldsTypeRule(),
         new ProvidesInvalidSyntaxRule(),
         new ProvidesOnNonCompositeFieldRule(),
         new QueryRootTypeInaccessibleRule(),
-        new RequireDirectiveInFieldArgumentRule(),
         new RequireInvalidFieldTypeRule(),
         new RequireInvalidSyntaxRule(),
         new RootMutationUsedRule(),
         new RootQueryUsedRule(),
-        new RootSubscriptionUsedRule()
+        new RootSubscriptionUsedRule(),
+        new TypeDefinitionInvalidRule()
     ];
 
     private static readonly ImmutableArray<object> s_preMergeRules =
@@ -126,7 +130,10 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new EmptyMergedInterfaceTypeRule(),
         new EmptyMergedObjectTypeRule(),
         new EmptyMergedUnionTypeRule(),
+        new EnumTypeDefaultValueInaccessibleRule(),
+        new ImplementedByInaccessibleRule(),
         new InterfaceFieldNoImplementationRule(),
+        new IsInvalidFieldRule(),
         new NonNullInputFieldIsInaccessibleRule(),
         new NoQueriesRule(),
         new RequireInvalidFieldsRule()

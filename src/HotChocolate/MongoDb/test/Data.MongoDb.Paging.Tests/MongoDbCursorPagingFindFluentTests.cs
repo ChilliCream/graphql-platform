@@ -12,13 +12,13 @@ namespace HotChocolate.Data.MongoDb.Paging;
 
 public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
 {
-    private readonly List<Foo> foos =
+    private readonly List<Foo> _foos =
     [
-        new Foo { Bar = "a", },
-        new Foo { Bar = "b", },
-        new Foo { Bar = "d", },
-        new Foo { Bar = "e", },
-        new Foo { Bar = "f", },
+        new Foo { Bar = "a" },
+        new Foo { Bar = "b" },
+        new Foo { Bar = "d" },
+        new Foo { Bar = "e" },
+        new Foo { Bar = "f" }
     ];
 
     private readonly MongoResource _resource;
@@ -254,7 +254,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
         [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     private Func<IResolverContext, MongoDbCollectionExecutable<TResult>> BuildResolver<TResult>(
@@ -281,7 +281,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                 {
                     descriptor
                         .Field("foos")
-                        .Resolve(BuildResolver(_resource, foos))
+                        .Resolve(BuildResolver(_resource, _foos))
                         .Type<ListType<ObjectType<Foo>>>()
                         .Use(
                             next => async context =>
@@ -293,10 +293,10 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                                 }
                             })
                         .UsePaging<ObjectType<Foo>>(
-                            options: new PagingOptions { IncludeTotalCount = true, });
+                            options: new PagingOptions { IncludeTotalCount = true });
                 })
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
@@ -313,7 +313,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync();
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync();
     }
 }

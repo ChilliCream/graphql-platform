@@ -15,8 +15,8 @@ namespace GreenDonut.Data;
 /// </summary>
 public static class PagingQueryableExtensions
 {
-    private static readonly AsyncLocal<InterceptorHolder> _interceptor = new();
-    private static readonly ConcurrentDictionary<(Type, Type), Expression> _countExpressionCache = new();
+    private static readonly AsyncLocal<InterceptorHolder> s_interceptor = new();
+    private static readonly ConcurrentDictionary<(Type, Type), Expression> s_countExpressionCache = new();
 
     /// <summary>
     /// Executes a query with paging and returns the selected page.
@@ -100,6 +100,8 @@ public static class PagingQueryableExtensions
             arguments = arguments with { First = 10 };
         }
 
+        // if relative cursors are enabled and no cursor is provided
+        // we must do an initial count of the dataset.
         if (arguments.EnableRelativeCursors
             && string.IsNullOrEmpty(arguments.After)
             && string.IsNullOrEmpty(arguments.Before))
@@ -153,9 +155,10 @@ public static class PagingQueryableExtensions
             }
         }
 
-        if (arguments.EnableRelativeCursors && cursor?.IsRelative == true)
+        if (cursor?.IsRelative == true)
         {
-            if ((arguments.Last is not null && cursor.Offset > 0) || (arguments.First is not null && cursor.Offset < 0))
+            if ((arguments.Last is not null && cursor.Offset > 0)
+                || (arguments.First is not null && cursor.Offset < 0))
             {
                 throw new ArgumentException(
                     "Positive offsets are not allowed with `last`, and negative offsets are not allowed with `first`.",
@@ -270,7 +273,7 @@ public static class PagingQueryableExtensions
         PagingArguments arguments,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => ToBatchPageAsync<TKey, TValue, TValue>(
+        => ToBatchPageAsync(
             source,
             keySelector,
             t => t,
@@ -312,7 +315,7 @@ public static class PagingQueryableExtensions
         bool includeTotalCount,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => ToBatchPageAsync<TKey, TValue, TValue>(
+        => ToBatchPageAsync(
             source,
             keySelector,
             t => t,
@@ -528,7 +531,7 @@ public static class PagingQueryableExtensions
     private static Expression<Func<IGrouping<TKey, TElement>, CountResult<TKey>>> GetOrCreateCountSelector<TElement, TKey>()
     {
         return (Expression<Func<IGrouping<TKey, TElement>, CountResult<TKey>>>)
-            _countExpressionCache.GetOrAdd(
+            s_countExpressionCache.GetOrAdd(
                 (typeof(TKey), typeof(TElement)),
                 static _ =>
                 {
@@ -682,23 +685,19 @@ public static class PagingQueryableExtensions
     }
 
     internal static PagingQueryInterceptor? TryGetQueryInterceptor()
-        => _interceptor.Value?.Interceptor;
+        => s_interceptor.Value?.Interceptor;
 
     internal static void SetQueryInterceptor(PagingQueryInterceptor pagingQueryInterceptor)
     {
-        if (_interceptor.Value is null)
-        {
-            _interceptor.Value = new InterceptorHolder();
-        }
-
-        _interceptor.Value.Interceptor = pagingQueryInterceptor;
+        s_interceptor.Value ??= new InterceptorHolder();
+        s_interceptor.Value.Interceptor = pagingQueryInterceptor;
     }
 
     internal static void ClearQueryInterceptor(PagingQueryInterceptor pagingQueryInterceptor)
     {
-        if (_interceptor.Value is not null)
+        if (s_interceptor.Value is not null)
         {
-            _interceptor.Value.Interceptor = null;
+            s_interceptor.Value.Interceptor = null;
         }
     }
 }

@@ -1,9 +1,18 @@
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
-public sealed class InterfaceField(InterfaceFieldDefinition definition, int index)
-    : OutputFieldBase(definition, index)
+/// <summary>
+/// Represents a field of an <see cref="InterfaceType"/>.
+/// </summary>
+/// <param name="definition">
+/// The interface field configuration.
+/// </param>
+/// <param name="index">
+/// The index of the field in the declaring type.
+/// </param>
+public sealed class InterfaceField(InterfaceFieldConfiguration definition, int index)
+    : OutputField(definition, index)
 {
     /// <summary>
     /// Gets the type that declares this field.

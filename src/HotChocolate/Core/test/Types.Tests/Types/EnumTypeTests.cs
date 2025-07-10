@@ -1,7 +1,6 @@
-using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -22,7 +21,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("StringEnum");
+        var type = schema.Types.GetType<EnumType>("StringEnum");
         Assert.NotNull(type);
     }
 
@@ -36,7 +35,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("DescriptionTestEnum");
+        var type = schema.Types.GetType<EnumType>("DescriptionTestEnum");
         Assert.Equal("TestDescription", type.Description);
     }
 
@@ -53,7 +52,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("StringEnum");
+        var type = schema.Types.GetType<EnumType>("StringEnum");
         Assert.NotNull(type);
     }
 
@@ -70,7 +69,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("StringEnum");
+        var type = schema.Types.GetType<EnumType>("StringEnum");
         Assert.NotNull(type);
     }
 
@@ -87,7 +86,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("StringEnum");
+        var type = schema.Types.GetType<EnumType>("StringEnum");
         Assert.NotNull(type);
     }
 
@@ -104,7 +103,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
+        var type = schema.Types.GetType<EnumType>("Foo");
         Assert.Collection(type.Directives, t => Assert.Equal("bar", t.Type.Name));
     }
 
@@ -121,7 +120,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
+        var type = schema.Types.GetType<EnumType>("Foo");
         Assert.Collection(type.Directives,
             t => Assert.Equal("bar", t.Type.Name));
     }
@@ -136,7 +135,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
+        var type = schema.Types.GetType<EnumType>("Foo");
         Assert.NotNull(type);
         Assert.True(type.TryGetRuntimeValue("BAR1", out var value));
         Assert.Equal(Foo.Bar1, value);
@@ -158,7 +157,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
+        var type = schema.Types.GetType<EnumType>("Foo");
         Assert.NotNull(type);
         Assert.True(type.TryGetRuntimeValue("BAR1", out var value));
         Assert.Equal(Foo.Bar1, value);
@@ -180,7 +179,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
+        var type = schema.Types.GetType<EnumType>("Foo");
         Assert.NotNull(type);
         Assert.True(type.TryGetRuntimeValue("BAR1", out var value));
         Assert.Equal(Foo.Bar1, value);
@@ -235,7 +234,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
+        var type = schema.Types.GetType<EnumType>("Foo");
         Assert.NotNull(type);
 
         Assert.Collection(
@@ -272,7 +271,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
+        var type = schema.Types.GetType<EnumType>("Foo");
         Assert.Equal(TypeKind.Enum, type.Kind);
     }
 
@@ -372,7 +371,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
+        var type = schema.Types.GetType<EnumType>("Foo");
         Assert.Collection(type.Values,
             v => Assert.Collection(v.Directives,
                 t => Assert.Equal("bar", t.Type.Name)));
@@ -395,7 +394,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
+        var type = schema.Types.GetType<EnumType>("Foo");
         Assert.Collection(type.Values,
             v => Assert.Collection(v.Directives,
                 t => Assert.Equal("bar", t.Type.Name)));
@@ -438,7 +437,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
+        var type = schema.Types.GetType<EnumType>("Foo");
         Assert.Collection(type.Values,
             v => Assert.Collection(v.Directives,
                 t => Assert.Equal("bar", t.Type.Name)));
@@ -461,7 +460,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
+        var type = schema.Types.GetType<EnumType>("Foo");
         Assert.Collection(type.Values,
             v => Assert.Collection(v.Directives,
                 t => Assert.Equal("bar", t.Type.Name)));
@@ -477,19 +476,13 @@ public class EnumTypeTests : TypeTestBase
                 .Name("Foo")
                 .Value("bar")
                 .Extend()
-                .OnBeforeCreate(def => def.ContextData["baz"] = "qux"))
+                .OnBeforeCreate(def => def.Features.Set(new CustomFeature())))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
-        Assert.Collection(type.Values,
-            v => Assert.Collection(v.ContextData,
-                c =>
-                {
-                    Assert.Equal("baz", c.Key);
-                    Assert.Equal("qux", c.Value);
-                }));
+        var type = schema.Types.GetType<EnumType>("Foo");
+        Assert.Collection(type.Values, v => Assert.NotNull(v.Features.Get<CustomFeature>()));
     }
 
     [Fact]
@@ -497,7 +490,7 @@ public class EnumTypeTests : TypeTestBase
     {
         // arrange
         // act
-        void Action() => new EnumValue(null!);
+        void Action() => new DefaultEnumValue(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -508,7 +501,7 @@ public class EnumTypeTests : TypeTestBase
     {
         // arrange
         // act
-        void Action() => new EnumValue(new EnumValueDefinition());
+        void Action() => new DefaultEnumValue(new EnumValueConfiguration());
 
         // assert
         Assert.Throws<ArgumentException>(Action);
@@ -601,7 +594,7 @@ public class EnumTypeTests : TypeTestBase
     public void Generic_Ignore_Descriptor_Is_Null()
     {
         void Fail()
-            => EnumTypeDescriptorExtensions.Ignore<int>(default(IEnumTypeDescriptor<int>)!, 1);
+            => EnumTypeDescriptorExtensions.Ignore(default(IEnumTypeDescriptor<int>)!, 1);
 
         Assert.Throws<ArgumentNullException>(Fail);
     }
@@ -612,7 +605,7 @@ public class EnumTypeTests : TypeTestBase
         var descriptor = new Mock<IEnumTypeDescriptor<int?>>();
 
         void Fail()
-            => EnumTypeDescriptorExtensions.Ignore<int?>(descriptor.Object, null);
+            => EnumTypeDescriptorExtensions.Ignore(descriptor.Object, null);
 
         Assert.Throws<ArgumentNullException>(Fail);
     }
@@ -621,7 +614,7 @@ public class EnumTypeTests : TypeTestBase
     public void Ignore_Descriptor_Is_Null()
     {
         void Fail()
-            => EnumTypeDescriptorExtensions.Ignore<int>(default(IEnumTypeDescriptor)!, 1);
+            => EnumTypeDescriptorExtensions.Ignore(default(IEnumTypeDescriptor)!, 1);
 
         Assert.Throws<ArgumentNullException>(Fail);
     }
@@ -655,7 +648,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
+        var type = schema.Types.GetType<EnumType>("Foo");
         Assert.True(type.IsInstanceOfType(new EnumValueNode("baz")));
     }
 
@@ -677,7 +670,7 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<EnumType>("Foo");
+        var type = schema.Types.GetType<EnumType>("Foo");
         Assert.True(type.IsInstanceOfType("ANYTHING WILL DO"));
     }
 
@@ -719,7 +712,7 @@ public class EnumTypeTests : TypeTestBase
     public enum Foo
     {
         Bar1,
-        Bar2,
+        Bar2
     }
 
     public class Bar;
@@ -728,13 +721,13 @@ public class EnumTypeTests : TypeTestBase
     {
         Bar1,
 
-        [Obsolete] Bar2,
+        [Obsolete] Bar2
     }
 
     public enum FooIgnore
     {
         Bar1,
-        [GraphQLIgnore] Bar2,
+        [GraphQLIgnore] Bar2
     }
 
     public enum CriticalityLevel
@@ -776,19 +769,19 @@ public class EnumTypeTests : TypeTestBase
     public enum FooDeprecated
     {
         Bar1,
-        [GraphQLDeprecated("Baz.")] Bar2,
+        [GraphQLDeprecated("Baz.")] Bar2
     }
 
     [GraphQLName("Foo")]
     public enum FooName
     {
         Bar1,
-        [GraphQLName("BAR_2")] Bar2,
+        [GraphQLName("BAR_2")] Bar2
     }
 
     public enum FooUnderline
     {
-        Creating_Instance = 1,
+        Creating_Instance = 1
     }
 
     public class SomeQueryType : ObjectType
@@ -815,7 +808,7 @@ public class EnumTypeTests : TypeTestBase
     public enum DescriptionTestEnum
     {
         Foo,
-        Bar,
+        Bar
     }
 
     public class ValueComparer : IEqualityComparer<object>
@@ -830,4 +823,6 @@ public class EnumTypeTests : TypeTestBase
             return 1;
         }
     }
+
+    public sealed class CustomFeature;
 }

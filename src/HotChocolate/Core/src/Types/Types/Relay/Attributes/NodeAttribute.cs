@@ -2,7 +2,7 @@
 
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Relay.Descriptors;
 using static System.Reflection.BindingFlags;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -76,10 +76,10 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
                     completionContext.DescriptorContext,
                     definition);
                 nodeDescriptor.ConfigureNodeField(typeDescriptor);
-                typeDescriptor.CreateDefinition();
+                typeDescriptor.CreateConfiguration();
 
                 // invoke completion explicitly.
-                nodeDescriptor.OnCompleteDefinition(completionContext, definition);
+                nodeDescriptor.OnCompleteConfiguration(completionContext, definition);
             });
 
         descriptor.Extend().OnBeforeCompletion((completionContext, definition) =>
@@ -142,7 +142,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             }
 
             // invoke completion explicitly.
-            nodeDescriptor.OnCompleteDefinition(completionContext, definition);
+            nodeDescriptor.OnCompleteConfiguration(completionContext, definition);
         });
     }
 }

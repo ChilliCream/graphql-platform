@@ -90,7 +90,7 @@ public static class SyntaxNodeExtensions
             return (NamedTypeNode)innerType;
         }
 
-        for(var i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++)
         {
             innerType = innerType.InnerType();
 

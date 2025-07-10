@@ -1,12 +1,12 @@
-﻿[
+[
   {
     "Message": "The specified directive `onField` is not supported by the current schema.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 2,
-        "Column": 41
+        "Line": 1,
+        "Column": 25
       }
     ],
     "Extensions": {

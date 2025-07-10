@@ -124,7 +124,7 @@ public sealed class ExtensionData
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Dictionary<string, object?> Dict()
-        => _dict ??= new Dictionary<string, object?>();
+        => _dict ??= [];
 
     internal bool TryGetInnerDictionary(
         [NotNullWhen(true)] out Dictionary<string, object?>? dictionary)

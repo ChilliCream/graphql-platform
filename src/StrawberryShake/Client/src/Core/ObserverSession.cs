@@ -28,10 +28,7 @@ internal class ObserverSession : IDisposable
     {
         lock (_sync)
         {
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(typeof(ObserverSession).FullName);
-            }
+            ObjectDisposedException.ThrowIf(_disposed, this);
 
             _storeSession = storeSession;
         }

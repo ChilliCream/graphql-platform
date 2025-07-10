@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Utilities;
 
@@ -58,10 +57,10 @@ public class CombinedServiceProviderTests
         motivate changes to the subject-under-test (i.e. CombinedServiceProvider).
         ***/
         IServiceProvider stringServices = new DictionaryServiceProvider(
-            (typeof(IEnumerable<string>), new List<string>(new[] { "one", "two", })));
+            (typeof(IEnumerable<string>), new List<string>(["one", "two"])));
 
         IServiceProvider numberServices = new DictionaryServiceProvider(
-            (typeof(IEnumerable<int>), new List<int>(new[] { 1, 2, 3, 4, 5, })));
+            (typeof(IEnumerable<int>), new List<int>([1, 2, 3, 4, 5])));
 
         IServiceProvider services = new CombinedServiceProvider(stringServices, numberServices);
 

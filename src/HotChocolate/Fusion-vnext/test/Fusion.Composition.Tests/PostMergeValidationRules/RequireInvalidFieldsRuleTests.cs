@@ -1,9 +1,11 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PostMergeValidationRules;
 
-public sealed class RequireInvalidFieldsRuleTests : CompositionTestBase
+public sealed class RequireInvalidFieldsRuleTests
 {
     private static readonly object s_rule = new RequireInvalidFieldsRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -15,7 +17,9 @@ public sealed class RequireInvalidFieldsRuleTests : CompositionTestBase
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var merger = new SourceSchemaMerger(schemas);
+        var merger = new SourceSchemaMerger(
+            schemas,
+            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
         var mergeResult = merger.Merge();
         var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
@@ -33,7 +37,9 @@ public sealed class RequireInvalidFieldsRuleTests : CompositionTestBase
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var merger = new SourceSchemaMerger(schemas);
+        var merger = new SourceSchemaMerger(
+            schemas,
+            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
         var mergeResult = merger.Merge();
         var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
@@ -120,6 +126,45 @@ public sealed class RequireInvalidFieldsRuleTests : CompositionTestBase
                     type Book {
                         id: ID!
                         pages(pageSize: Int @require(field: "unknownField")): Int
+                    }
+                    """
+                ],
+                [
+                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' " +
+                    "specifies an invalid field selection against the composed schema."
+                ]
+            },
+            // In the following example, the @require directive references a field from itself
+            // (Book.size) which is not allowed. This results in a REQUIRE_INVALID_FIELDS error.
+            {
+                [
+                    """
+                    type Book {
+                        id: ID!
+                        size: Int
+                        pages(pageSize: Int @require(field: "size")): Int
+                    }
+                    """
+                ],
+                [
+                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' " +
+                    "specifies an invalid field selection against the composed schema."
+                ]
+            },
+            // Referencing a field that exists in both the current schema and another schema.
+            {
+                [
+                    """
+                    type Book {
+                        id: ID!
+                        size: Int
+                        pages(pageSize: Int @require(field: "size")): Int
+                    }
+                    """,
+                    """
+                    type Book {
+                        id: ID!
+                        size: Int
                     }
                     """
                 ],

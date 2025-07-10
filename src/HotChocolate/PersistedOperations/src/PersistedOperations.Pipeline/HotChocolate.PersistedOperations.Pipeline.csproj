@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.PersistedOperations.Pipeline</PackageId>
+    <AssemblyName>HotChocolate.PersistedOperations.Pipeline</AssemblyName>
+    <RootNamespace>HotChocolate</RootNamespace>
+    <Description>Pipeline for Hot Chocolate persisted operations.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PersistedOperations.Abstractions\HotChocolate.PersistedOperations.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+</Project>

@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PreMergeValidationRules;
 
-public sealed class TypeKindMismatchRuleTests : CompositionTestBase
+public sealed class TypeKindMismatchRuleTests
 {
     private static readonly object s_rule = new TypeKindMismatchRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -73,9 +74,9 @@ public sealed class TypeKindMismatchRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // In the following example, "User" is defined as an object type in Schema A, an
-            // interface type in Schema B, and an input object type in Schema C. This violates the
-            // rule.
+            // In the following example, "User" is defined as an object type in one of the schemas
+            // and as an interface in another. This violates the rule and results in a
+            // TYPE_KIND_MISMATCH error.
             {
                 [
                     """
@@ -91,20 +92,11 @@ public sealed class TypeKindMismatchRuleTests : CompositionTestBase
                         id: ID!
                         friends: [User!]!
                     }
-                    """,
-                    """
-                    # Schema C
-                    input User {
-                        id: ID!
-                    }
                     """
                 ],
                 [
                     "The type 'User' has a different kind in schema 'A' (Object) than it does in " +
-                    "schema 'B' (Interface).",
-
-                    "The type 'User' has a different kind in schema 'B' (Interface) than it does " +
-                    "in schema 'C' (InputObject)."
+                    "schema 'B' (Interface)."
                 ]
             }
         };

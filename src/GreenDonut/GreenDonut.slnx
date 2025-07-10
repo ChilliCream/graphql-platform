@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GreenDonut.Abstractions/GreenDonut.Abstractions.csproj" />
+    <Project Path="src/GreenDonut.Data.Abstractions/GreenDonut.Data.Abstractions.csproj" />
+    <Project Path="src/GreenDonut.Data.EntityFramework/GreenDonut.Data.EntityFramework.csproj" />
+    <Project Path="src/GreenDonut.Data.Primitives/GreenDonut.Data.Primitives.csproj" />
+    <Project Path="src/GreenDonut.Data/GreenDonut.Data.csproj" />
+    <Project Path="src/GreenDonut/GreenDonut.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/GreenDonut.Data.EntityFramework.Tests/GreenDonut.Data.EntityFramework.Tests.csproj" />
+    <Project Path="test/GreenDonut.Data.Tests/GreenDonut.Data.Tests.csproj" />
+    <Project Path="test/GreenDonut.Tests/GreenDonut.Tests.csproj" />
+  </Folder>
+</Solution>

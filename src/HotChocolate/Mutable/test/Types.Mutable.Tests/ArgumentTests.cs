@@ -8,8 +8,8 @@ public class ArgumentTests
     public void Argument_WithStringValueNode_CreatesInstanceWithNameAndValueNode()
     {
         // arrange
-        var name = "test";
-        var value = "value";
+        const string name = "test";
+        const string value = "value";
 
         // act
         var argument = new ArgumentAssignment(name, value);
@@ -24,8 +24,8 @@ public class ArgumentTests
     public void Argument_WithIntValueNode_CreatesInstanceWithNameAndValueNode()
     {
         // arrange
-        var name = "test";
-        var value = 42;
+        const string name = "test";
+        const int value = 42;
 
         // act
         var argument = new ArgumentAssignment(name, value);
@@ -40,8 +40,8 @@ public class ArgumentTests
     public void Argument_WithFloatValueNode_CreatesInstanceWithNameAndValueNode()
     {
         // arrange
-        var name = "test";
-        var value = 3.14;
+        const string name = "test";
+        const double value = 3.14;
 
         // act
         var argument = new ArgumentAssignment(name, value);
@@ -56,8 +56,8 @@ public class ArgumentTests
     public void Argument_WithBooleanValueNode_CreatesInstanceWithNameAndValueNode()
     {
         // arrange
-        var name = "test";
-        var value = true;
+        const string name = "test";
+        const bool value = true;
 
         // act
         var argument = new ArgumentAssignment(name, value);
@@ -72,7 +72,7 @@ public class ArgumentTests
     public void Argument_WithIValueNode_CreatesInstanceWithNameAndValueNode()
     {
         // arrange
-        var name = "test";
+        const string name = "test";
         var value = new StringValueNode("value");
 
         // act

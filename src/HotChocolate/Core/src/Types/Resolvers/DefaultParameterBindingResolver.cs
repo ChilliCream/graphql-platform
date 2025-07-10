@@ -17,6 +17,7 @@ public sealed class DefaultParameterBindingResolver : IParameterBindingResolver
     {
         var serviceInspector = applicationServices.GetService<IServiceProviderIsService>();
 
+        // explicit internal expression builders will be added first.
         var bindingFactories = new List<IParameterBindingFactory>
         {
             new ParentParameterExpressionBuilder(),
@@ -31,6 +32,8 @@ public sealed class DefaultParameterBindingResolver : IParameterBindingResolver
 
         if (customBindingFactories is not null)
         {
+            // then we will add custom parameter expression builder and
+            // give the user a chance to override our implicit expression builder.
             bindingFactories.AddRange(
                 customBindingFactories
                     .Where(t => !t.IsDefaultHandler)
@@ -56,7 +59,7 @@ public sealed class DefaultParameterBindingResolver : IParameterBindingResolver
         bindingFactories.Add(new PathParameterExpressionBuilder());
         bindingFactories.Add(new ConnectionFlagsParameterExpressionBuilder());
 
-         if (customBindingFactories is not null)
+        if (customBindingFactories is not null)
         {
             bindingFactories.AddRange(
                 customBindingFactories

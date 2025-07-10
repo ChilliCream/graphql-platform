@@ -20,11 +20,11 @@ public class SchemaCache(MongoResource resource) : ProjectionVisitorTestBase
         (Type, T[] entites) key = (typeof(T), entities);
         return _cache.GetOrAdd(
             key,
-            _ => base.CreateSchema(
+            _ => CreateSchema(
                 entities,
+                mongoResource: resource,
                 usePaging: usePaging,
                 useOffsetPaging: useOffsetPaging,
-                mongoResource: resource,
                 objectType: objectType));
     }
 

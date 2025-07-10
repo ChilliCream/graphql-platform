@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution.Internal;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -14,10 +15,10 @@ internal partial class MiddlewareContext
     private sealed class PureResolverContext(MiddlewareContext parentContext) : IResolverContext
     {
         private ITypeConverter? _typeConverter;
-        private IReadOnlyDictionary<string, ArgumentValue> _argumentValues = default!;
-        private ISelection _selection = default!;
-        private ObjectType _parentType = default!;
-        private ObjectResult _parentResult = default!;
+        private IReadOnlyDictionary<string, ArgumentValue> _argumentValues = null!;
+        private ISelection _selection = null!;
+        private ObjectType _parentType = null!;
+        private ObjectResult _parentResult = null!;
         private object? _parent;
 
         public bool Initialize(
@@ -48,16 +49,16 @@ internal partial class MiddlewareContext
 
         public void Clear()
         {
-            _selection = default!;
-            _parentType = default!;
-            _parentResult = default!;
+            _selection = null!;
+            _parentType = null!;
+            _parentResult = null!;
             _parent = null;
-            _argumentValues = default!;
+            _argumentValues = null!;
         }
 
-        public ISchema Schema => parentContext.Schema;
+        public Schema Schema => parentContext.Schema;
 
-        public IObjectType ObjectType => _parentType;
+        public ObjectType ObjectType => _parentType;
 
         public IOperation Operation => parentContext.Operation;
 
@@ -73,11 +74,11 @@ internal partial class MiddlewareContext
         public void ReportError(IError error)
             => throw new NotSupportedException();
 
-        public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
+        public void ReportError(Exception exception, Action<ErrorBuilder>? configure = null)
             => throw new NotSupportedException();
 
         public IReadOnlyList<ISelection> GetSelections(
-            IObjectType typeContext,
+            ObjectType typeContext,
             ISelection? selection = null,
             bool allowInternals = false)
             => throw new NotSupportedException();
@@ -125,15 +126,12 @@ internal partial class MiddlewareContext
                     Selection.Field.Coordinate,
                     Path,
                     typeof(T),
-                    _parent.GetType()),
+                    _parent.GetType())
             };
 
         public T ArgumentValue<T>(string name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
@@ -146,10 +144,7 @@ internal partial class MiddlewareContext
         public TValueNode ArgumentLiteral<TValueNode>(string name)
             where TValueNode : IValueNode
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
@@ -169,10 +164,7 @@ internal partial class MiddlewareContext
 
         public Optional<T> ArgumentOptional<T>(string name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
@@ -203,9 +195,10 @@ internal partial class MiddlewareContext
         }
 
         public IServiceProvider RequestServices
-        {
-            get => parentContext.RequestServices;
-        }
+            => parentContext.RequestServices;
+
+        public IFeatureCollection Features
+            => parentContext.Features;
 
         public object Service(Type service)
             => parentContext.Service(service);
@@ -263,7 +256,7 @@ internal partial class MiddlewareContext
 
                 if (typeof(T).IsInterface)
                 {
-                    var o = dictToObjConverter.Convert(value, argument.Type.RuntimeType);
+                    var o = dictToObjConverter.Convert(value, argument.Type.ToRuntimeType());
                     if (o is T c)
                     {
                         return c;

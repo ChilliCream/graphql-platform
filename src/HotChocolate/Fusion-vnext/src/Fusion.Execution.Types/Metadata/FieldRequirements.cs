@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Types;
 public sealed class FieldRequirements(
     string schemaName,
     ImmutableArray<RequiredArgument> arguments,
-    ImmutableArray<FieldPath> fields,
+    ImmutableArray<FieldPath?> fields,
     SelectionSetNode selectionSet)
 {
     /// <summary>
@@ -22,7 +22,7 @@ public sealed class FieldRequirements(
     /// <summary>
     /// Gets the paths to the field that are required.
     /// </summary>
-    public ImmutableArray<FieldPath> Fields { get; } = fields;
+    public ImmutableArray<FieldPath?> Fields { get; } = fields;
 
     /// <summary>
     /// Gets the selection set that represents the field requirements.

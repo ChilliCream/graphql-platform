@@ -5,43 +5,74 @@ namespace HotChocolate.Types.Mutable;
 
 public abstract class FieldDefinitionCollection<TField> : IList<TField> where TField : IFieldDefinition
 {
-    private readonly OrderedDictionary<string, TField> _fields = new();
+    private readonly OrderedDictionary<string, TField> _fields = [];
+
+    protected FieldDefinitionCollection(ITypeSystemMember declaringMember)
+    {
+        ArgumentNullException.ThrowIfNull(declaringMember);
+        DeclaringMember = declaringMember;
+    }
+
+    public ITypeSystemMember DeclaringMember { get; }
 
     public int Count => _fields.Count;
 
     public bool IsReadOnly => false;
 
-    public TField this[string name] => _fields[name];
+    public TField this[string name]
+    {
+        get
+        {
+            ArgumentException.ThrowIfNullOrEmpty(name);
+
+            return _fields[name];
+        }
+    }
+
+    public TField this[int index]
+    {
+        get
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+            return _fields.GetAt(index).Value;
+        }
+
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            ArgumentOutOfRangeException.ThrowIfNegative(index);
+
+            RemoveAt(index);
+            Insert(index, value);
+        }
+    }
 
     public bool TryGetField(string name, [NotNullWhen(true)] out TField? field)
-        => _fields.TryGetValue(name, out field);
+    {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
+        return _fields.TryGetValue(name, out field);
+    }
 
     public void Insert(int index, TField field)
     {
-        if (field is null)
-        {
-            throw new ArgumentNullException(nameof(field));
-        }
+        ArgumentNullException.ThrowIfNull(field);
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
 
         _fields.Insert(index, field.Name, field);
     }
 
     public void Add(TField item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
         _fields.Add(item.Name, item);
     }
 
     public bool Remove(TField item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
         if (_fields.TryGetValue(item.Name, out var itemToDelete) &&
             ReferenceEquals(item, itemToDelete))
@@ -54,71 +85,53 @@ public abstract class FieldDefinitionCollection<TField> : IList<TField> where TF
     }
 
     public bool Remove(string name)
-        => _fields.Remove(name);
+    {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+        return _fields.Remove(name);
+    }
 
     public void RemoveAt(int index)
     {
-        if (index < 0 || index >= _fields.Count)
-        {
-            throw new ArgumentOutOfRangeException(nameof(index));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
 
         _fields.RemoveAt(index);
-    }
-
-    TField IList<TField>.this[int index]
-    {
-        get => _fields.GetAt(index).Value;
-        set
-        {
-            RemoveAt(index);
-            Insert(index, value);
-        }
     }
 
     public void Clear() => _fields.Clear();
 
     public bool ContainsName(string name)
-        => _fields.ContainsKey(name);
+    {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+        return _fields.ContainsKey(name);
+    }
 
     public bool Contains(TField item)
     {
-        if (item is null)
-        {
-            throw new ArgumentNullException(nameof(item));
-        }
+        ArgumentNullException.ThrowIfNull(item);
 
-        if (_fields.TryGetValue(item.Name, out var itemToDelete) &&
-            ReferenceEquals(item, itemToDelete))
-        {
-            return true;
-        }
-
-        return false;
+        return _fields.TryGetValue(item.Name, out var itemToDelete)
+            && ReferenceEquals(item, itemToDelete);
     }
 
     public int IndexOf(TField field)
     {
-        if (field is null)
-        {
-            throw new ArgumentNullException(nameof(field));
-        }
+        ArgumentNullException.ThrowIfNull(field);
 
         return _fields.IndexOf(field.Name);
     }
 
     public int IndexOf(string name)
     {
-        if (name is null)
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         return _fields.IndexOf(name);
     }
 
     public void CopyTo(TField[] array, int arrayIndex)
     {
+        ArgumentNullException.ThrowIfNull(array);
+        ArgumentOutOfRangeException.ThrowIfNegative(arrayIndex);
+
         foreach (var item in _fields)
         {
             array[arrayIndex++] = item.Value;

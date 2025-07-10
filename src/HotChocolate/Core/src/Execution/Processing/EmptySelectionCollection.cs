@@ -6,7 +6,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class EmptySelectionCollection : ISelectionCollection
 {
-    private static readonly ISelection[] _empty = [];
+    private static readonly ISelection[] s_empty = [];
 
     public static EmptySelectionCollection Instance { get; } = new();
 
@@ -20,7 +20,7 @@ internal sealed class EmptySelectionCollection : ISelectionCollection
     public ISelectionCollection Select(ReadOnlySpan<string> fieldNames)
         => Instance;
 
-    public ISelectionCollection Select(INamedType typeContext)
+    public ISelectionCollection Select(ITypeDefinition typeContext)
         => Instance;
 
     public bool IsSelected(string fieldName)
@@ -36,7 +36,7 @@ internal sealed class EmptySelectionCollection : ISelectionCollection
         => false;
 
     public IEnumerator<ISelection> GetEnumerator()
-        => _empty.AsEnumerable().GetEnumerator();
+        => s_empty.AsEnumerable().GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();

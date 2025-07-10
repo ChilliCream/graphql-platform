@@ -1,9 +1,10 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
-public sealed class ProvidesDirectiveInFieldsArgumentRuleTests : CompositionTestBase
+public sealed class ProvidesDirectiveInFieldsArgumentRuleTests
 {
     private static readonly object s_rule = new ProvidesDirectiveInFieldsArgumentRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -133,6 +134,11 @@ public sealed class ProvidesDirectiveInFieldsArgumentRuleTests : CompositionTest
                         id: ID!
                         name: String
                         profile: Profile @provides(fields: "id @example name @example")
+                    }
+
+                    type Profile {
+                        id: ID!
+                        name: String
                     }
                     """
                 ],

@@ -1,9 +1,10 @@
 using HotChocolate.Fusion.Options;
 using HotChocolate.Types.Mutable.Serialization;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SourceSchemaMergerOutputFieldTests : CompositionTestBase
+public sealed class SourceSchemaMergerOutputFieldTests
 {
     [Theory]
     [MemberData(nameof(ExamplesData))]
@@ -12,7 +13,11 @@ public sealed class SourceSchemaMergerOutputFieldTests : CompositionTestBase
         // arrange
         var merger = new SourceSchemaMerger(
             CreateSchemaDefinitions(sdl),
-            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+            new SourceSchemaMergerOptions
+            {
+                RemoveUnreferencedTypes = false,
+                AddFusionDefinitions = false
+            });
 
         // act
         var result = merger.Merge();
@@ -124,6 +129,7 @@ public sealed class SourceSchemaMergerOutputFieldTests : CompositionTestBase
                     """
                     # Schema A
                     type Product {
+                        percent: Int
                         discountPercentage(percent: Int): Int
                     }
                     """,
@@ -141,7 +147,9 @@ public sealed class SourceSchemaMergerOutputFieldTests : CompositionTestBase
                     discountPercentage: Int
                         @fusion__field(schema: A)
                         @fusion__field(schema: B)
-                        @fusion__requires(schema: B, field: "discountPercentage(percent: Int): Int", map: [ "percent" ])
+                        @fusion__requires(schema: B, requirements: "percent", field: "discountPercentage(percent: Int): Int", map: [ "percent" ])
+                    percent: Int
+                        @fusion__field(schema: A)
                 }
                 """
             },
@@ -225,6 +233,50 @@ public sealed class SourceSchemaMergerOutputFieldTests : CompositionTestBase
                         @fusion__field(schema: A)
                         @fusion__field(schema: B)
                         @fusion__inaccessible
+                }
+                """
+            },
+            // The field "price" is only available in Schema C, it is overridden elsewhere.
+            {
+                [
+                    """
+                    type Product @key(fields: "id") {
+                        id: ID!
+                        name: String!
+                        price: Float!
+                    }
+                    """,
+                    """
+                    type Product @key(fields: "id") {
+                        id: ID! @external
+                        price: Float! @override(from: "A")
+                        tax: Float!
+                    }
+                    """,
+                    """
+                    type Product @key(fields: "id") {
+                        id: ID! @external
+                        price: Float! @override(from: "B")
+                        tax: Float!
+                    }
+                    """
+                ],
+                """
+                type Product
+                    @fusion__type(schema: A)
+                    @fusion__type(schema: B)
+                    @fusion__type(schema: C) {
+                    id: ID!
+                        @fusion__field(schema: A)
+                        @fusion__field(schema: B, partial: true)
+                        @fusion__field(schema: C, partial: true)
+                    name: String!
+                        @fusion__field(schema: A)
+                    price: Float!
+                        @fusion__field(schema: C)
+                    tax: Float!
+                        @fusion__field(schema: B)
+                        @fusion__field(schema: C)
                 }
                 """
             },

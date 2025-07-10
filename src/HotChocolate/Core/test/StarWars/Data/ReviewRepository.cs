@@ -4,8 +4,7 @@ namespace HotChocolate.StarWars.Data;
 
 public class ReviewRepository
 {
-    private readonly Dictionary<Episode, List<Review>> _data =
-        new Dictionary<Episode, List<Review>>();
+    private readonly Dictionary<Episode, List<Review>> _data = [];
 
     public void AddReview(Episode episode, Review review)
     {

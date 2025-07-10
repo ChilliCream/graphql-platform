@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Pagination.Utilities;
 using HotChocolate.Utilities;
@@ -192,7 +191,7 @@ public abstract class CursorPagingHandler<TQuery, TEntity>(PagingOptions options
 
         if (moreItemsReturnedThanRequested)
         {
-            edges = edges.Slice(0, length);
+            edges = edges[..length];
         }
 
         var pageInfo = CreatePageInfo(isSequenceFromStart, moreItemsReturnedThanRequested, edges);

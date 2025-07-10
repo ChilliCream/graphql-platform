@@ -1040,10 +1040,10 @@ public class SemanticNonNullTests
         #endregion
 
         [UsePaging]
-        public string[] ScalarConnection() => new[] { "a", null!, "c" };
+        public string[] ScalarConnection() => ["a", null!, "c"];
 
         [UsePaging]
-        public string?[] NullableScalarConnection() => new[] { "a", null, "c" };
+        public string?[] NullableScalarConnection() => ["a", null, "c"];
     }
 
     public record SomeObject(string Property);

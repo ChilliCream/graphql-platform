@@ -27,10 +27,7 @@ public sealed class FileReference
     /// </exception>
     public FileReference(Stream stream, string fileName)
     {
-        if (stream == null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
+        ArgumentNullException.ThrowIfNull(stream);
 
         if (string.IsNullOrWhiteSpace(fileName))
         {

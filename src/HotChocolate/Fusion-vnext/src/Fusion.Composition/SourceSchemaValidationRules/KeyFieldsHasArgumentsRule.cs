@@ -18,15 +18,15 @@ internal sealed class KeyFieldsHasArgumentsRule : IEventHandler<KeyFieldEvent>
 {
     public void Handle(KeyFieldEvent @event, CompositionContext context)
     {
-        var (keyDirective, entityType, field, type, schema) = @event;
+        var (keyField, keyFieldDeclaringType, keyDirective, type, schema) = @event;
 
-        if (field.Arguments.Count != 0)
+        if (keyField.Arguments.Count != 0)
         {
             context.Log.Write(
                 KeyFieldsHasArguments(
-                    entityType.Name,
+                    keyField.Name,
+                    keyFieldDeclaringType.Name,
                     keyDirective,
-                    field.Name,
                     type.Name,
                     schema));
         }

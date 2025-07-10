@@ -1,7 +1,8 @@
 #pragma warning disable IDE1006 // Naming Styles
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
@@ -13,7 +14,7 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __Schema : ObjectType
 {
-    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var stringType = Create(ScalarNames.String);
         var typeListType = Parse($"[{nameof(__Type)}!]!");
@@ -22,7 +23,7 @@ internal sealed class __Schema : ObjectType
         var directiveListType = Parse($"[{nameof(__Directive)}!]!");
         var appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
-        var def = new ObjectTypeDefinition(Names.__Schema, Schema_Description, typeof(ISchema))
+        var def = new ObjectTypeConfiguration(Names.__Schema, Schema_Description, typeof(ISchemaDefinition))
         {
             Fields =
                 {
@@ -43,8 +44,8 @@ internal sealed class __Schema : ObjectType
                     new(Names.Directives,
                         Schema_Directives,
                         directiveListType,
-                        pureResolver: Resolvers.Directives),
-                },
+                        pureResolver: Resolvers.Directives)
+                }
         };
 
         if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
@@ -61,27 +62,29 @@ internal sealed class __Schema : ObjectType
     private static class Resolvers
     {
         public static object? Description(IResolverContext context)
-            => context.Parent<ISchema>().Description;
+            => context.Parent<ISchemaDefinition>().Description;
 
         public static object Types(IResolverContext context)
-            => context.Parent<ISchema>().Types;
+            => context.Parent<ISchemaDefinition>().Types;
 
         public static object QueryType(IResolverContext context)
-            => context.Parent<ISchema>().QueryType;
+            => context.Parent<ISchemaDefinition>().QueryType;
 
         public static object? MutationType(IResolverContext context)
-            => context.Parent<ISchema>().MutationType;
+            => context.Parent<ISchemaDefinition>().MutationType;
 
         public static object? SubscriptionType(IResolverContext context)
-            => context.Parent<ISchema>().SubscriptionType;
+            => context.Parent<ISchemaDefinition>().SubscriptionType;
 
         public static object Directives(IResolverContext context)
-            => context.Parent<ISchema>().DirectiveTypes.Where(t => t.IsPublic);
+            => context.Parent<ISchemaDefinition>()
+                .DirectiveDefinitions
+                .Where(t => Unsafe.As<DirectiveType>(t).IsPublic);
 
         public static object AppliedDirectives(IResolverContext context)
-            => context.Parent<ISchema>().Directives
-                .Where(t => t.Type.IsPublic)
-                .Select(d => d.AsSyntaxNode());
+            => context.Parent<ISchemaDefinition>().Directives
+                .Where(t => Unsafe.As<DirectiveType>(t).IsPublic)
+                .Select(d => d.ToSyntaxNode());
     }
 
     public static class Names

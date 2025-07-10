@@ -124,6 +124,46 @@ internal ref struct FieldSelectionMapReader
         throw new FieldSelectionMapSyntaxException(this, UnexpectedCharacter, code);
     }
 
+    public readonly TokenKind GetNextTokenKind()
+    {
+        if (Position >= _length)
+        {
+            return TokenKind.EndOfFile;
+        }
+
+        var position = Position;
+        var code = _sourceText[position];
+
+        // Skip insignificant characters.
+        while (position < _length - 1)
+        {
+            if (code
+                is CharConstants.Space
+                or CharConstants.LineFeed
+                or CharConstants.Return
+                or CharConstants.HorizontalTab
+                or CharConstants.Comma)
+            {
+                code = _sourceText[++position];
+                continue;
+            }
+
+            break;
+        }
+
+        if (code.IsPunctuator())
+        {
+            return GetPunctuatorTokenKind(code);
+        }
+
+        if (code.IsLetterOrUnderscore())
+        {
+            return TokenKind.Name;
+        }
+
+        throw new FieldSelectionMapSyntaxException(this, UnexpectedCharacter, code);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Skip(TokenKind tokenKind)
     {
@@ -197,13 +237,7 @@ internal ref struct FieldSelectionMapReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void NewLine(int lines)
     {
-        if (lines < 1)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(lines),
-                lines,
-                NewLineMustBeGreaterThanOrEqualToOne);
-        }
+        ArgumentOutOfRangeException.ThrowIfLessThan(lines, 1);
 
         Line += lines;
         LineStart = Position;
@@ -219,8 +253,13 @@ internal ref struct FieldSelectionMapReader
         Start = Position;
         End = ++Position;
         Value = null;
+        TokenKind = GetPunctuatorTokenKind(code);
+    }
 
-        TokenKind = code switch
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static TokenKind GetPunctuatorTokenKind(char code)
+    {
+        return code switch
         {
             CharConstants.Colon => TokenKind.Colon,
             CharConstants.LeftAngleBracket => TokenKind.LeftAngleBracket,
@@ -244,12 +283,13 @@ internal ref struct FieldSelectionMapReader
         var start = Position;
         var position = Position;
 
-        while (++position < _length && _sourceText[position].IsLetterOrDigitOrUnderscore()) { }
+        while (++position < _length && _sourceText[position].IsLetterOrDigitOrUnderscore())
+        { }
 
         TokenKind = TokenKind.Name;
         Start = start;
         End = position;
-        Value = _sourceText.Slice(start, position - start);
+        Value = _sourceText[start..position];
         Position = position;
     }
 

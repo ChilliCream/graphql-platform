@@ -1,4 +1,4 @@
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -9,5 +9,5 @@ namespace HotChocolate.Configuration;
 /// </summary>
 public delegate void OnInitializeType(
     ITypeDiscoveryContext context,
-    DefinitionBase? definition,
+    TypeSystemConfiguration? definition,
     IDictionary<string, object?> contextData);

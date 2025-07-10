@@ -10,7 +10,7 @@ public class MongoDbSortVisitorObjectTests
     : SchemaCache,
       IClassFixture<MongoResource>
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new()
         {
@@ -22,9 +22,9 @@ public class MongoDbSortVisitorObjectTests
                 BarString = "testatest",
                 ObjectArray =
                 [
-                    new() { Foo = new Foo { BarShort = 12, BarString = "a", }, },
-                ],
-            },
+                    new() { Foo = new Foo { BarShort = 12, BarString = "a" } }
+                ]
+            }
         },
         new()
         {
@@ -36,9 +36,9 @@ public class MongoDbSortVisitorObjectTests
                 BarString = "testbtest",
                 ObjectArray =
                 [
-                    new() { Foo = new Foo { BarShort = 14, BarString = "d", }, },
-                ],
-            },
+                    new() { Foo = new Foo { BarShort = 14, BarString = "d" } }
+                ]
+            }
         },
         new()
         {
@@ -48,12 +48,12 @@ public class MongoDbSortVisitorObjectTests
                 BarBool = false,
                 BarEnum = BarEnum.FOO,
                 BarString = "testctest",
-                ObjectArray = null!,
-            },
-        },
+                ObjectArray = null!
+            }
+        }
     ];
 
-    private static readonly BarNullable?[] _barNullableEntities =
+    private static readonly BarNullable?[] s_barNullableEntities =
     [
         new()
         {
@@ -63,11 +63,8 @@ public class MongoDbSortVisitorObjectTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<BarNullable>
-                {
-                    new() { Foo = new FooNullable { BarShort = 12, }, },
-                },
-            },
+                ObjectArray = [new() { Foo = new FooNullable { BarShort = 12 } }]
+            }
         },
         new()
         {
@@ -77,11 +74,8 @@ public class MongoDbSortVisitorObjectTests
                 BarBool = null,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                ObjectArray = new List<BarNullable>
-                {
-                    new() { Foo = new FooNullable { BarShort = null, }, },
-                },
-            },
+                ObjectArray = [new() { Foo = new FooNullable { BarShort = null } }]
+            }
         },
         new()
         {
@@ -91,11 +85,8 @@ public class MongoDbSortVisitorObjectTests
                 BarBool = false,
                 BarEnum = BarEnum.QUX,
                 BarString = "testctest",
-                ObjectArray = new List<BarNullable>
-                {
-                    new() { Foo = new FooNullable { BarShort = 14, }, },
-                },
-            },
+                ObjectArray = [new() { Foo = new FooNullable { BarShort = 14 } }]
+            }
         },
         new()
         {
@@ -105,10 +96,10 @@ public class MongoDbSortVisitorObjectTests
                 BarBool = false,
                 BarEnum = BarEnum.FOO,
                 BarString = "testdtest",
-                ObjectArray = null,
-            },
+                ObjectArray = null
+            }
         },
-        new() { Foo = null, },
+        new() { Foo = null }
     ];
 
     public MongoDbSortVisitorObjectTests(MongoResource resource)
@@ -120,7 +111,7 @@ public class MongoDbSortVisitorObjectTests
     public async Task Create_ObjectShort_OrderBy()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = CreateSchema<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -150,7 +141,7 @@ public class MongoDbSortVisitorObjectTests
     {
         // arrange
         var tester =
-            CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities!);
+            CreateSchema<BarNullable, BarNullableSortType>(s_barNullableEntities!);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -179,7 +170,7 @@ public class MongoDbSortVisitorObjectTests
     public async Task Create_ObjectEnum_OrderBy()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = CreateSchema<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -209,7 +200,7 @@ public class MongoDbSortVisitorObjectTests
     {
         // arrange
         var tester =
-            CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities!);
+            CreateSchema<BarNullable, BarNullableSortType>(s_barNullableEntities!);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -238,7 +229,7 @@ public class MongoDbSortVisitorObjectTests
     public async Task Create_ObjectString_OrderBy()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = CreateSchema<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -268,7 +259,7 @@ public class MongoDbSortVisitorObjectTests
     {
         // arrange
         var tester =
-            CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities!);
+            CreateSchema<BarNullable, BarNullableSortType>(s_barNullableEntities!);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -297,7 +288,7 @@ public class MongoDbSortVisitorObjectTests
     public async Task Create_ObjectBool_OrderBy()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarSortType>(_barEntities);
+        var tester = CreateSchema<Bar, BarSortType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -327,7 +318,7 @@ public class MongoDbSortVisitorObjectTests
     {
         // arrange
         var tester =
-            CreateSchema<BarNullable, BarNullableSortType>(_barNullableEntities!);
+            CreateSchema<BarNullable, BarNullableSortType>(s_barNullableEntities!);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -410,19 +401,15 @@ public class MongoDbSortVisitorObjectTests
         public FooNullable? Foo { get; set; }
     }
 
-    public class BarSortType : SortInputType<Bar>
-    {
-    }
+    public class BarSortType : SortInputType<Bar>;
 
-    public class BarNullableSortType : SortInputType<BarNullable>
-    {
-    }
+    public class BarNullableSortType : SortInputType<BarNullable>;
 
     public enum BarEnum
     {
         FOO,
         BAR,
         BAZ,
-        QUX,
+        QUX
     }
 }

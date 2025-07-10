@@ -1,9 +1,11 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
+using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PostMergeValidationRules;
 
-public sealed class EmptyMergedInterfaceTypeRuleTests : CompositionTestBase
+public sealed class EmptyMergedInterfaceTypeRuleTests
 {
     private static readonly object s_rule = new EmptyMergedInterfaceTypeRule();
     private static readonly ImmutableArray<object> s_rules = [s_rule];
@@ -15,7 +17,9 @@ public sealed class EmptyMergedInterfaceTypeRuleTests : CompositionTestBase
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var merger = new SourceSchemaMerger(schemas);
+        var merger = new SourceSchemaMerger(
+            schemas,
+            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
         var mergeResult = merger.Merge();
         var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
@@ -33,7 +37,9 @@ public sealed class EmptyMergedInterfaceTypeRuleTests : CompositionTestBase
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var merger = new SourceSchemaMerger(schemas);
+        var merger = new SourceSchemaMerger(
+            schemas,
+            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
         var mergeResult = merger.Merge();
         var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
@@ -51,42 +57,44 @@ public sealed class EmptyMergedInterfaceTypeRuleTests : CompositionTestBase
     {
         return new TheoryData<string[]>
         {
-            // TODO: Use examples from spec
+            // In the following example, the merged object type "Product" is valid. It includes all
+            // fields from both source schemas, with "price" being hidden due to the @inaccessible
+            // directive in one of the source schemas.
             {
                 [
                     """
                     # Schema A
-                    interface Author {
+                    interface Product {
                         name: String
-                        age: Int @inaccessible
+                        price: Int @inaccessible
                     }
                     """,
                     """
                     # Schema B
-                    interface Author {
-                        age: Int
-                        registered: Boolean
+                    interface Product {
+                        name: String
+                        inStock: Boolean
                     }
                     """
                 ]
             },
-            // TODO: Check spec text
             // If the @inaccessible directive is applied to an interface type itself, the entire
-            // merged interface type is excluded from the composite schema, and it is not required
-            // to contain any fields.
+            // merged interface type is excluded from the composite execution schema, and it is not
+            // required to contain any fields.
             {
                 [
                     """
                     # Schema A
-                    interface Author @inaccessible {
+                    interface Product @inaccessible {
                         name: String
-                        age: Int
+                        price: Int
                     }
                     """,
                     """
                     # Schema B
-                    interface Author {
-                        registered: Boolean
+                    interface Product {
+                        name: String
+                        inStock: Boolean
                     }
                     """
                 ]
@@ -98,28 +106,28 @@ public sealed class EmptyMergedInterfaceTypeRuleTests : CompositionTestBase
     {
         return new TheoryData<string[], string[]>
         {
-            // This example demonstrates an invalid merged interface type. In this case, "Author" is
-            // defined in two source schemas, but all fields are marked as @inaccessible in at least
-            // one of the source schemas, resulting in an empty merged interface type.
+            // This example demonstrates an invalid merged interface type. In this case, "Product"
+            // is defined in two source schemas, but all fields are marked as @inaccessible in at
+            // least one of the source schemas, resulting in an empty merged interface type.
             {
                 [
                     """
                     # Schema A
-                    interface Author {
-                        name: String @inaccessible
-                        registered: Boolean
+                    interface Product {
+                        name: String
+                        price: Int @inaccessible
                     }
                     """,
                     """
                     # Schema B
-                    interface Author {
-                        name: String
-                        registered: Boolean @inaccessible
+                    interface Product {
+                        name: String @inaccessible
+                        price: Int
                     }
                     """
                 ],
                 [
-                    "The merged interface type 'Author' is empty."
+                    "The merged interface type 'Product' is empty."
                 ]
             }
         };

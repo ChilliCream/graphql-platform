@@ -48,7 +48,22 @@
   <data name="FieldSelectionMapValidator_SelectionMissingRequiredFields" xml:space="preserve">
     <value>The selection on input type '{0}' must include all required fields.</value>
   </data>
-  <data name="FieldSelectionMapValidator_TypeMustBeObjectOrInterface" xml:space="preserve">
-    <value>The type '{0}' must be an object or interface.</value>
+  <data name="SelectionSetValidator_FieldDoesNotExistOnType" xml:space="preserve">
+    <value>The field '{0}' does not exist on the type '{1}'.</value>
+  </data>
+  <data name="SelectionSetValidator_FieldInvalidSubselections" xml:space="preserve">
+    <value>The field '{0}' does not return a composite type and cannot have subselections.</value>
+  </data>
+  <data name="SelectionSetValidator_FieldMissingSubselections" xml:space="preserve">
+    <value>The field '{0}' returns a composite type and must have subselections.</value>
+  </data>
+  <data name="SelectionSetValidator_InvalidTypeCondition" xml:space="preserve">
+    <value>The type '{0}' is not a possible type of type '{1}'.</value>
+  </data>
+  <data name="SelectionSetValidator_InvalidTypeConditionInSelectionSet" xml:space="preserve">
+    <value>The type condition in the selection set is invalid. Type '{0}' does not exist.</value>
+  </data>
+  <data name="SelectionSetValidator_UnionFieldInvalidSelections" xml:space="preserve">
+    <value>The field '{0}' returns a union type and must only include inline fragment selections.</value>
   </data>
 </root>

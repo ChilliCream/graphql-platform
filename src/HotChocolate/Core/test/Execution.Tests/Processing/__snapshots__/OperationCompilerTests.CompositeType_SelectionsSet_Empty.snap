@@ -1,4 +1,6 @@
-﻿query foo($v: Boolean) {
+query foo(
+  $v: Boolean
+) {
   hero(episode: EMPIRE) {
 
   }
@@ -6,7 +8,9 @@
 
 ---------------------------------------------------------
 
-query foo($v: Boolean) {
+query foo(
+  $v: Boolean
+) {
   ... on Query {
     hero(episode: EMPIRE) @__execute(id: 0, kind: PURE, type: COMPOSITE) {
       ... on Droid {
