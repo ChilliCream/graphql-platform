@@ -1,6 +1,8 @@
 using System.Buffers;
 using HotChocolate.Buffers;
+#if NET8_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
+#endif
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language;

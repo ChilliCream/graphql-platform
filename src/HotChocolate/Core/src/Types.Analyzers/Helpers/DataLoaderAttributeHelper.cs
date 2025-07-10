@@ -17,7 +17,11 @@ public static class DataLoaderAttributeHelper
 
     public static ImmutableHashSet<string> GetDataLoaderGroupKeys(this IMethodSymbol methodSymbol)
     {
+#if NET8_0_OR_GREATER
+        var groupNamesBuilder = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
+#else
         var groupNamesBuilder = ImmutableHashSet.CreateBuilder(StringComparer.Ordinal);
+#endif
         AddGroupNames(groupNamesBuilder, methodSymbol.GetAttributes());
         AddGroupNames(groupNamesBuilder, methodSymbol.ContainingType.GetAttributes());
         return groupNamesBuilder.Count == 0 ? [] : groupNamesBuilder.ToImmutable();

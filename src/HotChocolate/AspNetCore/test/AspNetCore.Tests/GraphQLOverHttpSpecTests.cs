@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using HotChocolate.AspNetCore.Formatters;
-using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;

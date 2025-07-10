@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Planning;
