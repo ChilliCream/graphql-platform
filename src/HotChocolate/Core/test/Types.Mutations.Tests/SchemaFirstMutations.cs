@@ -1,7 +1,6 @@
 using System.Buffers;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using CookieCrumble;
 using CookieCrumble.Formatters;
 
 namespace HotChocolate.Types;
@@ -22,7 +21,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true,
+                        ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -45,7 +44,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true,
+                        ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -68,7 +67,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true,
+                        ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -92,7 +91,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true,
+                        ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -116,7 +115,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true,
+                        ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -139,7 +138,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true,
+                        ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -165,7 +164,7 @@ public class SchemaFirstMutations
                     ctx => ctx.ArgumentValue<string?>("something"))
                 .BindRuntimeType<Mutation>()
                 .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true, })
+                    new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
                     @"mutation {

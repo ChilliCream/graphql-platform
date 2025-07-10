@@ -6,28 +6,27 @@ namespace HotChocolate.Data.Sorting;
 
 public class SortConventionDescriptor : ISortConventionDescriptor
 {
-    private readonly Dictionary<int, SortOperationConventionDescriptor> _operations =
-        new Dictionary<int, SortOperationConventionDescriptor>();
+    private readonly Dictionary<int, SortOperationConventionDescriptor> _operations = [];
 
     protected SortConventionDescriptor(IDescriptorContext context, string? scope)
     {
         Context = context ?? throw new ArgumentNullException(nameof(context));
-        Definition.Scope = scope;
+        Configuration.Scope = scope;
     }
 
     protected IDescriptorContext Context { get; }
 
-    protected SortConventionDefinition Definition { get; } = new();
+    protected SortConventionConfiguration Configuration { get; } = new();
 
-    public SortConventionDefinition CreateDefinition()
+    public SortConventionConfiguration CreateConfiguration()
     {
-        // collect all operation configurations and add them to the convention definition.
+        // collect all operation configurations and add them to the convention configuration.
         foreach (var operation in _operations.Values)
         {
-            Definition.Operations.Add(operation.CreateDefinition());
+            Configuration.Operations.Add(operation.CreateConfiguration());
         }
 
-        return Definition;
+        return Configuration;
     }
 
     /// <inheritdoc />
@@ -48,7 +47,7 @@ public class SortConventionDescriptor : ISortConventionDescriptor
     /// <inheritdoc />
     public ISortConventionDescriptor DefaultBinding<TSortType>()
     {
-        Definition.DefaultBinding = typeof(TSortType);
+        Configuration.DefaultBinding = typeof(TSortType);
         return this;
     }
 
@@ -59,15 +58,8 @@ public class SortConventionDescriptor : ISortConventionDescriptor
     /// <inheritdoc />
     public ISortConventionDescriptor BindRuntimeType(Type runtimeType, Type sortType)
     {
-        if (runtimeType is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeType));
-        }
-
-        if (sortType is null)
-        {
-            throw new ArgumentNullException(nameof(sortType));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeType);
+        ArgumentNullException.ThrowIfNull(sortType);
 
         if (!typeof(SortInputType).IsAssignableFrom(sortType) &&
             !typeof(SortEnumType).IsAssignableFrom(sortType))
@@ -77,7 +69,7 @@ public class SortConventionDescriptor : ISortConventionDescriptor
                 nameof(sortType));
         }
 
-        Definition.Bindings[runtimeType] = sortType;
+        Configuration.Bindings[runtimeType] = sortType;
         return this;
     }
 
@@ -89,7 +81,7 @@ public class SortConventionDescriptor : ISortConventionDescriptor
             Context.TypeInspector.GetTypeRef(
                 typeof(TSortType),
                 TypeContext.Input,
-                Definition.Scope),
+                Configuration.Scope),
             configure);
 
     /// <inheritdoc />
@@ -100,13 +92,13 @@ public class SortConventionDescriptor : ISortConventionDescriptor
             Context.TypeInspector.GetTypeRef(
                 typeof(TSortType),
                 TypeContext.Input,
-                Definition.Scope),
+                Configuration.Scope),
             d =>
             {
                 configure.Invoke(
                     SortInputTypeDescriptor.From<TRuntimeType>(
                         (SortInputTypeDescriptor)d,
-                        Definition.Scope));
+                        Configuration.Scope));
             });
 
     /// <inheritdoc />
@@ -118,14 +110,14 @@ public class SortConventionDescriptor : ISortConventionDescriptor
             Context.TypeInspector.GetTypeRef(
                 typeof(TSortEnumType),
                 TypeContext.None,
-                Definition.Scope);
+                Configuration.Scope);
 
-        if (!Definition.EnumConfigurations.TryGetValue(
+        if (!Configuration.EnumConfigurations.TryGetValue(
             typeReference,
             out var configurations))
         {
             configurations = [];
-            Definition.EnumConfigurations.Add(typeReference, configurations);
+            Configuration.EnumConfigurations.Add(typeReference, configurations);
         }
 
         configurations.Add(configure);
@@ -136,12 +128,12 @@ public class SortConventionDescriptor : ISortConventionDescriptor
         TypeReference typeReference,
         ConfigureSortInputType configure)
     {
-        if (!Definition.Configurations.TryGetValue(
+        if (!Configuration.Configurations.TryGetValue(
             typeReference,
             out var configurations))
         {
             configurations = [];
-            Definition.Configurations.Add(typeReference, configurations);
+            Configuration.Configurations.Add(typeReference, configurations);
         }
 
         configurations.Add(configure);
@@ -157,18 +149,15 @@ public class SortConventionDescriptor : ISortConventionDescriptor
     public ISortConventionDescriptor Provider<TProvider>(TProvider provider)
         where TProvider : class, ISortProvider
     {
-        Definition.Provider = typeof(TProvider);
-        Definition.ProviderInstance = provider;
+        Configuration.Provider = typeof(TProvider);
+        Configuration.ProviderInstance = provider;
         return this;
     }
 
     /// <inheritdoc />
     public ISortConventionDescriptor Provider(Type provider)
     {
-        if (provider is null)
-        {
-            throw new ArgumentNullException(nameof(provider));
-        }
+        ArgumentNullException.ThrowIfNull(provider);
 
         if (!typeof(ISortProvider).IsAssignableFrom(provider))
         {
@@ -177,28 +166,28 @@ public class SortConventionDescriptor : ISortConventionDescriptor
                 nameof(provider));
         }
 
-        Definition.Provider = provider;
+        Configuration.Provider = provider;
         return this;
     }
 
     /// <inheritdoc />
     public ISortConventionDescriptor ArgumentName(string argumentName)
     {
-        Definition.ArgumentName = argumentName;
+        Configuration.ArgumentName = argumentName;
         return this;
     }
 
     public ISortConventionDescriptor AddProviderExtension<TExtension>()
         where TExtension : class, ISortProviderExtension
     {
-        Definition.ProviderExtensionsTypes.Add(typeof(TExtension));
+        Configuration.ProviderExtensionsTypes.Add(typeof(TExtension));
         return this;
     }
 
     public ISortConventionDescriptor AddProviderExtension<TExtension>(TExtension provider)
         where TExtension : class, ISortProviderExtension
     {
-        Definition.ProviderExtensions.Add(provider);
+        Configuration.ProviderExtensions.Add(provider);
         return this;
     }
 

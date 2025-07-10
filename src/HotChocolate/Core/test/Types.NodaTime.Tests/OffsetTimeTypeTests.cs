@@ -1,5 +1,7 @@
+using System.Globalization;
 using HotChocolate.Execution;
 using NodaTime;
+using NodaTime.Text;
 
 namespace HotChocolate.Types.NodaTime.Tests;
 
@@ -58,7 +60,7 @@ public class OffsetTimeTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13+02" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "18:30:13+02" } })
                 .Build());
         Assert.Equal("18:30:13+02", result.ExpectOperationResult().Data!["test"]);
     }
@@ -69,7 +71,7 @@ public class OffsetTimeTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13+02:35" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "18:30:13+02:35" } })
                 .Build());
         Assert.Equal("18:30:13+02:35", result.ExpectOperationResult().Data!["test"]);
     }
@@ -80,7 +82,7 @@ public class OffsetTimeTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "18:30:13" } })
                 .Build());
         Assert.Null(result.ExpectOperationResult().Data);
         Assert.Single(result.ExpectOperationResult().Errors!);
@@ -127,5 +129,36 @@ public class OffsetTimeTypeIntegrationTests
     {
         static object Call() => new OffsetTimeType([]);
         Assert.Throws<SchemaException>(Call);
+    }
+
+    [Fact]
+    public void OffsetTimeType_DescriptionKnownPatterns_MatchesSnapshot()
+    {
+        var offsetTimeType = new OffsetTimeType(
+            OffsetTimePattern.GeneralIso,
+            OffsetTimePattern.ExtendedIso);
+
+        offsetTimeType.Description.MatchInlineSnapshot(
+            """
+            A combination of a LocalTime and an Offset, to represent a time-of-day at a specific offset from UTC but without any date information.
+
+            Allowed patterns:
+            - `hh:mm:ss±hh:mm`
+            - `hh:mm:ss.sssssssss±hh:mm`
+
+            Examples:
+            - `20:00:00Z`
+            - `20:00:00.999Z`
+            """);
+    }
+
+    [Fact]
+    public void OffsetTimeType_DescriptionUnknownPatterns_MatchesSnapshot()
+    {
+        var offsetTimeType = new OffsetTimeType(
+            OffsetTimePattern.Create("mm", CultureInfo.InvariantCulture, new OffsetTime()));
+
+        offsetTimeType.Description.MatchInlineSnapshot(
+            "A combination of a LocalTime and an Offset, to represent a time-of-day at a specific offset from UTC but without any date information.");
     }
 }

@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -44,13 +43,13 @@ public class RequiresDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.Types.GetType<ObjectType>("Review");
 
         // assert
         Assert.Collection(testType.Fields.Single(field => field.Name == "product").Directives,
             providesDirective =>
             {
-                var directiveNode = providesDirective.AsSyntaxNode();
+                var directiveNode = providesDirective.ToSyntaxNode();
                 Assert.Equal(FederationTypeNames.RequiresDirective_Name, providesDirective.Type.Name);
                 Assert.Equal("fields", directiveNode.Arguments[0].Name.ToString());
                 Assert.Equal("\"id\"", directiveNode.Arguments[0].Value.ToString());
@@ -70,13 +69,13 @@ public class RequiresDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var testType = schema.GetType<ObjectType>("Review");
+        var testType = schema.Types.GetType<ObjectType>("Review");
 
         // assert
         Assert.Collection(testType.Fields.Single(field => field.Name == "product").Directives,
             providesDirective =>
             {
-                var directiveNode = providesDirective.AsSyntaxNode();
+                var directiveNode = providesDirective.ToSyntaxNode();
                 Assert.Equal(FederationTypeNames.RequiresDirective_Name, providesDirective.Type.Name);
                 Assert.Equal("fields", directiveNode.Arguments[0].Name.ToString());
                 Assert.Equal("\"id\"", directiveNode.Arguments[0].Value.ToString());
@@ -87,7 +86,7 @@ public class RequiresDirectiveTests : FederationTypesTestBase
 
     public class Query
     {
-        public Review SomeField(int id) => default!;
+        public Review SomeField(int id) => null!;
     }
 
     public class Review
@@ -96,11 +95,11 @@ public class RequiresDirectiveTests : FederationTypesTestBase
         public int Id { get; set; }
 
         [Requires("id")]
-        public Product Product { get; set; } = default!;
+        public Product Product { get; set; } = null!;
     }
 
     public class Product
     {
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 }

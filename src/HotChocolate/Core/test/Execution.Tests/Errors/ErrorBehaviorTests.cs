@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-using CookieCrumble;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.SnapshotHelpers;
@@ -115,7 +113,7 @@ public class ErrorBehaviorTests
                 .Type<ObjectType<Foo>>()
                 .Extend()
                 // in the pure resolver we will return the wrong type
-                .Definition.Resolver = _ => new ValueTask<object?>(new Baz()))
+                .Configuration.Resolver = _ => new ValueTask<object?>(new Baz()))
             .BuildRequestExecutorAsync();
 
         // act
@@ -138,7 +136,7 @@ public class ErrorBehaviorTests
                 .Type<ObjectType<Foo>>()
                 .Extend()
                 // in the pure resolver we will return the wrong type
-                .Definition.PureResolver = _ => new Baz())
+                .Configuration.PureResolver = _ => new Baz())
             .BuildRequestExecutorAsync();
 
         // act
@@ -161,7 +159,7 @@ public class ErrorBehaviorTests
                 .Type<ObjectType<Foo>>()
                 .Extend()
                 // in the pure resolver we will return the wrong type
-                .Definition.PureResolver = _ => new Baz())
+                .Configuration.PureResolver = _ => new Baz())
             .SetMaxAllowedValidationErrors(1)
             .BuildRequestExecutorAsync();
 
@@ -202,7 +200,6 @@ public class ErrorBehaviorTests
         }
     }
 
-    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class Query
     {
         public Task<string?> Error1()
@@ -276,13 +273,11 @@ public class ErrorBehaviorTests
         public string Error15 => throw new ArgumentNullException("Error15");
     }
 
-    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class Foo
     {
         public string? Bar => throw new Exception("baz");
     }
 
-    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class Baz
     {
         public string? Bar => throw new Exception("baz");

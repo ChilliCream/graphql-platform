@@ -1,11 +1,10 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
 public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new()
         {
@@ -15,18 +14,18 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<Bar>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new Foo
                         {
                             BarShort = 12,
-                            BarString = "a",
-                        },
-                    },
-                },
-            },
+                            BarString = "a"
+                        }
+                    }
+                ]
+            }
         },
         new()
         {
@@ -36,18 +35,18 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 BarBool = true,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                ObjectArray = new List<Bar>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new Foo
                         {
                             BarShort = 14,
-                            BarString = "d",
-                        },
-                    },
-                },
-            },
+                            BarString = "d"
+                        }
+                    }
+                ]
+            }
         },
         new()
         {
@@ -57,12 +56,12 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 BarBool = false,
                 BarEnum = BarEnum.FOO,
                 BarString = "testctest",
-                ObjectArray = null,
-            },
-        },
+                ObjectArray = null
+            }
+        }
     ];
 
-    private static readonly BarNullable[] _barNullableEntities =
+    private static readonly BarNullable[] s_barNullableEntities =
     [
         new()
         {
@@ -72,17 +71,17 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
                         {
-                            BarShort = 12,
-                        },
-                    },
-                },
-            },
+                            BarShort = 12
+                        }
+                    }
+                ]
+            }
         },
         new()
         {
@@ -92,17 +91,17 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 BarBool = null,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
                         {
-                            BarShort = null,
-                        },
-                    },
-                },
-            },
+                            BarShort = null
+                        }
+                    }
+                ]
+            }
         },
         new()
         {
@@ -112,17 +111,17 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 BarBool = false,
                 BarEnum = BarEnum.QUX,
                 BarString = "testctest",
-                ObjectArray = new List<BarNullable>
-                {
+                ObjectArray =
+                [
                     new()
                     {
                         Foo = new FooNullable
                         {
-                            BarShort = 14,
-                        },
-                    },
-                },
-            },
+                            BarShort = 14
+                        }
+                    }
+                ]
+            }
         },
         new()
         {
@@ -132,13 +131,13 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 BarBool = false,
                 BarEnum = BarEnum.FOO,
                 BarString = "testdtest",
-                ObjectArray = null,
-            },
+                ObjectArray = null
+            }
         },
         new()
         {
-            Foo = null,
-        },
+            Foo = null
+        }
     ];
 
     private readonly SchemaCache _cache;
@@ -152,7 +151,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectShortEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -189,7 +188,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectShortIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -226,7 +225,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectNullableShortEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -263,7 +262,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectNullableShortIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -300,7 +299,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectBooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -329,7 +328,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectNullableBooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -366,7 +365,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectEnumEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -403,7 +402,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectEnumIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -440,7 +439,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectNullableEnumEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -477,7 +476,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectNullableEnumIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -487,12 +486,12 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                     "{ foo{ barEnum}}}")
                 .Build());
 
-            var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.New()
-                .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) " +
-                    "{ foo{ barEnum}}}")
-                .Build());
+        var res2 = await tester.ExecuteAsync(
+        OperationRequestBuilder.New()
+            .SetDocument(
+                "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) " +
+                "{ foo{ barEnum}}}")
+            .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
@@ -514,7 +513,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -550,7 +549,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectStringIn_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -587,7 +586,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ArrayObjectNestedArraySomeStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -627,7 +626,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ArrayObjectNestedArrayAnyStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
+        var tester = _cache.CreateSchema<Bar, BarFilterInput>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -664,7 +663,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
     public async Task Create_ObjectNull()
     {
         // arrange
-        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
+        var tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -679,7 +678,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 .Build());
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument( "{ root { foo{ barEnum}}}")
+                .SetDocument("{ root { foo{ barEnum}}}")
                 .Build());
 
         // assert
@@ -735,19 +734,15 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         public FooNullable? Foo { get; set; }
     }
 
-    public class BarFilterInput : FilterInputType<Bar>
-    {
-    }
+    public class BarFilterInput : FilterInputType<Bar>;
 
-    public class BarNullableFilterInput : FilterInputType<BarNullable>
-    {
-    }
+    public class BarNullableFilterInput : FilterInputType<BarNullable>;
 
     public enum BarEnum
     {
         FOO,
         BAR,
         BAZ,
-        QUX,
+        QUX
     }
 }

@@ -1,8 +1,7 @@
 using System.Reflection;
-using CookieCrumble;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Configuration;
 
@@ -17,11 +16,11 @@ public class TypeScopeInterceptorTests
             .AddQueryType<Foo>()
             .TryAddTypeInterceptor(new TypeScopeInterceptor(types))
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
 
         Assert.Collection(
-            types.OfType<INamedType>().Select(t => t.Name).OrderBy(t => t),
+            types.OfType<ITypeDefinition>().Select(t => t.Name).OrderBy(t => t),
             name => Assert.Equal("A_Bar", name),
             name => Assert.Equal("B_Bar", name),
             name => Assert.Equal("C_Baz", name));
@@ -80,9 +79,9 @@ public class TypeScopeInterceptorTests
 
         public override void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
-            if (discoveryContext is { Scope: { }, } && definition is ObjectTypeDefinition def)
+            if (discoveryContext is { Scope: { } } && configuration is ObjectTypeConfiguration def)
             {
                 _contexts.Add(discoveryContext);
 
@@ -98,11 +97,11 @@ public class TypeScopeInterceptorTests
 
         public override void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
-            if (completionContext is { Scope: { }, })
+            if (completionContext is { Scope: { } })
             {
-                definition.Name = completionContext.Scope + "_" + definition.Name;
+                configuration.Name = completionContext.Scope + "_" + configuration.Name;
             }
         }
 

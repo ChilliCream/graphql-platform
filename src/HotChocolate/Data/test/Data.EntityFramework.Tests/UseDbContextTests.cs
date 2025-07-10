@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,16 +19,17 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using var scope = services.CreateAsyncScope();
         await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-        await context.Authors.AddAsync(new Author { Name = "foo", });
+        await context.Authors.AddAsync(new Author { Name = "foo" });
         await context.SaveChangesAsync();
 
         // act
@@ -52,17 +52,18 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.SaveChangesAsync();
         }
 
@@ -86,17 +87,18 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryValueTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.SaveChangesAsync();
         }
 
@@ -120,35 +122,38 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
         // act
         var result = await executor.ExecuteAsync(
-            @"query Test {
-                    authorOffsetPaging {
-                        items {
-                            name
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
-                        totalCount
+            """
+            query Test {
+                authorOffsetPaging {
+                    items {
+                        name
                     }
-                }");
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                    totalCount
+                }
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -167,18 +172,19 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -214,18 +220,19 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -261,18 +268,19 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryValueTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -310,18 +318,19 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -356,18 +365,19 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -402,18 +412,19 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryValueTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -450,17 +461,18 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
             await context.SaveChangesAsync();
         }
 
@@ -485,10 +497,11 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -505,10 +518,11 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -525,10 +539,11 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryValueTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -541,15 +556,18 @@ public class UseDbContextTests
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            @"query Test {
-                    books {
-                        id
-                    }
-                }");
+            """
+            query Test {
+                books {
+                    id
+                }
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -568,18 +586,20 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -615,18 +635,19 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -662,18 +683,19 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -711,18 +733,19 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<QueryValueTask>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -758,18 +781,19 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -804,18 +828,19 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 
@@ -850,18 +875,19 @@ public class UseDbContextTests
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType<Query>()
+                .AddQueryableCursorPagingProvider(inlineTotalCount: true)
                 .Services
                 .BuildServiceProvider();
 
         var executor =
-            await services.GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            await services.GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync();
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo", });
-            await context.Authors.AddAsync(new Author { Name = "bar", });
+            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "bar" });
             await context.SaveChangesAsync();
         }
 

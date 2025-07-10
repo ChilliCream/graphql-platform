@@ -1,9 +1,8 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
-using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
@@ -11,17 +10,17 @@ namespace HotChocolate.Types.Relay;
 
 internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 {
-    private const string _defaultFieldName = "query";
+    private const string DefaultFieldName = "query";
     private readonly HashSet<string> _payloads = [];
 
-    private ITypeCompletionContext _context = default!;
+    private ITypeCompletionContext _context = null!;
     private ObjectType? _queryType;
-    private ObjectFieldDefinition _queryField = default!;
-    private ObjectTypeDefinition? _mutationDefinition;
+    private ObjectFieldConfiguration _queryField = null!;
+    private ObjectTypeConfiguration? _mutationConfig;
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         _context ??= completionContext;
@@ -33,26 +32,26 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
                 break;
 
             case OperationType.Mutation:
-                _mutationDefinition = (ObjectTypeDefinition)definition;
+                _mutationConfig = configuration;
                 break;
         }
     }
 
     public override void OnBeforeCompleteTypes()
     {
-        if (_queryType is not null && _mutationDefinition is not null)
+        if (_queryType is not null && _mutationConfig is not null)
         {
             var options = _context.DescriptorContext.GetMutationPayloadOptions();
 
             TypeReference queryType = TypeReference.Parse($"{_queryType.Name}!");
 
-            _queryField = new ObjectFieldDefinition(
-                options.QueryFieldName ?? _defaultFieldName,
+            _queryField = new ObjectFieldConfiguration(
+                options.QueryFieldName ?? DefaultFieldName,
                 type: queryType,
                 resolver: ctx => new(ctx.GetQueryRoot<object>()));
-            _queryField.Flags |= FieldFlags.MutationQueryField;
+            _queryField.Flags |= CoreFieldFlags.MutationQueryField;
 
-            foreach (var field in _mutationDefinition.Fields)
+            foreach (var field in _mutationConfig.Fields)
             {
                 if (!field.IsIntrospectionField
                     && _context.TryGetType(field.Type!, out IType? returnType)
@@ -67,10 +66,10 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         if (completionContext.Type is ObjectType objectType
-            && definition is ObjectTypeDefinition objectTypeDef
+            && configuration is ObjectTypeConfiguration objectTypeDef
             && _payloads.Contains(objectType.Name))
         {
             if (objectTypeDef.Fields.Any(t => t.Name.EqualsOrdinal(_queryField.Name)))

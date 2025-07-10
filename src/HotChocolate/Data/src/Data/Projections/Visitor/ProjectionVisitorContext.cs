@@ -12,10 +12,7 @@ public abstract class ProjectionVisitorContext<T>
         IOutputType initialType,
         ProjectionScope<T> projectionScope) : base(context)
     {
-        if (initialType is null)
-        {
-            throw new ArgumentNullException(nameof(initialType));
-        }
+        ArgumentNullException.ThrowIfNull(initialType);
 
         Types.Push(initialType);
         Scopes = new Stack<ProjectionScope<T>>();
@@ -26,5 +23,5 @@ public abstract class ProjectionVisitorContext<T>
 
     public Stack<IType> Types { get; } = new Stack<IType>();
 
-    public IList<IError> Errors { get; } = new List<IError>();
+    public IList<IError> Errors { get; } = [];
 }

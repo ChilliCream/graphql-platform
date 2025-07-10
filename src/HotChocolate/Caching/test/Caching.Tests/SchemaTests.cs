@@ -1,8 +1,6 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Caching.Tests;
 
@@ -80,7 +78,7 @@ public class SchemaTests
     {
         public static Book GetBook()
             => new Book("C# in depth.", "abc");
-}
+    }
 
     public record Book(
         [property: CacheControl(5000)] string Title,

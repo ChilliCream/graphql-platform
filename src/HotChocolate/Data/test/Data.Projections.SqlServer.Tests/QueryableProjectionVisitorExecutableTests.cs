@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
@@ -6,9 +5,9 @@ namespace HotChocolate.Data.Projections;
 
 public class QueryableProjectionVisitorExecutableTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, Baz = "a", }, new() { Bar = false, Baz = "b", },
+        new() { Bar = true, Baz = "a" }, new() { Bar = false, Baz = "b" }
     ];
 
     private readonly SchemaCache _cache = new();
@@ -17,7 +16,7 @@ public class QueryableProjectionVisitorExecutableTests
     public async Task Create_ProjectsTwoProperties_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -36,7 +35,7 @@ public class QueryableProjectionVisitorExecutableTests
     public async Task Create_ProjectsOneProperty_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema(_fooEntities);
+        var tester = _cache.CreateSchema(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -56,11 +55,11 @@ public class QueryableProjectionVisitorExecutableTests
     {
         // arrange
         var tester = _cache.CreateSchema(
-            _fooEntities,
+            s_fooEntities,
             objectType: new ObjectType<Foo>(
                 x => x
                     .Field("foo")
-                    .Resolve(new[] { "foo", })
+                    .Resolve(new[] { "foo" })
                     .Type<ListType<StringType>>()));
 
         // act

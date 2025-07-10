@@ -1,4 +1,3 @@
-using System.Collections.Frozen;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +9,7 @@ namespace HotChocolate.Fetching;
 /// </summary>
 public sealed class DataLoaderScopeHolder
 {
-    private static readonly AsyncLocal<InstanceHolder> _currentScope = new();
+    private static readonly AsyncLocal<InstanceHolder> s_currentScope = new();
     private readonly IReadOnlyDictionary<Type, DataLoaderRegistration> _registrations;
 
     public DataLoaderScopeHolder(DataLoaderRegistrar registrar)
@@ -27,7 +26,7 @@ public sealed class DataLoaderScopeHolder
 
     public IDataLoaderScope GetOrCreateScope(IServiceProvider scopedServiceProvider, IBatchScheduler? scheduler = null)
     {
-        if(_currentScope.Value?.Scope is null)
+        if (s_currentScope.Value?.Scope is null)
         {
             CurrentScope = PinNewScope(scopedServiceProvider, scheduler);
         }
@@ -42,16 +41,16 @@ public sealed class DataLoaderScopeHolder
     /// </exception>
     public IDataLoaderScope CurrentScope
     {
-        get => _currentScope.Value?.Scope ??
+        get => s_currentScope.Value?.Scope ??
             throw new InvalidOperationException("No DataLoader scope exists.");
         set
         {
-            var holder = _currentScope.Value;
+            var holder = s_currentScope.Value;
 
             if (holder is null)
             {
                 holder = new InstanceHolder();
-                _currentScope.Value = holder;
+                s_currentScope.Value = holder;
             }
 
             holder.Scope = value;
@@ -60,6 +59,6 @@ public sealed class DataLoaderScopeHolder
 
     private sealed class InstanceHolder
     {
-        public IDataLoaderScope Scope = default!;
+        public IDataLoaderScope Scope = null!;
     }
 }

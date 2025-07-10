@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
-using CookieCrumble;
 using GreenDonut;
-using GreenDonut.Predicates;
+using GreenDonut.Data;
 using HotChocolate.Execution;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.TestContext;
@@ -38,7 +37,11 @@ public sealed class DataLoaderTests
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -70,7 +73,11 @@ public sealed class DataLoaderTests
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -102,7 +109,11 @@ public sealed class DataLoaderTests
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -134,7 +145,11 @@ public sealed class DataLoaderTests
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -267,7 +282,7 @@ file static class Extensions
 {
     public static Snapshot AddSql(this Snapshot snapshot, List<string> queries)
     {
-        snapshot.Add(string.Join("\n", queries), "SQL");
+        snapshot.Add(string.Join("\n", queries).Replace("@__p_1_startswith", "@__p_1_rewritten"), "SQL");
         return snapshot;
     }
 

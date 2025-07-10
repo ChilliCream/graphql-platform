@@ -20,7 +20,7 @@ public class SchemaRequestExecutorBuilderExtensionsConventionsTests
     {
         void Verify() => new ServiceCollection()
             .AddGraphQL()
-            .AddConvention(default!, _ => new Foo());
+            .AddConvention(null!, _ => new Foo());
 
         Assert.Throws<ArgumentNullException>(Verify);
     }
@@ -30,7 +30,7 @@ public class SchemaRequestExecutorBuilderExtensionsConventionsTests
     {
         void Verify() => new ServiceCollection()
             .AddGraphQL()
-            .AddConvention(typeof(Foo), default(CreateConvention)!);
+            .AddConvention(typeof(Foo), default(Func<IServiceProvider, IConvention>)!);
 
         Assert.Throws<ArgumentNullException>(Verify);
     }
@@ -70,7 +70,7 @@ public class SchemaRequestExecutorBuilderExtensionsConventionsTests
     {
         void Verify() => new ServiceCollection()
             .AddGraphQL()
-            .TryAddConvention(default!, _ => new Foo());
+            .TryAddConvention(null!, _ => new Foo());
 
         Assert.Throws<ArgumentNullException>(Verify);
     }
@@ -80,7 +80,7 @@ public class SchemaRequestExecutorBuilderExtensionsConventionsTests
     {
         void Verify() => new ServiceCollection()
             .AddGraphQL()
-            .TryAddConvention(typeof(Foo), default(CreateConvention)!);
+            .TryAddConvention(typeof(Foo), default(Func<IServiceProvider, IConvention>)!);
 
         Assert.Throws<ArgumentNullException>(Verify);
     }

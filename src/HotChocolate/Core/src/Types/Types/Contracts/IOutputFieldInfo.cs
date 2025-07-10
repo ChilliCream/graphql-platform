@@ -3,9 +3,9 @@
 namespace HotChocolate.Types;
 
 /// <summary>
-/// This interface aggregates the most important attributes of an output-field.
+/// This interface aggregates the most important attributes of an output-field definition.
 /// </summary>
-public interface IOutputFieldInfo : IHasName, IHasSchemaCoordinate, IHasRuntimeType
+public interface IOutputFieldInfo : INameProvider, ISchemaCoordinateProvider, IHasRuntimeType
 {
     /// <summary>
     /// Gets the return type of this field.
@@ -15,5 +15,5 @@ public interface IOutputFieldInfo : IHasName, IHasSchemaCoordinate, IHasRuntimeT
     /// <summary>
     /// Gets the field arguments.
     /// </summary>
-    IFieldCollection<IInputField> Arguments { get; }
+    IReadOnlyFieldDefinitionCollection<IInputValueDefinition> Arguments { get; }
 }

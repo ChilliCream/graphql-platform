@@ -3,7 +3,8 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
@@ -12,29 +13,22 @@ using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
 
 namespace HotChocolate.Types;
 
-/// <summary>
-/// A GraphQL schema describes directives which are used to annotate various parts of a
-/// GraphQL document as an indicator that they should be evaluated differently by a
-/// validator, executor, or client tool such as a code generator.
-///
-/// https://spec.graphql.org/draft/#sec-Type-System.Directives
-/// </summary>
 public partial class DirectiveType
 {
-    protected override DirectiveTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override DirectiveTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         try
         {
-            if (Definition is null)
+            if (Configuration is null)
             {
                 var descriptor = DirectiveTypeDescriptor.FromSchemaType(
                     context.DescriptorContext,
                     GetType());
                 _configure!(descriptor);
-                return descriptor.CreateDefinition();
+                return descriptor.CreateConfiguration();
             }
 
-            return Definition;
+            return Configuration;
         }
         finally
         {
@@ -46,43 +40,43 @@ public partial class DirectiveType
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
+        base.OnRegisterDependencies(context, configuration);
 
-        RuntimeType = definition.RuntimeType == GetType()
+        RuntimeType = configuration.RuntimeType == GetType()
             ? typeof(object)
-            : definition.RuntimeType;
+            : configuration.RuntimeType;
 
         if (RuntimeType != typeof(object))
         {
             TypeIdentity = typeof(DirectiveType<>).MakeGenericType(RuntimeType);
         }
 
-        IsRepeatable = definition.IsRepeatable;
+        IsRepeatable = configuration.IsRepeatable;
 
-        TypeDependencyHelper.CollectDependencies(definition, context.Dependencies);
+        TypeDependencyHelper.CollectDependencies(configuration, context.Dependencies);
     }
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration configuration)
     {
-        base.OnCompleteType(context, definition);
+        base.OnCompleteType(context, configuration);
 
         _inputParser = context.DescriptorContext.InputParser;
 
-        Locations =  definition.Locations;
-        Arguments = OnCompleteFields(context, definition);
-        IsPublic = definition.IsPublic;
-        Middleware = OnCompleteMiddleware(context, definition);
+        Locations = configuration.Locations;
+        Arguments = OnCompleteFields(context, configuration);
+        IsPublic = configuration.IsPublic;
+        Middleware = OnCompleteMiddleware(context, configuration);
 
-        _createInstance = OnCompleteCreateInstance(context, definition);
-        _getFieldValues = OnCompleteGetFieldValues(context, definition);
-        _parse = OnCompleteParse(context, definition);
-        _format = OnCompleteFormat(context, definition);
+        _createInstance = OnCompleteCreateInstance(context, configuration);
+        _getFieldValues = OnCompleteGetFieldValues(context, configuration);
+        _parse = OnCompleteParse(context, configuration);
+        _format = OnCompleteFormat(context, configuration);
 
-        if (definition.Locations == 0)
+        if (configuration.Locations == 0)
         {
             context.ReportError(ErrorHelper.DirectiveType_NoLocations(Name, this));
         }
@@ -91,18 +85,59 @@ public partial class DirectiveType
         IsTypeSystemDirective = (Locations & DirectiveLocation.TypeSystem) != 0;
     }
 
-    protected virtual FieldCollection<DirectiveArgument> OnCompleteFields(
+    protected override void OnCompleteMetadata(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration configuration)
     {
-        return CompleteFields(context, this, definition.GetArguments(), CreateArgument);
-        static DirectiveArgument CreateArgument(DirectiveArgumentDefinition argDef, int index)
+        base.OnCompleteMetadata(context, configuration);
+
+        foreach (IFieldCompletion field in Arguments)
+        {
+            field.CompleteMetadata(context, this);
+        }
+    }
+
+    protected override void OnMakeExecutable(
+        ITypeCompletionContext context,
+        DirectiveTypeConfiguration configuration)
+    {
+        base.OnMakeExecutable(context, configuration);
+
+        foreach (IFieldCompletion field in Arguments)
+        {
+            field.MakeExecutable(context, this);
+        }
+    }
+
+    protected override void OnFinalizeType(
+        ITypeCompletionContext context,
+        DirectiveTypeConfiguration configuration)
+    {
+        base.OnFinalizeType(context, configuration);
+
+        foreach (IFieldCompletion field in Arguments)
+        {
+            field.Finalize(context, this);
+        }
+    }
+
+    protected virtual DirectiveArgumentCollection OnCompleteFields(
+        ITypeCompletionContext context,
+        DirectiveTypeConfiguration definition)
+    {
+        return new DirectiveArgumentCollection(
+            CompleteFields(
+                context,
+                this,
+                definition.GetArguments(),
+                CreateArgument));
+        static DirectiveArgument CreateArgument(DirectiveArgumentConfiguration argDef, int index)
             => new(argDef, index);
     }
 
     protected virtual Func<object?[], object> OnCompleteCreateInstance(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         if (definition.CreateInstance is not null)
         {
@@ -114,12 +149,12 @@ public partial class DirectiveType
             return CreateDictionaryInstance;
         }
 
-        return  CompileFactory(this);
+        return CompileFactory(this);
     }
 
     protected virtual Action<object, object?[]> OnCompleteGetFieldValues(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         if (definition.GetFieldData is not null)
         {
@@ -136,7 +171,7 @@ public partial class DirectiveType
 
     protected virtual Func<DirectiveNode, object> OnCompleteParse(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         if (definition.Parse is not null)
         {
@@ -149,7 +184,7 @@ public partial class DirectiveType
 
     protected virtual Func<object, DirectiveNode> OnCompleteFormat(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         if (definition.Format is not null)
         {
@@ -162,7 +197,7 @@ public partial class DirectiveType
 
     protected virtual DirectiveMiddleware? OnCompleteMiddleware(
         ITypeCompletionContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
     {
         if (definition.MiddlewareComponents.Count == 0)
         {

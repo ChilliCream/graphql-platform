@@ -28,10 +28,7 @@ public static class CostAnalyzerEnumTypeDescriptorExtensions
     /// </exception>
     public static IEnumTypeDescriptor Cost(this IEnumTypeDescriptor descriptor, double weight)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(new CostDirective(weight));
     }
@@ -59,10 +56,7 @@ public static class CostAnalyzerEnumTypeDescriptorExtensions
         this IEnumTypeDescriptor<TRuntimeType> descriptor,
         double weight)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(new CostDirective(weight));
     }

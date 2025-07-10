@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Headers;
-using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -32,7 +31,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route()
     {
         // arrange
-        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded, };
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
         var server = CreateServer(builder => builder.MapNitroApp().WithOptions(options));
 
         // act
@@ -46,7 +45,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Combined()
     {
         // arrange
-        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded, };
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
         var server = CreateServer(builder =>
         {
             builder.MapGraphQLHttp();
@@ -64,7 +63,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Explicit_Path()
     {
         // arrange
-        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded, };
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
         var server = CreateServer(b => b.MapNitroApp("/foo/bar").WithOptions(options));
 
         // act
@@ -84,7 +83,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         // arrange
         var options = new GraphQLServerOptions
         {
-            Tool = { ServeMode = GraphQLToolServeMode.Version(version), Enable = false, },
+            Tool = { ServeMode = GraphQLToolServeMode.Version(version), Enable = false }
         };
         var server = CreateStarWarsServer(configureConventions: e => e.WithOptions(options));
 
@@ -107,15 +106,15 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
                 Document = "# foo",
                 IncludeCookies = true,
                 HttpHeaders =
-                    new HeaderDictionary { { "Content-Type", "application/json" }, },
+                    new HeaderDictionary { { "Content-Type", "application/json" } },
                 HttpMethod = DefaultHttpMethod.Get,
                 Enable = true,
                 Title = "Hello",
                 GaTrackingId = "GA-FOO",
                 GraphQLEndpoint = "/foo/bar",
                 UseBrowserUrlAsGraphQLEndpoint = true,
-                DisableTelemetry = true,
-            },
+                DisableTelemetry = true
+            }
         };
 
         var server = CreateStarWarsServer("/graphql", configureConventions: builder => builder.WithOptions(options));
@@ -131,7 +130,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_MapNitroApp_Tool_Config()
     {
         // arrange
-        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded, };
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
         var server = CreateServer(endpoint => endpoint.MapNitroApp().WithOptions(options));
 
         // act
@@ -147,7 +146,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         // arrange
         var options = new GraphQLToolOptions
         {
-            ServeMode = GraphQLToolServeMode.Version("5.0.8"),
+            ServeMode = GraphQLToolServeMode.Version("5.0.8")
         };
         var server = CreateServer(endpoint => endpoint.MapNitroApp().WithOptions(options));
 
@@ -173,15 +172,15 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         {
             Content = content,
             ContentType = response.Content.Headers.ContentType!,
-            StatusCode = response.StatusCode,
+            StatusCode = response.StatusCode
         };
     }
 
     private sealed class Result
     {
-        public string Content { get; set; } = default!;
+        public string Content { get; set; } = null!;
 
-        public MediaTypeHeaderValue ContentType { get; set; } = default!;
+        public MediaTypeHeaderValue ContentType { get; set; } = null!;
 
         public HttpStatusCode StatusCode { get; set; }
     }

@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -23,6 +22,7 @@ public class PhoneNumberTypeTests : ScalarTypeTestBase
     [InlineData(typeof(IntValueNode), 1, false)]
     [InlineData(typeof(NullValueNode), null, true)]
     [InlineData(typeof(StringValueNode), "", false)]
+    [InlineData(typeof(StringValueNode), "+1٧٨٩٥٥٥١٢٣٤", false)]
     [InlineData(typeof(StringValueNode), "+17895551234", true)]
     [InlineData(typeof(StringValueNode), "+178955512343", true)]
     [InlineData(typeof(StringValueNode), "+1789555123435", true)]
@@ -48,6 +48,7 @@ public class PhoneNumberTypeTests : ScalarTypeTestBase
     [InlineData(true, false)]
     [InlineData("", false)]
     [InlineData(null, true)]
+    [InlineData("+1٧٨٩٥٥٥١٢٣٤", false)]
     [InlineData("+16873271234", true)]
     [InlineData("+765436789012", true)]
     [InlineData("+7654367890123", true)]
@@ -94,6 +95,7 @@ public class PhoneNumberTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "765436789012345678901234")]
     [InlineData(typeof(StringValueNode), "(123)-456-7890")]
     [InlineData(typeof(StringValueNode), "123-456-7890")]
+    [InlineData(typeof(StringValueNode), "+1٧٨٩٥٥٥١٢٣٤")]
     public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
     {
         // arrange
@@ -127,6 +129,7 @@ public class PhoneNumberTypeTests : ScalarTypeTestBase
     [InlineData("765436789012345678901234")]
     [InlineData("(123)-456-7890")]
     [InlineData("123-456-7890")]
+    [InlineData("+1٧٨٩٥٥٥١٢٣٤")]
     public void Deserialize_GivenValue_ThrowSerializationException(object value)
     {
         // arrange
@@ -158,6 +161,7 @@ public class PhoneNumberTypeTests : ScalarTypeTestBase
     [InlineData("765436789012345678901234")]
     [InlineData("(123)-456-7890")]
     [InlineData("123-456-7890")]
+    [InlineData("+1٧٨٩٥٥٥١٢٣٤")]
     public void Serialize_GivenObject_ThrowSerializationException(object value)
     {
         // arrange
@@ -188,6 +192,7 @@ public class PhoneNumberTypeTests : ScalarTypeTestBase
     [InlineData("765436789012345678901234")]
     [InlineData("(123)-456-7890")]
     [InlineData("123-456-7890")]
+    [InlineData("+1٧٨٩٥٥٥١٢٣٤")]
     public void ParseValue_GivenObject_ThrowSerializationException(object value)
     {
         // arrange
@@ -218,6 +223,7 @@ public class PhoneNumberTypeTests : ScalarTypeTestBase
     [InlineData("765436789012345678901234")]
     [InlineData("(123)-456-7890")]
     [InlineData("123-456-7890")]
+    [InlineData("+1٧٨٩٥٥٥١٢٣٤")]
     public void ParseResult_GivenObject_ThrowSerializationException(object value)
     {
         // arrange

@@ -30,14 +30,14 @@ internal static class ArgumentParser
         int i,
         out T? value)
     {
-        type = type is NonNullType nonNullType ? nonNullType.Type : type;
+        type = type is NonNullType nonNullType ? nonNullType.NullableType : type;
         switch (valueNode.Kind)
         {
             case SyntaxKind.ObjectValue:
             {
                 var current = path[i];
 
-                if (type is not IComplexOutputType complexType ||
+                if (type is not IComplexTypeDefinition complexType ||
                     !complexType.Fields.TryGetField(current, out var field))
                 {
                     break;

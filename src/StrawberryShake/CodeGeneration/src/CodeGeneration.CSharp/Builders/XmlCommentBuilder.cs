@@ -3,7 +3,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 public class XmlCommentBuilder : ICodeBuilder
 {
     private string? _summary;
-    private List<string> _code = [];
+    private readonly List<string> _code = [];
 
     public XmlCommentBuilder SetSummary(string summary)
     {

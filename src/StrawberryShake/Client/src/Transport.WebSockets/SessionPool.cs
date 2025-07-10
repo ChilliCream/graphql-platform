@@ -4,7 +4,7 @@ namespace StrawberryShake.Transport.WebSockets;
 internal sealed class SessionPool(ISocketClientFactory socketClientFactory) : ISessionPool
 {
     private readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
-    private readonly Dictionary<string, SessionInfo> _sessions = new();
+    private readonly Dictionary<string, SessionInfo> _sessions = [];
     private readonly ISocketClientFactory _socketClientFactory = socketClientFactory
         ?? throw new ArgumentNullException(nameof(socketClientFactory));
 

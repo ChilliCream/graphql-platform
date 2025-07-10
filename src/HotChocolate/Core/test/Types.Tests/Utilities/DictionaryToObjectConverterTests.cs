@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Utilities;
 
 public class DictionaryToObjectConverterTests
@@ -8,16 +6,22 @@ public class DictionaryToObjectConverterTests
     public void Convert_Dictionary_FooObject()
     {
         // arrange
-        var baz = new Dictionary<string, object>();
-        baz["Number"] = "1.5";
+        var baz = new Dictionary<string, object>
+        {
+            ["Number"] = "1.5"
+        };
 
-        var bar = new Dictionary<string, object>();
-        bar["State"] = "On";
-        bar["Bazs"] = new List<object> { baz, };
+        var bar = new Dictionary<string, object>
+        {
+            ["State"] = "On",
+            ["Bazs"] = new List<object> { baz }
+        };
 
-        var foo = new Dictionary<string, object>();
-        foo["text"] = "abc";
-        foo["BAR"] = bar;
+        var foo = new Dictionary<string, object>
+        {
+            ["text"] = "abc",
+            ["BAR"] = bar
+        };
 
         // assert
         var converter = new DictionaryToObjectConverter(
@@ -32,14 +36,18 @@ public class DictionaryToObjectConverterTests
     public void Convert_Dictionary_BarObjectWithArray()
     {
         // arrange
-        var baz = new Dictionary<string, object>();
-        baz["Number"] = "1.5";
+        var baz = new Dictionary<string, object>
+        {
+            ["Number"] = "1.5"
+        };
 
-        var bar = new Dictionary<string, object>();
-        bar["State"] = "On";
-        bar["Bazs"] = new List<object> { baz, };
-        bar["BazArray"] = new List<object> { baz, };
-        bar["StringArray"] = new List<object> { "a", 1, true, };
+        var bar = new Dictionary<string, object>
+        {
+            ["State"] = "On",
+            ["Bazs"] = new List<object> { baz },
+            ["BazArray"] = new List<object> { baz },
+            ["StringArray"] = new List<object> { "a", 1, true }
+        };
 
         // assert
         var converter = new DictionaryToObjectConverter(
@@ -54,16 +62,20 @@ public class DictionaryToObjectConverterTests
     public void Convert_List_ListOfBar()
     {
         // arrange
-        var baz = new Dictionary<string, object>();
-        baz["Number"] = "1.5";
+        var baz = new Dictionary<string, object>
+        {
+            ["Number"] = "1.5"
+        };
 
-        var bar = new Dictionary<string, object>();
-        bar["State"] = "On";
-        bar["Bazs"] = new List<object> { baz, };
-        bar["BazArray"] = new List<object> { baz, };
-        bar["StringArray"] = new List<object> { "a", 1, true, };
+        var bar = new Dictionary<string, object>
+        {
+            ["State"] = "On",
+            ["Bazs"] = new List<object> { baz },
+            ["BazArray"] = new List<object> { baz },
+            ["StringArray"] = new List<object> { "a", 1, true }
+        };
 
-        var list = new List<object> { bar, };
+        var list = new List<object> { bar };
 
         // assert
         var converter = new DictionaryToObjectConverter(
@@ -79,7 +91,7 @@ public class DictionaryToObjectConverterTests
     public void Convert_String_Int()
     {
         // arrange
-        var input = "1";
+        const string input = "1";
 
         // assert
         var converter = new DictionaryToObjectConverter(
@@ -113,6 +125,6 @@ public class DictionaryToObjectConverterTests
     public enum State
     {
         On,
-        Off,
+        Off
     }
 }

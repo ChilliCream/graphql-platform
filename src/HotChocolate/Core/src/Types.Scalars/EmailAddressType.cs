@@ -12,11 +12,11 @@ namespace HotChocolate.Types;
 /// </summary>
 public partial class EmailAddressType : RegexType
 {
-    private const string _validationPattern =
+    private const string ValidationPattern =
         "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?" +
         "(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
 
-    [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(ValidationPattern, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
 
     /// <summary>
@@ -41,7 +41,8 @@ public partial class EmailAddressType : RegexType
     public EmailAddressType()
         : this(
             WellKnownScalarTypes.EmailAddress,
-            ScalarResources.EmailAddressType_Description) { }
+            ScalarResources.EmailAddressType_Description)
+    { }
 
     /// <inheritdoc />
     protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)

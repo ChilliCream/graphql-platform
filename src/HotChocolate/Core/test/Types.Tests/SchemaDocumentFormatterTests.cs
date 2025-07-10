@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +26,6 @@ public static class SchemaDocumentFormatterTests
             }
             """);
     }
-
 
     [Fact]
     public static async Task Add_Single_Schema_Formatter()

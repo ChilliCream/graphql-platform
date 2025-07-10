@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.TestContext;
 using HotChocolate.Execution;
@@ -49,7 +48,10 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot();
+        result.MatchMarkdownSnapshot(
+            postFix: TestEnvironment.TargetFramework == "NET10_0"
+                ? TestEnvironment.TargetFramework
+                : null);
     }
 
     [Fact]
@@ -82,7 +84,10 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot();
+        result.MatchMarkdownSnapshot(
+            postFix: TestEnvironment.TargetFramework == "NET10_0"
+                ? TestEnvironment.TargetFramework
+                : null);
     }
 
     [Fact]
@@ -116,7 +121,10 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot();
+        result.MatchMarkdownSnapshot(
+            postFix: TestEnvironment.TargetFramework == "NET10_0"
+                ? TestEnvironment.TargetFramework
+                : null);
     }
 
     [Fact]
@@ -173,7 +181,10 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot();
+        result.MatchMarkdownSnapshot(
+            postFix: TestEnvironment.TargetFramework == "NET10_0"
+                ? TestEnvironment.TargetFramework
+                : null);
     }
 
     [Fact]
@@ -206,7 +217,10 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot();
+        result.MatchMarkdownSnapshot(
+            postFix: TestEnvironment.TargetFramework == "NET10_0"
+                ? TestEnvironment.TargetFramework
+                : null);
     }
 
     [Fact]
@@ -239,7 +253,10 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot();
+        result.MatchMarkdownSnapshot(
+            postFix: TestEnvironment.TargetFramework == "NET10_0"
+                ? TestEnvironment.TargetFramework
+                : null);
     }
 
     [Fact]
@@ -274,7 +291,10 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot();
+        result.MatchMarkdownSnapshot(
+            postFix: TestEnvironment.TargetFramework == "NET10_0"
+                ? TestEnvironment.TargetFramework
+                : null);
     }
 
     [Fact]
@@ -309,7 +329,88 @@ public class IntegrationTests(PostgreSqlResource resource)
                 """)
             .SetGlobalState("printSQL", true));
 
-        result.MatchMarkdownSnapshot();
+        result.MatchMarkdownSnapshot(
+            postFix: TestEnvironment.TargetFramework == "NET10_0"
+                ? TestEnvironment.TargetFramework
+                : null);
+    }
+
+    [Fact]
+    public async Task Paging_Fetch_First_2_Items_Between()
+    {
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        var executor = await new ServiceCollection()
+            .AddScoped(_ => new CatalogContext(connectionString))
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddSorting()
+            .AddDbContextCursorPagingProvider()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(q => q
+            .SetDocument(
+                """
+                {
+                    brands(first: 2, after:"MQ==", before:"NA==") {
+                        nodes {
+                            name
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            endCursor
+                            startCursor
+                        }
+                    }
+                }
+                """)
+            .SetGlobalState("printSQL", true));
+
+        result.MatchMarkdownSnapshot(
+            postFix: TestEnvironment.TargetFramework == "NET10_0"
+                ? TestEnvironment.TargetFramework
+                : null);
+    }
+
+    [Fact]
+    public async Task Paging_Fetch_Last_2_Items_Between()
+    {
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        var executor = await new ServiceCollection()
+            .AddScoped(_ => new CatalogContext(connectionString))
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddSorting()
+            .AddDbContextCursorPagingProvider()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(q => q
+            .SetDocument(
+                """
+                {
+                    brands(last: 2, after:"OTc=", before:"MTAw") {
+                        nodes {
+                            name
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            endCursor
+                            startCursor
+                        }
+                    }
+                }
+                """)
+            .SetGlobalState("printSQL", true));
+
+        result.MatchMarkdownSnapshot(
+            postFix: TestEnvironment.TargetFramework == "NET10_0"
+                ? TestEnvironment.TargetFramework
+                : null);
     }
 
     public class Query
@@ -390,7 +491,7 @@ public class IntegrationTests(PostgreSqlResource resource)
         await using var context = new CatalogContext(connectionString);
         await context.Database.EnsureCreatedAsync();
 
-        var type = new ProductType { Name = "T-Shirt", };
+        var type = new ProductType { Name = "T-Shirt" };
         context.ProductTypes.Add(type);
 
         for (var i = 0; i < 100; i++)
@@ -405,7 +506,7 @@ public class IntegrationTests(PostgreSqlResource resource)
 
             for (var j = 0; j < 100; j++)
             {
-                var product = new Product { Name = $"Product {i}-{j}", Type = type, Brand = brand, };
+                var product = new Product { Name = $"Product {i}-{j}", Type = type, Brand = brand };
                 context.Products.Add(product);
             }
         }

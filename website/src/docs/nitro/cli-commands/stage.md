@@ -55,7 +55,42 @@ Remember to save any changes you've made before exiting the Console UI.
 
 - `--api-id <api-id>`: Specifies the ID of the API for which you want to edit stages. This ID can be retrieved with the `nitro api list` command. You can set it from the environment variable `NITRO_API_ID`.
 
-# List all Stages
+# Edit Stages of an API (non-interactive)
+
+The `nitro stage edit` command also provides a non-interactive user interface for managing the stages of an API.
+
+```shell
+nitro stage edit --api-id abc123 --configuration '[{"Name":"stage1","DisplayName":"Stage 1","Conditions":[{"AfterStage":"stage2"}]}]'
+```
+
+**Options**
+
+- `--api-id <api-id>`: Specifies the ID of the API for which you want to edit stages. You can set it from the environment variable `NITRO_API_ID`.
+- `--configuration <configuration>`: Provides the stage configuration in JSON format. If not provided, an interactive selection will be shown. The input should be a JSON array of stage configurations.
+
+**Example Configuration:**
+
+```json
+[
+  {
+    "Name": "stage1",
+    "DisplayName": "Stage 1",
+    "Conditions": [
+      {
+        "AfterStage": "stage2"
+      }
+    ]
+  }
+]
+```
+
+**Global Options**
+
+- `--cloud-url <cloud-url>`
+- `--api-key <api-key>`
+- `--output <json>`
+
+# List All Stages
 
 The `nitro stage list` command is used to list all stages of an API.
 
@@ -63,8 +98,14 @@ The `nitro stage list` command is used to list all stages of an API.
 nitro stage list --api-id QXBpCmdiOGRiYzk5NmRiNTI0OWRlYWIyM2ExNGRiYjdhMTIzNA==
 ```
 
-**Options:**
+**Options**
 
-- `--api-id <api-id>`: Specifies the ID of the API for which you want to list the stages. This ID can be retrieved with the `nitro api list` command. You can set it from the environment variable `NITRO_API_ID`.
+- `--api-id <api-id>`: Specifies the ID of the API for which you want to list the stages. You can set it from the environment variable `NITRO_API_ID`.
+
+**Global Options**
+
+- `--cloud-url <cloud-url>`
+- `--api-key <api-key>`
+- `--output <json>`
 
 <!-- spell-checker:ignore Cmdi, elete, Yjdh -->

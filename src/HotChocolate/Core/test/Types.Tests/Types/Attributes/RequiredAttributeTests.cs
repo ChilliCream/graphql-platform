@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using CookieCrumble;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 
@@ -15,7 +14,7 @@ public class RequiredAttributeTests
         SchemaBuilder.New()
             .AddQueryType<Foo>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -31,7 +30,7 @@ public class RequiredAttributeTests
             .AddQueryType<Foo>()
             .AddServices(services)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 

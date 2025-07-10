@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -54,7 +53,7 @@ public class BindingBehaviorTests
     {
         A,
         B,
-        C,
+        C
     }
 
     [Fact]
@@ -92,7 +91,7 @@ public class BindingBehaviorTests
     {
         A,
         B,
-        C,
+        C
     }
 
     [Fact]
@@ -141,7 +140,7 @@ public class BindingBehaviorTests
     {
         A,
         B,
-        C,
+        C
     }
 
     public class BookCategory3Type : EnumType<BookCategory3>

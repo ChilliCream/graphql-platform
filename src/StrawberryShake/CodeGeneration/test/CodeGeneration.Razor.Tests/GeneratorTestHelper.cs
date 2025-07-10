@@ -19,14 +19,13 @@ public static class GeneratorTestHelper
 {
     public static IReadOnlyList<IError> AssertError(params string[] fileNames)
     {
-        var result = GenerateAsync(
+        var result = Generate(
             fileNames,
             new CSharpGeneratorSettings
             {
                 Namespace = "Foo.Bar",
-                ClientName = "FooClient",
-            })
-            .Result;
+                ClientName = "FooClient"
+            });
 
         Assert.True(
             result.Errors.Count > 0,
@@ -42,7 +41,7 @@ public static class GeneratorTestHelper
         bool strictValidation,
         params string[] sourceTexts) =>
         AssertResult(
-            new AssertSettings { StrictValidation = strictValidation, },
+            new AssertSettings { StrictValidation = strictValidation },
             sourceTexts);
 
     public static void AssertResult(
@@ -63,16 +62,17 @@ public static class GeneratorTestHelper
         var documents = new StringBuilder();
         var documentNames = new HashSet<string>();
 
-        documents.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");
-        documents.AppendLine("// ReSharper disable RedundantNameQualifier");
         documents.AppendLine("// ReSharper disable ArrangeObjectCreationWhenTypeEvident");
-        documents.AppendLine("// ReSharper disable UnusedType.Global");
-        documents.AppendLine("// ReSharper disable PartialTypeWithSinglePart");
-        documents.AppendLine("// ReSharper disable UnusedMethodReturnValue.Local");
+        documents.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");
         documents.AppendLine("// ReSharper disable ConvertToAutoProperty");
-        documents.AppendLine("// ReSharper disable UnusedMember.Global");
-        documents.AppendLine("// ReSharper disable SuggestVarOrType_SimpleTypes");
         documents.AppendLine("// ReSharper disable InconsistentNaming");
+        documents.AppendLine("// ReSharper disable PartialTypeWithSinglePart");
+        documents.AppendLine("// ReSharper disable PreferConcreteValueOverDefault");
+        documents.AppendLine("// ReSharper disable RedundantNameQualifier");
+        documents.AppendLine("// ReSharper disable SuggestVarOrType_SimpleTypes");
+        documents.AppendLine("// ReSharper disable UnusedMember.Global");
+        documents.AppendLine("// ReSharper disable UnusedMethodReturnValue.Local");
+        documents.AppendLine("// ReSharper disable UnusedType.Global");
         documents.AppendLine();
 
         if (settings.Profiles.Count == 0)
@@ -92,7 +92,7 @@ public static class GeneratorTestHelper
                 NoStore = settings.NoStore,
                 InputRecords = settings.InputRecords,
                 EntityRecords = settings.EntityRecords,
-                RazorComponents = settings.RazorComponents,
+                RazorComponents = settings.RazorComponents
             });
 
         Assert.False(
@@ -148,8 +148,7 @@ public static class GeneratorTestHelper
             documents.ToString().MatchSnapshot();
         }
 
-        IReadOnlyList<Diagnostic> diagnostics =
-            CSharpCompiler.GetDiagnosticErrors(documents.ToString());
+        var diagnostics = CSharpCompiler.GetDiagnosticErrors(documents.ToString());
 
         if (skipWarnings)
         {
@@ -171,7 +170,7 @@ public static class GeneratorTestHelper
 
     public static void AssertStarWarsResult(params string[] sourceTexts) =>
         AssertStarWarsResult(
-            new AssertSettings { StrictValidation = true, },
+            new AssertSettings { StrictValidation = true },
             sourceTexts);
 
     public static void AssertStarWarsResult(
@@ -226,8 +225,8 @@ public static class GeneratorTestHelper
             NoStore = noStore,
             Profiles = (profiles ??
             [
-                TransportProfile.Default,
-            ]).ToList(),
+                TransportProfile.Default
+            ]).ToList()
         };
     }
 
@@ -252,7 +251,7 @@ public static class GeneratorTestHelper
             analyzer.AddDocument(executable);
         }
 
-        return analyzer.AnalyzeAsync().Result;
+        return analyzer.Analyze();
     }
 
     public class AssertSettings

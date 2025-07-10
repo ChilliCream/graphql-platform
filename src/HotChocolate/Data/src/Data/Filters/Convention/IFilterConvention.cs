@@ -113,17 +113,17 @@ public interface IFilterConvention : IConvention
 
     bool TryGetHandler(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition,
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration,
         [NotNullWhen(true)] out IFilterFieldHandler? handler);
 
     /// <summary>
-    /// Creates metadata for a field that the provider can pick up an use for the translation
+    /// Creates metadata for a field that the provider can pick up and use for the translation
     /// </summary>
     IFilterMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition);
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration);
 
     /// <summary>
     /// Creates a middleware that represents the filter execution logic

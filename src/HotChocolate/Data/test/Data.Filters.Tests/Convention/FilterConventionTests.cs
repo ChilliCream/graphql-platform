@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -39,10 +38,10 @@ public class FilterConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a", };
+        var a = new Foo { Bar = "a" };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b", };
+        var b = new Foo { Bar = "b" };
         Assert.False(func(b));
     }
 
@@ -242,10 +241,10 @@ public class FilterConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a", };
+        var a = new Foo { Bar = "a" };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b", };
+        var b = new Foo { Bar = "b" };
         Assert.False(func(b));
     }
 
@@ -280,10 +279,10 @@ public class FilterConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a", };
+        var a = new Foo { Bar = "a" };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b", };
+        var b = new Foo { Bar = "b" };
         Assert.False(func(b));
     }
 
@@ -321,10 +320,10 @@ public class FilterConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a", };
+        var a = new Foo { Bar = "a" };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b", };
+        var b = new Foo { Bar = "b" };
         Assert.False(func(b));
     }
 
@@ -424,7 +423,7 @@ public class FilterConventionTests
         schema.MatchSnapshot();
     }
 
-    protected ISchema CreateSchemaWithTypes(
+    protected Schema CreateSchemaWithTypes(
         IFilterInputType type,
         FilterConvention convention,
         params Type[] extensions)
@@ -448,7 +447,7 @@ public class FilterConventionTests
         return builder.Create();
     }
 
-    protected ISchema CreateSchemaWith(
+    protected Schema CreateSchemaWith(
         IFilterInputType type,
         FilterConvention convention,
         params FilterConventionExtension[] extensions)
@@ -513,7 +512,7 @@ public class FilterConventionTests
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     public class FooFilterInput
@@ -527,7 +526,5 @@ public class FilterConventionTests
         }
     }
 
-    public class CustomFooFilterInput : FilterInputType<Foo>
-    {
-    }
+    public class CustomFooFilterInput : FilterInputType<Foo>;
 }

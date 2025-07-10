@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
@@ -33,7 +32,7 @@ public class GeoJsonPolygonSerializerTests
                 new Coordinate(40, 40),
                 new Coordinate(20, 40),
                 new Coordinate(10, 20),
-                new Coordinate(30, 10),
+                new Coordinate(30, 10)
         ]));
 
     private readonly string _geometryType = "Polygon";
@@ -44,26 +43,26 @@ public class GeoJsonPolygonSerializerTests
             {
                 [
                     30.0,
-                    10.0,
+                    10.0
                 ],
                 [
                     40.0,
-                    40.0,
+                    40.0
                 ],
                 [
                     20.0,
-                    40.0,
+                    40.0
                 ],
                 [
                     10.0,
-                    20.0,
+                    20.0
                 ],
                 new[]
                 {
                     30.0,
-                    10.0,
-                },
-            },
+                    10.0
+                }
+            }
     };
 
     [Theory]
@@ -170,7 +169,7 @@ public class GeoJsonPolygonSerializerTests
             type.IsInstanceOfType(
                 GeometryFactory.Default.CreateGeometryCollection(
                 [
-                    new Point(1, 2),
+                    new Point(1, 2)
                 ])));
     }
 
@@ -496,7 +495,7 @@ public class GeoJsonPolygonSerializerTests
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
-                { WellKnownFields.CrsFieldName, 26912 },
+                { WellKnownFields.CrsFieldName, 26912 }
             };
 
         // act
@@ -517,7 +516,7 @@ public class GeoJsonPolygonSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
-                { WellKnownFields.CoordinatesFieldName, _geometryParsed },
+                { WellKnownFields.CoordinatesFieldName, _geometryParsed }
             };
 
         // act
@@ -538,7 +537,7 @@ public class GeoJsonPolygonSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
-                { WellKnownFields.CrsFieldName, new IntValueNode(0) },
+                { WellKnownFields.CrsFieldName, new IntValueNode(0) }
             };
 
         // act
@@ -557,7 +556,7 @@ public class GeoJsonPolygonSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
-                { WellKnownFields.CrsFieldName, new IntValueNode(0) },
+                { WellKnownFields.CrsFieldName, new IntValueNode(0) }
             };
 
         // act
@@ -585,7 +584,7 @@ public class GeoJsonPolygonSerializerTests
         Assert.Throws<SerializationException>(() => inputParser.ParseLiteral(valueNode, type));
     }
 
-    private ISchema CreateSchema() => SchemaBuilder.New()
+    private Schema CreateSchema() => SchemaBuilder.New()
         .AddSpatialTypes()
         .AddQueryType(d => d
             .Name("Query")
@@ -613,13 +612,13 @@ public class GeoJsonPolygonSerializerTests
         }
     }
 
-    private INamedInputType CreateInputType(string typeName)
+    private IInputTypeDefinition CreateInputType(string typeName)
     {
-        return CreateSchema().GetType<INamedInputType>(typeName);
+        return CreateSchema().Types.GetType<IInputTypeDefinition>(typeName);
     }
 
     private ILeafType CreateLeafType(string typeName)
     {
-        return CreateSchema().GetType<ILeafType>(typeName);
+        return CreateSchema().Types.GetType<ILeafType>(typeName);
     }
 }

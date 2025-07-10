@@ -7,6 +7,10 @@
     <Description>This package contains common abstractions and base classes for transport.</Description>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Transport.Http" />
     <InternalsVisibleTo Include="HotChocolate.Transport.Sockets" />
@@ -15,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+    <ProjectReference Include="..\..\..\Utilities\src\Utilities.Buffers\HotChocolate.Utilities.Buffers.csproj" />
   </ItemGroup>
 
   <ItemGroup>

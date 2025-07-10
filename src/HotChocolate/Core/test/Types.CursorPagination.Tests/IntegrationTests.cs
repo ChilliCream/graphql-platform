@@ -1,4 +1,4 @@
-using CookieCrumble;
+using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Internal;
@@ -20,7 +20,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -35,27 +35,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.Print().MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task SetPagingOptionsIsStillApplied()
-    {
-        var executor =
-#pragma warning disable CS0618 // Type or member is obsolete
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions
-                {
-                    IncludeTotalCount = true
-                })
-#pragma warning restore CS0618 // Type or member is obsolete
-                .Services
-                .BuildServiceProvider()
-                .GetRequestExecutorAsync();
-
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -69,7 +49,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -785,7 +765,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -805,7 +785,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -820,7 +800,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -836,7 +816,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -850,7 +830,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -864,7 +844,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -983,6 +963,30 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task Invalid_EmptyString_After_Index_Cursor()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .Services.BuildServiceProvider()
+            .GetRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              letters(first: 2 after: "") {
+                  edges {
+                      cursor
+                  }
+              }
+            }
+            """
+        );
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Invalid_Before_Index_Cursor()
     {
         var executor =
@@ -1007,6 +1011,52 @@ public class IntegrationTests
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Invalid_EmptyString_Before_Index_Cursor()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              letters(first: 2 before: "") {
+                  edges {
+                      cursor
+                  }
+              }
+            }
+            """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Simple_EnumerableValueType_ReturnsError()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryEnumerableValueType>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        const string query = "{ test { nodes } }";
+
+        var result = await executor.ExecuteAsync(query);
+        var errors = result.ExpectOperationResult().Errors;
+
+        // assert
+        Assert.NotNull(errors);
+        var error = Assert.Single(errors);
+        Assert.Equal("Cannot handle the specified data source.", error.Message);
+    }
+
     public class QueryType : ObjectType<Query>
     {
         protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -1027,7 +1077,7 @@ public class IntegrationTests
                     options: new PagingOptions
                     {
                         MaxPageSize = 2,
-                        IncludeTotalCount = true,
+                        IncludeTotalCount = true
                     });
 
             descriptor
@@ -1053,7 +1103,7 @@ public class IntegrationTests
                     options: new PagingOptions
                     {
                         MaxPageSize = 2,
-                        IncludeTotalCount = true,
+                        IncludeTotalCount = true
                     });
         }
     }
@@ -1073,16 +1123,16 @@ public class IntegrationTests
             "i",
             "j",
             "k",
-            "l",
+            "l"
         ];
 
         public List<List<Foo>> Foos() =>
         [
-            [new() { Bar = "a", },],
-            [new() { Bar = "b", }, new() { Bar = "c", },],
-            [new() { Bar = "d", },],
-            [new() { Bar = "e", },],
-            [new() { Bar = "f", },],
+            [new() { Bar = "a" }],
+            [new() { Bar = "b" }, new() { Bar = "c" }],
+            [new() { Bar = "d" }],
+            [new() { Bar = "e" }],
+            [new() { Bar = "f" }]
         ];
     }
 
@@ -1092,18 +1142,18 @@ public class IntegrationTests
             => Executable.From(
                 new List<Foo>
                 {
-                    new() { Bar = "a", },
-                    new() { Bar = "b", },
-                    new() { Bar = "c", } ,
-                    new() { Bar = "d", },
-                    new() { Bar = "e", },
-                    new() { Bar = "f", },
+                    new() { Bar = "a" },
+                    new() { Bar = "b" },
+                    new() { Bar = "c" } ,
+                    new() { Bar = "d" },
+                    new() { Bar = "e" },
+                    new() { Bar = "f" }
                 }.AsQueryable());
     }
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     public class QueryAttr
@@ -1122,7 +1172,7 @@ public class IntegrationTests
             "i",
             "j",
             "k",
-            "l",
+            "l"
         ];
 
         [UsePaging(typeof(NonNullType<StringType>))]
@@ -1134,11 +1184,11 @@ public class IntegrationTests
             IncludeTotalCount = true)]
         public List<List<Foo>> Foos() =>
         [
-            [new() { Bar = "a", },],
-            [new() { Bar = "b", }, new() { Bar = "c", },],
-            [new() { Bar = "d", },],
-            [new() { Bar = "e", },],
-            [new() { Bar = "f", },],
+            [new() { Bar = "a" }],
+            [new() { Bar = "b" }, new() { Bar = "c" }],
+            [new() { Bar = "d" }],
+            [new() { Bar = "e" }],
+            [new() { Bar = "f" }]
         ];
     }
 
@@ -1160,13 +1210,13 @@ public class IntegrationTests
         {
             descriptor
                 .Field(t => t.Names())
-                .UsePaging(options: new() { InferConnectionNameFromField = true, });
+                .UsePaging(options: new() { InferConnectionNameFromField = true });
         }
     }
 
     public class InferConnectionNameFromField
     {
-        public string[] Names() => ["a", "b",];
+        public string[] Names() => ["a", "b"];
     }
 
     public class ExplicitConnectionName
@@ -1208,7 +1258,7 @@ public class IntegrationTests
             object source,
             CursorPagingArguments arguments)
             => new(new Connection(
-                new[] { new Edge<string>("a", "b"), },
+                [new Edge<string>("a", "b")],
                 new ConnectionPageInfo(false, false, null, null), 1));
     }
 
@@ -1229,7 +1279,7 @@ public class IntegrationTests
             object source,
             CursorPagingArguments arguments)
             => new(new Connection(
-                new[] { new Edge<string>("d", "e"), },
+                [new Edge<string>("d", "e")],
                 new ConnectionPageInfo(false, false, null, null), 1));
     }
 
@@ -1238,7 +1288,7 @@ public class IntegrationTests
         [UsePaging(AllowBackwardPagination = false)]
         public Connection<string> GetFoos(int? first, string? after)
             => new Connection<string>(
-                new[] { new Edge<string>("abc", "def"), },
+                [new Edge<string>("abc", "def")],
                 new ConnectionPageInfo(false, false, null, null), 1);
     }
 
@@ -1247,7 +1297,16 @@ public class IntegrationTests
         [UsePaging(IncludeTotalCount = true)]
         public Connection<string> GetFoos(int? first, string? after)
             => new Connection<string>(
-                new[] {new Edge<string>("abc", "def"), new Edge<string>("abc", "def"), },
+                [new Edge<string>("abc", "def"), new Edge<string>("abc", "def")],
                 new ConnectionPageInfo(false, false, null, null), 2);
+    }
+
+    public class QueryEnumerableValueType
+    {
+        [UsePaging]
+        public ImmutableArray<int> Test()
+        {
+            return [];
+        }
     }
 }

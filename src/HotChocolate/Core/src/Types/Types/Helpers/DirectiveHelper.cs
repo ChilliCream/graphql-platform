@@ -6,18 +6,18 @@ internal static class DirectiveHelper
     {
         return source switch
         {
-            ISchema => DirectiveLocation.Schema,
+            Schema => DirectiveLocation.Schema,
             ScalarType => DirectiveLocation.Scalar,
             ObjectType => DirectiveLocation.Object,
             InterfaceType => DirectiveLocation.Interface,
             UnionType => DirectiveLocation.Union,
             InputObjectType => DirectiveLocation.InputObject,
             EnumType => DirectiveLocation.Enum,
-            IEnumValue => DirectiveLocation.EnumValue,
-            IOutputField => DirectiveLocation.FieldDefinition,
+            EnumValue => DirectiveLocation.EnumValue,
+            IOutputFieldDefinition => DirectiveLocation.FieldDefinition,
             InputField => DirectiveLocation.InputFieldDefinition,
             Argument => DirectiveLocation.ArgumentDefinition,
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
     }
 }

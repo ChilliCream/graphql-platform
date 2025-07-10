@@ -60,16 +60,16 @@ internal static partial class ValueCompletion
             switch (fieldType.Kind)
             {
                 case TypeKind.Object:
-                    objectType = (ObjectType) fieldType;
+                    objectType = (ObjectType)fieldType;
                     return true;
 
                 case TypeKind.Interface:
-                    objectType = ((InterfaceType) fieldType)
+                    objectType = ((InterfaceType)fieldType)
                         .ResolveConcreteType(context.ResolverContext, result);
                     return objectType is not null;
 
                 case TypeKind.Union:
-                    objectType = ((UnionType) fieldType)
+                    objectType = ((UnionType)fieldType)
                         .ResolveConcreteType(context.ResolverContext, result);
                     return objectType is not null;
             }

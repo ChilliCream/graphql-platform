@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -36,7 +35,6 @@ public class BuiltInTypesSharableTests
         // act/assert
         schema.MatchSnapshot();
     }
-
 
     public class Query
     {

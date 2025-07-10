@@ -9,7 +9,6 @@ namespace HotChocolate.Data.Projections.Context;
 public sealed class SelectedField : ISelectedField
 {
     private readonly IResolverContext _resolverContext;
-    private readonly ISelection _selection;
 
     /// <summary>
     /// Creates a new instance of <see cref="SelectedField"/>
@@ -17,14 +16,14 @@ public sealed class SelectedField : ISelectedField
     internal SelectedField(IResolverContext resolverContext, ISelection selection)
     {
         _resolverContext = resolverContext;
-        _selection = selection;
+        Selection = selection;
     }
 
     /// <inheritdoc />
-    public ISelection Selection => _selection;
+    public ISelection Selection { get; }
 
     /// <inheritdoc />
-    public IObjectField Field => Selection.Field;
+    public IOutputFieldDefinition Field => Selection.Field;
 
     /// <inheritdoc />
     public IType Type => Selection.Type;
@@ -41,7 +40,7 @@ public sealed class SelectedField : ISelectedField
 
         if (fields is null)
         {
-            return Array.Empty<SelectedField>();
+            return [];
         }
 
         var finalFields = new SelectedField[fields.Count];
@@ -84,7 +83,7 @@ public sealed class SelectedField : ISelectedField
     {
         var namedType = Field.Type.NamedType();
 
-        if (_selection.SelectionSet is null)
+        if (Selection.SelectionSet is null)
         {
             return null;
         }
@@ -102,6 +101,6 @@ public sealed class SelectedField : ISelectedField
             }
         }
 
-        return _resolverContext.GetSelections(type, _selection, allowInternals);
+        return _resolverContext.GetSelections(type, Selection, allowInternals);
     }
 }

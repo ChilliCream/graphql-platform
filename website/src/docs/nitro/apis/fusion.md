@@ -38,10 +38,10 @@ With Nitro you can automate this process. You can configure your gateway to auto
 
 ## Configure your gateway
 
-To configure your Fusion gateway to pull the configuration from Nitro, you need to install the `ChilliCream.Nitro` package. You can do this by running the following command in your project's root directory:
+To configure your Fusion gateway to pull the configuration from Nitro, you need to install the `ChilliCream.Nitro.Fusion` package. You can do this by running the following command in your project's root directory:
 
 ```bash
-dotnet add package ChilliCream.Nitro
+dotnet add package ChilliCream.Nitro.Fusion
 ```
 
 After installing the package, you need to configure the services in your startup class. Below is a sample implementation in C#:

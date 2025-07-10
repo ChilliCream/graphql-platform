@@ -14,7 +14,7 @@ A client, in the context of a GraphQL API, is an entity that interacts with the 
 
 ## What is a Persisted Operation?
 
-A persisted operation is a GraphQL operation that has been sent to the server, stored, and assigned an unique identifier (hash). Instead of sending the full text of a GraphQL operation to the server for execution, clients can send the hash of the operation, reducing the amount of data transmitted over the network. This practice is particularly beneficial for mobile clients operating in environments with limited network capacity.
+A persisted operation is a GraphQL operation that has been sent to the server, stored, and assigned a unique identifier (hash). Instead of sending the full text of a GraphQL operation to the server for execution, clients can send the hash of the operation, reducing the amount of data transmitted over the network. This practice is particularly beneficial for mobile clients operating in environments with limited network capacity.
 
 Persisted operations also add an extra layer of security as the server can be configured to only execute operations that have been previously stored, which prevents malicious queries. This is the cheapest and most effective way to secure your GraphQL API from potential attacks.
 
@@ -61,7 +61,7 @@ The operations file typically adopts the JSON format as used by Relay. It compri
 Several GraphQL clients have built-in support for this Relay-style operations file format. This compatibility allows for a standardized way of handling persisted operations across different clients. For more details on how various clients implement and work with persisted operations, consider referring to their respective documentation:
 
 - [StrawberryShake](https://chillicream.com/docs/strawberryshake/v14/performance/persisted-operations)
-- [URQL](https://formidable.com/open-source/urql/docs/advanced/persisted-queries/)
+- [URQL](https://nearform.com/open-source/urql/docs/advanced/persistence-and-uploads/)
 - [Relay](https://relay.dev/docs/guides/persisted-queries/)
 
 # Setting Up a Client Registry
@@ -126,7 +126,7 @@ public void ConfigureServices(IServiceCollection services)
 ## Block Ad-Hoc Queries
 
 While you want to allow ad-hoc queries during development, you might want to disable them in production.
-This can be done by setting the `OnlyAllowPersistedOperations` option to `true` in the `ModifyRequestOptions` method.
+This can be done by setting the `PersistedOperations.OnlyAllowPersistedDocuments` option to `true` in the `ModifyRequestOptions` method.
 
 ```csharp
 public void ConfigureServices(IServiceCollection services)
@@ -135,7 +135,7 @@ public void ConfigureServices(IServiceCollection services)
         .AddGraphQLServer()
         .AddQueryType<Query>()
         .AddNitro() // Connect to the client registry
-        .ModifyRequestOptions(x => x.OnlyAllowPersistedOperations = true)
+        .ModifyRequestOptions(x => x.PersistedOperations.OnlyAllowPersistedDocuments = true)
         .UsePersistedOperationPipeline(); // Enable the persisted operation pipeline
 }
 ```
@@ -151,8 +151,8 @@ public void ConfigureServices(IServiceCollection services)
         .AddNitro() // Connect to the client registry
         .ModifyRequestOptions(x =>
         {
-            x.OnlyAllowPersistedOperations = true;
-            x.OnlyPersistedOperationsAreAllowedError = ErrorBuilder.New()
+            x.PersistedOperations.OnlyAllowPersistedDocuments = true;
+            x.PersistedOperations.OperationNotAllowedError = ErrorBuilder.New()
                 .SetMessage("Only persisted operations are allowed.")
                 .Build();
         })

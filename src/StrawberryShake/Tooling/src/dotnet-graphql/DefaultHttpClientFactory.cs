@@ -18,7 +18,7 @@ public class DefaultHttpClientFactory
             new ProductInfoHeaderValue(
                 new ProductHeaderValue(
                     "StrawberryShake",
-                    typeof(InitCommand).Assembly!.GetName()!.Version!.ToString())));
+                    typeof(InitCommand).Assembly.GetName().Version!.ToString())));
 
         if (token is not null)
         {

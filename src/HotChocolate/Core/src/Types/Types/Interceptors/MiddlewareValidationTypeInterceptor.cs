@@ -1,6 +1,6 @@
 using System.Text;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -9,38 +9,38 @@ namespace HotChocolate.Types.Interceptors;
 
 internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 {
-    private const string _useDbContext = "UseDbContext";
-    private const string _usePaging = "UsePaging";
-    private const string _useProjection = "UseProjection";
-    private const string _useFiltering = "UseFiltering";
-    private const string _useSorting = "UseSorting";
+    private const string UseDbContext = "UseDbContext";
+    private const string UsePaging = "UsePaging";
+    private const string UseProjection = "UseProjection";
+    private const string UseFiltering = "UseFiltering";
+    private const string UseSorting = "UseSorting";
 
     private readonly HashSet<string> _names = [];
 
-    public override void OnValidateType(
-        ITypeSystemObjectContext validationContext,
-        DefinitionBase definition)
+    public override void OnAfterCompleteType(
+        ITypeCompletionContext completionContext,
+        TypeSystemConfiguration configuration)
     {
-        if (validationContext.DescriptorContext.Options.ValidatePipelineOrder &&
-            definition is ObjectTypeDefinition objectTypeDef)
+        if (completionContext.DescriptorContext.Options.ValidatePipelineOrder &&
+            configuration is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var field in objectTypeDef.Fields)
             {
-                if (field.MiddlewareDefinitions.Count > 1)
+                if (field.MiddlewareConfigurations.Count > 1)
                 {
                     ValidatePipeline(
-                        validationContext.Type,
-                        new SchemaCoordinate(validationContext.Type.Name, field.Name),
-                        field.MiddlewareDefinitions);
+                        completionContext.Type,
+                        new SchemaCoordinate(completionContext.Type.Name, field.Name),
+                        field.MiddlewareConfigurations);
                 }
             }
         }
     }
 
     private void ValidatePipeline(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         SchemaCoordinate fieldCoordinate,
-        IList<FieldMiddlewareDefinition> middlewareDefinitions)
+        IList<FieldMiddlewareConfiguration> middlewareDefinitions)
     {
         _names.Clear();
 
@@ -65,7 +65,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 
                         if (!_names.Add(definition.Key))
                         {
-                            (duplicates ??= []).Add(_useDbContext);
+                            (duplicates ??= []).Add(UseDbContext);
                         }
                         break;
 
@@ -78,7 +78,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 
                         if (!_names.Add(definition.Key))
                         {
-                            (duplicates ??= []).Add(_usePaging);
+                            (duplicates ??= []).Add(UsePaging);
                         }
 
                         usePaging = true;
@@ -93,7 +93,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 
                         if (!_names.Add(definition.Key))
                         {
-                            (duplicates ??= []).Add(_useProjection);
+                            (duplicates ??= []).Add(UseProjection);
                         }
 
                         useProjections = true;
@@ -102,7 +102,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                     case WellKnownMiddleware.Filtering:
                         if (!_names.Add(definition.Key))
                         {
-                            (duplicates ??= []).Add(_useFiltering);
+                            (duplicates ??= []).Add(UseFiltering);
                         }
                         useFiltering = true;
                         break;
@@ -110,7 +110,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                     case WellKnownMiddleware.Sorting:
                         if (!_names.Add(definition.Key))
                         {
-                            (duplicates ??= []).Add(_useSorting);
+                            (duplicates ??= []).Add(UseSorting);
                         }
                         useSorting = true;
                         break;
@@ -138,7 +138,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
     }
 
     private static string PrintPipeline(
-        IList<FieldMiddlewareDefinition> middlewareDefinitions)
+        IList<FieldMiddlewareConfiguration> middlewareDefinitions)
     {
         var sb = new StringBuilder();
         var next = false;
@@ -153,31 +153,31 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                     case WellKnownMiddleware.DbContext:
                         other = false;
                         PrintNext();
-                        sb.Append(_useDbContext);
+                        sb.Append(UseDbContext);
                         break;
 
                     case WellKnownMiddleware.Paging:
                         other = false;
                         PrintNext();
-                        sb.Append(_usePaging);
+                        sb.Append(UsePaging);
                         break;
 
                     case WellKnownMiddleware.Projection:
                         other = false;
                         PrintNext();
-                        sb.Append(_useProjection);
+                        sb.Append(UseProjection);
                         break;
 
                     case WellKnownMiddleware.Filtering:
                         other = false;
                         PrintNext();
-                        sb.Append(_useFiltering);
+                        sb.Append(UseFiltering);
                         break;
 
                     case WellKnownMiddleware.Sorting:
                         other = false;
                         PrintNext();
-                        sb.Append(_useSorting);
+                        sb.Append(UseSorting);
                         break;
 
                     default:

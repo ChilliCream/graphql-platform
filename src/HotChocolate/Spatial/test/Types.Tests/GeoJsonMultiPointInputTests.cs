@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -194,7 +193,7 @@ public class GeoJsonMultiPointInputTests
         schema.MatchSnapshot();
     }
 
-    private ISchema CreateSchema() =>
+    private Schema CreateSchema() =>
         SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .AddType<MockObjectType>()
@@ -209,6 +208,6 @@ public class GeoJsonMultiPointInputTests
     private InputObjectType CreateInputType()
     {
         var schema = CreateSchema();
-        return schema.GetType<InputObjectType>("GeoJSONMultiPointInput");
+        return schema.Types.GetType<InputObjectType>("GeoJSONMultiPointInput");
     }
 }

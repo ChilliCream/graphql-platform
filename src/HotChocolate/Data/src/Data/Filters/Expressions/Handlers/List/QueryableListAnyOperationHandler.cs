@@ -22,11 +22,11 @@ public class QueryableListAnyOperationHandler
 
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration)
     {
         return context.Type is IListFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition operationField &&
+            fieldConfiguration is FilterOperationFieldConfiguration operationField &&
             operationField.Id == DefaultFilterOperations.Any;
     }
 
@@ -37,7 +37,7 @@ public class QueryableListAnyOperationHandler
         object? parsedValue)
     {
         if (context.RuntimeTypes.Count > 0 &&
-            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0, } args &&
+            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args &&
             parsedValue is bool parsedBool)
         {
             var property = context.GetInstance();

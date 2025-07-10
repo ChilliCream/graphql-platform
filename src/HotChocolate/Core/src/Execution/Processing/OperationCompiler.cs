@@ -20,22 +20,19 @@ public sealed partial class OperationCompiler
 {
     private readonly InputParser _parser;
     private readonly CreateFieldPipeline _createFieldPipeline;
-    private readonly Queue<BacklogItem> _backlog = new();
-    private readonly Dictionary<Selection, SelectionSetInfo[]> _selectionLookup = new();
-    private readonly Dictionary<SelectionSetRef, int> _selectionSetIdLookup = new();
-    private readonly Dictionary<int, SelectionVariants> _selectionVariants = new();
-    private readonly Dictionary<string, FragmentDefinitionNode> _fragmentDefinitions = new(Ordinal);
-    private readonly Dictionary<string, object?> _contextData = new();
+    private readonly Queue<BacklogItem> _backlog = [];
+    private readonly Dictionary<Selection, SelectionSetInfo[]> _selectionLookup = [];
+    private readonly Dictionary<SelectionSetRef, int> _selectionSetIdLookup = [];
+    private readonly Dictionary<int, SelectionVariants> _selectionVariants = [];
+    private readonly Dictionary<string, FragmentDefinitionNode> _fragmentDefinitions = [];
+    private readonly Dictionary<string, object?> _contextData = [];
     private readonly List<Selection> _selections = [];
     private readonly HashSet<string> _directiveNames = new(Ordinal);
     private readonly List<FieldMiddleware> _pipelineComponents = [];
-    private readonly HashSet<int> _enqueuedSelectionSets = new();
+    private readonly HashSet<int> _enqueuedSelectionSets = [];
     private IncludeCondition[] _includeConditions = [];
     private CompilerContext? _deferContext;
-
-    private ImmutableArray<IOperationOptimizer> _operationOptimizers =
-        ImmutableArray<IOperationOptimizer>.Empty;
-
+    private ImmutableArray<IOperationOptimizer> _operationOptimizers = [];
     private int _nextSelectionId;
     private int _nextSelectionSetRefId;
     private int _nextSelectionSetId;
@@ -61,12 +58,7 @@ public sealed partial class OperationCompiler
 
     public IOperation Compile(OperationCompilerRequest request)
     {
-        if (string.IsNullOrEmpty(request.Id))
-        {
-            throw new ArgumentException(
-                OperationCompiler_OperationIdNullOrEmpty,
-                nameof(request.Id));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(request.Id, nameof(request));
 
         try
         {
@@ -80,7 +72,7 @@ public sealed partial class OperationCompiler
             var variants = GetOrCreateSelectionVariants(id);
             SelectionSetInfo[] infos = [new(request.Definition.SelectionSet, 0)];
 
-            var context = new CompilerContext(request.Schema, request.Document, request.EnableNullBubbling);
+            var context = new CompilerContext((Schema)request.Schema, request.Document);
             context.Initialize(request.RootType, variants, infos, rootPath, selectionSetOptimizers);
             CompileSelectionSet(context);
 
@@ -130,7 +122,7 @@ public sealed partial class OperationCompiler
             _pipelineComponents.Clear();
             _enqueuedSelectionSets.Clear();
 
-            _operationOptimizers = ImmutableArray<IOperationOptimizer>.Empty;
+            _operationOptimizers = [];
 
             _includeConditions = [];
             _deferContext = null;
@@ -146,13 +138,15 @@ public sealed partial class OperationCompiler
             request.RootType,
             request.Schema);
 
+        var schema = Unsafe.As<Schema>(request.Schema);
+
         var variants = new SelectionVariants[_selectionVariants.Count];
 
         if (_operationOptimizers.Length == 0)
         {
-            CompleteResolvers(request.Schema);
+            CompleteResolvers(schema);
 
-            // if we do not have any optimizers we will copy
+            // if we do not have any optimizers, we will copy
             // the variants and seal them in one go.
             foreach (var item in _selectionVariants)
             {
@@ -162,15 +156,15 @@ public sealed partial class OperationCompiler
         }
         else
         {
-            // if we have optimizers we will first copy the variants to its array,
+            // if we have optimizers, we will first copy the variants to its array,
             // after that we will run the optimizers and give them a chance to do some
             // more mutations on the compiled selection variants.
-            // after we have executed all optimizers we will seal the selection variants.
+            // after we have executed all optimizers, we will seal the selection variants.
             var context = new OperationOptimizerContext(
                 request.Id,
                 request.Document,
                 request.Definition,
-                request.Schema,
+                schema,
                 request.RootType,
                 variants,
                 _includeConditions,
@@ -206,7 +200,7 @@ public sealed partial class OperationCompiler
                 optStart = ref Unsafe.Add(ref optStart, 1)!;
             }
 
-            CompleteResolvers(request.Schema);
+            CompleteResolvers(schema);
 
             variantsSpan = variants.AsSpan();
             variantsStart = ref GetReference(variantsSpan)!;
@@ -223,7 +217,7 @@ public sealed partial class OperationCompiler
         return operation;
     }
 
-    private void CompleteResolvers(ISchema schema)
+    private void CompleteResolvers(Schema schema)
     {
         ref var searchSpace = ref GetReference(AsSpan(_selections));
 
@@ -233,7 +227,7 @@ public sealed partial class OperationCompiler
 
             if (selection.ResolverPipeline is null && selection.PureResolver is null)
             {
-                var field = selection.Field;
+                var field = Unsafe.As<ObjectField>(selection.Field);
                 var syntaxNode = selection.SyntaxNode;
                 var resolver = CreateFieldPipeline(
                     schema,
@@ -272,7 +266,7 @@ public sealed partial class OperationCompiler
 
         foreach (var selection in context.Fields.Values)
         {
-            // if the field of the selection returns a composite type we will traverse
+            // if the field of the selection returns a composite type, we will traverse
             // the child selection-sets as well.
             var fieldType = selection.Type.NamedType();
             var selectionSetId = -1;
@@ -283,7 +277,7 @@ public sealed partial class OperationCompiler
             }
 
             // Determines if the type is a composite type.
-            if (fieldType.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union))
+            if (fieldType.IsCompositeType())
             {
                 if (selection.SelectionSet is null)
                 {
@@ -316,9 +310,9 @@ public sealed partial class OperationCompiler
                 // For now, we only allow streams on lists of composite types.
                 if (selection.SyntaxNode.IsStreamable())
                 {
-                    var streamDirective = selection.SyntaxNode.GetStreamDirectiveNode();
+                    var streamDirective = selection.SyntaxNode.GetStreamDirective();
                     var nullValue = NullValueNode.Default;
-                    var ifValue = streamDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
+                    var ifValue = streamDirective?.GetArgumentValue(DirectiveNames.Stream.Arguments.If) ?? nullValue;
                     long ifConditionFlags = 0;
 
                     if (ifValue.Kind is not SyntaxKind.NullValue)
@@ -355,10 +349,8 @@ public sealed partial class OperationCompiler
 
     private void CollectFields(CompilerContext context)
     {
-        for (var i = 0; i < context.SelectionInfos.Length; i++)
+        foreach (var selectionSetInfo in context.SelectionInfos)
         {
-            var selectionSetInfo = context.SelectionInfos[i];
-
             CollectFields(
                 context,
                 selectionSetInfo.SelectionSet,
@@ -419,9 +411,7 @@ public sealed partial class OperationCompiler
 
         if (context.Type.Fields.TryGetField(fieldName, out var field))
         {
-            var fieldType = context.EnableNullBubbling
-                ? field.Type
-                : field.Type.RewriteToNullableType();
+            var fieldType = field.Type;
 
             if (context.Fields.TryGetValue(responseName, out var preparedSelection))
             {
@@ -443,7 +433,7 @@ public sealed partial class OperationCompiler
             {
                 var id = GetNextSelectionId();
 
-                // if this is the first time we find a selection to this field we have to
+                // if this is the first time we've found a selection to this field, we have to
                 // create a new prepared selection.
                 preparedSelection = new Selection.Sealed(
                     id,
@@ -456,11 +446,11 @@ public sealed partial class OperationCompiler
                                 selection.SelectionSet.Selections))
                         : selection,
                     responseName: responseName,
-                    isParallelExecutable: field.IsParallelExecutable,
                     arguments: CoerceArgumentValues(field, selection, responseName),
                     includeConditions: includeCondition == 0
                         ? null
-                        : [includeCondition,]);
+                        : [includeCondition],
+                    isParallelExecutable: field.IsParallelExecutable);
 
                 context.Fields.Add(responseName, preparedSelection);
 
@@ -469,7 +459,7 @@ public sealed partial class OperationCompiler
                     var selectionSetInfo = new SelectionSetInfo(
                         selection.SelectionSet!,
                         includeCondition);
-                    _selectionLookup.Add(preparedSelection, [selectionSetInfo,]);
+                    _selectionLookup.Add(preparedSelection, [selectionSetInfo]);
                 }
             }
         }
@@ -518,7 +508,7 @@ public sealed partial class OperationCompiler
         long includeCondition)
     {
         if (typeCondition is null
-            || (context.Schema.TryGetTypeFromAst(typeCondition, out IType typeCon)
+            || (context.Schema.Types.TryGetType(typeCondition, out IType? typeCon)
                 && DoesTypeApply(typeCon, context.Type)))
         {
             includeCondition = GetSelectionIncludeCondition(selection, includeCondition);
@@ -527,7 +517,7 @@ public sealed partial class OperationCompiler
             {
                 var deferDirective = directives.GetDeferDirectiveNode();
                 var nullValue = NullValueNode.Default;
-                var ifValue = deferDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
+                var ifValue = deferDirective?.GetArgumentValue(DirectiveNames.Defer.Arguments.If) ?? nullValue;
 
                 long ifConditionFlags = 0;
 
@@ -540,7 +530,7 @@ public sealed partial class OperationCompiler
                 var typeName = typeCondition?.Name.Value ?? context.Type.Name;
                 var id = GetOrCreateSelectionSetRefId(selectionSet, typeName, context.Path);
                 var variants = GetOrCreateSelectionVariants(id);
-                var infos = new SelectionSetInfo[] { new(selectionSet, includeCondition), };
+                var infos = new SelectionSetInfo[] { new(selectionSet, includeCondition) };
 
                 if (!variants.ContainsSelectionSet(context.Type))
                 {
@@ -562,7 +552,7 @@ public sealed partial class OperationCompiler
                 context.Fragments.Add(fragment);
                 _hasIncrementalParts = true;
 
-                // if we have if-condition flags there will be a runtime validation if something
+                // if we have if-condition flags, there will be a runtime validation if something
                 // shall be deferred, so we need to prepare for both cases.
                 //
                 // this means that we will collect the fields with our if condition flags as
@@ -579,13 +569,13 @@ public sealed partial class OperationCompiler
         }
     }
 
-    private static bool DoesTypeApply(IType typeCondition, IObjectType current)
+    private static bool DoesTypeApply(IType typeCondition, IObjectTypeDefinition current)
         => typeCondition.Kind switch
         {
             TypeKind.Object => ReferenceEquals(typeCondition, current),
             TypeKind.Interface => current.IsImplementing((InterfaceType)typeCondition),
-            TypeKind.Union => ((UnionType)typeCondition).Types.ContainsKey(current.Name),
-            _ => false,
+            TypeKind.Union => ((UnionType)typeCondition).Types.ContainsName(current.Name),
+            _ => false
         };
 
     private FragmentDefinitionNode GetFragmentDefinition(
@@ -615,7 +605,7 @@ public sealed partial class OperationCompiler
                     fragmentName));
         }
 
-        EXIT:
+EXIT:
         return value;
     }
 
@@ -739,7 +729,7 @@ public sealed partial class OperationCompiler
     {
         if (_deferContext is null)
         {
-            return new CompilerContext(context.Schema, context.Document, context.EnableNullBubbling);
+            return new CompilerContext(context.Schema, context.Document);
         }
 
         var temp = _deferContext;
@@ -755,7 +745,7 @@ public sealed partial class OperationCompiler
         if (newSelection.SyntaxNode.SelectionSet is not null)
         {
             var selectionSetInfo = new SelectionSetInfo(newSelection.SelectionSet!, 0);
-            _selectionLookup.Add(newSelection, [selectionSetInfo,]);
+            _selectionLookup.Add(newSelection, [selectionSetInfo]);
         }
     }
 
@@ -765,11 +755,11 @@ public sealed partial class OperationCompiler
         SelectionPath path)
         : IEquatable<SelectionSetRef>
     {
-        public SelectionSetNode SelectionSet { get; } = selectionSet;
+        public readonly SelectionSetNode SelectionSet = selectionSet;
 
-        public SelectionPath Path { get; } = path;
+        public readonly SelectionPath Path = path;
 
-        public string SelectionSetTypeName { get; } = selectionSetTypeName;
+        public readonly string SelectionSetTypeName = selectionSetTypeName;
 
         public bool Equals(SelectionSetRef other)
             => SyntaxComparer.BySyntax.Equals(SelectionSet, other.SelectionSet)

@@ -12,13 +12,13 @@ internal partial class MiddlewareContext
 
     public Path Path => _path ??= PathHelper.CreatePathFromContext(Selection, ParentResult, -1);
 
-    public IImmutableDictionary<string, object?> ScopedContextData { get; set; } = default!;
+    public IImmutableDictionary<string, object?> ScopedContextData { get; set; } = null!;
 
-    public IImmutableDictionary<string, object?> LocalContextData { get; set; } = default!;
+    public IImmutableDictionary<string, object?> LocalContextData { get; set; } = null!;
 
     public IType? ValueType { get; set; }
 
-    public ObjectResult ParentResult { get; private set; } = default!;
+    public ObjectResult ParentResult { get; private set; } = null!;
 
     public bool HasErrors { get; private set; }
 

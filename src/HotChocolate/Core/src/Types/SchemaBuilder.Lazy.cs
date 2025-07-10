@@ -6,10 +6,10 @@ public partial class SchemaBuilder
 {
     public sealed class LazySchema
     {
-        private readonly List<Action<ISchema>> _callbacks = new();
-        private ISchema? _schema;
+        private readonly List<Action<Schema>> _callbacks = [];
+        private Schema? _schema;
 
-        public ISchema Schema
+        public Schema Schema
         {
             get
             {
@@ -31,7 +31,7 @@ public partial class SchemaBuilder
 
                 _schema = value ?? throw new ArgumentNullException(nameof(value));
 
-                Action<ISchema>[] callbacks;
+                Action<Schema>[] callbacks;
                 lock (_callbacks)
                 {
                     callbacks = _callbacks.ToArray();
@@ -45,7 +45,7 @@ public partial class SchemaBuilder
             }
         }
 
-        public void OnSchemaCreated(Action<ISchema> callback)
+        public void OnSchemaCreated(Action<Schema> callback)
         {
             if (_schema is not null)
             {

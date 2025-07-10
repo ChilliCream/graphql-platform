@@ -29,7 +29,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         IReadOnlyDictionary<string, object?>? variables = null,
         IReadOnlyDictionary<string, Upload?>? files = null,
         RequestStrategy strategy = RequestStrategy.Default)
-        : this(null, name, document, variables, files,  strategy)
+        : this(null, name, document, variables, files, strategy)
     {
     }
 
@@ -121,7 +121,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
     {
         get
         {
-            return _extensions ??= new();
+            return _extensions ??= [];
         }
     }
 
@@ -132,7 +132,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
     {
         get
         {
-            return _contextData ??= new();
+            return _contextData ??= [];
         }
     }
 

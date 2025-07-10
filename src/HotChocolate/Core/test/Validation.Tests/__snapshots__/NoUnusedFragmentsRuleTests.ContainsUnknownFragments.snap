@@ -1,12 +1,12 @@
-﻿[
+[
   {
     "Message": "The specified fragment `Unused1` is not used within the current document.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 22,
-        "Column": 17
+        "Line": 21,
+        "Column": 1
       }
     ],
     "Extensions": {
@@ -21,8 +21,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 25,
-        "Column": 17
+        "Line": 24,
+        "Column": 1
       }
     ],
     "Extensions": {

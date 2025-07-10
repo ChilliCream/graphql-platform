@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -9,13 +8,13 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableSortVisitorExpressionTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new Foo { Name = "Sam", LastName = "Sampleman", Bars = new List<Bar>(), },
+        new Foo { Name = "Sam", LastName = "Sampleman", Bars = [] },
         new Foo
         {
-            Name = "Foo", LastName = "Galoo", Bars = new List<Bar>() { new() { Value = "A", }, },
-        },
+            Name = "Foo", LastName = "Galoo", Bars = [new() { Value = "A" }]
+        }
     ];
 
     private readonly SchemaCache _cache;
@@ -54,7 +53,7 @@ public class QueryableSortVisitorExpressionTests
     public async Task Create_CollectionLengthExpression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooSortInputType>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooSortInputType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -68,16 +67,11 @@ public class QueryableSortVisitorExpressionTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(),
-                    res1,
-                    "ASC"),
-                res2,
-                "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
-        ;
     }
 
     public class Foo

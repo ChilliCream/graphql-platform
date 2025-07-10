@@ -1,4 +1,3 @@
-using CookieCrumble;
 using GreenDonut;
 using HotChocolate.Types;
 
@@ -232,7 +231,7 @@ public class UseDataLoaderTests
     {
         public int Single { get; } = 1;
 
-        public int[] Multiple { get; } = [1, 2, 3, 4,];
+        public int[] Multiple { get; } = [1, 2, 3, 4];
     }
 
     public class BatchQuery
@@ -241,7 +240,7 @@ public class UseDataLoaderTests
         public int Single { get; } = 1;
 
         [UseDataLoader(typeof(TestBatchLoader))]
-        public int[] Multiple { get; } = [1, 2, 3, 4,];
+        public int[] Multiple { get; } = [1, 2, 3, 4];
     }
 
     public class GroupedQuery
@@ -250,14 +249,14 @@ public class UseDataLoaderTests
         public int Single { get; } = 1;
 
         [UseDataLoader(typeof(TestGroupedLoader))]
-        public int[] Multiple { get; } = [1, 2, 3, 4,];
+        public int[] Multiple { get; } = [1, 2, 3, 4];
     }
 
     public class TestGroupedLoader : GroupedDataLoader<int, Foo>
     {
         public TestGroupedLoader(
             IBatchScheduler batchScheduler,
-            DataLoaderOptions? options = null)
+            DataLoaderOptions options)
             : base(batchScheduler, options)
         {
         }

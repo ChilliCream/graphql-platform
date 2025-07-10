@@ -1,5 +1,4 @@
-using CookieCrumble;
-using CookieCrumble.Attributes;
+using CookieCrumble.Xunit.Attributes;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,7 +35,7 @@ public class LongitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         var scalar = CreateType<LongitudeType>();
-        StringValueNode valueSyntax = new("179° 0' 0.000\" E")!;
+        StringValueNode valueSyntax = new("179° 0' 0.000\" E");
 
         // act
         var result = scalar.IsInstanceOfType(valueSyntax);
@@ -106,7 +105,7 @@ public class LongitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LongitudeType();
-        const string valueSyntax = "-181° 0' 0.000\" W"!;
+        const string valueSyntax = "-181° 0' 0.000\" W";
 
         // act
         var result = Record.Exception(() => scalar.ParseResult(valueSyntax));
@@ -343,7 +342,7 @@ public class LongitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LongitudeType();
-        const string valueSyntax = "-181° 0' 0.000\" W"!;
+        const string valueSyntax = "-181° 0' 0.000\" W";
 
         // act
 
@@ -359,7 +358,7 @@ public class LongitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LongitudeType();
-        const string? valueSyntax = "182° 0' 0.000\" E"!;
+        const string? valueSyntax = "182° 0' 0.000\" E";
 
         // act
         var result = Record.Exception(() => scalar.Deserialize(valueSyntax));

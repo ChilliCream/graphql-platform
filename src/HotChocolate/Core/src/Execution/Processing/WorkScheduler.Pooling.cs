@@ -12,11 +12,11 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     private readonly WorkQueue _serial = new();
     private readonly ProcessingPause _pause = new();
 
-    private IRequestContext _requestContext = default!;
-    private IBatchDispatcher _batchDispatcher = default!;
-    private IErrorHandler _errorHandler = default!;
-    private ResultBuilder _result = default!;
-    private IExecutionDiagnosticEvents _diagnosticEvents = default!;
+    private RequestContext _requestContext = null!;
+    private IBatchDispatcher _batchDispatcher = null!;
+    private IErrorHandler _errorHandler = null!;
+    private ResultBuilder _result = null!;
+    private IExecutionDiagnosticEvents _diagnosticEvents = null!;
     private CancellationToken _ct;
 
     private bool _hasBatches;
@@ -52,13 +52,13 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
         _pause.Reset();
 
         _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
-        _batchDispatcher = default!;
+        _batchDispatcher = null!;
 
-        _requestContext = default!;
-        _errorHandler = default!;
-        _result = default!;
-        _diagnosticEvents = default!;
-        _ct = default;
+        _requestContext = null!;
+        _errorHandler = null!;
+        _result = null!;
+        _diagnosticEvents = null!;
+        _ct = CancellationToken.None;
 
         _hasBatches = false;
         _isCompleted = false;

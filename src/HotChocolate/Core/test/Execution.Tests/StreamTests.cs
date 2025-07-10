@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Execution;
 
 public class StreamTests
@@ -137,7 +135,7 @@ public class StreamTests
                         }
                     }
                     """)
-                .SetVariableValues(new Dictionary<string, object?> { {"stream", false},})
+                .SetVariableValues(new Dictionary<string, object?> { { "stream", false } })
                 .Build());
 
         Assert.IsType<OperationResult>(result).MatchSnapshot();

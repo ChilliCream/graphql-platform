@@ -1,6 +1,7 @@
 -Lsfo
 ABCEGHJKLMNPRSTVWXYZ
 ABCEGHJKLMNPRSTVXY
+accessibilities
 agrc
 Alderaan
 Andi
@@ -40,6 +41,7 @@ deprioritization
 deprioritized
 Diagnoser
 Dispatchable
+DOCKERHUB
 drawio
 enisdenjo
 entityframework
@@ -78,6 +80,7 @@ LICEN*
 Linq
 Marek
 matchesBrics
+MediatR
 Memberwise
 mercurius
 mergeable
@@ -111,6 +114,7 @@ oneof
 OpenIddict
 opensgid
 OPTOUT
+overfetching
 OWIN
 pageable
 Partitioner
@@ -119,6 +123,7 @@ PKCE
 pkey
 Postgraphile
 preconfigured
+preparables
 PRIMEM
 PROJCS
 protobuf
@@ -130,14 +135,17 @@ reencode
 refetched
 relayjs
 reprojected
+resharper
 resheader
 resmimetype
 resx
 Retval
+Rewriters
 Rgba
 Rhai
 Roslynator
 runbooks
+Satisfiability
 Senn
 shoooe
 Skywalker
@@ -154,7 +162,9 @@ Storeless
 strawberryshake
 streamable
 Structs
+subgraphs
 sublicensable
+subselections
 supergraph
 Swashbuckle
 SYSLIB
@@ -177,3 +187,4 @@ websockets
 Wilhuff
 Wunder
 xunit
+Silmarillion

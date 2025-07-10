@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,13 +19,12 @@ public class MiddlewareContextTests
             .AddResolver(
                 "Query",
                 "foo",
-                ctx =>
-                    ctx.Variables.GetVariable<string>("abc"))
+                ctx => ctx.Variables.GetValue<StringValueNode>("abc")?.Value)
             .Create();
 
         var request = OperationRequestBuilder.New()
             .SetDocument("query abc($abc: String){ foo(bar: $abc) }")
-            .SetVariableValues(new Dictionary<string, object?> { {"abc", "def" }, })
+            .SetVariableValues(new Dictionary<string, object?> { { "abc", "def" } })
             .Build();
 
         // act
@@ -46,13 +44,12 @@ public class MiddlewareContextTests
             .AddResolver(
                 "Query",
                 "foo",
-                ctx =>
-                    ctx.Variables.GetVariable<string>("abc"))
+                ctx => ctx.Variables.GetValue<StringValueNode>("abc")?.Value)
             .Create();
 
         var request = OperationRequestBuilder.New()
             .SetDocument("query abc($def: String){ foo(bar: $def) }")
-            .SetVariableValues(new Dictionary<string, object?> { {"def", "ghi" }, })
+            .SetVariableValues(new Dictionary<string, object?> { { "def", "ghi" } })
             .Build();
 
         // act
@@ -164,7 +161,7 @@ public class MiddlewareContextTests
 
                                             foreach (var argumentValue in current.Values)
                                             {
-                                                if (argumentValue.Type.RuntimeType ==
+                                                if (argumentValue.Type.ToRuntimeType() ==
                                                     typeof(string) &&
                                                     argumentValue
                                                         .ValueLiteral is StringValueNode sv)

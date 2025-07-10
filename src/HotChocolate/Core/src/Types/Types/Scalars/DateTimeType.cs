@@ -16,13 +16,15 @@ namespace HotChocolate.Types;
 /// </summary>
 public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
 {
-    private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
-    private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
-    private const string _specifiedBy = "https://www.graphql-scalars.com/date-time";
+    private const string UtcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
+    private const string LocalFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
+    private const string SpecifiedByUri = "https://www.graphql-scalars.com/date-time";
 
-    private static readonly Regex DateTimeScalarRegex = new(
+    private static readonly Regex s_dateTimeScalarRegex = new(
         @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?(Z|[+-][0-9]{2}:[0-9]{2})$",
         RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+
+    private readonly bool _enforceSpecFormat;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DateTimeType"/> class.
@@ -30,11 +32,25 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     public DateTimeType(
         string name,
         string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
+        BindingBehavior bind = BindingBehavior.Explicit,
+        bool disableFormatCheck = false)
         : base(name, bind)
     {
         Description = description;
-        SpecifiedBy = new Uri(_specifiedBy);
+        SpecifiedBy = new Uri(SpecifiedByUri);
+        _enforceSpecFormat = !disableFormatCheck;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DateTimeType"/> class.
+    /// </summary>
+    public DateTimeType(bool disableFormatCheck)
+        : this(
+            ScalarNames.DateTime,
+            TypeResources.DateTimeType_Description,
+            BindingBehavior.Implicit,
+            disableFormatCheck: disableFormatCheck)
+    {
     }
 
     /// <summary>
@@ -45,7 +61,8 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         : this(
             ScalarNames.DateTime,
             TypeResources.DateTimeType_Description,
-            BindingBehavior.Implicit)
+            BindingBehavior.Implicit,
+            disableFormatCheck: false)
     {
     }
 
@@ -154,16 +171,16 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         if (value.Offset == TimeSpan.Zero)
         {
             return value.ToString(
-                _utcFormat,
+                UtcFormat,
                 CultureInfo.InvariantCulture);
         }
 
         return value.ToString(
-            _localFormat,
+            LocalFormat,
             CultureInfo.InvariantCulture);
     }
 
-    private static bool TryDeserializeFromString(
+    private bool TryDeserializeFromString(
         string? serialized,
         [NotNullWhen(true)] out DateTimeOffset? value)
     {
@@ -174,7 +191,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         }
 
         // Check format.
-        if (!DateTimeScalarRegex.IsMatch(serialized))
+        if (_enforceSpecFormat && !s_dateTimeScalarRegex.IsMatch(serialized))
         {
             value = null;
             return false;

@@ -2,7 +2,7 @@
 
 using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors;
 /// A fluent configuration API for GraphQL arguments.
 /// </summary>
 public class ArgumentDescriptor
-    : ArgumentDescriptorBase<ArgumentDefinition>
+    : ArgumentDescriptorBase<ArgumentConfiguration>
     , IArgumentDescriptor
 {
     /// <summary>
@@ -21,7 +21,7 @@ public class ArgumentDescriptor
         string argumentName)
         : base(context)
     {
-        Definition.Name = argumentName;
+        Configuration.Name = argumentName;
     }
 
     /// <summary>
@@ -33,12 +33,9 @@ public class ArgumentDescriptor
         Type argumentType)
         : this(context, argumentName)
     {
-        if (argumentType is null)
-        {
-            throw new ArgumentNullException(nameof(argumentType));
-        }
+        ArgumentNullException.ThrowIfNull(argumentType);
 
-        Definition.Type = context.TypeInspector.GetTypeRef(argumentType, TypeContext.Input);
+        Configuration.Type = context.TypeInspector.GetTypeRef(argumentType, TypeContext.Input);
     }
 
     /// <summary>
@@ -49,14 +46,14 @@ public class ArgumentDescriptor
         ParameterInfo parameter)
         : base(context)
     {
-        Definition.Name = context.Naming.GetArgumentName(parameter);
-        Definition.Description = context.Naming.GetArgumentDescription(parameter);
-        Definition.Type = context.TypeInspector.GetArgumentTypeRef(parameter);
-        Definition.Parameter = parameter;
+        Configuration.Name = context.Naming.GetArgumentName(parameter);
+        Configuration.Description = context.Naming.GetArgumentDescription(parameter);
+        Configuration.Type = context.TypeInspector.GetArgumentTypeRef(parameter);
+        Configuration.Parameter = parameter;
 
         if (context.TypeInspector.TryGetDefaultValue(parameter, out var defaultValue))
         {
-            Definition.RuntimeDefaultValue = defaultValue;
+            Configuration.RuntimeDefaultValue = defaultValue;
         }
 
         if (context.Naming.IsDeprecated(parameter, out var reason))
@@ -70,27 +67,27 @@ public class ArgumentDescriptor
     /// </summary>
     protected internal ArgumentDescriptor(
         IDescriptorContext context,
-        ArgumentDefinition definition)
+        ArgumentConfiguration definition)
         : base(context)
     {
-        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        Configuration = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
     /// <inheritdoc />
-    protected override void OnCreateDefinition(ArgumentDefinition definition)
+    protected override void OnCreateConfiguration(ArgumentConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
-        if (Definition is { AttributesAreApplied: false, Parameter: not null, })
+        if (Configuration is { AttributesAreApplied: false, Parameter: not null })
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,
                 this,
-                Definition.Parameter);
-            Definition.AttributesAreApplied = true;
+                Configuration.Parameter);
+            Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }
@@ -228,6 +225,6 @@ public class ArgumentDescriptor
     /// <returns>An instance of <see cref="ArgumentDescriptor"/></returns>
     public static ArgumentDescriptor From(
         IDescriptorContext context,
-        ArgumentDefinition argumentDefinition) =>
+        ArgumentConfiguration argumentDefinition) =>
         new(context, argumentDefinition);
 }

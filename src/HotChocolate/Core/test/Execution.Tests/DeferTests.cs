@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -115,7 +114,7 @@ public class DeferTests
                 .SetVariableValues(
                     new Dictionary<string, object?>
                     {
-                        { "defer", false },
+                        { "defer", false }
                     })
                 .Build());
 
@@ -242,7 +241,7 @@ public class DeferTests
                 .SetVariableValues(
                     new Dictionary<string, object?>
                     {
-                        { "defer", false },
+                        { "defer", false }
                     })
                 .Build());
 

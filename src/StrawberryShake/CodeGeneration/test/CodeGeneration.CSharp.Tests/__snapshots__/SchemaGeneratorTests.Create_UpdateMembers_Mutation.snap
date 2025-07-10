@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -618,7 +619,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the UpdateMembers GraphQL operation
     /// <code>
-    /// mutation UpdateMembers($input: UpdateProjectMembersInput!) {
+    /// mutation UpdateMembers(
+    ///   $input: UpdateProjectMembersInput!
+    /// ) {
     ///   project {
     ///     __typename
     ///     updateMembers(input: $input) {
@@ -800,7 +803,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the UpdateMembers GraphQL operation
     /// <code>
-    /// mutation UpdateMembers($input: UpdateProjectMembersInput!) {
+    /// mutation UpdateMembers(
+    ///   $input: UpdateProjectMembersInput!
+    /// ) {
     ///   project {
     ///     __typename
     ///     updateMembers(input: $input) {
@@ -816,17 +821,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IUpdateMembersResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _updateProjectMembersInputFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public UpdateMembersMutation(global::StrawberryShake.IOperationExecutor<IUpdateMembersResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _updateProjectMembersInputFormatter = serializerResolver.GetInputValueFormatter("UpdateProjectMembersInput");
         }
 
+        private UpdateMembersMutation(global::StrawberryShake.IOperationExecutor<IUpdateMembersResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter updateProjectMembersInputFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _updateProjectMembersInputFormatter = updateProjectMembersInputFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IUpdateMembersResult);
+
+        public global::Foo.Bar.IUpdateMembersMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.UpdateMembersMutation(_operationExecutor, _configure.Add(configure), _updateProjectMembersInputFormatter);
+        }
+
+        public global::Foo.Bar.IUpdateMembersMutation WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IUpdateMembersMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IUpdateMembersResult>> ExecuteAsync(global::Foo.Bar.UpdateProjectMembersInput input, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(input);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -868,7 +901,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the UpdateMembers GraphQL operation
     /// <code>
-    /// mutation UpdateMembers($input: UpdateProjectMembersInput!) {
+    /// mutation UpdateMembers(
+    ///   $input: UpdateProjectMembersInput!
+    /// ) {
     ///   project {
     ///     __typename
     ///     updateMembers(input: $input) {
@@ -882,6 +917,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IUpdateMembersMutation : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IUpdateMembersMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IUpdateMembersMutation WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IUpdateMembersMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IUpdateMembersResult>> ExecuteAsync(global::Foo.Bar.UpdateProjectMembersInput input, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IUpdateMembersResult>> Watch(global::Foo.Bar.UpdateProjectMembersInput input, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -966,7 +1004,7 @@ namespace Foo.Bar.State
             }
 
             IUpdateMembers_Project_UpdateMembers returnValue = default !;
-            if (data?.__typename.Equals("MutationResult", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("MutationResult", global::System.StringComparison.Ordinal))
             {
                 returnValue = new UpdateMembers_Project_UpdateMembers_MutationResult(data.CorrelationId ?? throw new global::System.ArgumentNullException());
             }
@@ -1224,6 +1262,9 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);

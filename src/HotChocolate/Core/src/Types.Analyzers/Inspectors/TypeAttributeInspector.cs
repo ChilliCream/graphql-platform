@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Models;
@@ -12,13 +13,21 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public sealed class TypeAttributeInspector : ISyntaxInspector
 {
-    public IReadOnlyList<ISyntaxFilter> Filters => [TypeWithAttribute.Instance];
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [TypeWithAttribute.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } =
+    [
+        SyntaxKind.ClassDeclaration,
+        SyntaxKind.RecordDeclaration,
+        SyntaxKind.InterfaceDeclaration,
+        SyntaxKind.EnumDeclaration
+    ];
 
     public bool TryHandle(
         GeneratorSyntaxContext context,
         [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
-        if (context.Node is BaseTypeDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
+        if (context.Node is BaseTypeDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
         {
             foreach (var attributeListSyntax in possibleType.AttributeLists)
             {
@@ -34,7 +43,7 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
                     var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                     var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                    // We do a start with here to capture the generic and non generic variant of
+                    // We do a startWith to capture the generic and non-generic variants of
                     // the object type extension attribute.
                     if (fullName.StartsWith(ExtendObjectTypeAttribute, Ordinal) &&
                         context.SemanticModel.GetDeclaredSymbol(possibleType) is { } typeExt)
@@ -51,6 +60,12 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
                     {
                         if (fullName.Equals(QueryTypeAttribute))
                         {
+                            if (type.IsStatic && possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
+                            {
+                                syntaxInfo = null;
+                                return false;
+                            }
+
                             syntaxInfo = new TypeExtensionInfo(
                                 type.ToDisplayString(),
                                 possibleType.Modifiers.Any(t => t.IsKind(SyntaxKind.StaticKeyword)),
@@ -60,6 +75,12 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
 
                         if (fullName.Equals(MutationTypeAttribute))
                         {
+                            if (type.IsStatic && possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
+                            {
+                                syntaxInfo = null;
+                                return false;
+                            }
+
                             syntaxInfo = new TypeExtensionInfo(
                                 type.ToDisplayString(),
                                 possibleType.Modifiers.Any(t => t.IsKind(SyntaxKind.StaticKeyword)),
@@ -69,6 +90,12 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
 
                         if (fullName.Equals(SubscriptionTypeAttribute))
                         {
+                            if (type.IsStatic && possibleType.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
+                            {
+                                syntaxInfo = null;
+                                return false;
+                            }
+
                             syntaxInfo = new TypeExtensionInfo(
                                 type.ToDisplayString(),
                                 possibleType.Modifiers.Any(t => t.IsKind(SyntaxKind.StaticKeyword)),

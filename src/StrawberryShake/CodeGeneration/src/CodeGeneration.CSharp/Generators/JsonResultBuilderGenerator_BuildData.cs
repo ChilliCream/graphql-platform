@@ -9,8 +9,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public partial class JsonResultBuilderGenerator
 {
-    private const string _session = "session";
-    private const string _snapshot = "snapshot";
+    private const string Session = "session";
+    private const string Snapshot = "snapshot";
 
     private void AddBuildDataMethod(
         CSharpSyntaxGeneratorSettings settings,
@@ -28,7 +28,7 @@ public partial class JsonResultBuilderGenerator
             .SetOverride()
             .SetName("BuildData")
             .SetReturnType(TypeNames.IOperationResultDataInfo)
-            .AddParameter(_obj, x => x.SetType(TypeNames.JsonElement));
+            .AddParameter(Obj, x => x.SetType(TypeNames.JsonElement));
 
         // var entityIds = new HashSet<EntityId>();
         // var pathToEntityId = new Dictionary<string, EntityId>();
@@ -38,7 +38,7 @@ public partial class JsonResultBuilderGenerator
                 .AddCode(
                     AssignmentBuilder
                         .New()
-                        .SetLeftHandSide($"var {GetParameterName(_entityIds)}")
+                        .SetLeftHandSide($"var {GetParameterName(EntityIds)}")
                         .SetRightHandSide(MethodCallBuilder
                             .Inline()
                             .SetNew()
@@ -47,7 +47,7 @@ public partial class JsonResultBuilderGenerator
                 .AddCode(
                     AssignmentBuilder
                         .New()
-                        .SetLeftHandSide($"{TypeNames.IEntityStoreSnapshot} {_snapshot}")
+                        .SetLeftHandSide($"{TypeNames.IEntityStoreSnapshot} {Snapshot}")
                         .SetRightHandSide("default!"));
         }
 
@@ -82,16 +82,16 @@ public partial class JsonResultBuilderGenerator
                 .AddEmptyLine()
                 .AddCode(AssignmentBuilder
                     .New()
-                    .SetLeftHandSide(_snapshot)
-                    .SetRightHandSide($"{_session}.CurrentSnapshot"));
+                    .SetLeftHandSide(Snapshot)
+                    .SetRightHandSide($"{Session}.CurrentSnapshot"));
 
             buildDataMethod
                 .AddCode(MethodCallBuilder
                     .New()
-                    .SetMethodName(GetFieldName(_entityStore), "Update")
+                    .SetMethodName(GetFieldName(EntityStore), "Update")
                     .AddArgument(LambdaBuilder
                         .New()
-                        .AddArgument(_session)
+                        .AddArgument(Session)
                         .SetBlock(true)
                         .SetCode(storeUpdateBody)));
         }
@@ -131,8 +131,8 @@ public partial class JsonResultBuilderGenerator
         if (settings.IsStoreEnabled())
         {
             resultInfoConstructor
-                .AddArgument(_entityIds)
-                .AddArgument($"{_snapshot}.Version");
+                .AddArgument(EntityIds)
+                .AddArgument($"{Snapshot}.Version");
         }
 
         return resultInfoConstructor;

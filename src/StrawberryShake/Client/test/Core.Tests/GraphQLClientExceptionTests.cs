@@ -21,7 +21,7 @@ public class GraphQLClientExceptionTests
         //arrange
         var errors = new IClientError[]
         {
-            new ClientError("some message"),
+            new ClientError("some message")
         };
 
         //act
@@ -38,7 +38,7 @@ public class GraphQLClientExceptionTests
         var errors = new IClientError[]
         {
             new ClientError("first message"),
-            new ClientError("second message"),
+            new ClientError("second message")
         };
 
         //act

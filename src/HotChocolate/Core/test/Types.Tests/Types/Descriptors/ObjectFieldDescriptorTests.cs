@@ -18,7 +18,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         descriptor.Type<StringType>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(StringType),
@@ -36,7 +36,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         descriptor.Type(typeof(StringType));
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(StringType),
@@ -56,7 +56,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
             .Type<NativeType<IReadOnlyDictionary<string, string>>>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(typeof(ListType<StringType>),
             Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
@@ -75,7 +75,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
             .Type<ListType<StringType>>();
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(typeof(ListType<StringType>),
             Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
@@ -97,7 +97,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
             .Resolve(c => c.Parent<ObjectField>().Arguments);
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(NonNullType<ListType<NonNullType<__InputValue>>>),
@@ -117,7 +117,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         descriptor.Name("args");
 
         // assert
-        Assert.Equal("args", descriptor.CreateDefinition().Name);
+        Assert.Equal("args", descriptor.CreateConfiguration().Name);
     }
 
     [Fact]
@@ -135,7 +135,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
 
         // assert
         Assert.Equal(expectedDescription,
-            descriptor.CreateDefinition().Description);
+            descriptor.CreateConfiguration().Description);
     }
 
     [Fact]
@@ -152,7 +152,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         descriptor.Resolve(() => "ThisIsAString");
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(string),
@@ -165,7 +165,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
     }
 
     [Fact]
-    public void SetResolverAndInferTypeIsAlwaysRecognisedAsDotNetType()
+    public void SetResolverAndInferTypeIsAlwaysRecognizedAsDotNetType()
     {
         // arrange
         var descriptor =
@@ -177,11 +177,10 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         // act
         descriptor
             .Type<__Type>()
-            .Resolve(ctx => ctx.Schema
-                .GetType<INamedType>(ctx.ArgumentValue<string>("type")));
+            .Resolve(ctx => ctx.Schema.Types[ctx.ArgumentValue<string>("type")]);
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         var typeRef = description.Type;
         Assert.Equal(
             typeof(__Type),
@@ -216,7 +215,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
                 typeof(string));
 
         // assert
-        var description = descriptor.CreateDefinition();
+        var description = descriptor.CreateConfiguration();
         Assert.Equal(typeof(string), description.ResolverType);
     }
 }

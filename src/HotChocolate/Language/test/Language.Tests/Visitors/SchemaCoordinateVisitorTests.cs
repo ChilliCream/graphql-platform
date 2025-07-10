@@ -1,4 +1,3 @@
-using Xunit;
 using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Language;
@@ -24,7 +23,7 @@ public static class SchemaCoordinateVisitorTests
                     }
                     return SyntaxVisitor.Continue;
                 },
-                options: new() { VisitNames = true, })
+                options: new() { VisitNames = true })
             .Visit(node);
 
         // assert
@@ -75,7 +74,7 @@ public static class SchemaCoordinateVisitorTests
     }
 
     public class CustomSyntaxWalker(List<string> list)
-        : SyntaxWalker(new() { VisitNames = true, })
+        : SyntaxWalker(new() { VisitNames = true })
     {
         protected override ISyntaxVisitorAction Enter(NameNode node, object? context)
         {
@@ -85,7 +84,7 @@ public static class SchemaCoordinateVisitorTests
     }
 
     public class CustomGenericSyntaxWalker()
-        : SyntaxWalker<CustomContext>(new SyntaxVisitorOptions { VisitNames = true, })
+        : SyntaxWalker<CustomContext>(new SyntaxVisitorOptions { VisitNames = true })
     {
         protected override ISyntaxVisitorAction Enter(NameNode node, CustomContext context)
         {

@@ -18,10 +18,12 @@ public sealed class DataLoaderDefaultsInfo(
 
     public bool GenerateInterfaces { get; } = generateInterfaces;
 
+    public override string OrderByKey => string.Empty;
+
     public override bool Equals(object? obj)
         => obj is DataLoaderDefaultsInfo other && Equals(other);
 
-    public override bool Equals(SyntaxInfo other)
+    public override bool Equals(SyntaxInfo? other)
         => other is DataLoaderDefaultsInfo info && Equals(info);
 
     private bool Equals(DataLoaderDefaultsInfo other)

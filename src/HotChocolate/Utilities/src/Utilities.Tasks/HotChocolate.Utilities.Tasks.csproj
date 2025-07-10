@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+<PropertyGroup>
+    <AssemblyName>HotChocolate.Utilities.Tasks</AssemblyName>
+    <RootNamespace>HotChocolate.Utilities</RootNamespace>
+    <PackageId>HotChocolate.Utilities.Tasks</PackageId>
+    <Description>This package contains the System.Threading.Tasks.Task extensions.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsAotCompliant>true</IsAotCompliant>
+  </PropertyGroup>
+
+</Project>
