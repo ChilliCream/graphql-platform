@@ -36,6 +36,24 @@ internal static class ErrorHelper
             .Build();
     }
 
+    public static IError OneOfVariableIsNotCompatible(
+        this DocumentValidatorContext context,
+        VariableNode variable,
+        VariableDefinitionNode variableDefinition)
+    {
+        var variableName = variableDefinition.Variable.Name.Value;
+
+        return ErrorBuilder.New()
+            .SetMessage(
+                Resources.ErrorHelper_OneOfVariableIsNotCompatible,
+                variableName)
+            .AddLocation(variable)
+            .SetPath(context.CreateErrorPath())
+            .SetExtension("variable", variableName)
+            .SpecifiedBy("sec-All-Variable-Usages-are-Allowed")
+            .Build();
+    }
+
     public static IError VariableIsNotCompatible(
         this DocumentValidatorContext context,
         VariableNode variable,
@@ -649,7 +667,7 @@ internal static class ErrorHelper
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SetExtension(nameof(type), type.Name)
-            .SpecifiedBy("sec-OneOf-Input-Objects-Have-Exactly-One-Field", rfc: 825)
+            .SpecifiedBy("sec-All-Variable-Usages-Are-Allowed", rfc: 825)
             .Build();
 
     public static IError OneOfVariablesMustBeNonNull(
@@ -666,7 +684,7 @@ internal static class ErrorHelper
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SetFieldCoordinate(fieldCoordinate)
-            .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
+            .SpecifiedBy("sec-All-Variable-Usages-Are-Allowed", rfc: 825)
             .Build();
 
     public static IError SkipAndIncludeNotAllowedOnSubscriptionRootField(

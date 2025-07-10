@@ -277,7 +277,7 @@
     <value>The type {0} was already added.</value>
   </data>
   <data name="ThrowHelper_OneOfFieldMustBeNonNull" xml:space="preserve">
-    <value>Value for oneof field {0} must be non-null.</value>
+    <value>Value for OneOf field {0} must be non-null.</value>
   </data>
   <data name="ThrowHelper_Operation_NoSelectionSet" xml:space="preserve">
     <value>The specified selection does not have a selection set.</value>
