@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -176,7 +177,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Nodes GraphQL operation
     /// <code>
-    /// query Nodes($id: ID!) {
+    /// query Nodes(
+    ///   $id: ID!
+    /// ) {
     ///   node(id: $id) {
     ///     __typename
     ///     id
@@ -296,7 +299,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Nodes GraphQL operation
     /// <code>
-    /// query Nodes($id: ID!) {
+    /// query Nodes(
+    ///   $id: ID!
+    /// ) {
     ///   node(id: $id) {
     ///     __typename
     ///     id
@@ -312,17 +317,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<INodesResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _iDFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public NodesQuery(global::StrawberryShake.IOperationExecutor<INodesResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _iDFormatter = serializerResolver.GetInputValueFormatter("ID");
         }
 
+        private NodesQuery(global::StrawberryShake.IOperationExecutor<INodesResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter iDFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _iDFormatter = iDFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(INodesResult);
+
+        public global::Foo.Bar.INodesQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.NodesQuery(_operationExecutor, _configure.Add(configure), _iDFormatter);
+        }
+
+        public global::Foo.Bar.INodesQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.INodesQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<INodesResult>> ExecuteAsync(global::System.String id, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(id);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -364,7 +397,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Nodes GraphQL operation
     /// <code>
-    /// query Nodes($id: ID!) {
+    /// query Nodes(
+    ///   $id: ID!
+    /// ) {
     ///   node(id: $id) {
     ///     __typename
     ///     id
@@ -378,6 +413,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface INodesQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.INodesQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.INodesQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.INodesQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<INodesResult>> ExecuteAsync(global::System.String id, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<INodesResult>> Watch(global::System.String id, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -697,6 +735,9 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);

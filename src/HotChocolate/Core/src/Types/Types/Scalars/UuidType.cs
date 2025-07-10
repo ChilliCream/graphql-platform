@@ -9,7 +9,7 @@ namespace HotChocolate.Types;
 
 public class UuidType : ScalarType<Guid, StringValueNode>
 {
-    private const string _specifiedBy = "https://tools.ietf.org/html/rfc4122";
+    private const string SpecifiedByUri = "https://tools.ietf.org/html/rfc4122";
     private readonly string _format;
     private readonly bool _enforceFormat;
 
@@ -36,7 +36,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
             enforceFormat: enforceFormat,
             bind: BindingBehavior.Implicit)
     {
-        SpecifiedBy = new Uri(_specifiedBy);
+        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>
@@ -62,7 +62,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     /// the string using the other formats.
     /// </param>
     /// <param name="bind">
-    /// Defines if this scalar binds implicitly to <see cref="System.Guid"/>,
+    /// Defines if this scalar binds implicitly to <see cref="Guid"/>,
     /// or must be explicitly bound.
     /// </param>
     public UuidType(

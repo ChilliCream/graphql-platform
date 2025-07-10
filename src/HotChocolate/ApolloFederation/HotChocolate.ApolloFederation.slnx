@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ApolloFederation/HotChocolate.ApolloFederation.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/ApolloFederation.Tests/HotChocolate.ApolloFederation.Tests.csproj" />
+  </Folder>
+</Solution>

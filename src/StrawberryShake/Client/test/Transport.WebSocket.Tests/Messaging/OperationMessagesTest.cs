@@ -1,5 +1,4 @@
 using System.Text.Json;
-using CookieCrumble;
 using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Transport.WebSockets;
@@ -28,7 +27,7 @@ public class OperationMessagesTest
     public void ErrorOperationMessage_WithMessage_IsMatch()
     {
         // arrange
-        var message = "Foo";
+        const string message = "Foo";
 
         // act
         var operationMessage = new ErrorOperationMessage(message);
@@ -41,10 +40,10 @@ public class OperationMessagesTest
     public void ErrorOperationMessage_MessageIsNull_Throw()
     {
         // arrange
-        string message = null!;
+        const string message = null!;
 
         // act
-        var ex = Record.Exception(() => new ErrorOperationMessage(message));
+        var ex = Record.Exception(() => new ErrorOperationMessage(message!));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);

@@ -512,7 +512,7 @@ services.AddSingleton<IValueSerializer, ByteArrayValueSerializer>();
 
 Apart from being able to add custom scalars we might want to dig deeper and allow new scenarios with our client like persisted queries. It is needles to say that we will add persisted query support out of the box. But it is also a good example to use to show how we can enable advance server / client protocols with _Strawberry Shake_.
 
-The way we built-in things like that is by providing a operation middleware. This basically works like the query middleware in the server on the request level.
+The way we built-in things like that is by providing an operation middleware. This basically works like the query middleware in the server on the request level.
 
 _Strawberry Shake_ allows us to swap out the default operation execution pipeline and add our own custom operation execution pipeline.
 

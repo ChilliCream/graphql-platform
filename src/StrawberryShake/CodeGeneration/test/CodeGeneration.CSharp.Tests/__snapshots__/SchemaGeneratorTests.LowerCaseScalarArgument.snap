@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -192,7 +193,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetPeopleByPk GraphQL operation
     /// <code>
-    /// query GetPeopleByPk($id: uuid!) {
+    /// query GetPeopleByPk(
+    ///   $id: uuid!
+    /// ) {
     ///   people_by_pk(id: $id) {
     ///     __typename
     ///     id
@@ -348,7 +351,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetPeopleByPk GraphQL operation
     /// <code>
-    /// query GetPeopleByPk($id: uuid!) {
+    /// query GetPeopleByPk(
+    ///   $id: uuid!
+    /// ) {
     ///   people_by_pk(id: $id) {
     ///     __typename
     ///     id
@@ -366,17 +371,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetPeopleByPkResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _uuidFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetPeopleByPkQuery(global::StrawberryShake.IOperationExecutor<IGetPeopleByPkResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _uuidFormatter = serializerResolver.GetInputValueFormatter("uuid");
         }
 
+        private GetPeopleByPkQuery(global::StrawberryShake.IOperationExecutor<IGetPeopleByPkResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter uuidFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _uuidFormatter = uuidFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetPeopleByPkResult);
+
+        public global::Foo.Bar.IGetPeopleByPkQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.GetPeopleByPkQuery(_operationExecutor, _configure.Add(configure), _uuidFormatter);
+        }
+
+        public global::Foo.Bar.IGetPeopleByPkQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IGetPeopleByPkQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPeopleByPkResult>> ExecuteAsync(global::System.String id, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(id);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -418,7 +451,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetPeopleByPk GraphQL operation
     /// <code>
-    /// query GetPeopleByPk($id: uuid!) {
+    /// query GetPeopleByPk(
+    ///   $id: uuid!
+    /// ) {
     ///   people_by_pk(id: $id) {
     ///     __typename
     ///     id
@@ -434,6 +469,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetPeopleByPkQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IGetPeopleByPkQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IGetPeopleByPkQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IGetPeopleByPkQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPeopleByPkResult>> ExecuteAsync(global::System.String id, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetPeopleByPkResult>> Watch(global::System.String id, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -758,6 +796,9 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);

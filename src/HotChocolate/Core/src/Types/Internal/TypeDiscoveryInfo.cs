@@ -18,10 +18,7 @@ public readonly ref struct TypeDiscoveryInfo
     /// </summary>
     public TypeDiscoveryInfo(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         IExtendedType extendedType;
 
@@ -119,7 +116,7 @@ public readonly ref struct TypeDiscoveryInfo
 
         foreach (var attr in runtimeType.GetCustomAttributes(typeof(DescriptorAttribute), true))
         {
-            if (attr is ITypeAttribute { Inherited: true, } typeAttribute)
+            if (attr is ITypeAttribute { Inherited: true } typeAttribute)
             {
                 return typeAttribute;
             }
@@ -145,7 +142,7 @@ public readonly ref struct TypeDiscoveryInfo
                 IsValueType: true,
                 IsPrimitive: false,
                 IsEnum: false,
-                IsByRefLike: false,
+                IsByRefLike: false
             };
 
         if (isComplexValueType && unresolvedType.IsGeneric)

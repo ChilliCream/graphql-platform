@@ -16,7 +16,7 @@
     "Exception": null
   },
   {
-    "Message": "`__type` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
+    "Message": "Field \"__type\" of type \"__Type\" must have a selection of subfields. Did you mean \"__type { ... }\"?",
     "Code": null,
     "Path": null,
     "Locations": [
@@ -35,7 +35,7 @@
     "Exception": null
   },
   {
-    "Message": "`__type` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
+    "Message": "Field \"__type\" of type \"__Type\" must have a selection of subfields. Did you mean \"__type { ... }\"?",
     "Code": null,
     "Path": null,
     "Locations": [
@@ -54,7 +54,7 @@
     "Exception": null
   },
   {
-    "Message": "`__type` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
+    "Message": "Field \"__type\" of type \"__Type\" must have a selection of subfields. Did you mean \"__type { ... }\"?",
     "Code": null,
     "Path": null,
     "Locations": [
@@ -73,7 +73,7 @@
     "Exception": null
   },
   {
-    "Message": "`__type` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
+    "Message": "Field \"__type\" of type \"__Type\" must have a selection of subfields. Did you mean \"__type { ... }\"?",
     "Code": null,
     "Path": null,
     "Locations": [

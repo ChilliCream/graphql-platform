@@ -1,5 +1,6 @@
-using CookieCrumble;
+using System.Net;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -75,17 +76,161 @@ public class IntrospectionTests(TestServerFactory serverFactory) : ServerTestBas
         response.HttpResponseMessage.MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Introspection_OfType_Depth_1_BadRequest()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL()
+                .SetIntrospectionAllowedDepth(
+                    maxAllowedOfTypeDepth: 1,
+                    maxAllowedListRecursiveDepth: 1));
+
+        var request = new GraphQLHttpRequest(
+            new OperationRequest(
+                """
+                {
+                  __schema {
+                    types {
+                      ofType {
+                        ofType {
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+                """),
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        var client = new DefaultGraphQLHttpClient(server.CreateClient());
+        using var response = await client.SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Introspection_OfType_Depth_1_Depth_Analysis_Disabled()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL()
+                .SetIntrospectionAllowedDepth(
+                    maxAllowedOfTypeDepth: 1,
+                    maxAllowedListRecursiveDepth: 1)
+                .ConfigureValidation((_, b) => b.ModifyOptions(o => o.DisableDepthRule = true)));
+
+        var request = new GraphQLHttpRequest(
+            new OperationRequest(
+                """
+                {
+                  __schema {
+                    types {
+                      ofType {
+                        ofType {
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+                """),
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        var client = new DefaultGraphQLHttpClient(server.CreateClient());
+        using var response = await client.SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Introspection_Disabled_BadRequest()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL()
+                .DisableIntrospection());
+
+        var request = new GraphQLHttpRequest(
+            new OperationRequest(
+                """
+                {
+                  __schema {
+                    types {
+                      ofType {
+                        ofType {
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+                """),
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        var client = new DefaultGraphQLHttpClient(server.CreateClient());
+        using var response = await client.SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Introspection_OfType_Depth_2_OK()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL()
+                .SetIntrospectionAllowedDepth(
+                    maxAllowedOfTypeDepth: 2,
+                    maxAllowedListRecursiveDepth: 1));
+
+        var request = new GraphQLHttpRequest(
+            new OperationRequest(
+                """
+                {
+                  __schema {
+                    types {
+                      ofType {
+                        ofType {
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+                """),
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        var client = new DefaultGraphQLHttpClient(server.CreateClient());
+        using var response = await client.SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
     private GraphQLHttpClient GetClient(string environment, bool removeRule = false)
     {
         var server = CreateStarWarsServer(
-            environment: environment,
             configureServices: s =>
             {
                 if (removeRule)
                 {
-                    s.AddGraphQL().RemoveIntrospectionAllowedRule();
+                    s.AddGraphQL()
+                        .DisableIntrospection(disable: false);
                 }
-            });
+            },
+            environment: environment);
         return new DefaultGraphQLHttpClient(server.CreateClient());
     }
 }

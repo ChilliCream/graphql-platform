@@ -4,16 +4,15 @@ using System.Diagnostics;
 
 namespace HotChocolate.Types.Descriptors;
 
-public abstract class Convention<TDefinition> : Convention
-    where TDefinition : class
+public abstract class Convention<TConfiguration> : Convention where TConfiguration : class
 {
-    private TDefinition? _definition;
+    private TConfiguration? _configuration;
 
-    protected virtual TDefinition? Definition
+    protected virtual TConfiguration? Configuration
     {
         get
         {
-            return _definition;
+            return _configuration;
         }
     }
 
@@ -22,16 +21,16 @@ public abstract class Convention<TDefinition> : Convention
         AssertUninitialized();
 
         Scope = context.Scope;
-        _definition = CreateDefinition(context);
+        _configuration = CreateConfiguration(context);
         MarkInitialized();
     }
 
     protected internal override void Complete(IConventionContext context)
     {
-        _definition = null;
+        _configuration = null;
     }
 
-    protected abstract TDefinition CreateDefinition(IConventionContext context);
+    protected abstract TConfiguration CreateConfiguration(IConventionContext context);
 
     private void AssertUninitialized()
     {
@@ -40,10 +39,10 @@ public abstract class Convention<TDefinition> : Convention
             "The type must be uninitialized.");
 
         Debug.Assert(
-            _definition is null,
+            _configuration is null,
             "The definition should not exist when the type has not been initialized.");
 
-        if (IsInitialized || _definition is not null)
+        if (IsInitialized || _configuration is not null)
         {
             throw new InvalidOperationException();
         }

@@ -1,4 +1,4 @@
-using CookieCrumble;
+using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Validation.TestHelper;
 
@@ -11,27 +11,13 @@ public class IntrospectionRuleTests
     {
         ExpectErrors(
             CreateSchema(),
-            b => b.AddIntrospectionAllowedRule(),
-            @"
-                {
-                    __schema
-                }");
-    }
-
-    [Fact]
-    public void IntrospectionNotAllowed_Schema_Field_Custom_MessageFactory()
-    {
-        ExpectErrors(
-            CreateSchema(),
-            b => b.AddIntrospectionAllowedRule(),
-            @"
-                {
-                    __schema
-                }",
-            new KeyValuePair<string, object>[]
+            b => b.AddIntrospectionAllowedRule()
+                .ModifyOptions(o => o.DisableIntrospection = true),
+            """
             {
-                new(WellKnownContextData.IntrospectionMessage, new Func<string>(() => "Bar")),
-            });
+                __schema
+            }
+            """);
     }
 
     [Fact]
@@ -39,15 +25,17 @@ public class IntrospectionRuleTests
     {
         ExpectErrors(
             CreateSchema(),
-            b => b.AddIntrospectionAllowedRule(),
-            @"
-                {
-                    __schema
-                }",
-            new KeyValuePair<string, object>[]
+            b => b.AddIntrospectionAllowedRule()
+                .ModifyOptions(o => o.DisableIntrospection = true),
+            """
             {
-                new(WellKnownContextData.IntrospectionMessage, "Baz"),
-            });
+                __schema
+            }
+            """,
+            context => context.Features.Set(
+                new IntrospectionRequestOverrides(
+                    IsAllowed: false,
+                    NotAllowedErrorMessage: "Baz")));
     }
 
     [Fact]
@@ -55,11 +43,13 @@ public class IntrospectionRuleTests
     {
         ExpectErrors(
             CreateSchema(),
-            b => b.AddIntrospectionAllowedRule(),
-            @"
-                {
-                    __type(name: ""foo"")
-                }");
+            b => b.AddIntrospectionAllowedRule()
+                .ModifyOptions(o => o.DisableIntrospection = true),
+            """
+            {
+                __type(name: "foo")
+            }
+            """);
     }
 
     [Fact]
@@ -67,11 +57,13 @@ public class IntrospectionRuleTests
     {
         ExpectValid(
             CreateSchema(),
-            b => b.AddIntrospectionAllowedRule(),
-            @"
-                {
-                    __typename
-                }");
+            b => b.AddIntrospectionAllowedRule()
+                .ModifyOptions(o => o.DisableIntrospection = true),
+            """
+            {
+                __typename
+            }
+            """);
     }
 
     [Fact]
@@ -79,16 +71,16 @@ public class IntrospectionRuleTests
     {
         ExpectValid(
             CreateSchema(),
-            b => b.AddIntrospectionAllowedRule(),
-            @"{
+            b => b.AddIntrospectionAllowedRule()
+                .ModifyOptions(o => o.DisableIntrospection = true),
+            """
+            {
                 __schema {
                     name
                 }
-            }",
-            new KeyValuePair<string, object?>[]
-            {
-                new(WellKnownContextData.IntrospectionAllowed, null),
-            });
+            }
+            """,
+            context => context.Features.Set(new IntrospectionRequestOverrides(IsAllowed: true)));
     }
 
     [Fact]
@@ -96,22 +88,20 @@ public class IntrospectionRuleTests
     {
         ExpectValid(
             CreateSchema(),
-            b => b.AddIntrospectionAllowedRule(),
-            @"
-                {
-                    __type(name: ""foo"")
-                }",
-            new KeyValuePair<string, object?>[]
+            b => b.AddIntrospectionAllowedRule()
+                .ModifyOptions(o => o.DisableIntrospection = true),
+            """
             {
-                new(WellKnownContextData.IntrospectionAllowed, null),
-            });
+                __type(name: "foo")
+            }
+            """,
+            context => context.Features.Set(new IntrospectionRequestOverrides(IsAllowed: true)));
     }
 
-    private ISchema CreateSchema()
-    {
-        return SchemaBuilder.New()
-            .AddDocumentFromString(FileResource.Open("IntrospectionSchema.graphql"))
+    private static Schema CreateSchema()
+        => SchemaBuilder.New()
+            .AddDocumentFromString(
+                FileResource.Open("IntrospectionSchema.graphql"))
             .Use(_ => _ => default)
             .Create();
-    }
 }

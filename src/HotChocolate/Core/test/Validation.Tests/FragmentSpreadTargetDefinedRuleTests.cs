@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 
@@ -16,20 +15,19 @@ public class FragmentSpreadTargetDefinedRuleTests
     public void UndefinedFragment()
     {
         // arrange
-        var context = ValidationUtils.CreateContext();
-        context.MaxAllowedErrors = int.MaxValue;
-
-        var query = Utf8GraphQLParser.Parse(@"
-                {
-                    dog {
-                        ...undefinedFragment
-                    }
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                dog {
+                    ...undefinedFragment
                 }
-            ");
-        context.Prepare(query);
+            }
+            """);
+
+        var context = ValidationUtils.CreateContext(document, maxAllowedErrors: int.MaxValue);
 
         // act
-        Rule.Validate(context, query);
+        Rule.Validate(context, document);
 
         // assert
         Assert.Collection(context.Errors,
@@ -44,23 +42,24 @@ public class FragmentSpreadTargetDefinedRuleTests
     public void DefinedFragment()
     {
         // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
-        var query = Utf8GraphQLParser.Parse(@"
-                {
-                    dog {
-                        ...definedFragment
-                    }
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                dog {
+                    ...definedFragment
                 }
+            }
 
-                fragment definedFragment on Dog
-                {
-                    barkVolume
-                }
-            ");
-        context.Prepare(query);
+            fragment definedFragment on Dog
+            {
+                barkVolume
+            }
+            """);
+
+        var context = ValidationUtils.CreateContext(document);
 
         // act
-        Rule.Validate(context, query);
+        Rule.Validate(context, document);
 
         // assert
         Assert.Empty(context.Errors);

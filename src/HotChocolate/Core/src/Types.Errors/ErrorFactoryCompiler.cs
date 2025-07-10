@@ -6,12 +6,9 @@ namespace HotChocolate.Types;
 
 internal static class ErrorFactoryCompiler
 {
-    public static IReadOnlyList<ErrorDefinition> Compile(Type errorType)
+    public static IReadOnlyList<ErrorConfiguration> Compile(Type errorType)
     {
-        if (errorType is null)
-        {
-            throw new ArgumentNullException(nameof(errorType));
-        }
+        ArgumentNullException.ThrowIfNull(errorType);
 
         if (TryCreateDefaultErrorFactory(errorType, out var definitions))
         {
@@ -22,7 +19,7 @@ internal static class ErrorFactoryCompiler
         {
             return new[]
             {
-                definition,
+                definition
             };
         }
 
@@ -30,7 +27,7 @@ internal static class ErrorFactoryCompiler
         {
             return new[]
             {
-                definition,
+                definition
             };
         }
 
@@ -39,22 +36,22 @@ internal static class ErrorFactoryCompiler
         if (ExtendedType.Tools.IsGenericBaseType(errorType) &&
             typeof(ObjectType).IsAssignableFrom(errorType))
         {
-            return new[] { new ErrorDefinition(errorType.GetGenericArguments()[0], errorType), };
+            return new[] { new ErrorConfiguration(errorType.GetGenericArguments()[0], errorType) };
         }
 
         // else we will create a schema type.
         var schemaType = typeof(ErrorObjectType<>).MakeGenericType(errorType);
-        return new[] { new ErrorDefinition(errorType, schemaType), };
+        return new[] { new ErrorConfiguration(errorType, schemaType) };
     }
 
     private static bool TryCreateFactoryFromException(
         Type errorType,
-        [NotNullWhen(true)] out ErrorDefinition? definition)
+        [NotNullWhen(true)] out ErrorConfiguration? definition)
     {
         if (typeof(Exception).IsAssignableFrom(errorType))
         {
             var schemaType = typeof(ExceptionObjectType<>).MakeGenericType(errorType);
-            definition = new ErrorDefinition(
+            definition = new ErrorConfiguration(
                 errorType,
                 schemaType,
                 ex => ex.GetType() == errorType
@@ -69,7 +66,7 @@ internal static class ErrorFactoryCompiler
 
     private static bool TryCreateDefaultErrorFactory(
         Type errorType,
-        [NotNullWhen(true)] out ErrorDefinition[]? definitions)
+        [NotNullWhen(true)] out ErrorConfiguration[]? definitions)
     {
         var getTypeMethod = typeof(Expression)
             .GetMethods()
@@ -82,7 +79,7 @@ internal static class ErrorFactoryCompiler
 
         var exception = Expression.Parameter(typeof(Exception), ex);
         Expression nullValue = Expression.Constant(null, typeof(object));
-        List<ErrorDefinition> errorDefinitions = [];
+        List<ErrorConfiguration> errorDefinitions = [];
 
         Expression? instance = null;
 
@@ -127,7 +124,7 @@ internal static class ErrorFactoryCompiler
                 var factory =
                     Expression.Lambda<CreateError>(checkAndCreate, exception).Compile();
                 var schemaType = typeof(ErrorObjectType<>).MakeGenericType(resultType);
-                errorDefinitions.Add(new ErrorDefinition(resultType, schemaType, factory));
+                errorDefinitions.Add(new ErrorConfiguration(resultType, schemaType, factory));
             }
         }
 
@@ -137,7 +134,7 @@ internal static class ErrorFactoryCompiler
 
     private static bool TryCreateFactoryFromConstructor(
         Type errorType,
-        [NotNullWhen(true)] out ErrorDefinition? definition)
+        [NotNullWhen(true)] out ErrorConfiguration? definition)
     {
         const string ex = nameof(ex);
         const string obj = nameof(obj);
@@ -187,13 +184,13 @@ internal static class ErrorFactoryCompiler
                     Expression.Block(
                         new[]
                         {
-                            variable,
+                            variable
                         },
-                        new List<Expression> { previous, variable, }),
+                        new List<Expression> { previous, variable }),
                     exception)
                 .Compile();
             var schemaType = typeof(ErrorObjectType<>).MakeGenericType(errorType);
-            definition = new ErrorDefinition(errorType, schemaType, factory);
+            definition = new ErrorConfiguration(errorType, schemaType, factory);
             return true;
         }
 

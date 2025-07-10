@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -22,6 +21,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(typeof(IntValueNode), 1, false)]
     [InlineData(typeof(BooleanValueNode), true, false)]
     [InlineData(typeof(StringValueNode), "", false)]
+    [InlineData(typeof(StringValueNode), "rgb(٢٥٥,٠,٠)", false)]
     [InlineData(typeof(StringValueNode), "rgb(255,0,0)", true)]
     [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 0%)", true)]
     [InlineData(typeof(StringValueNode), "rgb(300,0,0)", true)]
@@ -53,6 +53,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(1, false)]
     [InlineData(true, false)]
     [InlineData("", false)]
+    [InlineData("rgb(٢٥٥,٠,٠)", false)]
     [InlineData("rgb(255,0,0)", true)]
     [InlineData("rgb(100%, 0%, 0%)", true)]
     [InlineData("rgb(300,0,0)", true)]
@@ -108,6 +109,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "1")]
     [InlineData(typeof(StringValueNode), "rgb(255, 0, 153.6, 1)")]
     [InlineData(typeof(StringValueNode), "rgb(1e2, .5e1, .5e0, +.25e2%)")]
+    [InlineData(typeof(StringValueNode), "rgb(٢٥٥,٠,٠)")]
     public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
     {
         // arrange
@@ -150,6 +152,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData("1")]
     [InlineData("rgb(255, 0, 153.6, 1)")]
     [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+    [InlineData("rgb(٢٥٥,٠,٠)")]
     public void Deserialize_GivenValue_ThrowSerializationException(object value)
     {
         // arrange
@@ -190,6 +193,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData("1")]
     [InlineData("rgb(255, 0, 153.6, 1)")]
     [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+    [InlineData("rgb(٢٥٥,٠,٠)")]
     public void Serialize_GivenObject_ThrowSerializationException(object value)
     {
         // arrange
@@ -228,6 +232,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData("1")]
     [InlineData("rgb(255, 0, 153.6, 1)")]
     [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+    [InlineData("rgb(٢٥٥,٠,٠)")]
     public void ParseValue_GivenObject_ThrowSerializationException(object value)
     {
         // arrange
@@ -266,6 +271,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData("1")]
     [InlineData("rgb(255, 0, 153.6, 1)")]
     [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+    [InlineData("rgb(٢٥٥,٠,٠)")]
     public void ParseResult_GivenObject_ThrowSerializationException(object value)
     {
         // arrange

@@ -1,7 +1,6 @@
-using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
@@ -38,7 +37,7 @@ public class TransformationIntegrationTests
             .TryAddTypeInterceptor<RoundTypeIntercetor>();
 
         // act
-        var ex = Record.Exception(() => builder.Create());
+        var ex = Record.Exception(builder.Create);
 
         // assert
         Assert.IsType<SchemaException>(ex).MatchSnapshot();
@@ -88,7 +87,7 @@ public class TransformationIntegrationTests
             [
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -133,7 +132,7 @@ public class TransformationIntegrationTests
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
                     new CoordinateZM(10, 30, 12, 15),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -179,7 +178,7 @@ public class TransformationIntegrationTests
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
                     new CoordinateM(10, 30, 12),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -225,7 +224,7 @@ public class TransformationIntegrationTests
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
                     new CoordinateZ(10, 30, 12),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -404,7 +403,7 @@ public class TransformationIntegrationTests
             new Coordinate(30, 10),
                 new Coordinate(10, 30),
                 new CoordinateZ(10, 30, 12),
-                new Coordinate(40, 40),
+                new Coordinate(40, 40)
         ]);
 
         var schema = SchemaBuilder.New()
@@ -519,7 +518,7 @@ public class TransformationIntegrationTests
             [
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -564,7 +563,7 @@ public class TransformationIntegrationTests
             [
                 new Coordinate(30, 10),
                     new Coordinate(10, 30),
-                    new Coordinate(40, 40),
+                    new Coordinate(40, 40)
             ]);
 
         var schema = SchemaBuilder.New()
@@ -647,15 +646,15 @@ public class TransformationIntegrationTests
     {
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            TypeSystemConfiguration configuration)
         {
-            if (definition is ObjectTypeDefinition o)
+            if (configuration is ObjectTypeConfiguration o)
             {
                 foreach (var field in o.Fields)
                 {
                     if (field.Name.EqualsOrdinal("test"))
                     {
-                        field.MiddlewareDefinitions.Insert(0,
+                        field.MiddlewareConfigurations.Insert(0,
                             new(next => async context =>
                             {
                                 await next(context);

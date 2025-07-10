@@ -62,6 +62,6 @@ public class BaseTypesTests
 
     public enum FooEnum
     {
-        Bar,
+        Bar
     }
 }

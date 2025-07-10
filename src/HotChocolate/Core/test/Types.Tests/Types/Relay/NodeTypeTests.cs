@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
@@ -33,7 +32,7 @@ public class NodeTypeTests : TypeTestBase
             {
                 Assert.Equal("id", t.Name);
                 Assert.IsType<IdType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
             });
     }
 
@@ -170,7 +169,7 @@ public class NodeTypeTests : TypeTestBase
                                 }
                             }
                         }")
-                    .SetVariableValues(new Dictionary<string, object> { { "id", id }, })
+                    .SetVariableValues(new Dictionary<string, object> { { "id", id } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -225,7 +224,7 @@ public class NodeTypeTests : TypeTestBase
                                 }
                             }
                         }")
-                    .SetVariableValues(new Dictionary<string, object> { { "id", id }, })
+                    .SetVariableValues(new Dictionary<string, object> { { "id", id } })
                     .Build())
             .MatchSnapshotAsync();
     }

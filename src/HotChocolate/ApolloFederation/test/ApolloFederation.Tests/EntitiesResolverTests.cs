@@ -4,6 +4,7 @@ using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using static HotChocolate.ApolloFederation.TestHelper;
 
 namespace HotChocolate.ApolloFederation;
@@ -28,7 +29,7 @@ public class EntitiesResolverTests
             new
             {
                 id = "1",
-                someExternalField = "someExternalField",
+                someExternalField = "someExternalField"
             });
         var result =
             await EntitiesResolver.ResolveAsync(schema, representations, context);
@@ -58,7 +59,7 @@ public class EntitiesResolverTests
             new("MixedFieldTypes",
                 new ObjectValueNode(
                     new ObjectFieldNode("id", "1"),
-                    new ObjectFieldNode("intField", 25))),
+                    new ObjectFieldNode("intField", 25)))
         };
 
         // assert
@@ -85,7 +86,7 @@ public class EntitiesResolverTests
         var representations = new List<Representation>
         {
             new("TypeWithReferenceResolver",
-                new ObjectValueNode(new ObjectFieldNode("Id", "1"))),
+                new ObjectValueNode(new ObjectFieldNode("Id", "1")))
         };
 
         // assert
@@ -108,12 +109,13 @@ public class EntitiesResolverTests
         var batchScheduler = new ManualBatchScheduler();
         var dataLoader = new FederatedTypeDataLoader(batchScheduler, new DataLoaderOptions());
 
-        var context = CreateResolverContext(schema,
+        var serviceProviderMock = new Mock<IServiceProvider>();
+        serviceProviderMock.Setup(c => c.GetService(typeof(FederatedTypeDataLoader))).Returns(dataLoader);
+
+        var context = CreateResolverContext(
+            schema,
             null,
-            mock =>
-            {
-                mock.Setup(c => c.Service<FederatedTypeDataLoader>()).Returns(dataLoader);
-            });
+            mock => mock.Setup(c => c.Services).Returns(serviceProviderMock.Object));
 
         var representations = RepresentationsOf(
             nameof(FederatedType),
@@ -145,7 +147,7 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new("NonExistingTypeName", new ObjectValueNode()),
+            new("NonExistingTypeName", new ObjectValueNode())
         };
 
         // assert
@@ -167,7 +169,7 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new("TypeWithoutRefResolver", new ObjectValueNode()),
+            new("TypeWithoutRefResolver", new ObjectValueNode())
         };
 
         // assert
@@ -190,11 +192,11 @@ public class EntitiesResolverTests
         var representations = new List<Representation>
         {
             new("FederatedTypeWithRequiredDetail",
-                new ObjectValueNode(new[]
-                {
+                new ObjectValueNode(
+                [
                     new ObjectFieldNode("detail",
-                        new ObjectValueNode(new[] { new ObjectFieldNode("id", "testId") })),
-                })),
+                        new ObjectValueNode([new ObjectFieldNode("id", "testId")]))
+                ]))
         };
 
         var result = await EntitiesResolver.ResolveAsync(schema, representations, context);
@@ -221,14 +223,14 @@ public class EntitiesResolverTests
         var representations = new List<Representation>
         {
             new("FederatedTypeWithOptionalDetail",
-                new ObjectValueNode(new[]
-                {
+                new ObjectValueNode(
+                [
                     new ObjectFieldNode("detail",
-                        new ObjectValueNode(new[]
-                        {
-                            new ObjectFieldNode("id", "testId"),
-                        })),
-                })),
+                        new ObjectValueNode(
+                        [
+                            new ObjectFieldNode("id", "testId")
+                        ]))
+                ]))
         };
 
         var result = await EntitiesResolver.ResolveAsync(schema, representations, context);
@@ -242,27 +244,27 @@ public class EntitiesResolverTests
 
     public class Query
     {
-        public ForeignType ForeignType { get; set; } = default!;
-        public TypeWithReferenceResolver TypeWithReferenceResolver { get; set; } = default!;
-        public TypeWithoutRefResolver TypeWithoutRefResolver { get; set; } = default!;
-        public MixedFieldTypes MixedFieldTypes { get; set; } = default!;
-        public FederatedType TypeWithReferenceResolverMany { get; set; } = default!;
+        public ForeignType ForeignType { get; set; } = null!;
+        public TypeWithReferenceResolver TypeWithReferenceResolver { get; set; } = null!;
+        public TypeWithoutRefResolver TypeWithoutRefResolver { get; set; } = null!;
+        public MixedFieldTypes MixedFieldTypes { get; set; } = null!;
+        public FederatedType TypeWithReferenceResolverMany { get; set; } = null!;
     }
 
     public class TypeWithoutRefResolver
     {
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
     }
 
     [ReferenceResolver(EntityResolver = nameof(Get))]
     public class TypeWithReferenceResolver
     {
-        public string Id { get; set; } = default!;
-        public string SomeField { get; set; } = default!;
+        public string Id { get; set; } = null!;
+        public string SomeField { get; set; } = null!;
 
         public static TypeWithReferenceResolver Get([LocalState] ObjectValueNode data)
         {
-            return new TypeWithReferenceResolver {Id = "1", SomeField = "SomeField"};
+            return new TypeWithReferenceResolver { Id = "1", SomeField = "SomeField" };
         }
     }
 
@@ -316,9 +318,9 @@ public class EntitiesResolverTests
     {
         [Key]
         [External]
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
 
-        public string SomeField { get; set; } = default!;
+        public string SomeField { get; set; } = null!;
 
         [ReferenceResolver]
         public static async Task<FederatedType?> GetById(
@@ -351,9 +353,9 @@ public class EntitiesResolverTests
 
             Dictionary<string, FederatedType> result = new()
             {
-                ["1"] = new FederatedType {Id = "1", SomeField = "SomeField-1"},
-                ["2"] = new FederatedType {Id = "2", SomeField = "SomeField-2"},
-                ["3"] = new FederatedType {Id = "3", SomeField = "SomeField-3"},
+                ["1"] = new FederatedType { Id = "1", SomeField = "SomeField-1" },
+                ["2"] = new FederatedType { Id = "2", SomeField = "SomeField-2" },
+                ["3"] = new FederatedType { Id = "3", SomeField = "SomeField-3" }
             };
 
             return Task.FromResult<IReadOnlyDictionary<string, FederatedType>>(result);
@@ -362,9 +364,9 @@ public class EntitiesResolverTests
 
     public class FederatedTypeWithRequiredDetail
     {
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
 
-        public FederatedTypeDetail Detail { get; set; } = default!;
+        public FederatedTypeDetail Detail { get; set; } = null!;
 
         [ReferenceResolver]
         public static FederatedTypeWithRequiredDetail ReferenceResolver([Map("detail.id")] string detailId)
@@ -373,16 +375,16 @@ public class EntitiesResolverTests
                 Id = detailId,
                 Detail = new FederatedTypeDetail
                 {
-                    Id = detailId,
-                },
+                    Id = detailId
+                }
             };
     }
 
     public class FederatedTypeWithOptionalDetail
     {
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
 
-        public FederatedTypeDetail? Detail { get; set; } = default!;
+        public FederatedTypeDetail? Detail { get; set; }
 
         [ReferenceResolver]
         public static FederatedTypeWithOptionalDetail ReferenceResolver([Map("detail.id")] string detailId)
@@ -391,13 +393,13 @@ public class EntitiesResolverTests
                 Id = detailId,
                 Detail = new FederatedTypeDetail
                 {
-                    Id = detailId,
-                },
+                    Id = detailId
+                }
             };
     }
 
     public class FederatedTypeDetail
     {
-        public string Id { get; set; } = default!;
+        public string Id { get; set; } = null!;
     }
 }

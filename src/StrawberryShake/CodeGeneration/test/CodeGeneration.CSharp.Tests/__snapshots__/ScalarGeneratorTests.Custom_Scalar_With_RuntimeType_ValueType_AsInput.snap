@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -169,7 +170,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SetPerson GraphQL operation
     /// <code>
-    /// query SetPerson($email: Email!) {
+    /// query SetPerson(
+    ///   $email: Email!
+    /// ) {
     ///   person {
     ///     __typename
     ///     setEmail(email: $email)
@@ -286,7 +289,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SetPerson GraphQL operation
     /// <code>
-    /// query SetPerson($email: Email!) {
+    /// query SetPerson(
+    ///   $email: Email!
+    /// ) {
     ///   person {
     ///     __typename
     ///     setEmail(email: $email)
@@ -299,17 +304,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<ISetPersonResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _emailFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public SetPersonQuery(global::StrawberryShake.IOperationExecutor<ISetPersonResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _emailFormatter = serializerResolver.GetInputValueFormatter("Email");
         }
 
+        private SetPersonQuery(global::StrawberryShake.IOperationExecutor<ISetPersonResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter emailFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _emailFormatter = emailFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ISetPersonResult);
+
+        public global::Foo.Bar.ISetPersonQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.SetPersonQuery(_operationExecutor, _configure.Add(configure), _emailFormatter);
+        }
+
+        public global::Foo.Bar.ISetPersonQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.ISetPersonQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISetPersonResult>> ExecuteAsync(global::System.Index email, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(email);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -346,7 +379,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SetPerson GraphQL operation
     /// <code>
-    /// query SetPerson($email: Email!) {
+    /// query SetPerson(
+    ///   $email: Email!
+    /// ) {
     ///   person {
     ///     __typename
     ///     setEmail(email: $email)
@@ -357,6 +392,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ISetPersonQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.ISetPersonQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.ISetPersonQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.ISetPersonQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISetPersonResult>> ExecuteAsync(global::System.Index email, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ISetPersonResult>> Watch(global::System.Index email, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -426,7 +464,7 @@ namespace Foo.Bar.State
             }
 
             ISetPerson_Person returnValue = default !;
-            if (data?.__typename.Equals("Person", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("Person", global::System.StringComparison.Ordinal))
             {
                 returnValue = new SetPerson_Person_Person(data.SetEmail ?? throw new global::System.ArgumentNullException());
             }
@@ -623,6 +661,9 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);

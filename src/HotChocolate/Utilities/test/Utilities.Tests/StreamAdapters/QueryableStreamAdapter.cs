@@ -1,11 +1,9 @@
-using Xunit;
-
 namespace HotChocolate.Utilities.StreamAdapters;
 
 public class QueryableStreamAdapterTests
 {
-    private readonly string[] _strings = ["a", "b", "c", "d", "e",];
-    private readonly object[] _objects = ["a", "b", "c", "d", "e",];
+    private readonly string[] _strings = ["a", "b", "c", "d", "e"];
+    private readonly object[] _objects = ["a", "b", "c", "d", "e"];
 
     [Fact]
     public async Task QueryableToStream()

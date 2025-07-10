@@ -2,7 +2,7 @@ using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using static System.Reflection.BindingFlags;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
 {
-    private static readonly MethodInfo _subscribeFactory =
+    private static readonly MethodInfo s_subscribeFactory =
         typeof(SubscribeAttribute).GetMethod(nameof(SubscribeFactory), NonPublic | Static)!;
 
     /// <summary>
@@ -55,8 +55,8 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
             descriptor.Extend().OnBeforeNaming(
                 (_, fieldDef) =>
                 {
-                    var factory = _subscribeFactory.MakeGenericMethod(MessageType);
-                    factory.Invoke(null, [fieldDef, topicString,]);
+                    var factory = s_subscribeFactory.MakeGenericMethod(MessageType);
+                    factory.Invoke(null, [fieldDef, topicString]);
                 });
         }
         else
@@ -85,7 +85,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
 
                     d.SubscribeResolver = context.ResolverCompiler.CompileSubscribe(
                         subscribeResolver,
-                        d.SourceType!,
+                        d.SourceType,
                         d.ResolverType,
                         map,
                         d.GetParameterExpressionBuilders());
@@ -106,7 +106,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
     }
 
     private static void SubscribeFactory<TMessage>(
-        ObjectFieldDefinition fieldDef,
+        ObjectFieldConfiguration fieldDef,
         string topicString)
     {
         var arg = false;

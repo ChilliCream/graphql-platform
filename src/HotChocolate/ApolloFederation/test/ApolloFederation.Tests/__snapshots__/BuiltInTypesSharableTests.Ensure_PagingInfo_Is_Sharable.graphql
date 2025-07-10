@@ -1,4 +1,4 @@
-schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@shareable", "FieldSet" ]) {
+schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@shareable", "@tag", "FieldSet" ]) {
   query: Query
 }
 

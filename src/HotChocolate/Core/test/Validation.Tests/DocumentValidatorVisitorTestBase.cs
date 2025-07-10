@@ -1,28 +1,16 @@
-using CookieCrumble;
-using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
-using HotChocolate.Validation.Options;
 
 namespace HotChocolate.Validation;
 
 public abstract class DocumentValidatorVisitorTestBase
 {
-    protected DocumentValidatorVisitorTestBase(Action<IValidationBuilder> configure)
+    protected DocumentValidatorVisitorTestBase(Action<DocumentValidatorBuilder> configure)
     {
-        var serviceCollection = new ServiceCollection();
-
-        var builder = serviceCollection
-            .AddValidation()
-            .ConfigureValidation(c => c.Modifiers.Add(o => o.Rules.Clear()))
-            .ModifyValidationOptions(o => o.MaxAllowedErrors = int.MaxValue);
+        var builder = DocumentValidatorBuilder.New();
         configure(builder);
-
-        IServiceProvider services = serviceCollection.BuildServiceProvider();
-
-        Rule = services
-            .GetRequiredService<IValidationConfiguration>()
-            .GetRules(Schema.DefaultName).First();
+        Rule = builder.Build().Rules[0];
 
         StarWars = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -32,67 +20,47 @@ public abstract class DocumentValidatorVisitorTestBase
 
     protected IDocumentValidatorRule Rule { get; }
 
-    protected ISchema StarWars { get; }
+    protected ISchemaDefinition StarWars { get; }
 
-    [Fact]
-    public void ContextIsNull()
+    protected void ExpectValid(
+        [StringSyntax("graphql")] string sourceText)
+        => ExpectValid(null, sourceText);
+
+    protected void ExpectValid(
+        ISchemaDefinition? schema,
+        [StringSyntax("graphql")] string sourceText)
     {
         // arrange
-        var query = Utf8GraphQLParser.Parse(@"{ foo }");
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var context = ValidationUtils.CreateContext(document, schema);
 
         // act
-        var a = () => Rule.Validate(null!, query);
-
-        // assert
-        Assert.Throws<ArgumentNullException>(a);
-    }
-
-    [Fact]
-    public void QueryIsNull()
-    {
-        // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext();
-
-        // act
-        var a = () => Rule.Validate(context, null!);
-
-        // assert
-        Assert.Throws<ArgumentNullException>(a);
-    }
-
-    protected void ExpectValid(string sourceText) => ExpectValid(null, sourceText);
-
-    protected void ExpectValid(ISchema? schema, string sourceText)
-    {
-        // arrange
-        IDocumentValidatorContext context = ValidationUtils.CreateContext(schema);
-        var query = Utf8GraphQLParser.Parse(sourceText);
-        context.Prepare(query);
-
-        // act
-        Rule.Validate(context, query);
+        Rule.Validate(context, document);
 
         // assert
         Assert.False(context.UnexpectedErrorsDetected);
         Assert.Empty(context.Errors);
     }
 
-    protected void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors)
+    protected void ExpectErrors(
+        [StringSyntax("graphql")] string sourceText,
+        params Action<IError>[] elementInspectors)
         => ExpectErrors(null, sourceText, elementInspectors);
 
     protected void ExpectErrors(
-        ISchema? schema,
-        string sourceText,
+        ISchemaDefinition? schema,
+        [StringSyntax("graphql")] string sourceText,
         params Action<IError>[] elementInspectors)
     {
         // arrange
-        var context = ValidationUtils.CreateContext(schema);
-        context.MaxAllowedErrors = int.MaxValue;
-        var query = Utf8GraphQLParser.Parse(sourceText);
-        context.Prepare(query);
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var context = ValidationUtils.CreateContext(
+            document,
+            schema,
+            maxAllowedErrors: int.MaxValue);
 
         // act
-        Rule.Validate(context, query);
+        Rule.Validate(context, document);
 
         // assert
         Assert.NotEmpty(context.Errors);

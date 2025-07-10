@@ -25,10 +25,7 @@ public class EnumDescriptorMapperTests
             "FooClient",
             new Sha1DocumentHashProvider(),
             RequestStrategyGen.Default,
-            new[]
-            {
-                TransportProfile.Default,
-            });
+            [TransportProfile.Default]);
         TypeDescriptorMapper.Map(clientModel, context);
 
         // assert

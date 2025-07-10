@@ -50,7 +50,7 @@ internal sealed class ErrorMiddleware(FieldDelegate next, IReadOnlyList<CreateEr
 
             // if we have some errors that we could not handle
             // we will report them as GraphQL errors.
-            if(unhandledErrors?.Count > 0)
+            if (unhandledErrors?.Count > 0)
             {
                 foreach (var unhandledError in unhandledErrors)
                 {
@@ -79,7 +79,7 @@ internal sealed class ErrorMiddleware(FieldDelegate next, IReadOnlyList<CreateEr
                 throw;
             }
 
-            context.SetScopedState(ErrorContextDataKeys.Errors, new[] { error, });
+            context.SetScopedState(ErrorContextDataKeys.Errors, new[] { error });
             context.Result = ErrorMarker.Instance;
         }
     }

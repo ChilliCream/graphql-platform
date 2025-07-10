@@ -57,7 +57,7 @@ public sealed class RuntimeExpressionEvaluatorTests
                 RuntimeExpression.Build("$request.body#/example"),
                 new OpenApiParameter()
                 {
-                    Schema = typeof(int).MapTypeToOpenApiPrimitiveType(),
+                    Schema = typeof(int).MapTypeToOpenApiPrimitiveType()
                 },
                 123
             },
@@ -70,7 +70,7 @@ public sealed class RuntimeExpressionEvaluatorTests
                 RuntimeExpression.Build("$request.path.pathParameter"),
                 new OpenApiParameter()
                 {
-                    Schema = typeof(int).MapTypeToOpenApiPrimitiveType(),
+                    Schema = typeof(int).MapTypeToOpenApiPrimitiveType()
                 },
                 123
             },
@@ -78,7 +78,7 @@ public sealed class RuntimeExpressionEvaluatorTests
                 RuntimeExpression.Build("$request.query.queryParameter"),
                 new OpenApiParameter()
                 {
-                    Schema = typeof(int).MapTypeToOpenApiPrimitiveType(),
+                    Schema = typeof(int).MapTypeToOpenApiPrimitiveType()
                 },
                 123
             },
@@ -86,7 +86,7 @@ public sealed class RuntimeExpressionEvaluatorTests
                 RuntimeExpression.Build("$response.body#/example"),
                 new OpenApiParameter()
                 {
-                    Schema = typeof(int).MapTypeToOpenApiPrimitiveType(),
+                    Schema = typeof(int).MapTypeToOpenApiPrimitiveType()
                 },
                 123
             },
@@ -104,7 +104,7 @@ public sealed class RuntimeExpressionEvaluatorTests
                 RuntimeExpression.Build("$url"),
                 new OpenApiParameter(),
                 "https://localhost/"
-            },
+            }
         };
     }
 }

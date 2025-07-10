@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The defer and stream directives are not allowed to be used on root fields of the mutation or subscription type.",
     "Code": null,
@@ -6,7 +6,7 @@
     "Locations": [
       {
         "Line": 2,
-        "Column": 17
+        "Column": 3
       }
     ],
     "Extensions": {

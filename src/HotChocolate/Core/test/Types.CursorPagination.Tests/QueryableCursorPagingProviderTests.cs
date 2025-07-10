@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -29,7 +30,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g",
+            "g"
         };
 
         var pagingDetails = new CursorPagingArguments(2);
@@ -71,7 +72,7 @@ public class QueryableCursorPagingProviderTests
         IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
-        var list = new List<string> { "f", "g", };
+        var list = new List<string> { "f", "g" };
 
         var pagingDetails = new CursorPagingArguments(last: 1);
         var context = await MockContext.CreateContextAsync(pagingDetails);
@@ -115,7 +116,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g",
+            "g"
         };
 
         var pagingDetails = new CursorPagingArguments(last: 2);
@@ -165,7 +166,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g",
+            "g"
         };
 
         var pagingDetails = new CursorPagingArguments();
@@ -173,7 +174,7 @@ public class QueryableCursorPagingProviderTests
         pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
-        pagingDetails = new CursorPagingArguments(after: connection.Info.StartCursor, first: 2);
+        pagingDetails = new CursorPagingArguments(first: 2, after: connection.Info.StartCursor);
         context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
@@ -220,7 +221,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g",
+            "g"
         };
 
         var pagingDetails = new CursorPagingArguments(first: 5);
@@ -228,7 +229,7 @@ public class QueryableCursorPagingProviderTests
         pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
-        pagingDetails = new CursorPagingArguments(before: connection.Info.EndCursor, last: 2);
+        pagingDetails = new CursorPagingArguments(last: 2, before: connection.Info.EndCursor);
         context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
@@ -275,7 +276,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g",
+            "g"
         };
 
         var pagingDetails = new CursorPagingArguments(first: 5);
@@ -307,7 +308,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g",
+            "g"
         };
 
         var pagingDetails = new CursorPagingArguments(first: 7);
@@ -339,7 +340,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g",
+            "g"
         };
 
         var pagingDetails = new CursorPagingArguments(first: 1);
@@ -348,7 +349,7 @@ public class QueryableCursorPagingProviderTests
         pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
-        pagingDetails = new CursorPagingArguments(after: connection.Info.EndCursor, first: 2);
+        pagingDetails = new CursorPagingArguments(first: 2, after: connection.Info.EndCursor);
         context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
@@ -377,7 +378,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g",
+            "g"
         };
 
         var pagingDetails = new CursorPagingArguments(first: 1);
@@ -402,7 +403,7 @@ public class QueryableCursorPagingProviderTests
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = HotChocolate.Executable.From(
-            new[] { "a", "b", "c", "d", "e", "f", "g", }.AsQueryable());
+            new[] { "a", "b", "c", "d", "e", "f", "g" }.AsQueryable());
 
         var pagingDetails = new CursorPagingArguments(2);
         var context = await MockContext.CreateContextAsync(pagingDetails);
@@ -444,7 +445,7 @@ public class QueryableCursorPagingProviderTests
         var pagingHandler = pagingProvider.CreateHandler(sourceType, new());
 
         var list = HotChocolate.Executable.From(
-            new[] { "a", "b", "c", "d", "e", "f", "g", }.AsQueryable());
+            new[] { "a", "b", "c", "d", "e", "f", "g" }.AsQueryable());
 
         var pagingDetails = new CursorPagingArguments(2);
         var context = await MockContext.CreateContextAsync(pagingDetails);
@@ -480,7 +481,7 @@ public class QueryableCursorPagingProviderTests
         [UsePaging(IncludeTotalCount = true)]
         public IExecutable<string> DemoList() =>
             HotChocolate.Executable.From(
-                new[] { "a", "b", "c", "d", "e", "f", "g", }.AsQueryable());
+                new[] { "a", "b", "c", "d", "e", "f", "g" }.AsQueryable());
     }
 
     private static int GetPositionFromCursor(string cursor)
@@ -530,7 +531,6 @@ public class QueryableCursorPagingProviderTests
             return new MockContext(arguments, operation, operation.RootSelectionSet.Selections[0]);
         }
 
-
         public IServiceProvider Services
         {
             get => throw new NotImplementedException();
@@ -552,7 +552,7 @@ public class QueryableCursorPagingProviderTests
         public IImmutableDictionary<string, object?> LocalContextData { get; set; } =
             ImmutableDictionary<string, object?>.Empty;
 
-        public CancellationToken RequestAborted => default;
+        public CancellationToken RequestAborted => CancellationToken.None;
 
         public object Service(Type service)
         {
@@ -569,13 +569,13 @@ public class QueryableCursorPagingProviderTests
             throw new NotImplementedException();
         }
 
-        public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
+        public void ReportError(Exception exception, Action<ErrorBuilder>? configure = null)
         {
             throw new NotImplementedException();
         }
 
         public IReadOnlyList<ISelection> GetSelections(
-            IObjectType typeContext,
+            ObjectType typeContext,
             ISelection? selection = null,
             bool allowInternals = false)
         {
@@ -603,9 +603,9 @@ public class QueryableCursorPagingProviderTests
             throw new NotImplementedException();
         }
 
-        public ISchema Schema => throw new NotImplementedException();
+        public Schema Schema => throw new NotImplementedException();
 
-        public IObjectType ObjectType => throw new NotImplementedException();
+        public ObjectType ObjectType => throw new NotImplementedException();
 
         public IOperation Operation { get; }
 
@@ -697,7 +697,7 @@ public class QueryableCursorPagingProviderTests
             throw new NotImplementedException();
         }
 
-        public T? Service<T>(object key) where T : notnull
+        public T Service<T>(object key) where T : notnull
         {
             throw new NotImplementedException();
         }
@@ -708,5 +708,7 @@ public class QueryableCursorPagingProviderTests
         }
 
         public IDictionary<string, object?> ContextData => throw new NotImplementedException();
+
+        public IFeatureCollection Features => throw new NotImplementedException();
     }
 }

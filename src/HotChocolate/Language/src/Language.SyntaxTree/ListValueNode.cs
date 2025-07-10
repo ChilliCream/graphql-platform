@@ -45,7 +45,7 @@ public sealed class ListValueNode : IValueNode<IReadOnlyList<IValueNode>>
         }
 
         Location = location;
-        Items = new IValueNode[] { item, };
+        Items = new IValueNode[] { item };
     }
 
     /// <summary>

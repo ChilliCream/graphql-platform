@@ -4,7 +4,7 @@ using static HotChocolate.Data.DataResources;
 namespace HotChocolate.Data.Sorting;
 
 public abstract class SortProviderExtensions<TContext>
-    : ConventionExtension<SortProviderDefinition>,
+    : ConventionExtension<SortProviderConfiguration>,
       ISortProviderExtension,
       ISortProviderConvention
     where TContext : ISortVisitorContext
@@ -16,15 +16,15 @@ public abstract class SortProviderExtensions<TContext>
         _configure = Configure;
     }
 
-    public SortProviderExtensions(Action<ISortProviderDescriptor<TContext>> configure)
+    protected SortProviderExtensions(Action<ISortProviderDescriptor<TContext>> configure)
     {
         _configure = configure ??
             throw new ArgumentNullException(nameof(configure));
     }
 
-    void ISortProviderConvention.Initialize(IConventionContext context)
+    void ISortProviderConvention.Initialize(IConventionContext context, ISortConvention convention)
     {
-        base.Initialize(context);
+        Initialize(context);
     }
 
     void ISortProviderConvention.Complete(IConventionContext context)
@@ -32,7 +32,7 @@ public abstract class SortProviderExtensions<TContext>
         Complete(context);
     }
 
-    protected override SortProviderDefinition CreateDefinition(IConventionContext context)
+    protected override SortProviderConfiguration CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -44,29 +44,30 @@ public abstract class SortProviderExtensions<TContext>
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected virtual void Configure(ISortProviderDescriptor<TContext> descriptor) { }
 
     public override void Merge(IConventionContext context, Convention convention)
     {
-        if (Definition is { } &&
-            convention is SortProvider<TContext> sortProvider &&
-            sortProvider.Definition is { } target)
+        if (Configuration is null
+            || convention is not SortProvider<TContext> { Configuration: { } target })
         {
-            // Provider extensions should be applied by default before the default handlers, as
-            // the interceptor picks up the first handler. A provider extension should adds more
-            // specific handlers than the default providers
-            for (var i = Definition.Handlers.Count - 1; i >= 0; i--)
-            {
-                target.Handlers.Insert(0, Definition.Handlers[i]);
-            }
+            return;
+        }
 
-            for (var i = Definition.OperationHandlers.Count - 1; i >= 0; i--)
-            {
-                target.OperationHandlers.Insert(0, Definition.OperationHandlers[i]);
-            }
+        // Provider extensions should be applied by default before the default handlers, as
+        // the interceptor picks up the first handler. A provider extension should add more
+        // specific handlers than the default providers
+        for (var i = Configuration.Handlers.Count - 1; i >= 0; i--)
+        {
+            target.Handlers.Insert(0, Configuration.Handlers[i]);
+        }
+
+        for (var i = Configuration.OperationHandlers.Count - 1; i >= 0; i--)
+        {
+            target.OperationHandlers.Insert(0, Configuration.OperationHandlers[i]);
         }
     }
 }

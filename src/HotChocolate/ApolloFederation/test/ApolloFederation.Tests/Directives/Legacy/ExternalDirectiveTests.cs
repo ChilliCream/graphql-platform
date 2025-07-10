@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -38,7 +37,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var query = schema.GetType<ObjectType>("User");
+        var query = schema.Types.GetType<ObjectType>("User");
 
         // assert
         var directive = Assert.Single(query.Fields["idCode"].Directives);
@@ -58,7 +57,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var query = schema.GetType<ObjectType>("User");
+        var query = schema.Types.GetType<ObjectType>("User");
 
         // assert
         var directive = Assert.Single(query.Fields["idCode"].Directives);
@@ -70,7 +69,7 @@ public class ExternalDirectiveTests : FederationTypesTestBase
 
 public class Query
 {
-    public User GetEntity(int id) => default!;
+    public User GetEntity(int id) => null!;
 }
 
 public class User
@@ -78,5 +77,5 @@ public class User
     [Key]
     public int Id { get; set; }
     [External]
-    public string IdCode { get; set; } = default!;
+    public string IdCode { get; set; } = null!;
 }

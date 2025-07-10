@@ -13,7 +13,7 @@ internal static class BindDirectiveHelper
     public static bool IsBindingDirective(this DirectiveNode directiveNode)
         => string.Equals(directiveNode.Name.Value, Name, StringComparison.Ordinal);
 
-    public static string? GetBindingValue(this Language.IHasDirectives syntaxNode)
+    public static string? GetBindingValue(this IHasDirectives syntaxNode)
     {
         var directive = syntaxNode.Directives.FirstOrDefault(
             t => t.Name.Value == Name);
@@ -28,7 +28,7 @@ internal static class BindDirectiveHelper
             var to = directive.Arguments[0];
 
             if (to.Name.Value.EqualsOrdinal(ToArgument) &&
-                to.Value is StringValueNode { Value: { Length: > 0, } value, })
+                to.Value is StringValueNode { Value: { Length: > 0 } value })
             {
                 return value;
             }

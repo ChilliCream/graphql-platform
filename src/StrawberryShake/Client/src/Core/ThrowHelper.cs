@@ -22,7 +22,7 @@ internal static class ThrowHelper
             "For more information read: `https://www.graphql-scalars.com/date-time`.",
             extensions: new Dictionary<string, object?>
             {
-                    { "serializedValue", serializedValue },
+                    { "serializedValue", serializedValue }
             }));
 
     internal static GraphQLClientException DateSerializer_InvalidFormat(
@@ -31,7 +31,34 @@ internal static class ThrowHelper
             "The serialized format for Date must be `yyyy-MM-dd`.",
             extensions: new Dictionary<string, object?>
             {
-                    { "serializedValue", serializedValue },
+                    { "serializedValue", serializedValue }
+            }));
+
+    internal static GraphQLClientException LocalDateSerializer_InvalidFormat(
+        string serializedValue) =>
+        new(new ClientError(
+            "The serialized format for LocalDate must be `yyyy-MM-dd`.",
+            extensions: new Dictionary<string, object?>
+            {
+                { "serializedValue", serializedValue }
+            }));
+
+    internal static GraphQLClientException LocalDateTimeSerializer_InvalidFormat(
+        string serializedValue) =>
+        new(new ClientError(
+            "The serialized format for LocalDateTime must be `yyyy-MM-ddTHH:mm:ss`.",
+            extensions: new Dictionary<string, object?>
+            {
+                { "serializedValue", serializedValue }
+            }));
+
+    internal static GraphQLClientException LocalTimeSerializer_InvalidFormat(
+        string serializedValue) =>
+        new(new ClientError(
+            "The serialized format for LocalTime must be `HH:mm:ss`.",
+            extensions: new Dictionary<string, object?>
+            {
+                { "serializedValue", serializedValue }
             }));
 
     internal static GraphQLClientException UrlFormatter_CouldNotParseUri(string value) =>

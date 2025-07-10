@@ -1,5 +1,4 @@
-using CookieCrumble;
-using CookieCrumble.Attributes;
+using CookieCrumble.Xunit.Attributes;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +23,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         // act
-        LatitudeType type = new()!;
+        LatitudeType type = new();
 
         // assert
         Assert.Equal(TypeKind.Scalar, type.Kind);
@@ -105,7 +104,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        var valueSyntax = "92° 0' 0.000\" S";
+        const string valueSyntax = "92° 0' 0.000\" S";
 
         // act
         var result = Record.Exception(() => scalar.ParseResult(valueSyntax));
@@ -339,7 +338,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const string valueSyntax = "91° 0' 0.000\" S"!;
+        const string valueSyntax = "91° 0' 0.000\" S";
 
         // act
 
@@ -355,7 +354,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const string? valueSyntax = "92° 0' 0.000\" N"!;
+        const string? valueSyntax = "92° 0' 0.000\" N";
 
         // act
         var result = Record.Exception(() => scalar.Deserialize(valueSyntax));

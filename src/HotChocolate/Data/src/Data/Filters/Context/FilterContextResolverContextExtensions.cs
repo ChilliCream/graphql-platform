@@ -16,8 +16,9 @@ public static class FilterContextResolverContextExtensions
     public static IFilterContext? GetFilterContext(this IResolverContext context)
     {
         var field = context.Selection.Field;
-        if (!field.ContextData.TryGetValue(ContextArgumentNameKey, out var argumentNameObj) ||
-            argumentNameObj is not string argumentName)
+        var argumentName = field.Features.Get<FilterFeature>()?.ArgumentName;
+
+        if (argumentName is null)
         {
             return null;
         }
@@ -33,8 +34,7 @@ public static class FilterContextResolverContextExtensions
             return null;
         }
 
-        FilterContext filterContext =
-            new(context, filterInput, filter, context.Service<InputParser>());
+        var filterContext = new FilterContext(context, filterInput, filter, context.Service<InputParser>());
 
         // disable the execution of filtering by default
         filterContext.Handled(true);

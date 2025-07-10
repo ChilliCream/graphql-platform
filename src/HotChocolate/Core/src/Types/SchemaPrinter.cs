@@ -3,85 +3,59 @@ using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
-using static HotChocolate.Types.SpecifiedByDirectiveType.Names;
-using static HotChocolate.WellKnownDirectives;
 
 namespace HotChocolate;
 
 public static class SchemaPrinter
 {
-    public static string Print(ISchema schema)
+    public static string Print(Schema schema)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
 
         var document = PrintSchema(schema);
         return document.Print();
     }
 
-    public static void Serialize(ISchema schema, TextWriter textWriter)
+    public static void Serialize(Schema schema, TextWriter textWriter)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
-        if (textWriter is null)
-        {
-            throw new ArgumentNullException(nameof(textWriter));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(textWriter);
 
         var document = PrintSchema(schema);
         textWriter.Write(document.Print());
     }
 
     public static async ValueTask PrintAsync(
-        ISchema schema,
+        Schema schema,
         Stream stream,
         bool indented = true,
         CancellationToken cancellationToken = default)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
-        if (stream is null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(stream);
 
         var document = PrintSchema(schema);
         await document.PrintToAsync(stream, indented, cancellationToken).ConfigureAwait(false);
     }
 
     public static async ValueTask PrintAsync(
-        IEnumerable<INamedType> namedTypes,
+        IEnumerable<ITypeDefinition> typeDefinitions,
         Stream stream,
         bool indented = true,
         CancellationToken cancellationToken = default)
     {
-        if (namedTypes is null)
-        {
-            throw new ArgumentNullException(nameof(namedTypes));
-        }
-
-        if (stream is null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
+        ArgumentNullException.ThrowIfNull(typeDefinitions);
+        ArgumentNullException.ThrowIfNull(stream);
 
         var list = new List<IDefinitionNode>();
 
-        foreach (var namedType in namedTypes)
+        foreach (var typeDefinition in typeDefinitions)
         {
-            var typeDefinition =
-                namedType is ScalarType scalarType
+            var syntaxNode =
+                typeDefinition is ScalarType scalarType
                     ? PrintScalarType(scalarType)
-                    : PrintNonScalarTypeDefinition(namedType, false);
-            list.Add(typeDefinition);
+                    : PrintNonScalarTypeDefinition(typeDefinition, false);
+            list.Add(syntaxNode);
         }
 
         await new DocumentNode(list)
@@ -90,14 +64,11 @@ public static class SchemaPrinter
     }
 
     public static DocumentNode PrintSchema(
-        ISchema schema,
+        Schema schema,
         bool includeSpecScalars = false,
         bool printResolverKind = false)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
 
         var typeDefinitions = GetNonScalarTypes(schema)
             .Select(t => PrintNonScalarTypeDefinition(t, printResolverKind))
@@ -112,12 +83,17 @@ public static class SchemaPrinter
             typeDefinitions.Insert(0, PrintSchemaTypeDefinition(schema));
         }
 
-        var builtInDirectives = new HashSet<string> { Skip, Include, Deprecated, };
+        var builtInDirectives = new HashSet<string>
+        {
+            DirectiveNames.Skip.Name,
+            DirectiveNames.Include.Name,
+            DirectiveNames.Deprecated.Name
+        };
 
         var directiveTypeDefinitions =
             schema.DirectiveTypes
                 .Where(directive => !builtInDirectives.Contains(directive.Name))
-                .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
+                .OrderBy(t => t.Name, StringComparer.Ordinal)
                 .Select(PrintDirectiveTypeDefinition);
 
         typeDefinitions.AddRange(directiveTypeDefinitions);
@@ -126,7 +102,7 @@ public static class SchemaPrinter
             schema.Types
             .OfType<ScalarType>()
             .Where(t => includeSpecScalars || !BuiltInTypes.IsBuiltInType(t.Name))
-            .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
+            .OrderBy(t => t.Name, StringComparer.Ordinal)
             .Select(PrintScalarType);
 
         typeDefinitions.AddRange(scalarTypeDefinitions);
@@ -134,18 +110,18 @@ public static class SchemaPrinter
         return new DocumentNode(null, typeDefinitions);
     }
 
-    private static IEnumerable<INamedType> GetNonScalarTypes(
-        ISchema schema)
+    private static IEnumerable<ITypeDefinition> GetNonScalarTypes(
+        Schema schema)
     {
         return schema.Types
            .Where(IsPublicAndNoScalar)
-           .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
+           .OrderBy(t => t.Name, StringComparer.Ordinal)
            .GroupBy(t => (int)t.Kind)
            .OrderBy(t => t.Key)
            .SelectMany(t => t);
     }
 
-    private static bool IsPublicAndNoScalar(INamedType type)
+    private static bool IsPublicAndNoScalar(ITypeDefinition type)
     {
         if (type.IsIntrospectionType() || type is ScalarType)
         {
@@ -164,7 +140,7 @@ public static class SchemaPrinter
 
         var locations = directiveType.Locations
             .AsEnumerable()
-            .Select(l => new NameNode(l.MapDirectiveLocation().ToString()))
+            .Select(l => new NameNode(l.Format().ToString()))
             .ToList();
 
         return new DirectiveDefinitionNode
@@ -178,7 +154,7 @@ public static class SchemaPrinter
         );
     }
 
-    private static SchemaDefinitionNode PrintSchemaTypeDefinition(ISchema schema)
+    private static SchemaDefinitionNode PrintSchemaTypeDefinition(Schema schema)
     {
         var operations = new List<OperationTypeDefinitionNode>();
 
@@ -227,16 +203,16 @@ public static class SchemaPrinter
     }
 
     private static ITypeDefinitionNode PrintNonScalarTypeDefinition(
-        INamedType namedType,
-        bool printResolverKind) =>
-        namedType switch
+        ITypeDefinition typeDefinition,
+        bool printResolverKind)
+        => typeDefinition switch
         {
             ObjectType type => PrintObjectType(type, printResolverKind),
             InterfaceType type => PrintInterfaceType(type),
             InputObjectType type => PrintInputObjectType(type),
             UnionType type => PrintUnionType(type),
             EnumType type => PrintEnumType(type),
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
 
     private static ObjectTypeDefinitionNode PrintObjectType(
@@ -320,7 +296,7 @@ public static class SchemaPrinter
             .Select(PrintDirective)
             .ToList();
 
-        var types = unionType.Types.Values
+        var types = unionType.Types
             .Select(PrintNamedType)
             .ToList();
 
@@ -354,7 +330,7 @@ public static class SchemaPrinter
         );
     }
 
-    private static EnumValueDefinitionNode PrintEnumValue(IEnumValue enumValue)
+    private static EnumValueDefinitionNode PrintEnumValue(EnumValue enumValue)
     {
         var directives = enumValue.Directives
             .Select(PrintDirective)
@@ -385,9 +361,9 @@ public static class SchemaPrinter
         {
             directives.Add(
                 new DirectiveNode(
-                    SpecifiedBy,
+                    DirectiveNames.SpecifiedBy.Name,
                     new ArgumentNode(
-                        Url,
+                        DirectiveNames.SpecifiedBy.Arguments.Url,
                         new StringValueNode(scalarType.SpecifiedBy.ToString()))));
         }
 
@@ -465,21 +441,23 @@ public static class SchemaPrinter
     {
         if (isDeprecated)
         {
-            if (DeprecationDefaultReason.EqualsOrdinal(deprecationReason))
+            if (DirectiveNames.Deprecated.Arguments.DefaultReason.EqualsOrdinal(deprecationReason))
             {
-                directives.Add(new DirectiveNode(Deprecated));
+                directives.Add(new DirectiveNode(DirectiveNames.Deprecated.Name));
             }
             else
             {
                 directives.Add(new DirectiveNode(
-                    Deprecated,
-                    new ArgumentNode("reason", deprecationReason)));
+                    DirectiveNames.Deprecated.Name,
+                    new ArgumentNode(
+                        DirectiveNames.Deprecated.Arguments.Reason,
+                        deprecationReason)));
             }
         }
     }
 
     private static InputValueDefinitionNode PrintInputField(
-        IInputField inputValue)
+        IInputValueDefinition inputValue)
     {
         var directives = inputValue.Directives
             .Select(PrintDirective)
@@ -503,7 +481,7 @@ public static class SchemaPrinter
     {
         if (type is NonNullType nt)
         {
-            return new NonNullTypeNode(null, (INullableTypeNode)PrintType(nt.Type));
+            return new NonNullTypeNode(null, (INullableTypeNode)PrintType(nt.NullableType));
         }
 
         if (type is ListType lt)
@@ -511,7 +489,7 @@ public static class SchemaPrinter
             return new ListTypeNode(null, PrintType(lt.ElementType));
         }
 
-        if (type is INamedType namedType)
+        if (type is ITypeDefinition namedType)
         {
             return PrintNamedType(namedType);
         }
@@ -519,11 +497,11 @@ public static class SchemaPrinter
         throw new NotSupportedException();
     }
 
-    private static NamedTypeNode PrintNamedType(INamedType namedType)
+    private static NamedTypeNode PrintNamedType(ITypeDefinition namedType)
         => new(null, new NameNode(namedType.Name));
 
-    private static DirectiveNode PrintDirective(Directive directive)
-        => directive.AsSyntaxNode(true);
+    private static DirectiveNode PrintDirective(IDirective directive)
+        => directive.ToSyntaxNode();
 
     private static StringValueNode PrintDescription(string description)
     {
@@ -534,9 +512,7 @@ public static class SchemaPrinter
 
         // Get rid of any unnecessary whitespace.
         description = description.Trim();
-
-        var isBlock = description.Contains("\n");
-
+        var isBlock = description.AsSpan().Contains('\n');
         return new StringValueNode(null, description, isBlock);
     }
 }

@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Internal;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters;
@@ -10,80 +10,80 @@ internal static class DataTypeExtensionHelper
 {
     public static void MergeFilterInputTypeDefinitions(
         ITypeCompletionContext context,
-        FilterInputTypeDefinition extensionDefinition,
-        FilterInputTypeDefinition typeDefinition)
+        FilterInputTypeConfiguration extensionConfiguration,
+        FilterInputTypeConfiguration typeConfiguration)
     {
-        TypeExtensionHelper.MergeContextData(
-            extensionDefinition,
-            typeDefinition);
+        TypeExtensionHelper.MergeFeatures(
+            extensionConfiguration,
+            typeConfiguration);
 
         TypeExtensionHelper.MergeDirectives(
             context,
-            extensionDefinition.Directives,
-            typeDefinition.Directives);
+            extensionConfiguration.Directives,
+            typeConfiguration.Directives);
 
         MergeFilterFieldDefinitions(
             context,
-            extensionDefinition.Fields,
-            typeDefinition.Fields);
+            extensionConfiguration.Fields,
+            typeConfiguration.Fields);
 
         TypeExtensionHelper.MergeConfigurations(
-            extensionDefinition.Configurations,
-            typeDefinition.Configurations);
+            extensionConfiguration.Tasks,
+            typeConfiguration.Tasks);
     }
 
     public static void MergeSortEnumTypeDefinitions(
         ITypeCompletionContext context,
-        SortEnumTypeDefinition extensionDefinition,
-        SortEnumTypeDefinition typeDefinition)
+        SortEnumTypeConfiguration extensionConfiguration,
+        SortEnumTypeConfiguration typeConfiguration)
     {
-        TypeExtensionHelper.MergeContextData(
-            extensionDefinition,
-            typeDefinition);
+        TypeExtensionHelper.MergeFeatures(
+            extensionConfiguration,
+            typeConfiguration);
 
         TypeExtensionHelper.MergeDirectives(
             context,
-            extensionDefinition.Directives,
-            typeDefinition.Directives);
+            extensionConfiguration.Directives,
+            typeConfiguration.Directives);
 
         MergeSortEnumValueDefinitions(
             context,
-            extensionDefinition.Values,
-            typeDefinition.Values);
+            extensionConfiguration.Values,
+            typeConfiguration.Values);
 
         TypeExtensionHelper.MergeConfigurations(
-            extensionDefinition.Configurations,
-            typeDefinition.Configurations);
+            extensionConfiguration.Tasks,
+            typeConfiguration.Tasks);
     }
 
     public static void MergeSortInputTypeDefinitions(
         ITypeCompletionContext context,
-        SortInputTypeDefinition extensionDefinition,
-        SortInputTypeDefinition typeDefinition)
+        SortInputTypeConfiguration extensionConfiguration,
+        SortInputTypeConfiguration typeConfiguration)
     {
-        TypeExtensionHelper.MergeContextData(
-            extensionDefinition,
-            typeDefinition);
+        TypeExtensionHelper.MergeFeatures(
+            extensionConfiguration,
+            typeConfiguration);
 
         TypeExtensionHelper.MergeDirectives(
             context,
-            extensionDefinition.Directives,
-            typeDefinition.Directives);
+            extensionConfiguration.Directives,
+            typeConfiguration.Directives);
 
         MergeSortInputFieldDefinitions(
             context,
-            extensionDefinition.Fields,
-            typeDefinition.Fields);
+            extensionConfiguration.Fields,
+            typeConfiguration.Fields);
 
         TypeExtensionHelper.MergeConfigurations(
-            extensionDefinition.Configurations,
-            typeDefinition.Configurations);
+            extensionConfiguration.Tasks,
+            typeConfiguration.Tasks);
     }
 
     private static void MergeFilterFieldDefinitions(
         ITypeCompletionContext context,
-        IList<InputFieldDefinition> extensionFields,
-        IList<InputFieldDefinition> typeFields)
+        IList<InputFieldConfiguration> extensionFields,
+        IList<InputFieldConfiguration> typeFields)
     {
         MergeFilterFields(
             context,
@@ -91,8 +91,8 @@ internal static class DataTypeExtensionHelper
             typeFields,
             (_, extensionField, typeField) =>
             {
-                if (typeField is FilterFieldDefinition filterTypeField &&
-                    extensionField is FilterFieldDefinition filterExtensionField)
+                if (typeField is FilterFieldConfiguration filterTypeField &&
+                    extensionField is FilterFieldConfiguration filterExtensionField)
                 {
                     filterTypeField.Handler ??= filterExtensionField.Handler;
                 }
@@ -104,8 +104,8 @@ internal static class DataTypeExtensionHelper
 
     private static void MergeSortEnumValueDefinitions(
         ITypeCompletionContext context,
-        IList<EnumValueDefinition> extensionFields,
-        IList<EnumValueDefinition> typeFields)
+        IList<EnumValueConfiguration> extensionFields,
+        IList<EnumValueConfiguration> typeFields)
     {
         MergeSortEnumValues(
             context,
@@ -113,8 +113,8 @@ internal static class DataTypeExtensionHelper
             typeFields,
             (_, extensionField, typeField) =>
             {
-                if (typeField is SortEnumValueDefinition filterTypeField &&
-                    extensionField is SortEnumValueDefinition filterExtensionField)
+                if (typeField is SortEnumValueConfiguration filterTypeField &&
+                    extensionField is SortEnumValueConfiguration filterExtensionField)
                 {
                     filterTypeField.Handler ??= filterExtensionField.Handler;
                 }
@@ -125,8 +125,8 @@ internal static class DataTypeExtensionHelper
 
     private static void MergeSortInputFieldDefinitions(
         ITypeCompletionContext context,
-        IList<InputFieldDefinition> extensionFields,
-        IList<InputFieldDefinition> typeFields)
+        IList<InputFieldConfiguration> extensionFields,
+        IList<InputFieldConfiguration> typeFields)
     {
         MergeSortFields(
             context,
@@ -134,8 +134,8 @@ internal static class DataTypeExtensionHelper
             typeFields,
             (_, extensionField, typeField) =>
             {
-                if (typeField is SortFieldDefinition filterTypeField &&
-                    extensionField is SortFieldDefinition filterExtensionField)
+                if (typeField is SortFieldConfiguration filterTypeField &&
+                    extensionField is SortFieldConfiguration filterExtensionField)
                 {
                     filterTypeField.Handler ??= filterExtensionField.Handler;
                 }
@@ -147,17 +147,17 @@ internal static class DataTypeExtensionHelper
 
     private static void MergeFilterFields(
         ITypeCompletionContext context,
-        IList<InputFieldDefinition> extensionFields,
-        IList<InputFieldDefinition> typeFields,
-        Action<IList<InputFieldDefinition>, InputFieldDefinition, InputFieldDefinition>
+        IList<InputFieldConfiguration> extensionFields,
+        IList<InputFieldConfiguration> typeFields,
+        Action<IList<InputFieldConfiguration>, InputFieldConfiguration, InputFieldConfiguration>
             action)
     {
         foreach (var extensionField in extensionFields)
         {
-            InputFieldDefinition? typeField;
-            if (extensionField is FilterOperationFieldDefinition operationFieldDefinition)
+            InputFieldConfiguration? typeField;
+            if (extensionField is FilterOperationFieldConfiguration operationFieldDefinition)
             {
-                typeField = typeFields.OfType<FilterOperationFieldDefinition>()
+                typeField = typeFields.OfType<FilterOperationFieldConfiguration>()
                     .FirstOrDefault(t => t.Id == operationFieldDefinition.Id);
             }
             else
@@ -177,7 +177,7 @@ internal static class DataTypeExtensionHelper
                     extensionField.Directives,
                     typeField.Directives);
 
-                TypeExtensionHelper.MergeContextData(extensionField, typeField);
+                TypeExtensionHelper.MergeFeatures(extensionField, typeField);
 
                 action(typeFields, extensionField, typeField);
             }
@@ -186,17 +186,17 @@ internal static class DataTypeExtensionHelper
 
     private static void MergeSortEnumValues(
         ITypeCompletionContext context,
-        IList<EnumValueDefinition> extensionFields,
-        IList<EnumValueDefinition> typeFields,
-        Action<IList<EnumValueDefinition>, EnumValueDefinition, EnumValueDefinition>
+        IList<EnumValueConfiguration> extensionFields,
+        IList<EnumValueConfiguration> typeFields,
+        Action<IList<EnumValueConfiguration>, EnumValueConfiguration, EnumValueConfiguration>
             action)
     {
         foreach (var extensionField in extensionFields)
         {
-            EnumValueDefinition? typeField;
-            if (extensionField is SortEnumValueDefinition sortEnumValueDefinition)
+            EnumValueConfiguration? typeField;
+            if (extensionField is SortEnumValueConfiguration sortEnumValueDefinition)
             {
-                typeField = typeFields.OfType<SortEnumValueDefinition>()
+                typeField = typeFields.OfType<SortEnumValueConfiguration>()
                     .FirstOrDefault(t => t.Operation == sortEnumValueDefinition.Operation);
             }
             else
@@ -216,7 +216,7 @@ internal static class DataTypeExtensionHelper
                     extensionField.Directives,
                     typeField.Directives);
 
-                TypeExtensionHelper.MergeContextData(extensionField, typeField);
+                TypeExtensionHelper.MergeFeatures(extensionField, typeField);
 
                 action(typeFields, extensionField, typeField);
             }
@@ -225,9 +225,9 @@ internal static class DataTypeExtensionHelper
 
     private static void MergeSortFields(
         ITypeCompletionContext context,
-        IList<InputFieldDefinition> extensionFields,
-        IList<InputFieldDefinition> typeFields,
-        Action<IList<InputFieldDefinition>, InputFieldDefinition, InputFieldDefinition>
+        IList<InputFieldConfiguration> extensionFields,
+        IList<InputFieldConfiguration> typeFields,
+        Action<IList<InputFieldConfiguration>, InputFieldConfiguration, InputFieldConfiguration>
             action)
     {
         foreach (var extensionField in extensionFields)
@@ -246,7 +246,7 @@ internal static class DataTypeExtensionHelper
                     extensionField.Directives,
                     typeField.Directives);
 
-                TypeExtensionHelper.MergeContextData(extensionField, typeField);
+                TypeExtensionHelper.MergeFeatures(extensionField, typeField);
 
                 action(typeFields, extensionField, typeField);
             }

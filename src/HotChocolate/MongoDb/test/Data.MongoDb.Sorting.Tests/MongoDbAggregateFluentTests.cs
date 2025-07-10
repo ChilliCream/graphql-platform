@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -12,25 +11,19 @@ using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 
-public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
+public class MongoDbAggregateFluentTests(MongoResource resource) : IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new Foo { Bar = true, }, new Foo { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
-        new Bar { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero), },
-            new Bar { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero), },
+        new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
+        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
     ];
-
-    private readonly MongoResource _resource;
-
-    public MongoDbAggregateFluentTests(MongoResource resource)
-    {
-        _resource = resource;
-    }
 
     [Fact]
     public async Task BsonElement_Rename()
@@ -39,10 +32,8 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
         var tester = CreateSchema(
             () =>
             {
-                var collection =
-                    _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
-
-                collection.InsertMany(_fooEntities);
+                var collection = resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
+                collection.InsertMany(s_fooEntities);
                 return collection.Aggregate().AsExecutable();
             });
 
@@ -58,10 +49,10 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
@@ -78,9 +69,9 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
             () =>
             {
                 var collection =
-                    _resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
+                    resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
 
-                collection.InsertMany(_barEntities);
+                collection.InsertMany(s_barEntities);
                 return collection.Aggregate().AsExecutable();
             });
 
@@ -96,16 +87,17 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "ASC"), res2, "DESC")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "ASC")
+            .AddResult(res2, "DESC")
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [BsonElement("renameTest")]
@@ -115,6 +107,7 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
     public class Bar
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public DateTimeOffset Baz { get; set; }
@@ -132,8 +125,7 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
                     .Name("Query")
                     .Field("root")
                     .Type<ListType<ObjectType<TEntity>>>()
-                    .Resolve(
-                        async ctx => await new ValueTask<IExecutable<TEntity>>(resolver()))
+                    .Resolve(async _ => await new ValueTask<IExecutable<TEntity>>(resolver()))
                     .Use(
                         next => async context =>
                         {
@@ -145,7 +137,7 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
                         })
                     .UseSorting<SortInputType<TEntity>>())
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
@@ -160,8 +152,8 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync()
             .GetAwaiter()
             .GetResult();
     }

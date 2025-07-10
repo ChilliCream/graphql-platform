@@ -1,5 +1,5 @@
 using System.Text;
-using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
+using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 
 namespace HotChocolate.Types;
 
@@ -7,11 +7,11 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 {
     private readonly ErrorTypeHelper _errorTypeHelper = new();
     private readonly StringBuilder _sb = new();
-    private readonly List<ObjectTypeDefinition> _typeDefs = new();
-    private TypeInitializer _typeInitializer = default!;
-    private TypeRegistry _typeRegistry = default!;
-    private IDescriptorContext _context = default!;
-    private ObjectTypeDefinition _mutationDef = default!;
+    private readonly List<ObjectTypeConfiguration> _typeDefs = [];
+    private TypeInitializer _typeInitializer = null!;
+    private TypeRegistry _typeRegistry = null!;
+    private IDescriptorContext _context = null!;
+    private ObjectTypeConfiguration _mutationDef = null!;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -26,27 +26,27 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
         _errorTypeHelper.InitializerErrorTypeInterface(_context);
     }
 
-    internal override void OnAfterResolveRootType(
+    public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration configuration,
         OperationType operationType)
     {
         if (operationType is OperationType.Mutation)
         {
-            _mutationDef = definition;
+            _mutationDef = configuration;
         }
     }
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        if (completionContext.Type is ObjectType && definition is ObjectTypeDefinition typeDef)
+        if (completionContext.Type is ObjectType && configuration is ObjectTypeConfiguration typeDef)
         {
             _typeDefs.Add(typeDef);
         }
 
-        base.OnAfterCompleteName(completionContext, definition);
+        base.OnAfterCompleteName(completionContext, configuration);
     }
 
     public override void OnBeforeCompleteTypes()
@@ -83,13 +83,13 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
                         if (_typeRegistry.TryGetType(errorTypeRef, out var errorType))
                         {
-                            ((ObjectType)errorType.Type).Definition!.Interfaces.Add(errorInterfaceTypeRef);
+                            ((ObjectType)errorType.Type).Configuration!.Interfaces.Add(errorInterfaceTypeRef);
                         }
                     }
                 }
 
                 // collect error definitions from query field.
-                var errorDefinitions = _errorTypeHelper.GetErrorDefinitions(field);
+                var errorDefinitions = _errorTypeHelper.GetErrorConfigurations(field);
 
                 // collect error factories for middleware
                 var errorFactories = errorDefinitions.Count != 0
@@ -108,14 +108,14 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                             var errorTypeRef = TypeReference.Create(obj.Type);
                             RegisterErrorType(errorTypeRef, errorDef.SchemaType);
                             RegisterErrorType(errorTypeRef, errorDef.RuntimeType);
-                            ((ObjectType)obj.Type).Definition!.Interfaces.Add(errorInterfaceTypeRef);
+                            ((ObjectType)obj.Type).Configuration!.Interfaces.Add(errorInterfaceTypeRef);
                         }
 
                         var errorSchemaTypeRef = _context.TypeInspector.GetOutputTypeRef(errorDef.SchemaType);
 
                         if (obj is null && _typeRegistry.TryGetType(errorSchemaTypeRef, out obj))
                         {
-                            ((ObjectType)obj.Type).Definition!.Interfaces.Add(errorInterfaceTypeRef);
+                            ((ObjectType)obj.Type).Configuration!.Interfaces.Add(errorInterfaceTypeRef);
                         }
 
                         (typeSet ??= []).Add(errorSchemaTypeRef);
@@ -144,14 +144,14 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
                     // create middleware
                     var errorMiddleware =
-                        new FieldMiddlewareDefinition(
+                        new FieldMiddlewareConfiguration(
                             FieldClassMiddlewareFactory.Create<QueryResultMiddleware>(
                                 (typeof(IReadOnlyList<CreateError>), errorFactories)),
-                            key: "Query Results",
-                            isRepeatable: false);
+                            isRepeatable: false,
+                            key: "Query Results");
 
                     // last but not least we insert the result middleware to the query field.
-                    field.MiddlewareDefinitions.Insert(0, errorMiddleware);
+                    field.MiddlewareConfigurations.Insert(0, errorMiddleware);
                 }
             }
         }
@@ -159,7 +159,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
     private static TypeReference GetFieldType(TypeReference typeRef)
     {
-        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true, } extendedTypeRef
+        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true } extendedTypeRef
             && typeof(IFieldResult).IsAssignableFrom(extendedTypeRef.Type.Type))
         {
             return TypeReference.Create(extendedTypeRef.Type.TypeArguments[0], TypeContext.Output);
@@ -175,7 +175,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
             {
                 d.Name(CreateResultTypeName(fieldName));
 
-                var typeDef = d.Extend().Definition;
+                var typeDef = d.Extend().Configuration;
 
                 foreach (var schemaTypeRef in typeSet)
                 {
@@ -215,7 +215,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                     && interfaceType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
                 {
                     var typeRef = possibleInterface.TypeReference;
-                    errorObject.Definition!.Interfaces.Add(typeRef);
+                    errorObject.Configuration!.Interfaces.Add(typeRef);
                     registeredType.Dependencies.Add(new TypeDependency(typeRef, Completed));
                 }
                 else if (possibleInterface.Type is UnionType unionType
@@ -223,7 +223,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                     && unionType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
                 {
                     var typeRef = registeredType.TypeReference;
-                    unionType.Definition!.Types.Add(typeRef);
+                    unionType.Configuration!.Types.Add(typeRef);
                     possibleInterface.Dependencies.Add(new TypeDependency(typeRef, Completed));
                 }
             }
@@ -237,7 +237,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                     && interfaceType.RuntimeType.IsAssignableFrom(errorInterface.RuntimeType))
                 {
                     var typeRef = possibleInterface.TypeReference;
-                    errorInterface.Definition!.Interfaces.Add(typeRef);
+                    errorInterface.Configuration!.Interfaces.Add(typeRef);
                     registeredType.Dependencies.Add(new(typeRef, Completed));
                 }
             }

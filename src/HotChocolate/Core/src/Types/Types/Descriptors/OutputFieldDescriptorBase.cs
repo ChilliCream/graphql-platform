@@ -2,10 +2,9 @@ using System.Collections.Immutable;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
-using static HotChocolate.WellKnownDirectives;
 
 #nullable enable
 
@@ -13,7 +12,7 @@ namespace HotChocolate.Types.Descriptors;
 
 public abstract class OutputFieldDescriptorBase<TDefinition>
     : DescriptorBase<TDefinition>
-    where TDefinition : OutputFieldDefinitionBase
+    where TDefinition : OutputFieldConfiguration
 {
     private ICollection<ArgumentDescriptor>? _arguments;
 
@@ -23,29 +22,29 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
     }
 
     protected ICollection<ArgumentDescriptor> Arguments
-        => _arguments ??= new List<ArgumentDescriptor>();
+        => _arguments ??= [];
 
     protected IReadOnlyDictionary<string, ParameterInfo> Parameters { get; set; } =
         ImmutableDictionary<string, ParameterInfo>.Empty;
 
-    protected override void OnCreateDefinition(TDefinition definition)
+    protected override void OnCreateConfiguration(TDefinition definition)
     {
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         if (_arguments is not null)
         {
             foreach (var argument in Arguments)
             {
-                Definition.Arguments.Add(argument.CreateDefinition());
+                Configuration.Arguments.Add(argument.CreateConfiguration());
             }
         }
     }
 
     protected void Name(string name)
-        => Definition.Name = name;
+        => Configuration.Name = name;
 
     protected void Description(string? description)
-        => Definition.Description = description;
+        => Configuration.Description = description;
 
     protected void Type<TOutputType>()
         where TOutputType : IOutputType
@@ -61,7 +60,7 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
                 TypeResources.ObjectFieldDescriptorBase_FieldType);
         }
 
-        Definition.SetMoreSpecificType(
+        Configuration.SetMoreSpecificType(
             typeInfo.GetExtendedType(),
             TypeContext.Output);
     }
@@ -69,10 +68,7 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
     protected void Type<TOutputType>(TOutputType outputType)
         where TOutputType : class, IOutputType
     {
-        if (outputType is null)
-        {
-            throw new ArgumentNullException(nameof(outputType));
-        }
+        ArgumentNullException.ThrowIfNull(outputType);
 
         if (!outputType.IsOutputType())
         {
@@ -80,40 +76,34 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
                 TypeResources.ObjectFieldDescriptorBase_FieldType);
         }
 
-        Definition.Type = new SchemaTypeReference(outputType);
+        Configuration.Type = new SchemaTypeReference(outputType);
     }
 
     protected void Type(ITypeNode typeNode)
     {
-        if (typeNode is null)
-        {
-            throw new ArgumentNullException(nameof(typeNode));
-        }
-        Definition.SetMoreSpecificType(typeNode, TypeContext.Output);
+        ArgumentNullException.ThrowIfNull(typeNode);
+        Configuration.SetMoreSpecificType(typeNode, TypeContext.Output);
     }
 
     protected void Argument(
         string name,
         Action<IArgumentDescriptor> argument)
     {
-        if (argument is null)
-        {
-            throw new ArgumentNullException(nameof(argument));
-        }
+        ArgumentNullException.ThrowIfNull(argument);
 
         name.EnsureGraphQLName();
 
         Parameters.TryGetValue(name, out var parameter);
 
         var descriptor = parameter is null
-            ? Arguments.FirstOrDefault(t => t.Definition.Name.EqualsOrdinal(name))
-            : Arguments.FirstOrDefault(t => t.Definition.Parameter == parameter);
+            ? Arguments.FirstOrDefault(t => t.Configuration.Name.EqualsOrdinal(name))
+            : Arguments.FirstOrDefault(t => t.Configuration.Parameter == parameter);
 
-        if (descriptor is null && Definition.Arguments.Count > 0)
+        if (descriptor is null && Configuration.Arguments.Count > 0)
         {
             var definition = parameter is null
-                ? Definition.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal(name))
-                : Definition.Arguments.FirstOrDefault(t => t.Parameter == parameter);
+                ? Configuration.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal(name))
+                : Configuration.Arguments.FirstOrDefault(t => t.Parameter == parameter);
 
             if (definition is not null)
             {
@@ -140,24 +130,24 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
         }
         else
         {
-            Definition.DeprecationReason = reason;
+            Configuration.DeprecationReason = reason;
         }
     }
 
     public void Deprecated()
-        => Definition.DeprecationReason = DeprecationDefaultReason;
+        => Configuration.DeprecationReason = DirectiveNames.Deprecated.Arguments.DefaultReason;
 
     protected void Ignore(bool ignore = true)
-        => Definition.Ignore = ignore;
+        => Configuration.Ignore = ignore;
 
     protected void Directive<T>(T directive)
         where T : class
-        => Definition.AddDirective(directive, Context.TypeInspector);
+        => Configuration.AddDirective(directive, Context.TypeInspector);
 
     protected void Directive<T>()
         where T : class, new()
-        => Definition.AddDirective(new T(), Context.TypeInspector);
+        => Configuration.AddDirective(new T(), Context.TypeInspector);
 
     protected void Directive(string name, params ArgumentNode[] arguments)
-        => Definition.AddDirective(name, arguments);
+        => Configuration.AddDirective(name, arguments);
 }

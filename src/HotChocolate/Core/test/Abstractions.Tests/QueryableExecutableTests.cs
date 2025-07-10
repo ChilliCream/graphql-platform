@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Linq.Expressions;
-using CookieCrumble;
 
 namespace HotChocolate;
 
@@ -65,7 +64,7 @@ public static class QueryableExecutableTests
 
         // act
         // ReSharper disable once RedundantCast
-        var source = ((IQueryableExecutable<string>)executable).Source;
+        var source = executable.Source;
 
         // assert
         Assert.Equal(query, source);

@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -12,25 +12,25 @@ public class SortEnumValueDescriptor
         IDescriptorContext context,
         string? scope,
         int value)
-        : base(context, new SortEnumValueDefinition { Operation = value, })
+        : base(context, new SortEnumValueConfiguration { Operation = value })
     {
         var convention = context.GetSortConvention(scope);
-        Definition.Name = convention.GetOperationName(value);
-        Definition.Description = convention.GetOperationDescription(value);
-        Definition.RuntimeValue = Definition.Name;
+        Configuration.Name = convention.GetOperationName(value);
+        Configuration.Description = convention.GetOperationDescription(value);
+        Configuration.RuntimeValue = Configuration.Name;
     }
 
     protected SortEnumValueDescriptor(
         IDescriptorContext context,
-        SortEnumValueDefinition definition)
-        : base(context, definition)
+        SortEnumValueConfiguration configuration)
+        : base(context, configuration)
     {
     }
 
-    protected internal new EnumValueDefinition Definition
+    protected internal new EnumValueConfiguration Configuration
     {
-        get { return base.Definition; }
-        set { base.Definition = value; }
+        get { return base.Configuration; }
+        set { base.Configuration = value; }
     }
 
     public new ISortEnumValueDescriptor Name(string value)

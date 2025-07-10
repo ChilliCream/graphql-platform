@@ -3,7 +3,7 @@ using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -22,7 +22,7 @@ public class SortEnumType : EnumType
             throw new ArgumentNullException(nameof(configure));
     }
 
-    protected override EnumTypeDefinition CreateDefinition(
+    protected override EnumTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
         var descriptor = SortEnumTypeDescriptor.FromSchemaType(
@@ -33,7 +33,7 @@ public class SortEnumType : EnumType
         _configure!(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected virtual void Configure(ISortEnumTypeDescriptor descriptor)
@@ -42,12 +42,12 @@ public class SortEnumType : EnumType
 
     protected override bool TryCreateEnumValue(
         ITypeCompletionContext context,
-        EnumValueDefinition definition,
-        [NotNullWhen(true)] out IEnumValue? enumValue)
+        EnumValueConfiguration definition,
+        [NotNullWhen(true)] out EnumValue? enumValue)
     {
-        if (definition is SortEnumValueDefinition sortDefinition)
+        if (definition is SortEnumValueConfiguration sortDefinition)
         {
-            enumValue = new SortEnumValue(context, sortDefinition);
+            enumValue = new SortEnumValue(sortDefinition);
             return true;
         }
 
@@ -55,23 +55,20 @@ public class SortEnumType : EnumType
         return false;
     }
 
-    public ISortEnumValue? ParseSortLiteral(IValueNode valueSyntax)
+    public SortEnumValue? ParseSortLiteral(IValueNode valueSyntax)
     {
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         if (valueSyntax is EnumValueNode evn &&
             ValueLookup.TryGetValue(evn.Value, out var ev) &&
-            ev is ISortEnumValue sortEnumValue)
+            ev is SortEnumValue sortEnumValue)
         {
             return sortEnumValue;
         }
 
         if (valueSyntax is StringValueNode svn &&
-            NameLookup.TryGetValue(svn.Value, out ev) &&
-            ev is ISortEnumValue sortEnumValueOfString)
+            Values.TryGetValue(svn.Value, out ev) &&
+            ev is SortEnumValue sortEnumValueOfString)
         {
             return sortEnumValueOfString;
         }
@@ -91,7 +88,5 @@ public class SortEnumType : EnumType
     }
 
     protected sealed override void Configure(IEnumTypeDescriptor descriptor)
-    {
-        throw new NotSupportedException();
-    }
+        => throw new NotSupportedException();
 }

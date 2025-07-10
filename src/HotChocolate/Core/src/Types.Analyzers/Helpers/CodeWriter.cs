@@ -53,6 +53,7 @@ public class CodeWriter : TextWriter
         {
             return new string(' ', _indent * 4);
         }
+
         return string.Empty;
     }
 
@@ -94,7 +95,8 @@ public class CodeWriter : TextWriter
         return new Block(DecreaseIndent);
     }
 
-    public IDisposable WriteMethod(string accessModifier, string returnType, string methodName, params string[] parameters)
+    public IDisposable WriteMethod(string accessModifier, string returnType, string methodName,
+        params string[] parameters)
     {
         WriteIndented("{0} {1} {2}(", accessModifier, returnType, methodName);
 
@@ -106,6 +108,27 @@ public class CodeWriter : TextWriter
         Write(")");
         WriteLine();
         return WithCurlyBrace();
+    }
+
+    public void WriteMethod(
+        string accessModifier,
+        string returnType,
+        string methodName,
+        string[] parameters,
+        string expression)
+    {
+        WriteIndented("{0} {1} {2}(", accessModifier, returnType, methodName);
+
+        if (parameters.Length > 0)
+        {
+            Write(string.Join(", ", parameters));
+        }
+
+        Write(")");
+        WriteLine();
+        IncreaseIndent();
+        WriteIndentedLine("=> {0};", expression);
+        DecreaseIndent();
     }
 
     public IDisposable WriteForEach(string item, string collection)
@@ -173,6 +196,7 @@ public class CodeWriter : TextWriter
             {
                 _writer.Dispose();
             }
+
             _disposed = true;
         }
     }

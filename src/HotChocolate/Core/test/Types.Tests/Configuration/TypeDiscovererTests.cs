@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -23,7 +22,7 @@ public class TypeDiscovererTests
             typeLookup,
             new HashSet<TypeReference>
             {
-                _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output),
+                _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
             },
             new AggregateTypeInterceptor(),
             false);
@@ -43,12 +42,12 @@ public class TypeDiscovererTests
                     runtimeType = t.Type is IHasRuntimeType hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
-                    references = t.References.Select(r => r.ToString()).ToList(),
+                    references = t.References.Select(r => r.ToString()).ToList()
                 }).ToList(),
 
             runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
                 t => t.Key.ToString(),
-                t => t.Value.ToString()),
+                t => t.Value.ToString())
 
         }.MatchSnapshot();
     }
@@ -67,7 +66,7 @@ public class TypeDiscovererTests
             typeLookup,
             new HashSet<TypeReference>
             {
-                _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output),
+                _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
             },
             new AggregateTypeInterceptor());
 
@@ -86,12 +85,12 @@ public class TypeDiscovererTests
                     runtimeType = t.Type is IHasRuntimeType hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
-                    references = t.References.Select(r => r.ToString()).ToList(),
+                    references = t.References.Select(r => r.ToString()).ToList()
                 }).ToList(),
 
             runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
                 t => t.Key.ToString(),
-                t => t.Value.ToString()),
+                t => t.Value.ToString())
 
         }.MatchSnapshot();
     }
@@ -111,7 +110,7 @@ public class TypeDiscovererTests
             typeLookup,
             new HashSet<TypeReference>
             {
-                _typeInspector.GetTypeRef(typeof(Foo), TypeContext.Output),
+                _typeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
             },
             new AggregateTypeInterceptor());
 
@@ -130,12 +129,12 @@ public class TypeDiscovererTests
                     runtimeType = t.Type is IHasRuntimeType hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
-                    references = t.References.Select(r => r.ToString()).ToList(),
+                    references = t.References.ConvertAll(r => r.ToString())
                 }).ToList(),
 
             runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
                 t => t.Key.ToString(),
-                t => t.Value.ToString()),
+                t => t.Value.ToString())
 
         }.MatchSnapshot();
     }
@@ -156,7 +155,7 @@ public class TypeDiscovererTests
             new HashSet<TypeReference>
             {
                 _typeInspector.GetTypeRef(typeof(ObjectType<Foo>), TypeContext.Output),
-                _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output),
+                _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
             },
             new AggregateTypeInterceptor());
 
@@ -175,12 +174,12 @@ public class TypeDiscovererTests
                     runtimeType = t.Type is IHasRuntimeType hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
-                    references = t.References.Select(r => r.ToString()).ToList(),
+                    references = t.References.Select(r => r.ToString()).ToList()
                 }).ToList(),
 
             runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
                 t => t.Key.ToString(),
-                t => t.Value.ToString()),
+                t => t.Value.ToString())
 
         }.MatchSnapshot();
     }
@@ -199,7 +198,7 @@ public class TypeDiscovererTests
             typeLookup,
             new HashSet<TypeReference>
             {
-                _typeInspector.GetTypeRef(typeof(QueryWithInferError), TypeContext.Output),
+                _typeInspector.GetTypeRef(typeof(QueryWithInferError), TypeContext.Output)
             },
             new AggregateTypeInterceptor());
 
@@ -234,7 +233,7 @@ public class TypeDiscovererTests
             new HashSet<TypeReference>
             {
                 _typeInspector.GetTypeRef(typeof(QueryWithInferError), TypeContext.Output),
-                _typeInspector.GetTypeRef(typeof(QueryWithInferError2), TypeContext.Output),
+                _typeInspector.GetTypeRef(typeof(QueryWithInferError2), TypeContext.Output)
             },
             new AggregateTypeInterceptor());
 
@@ -261,9 +260,7 @@ public class TypeDiscovererTests
         }
     }
 
-    public class BarType : ObjectType<Bar>
-    {
-    }
+    public class BarType : ObjectType<Bar>;
 
     public class Foo
     {

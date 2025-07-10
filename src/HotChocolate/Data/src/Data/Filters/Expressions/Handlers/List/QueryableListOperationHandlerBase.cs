@@ -7,8 +7,8 @@ using HotChocolate.Language.Visitors;
 namespace HotChocolate.Data.Filters.Expressions;
 
 /// <summary>
-/// The base of a operation handler specific for <see cref="IListFilterInputType"/>
-/// If the <see cref="FilterTypeInterceptor"/> encounters a operation field that implements
+/// The base of an operation handler specific for <see cref="IListFilterInputType"/>
+/// If the <see cref="FilterTypeInterceptor"/> encounters an operation field that implements
 /// <see cref="IListFilterInputType"/> and matches the operation identifier
 /// defined in <see cref="QueryableComparableOperationHandler.Operation"/> the handler is bound
 /// to the field
@@ -24,11 +24,11 @@ public abstract class QueryableListOperationHandlerBase
     /// <inheritdoc />
     public override bool CanHandle(
         ITypeCompletionContext context,
-        IFilterInputTypeDefinition typeDefinition,
-        IFilterFieldDefinition fieldDefinition)
+        IFilterInputTypeConfiguration typeConfiguration,
+        IFilterFieldConfiguration fieldConfiguration)
     {
         return context.Type is IListFilterInputType &&
-            fieldDefinition is FilterOperationFieldDefinition operationField &&
+            fieldConfiguration is FilterOperationFieldConfiguration operationField &&
             operationField.Id == Operation;
     }
 
@@ -50,7 +50,7 @@ public abstract class QueryableListOperationHandlerBase
         }
 
         if (context.RuntimeTypes.Count > 0 &&
-            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0, } args)
+            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args)
         {
             var nestedProperty = context.GetInstance();
             context.PushInstance(nestedProperty);
@@ -103,7 +103,7 @@ public abstract class QueryableListOperationHandlerBase
     }
 
     /// <summary>
-    /// Maps a operation field to a list filter definition.
+    /// Maps an operation field to a list filter configuration.
     /// This method is called when the <see cref="FilterVisitor{TContext,T}"/> enters a
     /// field
     /// </summary>

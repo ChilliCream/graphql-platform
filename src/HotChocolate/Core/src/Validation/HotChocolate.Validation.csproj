@@ -7,17 +7,22 @@
     <Description></Description>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
+    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Validation.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.CostAnalysis" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-    <PackageReference Include="Microsoft.Extensions.Options" />
   </ItemGroup>
 
   <ItemGroup>

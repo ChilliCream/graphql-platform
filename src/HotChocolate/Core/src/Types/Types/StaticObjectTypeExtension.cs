@@ -6,30 +6,25 @@ namespace HotChocolate.Types;
 /// <summary>
 /// This helper class is used to allow static type extensions.
 /// </summary>
-internal sealed class StaticObjectTypeExtension : ObjectTypeExtension
+internal sealed class StaticObjectTypeExtension(Type staticExtType) : ObjectTypeExtension
 {
-    private readonly Type _staticExtType;
-
-    public StaticObjectTypeExtension(Type staticExtType)
-        => _staticExtType = staticExtType;
-
     protected override void Configure(IObjectTypeDescriptor descriptor)
     {
         var context = descriptor.Extend().Context;
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
 
         // we are using the non-generic type extension class which would set nothing.
-        definition.Name = context.Naming.GetTypeName(_staticExtType, TypeKind.Object);
-        definition.Description = context.Naming.GetTypeDescription(_staticExtType, TypeKind.Object);
+        definition.Name = context.Naming.GetTypeName(staticExtType, TypeKind.Object);
+        definition.Description = context.Naming.GetTypeDescription(staticExtType, TypeKind.Object);
         definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
         definition.FieldBindingFlags = context.Options.DefaultFieldBindingFlags;
-        definition.FieldBindingType = _staticExtType;
+        definition.FieldBindingType = staticExtType;
         definition.IsExtension = true;
 
         // we set the static type as runtime type. Since this is not the actual runtime
         // type and is replaced by the actual runtime type of the GraphQL type
         // we do not run into any conflicts here.
-        definition.RuntimeType = _staticExtType;
+        definition.RuntimeType = staticExtType;
 
         // next we set the binding flags to only infer static members.
         definition.FieldBindingFlags = FieldBindingFlags.Static;

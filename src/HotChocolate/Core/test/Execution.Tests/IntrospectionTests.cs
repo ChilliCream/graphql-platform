@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
-using CookieCrumble;
 
 namespace HotChocolate.Execution;
 
@@ -11,7 +10,7 @@ public class IntrospectionTests
     public async Task TypeNameIntrospectionOnQuery()
     {
         // arrange
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var executor = CreateSchema().MakeExecutable();
 
         // act
@@ -25,7 +24,7 @@ public class IntrospectionTests
     public async Task TypeNameIntrospectionNotOnQuery()
     {
         // arrange
-        var query = "{ b { __typename } }";
+        const string query = "{ b { __typename } }";
         var executor = CreateSchema().MakeExecutable();
 
         // act
@@ -39,7 +38,7 @@ public class IntrospectionTests
     public async Task Query_Specified_By()
     {
         // arrange
-        var query = "{ __type (name: \"DateTime\") { specifiedByURL } }";
+        const string query = "{ __type (name: \"DateTime\") { specifiedByURL } }";
 
         var executor =
             SchemaBuilder.New()
@@ -62,7 +61,7 @@ public class IntrospectionTests
     public async Task TypeIntrospectionOnQuery()
     {
         // arrange
-        var query = "{ __type (name: \"Foo\") { name } }";
+        const string query = "{ __type (name: \"Foo\") { name } }";
         var executor = CreateSchema().MakeExecutable();
 
         // act
@@ -76,7 +75,7 @@ public class IntrospectionTests
     public async Task TypeIntrospectionOnQueryWithFields()
     {
         // arrange
-        var query =
+        const string query =
             "{ __type (name: \"Foo\") " +
             "{ name fields { name type { name } } } }";
         var executor = CreateSchema().MakeExecutable();
@@ -146,7 +145,7 @@ public class IntrospectionTests
     public async Task FieldMiddlewareHasAnEffectOnIntrospectIfSwitchedOn()
     {
         // arrange
-        var query = "{ __typename a }";
+        const string query = "{ __typename a }";
 
         var schema = SchemaBuilder.New()
             .AddQueryType<Query>()
@@ -348,10 +347,10 @@ public class IntrospectionTests
                         }
                     }");
 
-            result.MatchSnapshot();
+        result.MatchSnapshot();
     }
 
-    private static ISchema CreateSchema()
+    private static Schema CreateSchema()
     {
         return SchemaBuilder.New()
             .AddType<BarDirectiveType>()

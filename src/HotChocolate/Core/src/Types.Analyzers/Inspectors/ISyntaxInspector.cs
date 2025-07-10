@@ -1,7 +1,9 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
@@ -14,14 +16,21 @@ public interface ISyntaxInspector
     /// <summary>
     /// Gets the filters that is used to determine in what kinds of syntax nodes the inspector is interested.
     /// </summary>
-    IReadOnlyList<ISyntaxFilter> Filters { get; }
+    ImmutableArray<ISyntaxFilter> Filters { get; }
+
+    /// <summary>
+    /// Gets the kinds of syntax nodes that the inspector is interested in.
+    /// </summary>
+    IImmutableSet<SyntaxKind> SupportedKinds { get; }
 
     /// <summary>
     /// <para>
     /// Inspects the current syntax node and if the current inspector can handle
     /// the syntax will produce a syntax info.
     /// </para>
-    /// <para>The syntax info is used by a syntax generator to produce source code.</para>
+    /// <para>
+    /// The syntax info is used by a syntax generator to produce source code.
+    /// </para>
     /// </summary>
     bool TryHandle(
         GeneratorSyntaxContext context,

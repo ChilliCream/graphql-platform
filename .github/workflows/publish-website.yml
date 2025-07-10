@@ -32,7 +32,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18.x"
+          node-version: 22
           cache: "yarn"
           cache-dependency-path: "website/yarn.lock"
 
@@ -59,6 +59,10 @@ jobs:
         run: |
           sudo apt-get install -y unzip
           unzip -P ${{ secrets.ICON_PASSWORD }} src/images/icons.zip -d src/images/
+        working-directory: website
+
+      - name: Clean Website
+        run: yarn clean
         working-directory: website
 
       - name: Build Website

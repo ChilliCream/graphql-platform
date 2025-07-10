@@ -16,15 +16,8 @@ public sealed class SocketResult : IDisposable
         IDisposable subscription,
         IDataCompletion completion)
     {
-        if (observer is null)
-        {
-            throw new ArgumentNullException(nameof(observer));
-        }
-
-        if (subscription is null)
-        {
-            throw new ArgumentNullException(nameof(subscription));
-        }
+        ArgumentNullException.ThrowIfNull(observer);
+        ArgumentNullException.ThrowIfNull(subscription);
 
         _enumerable = new ResultEnumerable(observer, subscription, completion);
     }

@@ -1,5 +1,7 @@
+using System.Globalization;
 using HotChocolate.Execution;
 using NodaTime;
+using NodaTime.Text;
 
 namespace HotChocolate.Types.NodaTime.Tests;
 
@@ -55,7 +57,7 @@ public class OffsetTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "+02" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "+02" } })
                 .Build());
         Assert.Equal("+03:05", result.ExpectOperationResult().Data!["test"]);
     }
@@ -66,7 +68,7 @@ public class OffsetTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "+02:35" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "+02:35" } })
                 .Build());
         Assert.Equal("+03:40", result.ExpectOperationResult().Data!["test"]);
     }
@@ -77,7 +79,7 @@ public class OffsetTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13+02" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "18:30:13+02" } })
                 .Build());
         Assert.Null(result.ExpectOperationResult().Data);
         Assert.Single(result.ExpectOperationResult().Errors!);
@@ -133,5 +135,40 @@ public class OffsetTypeIntegrationTests
     {
         static object Call() => new OffsetType([]);
         Assert.Throws<SchemaException>(Call);
+    }
+
+    [Fact]
+    public void OffsetType_DescriptionKnownPatterns_MatchesSnapshot()
+    {
+        var offsetType = new OffsetType(
+            OffsetPattern.GeneralInvariant,
+            OffsetPattern.GeneralInvariantWithZ);
+
+        offsetType.Description.MatchInlineSnapshot(
+            """
+            An offset from UTC in seconds.
+            A positive value means that the local time is ahead of UTC (e.g. for Europe); a negative value means that the local time is behind UTC (e.g. for America).
+
+            Allowed patterns:
+            - `±hh:mm:ss`
+            - `Z`
+
+            Examples:
+            - `+02:30:00`
+            - `Z`
+            """);
+    }
+
+    [Fact]
+    public void OffsetType_DescriptionUnknownPatterns_MatchesSnapshot()
+    {
+        var offsetType = new OffsetType(
+            OffsetPattern.Create("mm", CultureInfo.InvariantCulture));
+
+        offsetType.Description.MatchInlineSnapshot(
+            """
+            An offset from UTC in seconds.
+            A positive value means that the local time is ahead of UTC (e.g. for Europe); a negative value means that the local time is behind UTC (e.g. for America).
+            """);
     }
 }

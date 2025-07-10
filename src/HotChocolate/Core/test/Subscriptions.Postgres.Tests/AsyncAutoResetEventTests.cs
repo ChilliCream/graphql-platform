@@ -25,7 +25,7 @@ public class AsyncAutoResetEventTests
         autoResetEvent.Dispose();
 
         // Act & Assert
-        Assert.Throws<ObjectDisposedException>(() => autoResetEvent.Set());
+        Assert.Throws<ObjectDisposedException>(autoResetEvent.Set);
     }
 
     [Fact]

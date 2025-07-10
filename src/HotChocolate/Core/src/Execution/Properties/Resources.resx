@@ -129,9 +129,6 @@
   <data name="PreparedSelection_ReadOnly" xml:space="preserve">
     <value>The selection is read-only.</value>
   </data>
-  <data name="MiddlewareContext_ReportErrorCannotBeNull" xml:space="preserve">
-    <value>errorMessage mustn't be null or empty.</value>
-  </data>
   <data name="DeferredResult_ReadResultsAsync_ReadOnlyOnce" xml:space="preserve">
     <value>You can only read a response stream once.</value>
   </data>
@@ -162,9 +159,6 @@
   <data name="ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message" xml:space="preserve">
     <value>Could not resolve the actual object type from `{0}` for the abstract type `{1}`.</value>
   </data>
-  <data name="ErrorHelper_StateInvalidForDocumentValidation_Message" xml:space="preserve">
-    <value>The query request contains no document or no document id.</value>
-  </data>
   <data name="ThrowHelper_VariableIsNotAnInputType_Message" xml:space="preserve">
     <value>Variable `{0}` is not an input type.</value>
   </data>
@@ -173,9 +167,6 @@
   </data>
   <data name="ThrowHelper_VariableValueInvalidType_Message" xml:space="preserve">
     <value>Variable `{0}` got an invalid value.</value>
-  </data>
-  <data name="ThrowHelper_QueryTypeNotSupported_Message" xml:space="preserve">
-    <value>The specified query type is not supported.</value>
   </data>
   <data name="ThrowHelper_VariableNotFound_Message" xml:space="preserve">
     <value>The variable with the name `{0}` does not exist.</value>
@@ -261,9 +252,6 @@
   <data name="WorkBacklog_NotFullyInitialized" xml:space="preserve">
     <value>The WorkBacklog is not fully initialized.</value>
   </data>
-  <data name="ErrorHelper_OperationCanceled_Message" xml:space="preserve">
-    <value>The GraphQL request execution was canceled.</value>
-  </data>
   <data name="ThrowHelper_ResolverContext_CannotCastParent" xml:space="preserve">
     <value>The resolver parent type of field `{0}` is `{1}` but the resolver requested the type `{2}`. The resolver was unable to cast the parent type to the requested type.</value>
   </data>
@@ -291,9 +279,6 @@
   <data name="ThrowHelper_OneOfFieldMustBeNonNull" xml:space="preserve">
     <value>Value for oneof field {0} must be non-null.</value>
   </data>
-  <data name="OperationCompiler_OperationIdNullOrEmpty" xml:space="preserve">
-    <value>Value cannot be null or empty.</value>
-  </data>
   <data name="ThrowHelper_Operation_NoSelectionSet" xml:space="preserve">
     <value>The specified selection does not have a selection set.</value>
   </data>
@@ -302,12 +287,6 @@
   </data>
   <data name="ResultBuilder_DataAndItemsNotAllowed" xml:space="preserve">
     <value>Its not allowed to set `items` and `data` at the same time.</value>
-  </data>
-  <data name="ErrorHelper_PersistedOperationNotFound" xml:space="preserve">
-    <value>The specified persisted operation key is invalid.</value>
-  </data>
-  <data name="ErrorHelper_OnlyPersistedOperationsAreAllowed" xml:space="preserve">
-    <value>Only persisted operations are allowed.</value>
   </data>
   <data name="MiddlewareContext_ReplaceArgument_InvalidKey" xml:space="preserve">
     <value>There is no argument with the name `{0}`.</value>
@@ -323,8 +302,5 @@
   </data>
   <data name="SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame" xml:space="preserve">
     <value>The provided response name must be the same as on the selection.</value>
-  </data>
-  <data name="ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed" xml:space="preserve">
-    <value>Only boolean values are allowed to switch null bubbling on or off.</value>
   </data>
 </root>

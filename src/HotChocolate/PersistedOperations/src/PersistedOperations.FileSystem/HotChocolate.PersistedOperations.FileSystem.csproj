@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
+    <ProjectReference Include="..\PersistedOperations.Abstractions\HotChocolate.PersistedOperations.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

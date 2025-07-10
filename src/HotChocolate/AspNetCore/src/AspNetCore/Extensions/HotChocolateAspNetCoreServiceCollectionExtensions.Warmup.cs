@@ -29,12 +29,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         Func<IRequestExecutor, CancellationToken, Task>? warmup = null,
         bool keepWarm = false)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
-        builder.Services.AddHostedService<ExecutorWarmupService>();
+        builder.Services.AddHostedService<RequestExecutorWarmupService>();
         builder.Services.AddSingleton(new WarmupSchemaTask(builder.Name, keepWarm, warmup));
         return builder;
     }

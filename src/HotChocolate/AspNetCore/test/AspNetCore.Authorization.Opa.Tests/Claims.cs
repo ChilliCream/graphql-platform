@@ -1,12 +1,18 @@
+using System.Text.Json.Serialization;
+
 namespace HotChocolate.AspNetCore.Authorization;
 
 public class Claims
 {
-    public string Birthdate { get; set; } = default!;
+    [JsonPropertyName("birthdate")]
+    public string Birthdate { get; set; } = null!;
 
+    [JsonPropertyName("iat")]
     public long Iat { get; set; }
 
-    public string Name { get; set; } = default!;
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = null!;
 
-    public string Sub { get; set; } = default!;
+    [JsonPropertyName("sub")]
+    public string Sub { get; set; } = null!;
 }

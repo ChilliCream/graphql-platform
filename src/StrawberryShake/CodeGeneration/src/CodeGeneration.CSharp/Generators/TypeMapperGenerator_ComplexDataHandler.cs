@@ -21,20 +21,20 @@ public partial class TypeMapperGenerator
                                    ?? throw new InvalidOperationException();
 
         method
-            .AddParameter(_dataParameterName)
+            .AddParameter(DataParameterName)
             .SetType(typeInfo.ToString().MakeNullable(!isNonNullable))
-            .SetName(_dataParameterName);
+            .SetName(DataParameterName);
 
         if (settings.IsStoreEnabled())
         {
             method
-                .AddParameter(_snapshot)
+                .AddParameter(Snapshot)
                 .SetType(TypeNames.IEntityStoreSnapshot);
         }
 
         if (!isNonNullable)
         {
-            method.AddCode(EnsureProperNullability(_dataParameterName, isNonNullable));
+            method.AddCode(EnsureProperNullability(DataParameterName, isNonNullable));
         }
 
         const string returnValue = nameof(returnValue);
@@ -112,7 +112,7 @@ public partial class TypeMapperGenerator
             else if (prop.Type.IsNonNull())
             {
                 if (prop.Type.InnerType() is ILeafTypeDescriptor
-                        { RuntimeType: { IsValueType: true, }, })
+                    { RuntimeType: { IsValueType: true } })
                 {
                     block
                         .AddCode(IfBuilder
@@ -147,7 +147,7 @@ public partial class TypeMapperGenerator
 
         return IfBuilder
             .New()
-            .SetCondition($"{_dataParameterName} is {dataTypeName} {matchedTypeName}")
+            .SetCondition($"{DataParameterName} is {dataTypeName} {matchedTypeName}")
             .AddCode(block);
     }
 }

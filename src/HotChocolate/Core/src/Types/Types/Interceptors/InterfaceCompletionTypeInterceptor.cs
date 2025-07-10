@@ -1,6 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -8,8 +8,8 @@ namespace HotChocolate.Types.Interceptors;
 
 internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 {
-    private readonly Dictionary<ITypeSystemObject, TypeInfo> _typeInfos = new();
-    private readonly Dictionary<Type, TypeInfo> _allInterfaceRuntimeTypes = new();
+    private readonly Dictionary<TypeSystemObject, TypeInfo> _typeInfos = [];
+    private readonly Dictionary<Type, TypeInfo> _allInterfaceRuntimeTypes = [];
     private readonly HashSet<Type> _interfaceRuntimeTypes = [];
     private readonly HashSet<string> _completed = [];
     private readonly HashSet<string> _completedFields = [];
@@ -17,11 +17,11 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 
     public override void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         // we need to preserve the initialization context of all
         // interface types and object types.
-        if (definition is IComplexOutputTypeDefinition typeDefinition)
+        if (configuration is IComplexOutputTypeConfiguration typeDefinition)
         {
             _typeInfos.Add(discoveryContext.Type, new(discoveryContext, typeDefinition));
         }
@@ -32,14 +32,14 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
         // after all types have been initialized we will index the runtime
         // types of all interfaces.
         foreach (var interfaceTypeInfo in _typeInfos.Values
-            .Where(t => t.Definition.RuntimeType is { } rt &&
+            .Where(t => t.Configuration.RuntimeType is { } rt &&
                 rt != typeof(object) &&
-                t.Definition is InterfaceTypeDefinition))
+                t.Configuration is InterfaceTypeConfiguration))
         {
-            if (!_allInterfaceRuntimeTypes.ContainsKey(interfaceTypeInfo.Definition.RuntimeType))
+            if (!_allInterfaceRuntimeTypes.ContainsKey(interfaceTypeInfo.Configuration.RuntimeType))
             {
                 _allInterfaceRuntimeTypes.Add(
-                    interfaceTypeInfo.Definition.RuntimeType,
+                    interfaceTypeInfo.Configuration.RuntimeType,
                     interfaceTypeInfo);
             }
         }
@@ -66,7 +66,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
                         TypeDependencyFulfilled.Completed);
 
                     typeInfo.Context.Dependencies.Add(interfaceTypeDependency);
-                    typeInfo.Definition.Interfaces.Add(interfaceTypeDependency.Type);
+                    typeInfo.Configuration.Interfaces.Add(interfaceTypeDependency.Type);
                 }
             }
         }
@@ -75,31 +75,31 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
     // defines if this type has a concrete runtime type.
     private bool IsRelevant(TypeInfo typeInfo)
     {
-        if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true, } objectDef &&
+        if (typeInfo.Configuration is ObjectTypeConfiguration { IsExtension: true } objectDef &&
             objectDef.FieldBindingType != typeof(object))
         {
             return true;
         }
 
-        var runtimeType = typeInfo.Definition.RuntimeType;
+        var runtimeType = typeInfo.Configuration.RuntimeType;
         return runtimeType != typeof(object);
     }
 
     private Type GetRuntimeType(TypeInfo typeInfo)
     {
-        if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true, } objectDef)
+        if (typeInfo.Configuration is ObjectTypeConfiguration { IsExtension: true } objectDef)
         {
             return objectDef.FieldBindingType ?? typeof(object);
         }
 
-        return typeInfo.Definition.RuntimeType;
+        return typeInfo.Configuration.RuntimeType;
     }
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        if (definition is InterfaceTypeDefinition { Interfaces: { Count: > 0, }, } typeDef)
+        if (configuration is InterfaceTypeConfiguration { Interfaces: { Count: > 0 } } typeDef)
         {
             _completed.Clear();
             _completedFields.Clear();
@@ -124,7 +124,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
             CompleteInterfacesAndFields(typeDef);
         }
 
-        if (definition is ObjectTypeDefinition { Interfaces: { Count: > 0, }, } objectTypeDef)
+        if (configuration is ObjectTypeConfiguration { Interfaces: { Count: > 0 } } objectTypeDef)
         {
             _completed.Clear();
             _completedFields.Clear();
@@ -150,7 +150,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
         }
     }
 
-    private void CompleteInterfacesAndFields(IComplexOutputTypeDefinition definition)
+    private void CompleteInterfacesAndFields(IComplexOutputTypeConfiguration definition)
     {
         while (_backlog.Count > 0)
         {
@@ -158,9 +158,9 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
             var typeInfo = _typeInfos[current];
             definition.Interfaces.Add(TypeReference.Create(current));
 
-            if (definition is InterfaceTypeDefinition interfaceDef)
+            if (definition is InterfaceTypeConfiguration interfaceDef)
             {
-                foreach (var field in ((InterfaceTypeDefinition)typeInfo.Definition).Fields)
+                foreach (var field in ((InterfaceTypeConfiguration)typeInfo.Configuration).Fields)
                 {
                     if (_completedFields.Add(field.Name))
                     {
@@ -198,20 +198,14 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
         }
     }
 
-    private readonly struct TypeInfo
+    private readonly struct TypeInfo(
+        ITypeDiscoveryContext context,
+        IComplexOutputTypeConfiguration configuration)
     {
-        public TypeInfo(
-            ITypeDiscoveryContext context,
-            IComplexOutputTypeDefinition definition)
-        {
-            Context = context;
-            Definition = definition;
-        }
+        public ITypeDiscoveryContext Context { get; } = context;
 
-        public ITypeDiscoveryContext Context { get; }
+        public IComplexOutputTypeConfiguration Configuration { get; } = configuration;
 
-        public IComplexOutputTypeDefinition Definition { get; }
-
-        public override string ToString() => Definition.Name;
+        public override string ToString() => Configuration.Name;
     }
 }

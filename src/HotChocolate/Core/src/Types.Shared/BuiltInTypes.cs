@@ -4,7 +4,7 @@ namespace HotChocolate.Utilities.Introspection;
 
 public static class BuiltInTypes
 {
-    private static readonly HashSet<string> _typeNames =
+    private static readonly HashSet<string> s_typeNames =
     [
         WellKnownTypes.__Directive,
         WellKnownTypes.__DirectiveLocation,
@@ -18,28 +18,25 @@ public static class BuiltInTypes
         WellKnownTypes.Boolean,
         WellKnownTypes.Float,
         WellKnownTypes.ID,
-        WellKnownTypes.Int,
+        WellKnownTypes.Int
     ];
 
-    private static readonly HashSet<string> _directiveNames =
+    private static readonly HashSet<string> s_directiveNames =
     [
         WellKnownDirectives.Skip,
         WellKnownDirectives.Include,
         WellKnownDirectives.Deprecated,
         WellKnownDirectives.Defer,
         WellKnownDirectives.Stream,
-        WellKnownDirectives.SpecifiedBy,
+        WellKnownDirectives.SpecifiedBy
     ];
 
     public static bool IsBuiltInType(string name)
-        => _typeNames.Contains(name) || _directiveNames.Contains(name);
+        => s_typeNames.Contains(name) || s_directiveNames.Contains(name);
 
     public static DocumentNode RemoveBuiltInTypes(this DocumentNode schema)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
 
         var definitions = new List<IDefinitionNode>();
 
@@ -47,14 +44,14 @@ public static class BuiltInTypes
         {
             if (definition is INamedSyntaxNode type)
             {
-                if (!_typeNames.Contains(type.Name.Value))
+                if (!s_typeNames.Contains(type.Name.Value))
                 {
                     definitions.Add(definition);
                 }
             }
             else if (definition is DirectiveDefinitionNode directive)
             {
-                if (!_directiveNames.Contains(directive.Name.Value))
+                if (!s_directiveNames.Contains(directive.Name.Value))
                 {
                     definitions.Add(definition);
                 }

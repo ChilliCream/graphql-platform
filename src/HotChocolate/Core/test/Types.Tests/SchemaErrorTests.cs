@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -12,7 +11,7 @@ public class SchemaErrorTests
     public void CreateSchemaError_ExceptionAndMessage()
     {
         // arrange
-        var message = "FooBar";
+        const string message = "FooBar";
         var exception = new Exception();
 
         // act
@@ -56,7 +55,7 @@ public class SchemaErrorTests
     public void CreateSchemaError_ThreeArguments_PopertiesAreSet()
     {
         // arrange
-        var message = "FooBar";
+        const string message = "FooBar";
         var exception = new Exception();
         var type = new StringType();
 
@@ -81,9 +80,9 @@ public class SchemaErrorTests
     public void CreateSchemaError_SetExtension()
     {
         // arrange
-        var message = "FooBar";
-        var key = "foo";
-        var value = "bar";
+        const string message = "FooBar";
+        const string key = "foo";
+        const string value = "bar";
 
         // act
         var schemaError = SchemaErrorBuilder.New()
@@ -110,7 +109,7 @@ public class SchemaErrorTests
     public void CreateSchemaError_AddSyntaxNode()
     {
         // arrange
-        var message = "FooBar";
+        const string message = "FooBar";
         var node = new NameNode("foo");
 
         // act
@@ -160,7 +159,7 @@ public class SchemaErrorTests
             .Use(_ => _ => default);
 
         // act
-        var ex = Assert.Throws<SchemaException>(() => schema.Create());
+        var ex = Assert.Throws<SchemaException>(schema.Create);
 
         // assert
         Assert.Equal(2, ex.Errors.Count);

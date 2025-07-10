@@ -1,5 +1,7 @@
+using System.Globalization;
 using HotChocolate.Execution;
 using NodaTime;
+using NodaTime.Text;
 
 namespace HotChocolate.Types.NodaTime.Tests;
 
@@ -85,7 +87,7 @@ public class DurationTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "09:22:01:00.019" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "09:22:01:00.019" } })
                 .Build());
         Assert.Equal("9:22:11:00.019", result.ExpectOperationResult().Data!["test"]);
     }
@@ -96,7 +98,7 @@ public class DurationTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "09:22:01:00" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "09:22:01:00" } })
                 .Build());
         Assert.Equal("9:22:11:00", result.ExpectOperationResult().Data!["test"]);
     }
@@ -107,7 +109,7 @@ public class DurationTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "9:22:01:00" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "9:22:01:00" } })
                 .Build());
         Assert.Equal("9:22:11:00", result.ExpectOperationResult().Data!["test"]);
     }
@@ -118,7 +120,7 @@ public class DurationTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "-9:22:01:00" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "-9:22:01:00" } })
                 .Build());
         Assert.Equal("-9:21:51:00", result.ExpectOperationResult().Data!["test"]);
     }
@@ -129,7 +131,7 @@ public class DurationTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "+09:22:01:00" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "+09:22:01:00" } })
                 .Build());
         Assert.Null(result.ExpectOperationResult().Data);
         Assert.Single(result.ExpectOperationResult().Errors!);
@@ -141,7 +143,7 @@ public class DurationTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "9:26:01:00" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "9:26:01:00" } })
                 .Build());
         Assert.Null(result.ExpectOperationResult().Data);
         Assert.Single(result.ExpectOperationResult().Errors!);
@@ -220,5 +222,36 @@ public class DurationTypeIntegrationTests
     {
         static object Call() => new DurationType([]);
         Assert.Throws<SchemaException>(Call);
+    }
+
+    [Fact]
+    public void DurationType_DescriptionKnownPatterns_MatchesSnapshot()
+    {
+        var durationType = new DurationType(
+            DurationPattern.Roundtrip,
+            DurationPattern.JsonRoundtrip);
+
+        durationType.Description.MatchInlineSnapshot(
+            """
+            Represents a fixed (and calendar-independent) length of time.
+
+            Allowed patterns:
+            - `-D:hh:mm:ss.sssssssss`
+            - `-hh:mm:ss.sssssssss`
+
+            Examples:
+            - `-1:20:00:00.999999999`
+            - `-44:00:00.999999999`
+            """);
+    }
+
+    [Fact]
+    public void DurationType_DescriptionUnknownPatterns_MatchesSnapshot()
+    {
+        var durationType = new DurationType(
+            DurationPattern.Create("mm", CultureInfo.InvariantCulture));
+
+        durationType.Description.MatchInlineSnapshot(
+            "Represents a fixed (and calendar-independent) length of time.");
     }
 }

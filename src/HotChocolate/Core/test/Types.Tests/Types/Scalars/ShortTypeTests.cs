@@ -61,7 +61,7 @@ public class ShortTypeTests
     {
         // arrange
         var type = new ShortType();
-        short value = 123;
+        const short value = 123;
 
         // act
         var serializedValue = type.Serialize(value);
@@ -89,7 +89,7 @@ public class ShortTypeTests
     {
         // arrange
         var type = new ShortType();
-        var input = "abc";
+        const string input = "abc";
 
         // act
         // assert
@@ -102,7 +102,7 @@ public class ShortTypeTests
     {
         // arrange
         var type = new ShortType(0, 100);
-        short value = 200;
+        const short value = 200;
 
         // act
         // assert
@@ -168,7 +168,7 @@ public class ShortTypeTests
     {
         // arrange
         var type = new ShortType(1, 100);
-        short input = 100;
+        const short input = 100;
 
         // act
         var literal = (IntValueNode)type.ParseValue(input);
@@ -182,7 +182,7 @@ public class ShortTypeTests
     {
         // arrange
         var type = new ShortType(1, 100);
-        short input = 101;
+        const short input = 101;
 
         // act
         Action action = () => type.ParseValue(input);
@@ -196,7 +196,7 @@ public class ShortTypeTests
     {
         // arrange
         var type = new ShortType(1, 100);
-        short input = 1;
+        const short input = 1;
 
         // act
         var literal = (IntValueNode)type.ParseValue(input);
@@ -210,7 +210,7 @@ public class ShortTypeTests
     {
         // arrange
         var type = new ShortType(1, 100);
-        short input = 0;
+        const short input = 0;
 
         // act
         Action action = () => type.ParseValue(input);
@@ -224,7 +224,7 @@ public class ShortTypeTests
     {
         // arrange
         var type = new ShortType();
-        var value = "123";
+        const string value = "123";
 
         // act
         // assert

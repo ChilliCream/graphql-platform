@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -22,6 +21,7 @@ public class EmailAddressTypeTests : ScalarTypeTestBase
     [InlineData(typeof(IntValueNode), 1, false)]
     [InlineData(typeof(BooleanValueNode), true, false)]
     [InlineData(typeof(StringValueNode), "", false)]
+    [InlineData(typeof(StringValueNode), "K@chillicream.com", false)] // K = Kelvin Sign (U+212A)
     [InlineData(typeof(StringValueNode), "test@chillicream.com", true)]
     [InlineData(typeof(StringValueNode), "CapitalizeTest@chillicream.com", true)]
     [InlineData(typeof(NullValueNode), null, true)]
@@ -44,9 +44,10 @@ public class EmailAddressTypeTests : ScalarTypeTestBase
     [InlineData(1, false)]
     [InlineData(true, false)]
     [InlineData("", false)]
-    [InlineData(null, true)]
+    [InlineData("K@chillicream.com", false)] // K = Kelvin Sign (U+212A)
     [InlineData("test@chillicream.com", true)]
     [InlineData("CapitalizeTest@chillicream.com", true)]
+    [InlineData(null, true)]
     public void IsInstanceOfType_GivenObject_MatchExpected(object? value, bool expected)
     {
         // arrange
@@ -83,6 +84,7 @@ public class EmailAddressTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "invalid.email.com")]
     [InlineData(typeof(StringValueNode), "email@-example.com")]
     [InlineData(typeof(StringValueNode), "email@example..com")]
+    [InlineData(typeof(StringValueNode), "K@chillicream.com")] // K = Kelvin Sign (U+212A)
     public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
     {
         // arrange
@@ -115,6 +117,7 @@ public class EmailAddressTypeTests : ScalarTypeTestBase
     [InlineData("invalid.email.com")]
     [InlineData("email@-example.com")]
     [InlineData("email@example..com")]
+    [InlineData("K@chillicream.com")] // K = Kelvin Sign (U+212A)
     public void Deserialize_GivenValue_ThrowSerializationException(object value)
     {
         // arrange
@@ -145,6 +148,7 @@ public class EmailAddressTypeTests : ScalarTypeTestBase
     [InlineData("invalid.email.com")]
     [InlineData("email@-example.com")]
     [InlineData("email@example..com")]
+    [InlineData("K@chillicream.com")] // K = Kelvin Sign (U+212A)
     public void Serialize_GivenObject_ThrowSerializationException(object value)
     {
         // arrange
@@ -174,6 +178,7 @@ public class EmailAddressTypeTests : ScalarTypeTestBase
     [InlineData("email@-example.com")]
     [InlineData("email@example..com")]
     [InlineData("")]
+    [InlineData("K@chillicream.com")] // K = Kelvin Sign (U+212A)
     public void ParseValue_GivenObject_ThrowSerializationException(object value)
     {
         // arrange
@@ -203,6 +208,7 @@ public class EmailAddressTypeTests : ScalarTypeTestBase
     [InlineData("email@-example.com")]
     [InlineData("email@example..com")]
     [InlineData("")]
+    [InlineData("K@chillicream.com")] // K = Kelvin Sign (U+212A)
     public void ParseResult_GivenObject_ThrowSerializationException(object value)
     {
         // arrange

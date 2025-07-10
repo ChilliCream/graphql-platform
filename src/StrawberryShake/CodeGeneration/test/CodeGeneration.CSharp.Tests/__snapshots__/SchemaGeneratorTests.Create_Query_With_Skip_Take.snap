@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -262,7 +263,11 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SearchNewsItems GraphQL operation
     /// <code>
-    /// query SearchNewsItems($query: String!, $skip: Int, $take: Int) {
+    /// query SearchNewsItems(
+    ///   $query: String!
+    ///   $skip: Int
+    ///   $take: Int
+    /// ) {
     ///   newsItems(skip: $skip, take: $take, query: $query) {
     ///     __typename
     ///     items {
@@ -499,7 +504,11 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SearchNewsItems GraphQL operation
     /// <code>
-    /// query SearchNewsItems($query: String!, $skip: Int, $take: Int) {
+    /// query SearchNewsItems(
+    ///   $query: String!
+    ///   $skip: Int
+    ///   $take: Int
+    /// ) {
     ///   newsItems(skip: $skip, take: $take, query: $query) {
     ///     __typename
     ///     items {
@@ -521,6 +530,7 @@ namespace Foo.Bar
         private readonly global::StrawberryShake.IOperationExecutor<ISearchNewsItemsResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _intFormatter;
+        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public SearchNewsItemsQuery(global::StrawberryShake.IOperationExecutor<ISearchNewsItemsResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
@@ -528,11 +538,39 @@ namespace Foo.Bar
             _intFormatter = serializerResolver.GetInputValueFormatter("Int");
         }
 
+        private SearchNewsItemsQuery(global::StrawberryShake.IOperationExecutor<ISearchNewsItemsResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter, global::StrawberryShake.Serialization.IInputValueFormatter @intFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _stringFormatter = @stringFormatter;
+            _intFormatter = @intFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ISearchNewsItemsResult);
+
+        public global::Foo.Bar.ISearchNewsItemsQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.SearchNewsItemsQuery(_operationExecutor, _configure.Add(configure), _stringFormatter, _intFormatter);
+        }
+
+        public global::Foo.Bar.ISearchNewsItemsQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.ISearchNewsItemsQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISearchNewsItemsResult>> ExecuteAsync(global::System.String query, global::System.Int32? skip, global::System.Int32? take, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(query, skip, take);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -600,7 +638,11 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SearchNewsItems GraphQL operation
     /// <code>
-    /// query SearchNewsItems($query: String!, $skip: Int, $take: Int) {
+    /// query SearchNewsItems(
+    ///   $query: String!
+    ///   $skip: Int
+    ///   $take: Int
+    /// ) {
     ///   newsItems(skip: $skip, take: $take, query: $query) {
     ///     __typename
     ///     items {
@@ -619,6 +661,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ISearchNewsItemsQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.ISearchNewsItemsQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.ISearchNewsItemsQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.ISearchNewsItemsQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISearchNewsItemsResult>> ExecuteAsync(global::System.String query, global::System.Int32? skip, global::System.Int32? take, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ISearchNewsItemsResult>> Watch(global::System.String query, global::System.Int32? skip, global::System.Int32? take, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -706,7 +751,7 @@ namespace Foo.Bar.State
             }
 
             ISearchNewsItems_NewsItems returnValue = default !;
-            if (data?.__typename.Equals("NewsItemCollectionSegment", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("NewsItemCollectionSegment", global::System.StringComparison.Ordinal))
             {
                 returnValue = new SearchNewsItems_NewsItems_NewsItemCollectionSegment(MapISearchNewsItems_NewsItems_ItemsArray(data.Items, snapshot));
             }
@@ -1033,6 +1078,9 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);

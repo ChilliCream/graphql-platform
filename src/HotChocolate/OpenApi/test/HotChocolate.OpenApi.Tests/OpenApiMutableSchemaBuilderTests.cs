@@ -1,5 +1,4 @@
-using CookieCrumble;
-using HotChocolate.Skimmed.Serialization;
+using HotChocolate.Types.Mutable.Serialization;
 using Microsoft.OpenApi.Readers;
 
 namespace HotChocolate.OpenApi.Tests;
