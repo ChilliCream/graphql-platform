@@ -1,3 +1,4 @@
+using HotChocolate.Buffers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -46,6 +47,8 @@ public sealed class Selection
     public SelectionSet DeclaringSelectionSet { get; private set; } = null!;
 
     public ReadOnlySpan<FieldSelectionNode> SyntaxNodes => _syntaxNodes;
+
+    internal ResolveFieldValue? Resolver => throw new NotImplementedException();
 
     public bool IsIncluded(ulong includeFlags)
     {
@@ -110,3 +113,13 @@ public sealed class Selection
         Sealed = 2
     }
 }
+
+internal delegate ValueTask ResolveFieldValue(
+    FieldContext context,
+    CancellationToken cancellationToken);
+
+internal readonly record struct FieldContext(
+    PooledArrayWriter Memory,
+    ISchemaDefinition Schema,
+    Selection Selection,
+    FieldResult Result);

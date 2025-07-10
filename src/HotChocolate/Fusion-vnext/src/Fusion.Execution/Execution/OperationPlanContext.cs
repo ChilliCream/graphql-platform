@@ -1,4 +1,6 @@
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Clients;
@@ -34,6 +36,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         // create a client scope for the current request context.
         var clientScopeFactory = requestContext.RequestServices.GetRequiredService<ISourceSchemaClientScopeFactory>();
         ClientScope = clientScopeFactory.CreateScope(requestContext.Schema);
+        ResultPoolSession = resultPoolSession;
     }
 
     public OperationExecutionPlan OperationPlan { get; }
@@ -45,6 +48,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     public RequestContext RequestContext { get; }
 
     public ISourceSchemaClientScope ClientScope { get; }
+
+    public ResultPoolSession ResultPoolSession { get; }
 
     public IFeatureCollection Features => RequestContext.Features;
 
@@ -74,6 +79,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     public void AddPartialResults(SelectionPath sourcePath, ReadOnlySpan<SourceSchemaResult> results)
         => _resultStore.AddPartialResults(sourcePath, results);
+
+    public PooledArrayWriter CreateRentedBuffer()
+        => _resultStore.CreateRentedBuffer();
 
     internal IExecutionResult CreateFinalResult()
     {
@@ -131,9 +139,9 @@ file static class OperationPlanContextExtensions
 {
     public static OperationResultBuilder RegisterForCleanup(
         this OperationResultBuilder builder,
-        IEnumerable<IDisposable> disposables)
+        ConcurrentStack<IDisposable> disposables)
     {
-        foreach (var disposable in disposables)
+        while (disposables.TryPop(out var disposable))
         {
             builder.RegisterForCleanup(() =>
             {

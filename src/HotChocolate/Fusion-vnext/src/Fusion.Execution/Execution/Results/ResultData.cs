@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Fusion.Execution;
@@ -102,6 +103,15 @@ public abstract class ResultData : IResultDataJsonFormatter
     /// </summary>
     /// <param name="value">The value to set.</param>
     public virtual void SetNextValue(JsonElement value)
+    {
+        throw new NotSupportedException();
+    }
+
+    /// <summary>
+    /// Sets the next value to the given value.
+    /// </summary>
+    /// <param name="value">The value to set.</param>
+    public virtual void SetNextValue(ReadOnlyMemorySegment value)
     {
         throw new NotSupportedException();
     }

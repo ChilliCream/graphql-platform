@@ -158,7 +158,15 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
             }
             else if (selection.Field.Type.NamedType().IsLeafType())
             {
-                field = resultPoolSession.RentLeafFieldResult();
+                if (selection.Field.IsIntrospectionField)
+                {
+                    // TODO : shall we pool these as well?
+                    field = new RawFieldResult();
+                }
+                else
+                {
+                    field = resultPoolSession.RentLeafFieldResult();
+                }
             }
             else
             {
