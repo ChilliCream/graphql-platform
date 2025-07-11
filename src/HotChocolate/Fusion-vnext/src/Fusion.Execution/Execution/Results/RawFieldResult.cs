@@ -32,11 +32,11 @@ public sealed class RawFieldResult : FieldResult
                 writer.WriteStringValue(span[1..]);
                 break;
 
-            case RawFieldValueType.Bool when span[1] == 0:
+            case RawFieldValueType.Boolean when span[1] == 0:
                 writer.WriteBooleanValue(false);
                 break;
 
-            case RawFieldValueType.Bool when span[1] == 1:
+            case RawFieldValueType.Boolean when span[1] == 1:
                 writer.WriteBooleanValue(true);
                 break;
         }

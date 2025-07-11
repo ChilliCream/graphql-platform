@@ -1,6 +1,4 @@
-using HotChocolate.Buffers;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -35,22 +33,30 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
 
 public sealed class IntrospectionNode : ExecutionNode
 {
-    private Selection[] _selections;
+    private readonly Selection[] _selections;
+
+    public IntrospectionNode(int id, Selection[] selections)
+    {
+        Id = id;
+        _selections = selections;
+    }
 
     public override int Id { get; }
 
     public override ReadOnlySpan<ExecutionNode> Dependencies => default;
 
-    public override async Task<ExecutionStatus> ExecuteAsync(
+    public override Task<ExecutionStatus> ExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
         var resultPoolSession = context.ResultPoolSession;
-        var memory = context.CreateRentedBuffer();
+        var backlog = new Stack<(object? Parent, Selection Selection, FieldResult Result)>();
 
         foreach (var selection in _selections)
         {
-            if (selection.Resolver is null)
+            if (selection.Resolver is null
+                || !selection.Field.IsIntrospectionField
+                || !selection.IsIncluded(context.IncludeFlags))
             {
                 continue;
             }
@@ -59,24 +65,53 @@ public sealed class IntrospectionNode : ExecutionNode
                 ? new RawFieldResult()
                 : resultPoolSession.RentObjectFieldResult();
 
-            await selection.Resolver(
-                new FieldContext(
-                    memory,
-                    context.Schema,
-                    selection,
-                    result),
-                cancellationToken);
-
-            
-
-            // copy result
+            backlog.Push((null!, selection, result));
         }
 
-        return new ExecutionStatus(Id, IsSkipped: false);
+        ExecuteSelections(context, backlog);
+
+        // copy result
+
+        return Task.FromResult(new ExecutionStatus(Id, IsSkipped: false));
+    }
+
+    private static void ExecuteSelections(
+        OperationPlanContext context,
+        Stack<(object? Parent, Selection Selection, FieldResult Result)> backlog)
+    {
+        var operation = context.OperationPlan.Operation;
+        var fieldContext = new ReusableFieldContext(context.CreateRentedBuffer(), context.Schema);
+
+        while (backlog.TryPop(out var current))
+        {
+            var (parent, selection, result) = current;
+            fieldContext.Initialize(parent, selection, result);
+
+            selection.Resolver?.Invoke(fieldContext);
+
+            if (!selection.IsLeaf && result is ObjectFieldResult { HasNullValue: false } objectFieldResult)
+            {
+                var objectType = selection.Type.NamedType<IObjectTypeDefinition>();
+                var selectionSet = operation.GetSelectionSet(selection, objectType);
+                var objectResult = objectFieldResult.Value;
+                var insertIndex = 0;
+
+                for (var i = 0; i < selectionSet.Selections.Length; i++)
+                {
+                    var childSelection = selectionSet.Selections[i];
+
+                    if (!childSelection.IsIncluded(context.IncludeFlags))
+                    {
+                        continue;
+                    }
+
+                    backlog.Push((fieldContext.RuntimeResults, childSelection,  objectResult.Fields[insertIndex++]));
+                }
+            }
+        }
     }
 
     protected internal override void Seal()
     {
-        throw new NotImplementedException();
     }
 }

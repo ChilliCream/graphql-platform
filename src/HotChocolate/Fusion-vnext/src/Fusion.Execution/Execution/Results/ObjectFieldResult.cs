@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.Execution;
 
@@ -73,6 +74,7 @@ public sealed class ObjectFieldResult : FieldResult
     }
 
     /// <inheritdoc />
+    [MemberNotNullWhen(false, nameof(Value))]
     public override bool HasNullValue => Value is null;
 
     /// <summary>

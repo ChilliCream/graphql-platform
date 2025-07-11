@@ -25,13 +25,14 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         OperationPlan = operationPlan;
         RequestContext = requestContext;
         Variables = variables;
+        IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
 
         // TODO : fully implement and inject ResultPoolSession
         _resultStore = new FetchResultStore(
             RequestContext.Schema,
             resultPoolSession,
             operationPlan.Operation,
-            operationPlan.Operation.CreateIncludeFlags(variables));
+            IncludeFlags);
 
         // create a client scope for the current request context.
         var clientScopeFactory = requestContext.RequestServices.GetRequiredService<ISourceSchemaClientScopeFactory>();
@@ -50,6 +51,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     public ISourceSchemaClientScope ClientScope { get; }
 
     public ResultPoolSession ResultPoolSession { get; }
+
+    public ulong IncludeFlags { get; }
 
     public IFeatureCollection Features => RequestContext.Features;
 
