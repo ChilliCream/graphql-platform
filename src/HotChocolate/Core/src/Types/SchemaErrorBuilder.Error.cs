@@ -32,14 +32,14 @@ public partial class SchemaErrorBuilder
 
         IReadOnlyCollection<ISyntaxNode> ISchemaError.SyntaxNodes => SyntaxNodes;
 
-        public ImmutableDictionary<string, object> Extensions { get; set; }
+        public ImmutableDictionary<string, object?> Extensions { get; set; }
 #if NET10_0_OR_GREATER
             = [];
 #else
-            = ImmutableDictionary<string, object>.Empty;
+            = ImmutableDictionary<string, object?>.Empty;
 #endif
 
-        IReadOnlyDictionary<string, object> ISchemaError.Extensions => Extensions;
+        IReadOnlyDictionary<string, object?> ISchemaError.Extensions => Extensions;
 
         public Exception? Exception { get; set; }
 

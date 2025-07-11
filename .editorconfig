@@ -112,6 +112,7 @@ resharper_braces_for_ifelse = required
 resharper_braces_for_while = required
 
 # ReSharper inspection severities
+resharper_condition_is_always_true_or_false_according_to_nullable_api_contract_highlighting = error
 resharper_enforce_do_while_statement_braces_highlighting = error
 resharper_enforce_fixed_statement_braces_highlighting = error
 resharper_enforce_foreach_statement_braces_highlighting = error

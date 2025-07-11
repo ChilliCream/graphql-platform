@@ -63,48 +63,37 @@ public static class SchemaFormatter
 
             var definitions = new List<IDefinitionNode>();
 
-            if (schema.QueryType is not null ||
-                schema.MutationType is not null ||
-                schema.SubscriptionType is not null)
+            var operationTypes = new List<OperationTypeDefinitionNode>
             {
-                var operationTypes = new List<OperationTypeDefinitionNode>();
+                new(null, OperationType.Query, new NamedTypeNode(schema.QueryType.Name))
+            };
 
-                if (schema.QueryType is not null)
-                {
-                    operationTypes.Add(
-                        new OperationTypeDefinitionNode(
-                            null,
-                            OperationType.Query,
-                            new NamedTypeNode(schema.QueryType.Name)));
-                }
-
-                if (schema.MutationType is not null)
-                {
-                    operationTypes.Add(
-                        new OperationTypeDefinitionNode(
-                            null,
-                            OperationType.Mutation,
-                            new NamedTypeNode(schema.MutationType.Name)));
-                }
-
-                if (schema.SubscriptionType is not null)
-                {
-                    operationTypes.Add(
-                        new OperationTypeDefinitionNode(
-                            null,
-                            OperationType.Subscription,
-                            new NamedTypeNode(schema.SubscriptionType.Name)));
-                }
-
-                VisitDirectives(schema.Directives, context);
-
-                var schemaDefinition = new SchemaDefinitionNode(
-                    null,
-                    CreateDescription(schema.Description),
-                    (IReadOnlyList<DirectiveNode>)context.Result!,
-                    operationTypes);
-                definitions.Add(schemaDefinition);
+            if (schema.MutationType is not null)
+            {
+                operationTypes.Add(
+                    new OperationTypeDefinitionNode(
+                        null,
+                        OperationType.Mutation,
+                        new NamedTypeNode(schema.MutationType.Name)));
             }
+
+            if (schema.SubscriptionType is not null)
+            {
+                operationTypes.Add(
+                    new OperationTypeDefinitionNode(
+                        null,
+                        OperationType.Subscription,
+                        new NamedTypeNode(schema.SubscriptionType.Name)));
+            }
+
+            VisitDirectives(schema.Directives, context);
+
+            var schemaDefinition = new SchemaDefinitionNode(
+                null,
+                CreateDescription(schema.Description),
+                (IReadOnlyList<DirectiveNode>)context.Result!,
+                operationTypes);
+            definitions.Add(schemaDefinition);
 
             if (context.OrderByName)
             {
@@ -164,11 +153,8 @@ public static class SchemaFormatter
         {
             var definitionNodes = new List<IDefinitionNode>();
 
-            if (context.Schema.QueryType is not null)
-            {
-                VisitType(context.Schema.QueryType, context);
-                definitionNodes.Add((IDefinitionNode)context.Result!);
-            }
+            VisitType(context.Schema.QueryType, context);
+            definitionNodes.Add((IDefinitionNode)context.Result!);
 
             if (context.Schema.MutationType is not null)
             {
