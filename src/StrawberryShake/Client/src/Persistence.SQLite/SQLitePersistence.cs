@@ -226,8 +226,7 @@ public class SQLitePersistence : IDisposable
         DatabaseHelper database,
         CancellationToken cancellationToken)
     {
-        if (operationVersion.Result is not null &&
-            operationVersion.Result.Errors.Count == 0 &&
+        if (operationVersion.Result?.Errors.Count == 0 &&
             operationVersion.Result.DataInfo is not null)
         {
             using var writer = new ArrayWriter();

@@ -36,7 +36,7 @@ public sealed class BindableList<T> : IBindableList<T>
     }
 
     public bool Contains(T item)
-        => _list is not null && _list.Contains(item);
+        => _list?.Contains(item) == true;
 
     public void CopyTo(T[] array, int arrayIndex)
         => _list?.CopyTo(array, arrayIndex);

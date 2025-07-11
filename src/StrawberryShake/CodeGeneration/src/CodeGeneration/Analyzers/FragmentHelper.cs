@@ -17,8 +17,7 @@ public static class FragmentHelper
         var directive =
             fieldSelection.SyntaxNode.Directives.FirstOrDefault(
                 t => t.Name.Value.Equals("returns"));
-        if (directive is not null &&
-            directive.Arguments.Count == 1 &&
+        if (directive?.Arguments.Count == 1 &&
             directive.Arguments[0] is
             {
                 Name: { Value: "fragment" },

@@ -246,8 +246,7 @@ public class DefaultNamingConventions
                 .GetMember(value.ToString()!)
                 .FirstOrDefault();
 
-            if (enumMember is not null &&
-                enumMember.IsDefined(typeof(GraphQLNameAttribute)))
+            if (enumMember?.IsDefined(typeof(GraphQLNameAttribute)) == true)
             {
                 return enumMember.GetCustomAttribute<GraphQLNameAttribute>()!.Name;
             }

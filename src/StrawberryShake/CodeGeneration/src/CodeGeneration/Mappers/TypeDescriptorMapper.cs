@@ -172,8 +172,7 @@ public static partial class TypeDescriptorMapper
                         fallbackKind = TypeKind.EntityOrData;
                         parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
                         break;
-                    case InterfaceType when implementedBy is not null &&
-                        implementedBy.Any(t => t.IsEntity()):
+                    case InterfaceType when (implementedBy?.Any(t => t.IsEntity()) == true):
                         fallbackKind = TypeKind.EntityOrData;
                         parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
                         break;

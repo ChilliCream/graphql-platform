@@ -42,7 +42,7 @@ public sealed class SelectionIncludeCondition
 
     public bool IsTrue(IVariableValueCollection variables)
     {
-        if (Parent != null && !Parent.IsTrue(variables))
+        if (Parent?.IsTrue(variables) == false)
         {
             return false;
         }
