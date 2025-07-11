@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Configuration;
@@ -8,11 +9,19 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using static HotChocolate.Authorization.AuthorizeDirectiveType.Names;
+using static HotChocolate.Authorization.Properties.AuthCoreResources;
 
 namespace HotChocolate.Authorization;
 
 internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 {
+    private const string AspNetCoreAuthorizeAttributeName = "Microsoft.AspNetCore.Authorization.AuthorizeAttribute";
+    private const string AspNetCoreAllowAnonymousAttributeName =
+        "Microsoft.AspNetCore.Authorization.AllowAnonymousAttribute";
+
+    private static readonly string s_authorizeAttributeName = typeof(AuthorizeAttribute).FullName!;
+    private static readonly string s_allowAnonymousAttributeName = typeof(AllowAnonymousAttribute).FullName!;
+
     private readonly List<ObjectTypeInfo> _objectTypes = [];
     private readonly List<UnionTypeInfo> _unionTypes = [];
     private readonly Dictionary<ObjectType, DirectiveCollection> _directives = [];
@@ -121,13 +130,78 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
+        if (configuration is not ObjectTypeConfiguration typeDef)
+        {
+            return;
+        }
+
         // last in the initialization we need to intercept the query type and ensure that
         // authorization configuration is applied to the special introspection and node fields.
-        if (ReferenceEquals(_queryContext, completionContext) &&
-            configuration is ObjectTypeConfiguration typeDef)
+        if (ReferenceEquals(_queryContext, completionContext))
         {
             var state = _state ?? throw ThrowHelper.StateNotInitialized();
             HandleSpecialQueryFields(new ObjectTypeInfo(completionContext, typeDef), state);
+        }
+
+        if (_context.Options.ErrorOnAspNetCoreAuthorizationAttributes && !completionContext.IsIntrospectionType)
+        {
+            var runtimeType = typeDef.RuntimeType;
+            var attributesOnType = runtimeType.GetCustomAttributes().ToArray();
+
+            if (ContainsNamedAttribute(attributesOnType, AspNetCoreAuthorizeAttributeName))
+            {
+                completionContext.ReportError(
+                    UnsupportedAspNetCoreAttributeError(
+                        AspNetCoreAuthorizeAttributeName,
+                        s_authorizeAttributeName,
+                        runtimeType));
+                return;
+            }
+
+            if (ContainsNamedAttribute(attributesOnType, AspNetCoreAllowAnonymousAttributeName))
+            {
+                completionContext.ReportError(
+                    UnsupportedAspNetCoreAttributeError(
+                        AspNetCoreAllowAnonymousAttributeName,
+                        s_allowAnonymousAttributeName,
+                        runtimeType));
+                return;
+            }
+
+            foreach (var field in typeDef.Fields)
+            {
+                if (field.IsIntrospectionField)
+                {
+                    continue;
+                }
+
+                var fieldMember = field.ResolverMember ?? field.Member;
+
+                if (fieldMember is not null)
+                {
+                    var attributesOnResolver = fieldMember.GetCustomAttributes().ToArray();
+
+                    if (ContainsNamedAttribute(attributesOnResolver, AspNetCoreAuthorizeAttributeName))
+                    {
+                        completionContext.ReportError(
+                            UnsupportedAspNetCoreAttributeError(
+                                AspNetCoreAuthorizeAttributeName,
+                                s_authorizeAttributeName,
+                                fieldMember));
+                        return;
+                    }
+
+                    if (ContainsNamedAttribute(attributesOnResolver, AspNetCoreAllowAnonymousAttributeName))
+                    {
+                        completionContext.ReportError(
+                            UnsupportedAspNetCoreAttributeError(
+                                AspNetCoreAllowAnonymousAttributeName,
+                                s_allowAnonymousAttributeName,
+                                fieldMember));
+                        return;
+                    }
+                }
+            }
         }
     }
 
@@ -620,6 +694,36 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
     private State CreateState()
         => new(_context.GetAuthorizationOptions());
+
+    private static bool ContainsNamedAttribute(Attribute[] attributes, string nameOfAttribute)
+        => attributes.Any(a => a.GetType().FullName == nameOfAttribute);
+
+    private static ISchemaError UnsupportedAspNetCoreAttributeError(
+        string aspNetCoreAttributeName,
+        string properAttributeName,
+        Type runtimeType)
+    {
+        return SchemaErrorBuilder.New()
+            .SetMessage(string.Format(AuthorizationTypeInterceptor_UnsupportedAspNetCoreAttributeOnType,
+                aspNetCoreAttributeName, runtimeType.FullName, properAttributeName))
+            .SetCode(ErrorCodes.Schema.UnsupportedAspNetCoreAuthorizationAttribute)
+            .Build();
+    }
+
+    private static ISchemaError UnsupportedAspNetCoreAttributeError(
+        string aspNetCoreAttributeName,
+        string properAttributeName,
+        MemberInfo member)
+    {
+        var nameOfDeclaringType = member.DeclaringType?.FullName;
+        var nameOfMember = member.Name;
+
+        return SchemaErrorBuilder.New()
+            .SetMessage(string.Format(AuthorizationTypeInterceptor_UnsupportedAspNetCoreAttributeOnMember,
+                aspNetCoreAttributeName, nameOfDeclaringType, nameOfMember, properAttributeName))
+            .SetCode(ErrorCodes.Schema.UnsupportedAspNetCoreAuthorizationAttribute)
+            .Build();
+    }
 }
 
 file static class AuthorizationTypeInterceptorExtensions
