@@ -244,6 +244,9 @@ dotnet_style_prefer_collection_expression = when_types_exactly_match
 # Remove unnecessary blank line.
 dotnet_diagnostic.RCS0063.severity = warning
 dotnet_diagnostic.RCS1036.severity = none # see https://github.com/dotnet/roslynator/issues/1632
+# Convert lambda expression body to expression body.
+dotnet_diagnostic.RCS1021.severity = warning
+dotnet_diagnostic.IDE0053.severity = none # see https://github.com/dotnet/roslyn/issues/79246
 # Remove redundant 'ToString' call.
 dotnet_diagnostic.RCS1097.severity = warning
 # Mark local variable as const.

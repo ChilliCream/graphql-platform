@@ -285,10 +285,7 @@ public class CodeFirstAuthorizationTests
             options =>
             {
                 options.ConfigureSchemaField =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
-                    };
+                    descriptor => descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -339,10 +336,7 @@ public class CodeFirstAuthorizationTests
             options =>
             {
                 options.ConfigureTypeField =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
-                    };
+                    descriptor => descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -393,10 +387,7 @@ public class CodeFirstAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
-                    };
+                    descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -447,10 +438,7 @@ public class CodeFirstAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
-                    };
+                    descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 

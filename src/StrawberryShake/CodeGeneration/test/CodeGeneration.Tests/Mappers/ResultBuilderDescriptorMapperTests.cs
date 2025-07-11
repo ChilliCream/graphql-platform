@@ -50,17 +50,8 @@ public class ResultBuilderDescriptorMapperTests
         // assert
         Assert.Collection(
             context.ResultBuilders.OrderBy(t => t.RuntimeType.ToString()),
-            resultBuilder =>
-            {
-                Assert.Equal("CreateReviewBuilder", resultBuilder.RuntimeType.Name);
-            },
-            resultBuilder =>
-            {
-                Assert.Equal("GetHeroBuilder", resultBuilder.RuntimeType.Name);
-            },
-            resultBuilder =>
-            {
-                Assert.Equal("OnReviewBuilder", resultBuilder.RuntimeType.Name);
-            });
+            resultBuilder => Assert.Equal("CreateReviewBuilder", resultBuilder.RuntimeType.Name),
+            resultBuilder => Assert.Equal("GetHeroBuilder", resultBuilder.RuntimeType.Name),
+            resultBuilder => Assert.Equal("OnReviewBuilder", resultBuilder.RuntimeType.Name));
     }
 }

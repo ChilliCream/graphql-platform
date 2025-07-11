@@ -55,10 +55,7 @@ public class SortConventionTests
     {
         // arrange
         var provider = new QueryableSortProvider(
-            descriptor =>
-            {
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
-            });
+            descriptor => descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>());
 
         var convention = new SortConvention(
             descriptor =>
@@ -82,10 +79,7 @@ public class SortConventionTests
     {
         // arrange
         var provider = new QueryableSortProvider(
-            descriptor =>
-            {
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-            });
+            descriptor => descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>());
 
         var convention = new SortConvention(
             descriptor =>
@@ -241,10 +235,7 @@ public class SortConventionTests
             });
 
         var extension2 = new SortConventionExtension(
-            descriptor =>
-            {
-                descriptor.BindRuntimeType<string, TestEnumType>();
-            });
+            descriptor => descriptor.BindRuntimeType<string, TestEnumType>());
 
         var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: ASC}");
         var type = new FooSortType();
@@ -322,10 +313,7 @@ public class SortConventionTests
     {
         // arrange
         var provider = new QueryableSortProvider(
-            descriptor =>
-            {
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
-            });
+            descriptor => descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>());
 
         var convention = new SortConvention(
             descriptor =>
