@@ -15,6 +15,7 @@ namespace HotChocolate.Types;
 public class LocalDateType : ScalarType<DateOnly, StringValueNode>
 {
     private const string LocalFormat = "yyyy-MM-dd";
+    private readonly bool _enforceSpecFormat;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalDateType"/> class.
@@ -22,10 +23,24 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
     public LocalDateType(
         string name,
         string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
+        BindingBehavior bind = BindingBehavior.Explicit,
+        bool disableFormatCheck = false)
         : base(name, bind)
     {
         Description = description;
+        _enforceSpecFormat = !disableFormatCheck;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalDateType"/> class.
+    /// </summary>
+    public LocalDateType(bool disableFormatCheck)
+        : this(
+            ScalarNames.LocalDate,
+            TypeResources.LocalDateType_Description,
+            BindingBehavior.Implicit,
+            disableFormatCheck: disableFormatCheck)
+    {
     }
 
     /// <summary>
@@ -122,17 +137,27 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
         return value.ToString(LocalFormat, CultureInfo.InvariantCulture);
     }
 
-    private static bool TryDeserializeFromString(
+    private bool TryDeserializeFromString(
         string? serialized,
         [NotNullWhen(true)] out DateOnly? value)
     {
-        if (serialized is not null
-            && DateOnly.TryParseExact(
+        if (_enforceSpecFormat)
+        {
+            if (DateOnly.TryParseExact(
                 serialized,
                 LocalFormat,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.None,
                 out var date))
+            {
+                value = date;
+                return true;
+            }
+        }
+        else if (DateOnly.TryParse(
+            serialized,
+            CultureInfo.InvariantCulture,
+            out var date))
         {
             value = date;
             return true;
