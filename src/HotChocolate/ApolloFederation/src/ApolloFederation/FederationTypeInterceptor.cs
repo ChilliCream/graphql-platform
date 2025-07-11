@@ -79,6 +79,21 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 objectType,
                 objectTypeCfg,
                 discoveryContext);
+            return;
+        }
+
+        if (discoveryContext.Type is InterfaceType interfaceType &&
+            configuration is InterfaceTypeConfiguration interfaceTypeCfg)
+        {
+            ApplyMethodLevelReferenceResolvers(
+                interfaceType,
+                interfaceTypeCfg);
+
+            AggregatePropertyLevelKeyDirectives(
+                interfaceType,
+                interfaceTypeCfg,
+                discoveryContext);
+            return;
         }
     }
 
@@ -345,13 +360,72 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         {
             CompleteExternalFieldSetters(type, typeCfg);
             CompleteReferenceResolver(typeCfg);
+            return;
+        }
+
+        if (completionContext.Type is InterfaceType interfaceType &&
+            configuration is InterfaceTypeConfiguration interfaceTypeCfg)
+        {
+            CompleteExternalFieldSetters(interfaceType, interfaceTypeCfg);
+            CompleteReferenceResolver(interfaceTypeCfg);
+            return;
         }
     }
 
     private void CompleteExternalFieldSetters(ObjectType type, ObjectTypeConfiguration typeCfg)
         => ExternalSetterExpressionHelper.TryAddExternalSetter(type, typeCfg);
 
+    private void CompleteExternalFieldSetters(InterfaceType type, InterfaceTypeConfiguration typeCfg)
+        => ExternalSetterExpressionHelper.TryAddExternalSetter(type, typeCfg);
+
     private void CompleteReferenceResolver(ObjectTypeConfiguration typeCfg)
+    {
+        var resolvers = typeCfg.Features.Get<List<ReferenceResolverConfiguration>>();
+
+        if (resolvers is null)
+        {
+            return;
+        }
+
+        if (resolvers.Count == 1)
+        {
+            typeCfg.Features.Set(new ReferenceResolver(resolvers[0].Resolver));
+        }
+        else
+        {
+            var expressions = new Stack<(Expression Condition, Expression Execute)>();
+            var context = Expression.Parameter(typeof(IResolverContext));
+
+            foreach (var resolverDef in resolvers)
+            {
+                Expression required = Expression.Constant(resolverDef.Required);
+                Expression resolver = Expression.Constant(resolverDef.Resolver);
+                Expression condition = Expression.Call(s_matches, context, required);
+                Expression execute = Expression.Call(s_execute, context, resolver);
+                expressions.Push((condition, execute));
+            }
+
+            Expression current = Expression.Call(s_invalid, context);
+            var variable = Expression.Variable(typeof(ValueTask<object?>));
+
+            while (expressions.Count > 0)
+            {
+                var expression = expressions.Pop();
+                current = Expression.IfThenElse(
+                    expression.Condition,
+                    Expression.Assign(variable, expression.Execute),
+                    current);
+            }
+
+            current = Expression.Block([variable], current, variable);
+
+            typeCfg.Features.Set(
+                new ReferenceResolver(
+                    Expression.Lambda<FieldResolverDelegate>(current, context).Compile()));
+        }
+    }
+
+    private void CompleteReferenceResolver(InterfaceTypeConfiguration typeCfg)
     {
         var resolvers = typeCfg.Features.Get<List<ReferenceResolverConfiguration>>();
 
@@ -430,6 +504,43 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         // The default initialization system only considers instance methods,
         // so we have to handle the attributes for those manually.
         var potentiallyUnregisteredReferenceResolvers = objectType.RuntimeType
+            .GetMethods(BindingFlags.Static | BindingFlags.Public);
+
+        foreach (var possibleReferenceResolver in potentiallyUnregisteredReferenceResolvers)
+        {
+            if (!possibleReferenceResolver.IsDefined(typeof(ReferenceResolverAttribute)))
+            {
+                continue;
+            }
+
+            foreach (var attribute in possibleReferenceResolver.GetCustomAttributes(true))
+            {
+                if (attribute is ReferenceResolverAttribute casted)
+                {
+                    casted.TryConfigure(_context, descriptor, possibleReferenceResolver);
+                }
+            }
+        }
+
+        // This seems to re-detect the entity resolver and save it into the context data.
+        descriptor.CreateConfiguration();
+    }
+
+    private void ApplyMethodLevelReferenceResolvers(
+        InterfaceType interfaceType,
+        InterfaceTypeConfiguration interfaceTypeCfg)
+    {
+        if (interfaceType.RuntimeType == typeof(object))
+        {
+            return;
+        }
+
+        var descriptor = InterfaceTypeDescriptor.From(_context, interfaceTypeCfg);
+
+        // Static methods won't end up in the schema as fields.
+        // The default initialization system only considers instance methods,
+        // so we have to handle the attributes for those manually.
+        var potentiallyUnregisteredReferenceResolvers = interfaceType.RuntimeType
             .GetMethods(BindingFlags.Static | BindingFlags.Public);
 
         foreach (var possibleReferenceResolver in potentiallyUnregisteredReferenceResolvers)
@@ -532,6 +643,62 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
     }
 
+    private void AggregatePropertyLevelKeyDirectives(
+        InterfaceType interfaceType,
+        InterfaceTypeConfiguration interfaceTypeCfg,
+        ITypeDiscoveryContext discoveryContext)
+    {
+        // if we find key markers on our fields, we need to construct the key directive
+        // from the annotated fields.
+        var foundMarkers = interfaceTypeCfg.Fields.Any(f => f.Features.TryGet(out KeyMarker? _));
+
+        if (!foundMarkers)
+        {
+            return;
+        }
+
+        IReadOnlyList<InterfaceFieldConfiguration> fields = interfaceTypeCfg.Fields;
+        var fieldSet = new StringBuilder();
+        bool? resolvable = null;
+
+        foreach (var fieldDefinition in fields)
+        {
+            if (fieldDefinition.Features.TryGet(out KeyMarker? key))
+            {
+                if (resolvable is null)
+                {
+                    resolvable = key.Resolvable;
+                }
+                else if (resolvable != key.Resolvable)
+                {
+                    throw Key_FieldSet_ResolvableMustBeConsistent(fieldDefinition.Member!);
+                }
+
+                if (fieldSet.Length > 0)
+                {
+                    fieldSet.Append(' ');
+                }
+
+                fieldSet.Append(fieldDefinition.Name);
+            }
+        }
+
+        // add the key directive with the dynamically generated field set.
+        AddKeyDirective(interfaceTypeCfg, fieldSet.ToString(), resolvable ?? true);
+
+        // register dependency to the key directive so that it is completed before
+        // we complete this type.
+        foreach (var directiveDefinition in interfaceTypeCfg.Directives)
+        {
+            discoveryContext.Dependencies.Add(
+                new TypeDependency(
+                    directiveDefinition.Type,
+                    TypeDependencyFulfilled.Completed));
+
+            discoveryContext.Dependencies.Add(new(directiveDefinition.Type));
+        }
+    }
+
     private void AddMemberTypesToTheEntityUnionType(
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration? definition)
@@ -552,6 +719,17 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         bool resolvable)
     {
         objectTypeCfg.Directives.Add(
+            new DirectiveConfiguration(
+                new KeyDirective(fieldSet, resolvable),
+                _keyDirectiveReference));
+    }
+
+    private void AddKeyDirective(
+        InterfaceTypeConfiguration interfaceTypeCfg,
+        string fieldSet,
+        bool resolvable)
+    {
+        interfaceTypeCfg.Directives.Add(
             new DirectiveConfiguration(
                 new KeyDirective(fieldSet, resolvable),
                 _keyDirectiveReference));

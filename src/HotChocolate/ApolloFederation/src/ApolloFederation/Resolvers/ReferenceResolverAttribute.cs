@@ -11,6 +11,7 @@ namespace HotChocolate.ApolloFederation.Resolvers;
 /// </summary>
 [AttributeUsage(
     AttributeTargets.Class |
+    AttributeTargets.Interface |
     AttributeTargets.Struct |
     AttributeTargets.Method,
     AllowMultiple = true)]
@@ -31,18 +32,32 @@ public class ReferenceResolverAttribute : DescriptorAttribute
             {
                 case Type type:
                     OnConfigure(objectTypeDescriptor, type);
-                    break;
+                    return;
 
                 case MethodInfo method:
                     OnConfigure(objectTypeDescriptor, method);
-                    break;
+                    return;
+            }
+        }
+
+        if (descriptor is IInterfaceTypeDescriptor interfaceTypeDescriptor)
+        {
+            switch (element)
+            {
+                case Type type:
+                    OnConfigure(interfaceTypeDescriptor, type);
+                    return;
+
+                case MethodInfo method:
+                    OnConfigure(interfaceTypeDescriptor, method);
+                    return;
             }
         }
     }
 
     private void OnConfigure(IObjectTypeDescriptor descriptor, Type type)
     {
-        var entityResolverDescriptor = new EntityResolverDescriptor<object>(descriptor);
+        var entityResolverDescriptor = new EntityResolverDescriptor.Object<object>(descriptor);
 
         if (EntityResolverType is not null)
         {
@@ -85,7 +100,56 @@ public class ReferenceResolverAttribute : DescriptorAttribute
 
     private static void OnConfigure(IObjectTypeDescriptor descriptor, MethodInfo method)
     {
-        var entityResolverDescriptor = new EntityResolverDescriptor<object>(descriptor);
+        var entityResolverDescriptor = new EntityResolverDescriptor.Object<object>(descriptor);
+        entityResolverDescriptor.ResolveReferenceWith(method);
+    }
+
+    private void OnConfigure(IInterfaceTypeDescriptor descriptor, Type type)
+    {
+        var entityResolverDescriptor = new EntityResolverDescriptor.Interface<object>(descriptor);
+
+        if (EntityResolverType is not null)
+        {
+            if (EntityResolver is not null)
+            {
+                var method = EntityResolverType.GetMethod(EntityResolver);
+
+                if (method is null)
+                {
+                    throw ReferenceResolverAttribute_EntityResolverNotFound(
+                        EntityResolverType,
+                        EntityResolver);
+                }
+
+                entityResolverDescriptor.ResolveReferenceWith(method);
+            }
+            else
+            {
+                entityResolverDescriptor.ResolveReferenceWith(EntityResolverType);
+            }
+        }
+        else if (EntityResolver is not null)
+        {
+            var method = type.GetMethod(EntityResolver);
+
+            if (method is null)
+            {
+                throw ReferenceResolverAttribute_EntityResolverNotFound(
+                    type,
+                    EntityResolver);
+            }
+
+            entityResolverDescriptor.ResolveReferenceWith(method);
+        }
+        else
+        {
+            entityResolverDescriptor.ResolveReferenceWith(type);
+        }
+    }
+
+    private static void OnConfigure(IInterfaceTypeDescriptor descriptor, MethodInfo method)
+    {
+        var entityResolverDescriptor = new EntityResolverDescriptor.Interface<object>(descriptor);
         entityResolverDescriptor.ResolveReferenceWith(method);
     }
 }

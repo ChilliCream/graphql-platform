@@ -34,11 +34,24 @@ internal static class EntitiesResolver
                 entityContext.SetLocalState(DataField, current.Data);
 
                 tasks[i] = entity.Resolver.Invoke(entityContext).AsTask();
+                continue;
             }
-            else
+
+            if (schema.Types.TryGetType<InterfaceType>(current.TypeName, out var interfaceType) &&
+                interfaceType.Features.TryGet(out ReferenceResolver? entityInterface))
             {
-                throw ThrowHelper.EntityResolver_NoResolverFound();
+                // We clone the resolver context here so that we can split the work
+                // into subtasks that can be awaited in parallel and produce separate results.
+                var entityContext = context.Clone();
+
+                entityContext.SetLocalState(TypeField, interfaceType);
+                entityContext.SetLocalState(DataField, current.Data);
+
+                tasks[i] = entityInterface.Resolver.Invoke(entityContext).AsTask();
+                continue;
             }
+
+            throw ThrowHelper.EntityResolver_NoResolverFound();
         }
 
         for (var i = 0; i < representations.Count; i++)
