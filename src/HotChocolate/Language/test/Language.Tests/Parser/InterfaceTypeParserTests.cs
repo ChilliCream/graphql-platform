@@ -155,14 +155,8 @@ public class InterfaceTypeParserTests
         Assert.Equal("b", def.Fields[0].Name.Value);
         Assert.Empty(def.Directives);
         Assert.Collection(def.Interfaces,
-            i =>
-            {
-                Assert.Equal("e", i.Name.Value);
-            },
-            i =>
-            {
-                Assert.Equal("f", i.Name.Value);
-            });
+            i => Assert.Equal("e", i.Name.Value),
+            i => Assert.Equal("f", i.Name.Value));
         Assert.Equal(SyntaxKind.InterfaceTypeDefinition, def.Kind);
     }
 
@@ -187,14 +181,8 @@ public class InterfaceTypeParserTests
         Assert.Single(def.Fields);
         Assert.Equal("b", def.Fields[0].Name.Value);
         Assert.Collection(def.Interfaces,
-            i =>
-            {
-                Assert.Equal("e", i.Name.Value);
-            },
-            i =>
-            {
-                Assert.Equal("f", i.Name.Value);
-            });
+            i => Assert.Equal("e", i.Name.Value),
+            i => Assert.Equal("f", i.Name.Value));
         Assert.Collection(def.Directives,
             d =>
             {
