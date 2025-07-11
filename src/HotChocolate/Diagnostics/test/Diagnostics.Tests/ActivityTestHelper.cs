@@ -65,7 +65,7 @@ public static class ActivityTestHelper
 
     private static void SerializeActivity(Activity activity)
     {
-        var data = (OrderedDictionary<string, object?>)activity.GetCustomProperty("test.data")!;
+        var data = (OrderedDictionary<string, object?>?)activity.GetCustomProperty("test.data");
 
         if (data is null)
         {

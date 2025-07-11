@@ -599,7 +599,7 @@ public static class FragmentHelper
             }
 
             current = current.Parent;
-        } while (current is not null && !current.Equals(Path.Root));
+        } while (!current.Equals(Path.Root));
 
         return nameFormatter(nameBuilder.ToString());
     }

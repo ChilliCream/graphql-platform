@@ -61,8 +61,7 @@ public sealed class FeatureCollection : IFeatureCollection
         {
             if (_features is not null)
             {
-                return _features.Count == 0
-                    || _features.Values.All(f => f is null);
+                return _features.Count == 0;
             }
 
             if (_defaults is not null)
