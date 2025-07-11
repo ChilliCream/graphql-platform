@@ -34,7 +34,7 @@ public class AnyScalarDefaultSerializationTest : ServerTestBase
             services.GetRequiredService<AnyScalarDefaultSerializationClient>();
 
         // act
-        IOperationResult<IGetJsonResult> result = await client.GetJson.ExecuteAsync(cts.Token);
+        var result = await client.GetJson.ExecuteAsync(cts.Token);
 
         // assert
         Assert.Empty(result.Errors);
