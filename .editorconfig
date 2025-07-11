@@ -48,11 +48,6 @@ dotnet_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion
 
-# Prefer "var" everywhere
-csharp_style_var_for_built_in_types = true:suggestion
-csharp_style_var_when_type_is_apparent = true:suggestion
-csharp_style_var_elsewhere = true:suggestion
-
 # Prefer method-like constructs to have a block body
 csharp_style_expression_bodied_methods = false:none
 csharp_style_expression_bodied_constructors = false:none
@@ -194,6 +189,13 @@ dotnet_diagnostic.IDE0002.severity = warning
 dotnet_diagnostic.IDE0004.severity = warning
 # Remove unnecessary using directives.
 dotnet_diagnostic.IDE0005.severity = warning
+# Use `var` instead of explicit type.
+dotnet_diagnostic.IDE0007.severity = warning
+csharp_style_var_for_built_in_types = true
+csharp_style_var_when_type_is_apparent = true
+csharp_style_var_elsewhere = true
+dotnet_diagnostic.RCS1264.severity = none # see https://github.com/dotnet/roslynator/issues/1665
+roslynator_use_var = always
 # Use collection initializers or expressions.
 dotnet_diagnostic.IDE0028.severity = warning
 # Order modifiers.

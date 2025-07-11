@@ -142,7 +142,7 @@ internal sealed class EnumTypeUsageAnalyzer(Schema schema) : SyntaxWalker<object
 
     private void VisitInputObjectType(InputObjectType type)
     {
-        foreach (InputField field in type.Fields)
+        foreach (var field in type.Fields)
         {
             VisitInputType(field.Type);
         }

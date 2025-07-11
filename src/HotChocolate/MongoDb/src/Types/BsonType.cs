@@ -64,7 +64,7 @@ public class BsonType : ScalarType
         }
     }
 
-    private BsonValue? ParseLiteralToBson(IValueNode literal)
+    private BsonValue ParseLiteralToBson(IValueNode literal)
     {
         switch (literal)
         {
@@ -89,7 +89,7 @@ public class BsonType : ScalarType
                 return new BsonBoolean(bvn.Value);
 
             case ListValueNode lvn:
-                BsonValue?[] values = new BsonValue[lvn.Items.Count];
+                var values = new BsonValue[lvn.Items.Count];
                 for (var i = 0; i < lvn.Items.Count; i++)
                 {
                     values[i] = ParseLiteralToBson(lvn.Items[i]);
