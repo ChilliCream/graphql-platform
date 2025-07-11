@@ -265,8 +265,7 @@ public class ObjectTypeConfiguration
             {
                 var parent = parameters.FirstOrDefault(
                     t => t.IsDefined(typeof(ParentAttribute), true));
-                if (parent is not null &&
-                    !parent.ParameterType.IsAssignableFrom(target.RuntimeType) &&
+                if (parent?.ParameterType.IsAssignableFrom(target.RuntimeType) == false &&
                     !target.RuntimeType.IsAssignableFrom(parent.ParameterType))
                 {
                     continue;
