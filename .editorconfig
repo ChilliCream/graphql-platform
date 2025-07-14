@@ -229,6 +229,8 @@ dotnet_remove_unnecessary_suppression_exclusions = CA1822, InconsistentNaming, R
 dotnet_diagnostic.IDE0083.severity = warning
 # Remove unnecessary lambda expression.
 dotnet_diagnostic.IDE0200.severity = warning
+# Struct can be made 'readonly'.
+dotnet_diagnostic.IDE0250.severity = warning
 # Use collection expression for array.
 dotnet_diagnostic.IDE0300.severity = warning
 # Use collection expression for empty.
