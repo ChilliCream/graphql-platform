@@ -663,7 +663,6 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
         switch (typeReference)
         {
             case ListTypeDescriptor { InnerType: { } lt }:
-            {
                 var innerVariable = variable + "_lt";
                 var innerPathVariable = pathVariable + "_lt";
                 var counterVariable = pathVariable + "_counter";
@@ -685,18 +684,16 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                         .AddCode(BuildUploadFileMapper(lt, innerPathVariable, innerVariable)));
 
                 break;
-            }
+
             case InputObjectTypeDescriptor { HasUpload: true, Name: { } inputTypeName }:
-            {
                 result = MethodCallBuilder.New()
                     .SetMethodName("MapFilesFromType" + inputTypeName)
                     .AddArgument(pathVariable)
                     .AddArgument(checkedVariable)
                     .AddArgument(Files);
                 break;
-            }
+
             case ScalarTypeDescriptor { Name: "Upload" }:
-            {
                 return CodeBlockBuilder.New()
                     .AddCode(
                         MethodCallBuilder
@@ -704,7 +701,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                             .SetMethodName(Files, "Add")
                             .AddArgument(pathVariable)
                             .AddArgument($"{variable} is {TypeNames.Upload} u ? u : null"));
-            }
+
             default:
                 throw ThrowHelper.OperationServiceGenerator_HasNoUploadScalar(typeReference);
         }

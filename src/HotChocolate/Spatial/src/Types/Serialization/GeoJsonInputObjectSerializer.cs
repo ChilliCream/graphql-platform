@@ -211,7 +211,6 @@ internal abstract class GeoJsonInputObjectSerializer<T>
                     return true;
 
                 case IReadOnlyDictionary<string, object> dict:
-                {
                     (var geometryType, var coordinates, var crs) =
                         ParseFields(type, dict);
 
@@ -223,7 +222,6 @@ internal abstract class GeoJsonInputObjectSerializer<T>
 
                     runtimeValue = CreateGeometry(type, coordinates, crs);
                     return true;
-                }
 
                 case T:
                     runtimeValue = resultValue;
