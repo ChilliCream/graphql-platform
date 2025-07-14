@@ -1,5 +1,3 @@
-using System.Net.Http.Headers;
-
 namespace HotChocolate.Language;
 
 /// <summary>
@@ -68,10 +66,10 @@ public sealed class Location : IEquatable<Location>
             return true;
         }
 
-        return Start == other.Start &&
-            End == other.End &&
-            Line == other.Line &&
-            Column == other.Column;
+        return Start == other.Start
+            && End == other.End
+            && Line == other.Line
+            && Column == other.Column;
     }
 
     /// <summary>
@@ -81,13 +79,13 @@ public sealed class Location : IEquatable<Location>
     /// The object to compare with the current object.
     /// </param>
     /// <returns>
-    /// <c>true</c> if the specified object  is equal to the current object;
+    /// <c>true</c> if the specified object is equal to the current object;
     /// otherwise, <c>false</c>.
     /// </returns>
     public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            obj is Location other &&
-            Equals(other);
+        => ReferenceEquals(this, obj)
+            || obj is Location other
+            && Equals(other);
 
     /// <summary>
     /// Serves as the default hash function.

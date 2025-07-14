@@ -34,16 +34,16 @@ internal abstract class GeoJsonInputObjectSerializer<T>
                 return true;
             }
 
-            if (runtimeValue is IReadOnlyDictionary<string, object> ||
-                runtimeValue is IDictionary<string, object>)
+            if (runtimeValue is IReadOnlyDictionary<string, object>
+                || runtimeValue is IDictionary<string, object>)
             {
                 resultValue = runtimeValue;
                 return true;
             }
 
-            if (runtimeValue is Geometry g &&
-                TrySerializeCoordinates(type, g, out var coordinate) &&
-                coordinate is { })
+            if (runtimeValue is Geometry g
+                && TrySerializeCoordinates(type, g, out var coordinate)
+                && coordinate is { })
             {
                 resultValue = new Dictionary<string, object>
                     {
@@ -53,7 +53,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
                             GeoJsonTypeSerializer.Default.Serialize(type, _geometryType) ??
                             throw Serializer_CouldNotSerialize(type)
                         },
-                        { CrsFieldName, g.SRID },
+                        { CrsFieldName, g.SRID }
                     };
 
                 return true;
@@ -74,19 +74,19 @@ internal abstract class GeoJsonInputObjectSerializer<T>
         ArgumentNullException.ThrowIfNull(type);
         ArgumentNullException.ThrowIfNull(literal);
 
-        return literal is ObjectValueNode ||
-            literal is NullValueNode;
+        return literal is ObjectValueNode
+            || literal is NullValueNode;
     }
 
     public override bool IsInstanceOfType(IType type, object? runtimeValue)
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        return runtimeValue is T t &&
-            GeoJsonTypeSerializer.Default.TryParseString(
+        return runtimeValue is T t
+            && GeoJsonTypeSerializer.Default.TryParseString(
                 t.GeometryType,
-                out var g) &&
-            g == _geometryType;
+                out var g)
+            && g == _geometryType;
     }
 
     public override object? ParseLiteral(IType type, IValueNode valueSyntax)
@@ -129,11 +129,11 @@ internal abstract class GeoJsonInputObjectSerializer<T>
                 {
                     new ObjectFieldNode(
                         TypeFieldName,
-                        GeoJsonTypeSerializer.Default.ParseResult(type, _geometryType)),
+                        GeoJsonTypeSerializer.Default.ParseResult(type, _geometryType))
                 };
 
-            if (dict.TryGetValue(CoordinatesFieldName, out var value) &&
-                value is IList coordinates)
+            if (dict.TryGetValue(CoordinatesFieldName, out var value)
+                && value is IList coordinates)
             {
                 list.Add(
                     new ObjectFieldNode(
@@ -186,7 +186,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
                         ParseCoordinateValue(type, geometry)),
                     new ObjectFieldNode(
                         CrsFieldName,
-                        new IntValueNode(geometry.SRID)),
+                        new IntValueNode(geometry.SRID))
                 };
 
             return new ObjectValueNode(list);
@@ -211,19 +211,17 @@ internal abstract class GeoJsonInputObjectSerializer<T>
                     return true;
 
                 case IReadOnlyDictionary<string, object> dict:
+                    (var geometryType, var coordinates, var crs) =
+                        ParseFields(type, dict);
+
+                    if (geometryType != _geometryType)
                     {
-                        (var geometryType, var coordinates, var crs) =
-                            ParseFields(type, dict);
-
-                        if (geometryType != _geometryType)
-                        {
-                            runtimeValue = null;
-                            return false;
-                        }
-
-                        runtimeValue = CreateGeometry(type, coordinates, crs);
-                        return true;
+                        runtimeValue = null;
+                        return false;
                     }
+
+                    runtimeValue = CreateGeometry(type, coordinates, crs);
+                    return true;
 
                 case T:
                     runtimeValue = resultValue;

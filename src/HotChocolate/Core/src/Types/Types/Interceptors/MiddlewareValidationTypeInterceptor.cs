@@ -9,11 +9,11 @@ namespace HotChocolate.Types.Interceptors;
 
 internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 {
-    private const string _useDbContext = "UseDbContext";
-    private const string _usePaging = "UsePaging";
-    private const string _useProjection = "UseProjection";
-    private const string _useFiltering = "UseFiltering";
-    private const string _useSorting = "UseSorting";
+    private const string UseDbContext = "UseDbContext";
+    private const string UsePaging = "UsePaging";
+    private const string UseProjection = "UseProjection";
+    private const string UseFiltering = "UseFiltering";
+    private const string UseSorting = "UseSorting";
 
     private readonly HashSet<string> _names = [];
 
@@ -21,8 +21,8 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if (completionContext.DescriptorContext.Options.ValidatePipelineOrder &&
-            configuration is ObjectTypeConfiguration objectTypeDef)
+        if (completionContext.DescriptorContext.Options.ValidatePipelineOrder
+            && configuration is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var field in objectTypeDef.Fields)
             {
@@ -65,7 +65,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 
                         if (!_names.Add(definition.Key))
                         {
-                            (duplicates ??= []).Add(_useDbContext);
+                            (duplicates ??= []).Add(UseDbContext);
                         }
                         break;
 
@@ -78,7 +78,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 
                         if (!_names.Add(definition.Key))
                         {
-                            (duplicates ??= []).Add(_usePaging);
+                            (duplicates ??= []).Add(UsePaging);
                         }
 
                         usePaging = true;
@@ -93,7 +93,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 
                         if (!_names.Add(definition.Key))
                         {
-                            (duplicates ??= []).Add(_useProjection);
+                            (duplicates ??= []).Add(UseProjection);
                         }
 
                         useProjections = true;
@@ -102,7 +102,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                     case WellKnownMiddleware.Filtering:
                         if (!_names.Add(definition.Key))
                         {
-                            (duplicates ??= []).Add(_useFiltering);
+                            (duplicates ??= []).Add(UseFiltering);
                         }
                         useFiltering = true;
                         break;
@@ -110,7 +110,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                     case WellKnownMiddleware.Sorting:
                         if (!_names.Add(definition.Key))
                         {
-                            (duplicates ??= []).Add(_useSorting);
+                            (duplicates ??= []).Add(UseSorting);
                         }
                         useSorting = true;
                         break;
@@ -153,31 +153,31 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                     case WellKnownMiddleware.DbContext:
                         other = false;
                         PrintNext();
-                        sb.Append(_useDbContext);
+                        sb.Append(UseDbContext);
                         break;
 
                     case WellKnownMiddleware.Paging:
                         other = false;
                         PrintNext();
-                        sb.Append(_usePaging);
+                        sb.Append(UsePaging);
                         break;
 
                     case WellKnownMiddleware.Projection:
                         other = false;
                         PrintNext();
-                        sb.Append(_useProjection);
+                        sb.Append(UseProjection);
                         break;
 
                     case WellKnownMiddleware.Filtering:
                         other = false;
                         PrintNext();
-                        sb.Append(_useFiltering);
+                        sb.Append(UseFiltering);
                         break;
 
                     case WellKnownMiddleware.Sorting:
                         other = false;
                         PrintNext();
-                        sb.Append(_useSorting);
+                        sb.Append(UseSorting);
                         break;
 
                     default:

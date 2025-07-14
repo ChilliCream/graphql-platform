@@ -18,5 +18,5 @@ public enum ApplyPolicy
     /// <summary>
     /// The policy is applied in the validation step before the execution.
     /// </summary>
-    Validation = 2,
+    Validation = 2
 }

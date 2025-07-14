@@ -64,7 +64,7 @@ public class SchemaTypeReferenceTests
         var x = TypeReference.Create(type);
 
         // act
-        var result = x.Equals((SchemaTypeReference)null);
+        var result = x.Equals(null);
 
         // assert
         Assert.False(result);
@@ -78,7 +78,7 @@ public class SchemaTypeReferenceTests
         var x = TypeReference.Create(type);
 
         // act
-        var xx = x.Equals((SchemaTypeReference)x);
+        var xx = x.Equals(x);
 
         // assert
         Assert.True(xx);
@@ -91,15 +91,12 @@ public class SchemaTypeReferenceTests
         var type = await CreateTypeAsync<StringType>();
         var x = TypeReference.Create(type, scope: "abc");
         var y = TypeReference.Create(type, scope: "def");
-        var z = TypeReference.Create(type, scope: "abc");
 
         // act
         var xy = x.Equals(y);
-        var xz = x.Equals(y);
 
         // assert
         Assert.False(xy);
-        Assert.False(xz);
     }
 
     [Fact]
@@ -151,15 +148,12 @@ public class SchemaTypeReferenceTests
         var type = await CreateTypeAsync<StringType>();
         var x = TypeReference.Create(type, scope: "abc");
         var y = TypeReference.Create(type, scope: "def");
-        var z = TypeReference.Create(type, scope: "abc");
 
         // act
         var xy = x.Equals((TypeReference)y);
-        var xz = x.Equals((TypeReference)y);
 
         // assert
         Assert.False(xy);
-        Assert.False(xz);
     }
 
     [Fact]
@@ -211,15 +205,12 @@ public class SchemaTypeReferenceTests
         var type = await CreateTypeAsync<StringType>();
         var x = TypeReference.Create(type, scope: "abc");
         var y = TypeReference.Create(type, scope: "def");
-        var z = TypeReference.Create(type, scope: "abc");
 
         // act
         var xy = x.Equals((object)y);
-        var xz = x.Equals((object)y);
 
         // assert
         Assert.False(xy);
-        Assert.False(xz);
     }
 
     [Fact]
@@ -506,7 +497,7 @@ public class SchemaTypeReferenceTests
     {
         // arrange
         // act
-        var context = SchemaTypeReference.InferTypeContext((object)"foo");
+        var context = SchemaTypeReference.InferTypeContext("foo");
 
         // assert
         Assert.Equal(TypeContext.None, context);

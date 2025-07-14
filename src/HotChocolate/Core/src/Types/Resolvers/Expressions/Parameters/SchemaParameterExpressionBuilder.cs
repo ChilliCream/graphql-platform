@@ -12,7 +12,7 @@ internal sealed class SchemaParameterExpressionBuilder
     , IParameterBindingFactory
     , IParameterBinding
 {
-    private static readonly PropertyInfo _schema =
+    private static readonly PropertyInfo s_schema =
         ContextType.GetProperty(nameof(IResolverContext.Schema))!;
 
     public ArgumentKind Kind => ArgumentKind.Schema;
@@ -22,12 +22,12 @@ internal sealed class SchemaParameterExpressionBuilder
     public bool IsDefaultHandler => false;
 
     public bool CanHandle(ParameterInfo parameter)
-        => typeof(ISchemaDefinition) == parameter.ParameterType ||
-           typeof(Schema) == parameter.ParameterType;
+        => typeof(ISchemaDefinition) == parameter.ParameterType
+            || typeof(Schema) == parameter.ParameterType;
 
     public Expression Build(ParameterExpressionBuilderContext context)
         => Expression.Convert(
-            Expression.Property(context.ResolverContext, _schema),
+            Expression.Property(context.ResolverContext, s_schema),
             context.Parameter.ParameterType);
 
     public IParameterBinding Create(ParameterBindingContext context)

@@ -1,11 +1,8 @@
 using System.Globalization;
-using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Data;
 using HotChocolate.Data.Sorting;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Data.DataResources;
@@ -17,7 +14,7 @@ namespace HotChocolate.Types;
 
 public static class SortingObjectFieldDescriptorExtensions
 {
-    private static readonly MethodInfo _factoryTemplate =
+    private static readonly MethodInfo s_factoryTemplate =
         typeof(SortingObjectFieldDescriptorExtensions)
             .GetMethod(nameof(CreateBuilder), BindingFlags.Static | BindingFlags.NonPublic)!;
 
@@ -132,9 +129,9 @@ public static class SortingObjectFieldDescriptorExtensions
                     {
                         var convention = c.GetSortConvention(scope);
 
-                        if (definition.ResultType is null ||
-                            definition.ResultType == typeof(object) ||
-                            !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
+                        if (definition.ResultType is null
+                            || definition.ResultType == typeof(object)
+                            || !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
                         {
                             throw new ArgumentException(
                                 SortObjectFieldDescriptorExtensions_UseSorting_CannotHandleType,
@@ -213,8 +210,8 @@ public static class SortingObjectFieldDescriptorExtensions
         var fieldDescriptor = ObjectFieldDescriptor.From(context.DescriptorContext, definition);
         convention.ConfigureField(fieldDescriptor);
 
-        var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
+        var factory = s_factoryTemplate.MakeGenericMethod(type.EntityType.Source);
+        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention])!);
 
         var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
         definition.MiddlewareConfigurations[index] = new(middleware, key: WellKnownMiddleware.Sorting);

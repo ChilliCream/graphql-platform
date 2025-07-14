@@ -30,7 +30,11 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     private readonly int _maxBatchSize;
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
     private ImmutableDictionary<string, IDataLoader> _branches =
+#if NET10_0_OR_GREATER
+        [];
+#else
         ImmutableDictionary<string, IDataLoader>.Empty;
+#endif
     private Batch<TKey>? _currentBatch;
 
     /// <summary>
@@ -51,7 +55,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         ArgumentNullException.ThrowIfNull(batchScheduler);
         ArgumentNullException.ThrowIfNull(options);
 
-        _diagnosticEvents = options.DiagnosticEvents ?? Default;
+        _diagnosticEvents = options.DiagnosticEvents ?? s_default;
         Cache = options.Cache;
         _batchScheduler = batchScheduler;
         _maxBatchSize = options.MaxBatchSize;
@@ -259,20 +263,6 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     }
 
     /// <inheritdoc />
-    [Obsolete("Use SetCacheEntry instead.")]
-    public void Set(TKey key, Task<TValue?> value)
-    {
-        SetCacheEntry(key, value);
-    }
-
-    /// <inheritdoc />
-    [Obsolete("Use RemoveCacheEntry instead.")]
-    public void Remove(TKey key)
-    {
-        RemoveCacheEntry(key);
-    }
-
-    /// <inheritdoc />
     public IDataLoader Branch<TState>(
         string key,
         CreateDataLoaderBranch<TKey, TValue, TState> createBranch,
@@ -372,7 +362,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
                     var context = new DataLoaderFetchContext<TValue>(ContextData);
                     await FetchAsync(batch.Keys, buffer, context, cancellationToken).ConfigureAwait(false);
                     BatchOperationSucceeded(batch, batch.Keys, buffer);
-                    _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, buffer);
+                    _diagnosticEvents.BatchResults(batch.Keys, buffer);
                 }
                 catch (Exception ex)
                 {

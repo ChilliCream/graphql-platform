@@ -19,7 +19,7 @@ namespace HotChocolate.Types;
 
 public static class ProjectionObjectFieldDescriptorExtensions
 {
-    private static readonly MethodInfo _factoryTemplate =
+    private static readonly MethodInfo s_factoryTemplate =
         typeof(ProjectionObjectFieldDescriptorExtensions)
             .GetMethod(nameof(CreateMiddleware), BindingFlags.Static | BindingFlags.NonPublic)!;
 
@@ -142,8 +142,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
                     if (selectionType is null)
                     {
-                        if (definition.ResultType is null ||
-                            !context.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
+                        if (definition.ResultType is null
+                            || !context.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
                         {
                             throw new ArgumentException(
                                 UseProjection_CannotHandleType,
@@ -184,8 +184,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
             definition.Features.Set(feature with { HasProjectionMiddleware = true });
         }
 
-        var factory = _factoryTemplate.MakeGenericMethod(type);
-        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
+        var factory = s_factoryTemplate.MakeGenericMethod(type);
+        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention])!);
 
         var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
         definition.MiddlewareConfigurations[index] = new(middleware, key: WellKnownMiddleware.Projection);
@@ -215,15 +215,15 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
     private sealed class ProjectionQueryBuilder(IQueryBuilder innerBuilder) : IQueryBuilder
     {
-        private const string _mockContext = "HotChocolate.Data.Projections.ProxyContext";
+        private const string MockContext = "HotChocolate.Data.Projections.ProxyContext";
 
         public void Prepare(IMiddlewareContext context)
         {
             // in case we are being called from the node/nodes field we need to enrich
             // the projections context with the type that shall be resolved.
-            if (context.LocalContextData.TryGetValue(InternalType, out var value) &&
-                value is ObjectType objectType &&
-                objectType.RuntimeType != typeof(object))
+            if (context.LocalContextData.TryGetValue(InternalType, out var value)
+                && value is ObjectType objectType
+                && objectType.RuntimeType != typeof(object))
             {
                 var fieldProxy = new ObjectField(context.Selection.Field, objectType);
                 var selection = CreateProxySelection(context.Selection, fieldProxy);
@@ -231,9 +231,9 @@ public static class ProjectionObjectFieldDescriptorExtensions
             }
 
             //for use case when projection is used with Mutation Conventions
-            else if (context.Operation.Type is OperationType.Mutation &&
-                context.Selection.Type.NamedType() is ObjectType mutationPayloadType &&
-                mutationPayloadType.Features.TryGet(out MutationPayloadInfo? mutationInfo))
+            else if (context.Operation.Type is OperationType.Mutation
+                && context.Selection.Type.NamedType() is ObjectType mutationPayloadType
+                && mutationPayloadType.Features.TryGet(out MutationPayloadInfo? mutationInfo))
             {
                 var dataField = mutationPayloadType.Fields[mutationInfo.DataField];
                 var payloadSelectionSet = context.Operation.GetSelectionSet(context.Selection, mutationPayloadType);
@@ -241,13 +241,13 @@ public static class ProjectionObjectFieldDescriptorExtensions
                 context = new MiddlewareContextProxy(context, selection, dataField.DeclaringType);
             }
 
-            context.SetLocalState(_mockContext, context);
+            context.SetLocalState(MockContext, context);
             innerBuilder.Prepare(context);
         }
 
         public void Apply(IMiddlewareContext context)
         {
-            context = context.GetLocalStateOrDefault<MiddlewareContextProxy>(_mockContext) ?? context;
+            context = context.GetLocalStateOrDefault<MiddlewareContextProxy>(MockContext) ?? context;
             innerBuilder.Apply(context);
         }
     }
@@ -371,7 +371,6 @@ public static class ProjectionObjectFieldDescriptorExtensions
             => _context.ReplaceArgument(argumentName, newArgumentValue);
 
         IResolverContext IResolverContext.Clone() => _context.Clone();
-
     }
 
     private static Selection.Sealed CreateProxySelection(ISelection selection, ObjectField field)

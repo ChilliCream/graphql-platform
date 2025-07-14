@@ -1,8 +1,5 @@
 using System.Net;
-using System.Diagnostics;
 using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Json;
 
 namespace HotChocolate.Transport.Http;
@@ -12,9 +9,8 @@ namespace HotChocolate.Transport.Http;
 /// </summary>
 public sealed class GraphQLHttpResponse : IDisposable
 {
-    private static readonly OperationResult _transportError = CreateTransportError();
+    private static readonly OperationResult s_transportError = CreateTransportError();
 
-    private static readonly Encoding _utf8 = Encoding.UTF8;
     private readonly HttpResponseMessage _message;
 
     /// <summary>
@@ -124,15 +120,14 @@ public sealed class GraphQLHttpResponse : IDisposable
 
     private async ValueTask<OperationResult> ReadAsResultInternalAsync(string? charSet, CancellationToken ct)
     {
-        await using var contentStream = await _message.Content.ReadAsStreamAsync(ct)
-            .ConfigureAwait(false);
+        await using var contentStream = await _message.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
 
         var stream = contentStream;
 
-        var sourceEncoding = GetEncoding(charSet);
-        if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, _utf8.EncodingName))
+        var sourceEncoding = HttpTransportUtilities.GetEncoding(charSet);
+        if (HttpTransportUtilities.NeedsTranscoding(sourceEncoding))
         {
-            stream = GetTranscodingStream(contentStream, sourceEncoding);
+            stream = HttpTransportUtilities.GetTranscodingStream(contentStream, sourceEncoding);
         }
 
         var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
@@ -151,28 +146,26 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// <summary>
     /// Reads the GraphQL response as a <see cref="IAsyncEnumerable{T}"/> of <see cref="OperationResult"/>.
     /// </summary>
-    /// <param name="cancellationToken">
-    /// A cancellation token that can be used to cancel the HTTP request.
-    /// </param>
     /// <returns>
     /// A <see cref="IAsyncEnumerable{T}"/> of <see cref="OperationResult"/> that represents the asynchronous
     /// read operation to read the stream of <see cref="OperationResult"/>s from the underlying
     /// <see cref="HttpResponseMessage"/>.
     /// </returns>
-    public IAsyncEnumerable<OperationResult> ReadAsResultStreamAsync(CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<OperationResult> ReadAsResultStreamAsync()
     {
         var contentType = _message.Content.Headers.ContentType;
 
         if (contentType?.MediaType?.Equals(ContentType.EventStream, StringComparison.Ordinal) ?? false)
         {
-            return ReadAsResultStreamInternalAsync(contentType.CharSet, cancellationToken);
+            return new GraphQLHttpEventStreamEnumerable(_message);
         }
 
         // The server supports the newer graphql-response+json media type, and users are free
         // to use status codes.
         if (contentType?.MediaType?.Equals(ContentType.GraphQL, StringComparison.Ordinal) ?? false)
         {
-            return SingleResult(ReadAsResultInternalAsync(contentType.CharSet, cancellationToken));
+            return new GraphQLHttpSingleResultEnumerable(
+                ct => ReadAsResultInternalAsync(contentType.CharSet, ct));
         }
 
         // The server supports the older application/json media type, and the status code
@@ -180,71 +173,17 @@ public sealed class GraphQLHttpResponse : IDisposable
         if (contentType?.MediaType?.Equals(ContentType.Json, StringComparison.Ordinal) ?? false)
         {
             _message.EnsureSuccessStatusCode();
-            return SingleResult(ReadAsResultInternalAsync(contentType.CharSet, cancellationToken));
+            return new GraphQLHttpSingleResultEnumerable(
+                ct => ReadAsResultInternalAsync(contentType.CharSet, ct));
         }
 
-        return SingleResult(new ValueTask<OperationResult>(_transportError));
-    }
-
-    private async IAsyncEnumerable<OperationResult> ReadAsResultStreamInternalAsync(
-        string? charSet,
-        [EnumeratorCancellation] CancellationToken ct)
-    {
-        await using var contentStream = await _message.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
-
-        var stream = contentStream;
-
-        var sourceEncoding = GetEncoding(charSet);
-        if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, _utf8.EncodingName))
-        {
-            stream = GetTranscodingStream(contentStream, sourceEncoding);
-        }
-
-        await foreach (var item in GraphQLHttpEventStreamProcessor.ReadStream(stream, ct).ConfigureAwait(false))
-        {
-            yield return item;
-        }
+        return SingleResult(new ValueTask<OperationResult>(s_transportError));
     }
 
     private static async IAsyncEnumerable<OperationResult> SingleResult(ValueTask<OperationResult> result)
     {
         yield return await result.ConfigureAwait(false);
     }
-
-    private static Encoding? GetEncoding(string? charset)
-    {
-        Encoding? encoding = null;
-
-        if (charset != null)
-        {
-            try
-            {
-                // Remove at most a single set of quotes.
-                if (charset.Length > 2 && charset[0] == '\"' && charset[^1] == '\"')
-                {
-                    encoding = Encoding.GetEncoding(charset.Substring(1, charset.Length - 2));
-                }
-                else
-                {
-                    encoding = Encoding.GetEncoding(charset);
-                }
-            }
-            catch (ArgumentException e)
-            {
-                throw new InvalidOperationException("Invalid Charset", e);
-            }
-
-            Debug.Assert(encoding != null);
-        }
-
-        return encoding;
-    }
-
-    private static Stream GetTranscodingStream(Stream contentStream, Encoding sourceEncoding)
-        => Encoding.CreateTranscodingStream(
-            contentStream,
-            innerStreamEncoding: sourceEncoding,
-            outerStreamEncoding: _utf8);
 
     private static OperationResult CreateTransportError()
         => new OperationResult(

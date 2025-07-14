@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 
 public abstract class OutputField : FieldBase, IOutputFieldDefinition
 {
-    private Type _runtimeType = default!;
+    private Type _runtimeType = null!;
 
     protected OutputField(OutputFieldConfiguration configuration, int index)
         : base(configuration, index)

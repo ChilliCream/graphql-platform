@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -6,7 +7,7 @@ using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
-public sealed class CompositeSchemaContext
+internal sealed class CompositeSchemaContext
 {
     private readonly Dictionary<ITypeNode, IType> _compositeTypes = new(SyntaxComparer.BySyntax);
     private readonly Dictionary<string, ITypeDefinition> _typeDefinitionLookup;
@@ -15,6 +16,9 @@ public sealed class CompositeSchemaContext
     private ImmutableDictionary<string, DirectiveDefinitionNode> _directiveDefinitionNodeLookup;
 
     public CompositeSchemaContext(
+        string name,
+        string? description,
+        IServiceProvider services,
         string queryType,
         string? mutationType,
         string? subscriptionType,
@@ -22,22 +26,33 @@ public sealed class CompositeSchemaContext
         ImmutableArray<ITypeDefinition> typeDefinitions,
         ImmutableDictionary<string, ITypeDefinitionNode> typeDefinitionNodeLookup,
         ImmutableArray<FusionDirectiveDefinition> directiveDefinitions,
-        ImmutableDictionary<string, DirectiveDefinitionNode> directiveDefinitionNodeLookup)
+        ImmutableDictionary<string, DirectiveDefinitionNode> directiveDefinitionNodeLookup,
+        IFeatureCollection features)
     {
         _typeDefinitionLookup = typeDefinitions.ToDictionary(t => t.Name);
         _directiveDefinitionLookup = directiveDefinitions.ToDictionary(t => t.Name);
         _typeDefinitionNodeLookup = typeDefinitionNodeLookup;
         _directiveDefinitionNodeLookup = directiveDefinitionNodeLookup;
 
+        Name = name;
+        Description = description;
+        Services = services;
         QueryType = queryType;
         MutationType = mutationType;
         SubscriptionType = subscriptionType;
         Directives = directives;
         TypeDefinitions = typeDefinitions;
         DirectiveDefinitions = directiveDefinitions;
+        Features = features;
 
         AddSpecDirectives();
     }
+
+    public string Name { get; }
+
+    public string? Description { get; }
+
+    public IServiceProvider Services { get; }
 
     public string QueryType { get; }
 
@@ -50,6 +65,8 @@ public sealed class CompositeSchemaContext
     public ImmutableArray<DirectiveNode> Directives { get; }
 
     public ImmutableArray<FusionDirectiveDefinition> DirectiveDefinitions { get; private set; }
+
+    public IFeatureCollection Features { get; }
 
     public T GetTypeDefinition<T>(string typeName)
         where T : ITypeDefinitionNode

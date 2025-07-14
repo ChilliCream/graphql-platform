@@ -1,5 +1,4 @@
 using System.Text;
-using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 
 namespace HotChocolate.Types;
@@ -9,10 +8,10 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
     private readonly ErrorTypeHelper _errorTypeHelper = new();
     private readonly StringBuilder _sb = new();
     private readonly List<ObjectTypeConfiguration> _typeDefs = [];
-    private TypeInitializer _typeInitializer = default!;
-    private TypeRegistry _typeRegistry = default!;
-    private IDescriptorContext _context = default!;
-    private ObjectTypeConfiguration _mutationDef = default!;
+    private TypeInitializer _typeInitializer = null!;
+    private TypeRegistry _typeRegistry = null!;
+    private IDescriptorContext _context = null!;
+    private ObjectTypeConfiguration _mutationDef = null!;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -148,8 +147,8 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                         new FieldMiddlewareConfiguration(
                             FieldClassMiddlewareFactory.Create<QueryResultMiddleware>(
                                 (typeof(IReadOnlyList<CreateError>), errorFactories)),
-                            key: "Query Results",
-                            isRepeatable: false);
+                            isRepeatable: false,
+                            key: "Query Results");
 
                     // last but not least we insert the result middleware to the query field.
                     field.MiddlewareConfigurations.Insert(0, errorMiddleware);
@@ -160,7 +159,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
     private static TypeReference GetFieldType(TypeReference typeRef)
     {
-        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true, } extendedTypeRef
+        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true } extendedTypeRef
             && typeof(IFieldResult).IsAssignableFrom(extendedTypeRef.Type.Type))
         {
             return TypeReference.Create(extendedTypeRef.Type.TypeArguments[0], TypeContext.Output);

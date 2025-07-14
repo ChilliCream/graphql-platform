@@ -19,14 +19,14 @@ namespace HotChocolate.Types;
 /// </summary>
 public sealed class ObjectField : OutputField
 {
-    private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
+    private static readonly FieldDelegate s_empty = _ => throw new InvalidOperationException();
 
     internal ObjectField(ObjectFieldConfiguration configuration, int index)
         : base(configuration, index)
     {
         Member = configuration.Member;
         ResolverMember = configuration.ResolverMember ?? configuration.Member;
-        Middleware = _empty;
+        Middleware = s_empty;
         Resolver = configuration.Resolver!;
         ResolverExpression = configuration.Expression;
         SubscribeResolver = configuration.SubscribeResolver;
@@ -47,7 +47,6 @@ public sealed class ObjectField : OutputField
         Middleware = original.Middleware;
         Flags = original.Flags;
     }
-
 
     /// <summary>
     /// Gets the type that declares this field.
@@ -259,9 +258,9 @@ public sealed class ObjectField : OutputField
 
 file static class ResolverHelpers
 {
-    private static readonly ConcurrentDictionary<Type, IResolverResultPostProcessor> _methodCache = new();
+    private static readonly ConcurrentDictionary<Type, IResolverResultPostProcessor> s_methodCache = new();
 
-    private static readonly MethodInfo _createListPostProcessor =
+    private static readonly MethodInfo s_createListPostProcessor =
         typeof(ResolverHelpers).GetMethod(
             nameof(CreateListPostProcessor),
             BindingFlags.NonPublic | BindingFlags.Static)!;
@@ -270,7 +269,7 @@ file static class ResolverHelpers
     {
         var extendedType = inspector.GetType(type);
 
-        if(type == typeof(object))
+        if (type == typeof(object))
         {
             return ListPostProcessor<object>.Default;
         }
@@ -285,9 +284,9 @@ file static class ResolverHelpers
     }
 
     private static IResolverResultPostProcessor GetFactoryMethod(Type elementType)
-        => _methodCache.GetOrAdd(
+        => s_methodCache.GetOrAdd(
             elementType,
-            static t => (IResolverResultPostProcessor)_createListPostProcessor.MakeGenericMethod(t).Invoke(null, [])!);
+            static t => (IResolverResultPostProcessor)s_createListPostProcessor.MakeGenericMethod(t).Invoke(null, [])!);
 
     private static IResolverResultPostProcessor CreateListPostProcessor<T>()
         => ListPostProcessor<T>.Default;

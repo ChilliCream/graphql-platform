@@ -27,7 +27,7 @@ public abstract class FilterVisitorContext<T>
     public Stack<IInputValueDefinition> Operations { get; } = new Stack<IInputValueDefinition>();
 
     /// <inheritdoc />
-    public IList<IError> Errors { get; } = new List<IError>();
+    public IList<IError> Errors { get; } = [];
 
     /// <inheritdoc />
     public virtual FilterScope<T> CreateScope()

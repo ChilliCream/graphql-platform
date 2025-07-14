@@ -22,7 +22,7 @@ public class ProjectionProviderExtension
 
     void IProjectionProviderConvention.Initialize(IConventionContext context)
     {
-        base.Initialize(context);
+        Initialize(context);
     }
 
     void IProjectionProviderConvention.Complete(IConventionContext context)
@@ -52,9 +52,9 @@ public class ProjectionProviderExtension
 
     public override void Merge(IConventionContext context, Convention convention)
     {
-        if (Configuration is not null &&
-            convention is ProjectionProvider projectionProvider &&
-            projectionProvider.Configuration is { } target)
+        if (Configuration is not null
+            && convention is ProjectionProvider projectionProvider
+            && projectionProvider.Configuration is { } target)
         {
             // Provider extensions should be applied by default before the default handlers, as
             // the interceptor picks up the first handler. A provider extension should adds more

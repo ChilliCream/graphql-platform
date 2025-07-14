@@ -24,10 +24,7 @@ public class FooBarContext(string connectionString) : DbContext
                 .HasForeignKey("BarId");
         });
 
-        modelBuilder.Entity<Bar>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-        });
+        modelBuilder.Entity<Bar>(entity => entity.HasKey(e => e.Id));
     }
 }
 
@@ -36,7 +33,7 @@ public class Foo
     public int Id { get; set; }
 
     [MaxLength(100)]
-    public string Name { get; set; } = default!;
+    public string Name { get; set; } = null!;
 
     public int? BarId { get; set; }
 
@@ -51,7 +48,7 @@ public class Bar
     public string? Description { get; set; }
 
     [MaxLength(100)]
-    public string SomeField1 { get; set; } = default!;
+    public string SomeField1 { get; set; } = null!;
 
     [MaxLength(100)]
     public string? SomeField2 { get; set; }

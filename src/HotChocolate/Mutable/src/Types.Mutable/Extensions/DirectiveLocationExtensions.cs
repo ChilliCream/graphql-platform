@@ -3,7 +3,7 @@ namespace HotChocolate.Types.Mutable;
 
 internal static class DirectiveLocationExtensions
 {
-    private static readonly Dictionary<DirectiveLocation, Language.DirectiveLocation> _typeToLang =
+    private static readonly Dictionary<DirectiveLocation, Language.DirectiveLocation> s_typeToLang =
        new()
        {
            {
@@ -81,10 +81,10 @@ internal static class DirectiveLocationExtensions
            {
                DirectiveLocation.InputFieldDefinition,
                Language.DirectiveLocation.InputFieldDefinition
-           },
+           }
        };
 
-    private static readonly Dictionary<Language.DirectiveLocation, DirectiveLocation> _langToType =
+    private static readonly Dictionary<Language.DirectiveLocation, DirectiveLocation> s_langToType =
         new()
         {
             {
@@ -162,11 +162,11 @@ internal static class DirectiveLocationExtensions
             {
                 Language.DirectiveLocation.InputFieldDefinition,
                 DirectiveLocation.InputFieldDefinition
-            },
+            }
         };
 
     public static DirectiveLocation MapLocation(this Language.DirectiveLocation location)
-        => _langToType[location];
+        => s_langToType[location];
 
     public static IEnumerable<DirectiveLocation> AsEnumerable(
         this DirectiveLocation locations)
@@ -191,8 +191,8 @@ internal static class DirectiveLocationExtensions
             yield return DirectiveLocation.Field;
         }
 
-        if ((locations & DirectiveLocation.FragmentDefinition) ==
-            DirectiveLocation.FragmentDefinition)
+        if ((locations & DirectiveLocation.FragmentDefinition)
+            == DirectiveLocation.FragmentDefinition)
         {
             yield return DirectiveLocation.FragmentDefinition;
         }
@@ -207,8 +207,8 @@ internal static class DirectiveLocationExtensions
             yield return DirectiveLocation.InlineFragment;
         }
 
-        if ((locations & DirectiveLocation.VariableDefinition) ==
-            DirectiveLocation.VariableDefinition)
+        if ((locations & DirectiveLocation.VariableDefinition)
+            == DirectiveLocation.VariableDefinition)
         {
             yield return DirectiveLocation.VariableDefinition;
         }
@@ -228,14 +228,14 @@ internal static class DirectiveLocationExtensions
             yield return DirectiveLocation.Object;
         }
 
-        if ((locations & DirectiveLocation.FieldDefinition) ==
-            DirectiveLocation.FieldDefinition)
+        if ((locations & DirectiveLocation.FieldDefinition)
+            == DirectiveLocation.FieldDefinition)
         {
             yield return DirectiveLocation.FieldDefinition;
         }
 
-        if ((locations & DirectiveLocation.ArgumentDefinition) ==
-            DirectiveLocation.ArgumentDefinition)
+        if ((locations & DirectiveLocation.ArgumentDefinition)
+            == DirectiveLocation.ArgumentDefinition)
         {
             yield return DirectiveLocation.ArgumentDefinition;
         }
@@ -265,8 +265,8 @@ internal static class DirectiveLocationExtensions
             yield return DirectiveLocation.InputObject;
         }
 
-        if ((locations & DirectiveLocation.InputFieldDefinition) ==
-            DirectiveLocation.InputFieldDefinition)
+        if ((locations & DirectiveLocation.InputFieldDefinition)
+            == DirectiveLocation.InputFieldDefinition)
         {
             yield return DirectiveLocation.InputFieldDefinition;
         }
@@ -275,6 +275,6 @@ internal static class DirectiveLocationExtensions
     public static IReadOnlyList<Language.NameNode> ToNameNodes(
         this DirectiveLocation locations)
         => AsEnumerable(locations)
-            .Select(t => new Language.NameNode(null, _typeToLang[t].Value))
+            .Select(t => new Language.NameNode(null, s_typeToLang[t].Value))
             .ToArray();
 }

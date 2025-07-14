@@ -491,7 +491,7 @@ public class IntegrationTests(PostgreSqlResource resource)
         await using var context = new CatalogContext(connectionString);
         await context.Database.EnsureCreatedAsync();
 
-        var type = new ProductType { Name = "T-Shirt", };
+        var type = new ProductType { Name = "T-Shirt" };
         context.ProductTypes.Add(type);
 
         for (var i = 0; i < 100; i++)
@@ -506,7 +506,7 @@ public class IntegrationTests(PostgreSqlResource resource)
 
             for (var j = 0; j < 100; j++)
             {
-                var product = new Product { Name = $"Product {i}-{j}", Type = type, Brand = brand, };
+                var product = new Product { Name = $"Product {i}-{j}", Type = type, Brand = brand };
                 context.Products.Add(product);
             }
         }

@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Sorting;
 
 public class SortConventionDescriptor : ISortConventionDescriptor
 {
-    private readonly Dictionary<int, SortOperationConventionDescriptor> _operations = new();
+    private readonly Dictionary<int, SortOperationConventionDescriptor> _operations = [];
 
     protected SortConventionDescriptor(IDescriptorContext context, string? scope)
     {
@@ -61,8 +61,8 @@ public class SortConventionDescriptor : ISortConventionDescriptor
         ArgumentNullException.ThrowIfNull(runtimeType);
         ArgumentNullException.ThrowIfNull(sortType);
 
-        if (!typeof(SortInputType).IsAssignableFrom(sortType) &&
-            !typeof(SortEnumType).IsAssignableFrom(sortType))
+        if (!typeof(SortInputType).IsAssignableFrom(sortType)
+            && !typeof(SortEnumType).IsAssignableFrom(sortType))
         {
             throw new ArgumentException(
                 SortConventionDescriptor_MustInheritFromSortInputOrEnumType,

@@ -96,7 +96,7 @@ public enum TokenKind : byte
     Name,
 
     /// <summary>
-    /// A integer token.
+    /// An integer token.
     /// </summary>
     Integer,
 
@@ -123,5 +123,5 @@ public enum TokenKind : byte
     /// <summary>
     /// .
     /// </summary>
-    Dot,
+    Dot
 }

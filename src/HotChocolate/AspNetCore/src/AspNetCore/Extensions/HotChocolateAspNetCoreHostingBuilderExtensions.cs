@@ -27,7 +27,7 @@ public static class HotChocolateAspNetCoreHostingBuilderExtensions
     /// <returns></returns>
     public static IRequestExecutorBuilder AddGraphQL(
         this IHostApplicationBuilder builder,
-        string? schemaName = default,
+        string? schemaName = null,
         int maxAllowedRequestSize = MaxAllowedRequestSize,
         bool disableDefaultSecurity = false)
         => builder.Services.AddGraphQLServer(schemaName, maxAllowedRequestSize, disableDefaultSecurity);

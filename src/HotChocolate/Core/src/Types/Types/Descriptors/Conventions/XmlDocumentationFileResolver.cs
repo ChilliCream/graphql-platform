@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors;
 
 public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
 {
-    private const string _bin = "bin";
+    private const string Bin = "bin";
 
     private readonly Func<Assembly, string>? _resolveXmlDocumentationFileName;
 
@@ -108,7 +108,7 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
                     return path;
                 }
 
-                return IOPath.Combine(baseDirectory, _bin, expectedDocFile);
+                return IOPath.Combine(baseDirectory, Bin, expectedDocFile);
             }
 
             var currentDirectory = Directory.GetCurrentDirectory();
@@ -118,7 +118,7 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
                 return path;
             }
 
-            path = IOPath.Combine(currentDirectory, _bin, expectedDocFile);
+            path = IOPath.Combine(currentDirectory, Bin, expectedDocFile);
 
             if (File.Exists(path))
             {

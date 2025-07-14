@@ -1,5 +1,4 @@
 using HotChocolate.Data.Sorting.Expressions;
-using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Data.Sorting;
 

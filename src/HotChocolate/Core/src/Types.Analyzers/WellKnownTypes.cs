@@ -1,6 +1,3 @@
-using System.Data;
-using System.Diagnostics.Contracts;
-
 namespace HotChocolate.Types.Analyzers;
 
 public static class WellKnownTypes
@@ -29,7 +26,7 @@ public static class WellKnownTypes
     public const string Lookup = "System.Linq.ILookup";
     public const string Task = "System.Threading.Tasks.Task";
     public const string ValueTask = "System.Threading.Tasks.ValueTask";
-    public const string RequestCoreMiddleware = $"HotChocolate.Execution.{nameof(RequestCoreMiddleware)}";
+    public const string RequestMiddleware = $"HotChocolate.Execution.{nameof(RequestMiddleware)}";
     public const string Schema = $"HotChocolate.{nameof(Schema)}";
     public const string RequestExecutorBuilder = "HotChocolate.Execution.Configuration.IRequestExecutorBuilder";
     public const string FieldResolverDelegate = "HotChocolate.Resolvers.FieldResolverDelegate";
@@ -103,7 +100,7 @@ public static class WellKnownTypes
         UnionType,
         InputObjectType,
         EnumType,
-        ScalarType,
+        ScalarType
     ];
 
     public static HashSet<string> TypeExtensionClass { get; } =
@@ -112,12 +109,11 @@ public static class WellKnownTypes
         InterfaceTypeExtension,
         UnionTypeExtension,
         InputObjectTypeExtension,
-        EnumTypeExtension,
+        EnumTypeExtension
     ];
 
     public static HashSet<string> SupportedListInterfaces { get; } =
-        new()
-        {
+        [
             "System.Collections.Generic.IReadOnlyCollection<>",
             "System.Collections.Generic.IReadOnlyList<>",
             "System.Collections.Generic.ICollection<>",
@@ -139,7 +135,7 @@ public static class WellKnownTypes
             "System.Collections.Immutable.ImmutableHashSet<>",
             "HotChocolate.Execution.ISourceStream<>",
             "HotChocolate.IExecutable<>"
-        };
+        ];
 
     public static HashSet<string> TaskWrapper { get; } =
         [

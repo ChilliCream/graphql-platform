@@ -77,7 +77,7 @@ public static class SyntaxWriterExtensions
                 {
                     WriteStringValue(writer, stringValueNode);
                 }
-                else if(node is IValueNode<string> stringLikeNode)
+                else if (node is IValueNode<string> stringLikeNode)
                 {
                     WriteStringValue(writer, stringLikeNode.Value);
                 }

@@ -15,7 +15,7 @@ public sealed class Directive : IDirective
     public Directive(MutableDirectiveDefinition type, IEnumerable<ArgumentAssignment> arguments)
     {
         Definition = type;
-        Arguments = new ArgumentAssignmentCollection([..arguments]);
+        Arguments = new ArgumentAssignmentCollection([.. arguments]);
     }
 
     public string Name => Definition.Name;

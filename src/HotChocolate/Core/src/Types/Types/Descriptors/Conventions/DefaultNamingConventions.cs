@@ -11,10 +11,10 @@ public class DefaultNamingConventions
     : Convention
     , INamingConventions
 {
-    private const string _inputPostfix = "Input";
-    private const string _inputTypePostfix = "InputType";
-    private const string _directivePostfix = "Directive";
-    private const string _directiveTypePostfix = "DirectiveType";
+    private const string InputPostfix = "Input";
+    private const string InputTypePostfix = "InputType";
+    private const string DirectivePostfix = "Directive";
+    private const string DirectiveTypePostfix = "DirectiveType";
 
     private readonly IDocumentationProvider _documentation;
     private bool _formatInterfaceName;
@@ -58,50 +58,50 @@ public class DefaultNamingConventions
 
         var name = type.GetGraphQLName();
 
-        if (_formatInterfaceName &&
-            kind == TypeKind.Interface &&
-            type.IsInterface &&
-            name.Length > 1 &&
-            char.IsUpper(name[0]) &&
-            char.IsUpper(name[1]) &&
-            name[0] == 'I')
+        if (_formatInterfaceName
+            && kind == TypeKind.Interface
+            && type.IsInterface
+            && name.Length > 1
+            && char.IsUpper(name[0])
+            && char.IsUpper(name[1])
+            && name[0] == 'I')
         {
-            return name.Substring(1);
+            return name[1..];
         }
 
         if (kind == TypeKind.InputObject)
         {
             var isInputObjectType = typeof(InputObjectType).IsAssignableFrom(type);
-            var isEndingInput = name.EndsWith(_inputPostfix, StringComparison.Ordinal);
-            var isEndingInputType = name.EndsWith(_inputTypePostfix, StringComparison.Ordinal);
+            var isEndingInput = name.EndsWith(InputPostfix, StringComparison.Ordinal);
+            var isEndingInputType = name.EndsWith(InputTypePostfix, StringComparison.Ordinal);
 
             if (isInputObjectType && isEndingInputType)
             {
-                return name.Substring(0, name.Length - 4);
+                return name[..^4];
             }
 
             if (isInputObjectType && !isEndingInput && !isEndingInputType)
             {
-                return name + _inputPostfix;
+                return name + InputPostfix;
             }
 
             if (!isInputObjectType && !isEndingInput)
             {
-                return name + _inputPostfix;
+                return name + InputPostfix;
             }
         }
 
         if (kind is TypeKind.Directive)
         {
-            if (name.Length > _directivePostfix.Length &&
-                name.EndsWith(_directivePostfix, StringComparison.Ordinal))
+            if (name.Length > DirectivePostfix.Length
+                && name.EndsWith(DirectivePostfix, StringComparison.Ordinal))
             {
-                name = name.Substring(0, name.Length - _directivePostfix.Length);
+                name = name[..^DirectivePostfix.Length];
             }
-            else if (name.Length > _directiveTypePostfix.Length &&
-                name.EndsWith(_directiveTypePostfix, StringComparison.Ordinal))
+            else if (name.Length > DirectiveTypePostfix.Length
+                && name.EndsWith(DirectiveTypePostfix, StringComparison.Ordinal))
             {
-                name = name.Substring(0, name.Length - _directiveTypePostfix.Length);
+                name = name[..^DirectiveTypePostfix.Length];
             }
 
             name = NameFormattingHelpers.FormatFieldName(name);
@@ -115,37 +115,37 @@ public class DefaultNamingConventions
         var name = NameUtils.MakeValidGraphQLName(originalTypeName);
         ArgumentException.ThrowIfNullOrEmpty(name, nameof(originalTypeName));
 
-        if (_formatInterfaceName &&
-            kind == TypeKind.Interface &&
-            name.Length > 1 &&
-            char.IsUpper(name[0]) &&
-            char.IsUpper(name[1]) &&
-            name[0] == 'I')
+        if (_formatInterfaceName
+            && kind == TypeKind.Interface
+            && name.Length > 1
+            && char.IsUpper(name[0])
+            && char.IsUpper(name[1])
+            && name[0] == 'I')
         {
             return name[1..];
         }
 
         if (kind == TypeKind.InputObject)
         {
-            var isEndingInput = name.EndsWith(_inputPostfix, StringComparison.Ordinal);
+            var isEndingInput = name.EndsWith(InputPostfix, StringComparison.Ordinal);
 
             if (!isEndingInput)
             {
-                return name + _inputPostfix;
+                return name + InputPostfix;
             }
         }
 
         if (kind is TypeKind.Directive)
         {
-            if (name.Length > _directivePostfix.Length &&
-                name.EndsWith(_directivePostfix, StringComparison.Ordinal))
+            if (name.Length > DirectivePostfix.Length
+                && name.EndsWith(DirectivePostfix, StringComparison.Ordinal))
             {
-                name = name[..^_directivePostfix.Length];
+                name = name[..^DirectivePostfix.Length];
             }
-            else if (name.Length > _directiveTypePostfix.Length &&
-                name.EndsWith(_directiveTypePostfix, StringComparison.Ordinal))
+            else if (name.Length > DirectiveTypePostfix.Length
+                && name.EndsWith(DirectiveTypePostfix, StringComparison.Ordinal))
             {
-                name = name[..^_directiveTypePostfix.Length];
+                name = name[..^DirectiveTypePostfix.Length];
             }
 
             name = NameFormattingHelpers.FormatFieldName(name);
@@ -160,8 +160,8 @@ public class DefaultNamingConventions
         ArgumentNullException.ThrowIfNull(type);
 
         // we do not want the description of our internal schema types.
-        if (ExtendedType.Tools.IsNonGenericBaseType(type) ||
-            ExtendedType.Tools.IsGenericBaseType(type))
+        if (ExtendedType.Tools.IsNonGenericBaseType(type)
+            || ExtendedType.Tools.IsGenericBaseType(type))
         {
             return null;
         }
@@ -246,8 +246,7 @@ public class DefaultNamingConventions
                 .GetMember(value.ToString()!)
                 .FirstOrDefault();
 
-            if (enumMember is not null &&
-                enumMember.IsDefined(typeof(GraphQLNameAttribute)))
+            if (enumMember?.IsDefined(typeof(GraphQLNameAttribute)) == true)
             {
                 return enumMember.GetCustomAttribute<GraphQLNameAttribute>()!.Name;
             }
@@ -268,10 +267,10 @@ public class DefaultNamingConventions
         {
             var c = name[i];
 
-            if (i > 0 &&
-                char.IsUpper(c) &&
-                (!char.IsUpper(name[i - 1]) ||
-                    (i < lengthMinusOne && char.IsLower(name[i + 1]))))
+            if (i > 0
+                && char.IsUpper(c)
+                && (!char.IsUpper(name[i - 1])
+                || (i < lengthMinusOne && char.IsLower(name[i + 1]))))
             {
                 underscores++;
             }
@@ -310,10 +309,10 @@ public class DefaultNamingConventions
 
             for (var i = 1; i < name.Length; i++)
             {
-                if (!lastWasUnderline &&
-                    char.IsUpper(name[i]) &&
-                    (!char.IsUpper(name[i - 1]) ||
-                        (i < lengthMinusOne && char.IsLower(name[i + 1]))))
+                if (!lastWasUnderline
+                    && char.IsUpper(name[i])
+                    && (!char.IsUpper(name[i - 1])
+                    || (i < lengthMinusOne && char.IsLower(name[i + 1]))))
                 {
                     buffer[p++] = '_';
                 }

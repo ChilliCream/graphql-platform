@@ -1,13 +1,12 @@
 using System.Linq.Expressions;
 using GreenDonut.Data.TestContext;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 
 namespace GreenDonut.Data;
 
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
-public class IntegrationPagingHelperTests(PostgreSqlResource resource)
+public class PagingHelperIntegrationTests(PostgreSqlResource resource)
 {
     public PostgreSqlResource Resource { get; } = resource;
 
@@ -358,7 +357,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         var type = new ProductType
         {
-            Name = "T-Shirt",
+            Name = "T-Shirt"
         };
         context.ProductTypes.Add(type);
 
@@ -378,7 +377,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                 {
                     Name = $"Product {i}-{j}",
                     Type = type,
-                    Brand = brand,
+                    Brand = brand
                 };
                 context.Products.Add(product);
             }

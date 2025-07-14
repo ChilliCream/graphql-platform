@@ -16,7 +16,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
             SchemaName = input.SchemaName,
             AllowRequirements = input.AllowRequirements,
             RootPath = input.SelectionSet.Path,
-            SelectionSetIndex = input.SelectionSetIndex,
+            SelectionSetIndex = input.SelectionSetIndex
         };
 
         var (resolvable, _) =
@@ -86,7 +86,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
             return (selectionSetNode, null);
         }
 
-        if (unresolvableSelections is not null && type.IsEntity())
+        if (unresolvableSelections is not null)
         {
             var unresolvableSelectionSet = new SelectionSetNode(unresolvableSelections);
             context.Register(selectionSetNode, unresolvableSelectionSet);
@@ -111,7 +111,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
         );
 
         context.Register(selectionSetNode, result.Resolvable);
-        if(result.Unresolvable is not null)
+        if (result.Unresolvable is not null)
         {
             context.Register(selectionSetNode, result.Unresolvable);
         }
@@ -142,10 +142,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 return;
             }
 
-            if (resolvableSelections is not null)
-            {
-                resolvableSelections.Add(resolvable);
-            }
+            resolvableSelections?.Add(resolvable);
         }
 
         static FieldNode? GetProvidedField(FieldNode fieldNode, SelectionSetNode? providedSelectionSetNode)
@@ -333,7 +330,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 return;
             }
 
-            if(SelectionSetIndex.IsRegistered(branch))
+            if (SelectionSetIndex.IsRegistered(branch))
             {
                 return;
             }

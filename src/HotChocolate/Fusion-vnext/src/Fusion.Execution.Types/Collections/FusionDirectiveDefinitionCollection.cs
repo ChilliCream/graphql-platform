@@ -55,7 +55,7 @@ public sealed class FusionDirectiveDefinitionCollection
             return true;
         }
 
-        definition = default;
+        definition = null;
         return false;
     }
 

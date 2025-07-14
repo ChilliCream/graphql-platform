@@ -9,11 +9,8 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
     [Fact]
     public void InferNameFromType()
     {
-        // arrange
+        // arrange & act
         var descriptor = new ObjectTypeDescriptor<Foo>(Context);
-
-        // act
-        IObjectTypeDescriptor<Foo> desc = descriptor;
 
         // assert
         Assert.Equal("Foo", descriptor.CreateConfiguration().Name);
@@ -22,11 +19,8 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
     [Fact]
     public void GetNameFromAttribute()
     {
-        // arrange
+        // arrange & act
         var descriptor = new ObjectTypeDescriptor<Foo2>(Context);
-
-        // act
-        IObjectTypeDescriptor<Foo2> desc = descriptor;
 
         // assert
         Assert.Equal("FooAttr", descriptor.CreateConfiguration().Name);
@@ -124,7 +118,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
         // act
         IObjectTypeDescriptor<Foo> desc = descriptor;
-        desc.Field(t => t.Equals(default)).Ignore();
+        desc.Field(t => t.Equals(null)).Ignore();
 
         // assert
         Assert.Collection(
@@ -144,8 +138,8 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
         // act
         IObjectTypeDescriptor<Foo> desc = descriptor;
-        desc.Field(t => t.Equals(default)).Ignore();
-        desc.Field(t => t.Equals(default)).Ignore(false);
+        desc.Field(t => t.Equals(null)).Ignore();
+        desc.Field(t => t.Equals(null)).Ignore(false);
 
         // assert
         Assert.Collection(
@@ -201,9 +195,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
     }
 
     [GraphQLName("FooAttr")]
-    public class Foo2 : FooBase
-    {
-    }
+    public class Foo2 : FooBase;
 
     public class FooBase
     {
@@ -247,7 +239,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
     public class TestFieldMiddleware2
     {
-        private FieldDelegate _next;
+        private readonly FieldDelegate _next;
 
         public TestFieldMiddleware2(FieldDelegate next)
         {

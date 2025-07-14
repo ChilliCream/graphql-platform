@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Net.Http.Headers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -43,7 +42,7 @@ public class MutableInputFieldDefinition
     /// </summary>
     public ITypeSystemMember? DeclaringMember
     {
-        get => field;
+        get;
         set
         {
             if (value is not MutableInputObjectTypeDefinition

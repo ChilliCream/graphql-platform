@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Features;
 using HotChocolate.Utilities;
 
@@ -115,7 +114,7 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     {
         if (_dependencies?.Count > 0)
         {
-            target._dependencies = [.._dependencies];
+            target._dependencies = [.. _dependencies];
         }
 
         if (_configurations?.Count > 0)

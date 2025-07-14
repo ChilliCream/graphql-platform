@@ -42,7 +42,7 @@ public static class TestDataHelper
         schema = SchemaHelper.Load(
             [
                 new(schema.ToSyntaxNode()),
-                new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")")),
+                new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
             ]);
 
         var document = Utf8GraphQLParser.Parse(query);

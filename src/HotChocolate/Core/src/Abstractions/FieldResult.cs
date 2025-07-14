@@ -42,7 +42,7 @@ public readonly struct FieldResult<TResult> : IFieldResult
         ArgumentNullException.ThrowIfNull(error);
 
         Value = default;
-        Errors = new[] { error, };
+        Errors = new[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -138,7 +138,7 @@ public readonly struct FieldResult<TResult> : IFieldResult
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
     [MemberNotNullWhen(true, nameof(Errors))]
     public bool IsError { get; }
@@ -208,7 +208,7 @@ public readonly struct FieldResult<TResult, TError> : IFieldResult
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -313,7 +313,7 @@ public readonly struct FieldResult<TResult, TError> : IFieldResult
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
     [MemberNotNullWhen(true, nameof(Errors))]
     public bool IsError { get; }
@@ -410,7 +410,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -514,7 +514,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -691,7 +691,7 @@ public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
     [MemberNotNullWhen(true, nameof(Errors))]
     public bool IsError { get; }
@@ -817,7 +817,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -921,7 +921,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1025,7 +1025,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1202,7 +1202,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldR
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
     [MemberNotNullWhen(true, nameof(Errors))]
     public bool IsError { get; }
@@ -1356,7 +1356,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1460,7 +1460,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1564,7 +1564,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1668,7 +1668,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1845,7 +1845,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> 
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
     [MemberNotNullWhen(true, nameof(Errors))]
     public bool IsError { get; }
@@ -2027,7 +2027,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2131,7 +2131,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2235,7 +2235,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2339,7 +2339,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2426,7 +2426,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         IsError = !IsSuccess;
     }
 
-        /// <summary>
+    /// <summary>
     /// Initializes a mutation error result.
     /// </summary>
     /// <param name="error">
@@ -2443,7 +2443,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         }
 
         Value = default;
-        Errors = new object[] { error, };
+        Errors = new object[] { error };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2620,7 +2620,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
     public bool IsSuccess { get; }
 
     /// <summary>
-    /// Defines if the mutation had an error and if the result represents a error result.
+    /// Defines if the mutation had an error and if the result represents an error result.
     /// </summary>
     [MemberNotNullWhen(true, nameof(Errors))]
     public bool IsError { get; }

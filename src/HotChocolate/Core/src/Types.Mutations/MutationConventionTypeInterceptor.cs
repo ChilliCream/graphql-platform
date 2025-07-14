@@ -1,5 +1,4 @@
 using HotChocolate.Features;
-using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
@@ -14,12 +13,12 @@ namespace HotChocolate.Types;
 internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 {
     private readonly ErrorTypeHelper _errorTypeHelper = new();
-    private TypeInitializer _typeInitializer = default!;
-    private TypeRegistry _typeRegistry = default!;
-    private TypeLookup _typeLookup = default!;
-    private IDescriptorContext _context = default!;
-    private List<MutationContextData> _mutations = default!;
-    private ITypeCompletionContext _completionContext = default!;
+    private TypeInitializer _typeInitializer = null!;
+    private TypeRegistry _typeRegistry = null!;
+    private TypeLookup _typeLookup = null!;
+    private IDescriptorContext _context = null!;
+    private List<MutationContextData> _mutations = null!;
+    private ITypeCompletionContext _completionContext = null!;
     private ObjectTypeConfiguration? _mutationTypeDef;
     private FieldMiddlewareConfiguration? _errorNullMiddleware;
     private TypeInterceptor[] _siblings = [];
@@ -94,7 +93,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         // on the mutations.
         if (_mutationTypeDef is not null)
         {
-            HashSet<MutationContextData> unprocessed = [.. _mutations,];
+            HashSet<MutationContextData> unprocessed = [.. _mutations];
             var defLookup = _mutations.ToDictionary(t => t.Definition);
             var nameLookup = _mutations.ToDictionary(t => t.Name);
             var rootOptions = CreateOptions(_context);
@@ -120,8 +119,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 // next we check for specific mutation configuration overrides.
                 // if a user provided specific mutation settings they will take
                 // precedence over global and inferred settings.
-                if (defLookup.TryGetValue(mutationField, out var cd) ||
-                    nameLookup.TryGetValue(mutationField.Name, out cd))
+                if (defLookup.TryGetValue(mutationField, out var cd)
+                    || nameLookup.TryGetValue(mutationField.Name, out cd))
                 {
                     mutationOptions = CreateOptions(cd, mutationOptions);
                     unprocessed.Remove(cd);
@@ -233,7 +232,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             {
                 0 => null,
                 1 => formatters[0],
-                _ => new AggregateInputValueFormatter(formatters),
+                _ => new AggregateInputValueFormatter(formatters)
             };
 
             var defaultValue = argument.DefaultValue;
@@ -262,8 +261,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 Create<MutationConventionMiddleware>(
                     (typeof(string), options.InputArgumentName),
                     (typeof(IReadOnlyList<ResolverArgument>), resolverArguments)),
-                key: MutationArguments,
-                isRepeatable: false);
+                isRepeatable: false,
+                key: MutationArguments);
 
         mutation.Arguments.Clear();
         mutation.Arguments.Add(new(options.InputArgumentName, type: Parse($"{inputTypeName}!")));
@@ -279,8 +278,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         var payloadTypeName = options.FormatPayloadTypeName(mutation.Name);
 
         // we ensure that we can resolve the mutation result type.
-        if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef) ||
-            !_typeRegistry.TryGetType(typeRef, out var registration))
+        if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef)
+            || !_typeRegistry.TryGetType(typeRef, out var registration))
         {
             throw CannotResolvePayloadType();
         }
@@ -354,8 +353,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             var nullMiddleware = _errorNullMiddleware ??=
                 new FieldMiddlewareConfiguration(
                     Create<ErrorNullMiddleware>(),
-                    key: MutationErrorNull,
-                    isRepeatable: false);
+                    isRepeatable: false,
+                    key: MutationErrorNull);
 
             foreach (var resultField in payloadTypeDef.Fields)
             {
@@ -411,8 +410,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 new FieldMiddlewareConfiguration(
                     Create<ErrorMiddleware>(
                         (typeof(IReadOnlyList<CreateError>), errorFactories)),
-                    key: MutationErrors,
-                    isRepeatable: false);
+                    isRepeatable: false,
+                    key: MutationErrors);
 
             // last but not least we insert the error middleware to the mutation field.
             mutation.MiddlewareConfigurations.Insert(0, errorMiddleware);
@@ -441,8 +440,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 new FieldMiddlewareConfiguration(
                     Create<ErrorMiddleware>(
                         (typeof(IReadOnlyList<CreateError>), errorFactories)),
-                    key: MutationErrors,
-                    isRepeatable: false);
+                    isRepeatable: false,
+                    key: MutationErrors);
 
             mutation.MiddlewareConfigurations.Insert(0, errorMiddleware);
         }
@@ -499,8 +498,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             {
                 var parent = ctx.Parent<object?>();
 
-                if (ReferenceEquals(ErrorMarker.Instance, parent) ||
-                    ReferenceEquals(NullMarker.Instance, parent))
+                if (ReferenceEquals(ErrorMarker.Instance, parent)
+                    || ReferenceEquals(NullMarker.Instance, parent))
                 {
                     return null;
                 }
@@ -602,22 +601,22 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         _typeInitializer.CompleteTypeName(registeredType);
         _typeInitializer.CompileResolvers(registeredType);
 
-        if (registeredType.Type is ObjectType errorObject &&
-            errorObject.RuntimeType != typeof(object))
+        if (registeredType.Type is ObjectType errorObject
+            && errorObject.RuntimeType != typeof(object))
         {
             foreach (var possibleInterface in _typeRegistry.Types)
             {
-                if (possibleInterface.Type is InterfaceType interfaceType &&
-                    interfaceType.RuntimeType != typeof(object) &&
-                    interfaceType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
+                if (possibleInterface.Type is InterfaceType interfaceType
+                    && interfaceType.RuntimeType != typeof(object)
+                    && interfaceType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
                 {
                     var typeRef = possibleInterface.TypeReference;
                     errorObject.Configuration!.Interfaces.Add(typeRef);
                     registeredType.Dependencies.Add(new(typeRef, Completed));
                 }
-                else if (possibleInterface.Type is UnionType unionType &&
-                    unionType.RuntimeType != typeof(object) &&
-                    unionType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
+                else if (possibleInterface.Type is UnionType unionType
+                    && unionType.RuntimeType != typeof(object)
+                    && unionType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
                 {
                     var typeRef = registeredType.TypeReference;
                     unionType.Configuration!.Types.Add(typeRef);
@@ -625,14 +624,14 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 }
             }
         }
-        else if (registeredType.Type is ObjectType errorInterface &&
-            errorInterface.RuntimeType != typeof(object))
+        else if (registeredType.Type is ObjectType errorInterface
+            && errorInterface.RuntimeType != typeof(object))
         {
             foreach (var possibleInterface in _typeRegistry.Types)
             {
-                if (possibleInterface.Type is InterfaceType interfaceType &&
-                    interfaceType.RuntimeType != typeof(object) &&
-                    interfaceType.RuntimeType.IsAssignableFrom(errorInterface.RuntimeType))
+                if (possibleInterface.Type is InterfaceType interfaceType
+                    && interfaceType.RuntimeType != typeof(object)
+                    && interfaceType.RuntimeType.IsAssignableFrom(errorInterface.RuntimeType))
                 {
                     var typeRef = possibleInterface.TypeReference;
                     errorInterface.Configuration!.Interfaces.Add(typeRef);
@@ -702,13 +701,13 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             NonNullType nnt => new NonNullTypeNode((INullableTypeNode)CreateTypeNode(nnt.NullableType)),
             ListType lt => new ListTypeNode(CreateTypeNode(lt.ElementType)),
             ITypeDefinition nt => new NamedTypeNode(nt.Name),
-            _ => throw new NotSupportedException("Type is not supported."),
+            _ => throw new NotSupportedException("Type is not supported.")
         };
 
     private static TypeReference NormalizeTypeRef(TypeReference typeRef)
     {
-        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true, } extendedTypeRef &&
-            typeof(IFieldResult).IsAssignableFrom(extendedTypeRef.Type.Type))
+        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true } extendedTypeRef
+            && typeof(IFieldResult).IsAssignableFrom(extendedTypeRef.Type.Type))
         {
             return extendedTypeRef.WithType(extendedTypeRef.Type.TypeArguments[0]);
         }
@@ -745,17 +744,17 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         public string FormatInputTypeName(string mutationName)
             => InputTypeNamePattern.Replace(
                 $"{{{MutationConventionOptionDefaults.MutationName}}}",
-                char.ToUpper(mutationName[0]) + mutationName.Substring(1));
+                char.ToUpper(mutationName[0]) + mutationName[1..]);
 
         public string FormatPayloadTypeName(string mutationName)
             => PayloadTypeNamePattern.Replace(
                 $"{{{MutationConventionOptionDefaults.MutationName}}}",
-                char.ToUpper(mutationName[0]) + mutationName.Substring(1));
+                char.ToUpper(mutationName[0]) + mutationName[1..]);
 
         public string FormatErrorTypeName(string mutationName)
             => PayloadErrorTypeNamePattern.Replace(
                 $"{{{MutationConventionOptionDefaults.MutationName}}}",
-                char.ToUpper(mutationName[0]) + mutationName.Substring(1));
+                char.ToUpper(mutationName[0]) + mutationName[1..]);
     }
 
     private readonly struct FieldDef(string name, TypeReference type)

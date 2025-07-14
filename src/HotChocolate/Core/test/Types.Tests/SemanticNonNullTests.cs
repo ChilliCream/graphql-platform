@@ -62,10 +62,7 @@ public class SemanticNonNullTests
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.EnableSemanticNonNull = true;
-            })
+            .ModifyOptions(o => o.EnableSemanticNonNull = true)
             .AddQueryType<QueryWithPagination>()
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
@@ -163,7 +160,7 @@ public class SemanticNonNullTests
     {
         public int Id { get; set; }
 
-        public string Field { get; set; } = default!;
+        public string Field { get; set; } = null!;
 
         public static SomeObject? Get(int id) => new();
     }
@@ -354,7 +351,7 @@ public class SemanticNonNullTests
 
     public class Foo
     {
-        public string Bar { get; } = default!;
+        public string Bar { get; } = null!;
     }
 
     [ObjectType("Query")]

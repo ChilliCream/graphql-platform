@@ -9,10 +9,10 @@ namespace HotChocolate.Types;
 /// </summary>
 public partial class HslaType : RegexType
 {
-    private const string _validationPattern =
+    private const string ValidationPattern =
         "^(?:hsla?)\\((?:[0-9]+%?(?:deg|rad|grad|turn)?(?:,|\\s)+){2,3}[\\s\\/]*[0-9\\.]+%?\\)";
 
-    [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(ValidationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
 
     /// <summary>

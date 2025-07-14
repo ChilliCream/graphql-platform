@@ -110,7 +110,7 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
 
             for (var i = 1; i < node.Fields.Count; i++)
             {
-                WriteLineOrSpace(writer);
+                WriteLineOrCommaSpace(writer);
                 Visit(node.Fields[i], writer);
             }
         }
@@ -175,6 +175,18 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
         else
         {
             writer.WriteSpace();
+        }
+    }
+
+    private void WriteLineOrCommaSpace(ISyntaxWriter writer)
+    {
+        if (options.Indented)
+        {
+            writer.WriteLine();
+        }
+        else
+        {
+            writer.Write(", ");
         }
     }
 }

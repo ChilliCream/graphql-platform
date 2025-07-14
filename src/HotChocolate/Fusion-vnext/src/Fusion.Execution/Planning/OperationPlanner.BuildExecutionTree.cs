@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
@@ -10,9 +9,11 @@ public sealed partial class OperationPlanner
     /// <summary>
     /// Builds the actual execution plan from the provided <paramref name="planSteps"/>.
     /// </summary>
-    private static OperationPlan BuildExecutionPlan(
+    private OperationExecutionPlan BuildExecutionPlan(
+        string id,
         ImmutableList<OperationPlanStep> planSteps,
-        OperationDefinitionNode originalOperation)
+        OperationDefinitionNode originalOperation,
+        OperationDefinitionNode internalOperation)
     {
         var completedSteps = new HashSet<int>();
         var completedNodes = new Dictionary<int, ExecutionNode>();
@@ -32,8 +33,17 @@ public sealed partial class OperationPlanner
             .Select(t => t.Value)
             .ToImmutableArray();
 
-        return new OperationPlan
+        var operation = _operationCompiler.Compile(id, internalOperation);
+
+        foreach (var node in allNodes)
         {
+            node.Seal();
+        }
+
+        return new OperationExecutionPlan
+        {
+            Operation = operation,
+            OperationDefinition = originalOperation,
             RootNodes = rootNodes,
             AllNodes = allNodes
         };
@@ -68,7 +78,7 @@ public sealed partial class OperationPlanner
             // The operation definition of the current OperationPlanStep do not yet
             // have variable definitions declared, so we need to traverse the operation definition
             // and look at what variables and requirements are used within the operation definition.
-            updatedPlanSteps.Replace(step, AddVariableDefinitions(step));
+            updatedPlanSteps = updatedPlanSteps.Replace(step, AddVariableDefinitions(step));
 
             // Each PlanStep tracks dependant PlanSteps,
             // so PlanSteps that require data (lookup or field requirements)
@@ -106,6 +116,7 @@ public sealed partial class OperationPlanner
                     new VariableDefinitionNode(
                         null,
                         new VariableNode(null, new NameNode(key)),
+                        description: null,
                         requirement.Type,
                         null,
                         []);
@@ -138,28 +149,27 @@ public sealed partial class OperationPlanner
                     continue;
                 }
 
-                var requirements = ImmutableArray<OperationRequirement>.Empty;
+                var requirements = Array.Empty<OperationRequirement>();
 
                 if (!step.Requirements.IsEmpty)
                 {
-                    var builder = ImmutableArray.CreateBuilder<OperationRequirement>();
+                    var temp = new List<OperationRequirement>();
 
                     foreach (var (_, requirement) in step.Requirements.OrderBy(t => t.Key))
                     {
-                        builder.Add(requirement);
+                        temp.Add(requirement);
                     }
 
-                    requirements = builder.ToImmutable();
+                    requirements = temp.ToArray();
                 }
 
                 var operationNode = new OperationExecutionNode(
                     step.Id,
                     step.Definition,
                     step.SchemaName,
-                    // TODO : fix path
-                    SelectionPath.Root,
-                    SelectionPath.Root,
-                    [.. step.Requirements.Values]);
+                    step.Target,
+                    step.Source,
+                    requirements);
 
                 completedNodes.Add(step.Id, operationNode);
             }
@@ -202,8 +212,8 @@ public sealed partial class OperationPlanner
                     continue;
                 }
 
-                completedNodes[dependencyId] = dependencyNode with { Dependents = dependencyNode.Dependents.Add(node) };
-                completedNodes[nodeId] = node with { Dependencies = node.Dependencies.Add(dependencyNode) };
+                dependencyNode.AddDependent(node);
+                node.AddDependency(dependencyNode);
             }
         }
     }

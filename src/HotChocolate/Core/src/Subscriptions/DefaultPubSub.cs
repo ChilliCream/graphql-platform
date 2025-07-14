@@ -154,10 +154,8 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
     {
         var eventTopic = OnCreateTopic<TMessage>(formattedTopic, bufferCapacity, bufferFullMode);
 
-        eventTopic.Closed += (sender, __) =>
-        {
-            _topics.TryRemove(((DefaultTopic<TMessage>)sender!).Name, out _);
-        };
+        eventTopic.Closed +=
+            (sender, __) => _topics.TryRemove(((DefaultTopic<TMessage>)sender!).Name, out _);
 
         DiagnosticEvents.Created(formattedTopic);
 
@@ -190,7 +188,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
             throw new InvalidMessageTypeException(value.MessageType, typeof(TMessage));
         }
 
-        topic = default;
+        topic = null;
         return false;
     }
 
@@ -204,7 +202,7 @@ public abstract class DefaultPubSub : ITopicEventReceiver, ITopicEventSender, ID
             return true;
         }
 
-        topic = default;
+        topic = null;
         return false;
     }
 

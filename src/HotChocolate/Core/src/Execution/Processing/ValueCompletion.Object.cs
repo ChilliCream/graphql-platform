@@ -24,8 +24,8 @@ internal static partial class ValueCompletion
             var selectionSet = operationContext.CollectFields(selection, objectType);
             var runtimeType = objectType.RuntimeType;
 
-            if (!runtimeType.IsInstanceOfType(result) &&
-                operationContext.Converter.TryConvert(runtimeType, result, out var converted))
+            if (!runtimeType.IsInstanceOfType(result)
+                && operationContext.Converter.TryConvert(runtimeType, result, out var converted))
             {
                 result = converted;
             }
@@ -50,8 +50,8 @@ internal static partial class ValueCompletion
     {
         try
         {
-            if (context.ResolverContext.ValueType is ObjectType valueType &&
-                ReferenceEquals(selection, context.ResolverContext.Selection))
+            if (context.ResolverContext.ValueType is ObjectType valueType
+                && ReferenceEquals(selection, context.ResolverContext.Selection))
             {
                 objectType = valueType;
                 return true;
@@ -60,16 +60,16 @@ internal static partial class ValueCompletion
             switch (fieldType.Kind)
             {
                 case TypeKind.Object:
-                    objectType = (ObjectType) fieldType;
+                    objectType = (ObjectType)fieldType;
                     return true;
 
                 case TypeKind.Interface:
-                    objectType = ((InterfaceType) fieldType)
+                    objectType = ((InterfaceType)fieldType)
                         .ResolveConcreteType(context.ResolverContext, result);
                     return objectType is not null;
 
                 case TypeKind.Union:
-                    objectType = ((UnionType) fieldType)
+                    objectType = ((UnionType)fieldType)
                         .ResolveConcreteType(context.ResolverContext, result);
                     return objectType is not null;
             }

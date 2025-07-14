@@ -4,7 +4,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
-/// Represents a collection of filter fields and operations .
+/// Represents a collection of filter fields and operations.
 /// </summary>
 public class FilterInfo : FilterValueNode, IFilterInfo
 {
@@ -49,8 +49,8 @@ public class FilterInfo : FilterValueNode, IFilterInfo
             type = nonNullType.NullableType;
         }
 
-        if (ValueNode is ObjectValueNode valueNode &&
-            type is FilterInputType filterInputType)
+        if (ValueNode is ObjectValueNode valueNode
+            && type is FilterInputType filterInputType)
         {
             List<IFilterFieldInfo>? fieldInfos = null;
             List<IFilterOperationInfo>? operationInfos = null;
@@ -90,9 +90,9 @@ public class FilterInfo : FilterValueNode, IFilterInfo
             normalizedType = nonNullType.NullableType;
         }
 
-        if (valueNode is ListValueNode listValueNode &&
-            normalizedType.IsListType() &&
-            normalizedType.NamedType() is IFilterInputType)
+        if (valueNode is ListValueNode listValueNode
+            && normalizedType.IsListType()
+            && normalizedType.NamedType() is IFilterInputType)
         {
             List<IFilterValueNode> values = new(listValueNode.Items.Count);
 

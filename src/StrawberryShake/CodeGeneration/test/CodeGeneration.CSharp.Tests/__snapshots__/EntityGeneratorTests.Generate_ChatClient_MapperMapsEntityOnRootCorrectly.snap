@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -1516,7 +1517,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the WriteMessage GraphQL operation
     /// <code>
-    /// mutation WriteMessage($text: String!, $address: String!) {
+    /// mutation WriteMessage(
+    ///   $text: String!
+    ///   $address: String!
+    /// ) {
     ///   sendMessage(input: { text: $text, recipientEmail: $address }) {
     ///     __typename
     ///     message {
@@ -1893,7 +1897,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the WriteMessage GraphQL operation
     /// <code>
-    /// mutation WriteMessage($text: String!, $address: String!) {
+    /// mutation WriteMessage(
+    ///   $text: String!
+    ///   $address: String!
+    /// ) {
     ///   sendMessage(input: { text: $text, recipientEmail: $address }) {
     ///     __typename
     ///     message {
@@ -2018,7 +2025,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the WriteMessage GraphQL operation
     /// <code>
-    /// mutation WriteMessage($text: String!, $address: String!) {
+    /// mutation WriteMessage(
+    ///   $text: String!
+    ///   $address: String!
+    /// ) {
     ///   sendMessage(input: { text: $text, recipientEmail: $address }) {
     ///     __typename
     ///     message {
@@ -2167,7 +2177,7 @@ namespace Foo.Bar.State
             }
 
             IGetPeople_People returnValue = default !;
-            if (data?.__typename.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PersonConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetPeople_People_PersonConnection(MapIGetPeople_People_NodesArray(data.Nodes, snapshot));
             }
@@ -2218,7 +2228,7 @@ namespace Foo.Bar.State
             }
 
             IGetPeople_People_Nodes_Messages returnValue = default !;
-            if (data?.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetPeople_People_Nodes_Messages_MessageConnection(MapIGetPeople_People_Nodes_Messages_NodesArray(data.Nodes, snapshot));
             }
@@ -2833,7 +2843,7 @@ namespace Foo.Bar.State
             }
 
             IGetPeople_People_Nodes_Messages returnValue = default !;
-            if (data?.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetPeople_People_Nodes_Messages_MessageConnection(MapIGetPeople_People_Nodes_Messages_NodesArray(data.Nodes, snapshot));
             }

@@ -1,6 +1,6 @@
 [
   {
-    "Message": "Operation `takesCat` has a empty selection set. Root types without subfields are disallowed.",
+    "Message": "Operation `takesCat` has an empty selection set. Root types without subfields are disallowed.",
     "Code": null,
     "Path": null,
     "Locations": [
@@ -17,7 +17,7 @@
     "Exception": null
   },
   {
-    "Message": "Operation `takesDogBang` has a empty selection set. Root types without subfields are disallowed.",
+    "Message": "Operation `takesDogBang` has an empty selection set. Root types without subfields are disallowed.",
     "Code": null,
     "Path": null,
     "Locations": [
@@ -34,7 +34,7 @@
     "Exception": null
   },
   {
-    "Message": "Operation `takesListOfPet` has a empty selection set. Root types without subfields are disallowed.",
+    "Message": "Operation `takesListOfPet` has an empty selection set. Root types without subfields are disallowed.",
     "Code": null,
     "Path": null,
     "Locations": [
@@ -51,7 +51,7 @@
     "Exception": null
   },
   {
-    "Message": "Operation `takesCatOrDog` has a empty selection set. Root types without subfields are disallowed.",
+    "Message": "Operation `takesCatOrDog` has an empty selection set. Root types without subfields are disallowed.",
     "Code": null,
     "Path": null,
     "Locations": [

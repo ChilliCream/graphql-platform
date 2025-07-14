@@ -94,7 +94,7 @@ public static class GenerateCommand
 
     private sealed class GenerateCommandHandler : CommandHandler<GenerateCommandArguments>
     {
-        private static readonly MD5 _md5 = MD5.Create();
+        private static readonly MD5 s_md5 = MD5.Create();
 
         public GenerateCommandHandler(IConsoleOutput output)
         {
@@ -171,7 +171,7 @@ public static class GenerateCommand
             CancellationToken cancellationToken)
         {
             var deleteList = Directory.Exists(outputDir)
-                ? [..Directory.GetFiles(outputDir, $"{clientName}.*.cs"),]
+                ? [.. Directory.GetFiles(outputDir, $"{clientName}.*.cs")]
                 : new HashSet<string>();
 
             foreach (var doc in result.Documents)
@@ -281,10 +281,10 @@ public static class GenerateCommand
                 var readTask = File.ReadAllBytesAsync(fileName, cancellationToken);
 
                 var source = Encoding.UTF8.GetBytes(sourceText);
-                var sourceHash = _md5.ComputeHash(source);
+                var sourceHash = s_md5.ComputeHash(source);
 
                 var current = await readTask;
-                var currentHash = _md5.ComputeHash(current);
+                var currentHash = s_md5.ComputeHash(current);
 
                 return !currentHash.AsSpan().SequenceEqual(sourceHash);
             }

@@ -1,5 +1,3 @@
-using HotChocolate.Types.Descriptors.Configurations;
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -31,7 +29,7 @@ internal sealed class MutationDirective : ISchemaDirective
         DirectiveNode directiveNode,
         ObjectFieldConfiguration fieldDef)
     {
-        var data = new MutationDirectiveData { Enabled = true, };
+        var data = new MutationDirectiveData { Enabled = true };
         var args = directiveNode.Arguments;
 
         for (var i = 0; i < args.Count; i++)

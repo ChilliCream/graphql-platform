@@ -19,7 +19,7 @@ public class RequestExecutorTests
         var executor = schema.MakeExecutable();
 
         // act
-        Task Action() => executor.ExecuteAsync(null!, default);
+        Task Action() => executor.ExecuteAsync(null!, CancellationToken.None);
 
         // assert
         ArgumentException exception = await Assert.ThrowsAsync<ArgumentNullException>(Action);

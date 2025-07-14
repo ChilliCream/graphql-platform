@@ -5,8 +5,8 @@ namespace HotChocolate.Utilities;
 
 internal sealed class CombinedServiceProvider : IServiceProvider
 {
-    private static List<object>? _buffer = [];
-    private static readonly Type _enumerable = typeof(IEnumerable<>);
+    private static List<object>? s_buffer = [];
+    private static readonly Type s_enumerable = typeof(IEnumerable<>);
     private readonly IServiceProvider _first;
     private readonly IServiceProvider _second;
     private readonly IServiceProviderIsService? _serviceInspector;
@@ -34,7 +34,7 @@ internal sealed class CombinedServiceProvider : IServiceProvider
             return _serviceInspector;
         }
 
-        if (serviceType.IsGenericType && serviceType.GetGenericTypeDefinition() == _enumerable)
+        if (serviceType.IsGenericType && serviceType.GetGenericTypeDefinition() == s_enumerable)
         {
             var elementType = serviceType.GetGenericArguments()[0];
             var firstResult = (IEnumerable?)_first.GetService(serviceType);
@@ -67,7 +67,7 @@ internal sealed class CombinedServiceProvider : IServiceProvider
 
         try
         {
-            var buffer = Interlocked.Exchange(ref _buffer, null) ?? [];
+            var buffer = Interlocked.Exchange(ref s_buffer, null) ?? [];
 
             while (enumeratorA.MoveNext())
             {
@@ -110,7 +110,7 @@ internal sealed class CombinedServiceProvider : IServiceProvider
         : IServiceProviderIsService
     {
         public bool IsService(Type serviceType)
-            => first.IsService(serviceType) ||
-                second.IsService(serviceType);
+            => first.IsService(serviceType)
+                || second.IsService(serviceType);
     }
 }

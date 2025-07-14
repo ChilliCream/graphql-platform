@@ -61,7 +61,7 @@ public class SqlLiteOffsetTestBase
                         })
                     .UseOffsetPaging<ObjectType<TEntity>>(options: new()
                     {
-                        IncludeTotalCount = true,
+                        IncludeTotalCount = true
                     }));
 
         var schema = builder.Create();
@@ -76,8 +76,8 @@ public class SqlLiteOffsetTestBase
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync()
             .Result;
     }
 }

@@ -5,12 +5,13 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLRequestParser
 {
-    private const string _persistedQuery = "persistedQuery";
+    private const string PersistedQuery = "persistedQuery";
     private readonly IDocumentHashProvider? _hashProvider;
     private readonly IDocumentCache? _cache;
     private readonly bool _useCache;
     private readonly ParserOptions _options;
     private Utf8GraphQLReader _reader;
+    private Utf8MemoryBuilder? _memory;
 
     public Utf8GraphQLRequestParser(
         ReadOnlySpan<byte> requestData,
@@ -27,21 +28,35 @@ public ref partial struct Utf8GraphQLRequestParser
 
     public GraphQLRequest ParsePersistedOperation(string operationId, string? operationName)
     {
-        _reader.MoveNext();
-
-        if (_reader.Kind == TokenKind.LeftBrace)
+        try
         {
-            var request = ParseMutableRequest(operationId);
+            _reader.MoveNext();
 
-            return new GraphQLRequest
-            (
-                null,
-                request.QueryId,
-                null,
-                operationName ?? request.OperationName,
-                request.Variables,
-                request.Extensions
-            );
+            if (_reader.Kind == TokenKind.LeftBrace)
+            {
+                var request = ParseMutableRequest(operationId);
+
+                return new GraphQLRequest
+                (
+                    null,
+                    request.DocumentId,
+                    null,
+                    operationName ?? request.OperationName,
+                    request.Variables,
+                    request.Extensions
+                );
+            }
+        }
+        catch
+        {
+            _memory?.Abandon();
+            _memory = null;
+            throw;
+        }
+        finally
+        {
+            _memory?.Seal();
+            _memory = null;
         }
 
         throw ThrowHelper.InvalidRequestStructure(_reader);
@@ -49,17 +64,31 @@ public ref partial struct Utf8GraphQLRequestParser
 
     public IReadOnlyList<GraphQLRequest> Parse()
     {
-        _reader.MoveNext();
-
-        if (_reader.Kind == TokenKind.LeftBrace)
+        try
         {
-            var singleRequest = ParseRequest();
-            return [singleRequest,];
+            _reader.MoveNext();
+
+            if (_reader.Kind == TokenKind.LeftBrace)
+            {
+                var singleRequest = ParseRequest();
+                return [singleRequest];
+            }
+
+            if (_reader.Kind == TokenKind.LeftBracket)
+            {
+                return ParseBatchRequest();
+            }
         }
-
-        if (_reader.Kind == TokenKind.LeftBracket)
+        catch
         {
-            return ParseBatchRequest();
+            _memory?.Abandon();
+            _memory = null;
+            throw;
+        }
+        finally
+        {
+            _memory?.Seal();
+            _memory = null;
         }
 
         throw ThrowHelper.InvalidRequestStructure(_reader);
@@ -67,14 +96,28 @@ public ref partial struct Utf8GraphQLRequestParser
 
     public GraphQLSocketMessage ParseMessage()
     {
-        _reader.MoveNext();
-        _reader.Expect(TokenKind.LeftBrace);
-
         var message = new Message();
 
-        while (_reader.Kind != TokenKind.RightBrace)
+        try
         {
-            ParseMessageProperty(ref message);
+            _reader.MoveNext();
+            _reader.Expect(TokenKind.LeftBrace);
+
+            while (_reader.Kind != TokenKind.RightBrace)
+            {
+                ParseMessageProperty(ref message);
+            }
+        }
+        catch
+        {
+            _memory?.Abandon();
+            _memory = null;
+            throw;
+        }
+        finally
+        {
+            _memory?.Seal();
+            _memory = null;
         }
 
         if (message.Type is null)
@@ -93,8 +136,22 @@ public ref partial struct Utf8GraphQLRequestParser
 
     public object? ParseJson()
     {
-        _reader.MoveNext();
-        return ParseValue();
+        try
+        {
+            _reader.MoveNext();
+            return ParseValue();
+        }
+        catch
+        {
+            _memory?.Abandon();
+            _memory = null;
+            throw;
+        }
+        finally
+        {
+            _memory?.Seal();
+            _memory = null;
+        }
     }
 
     private IReadOnlyList<GraphQLRequest> ParseBatchRequest()
@@ -119,15 +176,15 @@ public ref partial struct Utf8GraphQLRequestParser
         return new GraphQLRequest
         (
             request.Document,
-            request.QueryId,
-            request.QueryHash,
+            request.DocumentId,
+            request.DocumentHash,
             request.OperationName,
             request.Variables,
             request.Extensions
         );
     }
 
-    private Request ParseMutableRequest(string? operationId = null)
+    private Request ParseMutableRequest(string? documentId = null)
     {
         var request = new Request();
 
@@ -138,16 +195,17 @@ public ref partial struct Utf8GraphQLRequestParser
             ParseRequestProperty(ref request);
         }
 
-        if (operationId is not null)
+        if (documentId is not null)
         {
-            request.QueryId = operationId;
+            request.DocumentId = documentId;
         }
 
-        if (!request.HasQuery && request.QueryId is null)
+        if (!request.ContainsDocument && request.DocumentId is null)
         {
             if (_useCache && TryExtractHash(request.Extensions, _hashProvider, out var hash))
             {
-                request.QueryId = hash;
+                request.DocumentId = hash;
+                request.DocumentHash = new OperationDocumentHash(hash, _hashProvider!.Name, _hashProvider.Format);
             }
             else
             {
@@ -155,12 +213,12 @@ public ref partial struct Utf8GraphQLRequestParser
             }
         }
 
-        if (request.HasQuery)
+        if (request.ContainsDocument)
         {
-            ParseQuery(ref request);
+            ParseDocument(ref request);
         }
 
-        if (request.Document is null && request.QueryId is null)
+        if (request.Document is null && request.DocumentId is null)
         {
             throw ThrowHelper.NoIdAndNoQuery(_reader);
         }
@@ -175,47 +233,61 @@ public ref partial struct Utf8GraphQLRequestParser
 
         switch (fieldName[0])
         {
-            case _o:
-                if (fieldName.SequenceEqual(OperationName))
+            case I:
+                if (fieldName.SequenceEqual(IdProperty))
                 {
-                    request.OperationName = ParseStringOrNull();
+                    request.DocumentId = ParseOperationId();
                 }
+
                 break;
 
-            case _i:
-                if (fieldName.SequenceEqual(Id))
+            case D:
+                if (fieldName.SequenceEqual(DocumentIdProperty))
                 {
-                    request.QueryId = ParseStringOrNull();
+                    request.DocumentId = ParseOperationId();
                 }
+
                 break;
 
-            case _q:
-                if (fieldName.SequenceEqual(Query))
+            case Q:
+                if (fieldName.SequenceEqual(QueryProperty))
                 {
-                    request.HasQuery = !IsNullToken();
+                    var isNullOrEmpty = IsNullToken() || _reader.Value.Length == 0;
+                    request.ContainsDocument = !isNullOrEmpty;
 
-                    if (request.HasQuery && _reader.Kind != TokenKind.String)
+                    if (request.ContainsDocument && _reader.Kind != TokenKind.String)
                     {
                         throw ThrowHelper.QueryMustBeStringOrNull(_reader);
                     }
 
-                    request.Query = _reader.Value;
+                    request.DocumentBody = _reader.Value;
                     _reader.MoveNext();
                 }
+
                 break;
 
-            case _v:
-                if (fieldName.SequenceEqual(Variables))
+            case O:
+                if (fieldName.SequenceEqual(OperationNameProperty))
+                {
+                    request.OperationName = ParseStringOrNull();
+                }
+
+                break;
+
+            case V:
+                if (fieldName.SequenceEqual(VariablesProperty))
                 {
                     request.Variables = ParseVariables();
                 }
+
                 break;
 
-            case _e:
-                if (fieldName.SequenceEqual(Extensions))
+            case E:
+                if (fieldName.SequenceEqual(ExtensionsProperty))
                 {
                     request.Extensions = ParseObjectOrNull();
                 }
+
                 break;
 
             default:
@@ -231,22 +303,24 @@ public ref partial struct Utf8GraphQLRequestParser
 
         switch (fieldName[0])
         {
-            case _t:
-                if (fieldName.SequenceEqual(Type))
+            case T:
+                if (fieldName.SequenceEqual(TypeProperty))
                 {
                     message.Type = ParseStringOrNull();
                 }
+
                 break;
 
-            case _i:
-                if (fieldName.SequenceEqual(Id))
+            case I:
+                if (fieldName.SequenceEqual(IdProperty))
                 {
                     message.Id = ParseStringOrNull();
                 }
+
                 break;
 
-            case _p:
-                if (fieldName.SequenceEqual(Payload))
+            case P:
+                if (fieldName.SequenceEqual(PayloadProperty))
                 {
                     var start = _reader.Start;
                     var hasPayload = !IsNullToken();
@@ -255,6 +329,7 @@ public ref partial struct Utf8GraphQLRequestParser
                         ? _reader.GraphQLData.Slice(start, end - start)
                         : default;
                 }
+
                 break;
 
             default:
@@ -262,9 +337,9 @@ public ref partial struct Utf8GraphQLRequestParser
         }
     }
 
-    private void ParseQuery(ref Request request)
+    private void ParseDocument(ref Request request)
     {
-        var length = request.Query.Length;
+        var length = request.DocumentBody.Length;
 
         byte[]? unescapedArray = null;
 
@@ -274,25 +349,34 @@ public ref partial struct Utf8GraphQLRequestParser
 
         try
         {
-            Utf8Helper.Unescape(request.Query, ref unescapedSpan, false);
-            var queryId = request.QueryId;
+            Utf8Helper.Unescape(request.DocumentBody, ref unescapedSpan, false);
             DocumentNode? document;
 
             if (_useCache)
             {
-                queryId ??= request.QueryHash = _hashProvider!.ComputeHash(unescapedSpan);
-
-                if (_cache!.TryGetDocument(queryId, out var cachedDocument))
+                if (request.DocumentId.HasValue
+                    && _cache!.TryGetDocument(request.DocumentId.Value.Value, out var cachedDocument))
                 {
                     document = cachedDocument.Body;
+                    request.DocumentHash = cachedDocument.Hash;
                 }
                 else
                 {
-                    document = unescapedSpan.Length == 0
-                        ? null
-                        : Utf8GraphQLParser.Parse(unescapedSpan, _options);
+                    var hash = _hashProvider!.ComputeHash(unescapedSpan);
+                    request.DocumentHash = hash;
+                    if (_cache!.TryGetDocument(hash.Value, out cachedDocument))
+                    {
+                        document = cachedDocument.Body;
+                    }
+                    else
+                    {
+                        document = unescapedSpan.Length == 0 ? null : Utf8GraphQLParser.Parse(unescapedSpan, _options);
+                    }
 
-                    request.QueryHash ??= _hashProvider!.ComputeHash(unescapedSpan);
+                    if (!request.DocumentId.HasValue)
+                    {
+                        request.DocumentId = hash.Value;
+                    }
                 }
             }
             else
@@ -303,10 +387,6 @@ public ref partial struct Utf8GraphQLRequestParser
             if (document is not null)
             {
                 request.Document = document;
-                if (queryId is not null && request.QueryId is null)
-                {
-                    request.QueryId = queryId;
-                }
             }
         }
         finally

@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Reflection;
 using System.Text;
-using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate;
@@ -12,9 +11,9 @@ namespace HotChocolate;
 /// </summary>
 internal static class NameFormattingHelpers
 {
-    private const string _get = "Get";
-    private const string _async = "Async";
-    private const char _genericTypeDelimiter = '`';
+    private const string Get = "Get";
+    private const string Async = "Async";
+    private const char GenericTypeDelimiter = '`';
 
     public static string GetGraphQLName(this Type type)
     {
@@ -83,17 +82,17 @@ internal static class NameFormattingHelpers
     {
         var name = method.Name;
 
-        if (name.StartsWith(_get, StringComparison.Ordinal)
-            && name.Length > _get.Length)
+        if (name.StartsWith(Get, StringComparison.Ordinal)
+            && name.Length > Get.Length)
         {
-            name = name.Substring(_get.Length);
+            name = name[Get.Length..];
         }
 
         if (IsAsyncMethod(method.ReturnType)
-            && name.Length > _async.Length
-            && name.EndsWith(_async, StringComparison.Ordinal))
+            && name.Length > Async.Length
+            && name.EndsWith(Async, StringComparison.Ordinal))
         {
-            name = name.Substring(0, name.Length - _async.Length);
+            name = name[..^Async.Length];
         }
 
         return FormatFieldName(name);
@@ -174,11 +173,11 @@ internal static class NameFormattingHelpers
                 typeName = type.GetGenericTypeDefinition().Name;
 
                 var nameSpan = typeName.AsSpan();
-                var index = nameSpan.LastIndexOf(_genericTypeDelimiter);
+                var index = nameSpan.LastIndexOf(GenericTypeDelimiter);
 
                 if (index >= 0)
                 {
-                    nameSpan = nameSpan.Slice(0, index);
+                    nameSpan = nameSpan[..index];
                 }
 
                 typeName = nameSpan.ToString();

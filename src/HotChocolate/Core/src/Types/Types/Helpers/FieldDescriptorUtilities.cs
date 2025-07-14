@@ -80,10 +80,10 @@ public static class FieldDescriptorUtilities
                 {
                     var fieldDefinition = createdFieldDefinition(member);
 
-                    if (!string.IsNullOrEmpty(fieldDefinition.Name) &&
-                        !handledMembers.Contains(member) &&
-                        !fields.ContainsKey(fieldDefinition.Name) &&
-                        (includeIgnoredMembers || !fieldDefinition.Ignore))
+                    if (!string.IsNullOrEmpty(fieldDefinition.Name)
+                        && !handledMembers.Contains(member)
+                        && !fields.ContainsKey(fieldDefinition.Name)
+                        && (includeIgnoredMembers || !fieldDefinition.Ignore))
                     {
                         handledMembers.Add(member);
                         fields[fieldDefinition.Name] = fieldDefinition;
@@ -126,8 +126,8 @@ public static class FieldDescriptorUtilities
                             .New(context, parameter)
                             .CreateConfiguration();
 
-                    if (!string.IsNullOrEmpty(argumentDefinition.Name) &&
-                        processedNames.Add(argumentDefinition.Name))
+                    if (!string.IsNullOrEmpty(argumentDefinition.Name)
+                        && processedNames.Add(argumentDefinition.Name))
                     {
                         arguments.Add(argumentDefinition);
                     }

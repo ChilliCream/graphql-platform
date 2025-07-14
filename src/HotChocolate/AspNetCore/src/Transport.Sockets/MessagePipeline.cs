@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.IO.Pipelines;
 
 namespace HotChocolate.Transport.Sockets;
@@ -9,8 +10,7 @@ public sealed class MessagePipeline
 {
     private readonly MessageReceiver _messageReceiver;
     private readonly MessageProcessor _messageProcessor;
-
-    public EventHandler? Completed;
+    private ImmutableArray<(Action<object?> action, object state)> _subscribers = [];
 
     /// <summary>
     /// Initializes a new instance of <see cref="MessagePipeline"/>.
@@ -36,6 +36,23 @@ public sealed class MessagePipeline
     }
 
     /// <summary>
+    /// Registers a delegate that will be invoked once the message pipeline has completed.
+    /// </summary>
+    /// <param name="completed">
+    /// The delegate that will be invoked on completion.
+    /// </param>
+    /// <param name="state">
+    /// The state that is passed along.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the state.
+    /// </typeparam>
+    public void OnCompleted<T>(Action<T> completed, T state) where T : class
+    {
+        _subscribers = _subscribers.Add((o => completed((T)o!), state));
+    }
+
+    /// <summary>
     /// Run the pipeline and process messages.
     /// </summary>
     /// <param name="cancellationToken"></param>
@@ -45,6 +62,10 @@ public sealed class MessagePipeline
         await Task.WhenAll(
             _messageReceiver.ReceiveMessagesAsync(cancellationToken),
             _messageProcessor.ProcessMessagesAsync(cancellationToken));
-        Completed?.Invoke(this, EventArgs.Empty);
+
+        foreach (var (action, state) in _subscribers)
+        {
+            action(state);
+        }
     }
 }

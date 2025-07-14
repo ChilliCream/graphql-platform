@@ -35,7 +35,6 @@ public class ClientModel
         ArgumentNullException.ThrowIfNull(leafTypes);
         ArgumentNullException.ThrowIfNull(inputObjectTypes);
 
-
         Schema = schema;
         Operations = operations;
         LeafTypes = leafTypes;
@@ -48,11 +47,11 @@ public class ClientModel
         {
             foreach (var outputType in operation.OutputTypes)
             {
-                if (outputTypes.TryAdd(outputType.Name, outputType) &&
-                    !outputType.IsInterface &&
-                    outputType.Type.IsEntity() &&
-                    !entities.ContainsKey(outputType.Type.Name) &&
-                    outputType.Type is IComplexTypeDefinition complexOutputType)
+                if (outputTypes.TryAdd(outputType.Name, outputType)
+                    && !outputType.IsInterface
+                    && outputType.Type.IsEntity()
+                    && !entities.ContainsKey(outputType.Type.Name)
+                    && outputType.Type is IComplexTypeDefinition complexOutputType)
                 {
                     entities.Add(outputType.Type.Name, new EntityModel(complexOutputType));
                 }

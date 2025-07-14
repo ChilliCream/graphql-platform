@@ -16,9 +16,9 @@ public partial class MacAddressType : RegexType
 public class MacAddressType : RegexType
 #endif
 {
-    private const string _validationPattern =
-        @"^(?:[0-9A-Fa-f]{2}([:-]?)[0-9A-Fa-f]{2})(?:(?:\1|\.)(?:[0-9A-Fa-f]{2}([:-]?)" +
-        "[0-9A-Fa-f]{2})){2,3}$";
+    private const string ValidationPattern =
+        @"^(?:[0-9A-Fa-f]{2}([:-]?)[0-9A-Fa-f]{2})(?:(?:\1|\.)(?:[0-9A-Fa-f]{2}([:-]?)"
+        + "[0-9A-Fa-f]{2})){2,3}$";
 
 #if BACKREFERENCE_NOT_SUPPORTED
     [GeneratedRegex(_validationPattern, RegexOptions.None, DefaultRegexTimeoutInMs)]
@@ -26,7 +26,7 @@ public class MacAddressType : RegexType
 #else
     private static Regex CreateRegex()
         => new Regex(
-            _validationPattern,
+            ValidationPattern,
             RegexOptions.Compiled,
             TimeSpan.FromMilliseconds(DefaultRegexTimeoutInMs));
 #endif

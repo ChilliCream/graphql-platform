@@ -11,7 +11,7 @@ public sealed class DictionaryServiceProvider : IServiceProvider, IServiceProvid
         ArgumentNullException.ThrowIfNull(service);
         ArgumentNullException.ThrowIfNull(instance);
 
-        _services = new Dictionary<Type, object> { { service, instance }, };
+        _services = new Dictionary<Type, object> { { service, instance } };
         _services[typeof(IServiceProviderIsService)] = this;
     }
 

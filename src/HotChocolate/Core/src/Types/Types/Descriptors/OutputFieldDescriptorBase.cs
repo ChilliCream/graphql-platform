@@ -5,7 +5,6 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
-using static HotChocolate.DirectiveNames;
 
 #nullable enable
 
@@ -23,7 +22,7 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
     }
 
     protected ICollection<ArgumentDescriptor> Arguments
-        => _arguments ??= new List<ArgumentDescriptor>();
+        => _arguments ??= [];
 
     protected IReadOnlyDictionary<string, ParameterInfo> Parameters { get; set; } =
         ImmutableDictionary<string, ParameterInfo>.Empty;

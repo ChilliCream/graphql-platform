@@ -9,5 +9,5 @@ public class SortEnumTypeConfiguration
 {
     public string? Scope { get; set; }
 
-    public Type EntityType { get; set; } = default!;
+    public Type EntityType { get; set; } = null!;
 }

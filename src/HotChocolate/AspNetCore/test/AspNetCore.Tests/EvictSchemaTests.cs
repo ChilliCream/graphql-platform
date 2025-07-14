@@ -14,10 +14,10 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var server = CreateStarWarsServer();
 
-        var time1 = await server.GetAsync(new ClientQueryRequest { Query = "{ time }", });
+        var time1 = await server.GetAsync(new ClientQueryRequest { Query = "{ time }" });
 
-        var resolver = server.Services.GetRequiredService<IRequestExecutorResolver>();
-        resolver.Events.Subscribe(
+        var events = server.Services.GetRequiredService<IRequestExecutorEvents>();
+        events.Subscribe(
             new RequestExecutorEventObserver(
                 @event =>
                 {
@@ -28,11 +28,11 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
                 }));
 
         // act
-        await server.GetAsync(new ClientQueryRequest { Query = "{ evict }", });
+        await server.GetAsync(new ClientQueryRequest { Query = "{ evict }" });
         newExecutorCreatedResetEvent.Wait(cts.Token);
 
         // assert
-        var time2 = await server.GetAsync(new ClientQueryRequest { Query = "{ time }", });
+        var time2 = await server.GetAsync(new ClientQueryRequest { Query = "{ time }" });
         Assert.False(((long)time1.Data!["time"]!).Equals((long)time2.Data!["time"]!));
     }
 
@@ -45,11 +45,11 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
         var server = CreateStarWarsServer();
 
         var time1 = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ time }", },
+            new ClientQueryRequest { Query = "{ time }" },
             "/evict");
 
-        var resolver = server.Services.GetRequiredService<IRequestExecutorResolver>();
-        resolver.Events.Subscribe(new RequestExecutorEventObserver(@event =>
+        var events = server.Services.GetRequiredService<IRequestExecutorEvents>();
+        events.Subscribe(new RequestExecutorEventObserver(@event =>
         {
             if (@event.Type == RequestExecutorEventType.Created)
             {
@@ -59,13 +59,13 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
 
         // act
         await server.GetAsync(
-            new ClientQueryRequest { Query = "{ evict }", },
+            new ClientQueryRequest { Query = "{ evict }" },
             "/evict");
         newExecutorCreatedResetEvent.Wait(cts.Token);
 
         // assert
         var time2 = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ time }", },
+            new ClientQueryRequest { Query = "{ time }" },
             "/evict");
         Assert.False(((long)time1.Data!["time"]!).Equals((long)time2.Data!["time"]!));
     }

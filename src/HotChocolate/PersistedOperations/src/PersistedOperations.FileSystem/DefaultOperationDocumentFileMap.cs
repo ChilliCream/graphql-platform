@@ -8,13 +8,13 @@ namespace HotChocolate.PersistedOperations.FileSystem;
 /// </summary>
 public class DefaultOperationDocumentFileMap : IOperationDocumentFileMap
 {
-    private const int _maxStackSize = 128;
+    private const int MaxStackSize = 128;
     private readonly string _cacheDirectory;
-    private const char _forwardSlash = '/';
-    private const char _dash = '-';
-    private const char _plus = '+';
-    private const char _underscore = '_';
-    private const char _equals = '=';
+    private const char ForwardSlash = '/';
+    private const char Dash = '-';
+    private const char Plus = '+';
+    private const char Underscore = '_';
+    private const char EqualsSign = '=';
 
     /// <summary>
     /// Initializes a new instance of the class.
@@ -49,7 +49,7 @@ public class DefaultOperationDocumentFileMap : IOperationDocumentFileMap
         char[]? encodedBuffer = null;
         var documentIdLength = documentId.Length + 8;
 
-        var encoded = documentIdLength <= _maxStackSize
+        var encoded = documentIdLength <= MaxStackSize
             ? stackalloc char[documentIdLength]
             : encodedBuffer = ArrayPool<char>.Shared.Rent(documentIdLength);
 
@@ -59,15 +59,15 @@ public class DefaultOperationDocumentFileMap : IOperationDocumentFileMap
 
             for (; i < documentId.Length; i++)
             {
-                if (documentId[i] == _forwardSlash)
+                if (documentId[i] == ForwardSlash)
                 {
-                    encoded[i] = _dash;
+                    encoded[i] = Dash;
                 }
-                else if (documentId[i] == _plus)
+                else if (documentId[i] == Plus)
                 {
-                    encoded[i] = _underscore;
+                    encoded[i] = Underscore;
                 }
-                else if (documentId[i] == _equals)
+                else if (documentId[i] == EqualsSign)
                 {
                     break;
                 }
@@ -86,7 +86,7 @@ public class DefaultOperationDocumentFileMap : IOperationDocumentFileMap
             encoded[i++] = 'q';
             encoded[i++] = 'l';
 
-            encoded = encoded.Slice(0, i);
+            encoded = encoded[..i];
 
             fixed (char* charPtr = encoded)
             {

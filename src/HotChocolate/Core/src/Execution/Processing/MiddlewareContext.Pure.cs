@@ -15,10 +15,10 @@ internal partial class MiddlewareContext
     private sealed class PureResolverContext(MiddlewareContext parentContext) : IResolverContext
     {
         private ITypeConverter? _typeConverter;
-        private IReadOnlyDictionary<string, ArgumentValue> _argumentValues = default!;
-        private ISelection _selection = default!;
-        private ObjectType _parentType = default!;
-        private ObjectResult _parentResult = default!;
+        private IReadOnlyDictionary<string, ArgumentValue> _argumentValues = null!;
+        private ISelection _selection = null!;
+        private ObjectType _parentType = null!;
+        private ObjectResult _parentResult = null!;
         private object? _parent;
 
         public bool Initialize(
@@ -49,11 +49,11 @@ internal partial class MiddlewareContext
 
         public void Clear()
         {
-            _selection = default!;
-            _parentType = default!;
-            _parentResult = default!;
+            _selection = null!;
+            _parentType = null!;
+            _parentResult = null!;
             _parent = null;
-            _argumentValues = default!;
+            _argumentValues = null!;
         }
 
         public Schema Schema => parentContext.Schema;
@@ -126,7 +126,7 @@ internal partial class MiddlewareContext
                     Selection.Field.Coordinate,
                     Path,
                     typeof(T),
-                    _parent.GetType()),
+                    _parent.GetType())
             };
 
         public T ArgumentValue<T>(string name)
@@ -233,8 +233,8 @@ internal partial class MiddlewareContext
                 parentContext.Services.GetService<ITypeConverter>() ??
                 DefaultTypeConverter.Default;
 
-            if (value is T castedValue ||
-                _typeConverter.TryConvert(value, out castedValue))
+            if (value is T castedValue
+                || _typeConverter.TryConvert(value, out castedValue))
             {
                 return castedValue;
             }

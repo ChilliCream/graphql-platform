@@ -22,7 +22,7 @@ public class ServiceTests
     [Fact]
     public void AddGraphQLFunction_ServicesIsNull()
     {
-        void Fail() => ((ServiceCollection)default!)
+        void Fail() => ((ServiceCollection)null!)
             .AddGraphQLFunction()
             .AddQueryType(d => d.Name("Query").Field("test").Resolve("test"));
 

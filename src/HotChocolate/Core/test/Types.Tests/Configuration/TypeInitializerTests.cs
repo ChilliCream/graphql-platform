@@ -21,7 +21,7 @@ public class TypeInitializerTests
             typeRegistry,
             new List<TypeReference>
             {
-                context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output),
+                context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
             },
             null,
             t => t is FooType ? RootTypeKind.Query : RootTypeKind.None,
@@ -38,7 +38,7 @@ public class TypeInitializerTests
         Assert.True(exists);
         var fooType =
             Assert.IsType<FooType>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
+                t => t.Name,
                 t => t.Type.Print());
 
         exists = typeRegistry.TryGetType(
@@ -48,10 +48,10 @@ public class TypeInitializerTests
         Assert.True(exists);
         var barType =
             Assert.IsType<BarType>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
+                t => t.Name,
                 t => t.Type.Print());
 
-        new { fooType, barType, }.MatchSnapshot();
+        new { fooType, barType }.MatchSnapshot();
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class TypeInitializerTests
     {
         // arrange
         var typeInterceptor = new AggregateTypeInterceptor();
-        typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor(), });
+        typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor() });
         IDescriptorContext context = DescriptorContext.Create(
             typeInterceptor: typeInterceptor);
         var typeRegistry = new TypeRegistry(context.TypeInterceptor);
@@ -69,7 +69,7 @@ public class TypeInitializerTests
             typeRegistry,
             new List<TypeReference>
             {
-                context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output),
+                context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
             },
             null,
             t =>
@@ -77,7 +77,7 @@ public class TypeInitializerTests
                 return t switch
                 {
                     ObjectType<Foo> => RootTypeKind.Query,
-                    _ => RootTypeKind.None,
+                    _ => RootTypeKind.None
                 };
             },
             new SchemaOptions());
@@ -93,7 +93,7 @@ public class TypeInitializerTests
         Assert.True(exists);
         var fooType =
             Assert.IsType<ObjectType<Foo>>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
+                t => t.Name,
                 t => t.Type.Print());
 
         exists = typeRegistry.TryGetType(
@@ -103,10 +103,10 @@ public class TypeInitializerTests
         Assert.True(exists);
         var barType =
             Assert.IsType<ObjectType<Bar>>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
+                t => t.Name,
                 t => t.Type.Print());
 
-        new { fooType, barType, }.MatchSnapshot();
+        new { fooType, barType }.MatchSnapshot();
     }
 
     [Fact]
@@ -114,7 +114,7 @@ public class TypeInitializerTests
     {
         // arrange
         var typeInterceptor = new AggregateTypeInterceptor();
-        typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor(), });
+        typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor() });
         IDescriptorContext context = DescriptorContext.Create(
             typeInterceptor: typeInterceptor);
         var typeRegistry = new TypeRegistry(context.TypeInterceptor);
@@ -125,15 +125,15 @@ public class TypeInitializerTests
             typeRegistry,
             new List<TypeReference>
             {
-                context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output),
+                context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
             },
-            null!,
+            null,
             t =>
             {
                 return t switch
                 {
                     ObjectType<Foo> => RootTypeKind.Query,
-                    _ => RootTypeKind.None,
+                    _ => RootTypeKind.None
                 };
             },
             null!);
@@ -174,7 +174,7 @@ public class TypeInitializerTests
             "Abc",
             factory: _ => new ObjectType(d => d.Name("Abc").Field("def").Resolve("ghi")));
 
-        var interceptor = new InjectTypes(new[] { typeRef1, typeRef2, });
+        var interceptor = new InjectTypes(new[] { typeRef1, typeRef2 });
 
         // act
         var schema =
@@ -197,7 +197,7 @@ public class TypeInitializerTests
 
         var typeRef2 = TypeReference.Parse("Abc");
 
-        var interceptor = new InjectTypes(new[] { typeRef1, typeRef2, });
+        var interceptor = new InjectTypes(new[] { typeRef1, typeRef2 });
 
         // act
         var schema =
@@ -216,9 +216,7 @@ public class TypeInitializerTests
             => descriptor.Field(t => t.Bar).Type<NonNullType<BarType>>();
     }
 
-    public class BarType : ObjectType<Bar>
-    {
-    }
+    public class BarType : ObjectType<Bar>;
 
     public class Foo
     {

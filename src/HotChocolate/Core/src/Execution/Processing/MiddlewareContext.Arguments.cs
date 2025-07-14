@@ -9,7 +9,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class MiddlewareContext
 {
-    public IReadOnlyDictionary<string, ArgumentValue> Arguments { get; set; } = default!;
+    public IReadOnlyDictionary<string, ArgumentValue> Arguments { get; set; } = null!;
 
     public T ArgumentValue<T>(string name)
     {
@@ -93,8 +93,8 @@ internal partial class MiddlewareContext
             return (T)optional.Value!;
         }
 
-        if (value is T castedValue ||
-            _operationContext.Converter.TryConvert(value, out castedValue))
+        if (value is T castedValue
+            || _operationContext.Converter.TryConvert(value, out castedValue))
         {
             return castedValue;
         }

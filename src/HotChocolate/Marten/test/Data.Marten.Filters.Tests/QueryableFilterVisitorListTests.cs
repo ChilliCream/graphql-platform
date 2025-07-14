@@ -6,53 +6,53 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableFilterVisitorListTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new()
         {
             FooNested =
             [
-                new() { Bar = "a", },
-                new() { Bar = "a", },
-                new() { Bar = "a", },
-            ],
+                new() { Bar = "a" },
+                new() { Bar = "a" },
+                new() { Bar = "a" }
+            ]
         },
         new()
         {
             FooNested =
             [
-                new() { Bar = "c", },
-                new() { Bar = "a", },
-                new() { Bar = "a", },
-            ],
+                new() { Bar = "c" },
+                new() { Bar = "a" },
+                new() { Bar = "a" }
+            ]
         },
         new()
         {
             FooNested =
             [
-                new() { Bar = "a", },
-                new() { Bar = "d", },
-                new() { Bar = "b", },
-            ],
+                new() { Bar = "a" },
+                new() { Bar = "d" },
+                new() { Bar = "b" }
+            ]
         },
         new()
         {
             FooNested =
             [
-                new() { Bar = "c", },
-                new() { Bar = "d", },
-                new() { Bar = "b", },
-            ],
+                new() { Bar = "c" },
+                new() { Bar = "d" },
+                new() { Bar = "b" }
+            ]
         },
         new()
         {
             FooNested =
             [
-                new() { Bar = null!, },
-                new() { Bar = "d", },
-                new() { Bar = "b", },
-            ],
-        },
+                new() { Bar = null! },
+                new() { Bar = "d" },
+                new() { Bar = "b" }
+            ]
+        }
     ];
 
     private readonly SchemaCache _cache;
@@ -66,7 +66,7 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArrayAllObjectStringEqual_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -103,7 +103,7 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArraySomeObjectStringEqualWithNull_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -151,7 +151,7 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArrayNoneObjectStringEqual_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -187,7 +187,7 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArrayAnyObjectStringEqual_Expression()
     {
         // arrange
-        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(_fooEntities);
+        var tester = await _cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

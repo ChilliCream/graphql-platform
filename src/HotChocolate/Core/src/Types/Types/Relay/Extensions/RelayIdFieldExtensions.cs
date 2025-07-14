@@ -19,7 +19,7 @@ namespace HotChocolate.Types;
 /// </remarks>
 /// <example>
 /// <para>
-/// A field can be rewritten to a id by adding <c>[ID]</c> to the resolver.
+/// A field can be rewritten to an ID by adding <c>[ID]</c> to the resolver.
 /// </para>
 /// <code>
 /// public class User
@@ -67,7 +67,7 @@ public static class RelayIdFieldExtensions
     /// </param>
     public static IInputFieldDescriptor ID(
         this IInputFieldDescriptor descriptor,
-        string? typeName = default)
+        string? typeName = null)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 
@@ -97,7 +97,7 @@ public static class RelayIdFieldExtensions
     /// </param>
     public static IArgumentDescriptor ID(
         this IArgumentDescriptor descriptor,
-        string? typeName = default)
+        string? typeName = null)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 
@@ -127,7 +127,7 @@ public static class RelayIdFieldExtensions
     /// </param>
     public static IObjectFieldDescriptor ID(
         this IObjectFieldDescriptor descriptor,
-        string? typeName = default)
+        string? typeName = null)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 

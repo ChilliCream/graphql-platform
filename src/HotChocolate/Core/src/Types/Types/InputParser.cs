@@ -10,7 +10,7 @@ namespace HotChocolate.Types;
 
 public sealed class InputParser
 {
-    private static readonly Path _root = Path.Root.Append("root");
+    private static readonly Path s_root = Path.Root.Append("root");
     private readonly ITypeConverter _converter;
     private readonly DictionaryToObjectConverter _dictToObjConverter;
     private readonly bool _ignoreAdditionalInputFields;
@@ -56,7 +56,7 @@ public sealed class InputParser
         ArgumentNullException.ThrowIfNull(value);
         ArgumentNullException.ThrowIfNull(type);
 
-        return ParseLiteralInternal(value, type, path ?? _root, 0, true, null);
+        return ParseLiteralInternal(value, type, path ?? s_root, 0, true, null);
     }
 
     private object? ParseLiteralInternal(
@@ -372,8 +372,8 @@ public sealed class InputParser
                     var literal = fieldValue.Value;
                     var fieldPath = path.Append(field.Name);
 
-                    if (literal.Kind is SyntaxKind.NullValue &&
-                        field.Type.Kind is TypeKind.NonNull)
+                    if (literal.Kind is SyntaxKind.NullValue
+                        && field.Type.Kind is TypeKind.NonNull)
                     {
                         throw NonNullInputViolation(type, fieldPath, field);
                     }
@@ -437,7 +437,7 @@ public sealed class InputParser
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        return Deserialize(resultValue, type, path ?? _root, null);
+        return Deserialize(resultValue, type, path ?? s_root, null);
     }
 
     private object? Deserialize(object? resultValue, IType type, Path path, InputField? field)
@@ -581,8 +581,8 @@ public sealed class InputParser
             return type.CreateInstance(fieldValues);
         }
 
-        if (type.RuntimeType != typeof(object) &&
-            type.RuntimeType.IsInstanceOfType(resultValue))
+        if (type.RuntimeType != typeof(object)
+            && type.RuntimeType.IsInstanceOfType(resultValue))
         {
             return resultValue;
         }

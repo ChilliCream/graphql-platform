@@ -17,8 +17,8 @@ internal sealed class ExportCommand : Command
     public ExportCommand() : base("export")
     {
         Description =
-            "Export the graphql schema. If no output (--output) is specified the schema will be " +
-            "printed to the console.";
+            "Export the graphql schema. If no output (--output) is specified the schema will be "
+            + "printed to the console.";
 
         AddOption(Opt<OutputOption>.Instance);
         AddOption(Opt<SchemaNameOption>.Instance);
@@ -42,8 +42,8 @@ internal sealed class ExportCommand : Command
         schemaName ??= ISchemaDefinition.DefaultName;
 
         var schema = await host.Services
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync(schemaName, cancellationToken);
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync(schemaName, cancellationToken);
 
         var sdl = schema.Schema.ToString();
 

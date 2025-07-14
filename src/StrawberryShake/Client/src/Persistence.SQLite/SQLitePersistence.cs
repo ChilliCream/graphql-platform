@@ -14,7 +14,7 @@ public class SQLitePersistence : IDisposable
     {
         Formatting = Formatting.None,
         TypeNameHandling = TypeNameHandling.All,
-        TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+        TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
     };
 
     private readonly JsonOperationRequestSerializer _requestSerializer = new();
@@ -115,13 +115,13 @@ public class SQLitePersistence : IDisposable
             .Watch()
             .Subscribe(
                 onNext: update => _queue.Writer.TryWrite(update),
-                onCompleted: () => _cts.Cancel());
+                onCompleted: _cts.Cancel);
 
         _operationStoreSubscription = _storeAccessor.OperationStore
             .Watch()
             .Subscribe(
                 onNext: update => _queue.Writer.TryWrite(update),
-                onCompleted: () => _cts.Cancel());
+                onCompleted: _cts.Cancel);
 
         Task.Run(async () => await WriteAsync(_cts.Token).ConfigureAwait(false));
     }
@@ -132,8 +132,8 @@ public class SQLitePersistence : IDisposable
         {
             var database = new DatabaseHelper();
 
-            while (!cancellationToken.IsCancellationRequested ||
-                !_queue.Reader.Completion.IsCompleted)
+            while (!cancellationToken.IsCancellationRequested
+                || !_queue.Reader.Completion.IsCompleted)
             {
                 var update = await _queue.Reader.ReadAsync(cancellationToken);
                 using var connection = new SqliteConnection(_connectionString);
@@ -201,7 +201,7 @@ public class SQLitePersistence : IDisposable
             {
                 Id = serializedId,
                 Value = JsonConvert.SerializeObject(entity, _serializerSettings),
-                Type = entity.GetType().FullName!,
+                Type = entity.GetType().FullName!
             };
 
             await database.SaveEntityAsync(
@@ -226,9 +226,8 @@ public class SQLitePersistence : IDisposable
         DatabaseHelper database,
         CancellationToken cancellationToken)
     {
-        if (operationVersion.Result is not null &&
-            operationVersion.Result.Errors.Count == 0 &&
-            operationVersion.Result.DataInfo is not null)
+        if (operationVersion.Result?.Errors.Count == 0
+            && operationVersion.Result.DataInfo is not null)
         {
             using var writer = new ArrayWriter();
             _requestSerializer.Serialize(operationVersion.Request, writer);
@@ -241,7 +240,7 @@ public class SQLitePersistence : IDisposable
                 DataInfo = JsonConvert.SerializeObject(
                     operationVersion.Result.DataInfo,
                     _serializerSettings),
-                ResultType = $"{dataType.FullName}, {dataType.Assembly.GetName().Name}",
+                ResultType = $"{dataType.FullName}, {dataType.Assembly.GetName().Name}"
             };
 
             await database.SaveOperationAsync(

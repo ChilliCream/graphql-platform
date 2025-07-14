@@ -119,17 +119,17 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                     ? c.TypeInspector.GetTypeRef(itemType)
                     : null;
 
-                if (typeRef is null &&
-                    d.Type is SyntaxTypeReference syntaxTypeRef &&
-                    syntaxTypeRef.Type.IsListType())
+                if (typeRef is null
+                    && d.Type is SyntaxTypeReference syntaxTypeRef
+                    && syntaxTypeRef.Type.IsListType())
                 {
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
 
-                if (typeRef is null &&
-                    d.Type is ExtendedTypeReference extendedTypeRef &&
-                    c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo) &&
-                    GetElementType(typeInfo) is { } elementType)
+                if (typeRef is null
+                    && d.Type is ExtendedTypeReference extendedTypeRef
+                    && c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo)
+                    && GetElementType(typeInfo) is { } elementType)
                 {
                     typeRef = TypeReference.Create(elementType, TypeContext.Output);
                 }
@@ -236,14 +236,14 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                     ? c.TypeInspector.GetTypeRef(itemType)
                     : null;
 
-                if (typeRef is null &&
-                    d.Type is SyntaxTypeReference syntaxTypeRef &&
-                    syntaxTypeRef.Type.IsListType())
+                if (typeRef is null
+                    && d.Type is SyntaxTypeReference syntaxTypeRef
+                    && syntaxTypeRef.Type.IsListType())
                 {
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
 
-                var resolverMember =  d.Member;
+                var resolverMember = d.Member;
                 d.Type = CreateTypeRef(c, resolverMember, collectionSegmentName, typeRef, options);
             });
 
@@ -293,8 +293,8 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
 
         // if the node type is a syntax type reference we will try to preserve the actual
         // runtime type for later usage.
-        if (itemsType.Kind == TypeReferenceKind.Syntax &&
-            PagingHelper.TryGetNamedType(typeInspector, resolverMember, out var namedType))
+        if (itemsType.Kind == TypeReferenceKind.Syntax
+            && PagingHelper.TryGetNamedType(typeInspector, resolverMember, out var namedType))
         {
             context.TryBindRuntimeType(
                 ((SyntaxTypeReference)itemsType).Type.NamedType().Name.Value,
@@ -388,6 +388,6 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
 
         return string.Concat(
             char.ToUpper(collectionSegmentName[0]),
-            collectionSegmentName.Substring(1));
+            collectionSegmentName[1..]);
     }
 }

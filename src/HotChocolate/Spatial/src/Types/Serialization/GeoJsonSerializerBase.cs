@@ -69,7 +69,7 @@ internal abstract class GeoJsonSerializerBase : IGeoJsonSerializer
 
     public virtual IValueNode ParseCoordinateResult(IType type, object? runtimeValue)
     {
-        if (runtimeValue is IList { Count: > 0, } list && list[0] is IList)
+        if (runtimeValue is IList { Count: > 0 } list && list[0] is IList)
         {
             var results = new IValueNode[list.Count];
             for (var i = 0; i < list.Count; i++)
@@ -112,8 +112,8 @@ internal abstract class GeoJsonSerializerBase : IGeoJsonSerializer
             coordinates = DeserializeCoordinate(type, coordinateObject);
         }
 
-        if (obj.TryGetValue(CrsFieldName, out var crsObject) &&
-            crsObject is int crsInt)
+        if (obj.TryGetValue(CrsFieldName, out var crsObject)
+            && crsObject is int crsInt)
         {
             crs = crsInt;
         }
@@ -154,9 +154,9 @@ internal abstract class GeoJsonSerializerBase : IGeoJsonSerializer
             {
                 coordinates = ParseCoordinateLiteral(type, syntaxNode);
             }
-            else if (CrsFieldName.EqualsInvariantIgnoreCase(fieldName) &&
-                syntaxNode is IntValueNode node &&
-                !node.IsNull())
+            else if (CrsFieldName.EqualsInvariantIgnoreCase(fieldName)
+                && syntaxNode is IntValueNode node
+                && !node.IsNull())
             {
                 crs = node.ToInt32();
             }
@@ -237,8 +237,8 @@ internal abstract class GeoJsonSerializerBase : IGeoJsonSerializer
             {
                 if (GeoJsonPositionSerializer.Default.TrySerialize(type,
                         g.Coordinates[i],
-                        out var serializedPoints) &&
-                    serializedPoints is double[] points)
+                        out var serializedPoints)
+                    && serializedPoints is double[] points)
                 {
                     result[i] = points;
                 }

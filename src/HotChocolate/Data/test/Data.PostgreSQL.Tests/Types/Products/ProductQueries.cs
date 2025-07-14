@@ -1,9 +1,7 @@
 using GreenDonut.Data;
 using HotChocolate.Data.Models;
 using HotChocolate.Data.Services;
-using HotChocolate.Data.Types.Brands;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Types.Products;
 

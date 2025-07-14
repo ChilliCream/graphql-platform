@@ -660,7 +660,6 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             .MatchMarkdownSnapshot();
     }
 
-
     [Fact]
     public async Task Brand_With_Id_And_Name_Over_Node()
     {
@@ -941,7 +940,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
         {
             await Task.Run(() => new InvalidOperationException(), cancellationToken);
-            return default!;
+            return null!;
         }
     }
 
@@ -971,7 +970,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
                 .Where(p => p.Id == id)
                 .Select(p => new ProductProjection // Cast to an object with nullable Type property
                 {
-                    Name = p.Name,
+                    Name = p.Name
                 })
                 .Select(selection.AsSelector<ProductProjection>());
 
@@ -985,7 +984,7 @@ public class ProjectableDataLoaderTests(PostgreSqlResource resource)
 
         public class ProductProjection
         {
-            public string Name { get; set; } = default!;
+            public string Name { get; set; } = null!;
 
             public ProductType? Type { get; set; }
         }

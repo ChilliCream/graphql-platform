@@ -42,7 +42,7 @@ public class ResultBuilderDescriptorMapperTests
             RequestStrategyGen.Default,
             new[]
             {
-                TransportProfile.Default,
+                TransportProfile.Default
             });
         TypeDescriptorMapper.Map(clientModel, context);
         ResultBuilderDescriptorMapper.Map(clientModel, context);
@@ -50,17 +50,8 @@ public class ResultBuilderDescriptorMapperTests
         // assert
         Assert.Collection(
             context.ResultBuilders.OrderBy(t => t.RuntimeType.ToString()),
-            resultBuilder =>
-            {
-                Assert.Equal("CreateReviewBuilder", resultBuilder.RuntimeType.Name);
-            },
-            resultBuilder =>
-            {
-                Assert.Equal("GetHeroBuilder", resultBuilder.RuntimeType.Name);
-            },
-            resultBuilder =>
-            {
-                Assert.Equal("OnReviewBuilder", resultBuilder.RuntimeType.Name);
-            });
+            resultBuilder => Assert.Equal("CreateReviewBuilder", resultBuilder.RuntimeType.Name),
+            resultBuilder => Assert.Equal("GetHeroBuilder", resultBuilder.RuntimeType.Name),
+            resultBuilder => Assert.Equal("OnReviewBuilder", resultBuilder.RuntimeType.Name));
     }
 }

@@ -64,7 +64,7 @@ public abstract class FieldCollection<T> : IReadOnlyList<T> where T : INameProvi
 
     public IEnumerator<T> GetEnumerator()
         => _fields.Length == 0
-            ? EmptyFieldEnumerator.Instance
+            ? EmptyFieldEnumerator.s_instance
             : new FieldEnumerator(_fields);
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -145,7 +145,7 @@ public abstract class FieldCollection<T> : IReadOnlyList<T> where T : INameProvi
 
         public void Dispose() { }
 
-        internal static readonly EmptyFieldEnumerator Instance = new();
+        internal static readonly EmptyFieldEnumerator s_instance = new();
     }
 }
 

@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Pagination;
 public class QueryableOffsetPagingProvider
     : OffsetPagingProvider
 {
-    private static readonly MethodInfo _createHandler =
+    private static readonly MethodInfo s_createHandler =
         typeof(QueryableOffsetPagingProvider).GetMethod(
             nameof(CreateHandlerInternal),
             BindingFlags.Static | BindingFlags.NonPublic)!;
@@ -25,9 +25,9 @@ public class QueryableOffsetPagingProvider
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        return (OffsetPagingHandler)_createHandler
+        return (OffsetPagingHandler)s_createHandler
             .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
-            .Invoke(null, [options,])!;
+            .Invoke(null, [options])!;
     }
 
     private static QueryableOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(

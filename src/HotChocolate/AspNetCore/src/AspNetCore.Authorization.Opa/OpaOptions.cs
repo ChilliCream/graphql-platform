@@ -18,9 +18,9 @@ public sealed class OpaOptions
 
     public JsonSerializerOptions JsonSerializerOptions { get; set; } = new();
 
-    public Dictionary<string, ParseResult> PolicyResultHandlers { get; } = new();
+    public Dictionary<string, ParseResult> PolicyResultHandlers { get; } = [];
 
-    public Dictionary<string, OpaQueryRequestExtensionsHandler> OpaQueryRequestExtensionsHandlers { get; } = new();
+    public Dictionary<string, OpaQueryRequestExtensionsHandler> OpaQueryRequestExtensionsHandlers { get; } = [];
 
     public OpaQueryRequestExtensionsHandler? GetOpaQueryRequestExtensionsHandler(string policyPath)
     {
@@ -54,9 +54,9 @@ public sealed class OpaOptions
                     k.Key,
                     new Regex(
                         k.Key,
-                        RegexOptions.Compiled |
-                        RegexOptions.Singleline |
-                        RegexOptions.CultureInvariant,
+                        RegexOptions.Compiled
+                        | RegexOptions.Singleline
+                        | RegexOptions.CultureInvariant,
                         TimeSpan.FromMilliseconds(500)));
                 return regex.IsMatch(policyPath);
             });

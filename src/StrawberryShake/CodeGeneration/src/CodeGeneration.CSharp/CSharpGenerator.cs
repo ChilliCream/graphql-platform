@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp;
 
 public static class CSharpGenerator
 {
-    private static readonly ICSharpSyntaxGenerator[] _generators =
+    private static readonly ICSharpSyntaxGenerator[] s_generators =
     [
         new ClientGenerator(), new ClientInterfaceGenerator(), new EntityTypeGenerator(),
         new EntityIdFactoryGenerator(), new DependencyInjectionGenerator(),
@@ -34,7 +34,7 @@ public static class CSharpGenerator
         new ResultTypeGenerator(), new StoreAccessorGenerator(), new NoStoreAccessorGenerator(),
         new InputTypeGenerator(), new InputTypeStateInterfaceGenerator(),
         new ResultInterfaceGenerator(), new DataTypeGenerator(), new RazorQueryGenerator(),
-        new RazorSubscriptionGenerator(),
+        new RazorSubscriptionGenerator()
     ];
 
     public static CSharpGeneratorResult Generate(
@@ -312,7 +312,7 @@ public static class CSharpGenerator
 
         foreach (var descriptor in context.GetAllDescriptors())
         {
-            foreach (var generator in _generators)
+            foreach (var generator in s_generators)
             {
                 if (generator.CanHandle(descriptor, generatorSettings))
                 {

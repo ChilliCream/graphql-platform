@@ -196,8 +196,8 @@ internal ref struct FieldSelectionMapReader
                     break;
 
                 case CharConstants.Return:
-                    if (++Position < _length &&
-                        _sourceText[Position] is CharConstants.LineFeed)
+                    if (++Position < _length
+                        && _sourceText[Position] is CharConstants.LineFeed)
                     {
                         ++Position;
                     }
@@ -283,12 +283,13 @@ internal ref struct FieldSelectionMapReader
         var start = Position;
         var position = Position;
 
-        while (++position < _length && _sourceText[position].IsLetterOrDigitOrUnderscore()) { }
+        while (++position < _length && _sourceText[position].IsLetterOrDigitOrUnderscore())
+        { }
 
         TokenKind = TokenKind.Name;
         Start = start;
         End = position;
-        Value = _sourceText.Slice(start, position - start);
+        Value = _sourceText[start..position];
         Position = position;
     }
 

@@ -23,7 +23,7 @@ public class FilterInputType
             throw new ArgumentNullException(nameof(configure));
     }
 
-    public IExtendedType EntityType { get; private set; } = default!;
+    public IExtendedType EntityType { get; private set; } = null!;
 
     protected override InputObjectTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
@@ -51,7 +51,7 @@ public class FilterInputType
         InputObjectTypeConfiguration configuration)
     {
         base.OnRegisterDependencies(context, configuration);
-        if (configuration is FilterInputTypeConfiguration { EntityType: { }, } filterDefinition)
+        if (configuration is FilterInputTypeConfiguration { EntityType: { } } filterDefinition)
         {
             SetTypeIdentity(typeof(FilterInputType<>)
                 .MakeGenericType(filterDefinition.EntityType));
@@ -68,8 +68,8 @@ public class FilterInputType
     {
         base.OnCompleteType(context, configuration);
 
-        if (configuration is FilterInputTypeConfiguration ft &&
-            ft.EntityType is { })
+        if (configuration is FilterInputTypeConfiguration ft
+            && ft.EntityType is { })
         {
             EntityType = context.TypeInspector.GetType(ft.EntityType);
         }
@@ -82,13 +82,13 @@ public class FilterInputType
         var fields = new InputField[definition.Fields.Count + 2];
         var index = 0;
 
-        if (definition is FilterInputTypeConfiguration { UseAnd: true, } def)
+        if (definition is FilterInputTypeConfiguration { UseAnd: true } def)
         {
             fields[index] = new AndField(context.DescriptorContext, index, def.Scope);
             index++;
         }
 
-        if (definition is FilterInputTypeConfiguration { UseOr: true, } defOr)
+        if (definition is FilterInputTypeConfiguration { UseOr: true } defOr)
         {
             fields[index] = new OrField(context.DescriptorContext, index, defOr.Scope);
             index++;

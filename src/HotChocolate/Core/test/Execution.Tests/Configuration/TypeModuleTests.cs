@@ -78,24 +78,21 @@ public class TypeModuleTests
         services
             .AddGraphQL()
             .AddTypeModule(_ => typeModule)
-            .InitializeOnStartup(keepWarm: true, warmup: (_, _) =>
-            {
-                warmups++;
-                warmupResetEvent.Set();
-                return Task.CompletedTask;
-            })
+            .InitializeOnStartup(
+                warmup: (_, _) =>
+                {
+                    warmups++;
+                    warmupResetEvent.Set();
+                    return Task.CompletedTask;
+                },
+                keepWarm: true)
             .AddQueryType(d => d.Field("foo").Resolve(""));
         var provider = services.BuildServiceProvider();
         var warmupService = provider.GetRequiredService<IHostedService>();
 
-        _ = Task.Run(async () =>
-        {
-            await warmupService.StartAsync(CancellationToken.None);
-        }, cts.Token);
+        _ = Task.Run(async () => await warmupService.StartAsync(CancellationToken.None), cts.Token);
 
-        var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
-
-        await resolver.GetRequestExecutorAsync();
+        await provider.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
 
         // act
         // assert

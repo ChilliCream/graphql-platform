@@ -1,6 +1,5 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Xunit;
 
 namespace HotChocolate.Caching.Tests;
 
@@ -444,9 +443,7 @@ public class CacheControlDirectiveTypeTests
 
     [UnionType("UnionType")]
     [CacheControl(500, Scope = CacheControlScope.Private, InheritMaxAge = true)]
-    public interface IUnionType
-    {
-    }
+    public interface IUnionType;
 
     public class UnionObjectType : IUnionType
     {

@@ -72,7 +72,7 @@ internal sealed class ConnectionType
                 TypeContext.Output);
 
         // the property is set later in the configuration
-        ConnectionName = default!;
+        ConnectionName = null!;
         Configuration = CreateConfiguration(includeTotalCount, includeNodesField);
         Configuration.Dependencies.Add(new(nodeType));
         Configuration.Dependencies.Add(new(edgeType));
@@ -107,10 +107,7 @@ internal sealed class ConnectionType
                 TypeDependencyFulfilled.Named));
         Configuration.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask(
-                (c, _) =>
-                {
-                    EdgeType = c.GetType<IEdgeType>(edgeType);
-                },
+                (c, _) => EdgeType = c.GetType<IEdgeType>(edgeType),
                 Configuration,
                 ApplyConfigurationOn.BeforeCompletion));
     }
@@ -123,7 +120,7 @@ internal sealed class ConnectionType
     /// <summary>
     /// Gets the edge type of this connection.
     /// </summary>
-    public IEdgeType EdgeType { get; private set; } = default!;
+    public IEdgeType EdgeType { get; private set; } = null!;
 
     IOutputType IPageType.ItemType => EdgeType;
 
@@ -177,7 +174,7 @@ internal sealed class ConnectionType
                 Names.Nodes,
                 ConnectionType_Nodes_Description,
                 pureResolver: GetNodes)
-                { Flags = CoreFieldFlags.ConnectionNodesField });
+            { Flags = CoreFieldFlags.ConnectionNodesField });
         }
 
         if (includeTotalCount)

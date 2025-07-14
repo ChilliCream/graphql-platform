@@ -11,9 +11,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 public class DocumentAnalyzerContext : IDocumentAnalyzerContext
 {
     private readonly HashSet<string> _takenNames = new(StringComparer.Ordinal);
-    private readonly Dictionary<ISyntaxNode, HashSet<string>> _syntaxNodeNames = new();
+    private readonly Dictionary<ISyntaxNode, HashSet<string>> _syntaxNodeNames = [];
     private readonly Dictionary<string, ITypeModel> _typeModels = new(StringComparer.Ordinal);
-    private readonly Dictionary<SelectionSetInfo, SelectionSetNode> _selectionSets = new();
+    private readonly Dictionary<SelectionSetInfo, SelectionSetNode> _selectionSets = [];
     private readonly FieldCollector _fieldCollector;
 
     public DocumentAnalyzerContext(
@@ -23,7 +23,7 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         Schema = schema ?? throw new ArgumentNullException(nameof(schema));
         Document = document ?? throw new ArgumentNullException(nameof(document));
         OperationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
-        OperationType = schema.GetOperationType(OperationDefinition.Operation)!;
+        OperationType = schema.GetOperationType(OperationDefinition.Operation);
         OperationName = OperationDefinition.Name!.Value;
         RootPath = Path.Root.Append(OperationName);
 
@@ -75,8 +75,8 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         [NotNullWhen(true)] out T? typeModel)
         where T : ITypeModel
     {
-        if (_typeModels.TryGetValue(name, out var model) &&
-            model is T casted)
+        if (_typeModels.TryGetValue(name, out var model)
+            && model is T casted)
         {
             typeModel = casted;
             return true;
@@ -88,8 +88,8 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
 
     public void RegisterModel(string name, ITypeModel typeModel)
     {
-        if (_typeModels.TryGetValue(name, out var registeredTypeModel) &&
-            !ReferenceEquals(registeredTypeModel, typeModel))
+        if (_typeModels.TryGetValue(name, out var registeredTypeModel)
+            && !ReferenceEquals(registeredTypeModel, typeModel))
         {
             throw new GraphQLException("A type model name must be unique.");
         }
@@ -165,8 +165,8 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         ISyntaxNode syntaxNode,
         IReadOnlyList<string>? additionalNamePatterns = null)
     {
-        if (_syntaxNodeNames.TryGetValue(syntaxNode, out var takenNames) &&
-            takenNames.Contains(proposedName))
+        if (_syntaxNodeNames.TryGetValue(syntaxNode, out var takenNames)
+            && takenNames.Contains(proposedName))
         {
             return proposedName;
         }

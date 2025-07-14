@@ -1,4 +1,3 @@
-using System.Reflection.Emit;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -47,7 +46,7 @@ namespace HotChocolate.Validation.Rules;
 /// https://spec.graphql.org/draft/#sec-Defer-And-Stream-Directive-Labels-Are-Unique
 /// </summary>
 internal sealed class DirectiveVisitor()
-    : DocumentValidatorVisitor(new SyntaxVisitorOptions { VisitDirectives = true, })
+    : DocumentValidatorVisitor(new SyntaxVisitorOptions { VisitDirectives = true })
 {
     protected override ISyntaxVisitorAction Enter(
         ISyntaxNode node,
@@ -138,9 +137,9 @@ internal sealed class DirectiveVisitor()
     {
         if (context.Schema.DirectiveDefinitions.TryGetDirective(node.Name.Value, out var dt))
         {
-            if (context.Path.TryPeek(out var parent) &&
-                TryLookupLocation(parent, out var location) &&
-                (dt.Locations & location) != location)
+            if (context.Path.TryPeek(out var parent)
+                && TryLookupLocation(parent, out var location)
+                && (dt.Locations & location) != location)
             {
                 context.ReportError(context.DirectiveNotValidInLocation(node));
             }
@@ -173,9 +172,9 @@ internal sealed class DirectiveVisitor()
             }
 
             // Defer And Stream Directive Labels Are Unique
-            if (node.Kind is Field or InlineFragment or FragmentSpread &&
-                (directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal) ||
-                directive.Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal)))
+            if (node.Kind is Field or InlineFragment or FragmentSpread
+                && (directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal)
+                || directive.Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal)))
             {
                 switch (directive.GetArgumentValue(DirectiveNames.Defer.Arguments.Label))
                 {

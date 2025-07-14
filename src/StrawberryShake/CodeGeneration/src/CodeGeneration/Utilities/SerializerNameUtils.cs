@@ -21,9 +21,9 @@ public static class SerializerNameUtils
 
         while (current is not ITypeDefinition)
         {
-            if (current is HotChocolate.Types.ListType)
+            if (current is ListType)
             {
-                if (types.Count == 0 || !(types.Peek() is NonNullType))
+                if (types.Count == 0 || types.Peek() is not NonNullType)
                 {
                     sb.Append("Nullable");
                 }
@@ -33,7 +33,7 @@ public static class SerializerNameUtils
             current = current.InnerType();
         }
 
-        if (types.Count == 0 || !(types.Peek() is NonNullType))
+        if (types.Count == 0 || types.Peek() is not NonNullType)
         {
             sb.Append("Nullable");
         }

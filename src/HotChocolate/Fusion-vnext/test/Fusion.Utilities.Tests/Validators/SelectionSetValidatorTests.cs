@@ -250,8 +250,8 @@ public sealed class SelectionSetValidatorTests
                 """,
                 "Review.product",
                 [
-                    "The type condition in the selection set is invalid. Type 'Book' does not " +
-                    "exist."
+                    "The type condition in the selection set is invalid. Type 'Book' does not "
+                    + "exist."
                 ]
             },
             // Type condition referencing a type that does not implement the interface.
@@ -384,8 +384,8 @@ public sealed class SelectionSetValidatorTests
                 """,
                 "Review.product",
                 [
-                    "The field 'category' returns a union type and must only include inline " +
-                    "fragment selections."
+                    "The field 'category' returns a union type and must only include inline "
+                    + "fragment selections."
                 ]
             },
             // Selection on field returning scalar type.

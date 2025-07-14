@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Descriptors;
 /// </summary>
 public sealed partial class DescriptorContext : IDescriptorContext
 {
-    private readonly Dictionary<(Type, string?), IConvention> _conventionInstances = new();
+    private readonly Dictionary<(Type, string?), IConvention> _conventionInstances = [];
     private readonly ServiceHelper _serviceHelper;
     private readonly Func<IReadOnlySchemaOptions> _options;
     private FeatureReference<TypeSystemFeature> _typeSystemFeature = FeatureReference<TypeSystemFeature>.Default;
@@ -66,17 +66,14 @@ public sealed partial class DescriptorContext : IDescriptorContext
     {
         get
         {
-            if (_naming is null)
-            {
-                _naming = GetConventionOrDefault<INamingConventions>(() => Options.UseXmlDocumentation
-                    ? new DefaultNamingConventions(
-                        new XmlDocumentationProvider(
-                            new XmlDocumentationFileResolver(
-                                Options.ResolveXmlDocumentationFileName),
-                            _serviceHelper.GetStringBuilderPool()))
-                    : new DefaultNamingConventions(
-                        new NoopDocumentationProvider()));
-            }
+            _naming ??= GetConventionOrDefault<INamingConventions>(() => Options.UseXmlDocumentation
+                ? new DefaultNamingConventions(
+                    new XmlDocumentationProvider(
+                        new XmlDocumentationFileResolver(
+                            Options.ResolveXmlDocumentationFileName),
+                        _serviceHelper.GetStringBuilderPool()))
+                : new DefaultNamingConventions(
+                    new NoopDocumentationProvider()));
 
             return _naming;
         }
@@ -87,11 +84,8 @@ public sealed partial class DescriptorContext : IDescriptorContext
     {
         get
         {
-            if (_inspector is null)
-            {
-                _inspector = this.GetConventionOrDefault<ITypeInspector>(
-                    new DefaultTypeInspector());
-            }
+            _inspector ??= this.GetConventionOrDefault<ITypeInspector>(
+                new DefaultTypeInspector());
 
             return _inspector;
         }
@@ -113,7 +107,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
     public InputFormatter InputFormatter { get; }
 
     /// <inheritdoc />
-    public IList<IDescriptor> Descriptors { get; } = new List<IDescriptor>();
+    public IList<IDescriptor> Descriptors { get; } = [];
 
     /// <inheritdoc />
     public INodeIdSerializerAccessor NodeIdSerializerAccessor

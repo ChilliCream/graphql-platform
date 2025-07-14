@@ -10,6 +10,7 @@ internal sealed class OperationDefinitionBuilder
 {
     private OperationType _type = OperationType.Query;
     private string? _name;
+    private string? _description;
     private Lookup? _lookup;
     private string? _requirementKey;
     private SelectionSetNode? _selectionSet;
@@ -33,6 +34,12 @@ internal sealed class OperationDefinitionBuilder
         return this;
     }
 
+    public OperationDefinitionBuilder SetDescription(string? description)
+    {
+        _description = description;
+        return this;
+    }
+
     public OperationDefinitionBuilder SetLookup(Lookup? lookup, string? requirementKey)
     {
         _lookup = lookup;
@@ -46,7 +53,7 @@ internal sealed class OperationDefinitionBuilder
         return this;
     }
 
-    public (OperationDefinitionNode, ISelectionSetIndex) Build(ISelectionSetIndex index)
+    public (OperationDefinitionNode, ISelectionSetIndex, SelectionPath) Build(ISelectionSetIndex index)
     {
         if (_selectionSet is null)
         {
@@ -54,6 +61,7 @@ internal sealed class OperationDefinitionBuilder
         }
 
         var selectionSet = _selectionSet;
+        var selectionPath = SelectionPath.Root;
 
         if (_lookup is not null)
         {
@@ -79,16 +87,18 @@ internal sealed class OperationDefinitionBuilder
             var indexBuilder = index.ToBuilder();
             indexBuilder.Register(selectionSet);
             index = indexBuilder;
+            selectionPath = selectionPath.AppendField(_lookup.Name);
         }
 
         var definition = new OperationDefinitionNode(
             null,
             string.IsNullOrEmpty(_name) ? null : new NameNode(_name),
+            string.IsNullOrEmpty(_description) ? null : new StringValueNode(_description),
             _type,
             [],
             [],
             selectionSet);
 
-        return (definition, index);
+        return (definition, index, selectionPath);
     }
 }

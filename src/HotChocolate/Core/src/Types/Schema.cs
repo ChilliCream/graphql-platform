@@ -67,7 +67,7 @@ public partial class Schema
     /// <summary>
     /// Gets the global schema services.
     /// </summary>
-    public IServiceProvider Services { get; private set; } = null!;
+    public IServiceProvider Services { get; internal set; } = null!;
 
     /// <summary>
     /// Specifies the time the schema was created.
@@ -90,7 +90,7 @@ public partial class Schema
             OperationType.Query => QueryType,
             OperationType.Mutation => MutationType,
             OperationType.Subscription => SubscriptionType,
-            _ => throw new ArgumentException(nameof(operation)),
+            _ => throw new ArgumentException(nameof(operation))
         };
 
         if (type is null)

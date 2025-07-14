@@ -23,7 +23,7 @@ public class GraphQLConfig
                 new StrawberryShakeSettingsTransportProfile
                 {
                     Default = TransportType.Http,
-                    Subscription = TransportType.WebSocket,
+                    Subscription = TransportType.WebSocket
                 });
         }
 
@@ -36,7 +36,7 @@ public class GraphQLConfig
 
         var config = JsonConvert.DeserializeObject<GraphQLConfig>(json, CreateJsonSettings());
 
-        if(config is null)
+        if (config is null)
         {
             throw new InvalidOperationException("The Strawberry Shake configuration is null.");
         }
@@ -47,7 +47,7 @@ public class GraphQLConfig
                 new StrawberryShakeSettingsTransportProfile
                 {
                     Default = TransportType.Http,
-                    Subscription = TransportType.WebSocket,
+                    Subscription = TransportType.WebSocket
                 });
         }
 
@@ -60,7 +60,7 @@ public class GraphQLConfig
         {
             Formatting = Formatting.Indented,
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            NullValueHandling = NullValueHandling.Ignore,
+            NullValueHandling = NullValueHandling.Ignore
         };
 
         jsonSettings.Converters.Add(new StringEnumConverter());

@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Descriptors.Configurations;
 
 public sealed class BindableList<T> : IBindableList<T>
 {
-    private static readonly T[] _empty = [];
+    private static readonly T[] s_empty = [];
 
     private List<T>? _list;
 
@@ -36,7 +36,7 @@ public sealed class BindableList<T> : IBindableList<T>
     }
 
     public bool Contains(T item)
-        => _list is not null && _list.Contains(item);
+        => _list?.Contains(item) == true;
 
     public void CopyTo(T[] array, int arrayIndex)
         => _list?.CopyTo(array, arrayIndex);
@@ -97,7 +97,7 @@ public sealed class BindableList<T> : IBindableList<T>
     {
         if (_list is null)
         {
-            return _empty;
+            return s_empty;
         }
 
         return CollectionsMarshal.AsSpan(_list);

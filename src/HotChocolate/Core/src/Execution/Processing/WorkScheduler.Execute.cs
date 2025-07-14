@@ -146,8 +146,8 @@ RESTART:
     private void HandleError(Exception exception)
     {
         var error =
-            _errorHandler
-                .CreateUnexpectedError(exception)
+            ErrorBuilder
+                .FromException(exception)
                 .SetCode(ErrorCodes.Execution.TaskProcessingError)
                 .Build();
 

@@ -43,16 +43,16 @@ public class SortTypeAttributeTests
     [GenericTypeSort]
     public class FooGeneric
     {
-        public string StringSortTest { get; set; } = default!;
+        public string StringSortTest { get; set; } = null!;
     }
 
     [SortFieldAttributeTest]
     public class FooFields
     {
-        [SortFieldAttributeTest] public string Field { get; set; } = default!;
+        [SortFieldAttributeTest] public string Field { get; set; } = null!;
     }
 
-    [AttributeUsageAttribute(AttributeTargets.Class, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class GenericTypeSortAttribute : DescriptorAttribute
     {
         public static string TypeName { get; } = "ThisIsATest";

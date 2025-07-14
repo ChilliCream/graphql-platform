@@ -14,7 +14,7 @@ using Squadron;
 namespace HotChocolate.Data;
 
 [Collection(PostgresCacheCollectionFixture.DefinitionName)]
-public class IntegrationPagingHelperTests(PostgreSqlResource resource)
+public class PagingHelperIntegrationTests(PostgreSqlResource resource)
 {
     public PostgreSqlResource Resource { get; } = resource;
 
@@ -1095,7 +1095,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         var type = new ProductType
         {
-            Name = "T-Shirt",
+            Name = "T-Shirt"
         };
         context.ProductTypes.Add(type);
 
@@ -1115,7 +1115,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
                 {
                     Name = $"Product {i}-{j}",
                     Type = type,
-                    Brand = brand,
+                    Brand = brand
                 };
                 context.Products.Add(product);
             }
@@ -1322,7 +1322,6 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource)
 
         public Brand Brand { get; }
     }
-
 
     public class BrandDto
     {

@@ -14,7 +14,7 @@ public static class SchemaDebugFormatter
                 : new StringValueNode(type.Description),
             type.Directives.Select(Format).ToArray(),
             type.Implements.Select(FormatTypeRef).Cast<NamedTypeNode>().ToArray(),
-            type.Fields.Select(Format).ToArray());
+            type.Fields.Where(t => !t.IsIntrospectionField).Select(Format).ToArray());
 
     public static InterfaceTypeDefinitionNode Format(IInterfaceTypeDefinition type)
         => new InterfaceTypeDefinitionNode(
@@ -78,7 +78,21 @@ public static class SchemaDebugFormatter
             directiveDefinition.Locations.AsEnumerable().Select(Format).ToArray());
 
     public static FieldDefinitionNode Format(IOutputFieldDefinition field)
-        => new FieldDefinitionNode(
+    {
+        var directives = field.Directives.Select(Format).ToList();
+
+        if (field.IsDeprecated)
+        {
+            var deprecatedDirective = new DirectiveNode(
+                DirectiveNames.Deprecated.Name,
+                new ArgumentNode(
+                    DirectiveNames.Deprecated.Arguments.Reason,
+                    field.DeprecationReason ?? DirectiveNames.Deprecated.Arguments.DefaultReason));
+
+            directives.Insert(0, deprecatedDirective);
+        }
+
+        return new FieldDefinitionNode(
             null,
             new NameNode(field.Name),
             field.Description is null
@@ -86,10 +100,25 @@ public static class SchemaDebugFormatter
                 : new StringValueNode(field.Description),
             field.Arguments.Select(Format).ToArray(),
             FormatTypeRef(field.Type),
-            field.Directives.Select(Format).ToArray());
+            directives);
+    }
 
     public static InputValueDefinitionNode Format(IInputValueDefinition field)
-        => new InputValueDefinitionNode(
+    {
+        var directives = field.Directives.Select(Format).ToList();
+
+        if (field.IsDeprecated)
+        {
+            var deprecatedDirective = new DirectiveNode(
+                DirectiveNames.Deprecated.Name,
+                new ArgumentNode(
+                    DirectiveNames.Deprecated.Arguments.Reason,
+                    field.DeprecationReason ?? DirectiveNames.Deprecated.Arguments.DefaultReason));
+
+            directives.Insert(0, deprecatedDirective);
+        }
+
+        return new InputValueDefinitionNode(
             null,
             new NameNode(field.Name),
             field.Description is null
@@ -97,16 +126,32 @@ public static class SchemaDebugFormatter
                 : new StringValueNode(field.Description),
             FormatTypeRef(field.Type),
             field.DefaultValue,
-            field.Directives.Select(Format).ToArray());
+            directives);
+    }
 
     public static EnumValueDefinitionNode Format(IEnumValue value)
-        => new EnumValueDefinitionNode(
+    {
+        var directives = value.Directives.Select(Format).ToList();
+
+        if (value.IsDeprecated)
+        {
+            var deprecatedDirective = new DirectiveNode(
+                DirectiveNames.Deprecated.Name,
+                new ArgumentNode(
+                    DirectiveNames.Deprecated.Arguments.Reason,
+                    value.DeprecationReason ?? DirectiveNames.Deprecated.Arguments.DefaultReason));
+
+            directives.Insert(0, deprecatedDirective);
+        }
+
+        return new EnumValueDefinitionNode(
             null,
             new NameNode(value.Name),
             value.Description is null
                 ? null
                 : new StringValueNode(value.Description),
-            value.Directives.Select(Format).ToArray());
+            directives);
+    }
 
     public static DirectiveNode Format(IDirective directive)
         => new DirectiveNode(

@@ -4,11 +4,11 @@ namespace HotChocolate;
 
 internal static class Timestamp
 {
-    private const long _nanosecondsPerSecond = 1000000000;
+    private const long NanosecondsPerSecond = 1000000000;
 
     public static long GetNowInNanoseconds()
     {
-        return Stopwatch.GetTimestamp() *
-            (_nanosecondsPerSecond / Stopwatch.Frequency);
+        return Stopwatch.GetTimestamp()
+            * (NanosecondsPerSecond / Stopwatch.Frequency);
     }
 }

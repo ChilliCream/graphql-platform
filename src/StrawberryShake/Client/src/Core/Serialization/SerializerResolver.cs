@@ -6,13 +6,13 @@ namespace StrawberryShake.Serialization;
 /// </summary>
 public class SerializerResolver : ISerializerResolver
 {
-    private readonly Dictionary<string, ISerializer> _serializers = new();
+    private readonly Dictionary<string, ISerializer> _serializers = [];
 
     /// <summary>
     /// Initializes a new <see cref="SerializerResolver"/>
     /// </summary>
     /// <param name="serializers">
-    /// A enumerable of <see cref="ISerializer"/> that shall be known to the resolver
+    /// An enumerable of <see cref="ISerializer"/> that shall be known to the resolver
     /// </param>
     /// <exception cref="ArgumentNullException">
     /// In case <paramref name="serializers" /> is <c>null</c>
@@ -52,8 +52,8 @@ public class SerializerResolver : ISerializerResolver
     {
         ArgumentNullException.ThrowIfNull(typeName);
 
-        if (_serializers.TryGetValue(typeName, out var serializer) &&
-            serializer is ILeafValueParser<TSerialized, TRuntime> parser)
+        if (_serializers.TryGetValue(typeName, out var serializer)
+            && serializer is ILeafValueParser<TSerialized, TRuntime> parser)
         {
             return parser;
         }
@@ -76,8 +76,8 @@ public class SerializerResolver : ISerializerResolver
     {
         ArgumentNullException.ThrowIfNull(typeName);
 
-        if (_serializers.TryGetValue(typeName, out var serializer) &&
-            serializer is IInputValueFormatter formatter)
+        if (_serializers.TryGetValue(typeName, out var serializer)
+            && serializer is IInputValueFormatter formatter)
         {
             return formatter;
         }

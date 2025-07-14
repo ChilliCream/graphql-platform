@@ -46,8 +46,7 @@ public class InterfaceTypeDescriptor
     protected internal override InterfaceTypeConfiguration Configuration { get; protected set; } =
         new();
 
-    protected ICollection<InterfaceFieldDescriptor> Fields { get; } =
-        new List<InterfaceFieldDescriptor>();
+    protected ICollection<InterfaceFieldDescriptor> Fields { get; } = [];
 
     protected override void OnCreateConfiguration(
         InterfaceTypeConfiguration definition)

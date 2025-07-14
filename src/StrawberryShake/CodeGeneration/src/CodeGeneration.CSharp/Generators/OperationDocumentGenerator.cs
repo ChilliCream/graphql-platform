@@ -26,7 +26,7 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
             MutationOperationDescriptor => "Mutation",
             QueryOperationDescriptor => "Query",
             SubscriptionOperationDescriptor => "Subscription",
-            _ => throw new ArgumentOutOfRangeException(nameof(descriptor)),
+            _ => throw new ArgumentOutOfRangeException(nameof(descriptor))
         };
 
         var classBuilder = ClassBuilder
@@ -77,9 +77,9 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
             .AddProperty("Hash")
             .SetType(TypeNames.DocumentHash)
             .SetValue(
-                $@"new {TypeNames.DocumentHash}(" +
-                $@"""{descriptor.HashAlgorithm}"", " +
-                $@"""{descriptor.HashValue}"")");
+                $@"new {TypeNames.DocumentHash}("
+                + $@"""{descriptor.HashAlgorithm}"", "
+                + $@"""{descriptor.HashValue}"")");
 
         classBuilder
             .AddMethod("ToString")

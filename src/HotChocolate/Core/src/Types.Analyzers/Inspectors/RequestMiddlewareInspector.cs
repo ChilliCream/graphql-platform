@@ -24,9 +24,9 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                     Name: GenericNameSyntax
                     {
                         Identifier.ValueText: "UseRequest",
-                        TypeArgumentList: { Arguments.Count: 1, } args,
-                    },
-                },
+                        TypeArgumentList: { Arguments.Count: 1 } args
+                    }
+                }
             } node)
         {
             var semanticModel = context.SemanticModel;
@@ -34,7 +34,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
 
             if (middlewareType is null)
             {
-                syntaxInfo = default;
+                syntaxInfo = null;
                 return false;
             }
 
@@ -47,17 +47,17 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                     Kind: SymbolKind.Method,
                     IsStatic: false,
                     IsAbstract: false,
-                    DeclaredAccessibility: Accessibility.Public,
-                } ||
-                ctor is not
+                    DeclaredAccessibility: Accessibility.Public
+                }
+                || ctor is not
                 {
                     Kind: SymbolKind.Method,
                     IsStatic: false,
                     IsAbstract: false,
-                    DeclaredAccessibility: Accessibility.Public,
+                    DeclaredAccessibility: Accessibility.Public
                 })
             {
-                syntaxInfo = default;
+                syntaxInfo = null;
                 return false;
             }
 
@@ -69,8 +69,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                 RequestMiddlewareParameterKind kind;
                 var parameterTypeName = parameter.Type.ToFullyQualified();
 
-                if (parameterTypeName.Equals("global::HotChocolate.Schema") ||
-                    parameterTypeName.Equals("global::HotChocolate.!Schema"))
+                if (parameterTypeName.Equals("global::HotChocolate.ISchemaDefinition"))
                 {
                     kind = RequestMiddlewareParameterKind.Schema;
                 }
@@ -99,8 +98,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                 RequestMiddlewareParameterKind kind;
                 var parameterTypeName = parameter.Type.ToFullyQualified();
 
-                if (parameterTypeName.Equals("global::HotChocolate.Schema") ||
-                    parameterTypeName.Equals("global::HotChocolate.Schema"))
+                if (parameterTypeName.Equals("global::HotChocolate.ISchemaDefinition"))
                 {
                     kind = RequestMiddlewareParameterKind.Schema;
                 }
@@ -108,7 +106,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                 {
                     kind = RequestMiddlewareParameterKind.Next;
                 }
-                else if (parameterTypeName.Equals("global::HotChocolate.Execution.IRequestContext"))
+                else if (parameterTypeName.Equals("global::HotChocolate.Execution.RequestContext"))
                 {
                     kind = RequestMiddlewareParameterKind.Context;
                 }
@@ -134,7 +132,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
             return true;
         }
 
-        syntaxInfo = default;
+        syntaxInfo = null;
         return false;
     }
 

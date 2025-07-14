@@ -34,7 +34,7 @@ public ref partial struct Utf8GraphQLParser
     /// <summary>
     /// Parses a fragment definition.
     /// <see cref="FragmentDefinitionNode" />:
-    /// fragment FragmentName on TypeCondition Directives? SelectionSet
+    /// Description? fragment FragmentName on TypeCondition Directives? SelectionSet
     /// </summary>
     private FragmentDefinitionNode ParseFragmentDefinition()
     {
@@ -61,6 +61,7 @@ public ref partial struct Utf8GraphQLParser
             (
               location,
               name,
+              TakeDescription(),
               variableDefinitions,
               typeCondition,
               directives,
@@ -80,6 +81,7 @@ public ref partial struct Utf8GraphQLParser
             (
               location,
               name,
+              TakeDescription(),
               Array.Empty<VariableDefinitionNode>(),
               typeCondition,
               directives,

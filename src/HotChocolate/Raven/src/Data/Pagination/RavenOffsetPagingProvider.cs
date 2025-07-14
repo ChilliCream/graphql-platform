@@ -11,17 +11,17 @@ namespace HotChocolate.Data.Raven.Pagination;
 /// </summary>
 public sealed class RavenOffsetPagingProvider : OffsetPagingProvider
 {
-    private static readonly MethodInfo _createHandler =
+    private static readonly MethodInfo s_createHandler =
         typeof(RavenOffsetPagingProvider).GetMethod(
             nameof(CreateHandlerInternal),
             BindingFlags.Static | BindingFlags.NonPublic)!;
 
     /// <inheritdoc />
     public override bool CanHandle(IExtendedType source)
-        => source.Source.IsGenericType &&
-            source.Source.GetGenericTypeDefinition() is { } type && (
-                type == typeof(IRavenQueryable<>) ||
-                type == typeof(IAsyncDocumentQuery<>));
+        => source.Source.IsGenericType
+            && source.Source.GetGenericTypeDefinition() is { } type && (
+                type == typeof(IRavenQueryable<>)
+                || type == typeof(IAsyncDocumentQuery<>));
 
     /// <inheritdoc />
     protected override OffsetPagingHandler CreateHandler(
@@ -30,9 +30,9 @@ public sealed class RavenOffsetPagingProvider : OffsetPagingProvider
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        return (OffsetPagingHandler)_createHandler
+        return (OffsetPagingHandler)s_createHandler
             .MakeGenericMethod(source.ElementType?.Source ?? source.Source.GetGenericArguments()[0])
-            .Invoke(null, [options,])!;
+            .Invoke(null, [options])!;
     }
 
     private static RavenOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(

@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 
 public static class FilterObjectFieldDescriptorExtensions
 {
-    private static readonly MethodInfo _factoryTemplate =
+    private static readonly MethodInfo s_factoryTemplate =
         typeof(FilterObjectFieldDescriptorExtensions)
             .GetMethod(nameof(CreateMiddleware), BindingFlags.Static | BindingFlags.NonPublic)!;
 
@@ -127,9 +127,9 @@ public static class FilterObjectFieldDescriptorExtensions
                     {
                         var convention = c.GetFilterConvention(scope);
 
-                        if (definition.ResultType is null ||
-                            definition.ResultType == typeof(object) ||
-                            !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
+                        if (definition.ResultType is null
+                            || definition.ResultType == typeof(object)
+                            || !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
                         {
                             throw new ArgumentException(
                                 FilterObjectFieldDescriptorExtensions_UseFiltering_CannotHandleType,
@@ -194,8 +194,8 @@ public static class FilterObjectFieldDescriptorExtensions
         var fieldDescriptor = ObjectFieldDescriptor.From(context.DescriptorContext, definition);
         convention.ConfigureField(fieldDescriptor);
 
-        var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
+        var factory = s_factoryTemplate.MakeGenericMethod(type.EntityType.Source);
+        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention])!);
 
         var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
         definition.MiddlewareConfigurations[index] = new(middleware, key: WellKnownMiddleware.Filtering);

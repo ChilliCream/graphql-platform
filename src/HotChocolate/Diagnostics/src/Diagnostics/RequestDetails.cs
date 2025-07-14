@@ -11,5 +11,5 @@ public enum RequestDetails
     Extensions = 16,
     Query = 32,
     Default = Id | Hash | Operation | Extensions,
-    All = Id | Hash | Operation | Variables | Extensions | Query,
+    All = Id | Hash | Operation | Variables | Extensions | Query
 }

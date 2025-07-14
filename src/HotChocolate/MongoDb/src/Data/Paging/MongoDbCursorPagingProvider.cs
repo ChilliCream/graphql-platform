@@ -7,18 +7,18 @@ namespace HotChocolate.Data.MongoDb.Paging;
 
 public class MongoDbCursorPagingProvider : CursorPagingProvider
 {
-    private static readonly MethodInfo _createHandler =
+    private static readonly MethodInfo s_createHandler =
         typeof(MongoDbCursorPagingProvider).GetMethod(
             nameof(CreateHandlerInternal),
             BindingFlags.Static | BindingFlags.NonPublic)!;
 
     public override bool CanHandle(IExtendedType source)
-        => typeof(IMongoDbExecutable).IsAssignableFrom(source.Source) ||
-               source.Source.IsGenericType &&
-               source.Source.GetGenericTypeDefinition() is { } type && (
-                   type == typeof(IAggregateFluent<>) ||
-                   type == typeof(IFindFluent<,>) ||
-                   type == typeof(IMongoCollection<>));
+        => typeof(IMongoDbExecutable).IsAssignableFrom(source.Source)
+            || source.Source.IsGenericType
+            && source.Source.GetGenericTypeDefinition() is { } type && (
+                type == typeof(IAggregateFluent<>)
+                || type == typeof(IFindFluent<,>)
+                || type == typeof(IMongoCollection<>));
 
     protected override CursorPagingHandler CreateHandler(
         IExtendedType source,
@@ -26,9 +26,9 @@ public class MongoDbCursorPagingProvider : CursorPagingProvider
     {
         ArgumentNullException.ThrowIfNull(source);
 
-        return (CursorPagingHandler)_createHandler
+        return (CursorPagingHandler)s_createHandler
             .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
-            .Invoke(null, [options,])!;
+            .Invoke(null, [options])!;
     }
 
     private static MongoDbCursorPagingHandler<TEntity> CreateHandlerInternal<TEntity>(

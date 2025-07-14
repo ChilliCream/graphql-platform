@@ -1,7 +1,4 @@
 using HotChocolate;
-#if NET8_0
-using HotChocolate.Execution;
-#endif
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -14,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 
 internal sealed class FieldCollector
 {
-    private readonly Dictionary<string, Fragment> _fragments = new();
+    private readonly Dictionary<string, Fragment> _fragments = [];
     private readonly Cache _cache = new();
     private readonly ISchemaDefinition _schema;
     private readonly DocumentNode _document;
@@ -308,13 +305,9 @@ internal sealed class FieldCollector
     private static string CreateInlineFragmentName(InlineFragmentNode inlineFragmentSyntax) =>
         $"^{inlineFragmentSyntax.Location!.Start}_{inlineFragmentSyntax.Location.End}";
 
-    private sealed class Cache : Dictionary<IOutputTypeDefinition, SelectionCache>
-    {
-    }
+    private sealed class Cache : Dictionary<IOutputTypeDefinition, SelectionCache>;
 
-    private sealed class SelectionCache : Dictionary<SelectionSetNode, SelectionSetVariants>
-    {
-    }
+    private sealed class SelectionCache : Dictionary<SelectionSetNode, SelectionSetVariants>;
 
     private sealed class TypeNameField : IOutputFieldDefinition
     {

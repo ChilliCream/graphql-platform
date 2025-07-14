@@ -13,7 +13,11 @@ namespace HotChocolate.Types.Factories;
 internal sealed class SchemaFirstTypeInterceptor : TypeInterceptor
 {
     private ImmutableDictionary<string, IReadOnlyList<DirectiveNode>> _directives =
+#if NET10_0_OR_GREATER
+        [];
+#else
         ImmutableDictionary<string, IReadOnlyList<DirectiveNode>>.Empty;
+#endif
 
     internal override void InitializeContext(
         IDescriptorContext context,

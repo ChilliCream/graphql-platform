@@ -13,13 +13,13 @@ namespace HotChocolate.Utilities.Introspection;
 /// </summary>
 public static class IntrospectionClient
 {
-    private static readonly JsonSerializerOptions _serializerOptions = new()
+    private static readonly JsonSerializerOptions s_serializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        Converters = { new JsonStringEnumConverter(), },
+        Converters = { new JsonStringEnumConverter() }
     };
 
-    internal static JsonSerializerOptions SerializerOptions => _serializerOptions;
+    internal static JsonSerializerOptions SerializerOptions => s_serializerOptions;
 
     /// <summary>
     /// Downloads the schema information from a GraphQL server
@@ -245,12 +245,12 @@ public static class IntrospectionClient
 
         if (result.Data.ValueKind is JsonValueKind.Object)
         {
-            data = result.Data.Deserialize<IntrospectionData>(_serializerOptions);
+            data = result.Data.Deserialize<IntrospectionData>(s_serializerOptions);
         }
 
         if (result.Errors.ValueKind is JsonValueKind.Array)
         {
-            errors = result.Errors.Deserialize<IntrospectionError[]>(_serializerOptions);
+            errors = result.Errors.Deserialize<IntrospectionError[]>(s_serializerOptions);
         }
 
         return new IntrospectionResult(data, errors);

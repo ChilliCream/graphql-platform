@@ -33,8 +33,7 @@ public class SortEnumTypeDescriptor
 
     protected internal override SortEnumTypeConfiguration Configuration { get; protected set; } = new();
 
-    protected ICollection<SortEnumValueDescriptor> Values { get; } =
-        new List<SortEnumValueDescriptor>();
+    protected ICollection<SortEnumValueDescriptor> Values { get; } = [];
 
     protected override void OnCreateConfiguration(
         SortEnumTypeConfiguration configuration)
@@ -81,10 +80,7 @@ public class SortEnumTypeDescriptor
     public ISortEnumValueDescriptor Operation(int operation)
     {
         var descriptor = Values
-            .FirstOrDefault(
-                t =>
-                    t.Configuration.RuntimeValue is not null &&
-                    t.Configuration.RuntimeValue.Equals(operation));
+            .FirstOrDefault(t => t.Configuration.RuntimeValue?.Equals(operation) == true);
 
         if (descriptor is not null)
         {

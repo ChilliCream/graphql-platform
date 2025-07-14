@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -647,7 +648,12 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the PeopleSearch GraphQL operation
     /// <code>
-    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    /// query PeopleSearch(
+    ///   $term: String!
+    ///   $skip: Int
+    ///   $take: Int
+    ///   $inactive: Boolean
+    /// ) {
     ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
     ///     __typename
     ///     totalCount
@@ -1238,7 +1244,12 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the PeopleSearch GraphQL operation
     /// <code>
-    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    /// query PeopleSearch(
+    ///   $term: String!
+    ///   $skip: Int
+    ///   $take: Int
+    ///   $inactive: Boolean
+    /// ) {
     ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
     ///     __typename
     ///     totalCount
@@ -1414,7 +1425,12 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the PeopleSearch GraphQL operation
     /// <code>
-    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    /// query PeopleSearch(
+    ///   $term: String!
+    ///   $skip: Int
+    ///   $take: Int
+    ///   $inactive: Boolean
+    /// ) {
     ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
     ///     __typename
     ///     totalCount
@@ -1589,7 +1605,7 @@ namespace Foo.Bar.State
             }
 
             IPeopleSearch_People returnValue = default !;
-            if (data?.__typename.Equals("PersonCollectionSegment", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PersonCollectionSegment", global::System.StringComparison.Ordinal))
             {
                 returnValue = new PeopleSearch_People_PersonCollectionSegment(data.TotalCount ?? throw new global::System.ArgumentNullException(), MapNonNullableIPeopleSearch_People_PageInfo(data.PageInfo ?? throw new global::System.ArgumentNullException(), snapshot), MapIPeopleSearch_People_ItemsNonNullableArray(data.Items, snapshot));
             }

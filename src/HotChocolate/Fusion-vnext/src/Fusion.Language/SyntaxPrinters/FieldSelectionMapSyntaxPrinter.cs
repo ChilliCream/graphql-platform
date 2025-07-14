@@ -2,10 +2,10 @@ namespace HotChocolate.Fusion.Language;
 
 internal static class FieldSelectionMapSyntaxPrinter
 {
-    private static readonly FieldSelectionMapSyntaxSerializer Serializer
+    private static readonly FieldSelectionMapSyntaxSerializer s_serializer
         = new(new SyntaxSerializerOptions { Indented = true });
 
-    private static readonly FieldSelectionMapSyntaxSerializer SerializerNoIdent
+    private static readonly FieldSelectionMapSyntaxSerializer s_serializerNoIdent
         = new(new SyntaxSerializerOptions { Indented = false });
 
     /// <summary>
@@ -26,11 +26,11 @@ internal static class FieldSelectionMapSyntaxPrinter
 
         if (indented)
         {
-            Serializer.Serialize(node, writer);
+            s_serializer.Serialize(node, writer);
         }
         else
         {
-            SerializerNoIdent.Serialize(node, writer);
+            s_serializerNoIdent.Serialize(node, writer);
         }
 
         return writer.ToString();

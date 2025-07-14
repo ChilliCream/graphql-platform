@@ -17,26 +17,26 @@ namespace HotChocolate.ApolloFederation;
 
 internal sealed class FederationTypeInterceptor : TypeInterceptor
 {
-    private static readonly MethodInfo _matches =
+    private static readonly MethodInfo s_matches =
         typeof(ReferenceResolverHelper)
             .GetMethod(
                 nameof(ReferenceResolverHelper.Matches),
                 BindingFlags.Static | BindingFlags.Public)!;
 
-    private static readonly MethodInfo _execute =
+    private static readonly MethodInfo s_execute =
         typeof(ReferenceResolverHelper)
             .GetMethod(
                 nameof(ReferenceResolverHelper.ExecuteAsync),
                 BindingFlags.Static | BindingFlags.Public)!;
 
-    private static readonly MethodInfo _invalid =
+    private static readonly MethodInfo s_invalid =
         typeof(ReferenceResolverHelper)
             .GetMethod(
                 nameof(ReferenceResolverHelper.Invalid),
                 BindingFlags.Static | BindingFlags.Public)!;
 
     private readonly List<ObjectType> _entityTypes = [];
-    private readonly Dictionary<Uri, HashSet<string>> _imports = new();
+    private readonly Dictionary<Uri, HashSet<string>> _imports = [];
     private IDescriptorContext _context = null!;
     private ITypeInspector _typeInspector = null!;
     private TypeRegistry _typeRegistry = null!;
@@ -64,8 +64,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext discoveryContext,
         TypeSystemConfiguration configuration)
     {
-        if (discoveryContext.Type is ObjectType objectType &&
-            configuration is ObjectTypeConfiguration objectTypeCfg)
+        if (discoveryContext.Type is ObjectType objectType
+            && configuration is ObjectTypeConfiguration objectTypeCfg)
         {
             ApplyMethodLevelReferenceResolvers(
                 objectType,
@@ -149,8 +149,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         var hasRuntimeType = (IHasRuntimeType)configuration;
         var type = hasRuntimeType.RuntimeType;
 
-        if (type != typeof(object) &&
-            type.IsDefined(typeof(PackageAttribute)))
+        if (type != typeof(object)
+            && type.IsDefined(typeof(PackageAttribute)))
         {
             RegisterImport(type);
             return;
@@ -239,8 +239,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 throw new SchemaException(
                     SchemaErrorBuilder.New()
                         .SetMessage(
-                            "The following federation types were used and are not supported by " +
-                            "the current federation version: {0}",
+                            "The following federation types were used and are not supported by "
+                            + "the current federation version: {0}",
                             string.Join(", ", import.Value))
                         .Build());
             }
@@ -340,8 +340,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if (completionContext.Type is ObjectType type &&
-            configuration is ObjectTypeConfiguration typeCfg)
+        if (completionContext.Type is ObjectType type
+            && configuration is ObjectTypeConfiguration typeCfg)
         {
             CompleteExternalFieldSetters(type, typeCfg);
             CompleteReferenceResolver(typeCfg);
@@ -373,12 +373,12 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             {
                 Expression required = Expression.Constant(resolverDef.Required);
                 Expression resolver = Expression.Constant(resolverDef.Resolver);
-                Expression condition = Expression.Call(_matches, context, required);
-                Expression execute = Expression.Call(_execute, context, resolver);
+                Expression condition = Expression.Call(s_matches, context, required);
+                Expression execute = Expression.Call(s_execute, context, resolver);
                 expressions.Push((condition, execute));
             }
 
-            Expression current = Expression.Call(_invalid, context);
+            Expression current = Expression.Call(s_invalid, context);
             var variable = Expression.Variable(typeof(ValueTask<object?>));
 
             while (expressions.Count > 0)
@@ -456,8 +456,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ObjectType objectType,
         ObjectTypeConfiguration objectTypeCfg)
     {
-        if (objectTypeCfg.Directives.FirstOrDefault(d => d.Value is KeyDirective) is { } keyDirective &&
-            ((KeyDirective)keyDirective.Value).Resolvable)
+        if (objectTypeCfg.Directives.FirstOrDefault(d => d.Value is KeyDirective) is { } keyDirective
+            && ((KeyDirective)keyDirective.Value).Resolvable)
         {
             _entityTypes.Add(objectType);
             return;
@@ -536,8 +536,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration? definition)
     {
-        if (completionContext.Type is _EntityType &&
-            definition is UnionTypeConfiguration unionTypeCfg)
+        if (completionContext.Type is _EntityType
+            && definition is UnionTypeConfiguration unionTypeCfg)
         {
             foreach (var objectType in _entityTypes)
             {

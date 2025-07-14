@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Filters;
 
 public class FilterConventionDescriptor : IFilterConventionDescriptor
 {
-    private readonly Dictionary<int, FilterOperationConventionDescriptor> _operations = new();
+    private readonly Dictionary<int, FilterOperationConventionDescriptor> _operations = [];
 
     protected FilterConventionDescriptor(IDescriptorContext context, string? scope)
     {
