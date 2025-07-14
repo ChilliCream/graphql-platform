@@ -126,6 +126,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableTag"/>
     public bool EnableTag { get; set; } = true;
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableOptInFeatures"/>
+    public bool EnableOptInFeatures { get; set; }
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultQueryDependencyInjectionScope"/>
     public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; set; } =
         DependencyInjectionScope.Resolver;
