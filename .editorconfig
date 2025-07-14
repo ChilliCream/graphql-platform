@@ -247,6 +247,9 @@ dotnet_style_prefer_collection_expression = when_types_exactly_match
 # Place new line after/before binary operator.
 dotnet_diagnostic.RCS0027.severity = warning
 roslynator_binary_operator_new_line = before
+# Normalize whitespace at the end of a file.
+dotnet_diagnostic.RCS0058.severity = warning
+roslynator_new_line_at_end_of_file = true
 # Remove unnecessary blank line.
 dotnet_diagnostic.RCS0063.severity = warning
 dotnet_diagnostic.RCS1036.severity = none # see https://github.com/dotnet/roslynator/issues/1632
