@@ -1,3 +1,5 @@
+#nullable disable
+
 // ReSharper disable VirtualMemberCallInConstructor
 
 using System.Reflection;

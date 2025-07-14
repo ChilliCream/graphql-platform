@@ -5,8 +5,6 @@ using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Interceptors;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public static partial class SchemaBuilderExtensions

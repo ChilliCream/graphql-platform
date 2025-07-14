@@ -2,8 +2,6 @@ using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class FieldSyntaxParameterExpressionBuilder()

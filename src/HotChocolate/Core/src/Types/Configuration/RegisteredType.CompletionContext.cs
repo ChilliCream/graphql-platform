@@ -5,8 +5,6 @@ using HotChocolate.Types.Descriptors;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Utilities.ThrowHelper;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed partial class RegisteredType : ITypeCompletionContext
