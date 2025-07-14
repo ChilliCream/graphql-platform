@@ -130,8 +130,8 @@ public sealed class RequireInvalidFieldsRuleTests
                     """
                 ],
                 [
-                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' " +
-                    "specifies an invalid field selection against the composed schema."
+                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' "
+                    + "specifies an invalid field selection against the composed schema."
                 ]
             },
             // In the following example, the @require directive references a field from itself
@@ -147,8 +147,8 @@ public sealed class RequireInvalidFieldsRuleTests
                     """
                 ],
                 [
-                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' " +
-                    "specifies an invalid field selection against the composed schema."
+                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' "
+                    + "specifies an invalid field selection against the composed schema."
                 ]
             },
             // Referencing a field that exists in both the current schema and another schema.
@@ -169,8 +169,8 @@ public sealed class RequireInvalidFieldsRuleTests
                     """
                 ],
                 [
-                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' " +
-                    "specifies an invalid field selection against the composed schema."
+                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' "
+                    + "specifies an invalid field selection against the composed schema."
                 ]
             }
         };

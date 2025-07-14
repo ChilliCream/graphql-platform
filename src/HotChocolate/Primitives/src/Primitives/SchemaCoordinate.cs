@@ -177,10 +177,10 @@ public readonly struct SchemaCoordinate : IEquatable<SchemaCoordinate>
     /// otherwise, <c>false</c>.
     /// </returns>
     public bool Equals(SchemaCoordinate other)
-        => OfDirective == other.OfDirective &&
-            string.Equals(Name, other.Name, Ordinal) &&
-            Equals(MemberName, other.MemberName) &&
-            Equals(ArgumentName, other.ArgumentName);
+        => OfDirective == other.OfDirective
+            && string.Equals(Name, other.Name, Ordinal)
+            && Equals(MemberName, other.MemberName)
+            && Equals(ArgumentName, other.ArgumentName);
 
     /// <summary>
     /// Indicates whether the current object is equal to another object of the same type.

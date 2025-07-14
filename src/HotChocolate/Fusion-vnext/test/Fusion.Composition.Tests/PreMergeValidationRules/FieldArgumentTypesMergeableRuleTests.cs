@@ -179,8 +179,8 @@ public sealed class FieldArgumentTypesMergeableRuleTests
                     """
                 ],
                 [
-                    "The argument 'User.field(argument:)' has a different type shape in schema " +
-                    "'A' than it does in schema 'B'."
+                    "The argument 'User.field(argument:)' has a different type shape in schema "
+                    + "'A' than it does in schema 'B'."
                 ]
             },
             {
@@ -197,8 +197,8 @@ public sealed class FieldArgumentTypesMergeableRuleTests
                     """
                 ],
                 [
-                    "The argument 'User.field(argument:)' has a different type shape in schema " +
-                    "'A' than it does in schema 'B'."
+                    "The argument 'User.field(argument:)' has a different type shape in schema "
+                    + "'A' than it does in schema 'B'."
                 ]
             },
             // More than two schemas.
@@ -221,11 +221,11 @@ public sealed class FieldArgumentTypesMergeableRuleTests
                     """
                 ],
                 [
-                    "The argument 'User.field(argument:)' has a different type shape in schema " +
-                    "'A' than it does in schema 'B'.",
+                    "The argument 'User.field(argument:)' has a different type shape in schema "
+                    + "'A' than it does in schema 'B'.",
 
-                    "The argument 'User.field(argument:)' has a different type shape in schema " +
-                    "'B' than it does in schema 'C'."
+                    "The argument 'User.field(argument:)' has a different type shape in schema "
+                    + "'B' than it does in schema 'C'."
                 ]
             }
         };

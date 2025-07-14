@@ -86,8 +86,8 @@ public readonly struct IncludeCondition : IEquatable<IncludeCondition>
     /// <paramref name="other" /> parameter; otherwise, <see langword="false" />.
     /// </returns>
     public bool Equals(IncludeCondition other)
-        => Skip.Equals(other.Skip, SyntaxComparison.Syntax) &&
-            Include.Equals(other.Include, SyntaxComparison.Syntax);
+        => Skip.Equals(other.Skip, SyntaxComparison.Syntax)
+            && Include.Equals(other.Include, SyntaxComparison.Syntax);
 
     /// <summary>
     /// Indicates whether this instance and a specified object are equal.

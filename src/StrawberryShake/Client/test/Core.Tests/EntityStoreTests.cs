@@ -47,8 +47,8 @@ public class EntityStoreTests
         // act
         entityStore.Update(session => session.RemoveEntity(entityId));
 
-        while (entityStore.CurrentSnapshot.GetEntityIds().Count > 0 &&
-            !cts.IsCancellationRequested)
+        while (entityStore.CurrentSnapshot.GetEntityIds().Count > 0
+            && !cts.IsCancellationRequested)
         {
             await Task.Delay(50, cts.Token);
         }

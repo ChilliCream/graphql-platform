@@ -141,9 +141,9 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 {
                     string? operationNames = context.Request.Query[BatchOperations];
 
-                    if (!string.IsNullOrEmpty(operationNames) &&
-                        TryParseOperations(operationNames, out var ops) &&
-                        GetOptions(context).EnableBatching)
+                    if (!string.IsNullOrEmpty(operationNames)
+                        && TryParseOperations(operationNames, out var ops)
+                        && GetOptions(context).EnableBatching)
                     {
                         result = await session.ExecuteOperationBatchAsync(context, requests[0], requestFlags, ops);
                     }

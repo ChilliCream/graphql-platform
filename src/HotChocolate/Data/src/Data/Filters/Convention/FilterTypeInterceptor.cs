@@ -127,11 +127,11 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
     {
         foreach (var field in definition.Fields)
         {
-            if (field is FilterFieldConfiguration filterFieldDefinition &&
-                field.Type is not null &&
-                filterFieldDefinition.Type is { } filterFieldType &&
-                discoveryContext.TryPredictTypeKind(filterFieldType, out var kind) &&
-                kind is not TypeKind.Scalar and not TypeKind.Enum)
+            if (field is FilterFieldConfiguration filterFieldDefinition
+                && field.Type is not null
+                && filterFieldDefinition.Type is { } filterFieldType
+                && discoveryContext.TryPredictTypeKind(filterFieldType, out var kind)
+                && kind is not TypeKind.Scalar and not TypeKind.Enum)
             {
                 field.Type = field.Type.With(scope: discoveryContext.Scope);
             }
@@ -172,8 +172,8 @@ file static class Extensions
                 return true;
             }
 
-            if (attribute.AttributeType.IsGenericType &&
-                attribute.AttributeType.GetGenericTypeDefinition() == typeof(IDAttribute<>))
+            if (attribute.AttributeType.IsGenericType
+                && attribute.AttributeType.GetGenericTypeDefinition() == typeof(IDAttribute<>))
             {
                 return true;
             }

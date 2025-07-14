@@ -17,8 +17,8 @@ public static class FragmentHelper
         var directive =
             fieldSelection.SyntaxNode.Directives.FirstOrDefault(
                 t => t.Name.Value.Equals("returns"));
-        if (directive?.Arguments.Count == 1 &&
-            directive.Arguments[0] is
+        if (directive?.Arguments.Count == 1
+            && directive.Arguments[0] is
             {
                 Name: { Value: "fragment" },
                 Value: StringValueNode { Value: { Length: > 0 } } sv
@@ -32,8 +32,8 @@ public static class FragmentHelper
 
     public static FragmentNode? GetFragment(FragmentNode fragmentNode, string name)
     {
-        if (fragmentNode.Fragment.Kind == FragmentKind.Named &&
-            fragmentNode.Fragment.Name.EqualsOrdinal(name))
+        if (fragmentNode.Fragment.Kind == FragmentKind.Named
+            && fragmentNode.Fragment.Name.EqualsOrdinal(name))
         {
             return fragmentNode;
         }
@@ -273,8 +273,8 @@ public static class FragmentHelper
         Path path)
     {
         // the fragment type is a complex type we will generate an interface with fields.
-        if (fragmentNode.Fragment.TypeCondition is IOutputTypeDefinition type &&
-            type.IsCompositeType())
+        if (fragmentNode.Fragment.TypeCondition is IOutputTypeDefinition type
+            && type.IsCompositeType())
         {
             var fieldMap = new OrderedDictionary<string, FieldSelection>();
             CollectFields(fragmentNode, type, fieldMap, path);
@@ -315,8 +315,8 @@ public static class FragmentHelper
         Path path)
     {
         foreach (var inlineFragment in fragmentNode.Nodes.Where(
-            t => t.Fragment.Kind == FragmentKind.Inline &&
-                t.Fragment.TypeCondition.IsAssignableFrom(outputType)))
+            t => t.Fragment.Kind == FragmentKind.Inline
+                && t.Fragment.TypeCondition.IsAssignableFrom(outputType)))
         {
             CollectFields(inlineFragment, outputType, fields, path);
         }

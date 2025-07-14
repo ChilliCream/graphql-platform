@@ -223,8 +223,8 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             else
             {
                 throw new InvalidOperationException(
-                    $"Serializer for property {descriptor.RuntimeType.Name}." +
-                    $"{property.Name} could not be created. GraphQLTypeName was empty");
+                    $"Serializer for property {descriptor.RuntimeType.Name}."
+                    + $"{property.Name} could not be created. GraphQLTypeName was empty");
             }
         }
     }
@@ -269,8 +269,8 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             else
             {
                 throw new InvalidOperationException(
-                    $"Serializer for property {descriptor.RuntimeType.Name}." +
-                    $"{property.Name} could not be created. GraphQLTypeName was empty");
+                    $"Serializer for property {descriptor.RuntimeType.Name}."
+                    + $"{property.Name} could not be created. GraphQLTypeName was empty");
             }
         }
 

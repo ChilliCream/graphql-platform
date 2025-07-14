@@ -164,8 +164,8 @@ public class InterfaceTypeParserTests
     public void Parser_ImplementsInterfacesAndDirectives()
     {
         // arrange
-        const string sourceText = "interface a implements e & f" +
-            "@foo(a: \"123\") @foo(b: \"321\") { b: String } ";
+        const string sourceText = "interface a implements e & f"
+            + "@foo(a: \"123\") @foo(b: \"321\") { b: String } ";
 
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
@@ -203,8 +203,8 @@ public class InterfaceTypeParserTests
     public void Parser__Should_Fail_WhenDirectivesBeforeInterface()
     {
         // arrange
-        const string sourceText = "interface a @foo(a: \"123\") implements e & f" +
-            " @foo(b: \"321\") { b: String } ";
+        const string sourceText = "interface a @foo(a: \"123\") implements e & f"
+            + " @foo(b: \"321\") { b: String } ";
 
         // act & assert
         Assert.Throws<SyntaxException>(() =>

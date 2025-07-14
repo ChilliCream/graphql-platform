@@ -36,8 +36,8 @@ public class FragmentsMustBeUsedRuleTests
         // assert
         Assert.Collection(context.Errors,
             t => Assert.Equal(
-                "The specified fragment `nameFragment` " +
-                "is not used within the current document.", t.Message));
+                "The specified fragment `nameFragment` "
+                + "is not used within the current document.", t.Message));
         context.Errors.MatchSnapshot();
     }
 

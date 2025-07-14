@@ -79,8 +79,8 @@ internal sealed partial class ExtendedType
 
             ExtendedType? elementType = null;
             var isList =
-                !extendedType.IsArray &&
-                Helper.IsListType(extendedType.Type);
+                !extendedType.IsArray
+                && Helper.IsListType(extendedType.Type);
 
             if (isList)
             {

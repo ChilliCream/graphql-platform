@@ -260,13 +260,13 @@ public class ObjectTypeConfiguration
             var removeField = field.Ignore;
 
             // we skip fields that have an incompatible parent.
-            if (field.Member is MethodInfo p &&
-                p.GetParameters() is { Length: > 0 } parameters)
+            if (field.Member is MethodInfo p
+                && p.GetParameters() is { Length: > 0 } parameters)
             {
                 var parent = parameters.FirstOrDefault(
                     t => t.IsDefined(typeof(ParentAttribute), true));
-                if (parent?.ParameterType.IsAssignableFrom(target.RuntimeType) == false &&
-                    !target.RuntimeType.IsAssignableFrom(parent.ParameterType))
+                if (parent?.ParameterType.IsAssignableFrom(target.RuntimeType) == false
+                    && !target.RuntimeType.IsAssignableFrom(parent.ParameterType))
                 {
                     continue;
                 }

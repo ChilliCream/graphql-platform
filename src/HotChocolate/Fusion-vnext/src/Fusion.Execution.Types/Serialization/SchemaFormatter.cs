@@ -172,9 +172,9 @@ public static class SchemaFormatter
                 .OfType<IObjectTypeDefinition>()
                 .OrderBy(t => t.Name))
             {
-                if (context.Schema?.QueryType == type ||
-                   context.Schema?.MutationType == type ||
-                   context.Schema?.SubscriptionType == type)
+                if (context.Schema?.QueryType == type
+                    || context.Schema?.MutationType == type
+                    || context.Schema?.SubscriptionType == type)
                 {
                     continue;
                 }

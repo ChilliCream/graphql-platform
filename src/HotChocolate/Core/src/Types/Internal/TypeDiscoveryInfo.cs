@@ -131,13 +131,13 @@ public readonly ref struct TypeDiscoveryInfo
         bool isPublic)
     {
         var isComplexClass =
-            isPublic &&
-            unresolvedType.Type.IsClass &&
-            unresolvedType.Type != typeof(string);
+            isPublic
+            && unresolvedType.Type.IsClass
+            && unresolvedType.Type != typeof(string);
 
         var isComplexValueType =
-            isPublic &&
-            unresolvedType.Type is
+            isPublic
+            && unresolvedType.Type is
             {
                 IsValueType: true,
                 IsPrimitive: false,

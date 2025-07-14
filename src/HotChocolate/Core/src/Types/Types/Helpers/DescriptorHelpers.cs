@@ -47,8 +47,8 @@ internal static class DescriptorHelpers
             return true;
         }
 
-        return typeReference is ExtendedTypeReference clr &&
-            !clr.Type.IsSchemaType;
+        return typeReference is ExtendedTypeReference clr
+            && !clr.Type.IsSchemaType;
     }
 
     private static bool IsTypeMoreSpecific(

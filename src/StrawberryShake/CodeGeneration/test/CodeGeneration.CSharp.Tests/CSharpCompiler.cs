@@ -39,8 +39,8 @@ internal static class CSharpCompiler
         if (sourceText.Length == 0)
         {
             throw new ArgumentException(
-                "The compiler needs at least one code unit in order " +
-                "to create an assembly.");
+                "The compiler needs at least one code unit in order "
+                + "to create an assembly.");
         }
 
         var syntaxTree = new SyntaxTree[sourceText.Length];

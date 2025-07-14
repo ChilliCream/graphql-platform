@@ -195,9 +195,9 @@ public class BsonType : ScalarType
         var mappedValue = BsonTypeMapper.MapToDotNetValue(value);
         var type = mappedValue.GetType();
 
-        if (type.IsValueType &&
-            Converter.TryConvert(type, typeof(string), mappedValue, out var converted) &&
-            converted is string c)
+        if (type.IsValueType
+            && Converter.TryConvert(type, typeof(string), mappedValue, out var converted)
+            && converted is string c)
         {
             return new StringValueNode(c);
         }
@@ -303,9 +303,9 @@ public class BsonType : ScalarType
 
                 var type = dotNetValue.GetType();
 
-                if (type.IsValueType &&
-                    Converter.TryConvert(type, typeof(string), dotNetValue, out var c) &&
-                    c is string casted)
+                if (type.IsValueType
+                    && Converter.TryConvert(type, typeof(string), dotNetValue, out var c)
+                    && c is string casted)
                 {
                     resultValue = casted;
                     return true;
