@@ -211,7 +211,6 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
                     break;
 
                 case IResponseStream batchResult:
-                {
                     await foreach (var partialResult in batchResult.ReadResultsAsync()
                         .WithCancellation(cancellationToken)
                         .ConfigureAwait(false))
@@ -226,7 +225,6 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
                         }
                     }
                     break;
-                }
             }
         }
 

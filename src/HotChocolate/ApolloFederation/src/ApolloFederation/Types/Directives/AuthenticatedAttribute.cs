@@ -43,30 +43,24 @@ public sealed class AuthenticatedAttribute : DescriptorAttribute
         switch (descriptor)
         {
             case IEnumTypeDescriptor enumTypeDescriptor:
-            {
                 enumTypeDescriptor.Authenticated();
                 break;
-            }
+
             case IObjectTypeDescriptor objectFieldDescriptor:
-            {
                 objectFieldDescriptor.Authenticated();
                 break;
-            }
+
             case IObjectFieldDescriptor objectFieldDescriptor:
-            {
                 objectFieldDescriptor.Authenticated();
                 break;
-            }
+
             case IInterfaceTypeDescriptor interfaceTypeDescriptor:
-            {
                 interfaceTypeDescriptor.Authenticated();
                 break;
-            }
+
             case IInterfaceFieldDescriptor interfaceFieldDescriptor:
-            {
                 interfaceFieldDescriptor.Authenticated();
                 break;
-            }
         }
     }
 }
