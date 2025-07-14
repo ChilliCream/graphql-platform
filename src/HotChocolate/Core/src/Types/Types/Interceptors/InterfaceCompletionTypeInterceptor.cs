@@ -32,9 +32,9 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
         // after all types have been initialized we will index the runtime
         // types of all interfaces.
         foreach (var interfaceTypeInfo in _typeInfos.Values
-            .Where(t => t.Configuration.RuntimeType is { } rt &&
-                rt != typeof(object) &&
-                t.Configuration is InterfaceTypeConfiguration))
+            .Where(t => t.Configuration.RuntimeType is { } rt
+                && rt != typeof(object)
+                && t.Configuration is InterfaceTypeConfiguration))
         {
             if (!_allInterfaceRuntimeTypes.ContainsKey(interfaceTypeInfo.Configuration.RuntimeType))
             {
@@ -75,8 +75,8 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
     // defines if this type has a concrete runtime type.
     private bool IsRelevant(TypeInfo typeInfo)
     {
-        if (typeInfo.Configuration is ObjectTypeConfiguration { IsExtension: true } objectDef &&
-            objectDef.FieldBindingType != typeof(object))
+        if (typeInfo.Configuration is ObjectTypeConfiguration { IsExtension: true } objectDef
+            && objectDef.FieldBindingType != typeof(object))
         {
             return true;
         }

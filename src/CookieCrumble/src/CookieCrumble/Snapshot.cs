@@ -624,30 +624,30 @@ public class Snapshot
             var method = stackFrame.GetMethod();
             var fileName = stackFrame.GetFileName();
 
-            if (method is not null &&
-                !string.IsNullOrEmpty(fileName) &&
-                s_testFramework.IsValidTestMethod(method))
+            if (method is not null
+                && !string.IsNullOrEmpty(fileName)
+                && s_testFramework.IsValidTestMethod(method))
             {
                 return Combine(GetDirectoryName(fileName)!, method.ToName());
             }
 
             method = EvaluateAsynchronousMethodBase(method);
 
-            if (method is not null &&
-                !string.IsNullOrEmpty(fileName) &&
-                s_testFramework.IsValidTestMethod(method))
+            if (method is not null
+                && !string.IsNullOrEmpty(fileName)
+                && s_testFramework.IsValidTestMethod(method))
             {
                 return Combine(GetDirectoryName(fileName)!, method.ToName());
             }
         }
 
         throw new Exception(
-            "The snapshot full name could not be evaluated. " +
-            "This error can occur, if you use the snapshot match " +
-            "within an async test helper child method. To solve this issue, " +
-            "use the Snapshot.FullName directly in the unit test to " +
-            "get the snapshot name, then reach this name to your " +
-            "Snapshot.Match method.");
+            "The snapshot full name could not be evaluated. "
+            + "This error can occur, if you use the snapshot match "
+            + "within an async test helper child method. To solve this issue, "
+            + "use the Snapshot.FullName directly in the unit test to "
+            + "get the snapshot name, then reach this name to your "
+            + "Snapshot.Match method.");
     }
 
     private static string CreateMarkdownTitle(StackFrame[] frames)
@@ -657,30 +657,30 @@ public class Snapshot
             var method = stackFrame.GetMethod();
             var fileName = stackFrame.GetFileName();
 
-            if (method is not null &&
-                !string.IsNullOrEmpty(fileName) &&
-                s_testFramework.IsValidTestMethod(method))
+            if (method is not null
+                && !string.IsNullOrEmpty(fileName)
+                && s_testFramework.IsValidTestMethod(method))
             {
                 return method.Name;
             }
 
             method = EvaluateAsynchronousMethodBase(method);
 
-            if (method is not null &&
-                !string.IsNullOrEmpty(fileName) &&
-                s_testFramework.IsValidTestMethod(method))
+            if (method is not null
+                && !string.IsNullOrEmpty(fileName)
+                && s_testFramework.IsValidTestMethod(method))
             {
                 return method.Name;
             }
         }
 
         throw new Exception(
-            "The snapshot full name could not be evaluated. " +
-            "This error can occur, if you use the snapshot match " +
-            "within an async test helper child method. To solve this issue, " +
-            "use the Snapshot.FullName directly in the unit test to " +
-            "get the snapshot name, then reach this name to your " +
-            "Snapshot.Match method.");
+            "The snapshot full name could not be evaluated. "
+            + "This error can occur, if you use the snapshot match "
+            + "within an async test helper child method. To solve this issue, "
+            + "use the Snapshot.FullName directly in the unit test to "
+            + "get the snapshot name, then reach this name to your "
+            + "Snapshot.Match method.");
     }
 
     private static MethodInfo? EvaluateAsynchronousMethodBase(MemberInfo? method)
@@ -696,8 +696,8 @@ public class Snapshot
                 from methodInfo in classDeclaringType.GetMethods()
                 let stateMachineAttribute = methodInfo
                     .GetCustomAttribute<AsyncStateMachineAttribute>()
-                where stateMachineAttribute != null &&
-                    stateMachineAttribute.StateMachineType == methodDeclaringType
+                where stateMachineAttribute != null
+                    && stateMachineAttribute.StateMachineType == methodDeclaringType
                 select methodInfo;
 
             actualMethodInfo = selectedMethodInfos.SingleOrDefault();
@@ -714,9 +714,9 @@ public class Snapshot
             || (bool.TryParse(value, out var b) && b))
         {
             s_testFramework.ThrowTestException(
-                "Strict mode is enabled and no snapshot has been found " +
-                "for the current test. Create a new snapshot locally and " +
-                "rerun your tests.");
+                "Strict mode is enabled and no snapshot has been found "
+                + "for the current test. Create a new snapshot locally and "
+                + "rerun your tests.");
         }
     }
 

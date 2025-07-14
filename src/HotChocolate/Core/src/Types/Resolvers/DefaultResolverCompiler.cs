@@ -448,9 +448,9 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             return false;
         }
 
-        if (typeof(IExecutable).IsAssignableFrom(resultType) ||
-            typeof(IQueryable).IsAssignableFrom(resultType) ||
-            typeof(Task).IsAssignableFrom(resultType))
+        if (typeof(IExecutable).IsAssignableFrom(resultType)
+            || typeof(IQueryable).IsAssignableFrom(resultType)
+            || typeof(Task).IsAssignableFrom(resultType))
         {
             return false;
         }
@@ -459,8 +459,8 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         {
             var type = resultType.GetGenericTypeDefinition();
 
-            if (type == typeof(ValueTask<>) ||
-                type == typeof(IAsyncEnumerable<>))
+            if (type == typeof(ValueTask<>)
+                || type == typeof(IAsyncEnumerable<>))
             {
                 return false;
             }
@@ -509,8 +509,8 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         ParameterInfo parameter,
         IReadOnlyList<IParameterExpressionBuilder> fieldParameterExpressionBuilders)
     {
-        if (fieldParameterExpressionBuilders.Count == 0 &&
-            _cache.TryGetValue(parameter, out var cached))
+        if (fieldParameterExpressionBuilders.Count == 0
+            && _cache.TryGetValue(parameter, out var cached))
         {
             return cached;
         }

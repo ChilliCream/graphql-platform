@@ -41,8 +41,8 @@ public class TimeSpanType
 
     protected override TimeSpan ParseLiteral(StringValueNode valueSyntax)
     {
-        if (TryDeserializeFromString(valueSyntax.Value, _format, out var value) &&
-            value != null)
+        if (TryDeserializeFromString(valueSyntax.Value, _format, out var value)
+            && value != null)
         {
             return value.Value;
         }
@@ -66,8 +66,8 @@ public class TimeSpanType
             return NullValueNode.Default;
         }
 
-        if (resultValue is string s &&
-            TryDeserializeFromString(s, _format, out var timeSpan))
+        if (resultValue is string s
+            && TryDeserializeFromString(s, _format, out var timeSpan))
         {
             return ParseValue(timeSpan);
         }
@@ -114,8 +114,8 @@ public class TimeSpanType
             return true;
         }
 
-        if (resultValue is string s &&
-            TryDeserializeFromString(s, _format, out var timeSpan))
+        if (resultValue is string s
+            && TryDeserializeFromString(s, _format, out var timeSpan))
         {
             runtimeValue = timeSpan;
             return true;

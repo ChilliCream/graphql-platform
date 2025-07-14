@@ -18,16 +18,16 @@ public static class ActivityTestHelper
         {
             lock (sync)
             {
-                if (a.Parent is null &&
-                    a.OperationName.EqualsOrdinal("ExecuteHttpRequest") &&
-                    lookup.TryGetValue(rootActivity, out var parentData))
+                if (a.Parent is null
+                    && a.OperationName.EqualsOrdinal("ExecuteHttpRequest")
+                    && lookup.TryGetValue(rootActivity, out var parentData))
                 {
                     RegisterActivity(a, parentData);
                     lookup[a] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;
                 }
 
-                if (a.Parent is not null &&
-                    lookup.TryGetValue(a.Parent, out parentData))
+                if (a.Parent is not null
+                    && lookup.TryGetValue(a.Parent, out parentData))
                 {
                     RegisterActivity(a, parentData);
                     lookup[a] = (OrderedDictionary<string, object?>)a.GetCustomProperty("test.data")!;

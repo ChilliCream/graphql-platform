@@ -244,6 +244,9 @@ dotnet_diagnostic.IDE0305.severity = silent # see https://github.com/dotnet/rosl
 # Use collection expression for new.
 dotnet_diagnostic.IDE0306.severity = warning
 dotnet_style_prefer_collection_expression = when_types_exactly_match
+# Place new line after/before binary operator.
+dotnet_diagnostic.RCS0027.severity = warning
+roslynator_binary_operator_new_line = before
 # Remove unnecessary blank line.
 dotnet_diagnostic.RCS0063.severity = warning
 dotnet_diagnostic.RCS1036.severity = none # see https://github.com/dotnet/roslynator/issues/1632

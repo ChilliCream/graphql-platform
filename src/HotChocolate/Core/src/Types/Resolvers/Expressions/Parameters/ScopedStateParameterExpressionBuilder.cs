@@ -118,8 +118,8 @@ internal class ScopedStateParameterExpressionBuilder
     {
         var helper = new NullableHelper(targetType);
         var nullabilityFlags = helper.GetFlags(parameter);
-        if (nullabilityFlags.Length > 0 &&
-            nullabilityFlags[0] is { } f)
+        if (nullabilityFlags.Length > 0
+            && nullabilityFlags[0] is { } f)
         {
             return f;
         }

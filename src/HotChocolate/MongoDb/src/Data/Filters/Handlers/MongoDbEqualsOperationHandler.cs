@@ -23,8 +23,8 @@ public class MongoDbEqualsOperationHandler
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration)
     {
-        return fieldConfiguration is FilterOperationFieldConfiguration operationField &&
-            operationField.Id is DefaultFilterOperations.Equals;
+        return fieldConfiguration is FilterOperationFieldConfiguration operationField
+            && operationField.Id is DefaultFilterOperations.Equals;
     }
 
     /// <inheritdoc />

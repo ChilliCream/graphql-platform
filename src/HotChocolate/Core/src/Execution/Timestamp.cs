@@ -8,7 +8,7 @@ internal static class Timestamp
 
     public static long GetNowInNanoseconds()
     {
-        return Stopwatch.GetTimestamp() *
-            (NanosecondsPerSecond / Stopwatch.Frequency);
+        return Stopwatch.GetTimestamp()
+            * (NanosecondsPerSecond / Stopwatch.Frequency);
     }
 }

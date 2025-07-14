@@ -73,8 +73,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 -------------------------->
                 Status Code: OK
                 -------------------------->
-                " +
-                @"{""data"":{""__typename"":""Query""}}");
+                "
+                + @"{""data"":{""__typename"":""Query""}}");
     }
 
     [Theory]
@@ -155,8 +155,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 -------------------------->
                 Status Code: {expectedStatusCode}
                 -------------------------->
-                " +
-                @"{""errors"":[{""message"":""The GraphQL request is empty."",""extensions"":{""code"":""HC0009""}}]}");
+                "
+                + @"{""errors"":[{""message"":""The GraphQL request is empty."",""extensions"":{""code"":""HC0009""}}]}");
     }
 
     [Theory]
@@ -193,10 +193,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 -------------------------->
                 Status Code: {expectedStatusCode}
                 -------------------------->
-                " +
-                @"{""errors"":[{""message"":""Expected a `Name`-token, but found a " +
-                @"`Dollar`-token."",""locations"":[{""line"":1,""column"":8}]," +
-                @"""extensions"":{""code"":""HC0011""}}]}");
+                "
+                + @"{""errors"":[{""message"":""Expected a `Name`-token, but found a "
+                + @"`Dollar`-token."",""locations"":[{""line"":1,""column"":8}],"
+                + @"""extensions"":{""code"":""HC0011""}}]}");
     }
 
     [Theory]
@@ -254,9 +254,9 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
-                {""errors"":[{""message"":""Unable to parse the accept header value " +
-                @"`unsupported`."",""extensions"":{""code"":""HC0064""," +
-                @"""headerValue"":""unsupported""}}]}");
+                {""errors"":[{""message"":""Unable to parse the accept header value "
+                + @"`unsupported`."",""extensions"":{""code"":""HC0064"","
+                + @"""headerValue"":""unsupported""}}]}");
     }
 
     [Fact]
@@ -284,8 +284,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 -------------------------->
                 Status Code: NotAcceptable
                 -------------------------->
-                {""errors"":[{""message"":""None of the `Accept` header values is supported.""," +
-                @"""extensions"":{""code"":""HC0063""}}]}");
+                {""errors"":[{""message"":""None of the `Accept` header values is supported."","
+                + @"""extensions"":{""code"":""HC0063""}}]}");
     }
 
     [Theory]
@@ -327,8 +327,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {""incremental"":[{""data"":{""__typename"":""Query""}," +
-                @"""path"":[]}],""hasNext"":false}
+                {""incremental"":[{""data"":{""__typename"":""Query""},"
+                + @"""path"":[]}],""hasNext"":false}
                 -----
                 ");
     }
@@ -368,8 +368,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 data: {""data"":{},""hasNext"":true}
 
                 event: next
-                data: {""incremental"":[{""data"":{""__typename"":""Query""}," +
-                @"""path"":[]}],""hasNext"":false}
+                data: {""incremental"":[{""data"":{""__typename"":""Query""},"
+                + @"""path"":[]}],""hasNext"":false}
 
                 event: complete
 

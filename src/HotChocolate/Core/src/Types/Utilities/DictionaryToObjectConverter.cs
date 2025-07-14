@@ -23,8 +23,8 @@ public sealed class DictionaryToObjectConverter(ITypeConverter converter)
         IReadOnlyDictionary<string, object> dictionary,
         ConverterContext context)
     {
-        if (!context.ClrType.IsValueType &&
-            context.ClrType != typeof(string))
+        if (!context.ClrType.IsValueType
+            && context.ClrType != typeof(string))
         {
             var properties =
                 context.ClrType.CreatePropertyLookup();

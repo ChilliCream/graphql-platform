@@ -375,8 +375,8 @@ public static partial class TypeDescriptorMapper
 
     private static bool IncludeOrSkipDirective(OutputFieldModel field)
     {
-        return field.SyntaxNode.Directives.GetIncludeDirectiveNode() is not null ||
-            field.SyntaxNode.Directives.GetSkipDirectiveNode() is not null;
+        return field.SyntaxNode.Directives.GetIncludeDirectiveNode() is not null
+            || field.SyntaxNode.Directives.GetSkipDirectiveNode() is not null;
     }
 
     private static void AddProperties(

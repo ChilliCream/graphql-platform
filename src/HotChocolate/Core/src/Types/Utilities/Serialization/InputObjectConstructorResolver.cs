@@ -63,10 +63,10 @@ internal static class InputObjectConstructorResolver
         }
 
         throw new InvalidOperationException(
-            $"No compatible constructor found for input type type `{type.FullName}`.\r\n" +
-            "Either you have to provide a public constructor with settable properties or " +
-            "a public constructor that allows to pass in values for read-only properties. " +
-            $"There was no way to set the following properties: {string.Join(", ", required)}.");
+            $"No compatible constructor found for input type type `{type.FullName}`.\r\n"
+            + "Either you have to provide a public constructor with settable properties or "
+            + "a public constructor that allows to pass in values for read-only properties. "
+            + $"There was no way to set the following properties: {string.Join(", ", required)}.");
     }
 
     private static bool AllPropertiesCanWrite<T>(FieldCollection<T> fields)
@@ -103,11 +103,11 @@ internal static class InputObjectConstructorResolver
                     }
                 }
                 else if (
-                    parameter.ParameterType.IsValueType &&
-                    field.Property!.PropertyType.IsValueType &&
-                    parameter.ParameterType.IsGenericType &&
-                    typeof(Nullable<>) == parameter.ParameterType.GetGenericTypeDefinition() &&
-                    parameter.ParameterType.GetGenericArguments()[0] == field.Property!.PropertyType)
+                    parameter.ParameterType.IsValueType
+                    && field.Property!.PropertyType.IsValueType
+                    && parameter.ParameterType.IsGenericType
+                    && typeof(Nullable<>) == parameter.ParameterType.GetGenericTypeDefinition()
+                    && parameter.ParameterType.GetGenericArguments()[0] == field.Property!.PropertyType)
                 {
                     if (required.Contains(field.Name))
                     {

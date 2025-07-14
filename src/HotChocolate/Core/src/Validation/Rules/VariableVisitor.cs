@@ -101,8 +101,8 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         feature.Declared.Add(variableName);
 
         if (context.Schema.Types.TryGetType<ITypeDefinition>(
-            node.Type.NamedType().Name.Value, out var type) &&
-            !type.IsInputType())
+            node.Type.NamedType().Name.Value, out var type)
+            && !type.IsInputType())
         {
             context.ReportError(context.VariableNotInputType(node, variableName));
         }
@@ -124,9 +124,9 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is IComplexTypeDefinition ot &&
-            ot.Fields.TryGetField(node.Name.Value, out var of))
+        if (context.Types.TryPeek(out var type)
+            && type.NamedType() is IComplexTypeDefinition ot
+            && ot.Fields.TryGetField(node.Name.Value, out var of))
         {
             context.OutputFields.Push(of);
             context.Types.Push(of.Type);
@@ -211,9 +211,9 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         ObjectFieldNode node,
         DocumentValidatorContext context)
     {
-        if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is IInputObjectTypeDefinition it &&
-            it.Fields.TryGetField(node.Name.Value, out var field))
+        if (context.Types.TryPeek(out var type)
+            && type.NamedType() is IInputObjectTypeDefinition it
+            && it.Fields.TryGetField(node.Name.Value, out var field))
         {
             context.InputFields.Push(field);
             context.Types.Push(field.Type);

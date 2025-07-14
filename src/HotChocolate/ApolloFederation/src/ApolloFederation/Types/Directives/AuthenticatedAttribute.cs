@@ -27,12 +27,12 @@ namespace HotChocolate.ApolloFederation.Types;
 /// </example>
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Enum |
-    AttributeTargets.Interface |
-    AttributeTargets.Method |
-    AttributeTargets.Property |
-    AttributeTargets.Struct)]
+    AttributeTargets.Class
+    | AttributeTargets.Enum
+    | AttributeTargets.Interface
+    | AttributeTargets.Method
+    | AttributeTargets.Property
+    | AttributeTargets.Struct)]
 public sealed class AuthenticatedAttribute : DescriptorAttribute
 {
     protected internal override void TryConfigure(

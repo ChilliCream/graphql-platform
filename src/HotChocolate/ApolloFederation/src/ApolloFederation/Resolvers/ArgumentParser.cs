@@ -37,8 +37,8 @@ internal static class ArgumentParser
             {
                 var current = path[i];
 
-                if (type is not IComplexTypeDefinition complexType ||
-                    !complexType.Fields.TryGetField(current, out var field))
+                if (type is not IComplexTypeDefinition complexType
+                    || !complexType.Fields.TryGetField(current, out var field))
                 {
                     break;
                 }
@@ -108,8 +108,8 @@ internal static class ArgumentParser
 
         if (required.Count == 2)
         {
-            return Matches(valueNode, required[0], 0) &&
-                Matches(valueNode, required[1], 0);
+            return Matches(valueNode, required[0], 0)
+                && Matches(valueNode, required[1], 0);
         }
 
         for (var i = 0; i < required.Count; i++)

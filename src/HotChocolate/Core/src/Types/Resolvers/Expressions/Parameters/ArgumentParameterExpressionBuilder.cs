@@ -25,16 +25,16 @@ internal class ArgumentParameterExpressionBuilder
         ContextType.GetMethods().First(IsArgumentOptionalMethod);
 
     private static bool IsArgumentValueMethod(MethodInfo method)
-        => method.Name.Equals(ArgumentValue, StringComparison.Ordinal) &&
-           method.IsGenericMethod;
+        => method.Name.Equals(ArgumentValue, StringComparison.Ordinal)
+            && method.IsGenericMethod;
 
     private static bool IsArgumentLiteralMethod(MethodInfo method)
-        => method.Name.Equals(ArgumentLiteral, StringComparison.Ordinal) &&
-           method.IsGenericMethod;
+        => method.Name.Equals(ArgumentLiteral, StringComparison.Ordinal)
+            && method.IsGenericMethod;
 
     private static bool IsArgumentOptionalMethod(MethodInfo method)
-        => method.Name.Equals(ArgumentOptional, StringComparison.Ordinal) &&
-           method.IsGenericMethod;
+        => method.Name.Equals(ArgumentOptional, StringComparison.Ordinal)
+            && method.IsGenericMethod;
 
     public ArgumentKind Kind => ArgumentKind.Argument;
 
@@ -64,8 +64,8 @@ internal class ArgumentParameterExpressionBuilder
 
         MethodInfo argumentMethod;
 
-        if (parameter.ParameterType.IsGenericType &&
-            parameter.ParameterType.GetGenericTypeDefinition() == s_optional)
+        if (parameter.ParameterType.IsGenericType
+            && parameter.ParameterType.GetGenericTypeDefinition() == s_optional)
         {
             argumentMethod = s_getArgumentOptional.MakeGenericMethod(
                 parameter.ParameterType.GenericTypeArguments[0]);

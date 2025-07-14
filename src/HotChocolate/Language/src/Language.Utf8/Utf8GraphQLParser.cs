@@ -108,9 +108,9 @@ public ref partial struct Utf8GraphQLParser
 
         if (_reader.Kind == TokenKind.Name)
         {
-            if (_reader.Value.SequenceEqual(GraphQLKeywords.Query) ||
-                _reader.Value.SequenceEqual(GraphQLKeywords.Mutation) ||
-                _reader.Value.SequenceEqual(GraphQLKeywords.Subscription))
+            if (_reader.Value.SequenceEqual(GraphQLKeywords.Query)
+                || _reader.Value.SequenceEqual(GraphQLKeywords.Mutation)
+                || _reader.Value.SequenceEqual(GraphQLKeywords.Subscription))
             {
                 return ParseOperationDefinition();
             }

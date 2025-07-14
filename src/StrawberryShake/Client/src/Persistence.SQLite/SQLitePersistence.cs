@@ -132,8 +132,8 @@ public class SQLitePersistence : IDisposable
         {
             var database = new DatabaseHelper();
 
-            while (!cancellationToken.IsCancellationRequested ||
-                !_queue.Reader.Completion.IsCompleted)
+            while (!cancellationToken.IsCancellationRequested
+                || !_queue.Reader.Completion.IsCompleted)
             {
                 var update = await _queue.Reader.ReadAsync(cancellationToken);
                 using var connection = new SqliteConnection(_connectionString);
@@ -226,8 +226,8 @@ public class SQLitePersistence : IDisposable
         DatabaseHelper database,
         CancellationToken cancellationToken)
     {
-        if (operationVersion.Result?.Errors.Count == 0 &&
-            operationVersion.Result.DataInfo is not null)
+        if (operationVersion.Result?.Errors.Count == 0
+            && operationVersion.Result.DataInfo is not null)
         {
             using var writer = new ArrayWriter();
             _requestSerializer.Serialize(operationVersion.Request, writer);

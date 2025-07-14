@@ -307,8 +307,8 @@ internal sealed class OperationExecutionMiddleware
     {
         if (variables is { Count: > 1 })
         {
-            return operation.Definition.Operation is not OperationType.Subscription &&
-                !operation.HasIncrementalParts;
+            return operation.Definition.Operation is not OperationType.Subscription
+                && !operation.HasIncrementalParts;
         }
 
         return true;

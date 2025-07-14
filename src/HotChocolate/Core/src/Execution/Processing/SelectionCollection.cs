@@ -132,8 +132,8 @@ internal sealed class SelectionCollection(
 
             while (Unsafe.IsAddressLessThan(ref start, ref end))
             {
-                if (start.IsIncluded(operationIncludeFlags) &&
-                    fieldName.EqualsOrdinal(start.Field.Name))
+                if (start.IsIncluded(operationIncludeFlags)
+                    && fieldName.EqualsOrdinal(start.Field.Name))
                 {
                     return true;
                 }
@@ -213,9 +213,9 @@ internal sealed class SelectionCollection(
 
             while (Unsafe.IsAddressLessThan(ref start, ref end))
             {
-                if (start.IsIncluded(operationIncludeFlags) &&
-                    (fieldName1.EqualsOrdinal(start.Field.Name) ||
-                        fieldName2.EqualsOrdinal(start.Field.Name)))
+                if (start.IsIncluded(operationIncludeFlags)
+                    && (fieldName1.EqualsOrdinal(start.Field.Name)
+                    || fieldName2.EqualsOrdinal(start.Field.Name)))
                 {
                     return true;
                 }
@@ -299,10 +299,10 @@ internal sealed class SelectionCollection(
 
             while (Unsafe.IsAddressLessThan(ref start, ref end))
             {
-                if (start.IsIncluded(operationIncludeFlags) &&
-                    (fieldName1.EqualsOrdinal(start.Field.Name) ||
-                        fieldName2.EqualsOrdinal(start.Field.Name) ||
-                        fieldName3.EqualsOrdinal(start.Field.Name)))
+                if (start.IsIncluded(operationIncludeFlags)
+                    && (fieldName1.EqualsOrdinal(start.Field.Name)
+                    || fieldName2.EqualsOrdinal(start.Field.Name)
+                    || fieldName3.EqualsOrdinal(start.Field.Name)))
                 {
                     return true;
                 }
@@ -373,8 +373,8 @@ internal sealed class SelectionCollection(
 
             while (Unsafe.IsAddressLessThan(ref start, ref end))
             {
-                if (start.IsIncluded(operationIncludeFlags) &&
-                    fieldNames.Contains(start.Field.Name))
+                if (start.IsIncluded(operationIncludeFlags)
+                    && fieldNames.Contains(start.Field.Name))
                 {
                     return true;
                 }
@@ -501,8 +501,8 @@ NEXT:
         {
             foreach (var fieldName in fieldNames)
             {
-                if (selectionRef.IsIncluded(operationIncludeFlags) &&
-                    selectionRef.Field.Name.EqualsOrdinal(fieldName))
+                if (selectionRef.IsIncluded(operationIncludeFlags)
+                    && selectionRef.Field.Name.EqualsOrdinal(fieldName))
                 {
                     buffer[index++] = selectionRef;
                     written++;

@@ -385,19 +385,19 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
                 isClean = true;
             }
 
-            if (count == 3 &&
-                definitions[0].IsRepeatable &&
-                definitions[1].IsRepeatable &&
-                definitions[2].IsRepeatable)
+            if (count == 3
+                && definitions[0].IsRepeatable
+                && definitions[1].IsRepeatable
+                && definitions[2].IsRepeatable)
             {
                 isClean = true;
             }
 
-            if (count == 4 &&
-                definitions[0].IsRepeatable &&
-                definitions[1].IsRepeatable &&
-                definitions[2].IsRepeatable &&
-                definitions[3].IsRepeatable)
+            if (count == 4
+                && definitions[0].IsRepeatable
+                && definitions[1].IsRepeatable
+                && definitions[2].IsRepeatable
+                && definitions[3].IsRepeatable)
             {
                 isClean = true;
             }
