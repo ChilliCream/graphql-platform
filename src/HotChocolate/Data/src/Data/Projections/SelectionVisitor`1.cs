@@ -8,7 +8,7 @@ public class SelectionVisitor<TContext>
     where TContext : ISelectionVisitorContext
 {
     protected virtual ISelectionVisitorAction Visit(
-        IOutputField field,
+        IOutputFieldDefinition field,
         TContext context)
     {
         var localContext = OnBeforeEnter(field, context);
@@ -23,8 +23,8 @@ public class SelectionVisitor<TContext>
             }
         }
 
-        if (result.Kind == SelectionVisitorActionKind.Continue ||
-            result.Kind == SelectionVisitorActionKind.SkipAndLeave)
+        if (result.Kind == SelectionVisitorActionKind.Continue
+            || result.Kind == SelectionVisitorActionKind.SkipAndLeave)
         {
             localContext = OnBeforeLeave(field, localContext);
             result = Leave(field, localContext);
@@ -35,24 +35,24 @@ public class SelectionVisitor<TContext>
     }
 
     protected virtual TContext OnBeforeLeave(
-        IOutputField field,
+        IOutputFieldDefinition field,
         TContext localContext) =>
         localContext;
 
     protected virtual TContext OnAfterLeave(
-        IOutputField field,
+        IOutputFieldDefinition field,
         TContext localContext,
         ISelectionVisitorAction result) =>
         localContext;
 
     protected virtual TContext OnAfterEnter(
-        IOutputField field,
+        IOutputFieldDefinition field,
         TContext localContext,
         ISelectionVisitorAction result) =>
         localContext;
 
     protected virtual TContext OnBeforeEnter(
-        IOutputField field,
+        IOutputFieldDefinition field,
         TContext context) =>
         context;
 
@@ -64,14 +64,14 @@ public class SelectionVisitor<TContext>
         var result = Enter(selection, localContext);
         localContext = OnAfterEnter(selection, localContext, result);
 
-        if (result.Kind == SelectionVisitorActionKind.Continue &&
-            VisitChildren(selection, context).Kind == SelectionVisitorActionKind.Break)
+        if (result.Kind == SelectionVisitorActionKind.Continue
+            && VisitChildren(selection, context).Kind == SelectionVisitorActionKind.Break)
         {
             return Break;
         }
 
-        if (result.Kind == SelectionVisitorActionKind.Continue ||
-            result.Kind == SelectionVisitorActionKind.SkipAndLeave)
+        if (result.Kind == SelectionVisitorActionKind.Continue
+            || result.Kind == SelectionVisitorActionKind.SkipAndLeave)
         {
             localContext = OnBeforeLeave(selection, localContext);
             result = Leave(selection, localContext);
@@ -103,7 +103,7 @@ public class SelectionVisitor<TContext>
         TContext context) =>
         context;
 
-    protected virtual ISelectionVisitorAction VisitChildren(IOutputField field, TContext context)
+    protected virtual ISelectionVisitorAction VisitChildren(IOutputFieldDefinition field, TContext context)
     {
         var type = field.Type;
         var selection = context.Selection.Peek();
@@ -131,7 +131,7 @@ public class SelectionVisitor<TContext>
     }
 
     protected virtual ISelectionVisitorAction VisitObjectType(
-        IOutputField field,
+        IOutputFieldDefinition field,
         ObjectType objectType,
         ISelection selection,
         TContext context)
@@ -168,12 +168,12 @@ public class SelectionVisitor<TContext>
     }
 
     protected virtual ISelectionVisitorAction Enter(
-        IOutputField field,
+        IOutputFieldDefinition field,
         TContext context) =>
         DefaultAction;
 
     protected virtual ISelectionVisitorAction Leave(
-        IOutputField field,
+        IOutputFieldDefinition field,
         TContext context) =>
         DefaultAction;
 

@@ -3,25 +3,25 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Sorting;
 
 public sealed class SortTypeInterceptor : TypeInterceptor
 {
-    private readonly Dictionary<string, ISortConvention> _conventions = new();
+    private readonly Dictionary<string, ISortConvention> _conventions = [];
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        switch (definition)
+        switch (configuration)
         {
-            case SortInputTypeDefinition inputDefinition:
+            case SortInputTypeConfiguration inputDefinition:
                 OnBeforeRegisteringDependencies(discoveryContext, inputDefinition);
                 break;
-            case SortEnumTypeDefinition enumTypeDefinition:
+            case SortEnumTypeConfiguration enumTypeDefinition:
                 OnBeforeRegisteringDependencies(discoveryContext, enumTypeDefinition);
                 break;
         }
@@ -29,14 +29,14 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        switch (definition)
+        switch (configuration)
         {
-            case SortInputTypeDefinition inputDefinition:
+            case SortInputTypeConfiguration inputDefinition:
                 OnBeforeCompleteName(completionContext, inputDefinition);
                 break;
-            case SortEnumTypeDefinition enumTypeDefinition:
+            case SortEnumTypeConfiguration enumTypeDefinition:
                 OnBeforeCompleteName(completionContext, enumTypeDefinition);
                 break;
         }
@@ -44,14 +44,14 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        switch (definition)
+        switch (configuration)
         {
-            case SortInputTypeDefinition inputDefinition:
+            case SortInputTypeConfiguration inputDefinition:
                 OnBeforeCompleteType(completionContext, inputDefinition);
                 break;
-            case SortEnumTypeDefinition enumTypeDefinition:
+            case SortEnumTypeConfiguration enumTypeDefinition:
                 OnBeforeCompleteType(completionContext, enumTypeDefinition);
                 break;
         }
@@ -59,130 +59,130 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
     private void OnBeforeRegisteringDependencies(
         ITypeDiscoveryContext discoveryContext,
-        SortInputTypeDefinition definition)
+        SortInputTypeConfiguration configuration)
     {
         var convention =
-            GetConvention(discoveryContext.DescriptorContext, definition.Scope);
+            GetConvention(discoveryContext.DescriptorContext, configuration.Scope);
 
         var descriptor = SortInputTypeDescriptor.New(
             discoveryContext.DescriptorContext,
-            definition.EntityType!,
-            definition.Scope);
+            configuration.EntityType!,
+            configuration.Scope);
 
         var typeReference =
-            TypeReference.Create( discoveryContext.Type, definition.Scope);
+            TypeReference.Create(discoveryContext.Type, configuration.Scope);
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
-        var extensionDefinition = descriptor.CreateDefinition();
+        var extensionDefinition = descriptor.CreateConfiguration();
 
         discoveryContext.RegisterDependencies(extensionDefinition);
     }
 
     private void OnBeforeRegisteringDependencies(
         ITypeDiscoveryContext discoveryContext,
-        SortEnumTypeDefinition definition)
+        SortEnumTypeConfiguration configuration)
     {
         var convention =
-            GetConvention(discoveryContext.DescriptorContext, definition.Scope);
+            GetConvention(discoveryContext.DescriptorContext, configuration.Scope);
 
         var descriptor = SortEnumTypeDescriptor.New(
             discoveryContext.DescriptorContext,
-            definition.EntityType,
-            definition.Scope);
+            configuration.EntityType,
+            configuration.Scope);
 
         var typeReference =
-            TypeReference.Create(discoveryContext.Type, definition.Scope);
+            TypeReference.Create(discoveryContext.Type, configuration.Scope);
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
-        var extensionDefinition = descriptor.CreateDefinition();
+        var extensionDefinition = descriptor.CreateConfiguration();
 
         discoveryContext.RegisterDependencies(extensionDefinition);
     }
 
     private void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        SortInputTypeDefinition definition)
+        SortInputTypeConfiguration configuration)
     {
         var convention =
-            GetConvention(completionContext.DescriptorContext, definition.Scope);
+            GetConvention(completionContext.DescriptorContext, configuration.Scope);
 
         var descriptor = SortInputTypeDescriptor.New(
             completionContext.DescriptorContext,
-            definition.EntityType!,
-            definition.Scope);
+            configuration.EntityType!,
+            configuration.Scope);
 
         var typeReference =
-            TypeReference.Create(completionContext.Type, definition.Scope);
+            TypeReference.Create(completionContext.Type, configuration.Scope);
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
         DataTypeExtensionHelper.MergeSortInputTypeDefinitions(
             completionContext,
-            descriptor.CreateDefinition(),
-            definition);
+            descriptor.CreateConfiguration(),
+            configuration);
 
-        if (!string.IsNullOrEmpty(definition.Name) &&
-            definition is IHasScope { Scope: not null, })
+        if (!string.IsNullOrEmpty(configuration.Name)
+            && configuration is IHasScope { Scope: not null })
         {
-            definition.Name = completionContext.Scope + "_" + definition.Name;
+            configuration.Name = completionContext.Scope + "_" + configuration.Name;
         }
     }
 
     private void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        SortEnumTypeDefinition definition)
+        SortEnumTypeConfiguration configuration)
     {
         var convention =
-            GetConvention(completionContext.DescriptorContext, definition.Scope);
+            GetConvention(completionContext.DescriptorContext, configuration.Scope);
 
         var descriptor = SortEnumTypeDescriptor.New(
             completionContext.DescriptorContext,
-            definition.EntityType,
-            definition.Scope);
+            configuration.EntityType,
+            configuration.Scope);
 
         var typeReference =
-            TypeReference.Create(completionContext.Type, definition.Scope);
+            TypeReference.Create(completionContext.Type, configuration.Scope);
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
         DataTypeExtensionHelper.MergeSortEnumTypeDefinitions(
             completionContext,
-            descriptor.CreateDefinition(),
-            definition);
+            descriptor.CreateConfiguration(),
+            configuration);
 
-        if (!string.IsNullOrEmpty(definition.Name) &&
-            definition is IHasScope { Scope: not null, })
+        if (!string.IsNullOrEmpty(configuration.Name)
+            && configuration is IHasScope { Scope: not null })
         {
-            definition.Name = completionContext.Scope + "_" + definition.Name;
+            configuration.Name = completionContext.Scope + "_" + configuration.Name;
         }
     }
 
     private void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        SortInputTypeDefinition definition)
+        SortInputTypeConfiguration configuration)
     {
-        var convention = GetConvention(completionContext.DescriptorContext, definition.Scope);
+        var convention = GetConvention(completionContext.DescriptorContext, configuration.Scope);
 
-        foreach (var field in definition.Fields)
+        foreach (var field in configuration.Fields)
         {
-            if (field is SortFieldDefinition sortFieldDefinition)
+            if (field is SortFieldConfiguration sortFieldDefinition)
             {
-                if (completionContext.TryPredictTypeKind(sortFieldDefinition.Type!, out var kind) &&
-                    kind != TypeKind.Enum)
+                if (completionContext.TryPredictTypeKind(sortFieldDefinition.Type!, out var kind)
+                    && kind != TypeKind.Enum)
                 {
                     field.Type = field.Type!.With(scope: completionContext.Scope);
                 }
 
                 sortFieldDefinition.Metadata =
-                    convention.CreateMetaData(completionContext, definition, sortFieldDefinition);
+                    convention.CreateMetaData(completionContext, configuration, sortFieldDefinition);
 
                 if (sortFieldDefinition.Handler is null)
                 {
                     if (convention.TryGetFieldHandler(
                         completionContext,
-                        definition,
+                        configuration,
                         sortFieldDefinition,
                         out var handler))
                     {
@@ -191,7 +191,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
                     else
                     {
                         throw SortInterceptor_NoFieldHandlerFoundForField(
-                            definition,
+                            configuration,
                             sortFieldDefinition);
                     }
                 }
@@ -201,18 +201,18 @@ public sealed class SortTypeInterceptor : TypeInterceptor
 
     private void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        SortEnumTypeDefinition definition)
+        SortEnumTypeConfiguration configuration)
     {
         var convention =
             GetConvention(completionContext.DescriptorContext, completionContext.Scope);
 
-        foreach (var enumValue in definition.Values)
+        foreach (var enumValue in configuration.Values)
         {
-            if (enumValue is SortEnumValueDefinition sortEnumValueDefinition)
+            if (enumValue is SortEnumValueConfiguration sortEnumValueDefinition)
             {
                 if (convention.TryGetOperationHandler(
                     completionContext,
-                    definition,
+                    configuration,
                     sortEnumValueDefinition,
                     out var handler))
                 {
@@ -221,7 +221,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
                 else
                 {
                     throw SortInterceptor_NoOperationHandlerFoundForValue(
-                        definition,
+                        configuration,
                         sortEnumValueDefinition);
                 }
             }

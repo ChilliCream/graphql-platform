@@ -7,23 +7,15 @@ using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
-public sealed class InputFormatter
+public sealed class InputFormatter(ITypeConverter converter)
 {
-    private readonly ITypeConverter _converter;
+    private readonly ITypeConverter _converter = converter ?? throw new ArgumentNullException(nameof(converter));
 
     public InputFormatter() : this(new DefaultTypeConverter()) { }
 
-    public InputFormatter(ITypeConverter converter)
-    {
-        _converter = converter ?? throw new ArgumentNullException(nameof(converter));
-    }
-
     public IValueNode FormatValue(object? runtimeValue, IType type, Path? path = null)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return FormatValueInternal(runtimeValue, type, path ?? Path.Root);
     }
@@ -43,7 +35,7 @@ public sealed class InputFormatter
         switch (type.Kind)
         {
             case TypeKind.NonNull:
-                return FormatValueInternal(runtimeValue, ((NonNullType)type).Type, path);
+                return FormatValueInternal(runtimeValue, ((NonNullType)type).NullableType, path);
 
             case TypeKind.List:
                 return FormatValueList(runtimeValue, (ListType)type, path);
@@ -113,7 +105,7 @@ public sealed class InputFormatter
         if (runtimeValue is IEnumerable enumerable)
         {
             var items = new List<IValueNode>();
-            var i = 0;
+            const int i = 0;
 
             foreach (var item in enumerable)
             {
@@ -131,8 +123,10 @@ public sealed class InputFormatter
     {
         try
         {
-            if (runtimeValue.GetType() != type.RuntimeType &&
-                _converter.TryConvert(type.RuntimeType, runtimeValue, out var converted))
+            var runtimeType = type.ToRuntimeType();
+
+            if (runtimeValue.GetType() != runtimeType
+                && _converter.TryConvert(runtimeType, runtimeValue, out var converted))
             {
                 runtimeValue = converted;
             }
@@ -147,15 +141,8 @@ public sealed class InputFormatter
 
     public DirectiveNode FormatDirective(object runtimeValue, DirectiveType type, Path? path = null)
     {
-        if (runtimeValue is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeValue));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeValue);
+        ArgumentNullException.ThrowIfNull(type);
 
         path ??= Path.Root.Append(type.Name);
 
@@ -194,10 +181,7 @@ public sealed class InputFormatter
 
     public IValueNode FormatResult(object? resultValue, IType type, Path? path = null)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return FormatResultInternal(resultValue, type, path ?? Path.Root);
     }
@@ -217,7 +201,7 @@ public sealed class InputFormatter
         switch (type.Kind)
         {
             case TypeKind.NonNull:
-                return FormatResultInternal(resultValue, ((NonNullType)type).Type, path);
+                return FormatResultInternal(resultValue, ((NonNullType)type).NullableType, path);
 
             case TypeKind.List:
                 return FormatResultList(resultValue, (ListType)type, path);
@@ -277,8 +261,8 @@ public sealed class InputFormatter
             return node;
         }
 
-        if (type.RuntimeType != typeof(object) &&
-            type.RuntimeType.IsInstanceOfType(resultValue))
+        if (type.RuntimeType != typeof(object)
+            && type.RuntimeType.IsInstanceOfType(resultValue))
         {
             return FormatValueObject(resultValue, type, path);
         }

@@ -25,7 +25,7 @@ internal sealed partial class ExtendedType
                 PropertyInfo p => CreateExtendedType(context, flags, p.PropertyType),
                 MethodInfo m => CreateExtendedType(context, flags, m.ReturnType),
                 _ => throw new NotSupportedException(
-                    "Only PropertyInfo and MethodInfo are supported."),
+                    "Only PropertyInfo and MethodInfo are supported.")
             };
         }
 
@@ -79,8 +79,8 @@ internal sealed partial class ExtendedType
 
             ExtendedType? elementType = null;
             var isList =
-                !extendedType.IsArray &&
-                Helper.IsListType(extendedType.Type);
+                !extendedType.IsArray
+                && Helper.IsListType(extendedType.Type);
 
             if (isList)
             {
@@ -95,10 +95,7 @@ internal sealed partial class ExtendedType
                     }
                 }
 
-                if (elementType is null)
-                {
-                    elementType = ExtendedType.FromType(itemType, cache);
-                }
+                elementType ??= FromType(itemType, cache);
             }
 
             if (extendedType.IsArray && elementType is null)
@@ -175,9 +172,9 @@ internal sealed partial class ExtendedType
                 return new ExtendedType(
                     type,
                     ExtendedTypeKind.Extended,
-                    typeArguments: new[] { elementType, },
-                    elementType: elementType,
+                    typeArguments: new[] { elementType },
                     source: type,
+                    elementType: elementType,
                     isNullable: state ?? false);
             }
 

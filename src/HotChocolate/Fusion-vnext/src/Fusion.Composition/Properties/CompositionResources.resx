@@ -18,8 +18,128 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ErrorHelper_PostMergeValidationFailed" xml:space="preserve">
+    <value>Post-merge validation failed.</value>
+  </data>
   <data name="ErrorHelper_PreMergeValidationFailed" xml:space="preserve">
-    <value>Pre-merge validation failed. View the composition log for details.</value>
+    <value>Pre-merge validation failed.</value>
+  </data>
+  <data name="ErrorHelper_SatisfiabilityValidationFailed" xml:space="preserve">
+    <value>Satisfiability validation failed.</value>
+  </data>
+  <data name="ErrorHelper_SourceSchemaParsingFailed" xml:space="preserve">
+    <value>Source schema parsing failed.</value>
+  </data>
+  <data name="ErrorHelper_SourceSchemaValidationFailed" xml:space="preserve">
+    <value>Source schema validation failed.</value>
+  </data>
+  <data name="ExternalMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @external directive indicates that a field is recognized by the current source schema but is not directly contributed (resolved) by it.</value>
+  </data>
+  <data name="FusionEnumValueMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema that provides the specified enum value.</value>
+  </data>
+  <data name="FusionEnumValueMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__enumValue directive specifies which source schema provides an enum value.</value>
+  </data>
+  <data name="FusionFieldMutableDirectiveDefinition_Argument_Partial_Description" xml:space="preserve">
+    <value>Indicates that this field is only partially provided and must be combined with `provides`.</value>
+  </data>
+  <data name="FusionFieldMutableDirectiveDefinition_Argument_Provides_Description" xml:space="preserve">
+    <value>A selection set of fields this field provides in the composite schema.</value>
+  </data>
+  <data name="FusionFieldMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema that originally provided this field.</value>
+  </data>
+  <data name="FusionFieldMutableDirectiveDefinition_Argument_SourceType_Description" xml:space="preserve">
+    <value>The field type in the source schema if it differs in nullability or structure.</value>
+  </data>
+  <data name="FusionFieldMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has.</value>
+  </data>
+  <data name="FusionImplementsMutableDirectiveDefinition_Argument_Interface_Description" xml:space="preserve">
+    <value>The name of the interface type.</value>
+  </data>
+  <data name="FusionImplementsMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema on which the annotated type implements the specified interface.</value>
+  </data>
+  <data name="FusionImplementsMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type.</value>
+  </data>
+  <data name="FusionInputFieldMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema that originally provided this input field.</value>
+  </data>
+  <data name="FusionInputFieldMutableDirectiveDefinition_Argument_SourceType_Description" xml:space="preserve">
+    <value>The field type in the source schema if it differs in nullability or structure.</value>
+  </data>
+  <data name="FusionInputFieldMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__inputField directive specifies which source schema provides an input field in a composite input type.</value>
+  </data>
+  <data name="FusionLookupMutableDirectiveDefinition_Argument_Field_Description" xml:space="preserve">
+    <value>The GraphQL field definition in the source schema that can be used to look up the entity.</value>
+  </data>
+  <data name="FusionLookupMutableDirectiveDefinition_Argument_Key_Description" xml:space="preserve">
+    <value>A selection set on the annotated entity type that describes the stable key for the lookup.</value>
+  </data>
+  <data name="FusionLookupMutableDirectiveDefinition_Argument_Map_Description" xml:space="preserve">
+    <value>The map describes how the key values are resolved from the annotated entity type.</value>
+  </data>
+  <data name="FusionLookupMutableDirectiveDefinition_Argument_Path_Description" xml:space="preserve">
+    <value>The path to the lookup field relative to the Query type.</value>
+  </data>
+  <data name="FusionLookupMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema where the annotated entity type can be looked up from.</value>
+  </data>
+  <data name="FusionLookupMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__lookup directive specifies how the distributed executor can resolve data for an entity type from a source schema by a stable key.</value>
+  </data>
+  <data name="FusionRequiresMutableDirectiveDefinition_Field_Description" xml:space="preserve">
+    <value>The GraphQL field definition in the source schema that this field depends on.</value>
+  </data>
+  <data name="FusionRequiresMutableDirectiveDefinition_Map_Description" xml:space="preserve">
+    <value>The map describes how the argument values for the source schema are resolved from the arguments of the field exposed in the client-facing composite schema and from required data relative to the current type.</value>
+  </data>
+  <data name="FusionRequiresMutableDirectiveDefinition_Requirements_Description" xml:space="preserve">
+    <value>A selection set on the annotated field that describes its requirements.</value>
+  </data>
+  <data name="FusionRequiresMutableDirectiveDefinition_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema where this field has requirements to data on other source schemas.</value>
+  </data>
+  <data name="FusionRequiresMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__requires directive specifies if a field has requirements on a source schema.</value>
+  </data>
+  <data name="FusionTypeMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema that originally provided part of the annotated type.</value>
+  </data>
+  <data name="FusionTypeMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__type directive specifies which source schemas provide parts of a composite type.</value>
+  </data>
+  <data name="FusionUnionMemberMutableDirectiveDefinition_Argument_Member_Description" xml:space="preserve">
+    <value>The name of the member type.</value>
+  </data>
+  <data name="FusionUnionMemberMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
+    <value>The name of the source schema that provides the specified member type.</value>
+  </data>
+  <data name="FusionUnionMemberMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__unionMember directive specifies which source schema provides a member type of a union.</value>
+  </data>
+  <data name="InaccessibleMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas.</value>
+  </data>
+  <data name="InternalMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @internal directive is used to mark types and fields as internal within a source schema.</value>
+  </data>
+  <data name="IsMutableDirectiveDefinition_Argument_Field_Description" xml:space="preserve">
+    <value>Represents a selection path map syntax.</value>
+  </data>
+  <data name="IsMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @is directive is utilized on lookup fields to describe how the arguments can be mapped from the entity type that the lookup field resolves.</value>
+  </data>
+  <data name="KeyMutableDirectiveDefinition_Argument_Fields_Description" xml:space="preserve">
+    <value>Represents a selection set syntax.</value>
+  </data>
+  <data name="KeyMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @key directive is used to designate an entity’s unique key, which identifies how to uniquely reference an instance of an entity across different source schemas.</value>
   </data>
   <data name="LogEntryHelper_DisallowedInaccessibleBuiltInScalar" xml:space="preserve">
     <value>The built-in scalar type '{0}' in schema '{1}' is not accessible.</value>
@@ -36,23 +156,47 @@
   <data name="LogEntryHelper_DisallowedInaccessibleDirectiveArgument" xml:space="preserve">
     <value>The built-in directive argument '{0}' in schema '{1}' is not accessible.</value>
   </data>
+  <data name="LogEntryHelper_EmptyMergedEnumType" xml:space="preserve">
+    <value>The merged enum type '{0}' is empty.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyMergedInputObjectType" xml:space="preserve">
+    <value>The merged input object type '{0}' is empty.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyMergedInterfaceType" xml:space="preserve">
+    <value>The merged interface type '{0}' is empty.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyMergedObjectType" xml:space="preserve">
+    <value>The merged object type '{0}' is empty.</value>
+  </data>
+  <data name="LogEntryHelper_EmptyMergedUnionType" xml:space="preserve">
+    <value>The merged union type '{0}' is empty.</value>
+  </data>
+  <data name="LogEntryHelper_EnumTypeDefaultValueInaccessible" xml:space="preserve">
+    <value>The default value of '{0}' references the inaccessible enum value '{1}'.</value>
+  </data>
   <data name="LogEntryHelper_EnumValuesMismatch" xml:space="preserve">
     <value>The enum type '{0}' in schema '{1}' must define the value '{2}'.</value>
   </data>
   <data name="LogEntryHelper_ExternalArgumentDefaultMismatch" xml:space="preserve">
-    <value>The argument with schema coordinate '{0}' has inconsistent default values.</value>
+    <value>The default value '{0}' of external argument '{1}' in schema '{2}' differs from the default value of '{3}' in schema '{4}'.</value>
   </data>
   <data name="LogEntryHelper_ExternalMissingOnBase" xml:space="preserve">
-    <value>External field '{0}' in schema '{1}' is not defined (non-external) in any other schema.</value>
+    <value>The external field '{0}' in schema '{1}' is not defined (non-external) in any other schema.</value>
   </data>
   <data name="LogEntryHelper_ExternalOnInterface" xml:space="preserve">
-    <value>Interface field '{0}' in schema '{1}' must not be marked as external.</value>
+    <value>The interface field '{0}' in schema '{1}' must not be marked as external.</value>
   </data>
   <data name="LogEntryHelper_ExternalUnused" xml:space="preserve">
-    <value>External field '{0}' in schema '{1}' is not referenced by a @provides directive in the schema.</value>
+    <value>The external field '{0}' in schema '{1}' is not referenced by a @provides directive in the schema.</value>
   </data>
   <data name="LogEntryHelper_FieldArgumentTypesNotMergeable" xml:space="preserve">
     <value>The argument '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_FieldWithMissingRequiredArgument" xml:space="preserve">
+    <value>The argument '{0}' must be defined as required in schema '{1}'. Arguments marked with @require are treated as non-required.</value>
+  </data>
+  <data name="LogEntryHelper_ImplementedByInaccessible" xml:space="preserve">
+    <value>The field '{0}' implementing interface field '{1}' is inaccessible in the composed schema.</value>
   </data>
   <data name="LogEntryHelper_InputFieldDefaultMismatch" xml:space="preserve">
     <value>The default value '{0}' of input field '{1}' in schema '{2}' differs from the default value of '{3}' in schema '{4}'.</value>
@@ -62,6 +206,27 @@
   </data>
   <data name="LogEntryHelper_InputWithMissingRequiredFields" xml:space="preserve">
     <value>The input type '{0}' in schema '{1}' must define the required field '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_InterfaceFieldNoImplementation" xml:space="preserve">
+    <value>The merged object type '{0}' must implement the field '{1}' on interface '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_InvalidGraphQL" xml:space="preserve">
+    <value>Invalid GraphQL in source schema. Exception message: {0}.</value>
+  </data>
+  <data name="LogEntryHelper_InvalidShareableUsage" xml:space="preserve">
+    <value>The interface field '{0}' in schema '{1}' must not be marked as shareable.</value>
+  </data>
+  <data name="LogEntryHelper_IsInvalidField" xml:space="preserve">
+    <value>The @is directive on argument '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
+  </data>
+  <data name="LogEntryHelper_IsInvalidFieldType" xml:space="preserve">
+    <value>The @is directive on argument '{0}' in schema '{1}' must specify a string value for the 'field' argument.</value>
+  </data>
+  <data name="LogEntryHelper_IsInvalidSyntax" xml:space="preserve">
+    <value>The @is directive on argument '{0}' in schema '{1}' contains invalid syntax in the 'field' argument.</value>
+  </data>
+  <data name="LogEntryHelper_IsInvalidUsage" xml:space="preserve">
+    <value>The @is directive on argument '{0}' in schema '{1}' is invalid because the declaring field is not a lookup field.</value>
   </data>
   <data name="LogEntryHelper_KeyDirectiveInFieldsArgument" xml:space="preserve">
     <value>A @key directive on type '{0}' in schema '{1}' references field '{2}', which must not include directive applications.</value>
@@ -73,7 +238,7 @@
     <value>A @key directive on type '{0}' in schema '{1}' references field '{2}', which must not be a list, interface, or union type.</value>
   </data>
   <data name="LogEntryHelper_KeyInvalidFields" xml:space="preserve">
-    <value>A @key directive on type '{0}' in schema '{1}' references field '{2}', which does not exist.</value>
+    <value>A @key directive on type '{0}' in schema '{1}' specifies an invalid field selection.</value>
   </data>
   <data name="LogEntryHelper_KeyInvalidFieldsType" xml:space="preserve">
     <value>A @key directive on type '{0}' in schema '{1}' must specify a string value for the 'fields' argument.</value>
@@ -81,14 +246,20 @@
   <data name="LogEntryHelper_KeyInvalidSyntax" xml:space="preserve">
     <value>A @key directive on type '{0}' in schema '{1}' contains invalid syntax in the 'fields' argument.</value>
   </data>
-  <data name="LogEntryHelper_LookupMustNotReturnList" xml:space="preserve">
+  <data name="LogEntryHelper_LookupReturnsList" xml:space="preserve">
     <value>The lookup field '{0}' in schema '{1}' must not return a list.</value>
   </data>
-  <data name="LogEntryHelper_LookupShouldHaveNullableReturnType" xml:space="preserve">
+  <data name="LogEntryHelper_LookupReturnsNonNullableType" xml:space="preserve">
     <value>The lookup field '{0}' in schema '{1}' should return a nullable type.</value>
   </data>
+  <data name="LogEntryHelper_NonNullInputFieldIsInaccessible" xml:space="preserve">
+    <value>The non-null input field '{0}' in schema '{1}' must be accessible in the composed schema.</value>
+  </data>
+  <data name="LogEntryHelper_NoQueries" xml:space="preserve">
+    <value>The merged query type has no accessible fields.</value>
+  </data>
   <data name="LogEntryHelper_OutputFieldTypesNotMergeable" xml:space="preserve">
-    <value>Field '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
+    <value>The output field '{0}' has a different type shape in schema '{1}' than it does in schema '{2}'.</value>
   </data>
   <data name="LogEntryHelper_OverrideFromSelf" xml:space="preserve">
     <value>The @override directive on field '{0}' in schema '{1}' must not reference the same schema.</value>
@@ -105,6 +276,9 @@
   <data name="LogEntryHelper_ProvidesFieldsMissingExternal" xml:space="preserve">
     <value>The @provides directive on field '{0}' in schema '{1}' references field '{2}', which must be marked as external.</value>
   </data>
+  <data name="LogEntryHelper_ProvidesInvalidFields" xml:space="preserve">
+    <value>The @provides directive on field '{0}' in schema '{1}' specifies an invalid field selection.</value>
+  </data>
   <data name="LogEntryHelper_ProvidesInvalidFieldsType" xml:space="preserve">
     <value>The @provides directive on field '{0}' in schema '{1}' must specify a string value for the 'fields' argument.</value>
   </data>
@@ -117,14 +291,14 @@
   <data name="LogEntryHelper_QueryRootTypeInaccessible" xml:space="preserve">
     <value>The root query type in schema '{0}' must be accessible.</value>
   </data>
-  <data name="LogEntryHelper_RequireDirectiveInFieldsArgument" xml:space="preserve">
-    <value>The @require directive on argument '{0}' in schema '{1}' references field '{2}', which must not include directive applications.</value>
+  <data name="LogEntryHelper_RequireInvalidFields" xml:space="preserve">
+    <value>The @require directive on argument '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
   </data>
-  <data name="LogEntryHelper_RequireInvalidFieldsType" xml:space="preserve">
-    <value>The @require directive on argument '{0}' in schema '{1}' must specify a string value for the 'fields' argument.</value>
+  <data name="LogEntryHelper_RequireInvalidFieldType" xml:space="preserve">
+    <value>The @require directive on argument '{0}' in schema '{1}' must specify a string value for the 'field' argument.</value>
   </data>
   <data name="LogEntryHelper_RequireInvalidSyntax" xml:space="preserve">
-    <value>The @require directive on argument '{0}' in schema '{1}' contains invalid syntax in the 'fields' argument.</value>
+    <value>The @require directive on argument '{0}' in schema '{1}' contains invalid syntax in the 'field' argument.</value>
   </data>
   <data name="LogEntryHelper_RootMutationUsed" xml:space="preserve">
     <value>The root mutation type in schema '{0}' must be named 'Mutation'.</value>
@@ -134,5 +308,89 @@
   </data>
   <data name="LogEntryHelper_RootSubscriptionUsed" xml:space="preserve">
     <value>The root subscription type in schema '{0}' must be named 'Subscription'.</value>
+  </data>
+  <data name="LogEntryHelper_TypeDefinitionInvalid" xml:space="preserve">
+    <value>The type or directive '{0}' in schema '{1}' is incompatible with the built-in type or directive of the same name.</value>
+  </data>
+  <data name="LogEntryHelper_TypeKindMismatch" xml:space="preserve">
+    <value>The type '{0}' has a different kind in schema '{1}' ({2}) than it does in schema '{3}' ({4}).</value>
+  </data>
+  <data name="LookupMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @lookup directive is used within a source schema to specify output fields that can be used by the distributed GraphQL executor to resolve an entity by a stable key.</value>
+  </data>
+  <data name="OverrideMutableDirectiveDefinition_Argument_From_Description" xml:space="preserve">
+    <value>The name of the source schema that originally provided this field.</value>
+  </data>
+  <data name="OverrideMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @override directive is used to migrate a field from one source schema to another.</value>
+  </data>
+  <data name="ProvidesMutableDirectiveDefinition_Argument_Fields_Description" xml:space="preserve">
+    <value>Represents a selection set syntax describing the subfields of the returned type that can be provided by the current source schema.</value>
+  </data>
+  <data name="ProvidesMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @provides directive indicates that a field can provide certain subfields of its return type from the same source schema, without requiring an additional resolution step elsewhere.</value>
+  </data>
+  <data name="RequirementsValidator_CycleDetected" xml:space="preserve">
+    <value>Cycle detected in requirement: {0} -&gt; {1}.</value>
+  </data>
+  <data name="RequirementsValidator_FieldDoesNotExistOnType" xml:space="preserve">
+    <value>The field '{0}' does not exist on the type '{1}'.</value>
+  </data>
+  <data name="RequirementsValidator_NoLookupsFoundForType" xml:space="preserve">
+    <value>No lookups found for type '{0}' in schema '{1}'.</value>
+  </data>
+  <data name="RequirementsValidator_NoOtherSchemasContainField" xml:space="preserve">
+    <value>No other schemas contain the field '{0}.{1}'.</value>
+  </data>
+  <data name="RequirementsValidator_UnableToAccessFieldOnPath" xml:space="preserve">
+    <value>Unable to access the required field '{0}.{1}' on path '{2}'.</value>
+  </data>
+  <data name="RequirementsValidator_UnableToSatisfyRequirement" xml:space="preserve">
+    <value>Unable to satisfy the requirement '{0}'.</value>
+  </data>
+  <data name="RequirementsValidator_UnableToSatisfyRequirementForLookup" xml:space="preserve">
+    <value>Unable to satisfy the requirement '{0}' for lookup '{1}' in schema '{2}'.</value>
+  </data>
+  <data name="RequirementsValidator_UnableToTransitionBetweenSchemas" xml:space="preserve">
+    <value>Unable to transition between schemas '{0}' and '{1}' for access to required field '{2}'.</value>
+  </data>
+  <data name="RequireMutableDirectiveDefinition_Argument_Field_Description" xml:space="preserve">
+    <value>Represents a selection path map syntax.</value>
+  </data>
+  <data name="RequireMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @require directive is used to express data requirements with other source schemas.</value>
+  </data>
+  <data name="SatisfiabilityValidator_CycleDetected" xml:space="preserve">
+    <value>Cycle detected: {0} -&gt; {1}.</value>
+  </data>
+  <data name="SatisfiabilityValidator_NoLookupsFoundForType" xml:space="preserve">
+    <value>No lookups found for type '{0}' in schema '{1}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToAccessFieldOnPath" xml:space="preserve">
+    <value>Unable to access the field '{0}.{1}' on path '{2}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToSatisfyRequirement" xml:space="preserve">
+    <value>Unable to satisfy the requirement '{0}' on field '{1}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToSatisfyRequirementForLookup" xml:space="preserve">
+    <value>Unable to satisfy the requirement '{0}' for lookup '{1}' in schema '{2}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToTransitionBetweenSchemas" xml:space="preserve">
+    <value>Unable to transition between schemas '{0}' and '{1}' for access to field '{2}'.</value>
+  </data>
+  <data name="SchemaNameMutableDirectiveDefinition_Argument_Value_Description" xml:space="preserve">
+    <value>The name of the source schema.</value>
+  </data>
+  <data name="SchemaNameMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @schemaName directive is used to specify the name of a source schema.</value>
+  </data>
+  <data name="ShareableMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked.</value>
+  </data>
+  <data name="TypeDefinitionInvalidRule_ArgumentMissing" xml:space="preserve">
+    <value>The argument '{0}' is missing.</value>
+  </data>
+  <data name="TypeDefinitionInvalidRule_ArgumentTypeDifferent" xml:space="preserve">
+    <value>The argument '{0}' has a different type.</value>
   </data>
 </root>

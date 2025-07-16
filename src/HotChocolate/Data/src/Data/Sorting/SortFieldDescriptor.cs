@@ -3,103 +3,89 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Sorting;
 
 public class SortFieldDescriptor
-    : ArgumentDescriptorBase<SortFieldDefinition>
+    : ArgumentDescriptorBase<SortFieldConfiguration>
     , ISortFieldDescriptor
 {
-    protected SortFieldDescriptor(
-        IDescriptorContext context,
-        string? scope,
-        string fieldName)
+    protected SortFieldDescriptor(IDescriptorContext context, string? scope, string fieldName)
         : base(context)
     {
-        Definition.Name = fieldName;
-        Definition.Scope = scope;
-        Definition.Flags = FieldFlags.SortOperationField;
+        Configuration.Name = fieldName;
+        Configuration.Scope = scope;
+        Configuration.Flags = CoreFieldFlags.SortOperationField;
     }
 
-    protected SortFieldDescriptor(
-         IDescriptorContext context,
-         string? scope,
-         Expression expression)
-         : base(context)
+    protected SortFieldDescriptor(IDescriptorContext context, string? scope, Expression expression)
+        : base(context)
     {
-        var convention = context.GetSortConvention(scope);
+        Configuration.Expression = expression;
+        Configuration.Scope = scope;
+        Configuration.Flags = CoreFieldFlags.SortOperationField;
 
-        Definition.Expression = expression;
-        Definition.Scope = scope;
-        Definition.Flags = FieldFlags.SortOperationField;
-        if (Definition.Expression is LambdaExpression lambda)
+        if (Configuration.Expression is LambdaExpression lambda)
         {
-            Definition.Type = convention.GetFieldType(lambda.ReturnType);
-            Definition.RuntimeType = lambda.ReturnType;
+            var convention = context.GetSortConvention(scope);
+            Configuration.Type = convention.GetFieldType(lambda.ReturnType);
+            Configuration.RuntimeType = lambda.ReturnType;
         }
     }
 
-    protected SortFieldDescriptor(
-        IDescriptorContext context,
-        string? scope,
-        MemberInfo member)
+    protected SortFieldDescriptor(IDescriptorContext context, string? scope, MemberInfo member)
         : base(context)
     {
-        var convention = context.GetSortConvention(scope);
-
-        Definition.Member = member ??
+        Configuration.Member = member ??
             throw new ArgumentNullException(nameof(member));
 
-        Definition.Name = convention.GetFieldName(member);
-        Definition.Description = convention.GetFieldDescription(member);
-        Definition.Type = convention.GetFieldType(member);
-        Definition.Scope = scope;
-        Definition.Flags = FieldFlags.SortOperationField;
+        var convention = context.GetSortConvention(scope);
+        Configuration.Name = convention.GetFieldName(member);
+        Configuration.Description = convention.GetFieldDescription(member);
+        Configuration.Type = convention.GetFieldType(member);
+        Configuration.Scope = scope;
+        Configuration.Flags = CoreFieldFlags.SortOperationField;
     }
 
-    protected internal SortFieldDescriptor(
-        IDescriptorContext context,
-        string? scope)
+    protected internal SortFieldDescriptor(IDescriptorContext context, string? scope)
         : base(context)
     {
-        Definition.Scope = scope;
-        Definition.Flags = FieldFlags.SortOperationField;
+        Configuration.Scope = scope;
+        Configuration.Flags = CoreFieldFlags.SortOperationField;
     }
 
-    protected internal new SortFieldDefinition Definition
+    protected internal new SortFieldConfiguration Configuration
     {
-        get => base.Definition;
-        protected set => base.Definition = value;
+        get => base.Configuration;
+        protected set => base.Configuration = value;
     }
 
-    internal InputFieldDefinition CreateFieldDefinition() => CreateDefinition();
-
-    protected override void OnCreateDefinition(
-        SortFieldDefinition definition)
+    protected override void OnCreateConfiguration(
+        SortFieldConfiguration configuration)
     {
         Context.Descriptors.Push(this);
 
-        if (Definition is { AttributesAreApplied: false, Member: not null, })
+        if (Configuration is { AttributesAreApplied: false, Member: not null })
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Definition.Member);
-            Definition.AttributesAreApplied = true;
+            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.Member);
+            Configuration.AttributesAreApplied = true;
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(configuration);
 
         Context.Descriptors.Pop();
     }
 
     public ISortFieldDescriptor Name(string value)
     {
-        Definition.Name = value;
+        Configuration.Name = value;
         return this;
     }
 
     public ISortFieldDescriptor Ignore(bool ignore = true)
     {
-        Definition.Ignore = ignore;
+        Configuration.Ignore = ignore;
         return this;
     }
 

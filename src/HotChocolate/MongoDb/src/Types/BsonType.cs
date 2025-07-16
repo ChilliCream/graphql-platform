@@ -46,10 +46,7 @@ public class BsonType : ScalarType
     /// <inheritdoc />
     public override bool IsInstanceOfType(IValueNode valueSyntax)
     {
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         switch (valueSyntax)
         {
@@ -67,7 +64,7 @@ public class BsonType : ScalarType
         }
     }
 
-    private BsonValue? ParseLiteralToBson(IValueNode literal)
+    private BsonValue ParseLiteralToBson(IValueNode literal)
     {
         switch (literal)
         {
@@ -92,7 +89,7 @@ public class BsonType : ScalarType
                 return new BsonBoolean(bvn.Value);
 
             case ListValueNode lvn:
-                BsonValue?[] values = new BsonValue[lvn.Items.Count];
+                var values = new BsonValue[lvn.Items.Count];
                 for (var i = 0; i < lvn.Items.Count; i++)
                 {
                     values[i] = ParseLiteralToBson(lvn.Items[i]);
@@ -101,7 +98,7 @@ public class BsonType : ScalarType
                 return new BsonArray(values);
 
             case ObjectValueNode ovn:
-                BsonDocument document = new();
+                BsonDocument document = [];
                 foreach (var field in ovn.Fields)
                 {
                     document.Add(field.Name.Value, ParseLiteralToBson(field.Value));
@@ -198,9 +195,9 @@ public class BsonType : ScalarType
         var mappedValue = BsonTypeMapper.MapToDotNetValue(value);
         var type = mappedValue.GetType();
 
-        if (type.IsValueType &&
-            Converter.TryConvert(type, typeof(string), mappedValue, out var converted) &&
-            converted is string c)
+        if (type.IsValueType
+            && Converter.TryConvert(type, typeof(string), mappedValue, out var converted)
+            && converted is string c)
         {
             return new StringValueNode(c);
         }
@@ -238,7 +235,7 @@ public class BsonType : ScalarType
                 return true;
 
             case BsonDocument doc:
-                Dictionary<string, object?> docRes = new();
+                Dictionary<string, object?> docRes = [];
                 foreach (var element in doc)
                 {
                     if (!TrySerialize(element.Value, out var s))
@@ -306,9 +303,9 @@ public class BsonType : ScalarType
 
                 var type = dotNetValue.GetType();
 
-                if (type.IsValueType &&
-                    Converter.TryConvert(type, typeof(string), dotNetValue, out var c) &&
-                    c is string casted)
+                if (type.IsValueType
+                    && Converter.TryConvert(type, typeof(string), dotNetValue, out var c)
+                    && c is string casted)
                 {
                     resultValue = casted;
                     return true;
@@ -335,42 +332,42 @@ public class BsonType : ScalarType
         switch (resultValue)
         {
             case IDictionary<string, object> dictionary:
+            {
+                var result = new BsonDocument();
+                foreach (var element in dictionary)
                 {
-                    var result = new BsonDocument();
-                    foreach (var element in dictionary)
+                    if (TryDeserialize(element.Value, out elementValue))
                     {
-                        if (TryDeserialize(element.Value, out elementValue))
-                        {
-                            result[element.Key] = (BsonValue?)elementValue;
-                        }
-                        else
-                        {
-                            return false;
-                        }
+                        result[element.Key] = (BsonValue?)elementValue;
                     }
-
-                    runtimeValue = result;
-                    return true;
+                    else
+                    {
+                        return false;
+                    }
                 }
+
+                runtimeValue = result;
+                return true;
+            }
 
             case IList list:
+            {
+                var result = new BsonValue?[list.Count];
+                for (var i = 0; i < list.Count; i++)
                 {
-                    var result = new BsonValue?[list.Count];
-                    for (var i = 0; i < list.Count; i++)
+                    if (TryDeserialize(list[i], out elementValue))
                     {
-                        if (TryDeserialize(list[i], out elementValue))
-                        {
-                            result[i] = (BsonValue?)elementValue;
-                        }
-                        else
-                        {
-                            return false;
-                        }
+                        result[i] = (BsonValue?)elementValue;
                     }
-
-                    runtimeValue = new BsonArray(result);
-                    return true;
+                    else
+                    {
+                        return false;
+                    }
                 }
+
+                runtimeValue = new BsonArray(result);
+                return true;
+            }
 
             case IValueNode literal:
                 runtimeValue = ParseLiteral(literal);

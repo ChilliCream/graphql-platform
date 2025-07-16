@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.DirectiveLocationUtils;
 
 namespace HotChocolate.Types.Factories;
@@ -10,7 +10,7 @@ internal sealed class DirectiveTypeFactory : ITypeFactory<DirectiveDefinitionNod
 {
     public DirectiveType Create(IDescriptorContext context, DirectiveDefinitionNode node)
     {
-        var typeDefinition = new DirectiveTypeDefinition(
+        var typeDefinition = new DirectiveTypeConfiguration(
             node.Name.Value,
             node.Description?.Value,
             isRepeatable: node.IsRepeatable);
@@ -27,18 +27,18 @@ internal sealed class DirectiveTypeFactory : ITypeFactory<DirectiveDefinitionNod
     }
 
     private static void DeclareArguments(
-        DirectiveTypeDefinition parent,
+        DirectiveTypeConfiguration parent,
         IReadOnlyCollection<InputValueDefinitionNode> arguments)
     {
         foreach (var argument in arguments)
         {
-            var argumentDefinition = new DirectiveArgumentDefinition(
+            var argumentDefinition = new DirectiveArgumentConfiguration(
                 argument.Name.Value,
                 argument.Description?.Value,
                 TypeReference.Create(argument.Type),
                 argument.DefaultValue);
 
-            if (argument.DeprecationReason() is { Length: > 0, } reason)
+            if (argument.DeprecationReason() is { Length: > 0 } reason)
             {
                 argumentDefinition.DeprecationReason = reason;
             }
@@ -48,7 +48,7 @@ internal sealed class DirectiveTypeFactory : ITypeFactory<DirectiveDefinitionNod
     }
 
     private static void DeclareLocations(
-        DirectiveTypeDefinition parent,
+        DirectiveTypeConfiguration parent,
         DirectiveDefinitionNode node)
     {
         parent.Locations = Parse(node.Locations);

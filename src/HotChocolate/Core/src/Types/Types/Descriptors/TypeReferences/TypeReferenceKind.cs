@@ -41,5 +41,5 @@ public enum TypeReferenceKind
     /// <summary>
     /// The directive type reference represented by the name of a directive.
     /// </summary>
-    DirectiveName = 6,
+    DirectiveName = 6
 }

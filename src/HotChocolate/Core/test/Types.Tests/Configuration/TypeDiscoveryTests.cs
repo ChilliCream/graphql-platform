@@ -10,7 +10,7 @@ public class TypeDiscoveryTests
         SchemaBuilder.New()
             .AddQueryType<QueryWithDateTime>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -20,7 +20,7 @@ public class TypeDiscoveryTests
         SchemaBuilder.New()
             .AddQueryType<QueryType>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -30,7 +30,7 @@ public class TypeDiscoveryTests
         SchemaBuilder.New()
             .AddQueryType<QueryTypeWithStruct>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -40,7 +40,7 @@ public class TypeDiscoveryTests
         SchemaBuilder.New()
             .AddQueryType<QueryTypeWithInputStruct>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -50,8 +50,21 @@ public class TypeDiscoveryTests
         SchemaBuilder.New()
             .AddQueryType<QueryTypeWithComputedProperty>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
+    }
+
+    [Fact]
+    public void Custom_LocalDate_Should_Throw_SchemaException_When_Not_Bound()
+    {
+        static void Act() =>
+            SchemaBuilder.New()
+                .AddQueryType<QueryTypeWithCustomLocalDate>()
+                .Create();
+
+        Assert.Equal(
+            "The name `LocalDate` was already registered by another type.",
+            Assert.Throws<SchemaException>(Act).Errors[0].Message);
     }
 
     public class QueryWithDateTime
@@ -129,15 +142,15 @@ public class TypeDiscoveryTests
 
     public struct InputStructWithCtor
     {
-        public InputStructWithCtor(IEnumerable<int> values) =>
-            Values = System.Collections.Immutable.ImmutableArray.CreateRange(values);
+        public InputStructWithCtor(IEnumerable<int> values)
+            => Values = [.. values];
 
         public System.Collections.Immutable.ImmutableArray<int> Values { get; set; }
     }
 
     public class QueryTypeWithInputStruct
     {
-        public int Foo(InputStructWithCtor arg) => default;
+        public int Foo(InputStructWithCtor arg) => 0;
     }
 
     public class InputTypeWithReadOnlyProperties(int property2)
@@ -152,5 +165,15 @@ public class TypeDiscoveryTests
     public class QueryTypeWithComputedProperty
     {
         public int Foo(InputTypeWithReadOnlyProperties arg) => arg.Property1;
+    }
+
+    public class QueryTypeWithCustomLocalDate
+    {
+        public LocalDate Foo() => new();
+    }
+
+    public class LocalDate
+    {
+        public DateOnly Date { get; set; }
     }
 }

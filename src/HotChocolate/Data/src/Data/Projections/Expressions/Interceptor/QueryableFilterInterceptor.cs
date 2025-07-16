@@ -8,7 +8,6 @@ using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using static HotChocolate.Data.ErrorHelper;
-using static HotChocolate.Data.Filters.Expressions.QueryableFilterProvider;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Data.Projections.Handlers;
@@ -16,33 +15,27 @@ namespace HotChocolate.Data.Projections.Handlers;
 public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableProjectionContext>
 {
     public bool CanHandle(ISelection selection) =>
-        selection.Field.Member is PropertyInfo propertyInfo &&
-        propertyInfo.CanWrite &&
-        selection.Field.ContextData.ContainsKey(ContextVisitFilterArgumentKey) &&
-        selection.Field.ContextData.ContainsKey(ContextArgumentNameKey);
+        selection.Field.Member is PropertyInfo propertyInfo
+        && propertyInfo.CanWrite
+        && selection.HasFilterFeature();
 
     public void BeforeProjection(
         QueryableProjectionContext context,
         ISelection selection)
     {
         var field = selection.Field;
-        var contextData = field.ContextData;
+        var filterFeature = selection.GetFilterFeature();
 
-        if (contextData.TryGetValue(ContextArgumentNameKey, out var arg) &&
-            arg is string argumentName &&
-            contextData.TryGetValue(ContextVisitFilterArgumentKey, out var argVisitor) &&
-            argVisitor is VisitFilterArgument argumentVisitor &&
-            context.Selection.Count > 0 &&
-            context.Selection.Peek().Arguments
-                .TryCoerceArguments(context.ResolverContext, out var coercedArgs) &&
-            coercedArgs.TryGetValue(argumentName, out var argumentValue) &&
-            argumentValue.Type is IFilterInputType filterInputType &&
-            argumentValue.ValueLiteral is { } valueNode and not NullValueNode)
+        if (filterFeature is not null
+            && context.Selection.Count > 0
+            && context.Selection.Peek().Arguments.TryCoerceArguments(context.ResolverContext, out var coercedArgs)
+            && coercedArgs.TryGetValue(filterFeature.ArgumentName, out var argumentValue)
+            && argumentValue.Type is IFilterInputType filterInputType
+            && argumentValue.ValueLiteral is { } valueNode and not NullValueNode)
         {
-            var filterContext =
-                argumentVisitor(valueNode, filterInputType, false);
-
+            var filterContext = filterFeature.ArgumentVisitor.Invoke(valueNode, filterInputType, false);
             var instance = context.PopInstance();
+
             if (filterContext.Errors.Count == 0)
             {
                 if (filterContext.TryCreateLambda(out var expression))
@@ -51,7 +44,7 @@ public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableP
                         Expression.Call(
                             typeof(Enumerable),
                             nameof(Enumerable.Where),
-                            [filterInputType.EntityType.Source,],
+                            [filterInputType.EntityType.Source],
                             instance,
                             expression));
                 }

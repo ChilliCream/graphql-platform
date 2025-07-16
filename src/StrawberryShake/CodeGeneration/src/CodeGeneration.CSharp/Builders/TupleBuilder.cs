@@ -2,7 +2,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class TupleBuilder : ICode
 {
-    private bool _determineStatement = false;
+    private bool _determineStatement;
     private string? _prefix;
     private bool _setReturn;
     private readonly List<ICode> _members = [];
@@ -43,10 +43,7 @@ public class TupleBuilder : ICode
 
     public void Build(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         if (_determineStatement)
         {

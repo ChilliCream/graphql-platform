@@ -4,7 +4,9 @@
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable MoveLocalFunctionAfterJumpStatement
 
+using GreenDonut.Data;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -675,7 +677,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             """,
             new Dictionary<string, object?>
             {
-                ["title"] = "BookTitle",
+                ["title"] = "BookTitle"
             });
 
         // assert
@@ -714,7 +716,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             """,
             new Dictionary<string, object?>
             {
-                ["title"] = "BookTitle",
+                ["title"] = "BookTitle"
             });
 
         // assert
@@ -765,7 +767,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .BuildRequestExecutorAsync();
 
         // act
-        var result = executor.Schema.Print();
+        var result = executor.Schema.ToString();
 
         // assert
         result.MatchSnapshot();
@@ -785,7 +787,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .BuildRequestExecutorAsync();
 
         // act
-        var result = executor.Schema.Print();
+        var result = executor.Schema.ToString();
 
         // assert
         result.MatchSnapshot();
@@ -802,7 +804,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .BuildRequestExecutorAsync();
 
         // act
-        var result = executor.Schema.Print();
+        var result = executor.Schema.ToString();
 
         // assert
         result.MatchSnapshot();
@@ -879,6 +881,85 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task AsSortDefinition_Descending()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authorsSorted(order: { name: DESC }) {
+                    name
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AsSortDefinition_Descending_QueryContext()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authorsData(order: { name: DESC }) {
+                    name
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AsSortDefinition_Descending_QueryContext_2()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authorsData2(order: { name: DESC }) {
+                    id
+                    name
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
     [QueryType]
     public static class StaticQuery
     {
@@ -886,7 +967,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
         public static IEnumerable<Bar> GetBars()
             => new[]
             {
-                Bar.Create("tox"),
+                Bar.Create("tox")
             };
     }
 
@@ -903,7 +984,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                         var data = new[]
                         {
                             Bar.Create("a"),
-                            Bar.Create("b"),
+                            Bar.Create("b")
                         }.AsQueryable();
                         return Task.FromResult(data);
                     })
@@ -913,11 +994,11 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
 
     public class Bar
     {
-        public string Qux { get; set; } = default!;
+        public string Qux { get; set; } = null!;
 
         public static Bar Create(string qux) => new()
         {
-            Qux = qux,
+            Qux = qux
         };
     }
 
@@ -934,9 +1015,9 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     Title = "BookTitle",
                     Author = new Author
                     {
-                        Name = "Author",
-                    },
-                },
+                        Name = "Author"
+                    }
+                }
             }.AsQueryable();
     }
 
@@ -956,9 +1037,9 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     Title = "BookTitle",
                     Author = new Author
                     {
-                        Name = "Author",
-                    },
-                },
+                        Name = "Author"
+                    }
+                }
             }.AsQueryable();
     }
 
@@ -977,9 +1058,9 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     Title = "BookTitle",
                     Author = new Author
                     {
-                        Name = "Author",
-                    },
-                },
+                        Name = "Author"
+                    }
+                }
             }.AsQueryable();
     }
 
@@ -995,8 +1076,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 Title = "BookTitle",
                 Author = new Author
                 {
-                    Name = "Author",
-                },
+                    Name = "Author"
+                }
             },
             new Book
             {
@@ -1004,9 +1085,9 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 Title = "BookTitle2",
                 Author = new Author
                 {
-                    Name = "Author2",
-                },
-            },
+                    Name = "Author2"
+                }
+            }
         }.AsQueryable().Where(x => x.Id == book.Id);
     }
 
@@ -1020,11 +1101,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 new Author
                 {
                     Name = "Author",
-                    Publishers = new List<Publisher>
-                    {
-                        publisher,
-                    },
-                },
+                    Publishers = [publisher]
+                }
             }.AsQueryable();
     }
 
@@ -1038,11 +1116,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 new Author
                 {
                     Name = "Author",
-                    Books = new List<Book>
-                    {
-                        book,
-                    },
-                },
+                    Books = [book]
+                }
             }.AsQueryable();
     }
 
@@ -1056,11 +1131,8 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 new Author
                 {
                     Name = "Author",
-                    Books = new List<Book>
-                    {
-                        book,
-                    },
-                },
+                    Books = [book]
+                }
             }.AsQueryable();
     }
 
@@ -1073,14 +1145,73 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     new Author
                     {
                         Name = "Author1",
-                        Books = new List<Book>(),
+                        Books = []
                     },
                     new Author
                     {
                         Name = "Author2",
-                        Books = new List<Book>()
-                    },
+                        Books = []
+                    }
                 }.AsQueryable()
                 .Where(filter);
+
+        [UseSorting]
+        public IQueryable<Author> GetAuthorsSorted(ISortingContext sorting)
+            => new[]
+                {
+                    new Author
+                    {
+                        Name = "Author1",
+                        Books = []
+                    },
+                    new Author
+                    {
+                        Name = "Author2",
+                        Books = []
+                    }
+                }.AsQueryable()
+                .Order(sorting);
+
+        [UseSorting]
+        public IQueryable<Author> GetAuthorsData(QueryContext<Author> context)
+            => new[]
+                {
+                    new Author
+                    {
+                        Name = "Author1",
+                        Books = []
+                    },
+                    new Author
+                    {
+                        Name = "Author2",
+                        Books = []
+                    }
+                }.AsQueryable()
+                .With(context);
+
+        [UseSorting]
+        public IQueryable<Author> GetAuthorsData2(QueryContext<Author> context)
+            => new[]
+                {
+                    new Author
+                    {
+                        Id = 1,
+                        Name = "Author1",
+                        Books = []
+                    },
+                    new Author
+                    {
+                        Id = 8,
+                        Name = "Author2",
+                        Books = []
+                    },
+                    new Author
+                    {
+                        Id = 5,
+                        Name = "Author2",
+                        Books = []
+                    }
+                }.AsQueryable()
+                .With(context, t => t with { Operations = t.Operations.Add(SortBy<Author>.Ascending(t => t.Id)) });
     }
 }

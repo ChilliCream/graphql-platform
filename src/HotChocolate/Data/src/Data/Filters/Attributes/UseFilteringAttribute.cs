@@ -10,15 +10,15 @@ namespace HotChocolate.Data;
 /// </summary>
 public class UseFilteringAttribute : ObjectFieldDescriptorAttribute
 {
-    private static readonly MethodInfo _generic = typeof(FilterObjectFieldDescriptorExtensions)
+    private static readonly MethodInfo s_generic = typeof(FilterObjectFieldDescriptorExtensions)
         .GetMethods(BindingFlags.Public | BindingFlags.Static)
         .Single(
             m => m.Name.Equals(
                     nameof(FilterObjectFieldDescriptorExtensions.UseFiltering),
-                    StringComparison.Ordinal) &&
-                m.GetGenericArguments().Length == 1 &&
-                m.GetParameters().Length == 2 &&
-                m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
+                    StringComparison.Ordinal)
+                && m.GetGenericArguments().Length == 1
+                && m.GetParameters().Length == 2
+                && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
 
     public UseFilteringAttribute(Type? filterType = null, [CallerLineNumber] int order = 0)
     {
@@ -50,7 +50,7 @@ public class UseFilteringAttribute : ObjectFieldDescriptorAttribute
         }
         else
         {
-            _generic.MakeGenericMethod(Type).Invoke(null, [descriptor, Scope,]);
+            s_generic.MakeGenericMethod(Type).Invoke(null, [descriptor, Scope]);
         }
     }
 }

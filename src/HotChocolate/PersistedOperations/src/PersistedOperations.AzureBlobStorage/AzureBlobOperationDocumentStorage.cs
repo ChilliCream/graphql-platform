@@ -12,9 +12,9 @@ namespace HotChocolate.PersistedOperations.AzureBlobStorage;
 /// </summary>
 public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
 {
-    private static readonly char[] _fileExtension = ".graphql".ToCharArray();
+    private static readonly char[] s_fileExtension = ".graphql".ToCharArray();
 
-    private static readonly BlobOpenWriteOptions _writeOptions = new()
+    private static readonly BlobOpenWriteOptions s_writeOptions = new()
     {
         HttpHeaders = new BlobHttpHeaders
         {
@@ -32,10 +32,7 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
     /// <param name="client">The blob container client instance.</param>
     public AzureBlobOperationDocumentStorage(BlobContainerClient client)
     {
-        if (client == null)
-        {
-            throw new ArgumentNullException(nameof(client));
-        }
+        ArgumentNullException.ThrowIfNull(client);
 
         _client = client;
     }
@@ -102,9 +99,9 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
         }
         finally
         {
-            if(position > 0)
+            if (position > 0)
             {
-                buffer.AsSpan().Slice(0, position).Clear();
+                buffer.AsSpan()[..position].Clear();
             }
 
             ArrayPool<byte>.Shared.Return(buffer);
@@ -117,10 +114,7 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
         IOperationDocument document,
         CancellationToken cancellationToken = default)
     {
-        if(document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         if (OperationDocumentId.IsNullOrEmpty(documentId))
         {
@@ -136,24 +130,23 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
         CancellationToken ct)
     {
         var blobClient = _client.GetBlobClient(CreateFileName(documentId));
-        await using var outStream = await blobClient.OpenWriteAsync(true, _writeOptions, ct).ConfigureAwait(false);
+        await using var outStream = await blobClient.OpenWriteAsync(true, s_writeOptions, ct).ConfigureAwait(false);
         await document.WriteToAsync(outStream, ct).ConfigureAwait(false);
         await outStream.FlushAsync(ct).ConfigureAwait(false);
     }
 
-
     private static string CreateFileName(OperationDocumentId documentId)
     {
-        var length = documentId.Value.Length + _fileExtension.Length;
+        var length = documentId.Value.Length + s_fileExtension.Length;
         char[]? rented = null;
-        Span<char> span = length <= 256
+        var span = length <= 256
             ? stackalloc char[length]
             : rented = ArrayPool<char>.Shared.Rent(length);
 
         try
         {
             documentId.Value.AsSpan().CopyTo(span);
-            _fileExtension.AsSpan().CopyTo(span.Slice(documentId.Value.Length));
+            s_fileExtension.AsSpan().CopyTo(span[documentId.Value.Length..]);
             return new string(span);
         }
         finally

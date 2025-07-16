@@ -14,14 +14,16 @@ public class DeferAndStreamDirectivesAreUsedOnValidRootFieldTests
     public void Defer_On_Subscriptions_Root()
     {
         ExpectErrors(
-            @"subscription {
-                ... @defer {
-                    disallowedSecondRootField
-                }
-            }",
+            """
+            subscription {
+              ... @defer {
+                disallowedSecondRootField
+              }
+            }
+            """,
             t => Assert.Equal(
-                "The defer and stream directives are not allowed to " +
-                "be used on root fields of the mutation or subscription type.",
+                "The defer and stream directives are not allowed to "
+                + "be used on root fields of the mutation or subscription type.",
                 t.Message));
     }
 
@@ -29,22 +31,24 @@ public class DeferAndStreamDirectivesAreUsedOnValidRootFieldTests
     public void Defer_On_Subscriptions_Root_In_Nested_Fragment()
     {
         ExpectErrors(
-            @"subscription {
-                ... a
+            """
+            subscription {
+              ... a
             }
 
             fragment a on Subscription {
-                ... b
+              ... b
             }
 
             fragment b on Subscription {
-                ... @defer {
-                    disallowedSecondRootField
-                }
-            }",
+              ... @defer {
+                disallowedSecondRootField
+              }
+            }
+            """,
             t => Assert.Equal(
-                "The defer and stream directives are not allowed to " +
-                "be used on root fields of the mutation or subscription type.",
+                "The defer and stream directives are not allowed to "
+                + "be used on root fields of the mutation or subscription type.",
                 t.Message));
     }
 
@@ -52,12 +56,14 @@ public class DeferAndStreamDirectivesAreUsedOnValidRootFieldTests
     public void Stream_On_Subscriptions_Root()
     {
         ExpectErrors(
-            @"subscription {
-                listEvent @stream
-            }",
+            """
+            subscription {
+              listEvent @stream
+            }
+            """,
             t => Assert.Equal(
-                "The defer and stream directives are not allowed to " +
-                "be used on root fields of the mutation or subscription type.",
+                "The defer and stream directives are not allowed to "
+                + "be used on root fields of the mutation or subscription type.",
                 t.Message));
     }
 
@@ -65,12 +71,14 @@ public class DeferAndStreamDirectivesAreUsedOnValidRootFieldTests
     public void Defer_On_Subscriptions_Sub_Selection()
     {
         ExpectValid(
-            @"subscription {
-                newMessage {
-                    ... @defer {
-                        body
-                    }
+            """
+            subscription {
+              newMessage {
+                ... @defer {
+                  body
                 }
-            }");
+              }
+            }
+            """);
     }
 }

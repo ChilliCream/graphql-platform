@@ -42,7 +42,7 @@ public class OperationDescriptorMapperTests
             RequestStrategyGen.Default,
             new[]
             {
-                TransportProfile.Default,
+                TransportProfile.Default
             });
         TypeDescriptorMapper.Map(clientModel, context);
         OperationDescriptorMapper.Map(clientModel, context);
@@ -50,17 +50,8 @@ public class OperationDescriptorMapperTests
         // assert
         Assert.Collection(
             context.Operations.OrderBy(t => t.Name),
-            operation =>
-            {
-                Assert.Equal("CreateReview", operation.Name);
-            },
-            operation =>
-            {
-                Assert.Equal("GetHero", operation.Name);
-            },
-            operation =>
-            {
-                Assert.Equal("OnReview", operation.Name);
-            });
+            operation => Assert.Equal("CreateReview", operation.Name),
+            operation => Assert.Equal("GetHero", operation.Name),
+            operation => Assert.Equal("OnReview", operation.Name));
     }
 }

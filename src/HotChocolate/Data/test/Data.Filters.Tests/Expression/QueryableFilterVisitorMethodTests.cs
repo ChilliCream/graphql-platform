@@ -36,10 +36,10 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a", };
+        var a = new Foo { Bar = "a" };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b", };
+        var b = new Foo { Bar = "b" };
         Assert.False(func(b));
     }
 
@@ -81,20 +81,20 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
 
     private sealed class QueryableSimpleMethodTest : QueryableDefaultFieldHandler
     {
-        private static readonly MethodInfo _method = typeof(Foo).GetMethod(nameof(Foo.Simple))!;
+        private static readonly MethodInfo s_method = typeof(Foo).GetMethod(nameof(Foo.Simple))!;
         private readonly IExtendedType _extendedType;
 
         public QueryableSimpleMethodTest(ITypeInspector typeInspector)
         {
-            _extendedType = typeInspector.GetReturnType(_method);
+            _extendedType = typeInspector.GetReturnType(s_method);
         }
 
         public override bool CanHandle(
             ITypeCompletionContext context,
-            IFilterInputTypeDefinition typeDefinition,
-            IFilterFieldDefinition fieldDefinition)
+            IFilterInputTypeConfiguration typeConfiguration,
+            IFilterFieldConfiguration fieldConfiguration)
         {
-            return fieldDefinition is FilterOperationFieldDefinition { Id: 155, };
+            return fieldConfiguration is FilterOperationFieldConfiguration { Id: 155 };
         }
 
         public override bool TryHandleEnter(
@@ -108,8 +108,8 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                 context.ReportError(
                     ErrorBuilder.New()
                         .SetMessage(
-                            "The provided value for filter `{0}` of type {1} is invalid. " +
-                            "Null values are not supported.",
+                            "The provided value for filter `{0}` of type {1} is invalid. "
+                            + "Null values are not supported.",
                             context.Operations.Peek().Name,
                             field.Type.Print())
                         .Build());
@@ -118,10 +118,10 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                 return true;
             }
 
-            Expression nestedProperty = Expression.Call(context.GetInstance(), _method);
+            Expression nestedProperty = Expression.Call(context.GetInstance(), s_method);
 
             context.PushInstance(nestedProperty);
-            context.RuntimeTypes.Push(_extendedType!);
+            context.RuntimeTypes.Push(_extendedType);
             action = SyntaxVisitor.Continue;
             return true;
         }
@@ -129,8 +129,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
 
     private sealed class QueryableComplexMethodTest : QueryableDefaultFieldHandler
     {
-        private static readonly MethodInfo _method =
-            typeof(Foo).GetMethod(nameof(Foo.Complex))!;
+        private static readonly MethodInfo s_method = typeof(Foo).GetMethod(nameof(Foo.Complex))!;
 
         private IExtendedType _extendedType = null!;
         private readonly InputParser _inputParser;
@@ -142,11 +141,11 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
 
         public override bool CanHandle(
             ITypeCompletionContext context,
-            IFilterInputTypeDefinition typeDefinition,
-            IFilterFieldDefinition fieldDefinition)
+            IFilterInputTypeConfiguration typeConfiguration,
+            IFilterFieldConfiguration fieldConfiguration)
         {
-            _extendedType ??= context.TypeInspector.GetReturnType(_method);
-            return fieldDefinition is FilterOperationFieldDefinition { Id: 156, };
+            _extendedType ??= context.TypeInspector.GetReturnType(s_method);
+            return fieldConfiguration is FilterOperationFieldConfiguration { Id: 156 };
         }
 
         public override bool TryHandleEnter(
@@ -160,8 +159,8 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                 context.ReportError(
                     ErrorBuilder.New()
                         .SetMessage(
-                            "The provided value for filter `{0}` of type {1} is invalid. " +
-                            "Null values are not supported.",
+                            "The provided value for filter `{0}` of type {1} is invalid. "
+                            + "Null values are not supported.",
                             context.Operations.Peek().Name,
                             field.Type.Print())
                         .Build());
@@ -170,8 +169,8 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                 return true;
             }
 
-            if (field.Type is StringOperationFilterInputType operationType &&
-                node.Value is ObjectValueNode objectValue)
+            if (field.Type is StringOperationFilterInputType operationType
+                && node.Value is ObjectValueNode objectValue)
             {
                 IValueNode parameterNode = null!;
 
@@ -194,11 +193,11 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
 
                 Expression nestedProperty = Expression.Call(
                     context.GetInstance(),
-                    _method,
+                    s_method,
                     Expression.Constant(value));
 
                 context.PushInstance(nestedProperty);
-                context.RuntimeTypes.Push(_extendedType!);
+                context.RuntimeTypes.Push(_extendedType);
                 action = SyntaxVisitor.Continue;
                 return true;
             }

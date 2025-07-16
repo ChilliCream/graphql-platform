@@ -8,8 +8,8 @@ public readonly struct NodeId(string typeName, object internalId)
     public object InternalId { get; } = internalId;
 
     public bool Equals(NodeId other)
-        => TypeName == other.TypeName &&
-            InternalId.Equals(other.InternalId);
+        => TypeName == other.TypeName
+            && InternalId.Equals(other.InternalId);
 
     public override bool Equals(object? obj)
         => obj is NodeId other && Equals(other);

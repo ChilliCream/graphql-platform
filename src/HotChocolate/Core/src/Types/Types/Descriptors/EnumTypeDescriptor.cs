@@ -1,83 +1,82 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Descriptors;
 
 public class EnumTypeDescriptor
-    : DescriptorBase<EnumTypeDefinition>
+    : DescriptorBase<EnumTypeConfiguration>
     , IEnumTypeDescriptor
 {
     protected EnumTypeDescriptor(IDescriptorContext context)
         : base(context)
     {
-        Definition.RuntimeType = typeof(object);
-        Definition.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
+        Configuration.RuntimeType = typeof(object);
+        Configuration.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
     }
 
     protected EnumTypeDescriptor(IDescriptorContext context, Type clrType)
         : base(context)
     {
-        Definition.RuntimeType = clrType ?? throw new ArgumentNullException(nameof(clrType));
-        Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Enum);
-        Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Enum);
-        Definition.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
+        Configuration.RuntimeType = clrType ?? throw new ArgumentNullException(nameof(clrType));
+        Configuration.Name = context.Naming.GetTypeName(clrType, TypeKind.Enum);
+        Configuration.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Enum);
+        Configuration.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
     }
 
-    protected EnumTypeDescriptor(IDescriptorContext context, EnumTypeDefinition definition)
+    protected EnumTypeDescriptor(IDescriptorContext context, EnumTypeConfiguration definition)
         : base(context)
     {
-        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        Configuration = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
-    protected internal override EnumTypeDefinition Definition { get; protected set; } = new();
+    protected internal override EnumTypeConfiguration Configuration { get; protected set; } = new();
 
-    protected ICollection<EnumValueDescriptor> Values { get; } =
-        new List<EnumValueDescriptor>();
+    protected ICollection<EnumValueDescriptor> Values { get; } = [];
 
-    protected override void OnCreateDefinition(
-        EnumTypeDefinition definition)
+    protected override void OnCreateConfiguration(
+        EnumTypeConfiguration configuration)
     {
         Context.Descriptors.Push(this);
 
-        if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
+        if (!Configuration.AttributesAreApplied && Configuration.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,
                 this,
-                Definition.RuntimeType);
-            Definition.AttributesAreApplied = true;
+                Configuration.RuntimeType);
+            Configuration.AttributesAreApplied = true;
         }
 
-        var values = Values.Select(t => t.CreateDefinition()).ToDictionary(t => t.RuntimeValue);
-        AddImplicitValues(definition, values);
+        var values = Values.Select(t => t.CreateConfiguration()).ToDictionary(t => t.RuntimeValue);
+        AddImplicitValues(configuration, values);
 
-        definition.Values.Clear();
+        configuration.Values.Clear();
+        configuration.Values.AddRange(values.Values);
 
-        foreach (var value in values.Values)
-        {
-            definition.Values.Add(value);
-        }
-
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(configuration);
 
         Context.Descriptors.Pop();
     }
 
     protected void AddImplicitValues(
-        EnumTypeDefinition typeDefinition,
-        IDictionary<object, EnumValueDefinition> values)
+        EnumTypeConfiguration typeDefinition,
+        IDictionary<object, EnumValueConfiguration> values)
     {
         if (typeDefinition.Values.IsImplicitBinding())
         {
             foreach (var value in Context.TypeInspector.GetEnumValues(typeDefinition.RuntimeType))
             {
+                if (values.ContainsKey(value))
+                {
+                    continue;
+                }
+
                 var valueDefinition =
                     EnumValueDescriptor.New(Context, value)
-                        .CreateDefinition();
+                        .CreateConfiguration();
 
-                if (valueDefinition.RuntimeValue is not null &&
-                    !values.ContainsKey(valueDefinition.RuntimeValue))
+                if (valueDefinition.RuntimeValue is not null)
                 {
                     values.Add(valueDefinition.RuntimeValue, valueDefinition);
                 }
@@ -87,20 +86,20 @@ public class EnumTypeDescriptor
 
     public IEnumTypeDescriptor Name(string value)
     {
-        Definition.Name = value;
+        Configuration.Name = value;
         return this;
     }
 
     public IEnumTypeDescriptor Description(string value)
     {
-        Definition.Description = value;
+        Configuration.Description = value;
         return this;
     }
 
     public IEnumTypeDescriptor BindValues(
         BindingBehavior behavior)
     {
-        Definition.Values.BindingBehavior = behavior;
+        Configuration.Values.BindingBehavior = behavior;
         return this;
     }
 
@@ -112,21 +111,20 @@ public class EnumTypeDescriptor
 
     public IEnumTypeDescriptor NameComparer(IEqualityComparer<string> comparer)
     {
-        Definition.NameComparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
+        Configuration.NameComparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
         return this;
     }
 
     public IEnumTypeDescriptor ValueComparer(IEqualityComparer<object> comparer)
     {
-        Definition.ValueComparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
+        Configuration.ValueComparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
         return this;
     }
 
     public IEnumValueDescriptor Value<T>(T value)
     {
-        var descriptor = Values.FirstOrDefault(t =>
-            t.Definition.RuntimeValue is not null &&
-            t.Definition.RuntimeValue.Equals(value));
+        var descriptor = Values.FirstOrDefault(
+            t => t.Configuration.RuntimeValue?.Equals(value) == true);
 
         if (descriptor is not null)
         {
@@ -141,20 +139,20 @@ public class EnumTypeDescriptor
     public IEnumTypeDescriptor Directive<T>(T directiveInstance)
         where T : class
     {
-        Definition.AddDirective(directiveInstance, Context.TypeInspector);
+        Configuration.AddDirective(directiveInstance, Context.TypeInspector);
         return this;
     }
 
     public IEnumTypeDescriptor Directive<T>()
         where T : class, new()
     {
-        Definition.AddDirective(new T(), Context.TypeInspector);
+        Configuration.AddDirective(new T(), Context.TypeInspector);
         return this;
     }
 
     public IEnumTypeDescriptor Directive(string name, params ArgumentNode[] arguments)
     {
-        Definition.AddDirective(name, arguments);
+        Configuration.AddDirective(name, arguments);
         return this;
     }
 
@@ -176,17 +174,17 @@ public class EnumTypeDescriptor
         Type schemaType)
     {
         var descriptor = New(context, schemaType);
-        descriptor.Definition.RuntimeType = typeof(object);
+        descriptor.Configuration.RuntimeType = typeof(object);
         return descriptor;
     }
 
     public static EnumTypeDescriptor From(
         IDescriptorContext context,
-        EnumTypeDefinition definition) =>
+        EnumTypeConfiguration definition) =>
         new(context, definition);
 
     public static EnumTypeDescriptor From<T>(
         IDescriptorContext context,
-        EnumTypeDefinition definition) =>
+        EnumTypeConfiguration definition) =>
         new(context, definition);
 }

@@ -9,15 +9,15 @@ internal sealed class AggregateServiceScopeInitializer : IServiceScopeInitialize
 
     public AggregateServiceScopeInitializer(IEnumerable<IServiceScopeInitializer> serviceScopeInitializers)
     {
-        if (serviceScopeInitializers == null)
-        {
-            throw new ArgumentNullException(nameof(serviceScopeInitializers));
-        }
+        ArgumentNullException.ThrowIfNull(serviceScopeInitializers);
 
         _initializers = serviceScopeInitializers.ToArray();
     }
 
-    public void Initialize(IServiceProvider requestScope, IServiceProvider resolverScope)
+    public void Initialize(
+        IMiddlewareContext context,
+        IServiceProvider requestScope,
+        IServiceProvider resolverScope)
     {
         switch (_initializers.Length)
         {
@@ -25,32 +25,30 @@ internal sealed class AggregateServiceScopeInitializer : IServiceScopeInitialize
                 return;
 
             case 1:
-                _initializers[0].Initialize(requestScope, resolverScope);
+                _initializers[0].Initialize(context, requestScope, resolverScope);
                 break;
 
             case 2:
-                _initializers[0].Initialize(requestScope, resolverScope);
-                _initializers[1].Initialize(requestScope, resolverScope);
+                _initializers[0].Initialize(context, requestScope, resolverScope);
+                _initializers[1].Initialize(context, requestScope, resolverScope);
                 break;
 
             case 3:
-                _initializers[0].Initialize(requestScope, resolverScope);
-                _initializers[1].Initialize(requestScope, resolverScope);
-                _initializers[2].Initialize(requestScope, resolverScope);
+                _initializers[0].Initialize(context, requestScope, resolverScope);
+                _initializers[1].Initialize(context, requestScope, resolverScope);
+                _initializers[2].Initialize(context, requestScope, resolverScope);
                 break;
 
             default:
-            {
                 ref var start = ref MemoryMarshal.GetReference(_initializers.AsSpan());
                 ref var end = ref Unsafe.Add(ref start, _initializers.Length);
 
                 while (Unsafe.IsAddressLessThan(ref start, ref end))
                 {
-                    start!.Initialize(requestScope, resolverScope);
+                    start!.Initialize(context, requestScope, resolverScope);
                     start = ref Unsafe.Add(ref start, 1);
                 }
                 break;
-            }
         }
     }
 }

@@ -171,7 +171,7 @@ public class CodeFirstTests
             MockBehavior.Strict);
 
         // act
-        var fooBar = schema.GetType<UnionType>("FooBar");
+        var fooBar = schema.Types.GetType<UnionType>("FooBar");
         var teaType = fooBar.ResolveConcreteType(context.Object, "tea");
         var barType = fooBar.ResolveConcreteType(context.Object, "bar");
 
@@ -186,7 +186,7 @@ public class CodeFirstTests
         // arrange
         var schema = CreateSchema();
 
-        var fooBar = schema.GetType<UnionType>("FooBar");
+        var fooBar = schema.Types.GetType<UnionType>("FooBar");
 
         // act
         var shouldBeFalse = fooBar.ContainsType("Tea");
@@ -203,9 +203,9 @@ public class CodeFirstTests
         // arrange
         var schema = CreateSchema();
 
-        var fooBar = schema.GetType<UnionType>("FooBar");
-        var bar = schema.GetType<ObjectType>("Bar");
-        var tea = schema.GetType<ObjectType>("Tea");
+        var fooBar = schema.Types.GetType<UnionType>("FooBar");
+        var bar = schema.Types.GetType<ObjectType>("Bar");
+        var tea = schema.Types.GetType<ObjectType>("Tea");
 
         // act
         var shouldBeTrue = fooBar.ContainsType(bar);
@@ -222,9 +222,9 @@ public class CodeFirstTests
         // arrange
         var schema = CreateSchema();
 
-        IUnionType fooBar = schema.GetType<UnionType>("FooBar");
-        IObjectType tea = schema.GetType<ObjectType>("Tea");
-        IObjectType bar = schema.GetType<ObjectType>("Bar");
+        var fooBar = schema.Types.GetType<UnionType>("FooBar");
+        var tea = schema.Types.GetType<ObjectType>("Tea");
+        var bar = schema.Types.GetType<ObjectType>("Bar");
 
         // act
         var shouldBeFalse = fooBar.ContainsType(tea);
@@ -260,7 +260,7 @@ public class CodeFirstTests
             MockBehavior.Strict);
 
         // act
-        var drink = schema.GetType<InterfaceType>("Drink");
+        var drink = schema.Types.GetType<InterfaceType>("Drink");
         var teaType = drink.ResolveConcreteType(context.Object, "tea");
         var barType = drink.ResolveConcreteType(context.Object, "bar");
 
@@ -379,7 +379,7 @@ public class CodeFirstTests
             .AddQueryType<QueryLists>()
             .BuildRequestExecutorAsync();
 
-        var query =
+        const string query =
             """
             query {
               input(arg: [[1], null])
@@ -389,7 +389,7 @@ public class CodeFirstTests
         await executor.ExecuteAsync(query).MatchSnapshotAsync();
     }
 
-    private static ISchema CreateSchema()
+    private static Schema CreateSchema()
         => SchemaBuilder.New()
             .AddQueryType<QueryType>()
             .AddType<FooType>()
@@ -416,7 +416,7 @@ public class CodeFirstTests
 
         public IExecutable<string> GetQuery()
         {
-            return new MockExecutable<string>(new[] { "foo", "bar", }.AsQueryable());
+            return new MockExecutable<string>(new[] { "foo", "bar" }.AsQueryable());
         }
 
         public string TestProp => "Hello World!";
@@ -456,7 +456,7 @@ public class CodeFirstTests
                 .Resolve(c => "bar");
             descriptor.Field("fooOrBar")
                 .Type<NonNullType<ListType<NonNullType<FooBarUnionType>>>>()
-                .Resolve(() => new object[] { "foo", "bar", });
+                .Resolve(() => new object[] { "foo", "bar" });
             descriptor.Field("tea")
                 .Type<TeaType>()
                 .Resolve(() => "tea");
@@ -530,7 +530,7 @@ public class CodeFirstTests
     public enum DrinkKind
     {
         BlackTea,
-        Water,
+        Water
     }
 
     public class FooBarUnionType : UnionType
@@ -562,7 +562,7 @@ public class CodeFirstTests
 
         public Task<IEnumerable<string>> GetNames()
         {
-            return Task.FromResult<IEnumerable<string>>(new[] { "a", "b", });
+            return Task.FromResult<IEnumerable<string>>(["a", "b"]);
         }
     }
 
@@ -640,10 +640,10 @@ public class CodeFirstTests
 
     public class QueryFieldCasing
     {
-        public string YourFieldName { get; set; } = default!;
+        public string YourFieldName { get; set; } = null!;
 
         [GraphQLDeprecated("This is deprecated")]
-        public string YourFieldname { get; set; } = default!;
+        public string YourFieldname { get; set; } = null!;
     }
 
     public class QueryWithDefaultValue

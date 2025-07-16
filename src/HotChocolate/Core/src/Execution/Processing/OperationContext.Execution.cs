@@ -42,6 +42,15 @@ internal sealed partial class OperationContext
         }
     }
 
+    public RequestContext RequestContext
+    {
+        get
+        {
+            AssertInitialized();
+            return _requestContext;
+        }
+    }
+
     public ResolverTask CreateResolverTask(
         ISelection selection,
         object? parent,

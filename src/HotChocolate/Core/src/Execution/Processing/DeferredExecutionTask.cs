@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Utilities;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Execution.Processing;
@@ -39,8 +40,8 @@ internal abstract class DeferredExecutionTask
         // retrieve the task on which this task depends upon. We do this to ensure that the result
         // of this task is not delivered before the parent result is delivered.
         uint parentResultId = 0;
-        if (ScopedContextData.TryGetValue(DeferredResultId, out var value) &&
-            value is uint id)
+        if (ScopedContextData.TryGetValue(DeferredResultId, out var value)
+            && value is uint id)
         {
             parentResultId = id;
         }
@@ -48,25 +49,16 @@ internal abstract class DeferredExecutionTask
         var capturedContext = ExecutionContext.Capture();
         if (capturedContext is null)
         {
-            Task.Factory.StartNew(
-                () => ExecuteAsync(operationContextOwner, resultId, parentResultId, patchId),
-                default,
-                TaskCreationOptions.None,
-                TaskScheduler.Default);
+            ExecuteAsync(operationContextOwner, resultId, parentResultId, patchId).FireAndForget();
         }
         else
         {
-            Task.Factory.StartNew(
-                () =>
-                {
-                    ExecutionContext.Run(
-                        capturedContext,
-                        _ => ExecuteAsync(operationContextOwner, resultId, parentResultId, patchId),
-                        null);
-                },
-                default,
-                TaskCreationOptions.None,
-                TaskScheduler.Default);
+            var execute = () =>
+                ExecutionContext.Run(
+                    capturedContext,
+                    _ => ExecuteAsync(operationContextOwner, resultId, parentResultId, patchId),
+                    null);
+            execute.FireAndForget();
         }
     }
 

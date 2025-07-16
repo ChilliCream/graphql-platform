@@ -56,7 +56,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument("query($var: String!) { example(input: { a: $var, b: 123 }) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", null }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "var", null } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -71,7 +71,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument("query($var: Int!) { example(input: { b: $var }) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", 123 }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "var", 123 } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -88,7 +88,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                     .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
                     .SetVariableValues(
                         new Dictionary<string, object?>
-                            { { "var", new ObjectValueNode(new ObjectFieldNode("b", 123)) }, })
+                            { { "var", new ObjectValueNode(new ObjectFieldNode("b", 123)) } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -121,7 +121,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument("query($var: String!) { example(input: $var) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", "abc123" }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "var", "abc123" } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -189,7 +189,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                     .SetDocument("query($var: ExampleInput!) { example(input: $var) }")
                     .SetVariableValues(
                         new Dictionary<string, object?>
-                            { { "var", new ObjectValueNode(new ObjectFieldNode("a", "abc")) }, })
+                            { { "var", new ObjectValueNode(new ObjectFieldNode("a", "abc")) } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -216,7 +216,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument("query($var: Int) { example(input: { b: $var }) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "var", null }, })
+                    .SetVariableValues(new Dictionary<string, object?> { { "var", null } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -299,7 +299,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .AddQueryType<QueryType>()
             .ModifyOptions(o => o.EnableOneOf = true)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
 
     [Fact]
@@ -331,6 +331,43 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                         oneOf
                     }
                 }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task OneOf_DefaultValue_On_Directive_Argument()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddType<DefaultValue>()
+            .AddDocumentFromString(
+                """
+                type Query {
+                    foo: String @defaultValue(value: { string: "abc" })
+                }
+                """)
+            .AddResolver("Query", "foo", "abc")
+            .ModifyOptions(o => o.EnableOneOf = true)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task OneOf_DefaultValue_On_Directive_Argument_Fluent()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddType<DefaultValueDirectiveType>()
+            .AddType<DefaultValueType>()
+            .AddDocumentFromString(
+                """
+                type Query {
+                    foo: String @defaultValue(value: { string: "abc" })
+                }
+                """)
+            .AddResolver("Query", "foo", "abc")
+            .ModifyOptions(o => o.EnableOneOf = true)
+            .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
 
@@ -389,5 +426,40 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         public string? A { get; set; }
 
         public int? B { get; set; }
+    }
+
+    [DirectiveType(DirectiveLocation.FieldDefinition)]
+    public class DefaultValue
+    {
+        public DefaultValueInput? Value { get; set; }
+    }
+
+    [OneOf]
+    public class DefaultValueInput
+    {
+        public string? String { get; set; }
+
+        public int? Int { get; set; }
+    }
+
+    public class DefaultValueType : InputObjectType
+    {
+        protected override void Configure(IInputObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name("DefaultValue");
+            descriptor.OneOf();
+            descriptor.Field("string").Type<StringType>();
+            descriptor.Field("int").Type<IntType>();
+        }
+    }
+
+    public class DefaultValueDirectiveType : DirectiveType
+    {
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+            descriptor.Name("defaultValue");
+            descriptor.Argument("value").Type<DefaultValueType>();
+            descriptor.Location(DirectiveLocation.FieldDefinition);
+        }
     }
 }

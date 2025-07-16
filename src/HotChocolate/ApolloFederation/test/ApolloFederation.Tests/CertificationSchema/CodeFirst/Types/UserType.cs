@@ -10,7 +10,7 @@ public class UserType : ObjectType<User>
         descriptor
             .ExtendServiceType()
             .Key("email")
-            .ResolveReferenceWith(t => GetUserById(default!));
+            .ResolveReferenceWith(t => GetUserById(null!));
 
         descriptor
             .Field(t => t.Email)

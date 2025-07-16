@@ -1,5 +1,7 @@
 using System.Buffers;
+#if NET8_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
+#endif
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language;
@@ -12,11 +14,11 @@ public ref partial struct Utf8GraphQLParser
         /// Parses a GraphQL object type definitions e.g. type Foo { bar: String }
         /// </summary>
         public static ObjectTypeDefinitionNode ParseObjectTypeDefinition(
-            #if NETSTANDARD2_0
+#if NETSTANDARD2_0
             string sourceText) =>
-            #else
+#else
             [StringSyntax("graphql")] string sourceText) =>
-            #endif
+#endif
             Parse(sourceText, parser => parser.ParseObjectTypeDefinition());
 
         /// <summary>

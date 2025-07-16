@@ -40,10 +40,7 @@ public static class FilterConventionDescriptorExtensions
     public static IFilterConventionDescriptor AddDefaultOperations(
         this IFilterConventionDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Operation(DefaultFilterOperations.Equals).Name("eq");
         descriptor.Operation(DefaultFilterOperations.NotEquals).Name("neq");
@@ -87,10 +84,7 @@ public static class FilterConventionDescriptorExtensions
         this IFilterConventionDescriptor descriptor,
         bool compatibilityMode = false)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         if (compatibilityMode)
         {
@@ -146,10 +140,10 @@ public static class FilterConventionDescriptorExtensions
                 .BindRuntimeType<DateTime?, DateTimeOperationFilterInputType>()
                 .BindRuntimeType<DateTimeOffset, DateTimeOperationFilterInputType>()
                 .BindRuntimeType<DateTimeOffset?, DateTimeOperationFilterInputType>()
-                .BindRuntimeType<DateOnly, DateOperationFilterInputType>()
-                .BindRuntimeType<DateOnly?, DateOperationFilterInputType>()
-                .BindRuntimeType<TimeOnly, TimeSpanOperationFilterInputType>()
-                .BindRuntimeType<TimeOnly?, TimeSpanOperationFilterInputType>()
+                .BindRuntimeType<DateOnly, LocalDateOperationFilterInputType>()
+                .BindRuntimeType<DateOnly?, LocalDateOperationFilterInputType>()
+                .BindRuntimeType<TimeOnly, LocalTimeOperationFilterInputType>()
+                .BindRuntimeType<TimeOnly?, LocalTimeOperationFilterInputType>()
                 .BindRuntimeType<TimeSpan, TimeSpanOperationFilterInputType>()
                 .BindRuntimeType<TimeSpan?, TimeSpanOperationFilterInputType>()
                 .BindRuntimeType<Uri, UrlOperationFilterInputType>()

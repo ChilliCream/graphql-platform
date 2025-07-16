@@ -62,10 +62,8 @@ public class RelaySchemaTests
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation2>()
-            .AddQueryFieldToMutationPayloads(o =>
-            {
-                o.MutationPayloadPredicate = type => type.Name.EndsWith("Result");
-            })
+            .AddQueryFieldToMutationPayloads(
+                o => o.MutationPayloadPredicate = type => type.Name.EndsWith("Result"))
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -104,7 +102,7 @@ public class RelaySchemaTests
             .AddQueryType(d => d
                 .Field("user")
                 .Type<UserType>()
-                .Resolve(_ => new User { Name = "TEST", }))
+                .Resolve(_ => new User { Name = "TEST" }))
             .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("query { user { id name } } ")
             .MatchSnapshotAsync();
@@ -129,7 +127,7 @@ public class RelaySchemaTests
 
         private Task<User> ResolveNode(IResolverContext context, string id)
         {
-            return Task.FromResult(new User { Name = "TEST", });
+            return Task.FromResult(new User { Name = "TEST" });
         }
     }
 
@@ -191,16 +189,12 @@ public class RelaySchemaTests
         public FooPayload Foo() => new();
     }
 
-    public class FooPayload
-    {
-    }
+    public class FooPayload;
 
     public class BazPayload
     {
         public string Some { get; set; }
     }
 
-    public class BarResult
-    {
-    }
+    public class BarResult;
 }

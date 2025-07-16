@@ -162,7 +162,7 @@ public class VisibilityTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
+        variables.Setup(t => t.GetValue<BooleanValueNode>(It.IsAny<string>())).Returns(BooleanValueNode.False);
         var field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: $a)");
         var includeCondition = IncludeCondition.FromSelection(field);
 
@@ -178,7 +178,7 @@ public class VisibilityTests
     {
         // arrange
         var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(true);
+        variables.Setup(t => t.GetValue<BooleanValueNode>(It.IsAny<string>())).Returns(BooleanValueNode.True);
         var field = Utf8GraphQLParser.Syntax.ParseField("field @include(if: $a)");
         var includeCondition = IncludeCondition.FromSelection(field);
 

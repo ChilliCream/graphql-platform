@@ -26,18 +26,15 @@ public static class ResolverContextExtensions
         this IResolverContext context,
         string name)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.ContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.ContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -63,18 +60,15 @@ public static class ResolverContextExtensions
         string name,
         T defaultValue)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.ContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.ContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -96,10 +90,7 @@ public static class ResolverContextExtensions
         this IResolverContext context,
         string name)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
@@ -131,18 +122,15 @@ public static class ResolverContextExtensions
         this IResolverContext context,
         string name)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.ScopedContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.ScopedContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -168,18 +156,15 @@ public static class ResolverContextExtensions
         string name,
         T defaultValue)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.ScopedContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.ScopedContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -201,18 +186,15 @@ public static class ResolverContextExtensions
         this IResolverContext context,
         string name)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.ScopedContextData.TryGetValue(name, out var value) &&
-            value is T typedValue)
+        if (context.ScopedContextData.TryGetValue(name, out var value)
+            && value is T typedValue)
         {
             return typedValue;
         }
@@ -237,18 +219,15 @@ public static class ResolverContextExtensions
         this IResolverContext context,
         string name)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.LocalContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.LocalContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -274,18 +253,15 @@ public static class ResolverContextExtensions
         string name,
         T defaultValue)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.LocalContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.LocalContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -307,18 +283,15 @@ public static class ResolverContextExtensions
         this IResolverContext context,
         string name)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.LocalContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.LocalContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -342,10 +315,7 @@ public static class ResolverContextExtensions
         string name,
         T value)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
@@ -370,10 +340,7 @@ public static class ResolverContextExtensions
         string name,
         T value)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
@@ -398,10 +365,7 @@ public static class ResolverContextExtensions
         string name,
         T value)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
@@ -430,23 +394,17 @@ public static class ResolverContextExtensions
         string name,
         Func<string, T> createValue)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (createValue is null)
-        {
-            throw new ArgumentNullException(nameof(createValue));
-        }
+        ArgumentNullException.ThrowIfNull(createValue);
 
-        if (context.ContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.ContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -475,23 +433,17 @@ public static class ResolverContextExtensions
         string name,
         Func<string, T> createValue)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (createValue is null)
-        {
-            throw new ArgumentNullException(nameof(createValue));
-        }
+        ArgumentNullException.ThrowIfNull(createValue);
 
-        if (context.ScopedContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.ScopedContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -520,23 +472,17 @@ public static class ResolverContextExtensions
         string name,
         Func<string, T> createValue)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (createValue is null)
-        {
-            throw new ArgumentNullException(nameof(createValue));
-        }
+        ArgumentNullException.ThrowIfNull(createValue);
 
-        if (context.LocalContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.LocalContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -555,10 +501,7 @@ public static class ResolverContextExtensions
         this IResolverContext context,
         string name)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
@@ -577,10 +520,7 @@ public static class ResolverContextExtensions
         this IResolverContext context,
         string name)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrEmpty(name))
         {
@@ -598,10 +538,7 @@ public static class ResolverContextExtensions
     /// <returns>The event message.</returns>
     public static T GetEventMessage<T>(this IResolverContext context)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (context.ScopedContextData.TryGetValue(
             WellKnownContextData.EventMessage,
@@ -650,10 +587,7 @@ public static class ResolverContextExtensions
     /// </exception>
     public static bool IsSelected(this IResolverContext context, string fieldName)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrWhiteSpace(fieldName))
         {
@@ -662,12 +596,12 @@ public static class ResolverContextExtensions
                 nameof(fieldName));
         }
 
-        if (!context.Selection.Type.IsCompositeType())
+        var namedType = context.Selection.Type.NamedType();
+
+        if (!namedType.IsCompositeType())
         {
             return false;
         }
-
-        var namedType = context.Selection.Type.NamedType();
 
         if (namedType.IsAbstractType())
         {
@@ -722,10 +656,7 @@ public static class ResolverContextExtensions
     /// </exception>
     public static bool IsSelected(this IResolverContext context, string fieldName1, string fieldName2)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrWhiteSpace(fieldName1))
         {
@@ -741,12 +672,12 @@ public static class ResolverContextExtensions
                 nameof(fieldName2));
         }
 
-        if (!context.Selection.Type.IsCompositeType())
+        var namedType = context.Selection.Type.NamedType();
+
+        if (!namedType.IsCompositeType())
         {
             return false;
         }
-
-        var namedType = context.Selection.Type.NamedType();
 
         if (namedType.IsAbstractType())
         {
@@ -813,10 +744,7 @@ public static class ResolverContextExtensions
         string fieldName2,
         string fieldName3)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         if (string.IsNullOrWhiteSpace(fieldName1))
         {
@@ -832,19 +760,19 @@ public static class ResolverContextExtensions
                 nameof(fieldName2));
         }
 
-        if(string.IsNullOrWhiteSpace(fieldName3))
+        if (string.IsNullOrWhiteSpace(fieldName3))
         {
             throw new ArgumentException(
                 ResolverContextExtensions_IsSelected_FieldNameEmpty,
                 nameof(fieldName3));
         }
 
-        if (!context.Selection.Type.IsCompositeType())
+        var namedType = context.Selection.Type.NamedType();
+
+        if (!namedType.IsCompositeType())
         {
             return false;
         }
-
-        var namedType = context.Selection.Type.NamedType();
 
         if (namedType.IsAbstractType())
         {
@@ -856,9 +784,9 @@ public static class ResolverContextExtensions
                 {
                     var selection = selections[i];
 
-                    if (selection.Field.Name.Equals(fieldName1) ||
-                        selection.Field.Name.Equals(fieldName2) ||
-                        selection.Field.Name.Equals(fieldName3))
+                    if (selection.Field.Name.Equals(fieldName1)
+                        || selection.Field.Name.Equals(fieldName2)
+                        || selection.Field.Name.Equals(fieldName3))
                     {
                         return true;
                     }
@@ -873,9 +801,9 @@ public static class ResolverContextExtensions
             {
                 var selection = selections[i];
 
-                if (selection.Field.Name.Equals(fieldName1) ||
-                    selection.Field.Name.Equals(fieldName2) ||
-                    selection.Field.Name.Equals(fieldName3))
+                if (selection.Field.Name.Equals(fieldName1)
+                    || selection.Field.Name.Equals(fieldName2)
+                    || selection.Field.Name.Equals(fieldName3))
                 {
                     return true;
                 }
@@ -903,22 +831,15 @@ public static class ResolverContextExtensions
         this IResolverContext context,
         ISet<string> fieldNames)
     {
-        if(context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(fieldNames);
 
-        if(fieldNames is null)
-        {
-            throw new ArgumentNullException(nameof(fieldNames));
-        }
+        var namedType = context.Selection.Type.NamedType();
 
-        if (!context.Selection.Type.IsCompositeType())
+        if (!namedType.IsCompositeType())
         {
             return false;
         }
-
-        var namedType = context.Selection.Type.NamedType();
 
         if (namedType.IsAbstractType())
         {

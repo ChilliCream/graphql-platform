@@ -7,7 +7,7 @@ namespace HotChocolate.Transport;
 /// <summary>
 /// Represents a GraphQL operation request that can be sent over a WebSocket connection.
 /// </summary>
-public readonly struct VariableBatchRequest : IOperationRequest, IEquatable<OperationRequest>
+public sealed class VariableBatchRequest : IOperationRequest, IEquatable<VariableBatchRequest>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="OperationRequest"/> struct.
@@ -129,10 +129,7 @@ public readonly struct VariableBatchRequest : IOperationRequest, IEquatable<Oper
     /// </param>
     public void WriteTo(Utf8JsonWriter writer)
     {
-        if (writer == null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         Utf8JsonWriterHelper.WriteOperationRequest(writer, this);
     }
@@ -146,13 +143,20 @@ public readonly struct VariableBatchRequest : IOperationRequest, IEquatable<Oper
     /// <returns>
     /// <see langword="true"/> if the two objects are equal; otherwise, <see langword="false"/>.
     /// </returns>
-    public bool Equals(OperationRequest other)
-        => Id == other.Id &&
-            Query == other.Query &&
-            Equals(Variables, other.Variables) &&
-            Equals(Extensions, other.Extensions) &&
-            Equals(VariablesNode, other.VariablesNode) &&
-            Equals(ExtensionsNode, other.ExtensionsNode);
+    public bool Equals(VariableBatchRequest? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        return Id == other.Id
+            && Query == other.Query
+            && Equals(Variables, other.Variables)
+            && Equals(Extensions, other.Extensions)
+            && Equals(VariablesNode, other.VariablesNode)
+            && Equals(ExtensionsNode, other.ExtensionsNode);
+    }
 
     /// <inheritdoc/>
     public override bool Equals(object? obj)

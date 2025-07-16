@@ -61,7 +61,7 @@ public class LongTypeTests
     {
         // arrange
         var type = new LongType();
-        long value = 123;
+        const long value = 123;
 
         // act
         var serializedValue = type.Serialize(value);
@@ -89,7 +89,7 @@ public class LongTypeTests
     {
         // arrange
         var type = new LongType();
-        var input = "abc";
+        const string input = "abc";
 
         // act
         // assert
@@ -102,7 +102,7 @@ public class LongTypeTests
     {
         // arrange
         var type = new LongType(0, 100);
-        long value = 200;
+        const long value = 200;
 
         // act
         // assert
@@ -168,7 +168,7 @@ public class LongTypeTests
     {
         // arrange
         var type = new LongType(1, 100);
-        long input = 100;
+        const long input = 100;
 
         // act
         var literal = (IntValueNode)type.ParseValue(input);
@@ -182,7 +182,7 @@ public class LongTypeTests
     {
         // arrange
         var type = new LongType(1, 100);
-        long input = 101;
+        const long input = 101;
 
         // act
         Action action = () => type.ParseValue(input);
@@ -196,7 +196,7 @@ public class LongTypeTests
     {
         // arrange
         var type = new LongType(1, 100);
-        long input = 1;
+        const long input = 1;
 
         // act
         var literal = (IntValueNode)type.ParseValue(input);
@@ -210,7 +210,7 @@ public class LongTypeTests
     {
         // arrange
         var type = new LongType(1, 100);
-        long input = 0;
+        const long input = 0;
 
         // act
         Action action = () => type.ParseValue(input);
@@ -224,7 +224,7 @@ public class LongTypeTests
     {
         // arrange
         var type = new LongType();
-        var value = "123";
+        const string value = "123";
 
         // act
         // assert

@@ -1,17 +1,17 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging.Contracts;
-using HotChocolate.Skimmed;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
 internal sealed class CompositionContext(
-    ImmutableArray<SchemaDefinition> schemaDefinitions,
+    ImmutableSortedSet<MutableSchemaDefinition> schemaDefinitions,
     ICompositionLog compositionLog)
 {
     /// <summary>
     /// Gets the schema definitions.
     /// </summary>
-    public ImmutableArray<SchemaDefinition> SchemaDefinitions { get; } = schemaDefinitions;
+    public ImmutableSortedSet<MutableSchemaDefinition> SchemaDefinitions { get; } = schemaDefinitions;
 
     /// <summary>
     /// Gets the composition log.

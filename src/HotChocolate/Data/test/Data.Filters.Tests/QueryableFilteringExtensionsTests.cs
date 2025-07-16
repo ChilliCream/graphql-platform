@@ -10,10 +10,10 @@ namespace HotChocolate.Data.Filters;
 
 public class QueryableFilteringExtensionsTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, Baz = "a", },
-        new() { Bar = false, Baz = "b", },
+        new() { Bar = true, Baz = "a" },
+        new() { Bar = false, Baz = "b" }
     ];
 
     [Fact]
@@ -119,7 +119,7 @@ public class QueryableFilteringExtensionsTests
         [UseFiltering]
         public IEnumerable<Foo> ShouldWork(IResolverContext context)
         {
-            return _fooEntities.Filter(context);
+            return s_fooEntities.Filter(context);
         }
 
         [CatchErrorMiddleware]
@@ -127,13 +127,13 @@ public class QueryableFilteringExtensionsTests
         [AddTypeMismatchMiddleware]
         public IEnumerable<Foo> TypeMismatch(IResolverContext context)
         {
-            return _fooEntities.Filter(context);
+            return s_fooEntities.Filter(context);
         }
 
         [CatchErrorMiddleware]
         public IEnumerable<Foo> MissingMiddleware(IResolverContext context)
         {
-            return _fooEntities.Filter(context);
+            return s_fooEntities.Filter(context);
         }
     }
 

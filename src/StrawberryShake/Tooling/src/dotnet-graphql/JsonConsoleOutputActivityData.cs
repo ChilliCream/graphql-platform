@@ -11,7 +11,7 @@ public class JsonConsoleOutputActivityData
 
     public string Text { get; }
 
-    public  string? Path { get; }
+    public string? Path { get; }
 
     public TimeSpan Time { get; }
 }

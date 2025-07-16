@@ -21,8 +21,8 @@ public class SourceObjectConversionTests
             })
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync();
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync("{ foo { qux } }");
@@ -83,7 +83,5 @@ public class SourceObjectConversionTests
         public string Qux { get; set; } = qux;
     }
 
-    public class BazType : ObjectType<Baz>
-    {
-    }
+    public class BazType : ObjectType<Baz>;
 }

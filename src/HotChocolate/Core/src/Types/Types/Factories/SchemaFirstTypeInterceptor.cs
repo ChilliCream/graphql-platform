@@ -1,9 +1,10 @@
 #nullable enable
 
+using System.Collections.Immutable;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 
@@ -11,26 +12,42 @@ namespace HotChocolate.Types.Factories;
 
 internal sealed class SchemaFirstTypeInterceptor : TypeInterceptor
 {
-    private readonly Dictionary<string, IReadOnlyList<DirectiveNode>> _directives = new();
+    private ImmutableDictionary<string, IReadOnlyList<DirectiveNode>> _directives =
+#if NET10_0_OR_GREATER
+        [];
+#else
+        ImmutableDictionary<string, IReadOnlyList<DirectiveNode>>.Empty;
+#endif
 
-    public Dictionary<string, IReadOnlyList<DirectiveNode>> Directives => _directives;
+    internal override void InitializeContext(
+        IDescriptorContext context,
+        TypeInitializer typeInitializer,
+        TypeRegistry typeRegistry,
+        TypeLookup typeLookup,
+        TypeReferenceResolver typeReferenceResolver)
+    {
+        if (context.Features.Get<TypeSystemFeature>() is { ScalarDirectives: { Count: > 0 } scalarDirectives })
+        {
+            _directives = scalarDirectives;
+        }
+    }
 
     public override void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         if (_directives.TryGetValue(completionContext.Type.Name, out var directives)
-            && definition is ScalarTypeDefinition scalarTypeDef)
+            && configuration is ScalarTypeConfiguration scalarTypeConfig)
         {
             foreach (var directive in directives)
             {
-                if (directive.Name.Value.EqualsOrdinal(SpecifiedByDirectiveType.Names.SpecifiedBy))
+                if (directive.Name.Value.EqualsOrdinal(DirectiveNames.SpecifiedBy.Name))
                 {
                     if (directive.Arguments.Count == 1
-                        && directive.Arguments[0].Name.Value.EqualsOrdinal("url")
+                        && directive.Arguments[0].Name.Value.EqualsOrdinal(DirectiveNames.SpecifiedBy.Arguments.Url)
                         && directive.Arguments[0].Value is StringValueNode url)
                     {
-                        scalarTypeDef.SpecifiedBy = new Uri(url.Value);
+                        scalarTypeConfig.SpecifiedBy = new Uri(url.Value);
                         continue;
                     }
 
@@ -42,7 +59,7 @@ internal sealed class SchemaFirstTypeInterceptor : TypeInterceptor
                             .Build());
                 }
 
-                scalarTypeDef.AddDirective(directive.Name.Value, directive.Arguments);
+                scalarTypeConfig.AddDirective(directive.Name.Value, directive.Arguments);
                 ((RegisteredType)completionContext).Dependencies.Add(
                     new TypeDependency(
                         TypeReference.CreateDirective(directive.Name.Value),

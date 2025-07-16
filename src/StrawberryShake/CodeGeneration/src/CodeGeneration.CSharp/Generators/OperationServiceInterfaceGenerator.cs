@@ -9,8 +9,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDescriptor>
 {
-    private const string _strategy = "strategy";
-    private const string _cancellationToken = "cancellationToken";
+    private const string Strategy = "strategy";
+    private const string CancellationToken = "cancellationToken";
 
     protected override void Generate(OperationDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings,
@@ -37,11 +37,15 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
             .AddImplements(TypeNames.IOperationRequestFactory)
             .SetName(fileName);
 
-        var runtimeTypeName =
-            descriptor.ResultTypeReference.GetRuntimeType().Name;
+        var runtimeTypeName = descriptor.ResultTypeReference.GetRuntimeType().Name;
 
         if (descriptor is not SubscriptionOperationDescriptor)
         {
+            foreach (var method in CreateWitherMethods(descriptor))
+            {
+                interfaceBuilder.AddMethod(method);
+            }
+
             interfaceBuilder.AddMethod(CreateExecuteMethod(descriptor, runtimeTypeName));
         }
 
@@ -50,7 +54,7 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
         interfaceBuilder.Build(writer);
     }
 
-    private MethodBuilder CreateWatchMethod(
+    private static MethodBuilder CreateWatchMethod(
         OperationDescriptor descriptor,
         string runtimeTypeName)
     {
@@ -72,14 +76,14 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
         }
 
         watchMethod.AddParameter()
-            .SetName(_strategy)
+            .SetName(Strategy)
             .SetType(TypeNames.ExecutionStrategy.MakeNullable())
             .SetDefault("null");
 
         return watchMethod;
     }
 
-    private MethodBuilder CreateExecuteMethod(
+    private static MethodBuilder CreateExecuteMethod(
         OperationDescriptor operationDescriptor,
         string runtimeTypeName)
     {
@@ -100,10 +104,50 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
         }
 
         executeMethod
-            .AddParameter(_cancellationToken)
+            .AddParameter(CancellationToken)
             .SetType(TypeNames.CancellationToken)
             .SetDefault();
 
         return executeMethod;
+    }
+
+    private static IEnumerable<MethodBuilder> CreateWitherMethods(
+        OperationDescriptor operationDescriptor)
+    {
+        var withMethod = MethodBuilder
+            .New()
+            .SetOnlyDeclaration()
+            .SetReturnType(operationDescriptor.InterfaceType.ToString())
+            .SetName("With");
+
+        withMethod
+            .AddParameter("configure")
+            .SetType("global::System.Action<global::StrawberryShake.OperationRequest>");
+
+        yield return withMethod;
+
+        var withRequestUriMethod = MethodBuilder
+            .New()
+            .SetOnlyDeclaration()
+            .SetReturnType(operationDescriptor.InterfaceType.ToString())
+            .SetName("WithRequestUri");
+
+        withRequestUriMethod
+            .AddParameter("requestUri")
+            .SetType(TypeNames.Uri);
+
+        yield return withRequestUriMethod;
+
+        var withHttpClientMethod = MethodBuilder
+            .New()
+            .SetOnlyDeclaration()
+            .SetReturnType(operationDescriptor.InterfaceType.ToString())
+            .SetName("WithHttpClient");
+
+        withHttpClientMethod
+            .AddParameter("httpClient")
+            .SetType("global::System.Net.Http.HttpClient");
+
+        yield return withHttpClientMethod;
     }
 }

@@ -7,14 +7,14 @@ namespace HotChocolate.Utilities;
 
 public static class ReflectionUtils
 {
+    public const BindingFlags StaticMemberFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+    public const BindingFlags InstanceMemberFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+
     public static MemberInfo TryExtractMember<T, TPropertyType>(
         this Expression<Func<T, TPropertyType>> memberExpression,
         bool allowStatic = false)
     {
-        if (memberExpression == null)
-        {
-            throw new ArgumentNullException(nameof(memberExpression));
-        }
+        ArgumentNullException.ThrowIfNull(memberExpression);
 
         return TryExtractMemberInternal<T>(UnwrapFunc(memberExpression), allowStatic);
     }
@@ -55,10 +55,7 @@ public static class ReflectionUtils
         this Expression<Action<T>> memberExpression,
         bool allowStatic = false)
     {
-        if (memberExpression is null)
-        {
-            throw new ArgumentNullException(nameof(memberExpression));
-        }
+        ArgumentNullException.ThrowIfNull(memberExpression);
 
         return ExtractMemberInternal<T>(UnwrapAction(memberExpression), allowStatic);
     }
@@ -67,10 +64,7 @@ public static class ReflectionUtils
         this Expression<Func<T, TPropertyType>> memberExpression,
         bool allowStatic = false)
     {
-        if (memberExpression is null)
-        {
-            throw new ArgumentNullException(nameof(memberExpression));
-        }
+        ArgumentNullException.ThrowIfNull(memberExpression);
 
         return ExtractMemberInternal<T>(UnwrapFunc(memberExpression), allowStatic);
     }
@@ -120,8 +114,8 @@ public static class ReflectionUtils
                 return true;
             }
 
-            if (m.Member is MethodInfo mi &&
-                (IsInstanceMethod(type, mi) || allowStatic && IsStaticMethod(mi)))
+            if (m.Member is MethodInfo mi
+                && (IsInstanceMethod(type, mi) || allowStatic && IsStaticMethod(mi)))
             {
                 member = GetBestMatchingMethod(type, mi);
                 return true;
@@ -151,8 +145,8 @@ public static class ReflectionUtils
                 type,
                 unwrappedExpr,
                 allowStatic,
-                out var member) ||
-            TryExtractMemberFromMemberCallExpression(
+                out var member)
+            || TryExtractMemberFromMemberCallExpression(
                 type,
                 unwrappedExpr,
                 allowStatic,
@@ -170,8 +164,8 @@ public static class ReflectionUtils
         bool allowStatic,
         out MemberInfo member)
     {
-        if (memberExpression is MethodCallExpression mc &&
-            (IsInstanceMethod(type, mc.Method) || allowStatic && IsStaticMethod(mc.Method)))
+        if (memberExpression is MethodCallExpression mc
+            && (IsInstanceMethod(type, mc.Method) || allowStatic && IsStaticMethod(mc.Method)))
         {
             member = GetBestMatchingMethod(type, mc.Method);
             return true;
@@ -189,10 +183,7 @@ public static class ReflectionUtils
 
     public static string GetTypeName(this Type type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         return type.IsGenericType
             ? CreateGenericTypeName(type)
@@ -201,7 +192,7 @@ public static class ReflectionUtils
 
     private static string CreateGenericTypeName(Type type)
     {
-        var name = type.Name.Substring(0, type.Name.Length - 2);
+        var name = type.Name[..^2];
         var arguments = type.GetGenericArguments().Select(GetTypeName);
         return CreateTypeName(type, $"{name}<{string.Join(", ", arguments)}>");
     }

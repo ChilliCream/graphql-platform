@@ -6,8 +6,8 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Types;
 
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Struct)]
+    AttributeTargets.Class
+    | AttributeTargets.Struct)]
 public sealed class InputObjectTypeAttribute
     : InputObjectTypeDescriptorAttribute
     , ITypeAttribute
@@ -41,6 +41,6 @@ public sealed class InputObjectTypeAttribute
             descriptor.Name(Name);
         }
 
-        descriptor.Extend().Definition.Fields.BindingBehavior = BindingBehavior.Implicit;
+        descriptor.Extend().Configuration.Fields.BindingBehavior = BindingBehavior.Implicit;
     }
 }

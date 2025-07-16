@@ -1,7 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using IHasDirectives = HotChocolate.Types.IHasDirectives;
 
 namespace HotChocolate.CostAnalysis;
 
@@ -14,7 +13,7 @@ internal sealed class CostSyntaxRewriter : SyntaxRewriter<CostSyntaxRewriter.Con
         ObjectTypeDefinitionNode node,
         Context context)
     {
-        context.Types.Push(context.Schema.GetType<INamedType>(node.Name.Value));
+        context.Types.Push(context.Schema.Types.GetType<ITypeDefinition>(node.Name.Value));
         node = base.RewriteObjectTypeDefinition(node, context)!;
         context.Types.Pop();
 
@@ -25,7 +24,7 @@ internal sealed class CostSyntaxRewriter : SyntaxRewriter<CostSyntaxRewriter.Con
         InterfaceTypeDefinitionNode node,
         Context context)
     {
-        context.Types.Push(context.Schema.GetType<INamedType>(node.Name.Value));
+        context.Types.Push(context.Schema.Types.GetType<ITypeDefinition>(node.Name.Value));
         node = base.RewriteInterfaceTypeDefinition(node, context)!;
         context.Types.Pop();
 
@@ -36,7 +35,7 @@ internal sealed class CostSyntaxRewriter : SyntaxRewriter<CostSyntaxRewriter.Con
         FieldDefinitionNode node,
         Context context)
     {
-        var field = ((IComplexOutputType)context.Types.Peek()).Fields[node.Name.Value];
+        var field = ((IComplexTypeDefinition)context.Types.Peek()).Fields[node.Name.Value];
 
         context.Types.Push(field);
         node = base.RewriteFieldDefinition(node, context)!;
@@ -49,13 +48,12 @@ internal sealed class CostSyntaxRewriter : SyntaxRewriter<CostSyntaxRewriter.Con
         InputObjectTypeDefinitionNode node,
         Context context)
     {
-        context.Types.Push(context.Schema.GetType<INamedType>(node.Name.Value));
+        context.Types.Push(context.Schema.Types.GetType<ITypeDefinition>(node.Name.Value));
         node = base.RewriteInputObjectTypeDefinition(node, context)!;
         context.Types.Pop();
 
         return node;
     }
-
 
     protected override InputValueDefinitionNode RewriteInputValueDefinition(
         InputValueDefinitionNode node,
@@ -64,7 +62,7 @@ internal sealed class CostSyntaxRewriter : SyntaxRewriter<CostSyntaxRewriter.Con
         var inputField = context.Types.Peek() switch
         {
             DirectiveType directiveType => directiveType.Arguments[node.Name.Value],
-            IOutputField outputField => outputField.Arguments[node.Name.Value],
+            IOutputFieldDefinition outputField => outputField.Arguments[node.Name.Value],
             InputObjectType inputObjectType => inputObjectType.Fields[node.Name.Value],
             _ => throw new InvalidOperationException()
         };
@@ -80,7 +78,7 @@ internal sealed class CostSyntaxRewriter : SyntaxRewriter<CostSyntaxRewriter.Con
         EnumTypeDefinitionNode node,
         Context context)
     {
-        context.Types.Push(context.Schema.GetType<INamedType>(node.Name.Value));
+        context.Types.Push(context.Schema.Types.GetType<ITypeDefinition>(node.Name.Value));
         node = base.RewriteEnumTypeDefinition(node, context)!;
         context.Types.Pop();
 
@@ -91,7 +89,7 @@ internal sealed class CostSyntaxRewriter : SyntaxRewriter<CostSyntaxRewriter.Con
         ScalarTypeDefinitionNode node,
         Context context)
     {
-        context.Types.Push(context.Schema.GetType<INamedType>(node.Name.Value));
+        context.Types.Push(context.Schema.Types.GetType<ITypeDefinition>(node.Name.Value));
         node = base.RewriteScalarTypeDefinition(node, context)!;
         context.Types.Pop();
 
@@ -102,7 +100,7 @@ internal sealed class CostSyntaxRewriter : SyntaxRewriter<CostSyntaxRewriter.Con
         DirectiveDefinitionNode node,
         Context context)
     {
-        context.Types.Push(context.Schema.GetDirectiveType(node.Name.Value));
+        context.Types.Push(context.Schema.DirectiveDefinitions[node.Name.Value]);
         node = base.RewriteDirectiveDefinition(node, context)!;
         context.Types.Pop();
 
@@ -122,16 +120,15 @@ internal sealed class CostSyntaxRewriter : SyntaxRewriter<CostSyntaxRewriter.Con
         {
             Argument argument => argument.Type,
             EnumType enumType => enumType,
-            IInputField field => field.Type,
-            IOutputField field => field.Type,
+            IInputValueDefinition field => field.Type,
+            IOutputFieldDefinition field => field.Type,
             ObjectType objectType => objectType,
             ScalarType scalarType => scalarType,
             _ => throw new InvalidOperationException()
         };
 
-        var costWeight = ((IHasDirectives)typeSystemMember).Directives[WellKnownDirectiveNames.Cost]
-            .Single()
-            .GetArgumentValue<double>(WellKnownArgumentNames.Weight);
+        var directive = ((IDirectivesProvider)typeSystemMember).Directives[WellKnownDirectiveNames.Cost].Single();
+        var costWeight = ((Directive)directive).GetArgumentValue<double>(WellKnownArgumentNames.Weight);
 
         if (type.IsLeafType() && costWeight == 0.0)
         {
@@ -148,9 +145,9 @@ internal sealed class CostSyntaxRewriter : SyntaxRewriter<CostSyntaxRewriter.Con
         return base.RewriteDirective(node, context);
     }
 
-    public sealed class Context(ISchema schema)
+    public sealed class Context(ISchemaDefinition schema)
     {
-        public ISchema Schema { get; } = schema;
+        public ISchemaDefinition Schema { get; } = schema;
 
         public Stack<ITypeSystemMember> Types { get; } = new();
     }

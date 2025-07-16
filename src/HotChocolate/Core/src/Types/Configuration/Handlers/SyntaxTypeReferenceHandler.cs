@@ -5,11 +5,17 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration;
 
-internal sealed class SyntaxTypeReferenceHandler(ITypeInspector typeInspector) : ITypeRegistrarHandler
+internal sealed class SyntaxTypeReferenceHandler : ITypeRegistrarHandler
 {
     private readonly HashSet<string> _handled = [];
-    private readonly ITypeInspector _typeInspector = typeInspector ??
-        throw new ArgumentNullException(nameof(typeInspector));
+    private readonly ITypeInspector _typeInspector;
+    private readonly Dictionary<string, Type> _scalarTypes;
+
+    public SyntaxTypeReferenceHandler(IDescriptorContext context)
+    {
+        _typeInspector = context.TypeInspector;
+        _scalarTypes = context.Features.Get<TypeSystemFeature>()?.ScalarNameOverrides ?? [];
+    }
 
     public TypeReferenceKind Kind => TypeReferenceKind.Syntax;
 
@@ -17,15 +23,31 @@ internal sealed class SyntaxTypeReferenceHandler(ITypeInspector typeInspector) :
     {
         var typeRef = (SyntaxTypeReference)typeReference;
 
-        if (_handled.Add(typeRef.Name) &&
-            Scalars.TryGetScalar(typeRef.Name, out var scalarType))
+        if (_handled.Add(typeRef.Name)
+            && !typeRegistrar.Scalars.Contains(typeRef.Name))
         {
-            var namedTypeReference = _typeInspector.GetTypeRef(scalarType);
+            ExtendedTypeReference? scalarTypeRef = null;
 
-            if (!typeRegistrar.IsResolved(namedTypeReference))
+            if (_scalarTypes.TryGetValue(typeRef.Name, out var scalarType))
+            {
+                if (Scalars.IsSpec(typeRef.Name))
+                {
+                    throw new InvalidOperationException(
+                        $"Type {typeRef.Name} is a spec scalar and cannot be overriden.");
+                }
+            }
+
+            if (scalarType is not null
+                || Scalars.TryGetScalar(typeRef.Name, out scalarType))
+            {
+                scalarTypeRef = _typeInspector.GetTypeRef(scalarType);
+            }
+
+            if (scalarTypeRef is not null
+                && !typeRegistrar.IsResolved(scalarTypeRef))
             {
                 typeRegistrar.Register(
-                    typeRegistrar.CreateInstance(namedTypeReference.Type.Type),
+                    typeRegistrar.CreateInstance(scalarTypeRef.Type.Type),
                     typeRef.Scope);
             }
         }
