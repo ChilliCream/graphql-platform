@@ -119,8 +119,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 // next we check for specific mutation configuration overrides.
                 // if a user provided specific mutation settings they will take
                 // precedence over global and inferred settings.
-                if (defLookup.TryGetValue(mutationField, out var cd) ||
-                    nameLookup.TryGetValue(mutationField.Name, out cd))
+                if (defLookup.TryGetValue(mutationField, out var cd)
+                    || nameLookup.TryGetValue(mutationField.Name, out cd))
                 {
                     mutationOptions = CreateOptions(cd, mutationOptions);
                     unprocessed.Remove(cd);
@@ -278,8 +278,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         var payloadTypeName = options.FormatPayloadTypeName(mutation.Name);
 
         // we ensure that we can resolve the mutation result type.
-        if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef) ||
-            !_typeRegistry.TryGetType(typeRef, out var registration))
+        if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef)
+            || !_typeRegistry.TryGetType(typeRef, out var registration))
         {
             throw CannotResolvePayloadType();
         }
@@ -498,8 +498,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             {
                 var parent = ctx.Parent<object?>();
 
-                if (ReferenceEquals(ErrorMarker.Instance, parent) ||
-                    ReferenceEquals(NullMarker.Instance, parent))
+                if (ReferenceEquals(ErrorMarker.Instance, parent)
+                    || ReferenceEquals(NullMarker.Instance, parent))
                 {
                     return null;
                 }
@@ -601,22 +601,22 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         _typeInitializer.CompleteTypeName(registeredType);
         _typeInitializer.CompileResolvers(registeredType);
 
-        if (registeredType.Type is ObjectType errorObject &&
-            errorObject.RuntimeType != typeof(object))
+        if (registeredType.Type is ObjectType errorObject
+            && errorObject.RuntimeType != typeof(object))
         {
             foreach (var possibleInterface in _typeRegistry.Types)
             {
-                if (possibleInterface.Type is InterfaceType interfaceType &&
-                    interfaceType.RuntimeType != typeof(object) &&
-                    interfaceType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
+                if (possibleInterface.Type is InterfaceType interfaceType
+                    && interfaceType.RuntimeType != typeof(object)
+                    && interfaceType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
                 {
                     var typeRef = possibleInterface.TypeReference;
                     errorObject.Configuration!.Interfaces.Add(typeRef);
                     registeredType.Dependencies.Add(new(typeRef, Completed));
                 }
-                else if (possibleInterface.Type is UnionType unionType &&
-                    unionType.RuntimeType != typeof(object) &&
-                    unionType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
+                else if (possibleInterface.Type is UnionType unionType
+                    && unionType.RuntimeType != typeof(object)
+                    && unionType.RuntimeType.IsAssignableFrom(errorObject.RuntimeType))
                 {
                     var typeRef = registeredType.TypeReference;
                     unionType.Configuration!.Types.Add(typeRef);
@@ -624,14 +624,14 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 }
             }
         }
-        else if (registeredType.Type is ObjectType errorInterface &&
-            errorInterface.RuntimeType != typeof(object))
+        else if (registeredType.Type is ObjectType errorInterface
+            && errorInterface.RuntimeType != typeof(object))
         {
             foreach (var possibleInterface in _typeRegistry.Types)
             {
-                if (possibleInterface.Type is InterfaceType interfaceType &&
-                    interfaceType.RuntimeType != typeof(object) &&
-                    interfaceType.RuntimeType.IsAssignableFrom(errorInterface.RuntimeType))
+                if (possibleInterface.Type is InterfaceType interfaceType
+                    && interfaceType.RuntimeType != typeof(object)
+                    && interfaceType.RuntimeType.IsAssignableFrom(errorInterface.RuntimeType))
                 {
                     var typeRef = possibleInterface.TypeReference;
                     errorInterface.Configuration!.Interfaces.Add(typeRef);
@@ -706,8 +706,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
     private static TypeReference NormalizeTypeRef(TypeReference typeRef)
     {
-        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true } extendedTypeRef &&
-            typeof(IFieldResult).IsAssignableFrom(extendedTypeRef.Type.Type))
+        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true } extendedTypeRef
+            && typeof(IFieldResult).IsAssignableFrom(extendedTypeRef.Type.Type))
         {
             return extendedTypeRef.WithType(extendedTypeRef.Type.TypeArguments[0]);
         }

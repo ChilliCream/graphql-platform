@@ -767,12 +767,10 @@ internal sealed partial class RequestExecutorManager
                     }
 
                     case { } d when !d.ContainsKey("exception"):
-                    {
                         var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
                         builder.AddRange(d);
                         builder.Add(ExceptionProperty, CreateExceptionInfo(error.Exception));
                         return error.WithExtensions(builder.ToImmutable());
-                    }
 
                     default:
                     {

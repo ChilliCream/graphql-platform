@@ -196,8 +196,8 @@ internal ref struct FieldSelectionMapReader
                     break;
 
                 case CharConstants.Return:
-                    if (++Position < _length &&
-                        _sourceText[Position] is CharConstants.LineFeed)
+                    if (++Position < _length
+                        && _sourceText[Position] is CharConstants.LineFeed)
                     {
                         ++Position;
                     }

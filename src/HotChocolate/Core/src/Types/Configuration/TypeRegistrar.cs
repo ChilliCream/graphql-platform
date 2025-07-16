@@ -66,8 +66,8 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
 
         RegisterTypeAndResolveReferences(registeredType);
 
-        if (obj is not IHasRuntimeType hasRuntimeType ||
-            hasRuntimeType.RuntimeType == typeof(object))
+        if (obj is not IHasRuntimeType hasRuntimeType
+            || hasRuntimeType.RuntimeType == typeof(object))
         {
             return;
         }

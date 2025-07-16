@@ -139,8 +139,8 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeConfiguratio
 
                     case ObjectFieldBindingType.Property:
                         if (typeDef.Fields.FirstOrDefault(
-                            t => t.Member != null &&
-                                binding.Name.EqualsOrdinal(t.Member.Name)) is { } p)
+                            t => t.Member != null
+                                && binding.Name.EqualsOrdinal(t.Member.Name)) is { } p)
                         {
                             fields.Add(p);
                         }

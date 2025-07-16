@@ -142,10 +142,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 return;
             }
 
-            if (resolvableSelections is not null)
-            {
-                resolvableSelections.Add(resolvable);
-            }
+            resolvableSelections?.Add(resolvable);
         }
 
         static FieldNode? GetProvidedField(FieldNode fieldNode, SelectionSetNode? providedSelectionSetNode)

@@ -20,8 +20,8 @@ public sealed class OpaQueryResponse(JsonDocument document) : IDisposable
             : default;
 
     public bool IsEmpty
-        => _root.ValueKind is JsonValueKind.Object &&
-            _root.EnumerateObject().Any();
+        => _root.ValueKind is JsonValueKind.Object
+            && _root.EnumerateObject().Any();
 
     public void Dispose()
         => document.Dispose();

@@ -19,7 +19,7 @@ public static class PooledArrayWriterMarshal
 #if NET8_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(writer);
 #else
-        if(writer is null)
+        if (writer is null)
         {
             throw new ArgumentNullException(nameof(writer));
         }

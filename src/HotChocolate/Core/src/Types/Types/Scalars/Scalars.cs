@@ -128,8 +128,8 @@ public static class Scalars
     /// otherwise, <c>false</c>.
     /// </returns>
     public static bool IsBuiltIn(string typeName)
-        => !string.IsNullOrEmpty(typeName) &&
-            s_nameLookup.ContainsKey(typeName);
+        => !string.IsNullOrEmpty(typeName)
+            && s_nameLookup.ContainsKey(typeName);
 
     /// <summary>
     /// Tries to infer the GraphQL literal kind from a runtime value.

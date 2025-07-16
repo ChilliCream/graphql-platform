@@ -45,8 +45,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             // so we first get the index of the last introspection field,
             // which is __typename
             var typeNameField = _queryTypeConfig.Fields.First(
-                t => t.Name.EqualsOrdinal(IntrospectionFieldNames.TypeName) &&
-                    t.IsIntrospectionField);
+                t => t.Name.EqualsOrdinal(IntrospectionFieldNames.TypeName)
+                    && t.IsIntrospectionField);
             var index = _queryTypeConfig.Fields.IndexOf(typeNameField);
             var maxAllowedNodes = _queryContext.DescriptorContext.Options.MaxAllowedNodeBatchSize;
 

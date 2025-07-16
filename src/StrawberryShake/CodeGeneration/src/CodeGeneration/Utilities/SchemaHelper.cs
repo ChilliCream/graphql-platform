@@ -298,8 +298,8 @@ public static class SchemaHelper
         DirectiveNode directive,
         [NotNullWhen(true)] out SelectionSetNode? selectionSet)
     {
-        if (directive is { Arguments: { Count: 1 } } &&
-            directive.Arguments[0] is { Name: { Value: "fields" }, Value: StringValueNode sv })
+        if (directive is { Arguments: { Count: 1 } }
+            && directive.Arguments[0] is { Name: { Value: "fields" }, Value: StringValueNode sv })
         {
             selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{sv.Value}}}");
             return true;

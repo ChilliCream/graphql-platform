@@ -13,9 +13,9 @@ internal sealed class ExtendedTypeDirectiveReferenceHandler(ITypeInspector typeI
     {
         var typeRef = (ExtendedTypeDirectiveReference)typeReference;
 
-        if (typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo) &&
-            !ExtendedType.Tools.IsSchemaType(typeInfo.NamedType) &&
-            !typeRegistrar.IsResolved(typeRef))
+        if (typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo)
+            && !ExtendedType.Tools.IsSchemaType(typeInfo.NamedType)
+            && !typeRegistrar.IsResolved(typeRef))
         {
             typeRegistrar.MarkUnresolved(typeRef);
         }

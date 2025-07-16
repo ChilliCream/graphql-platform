@@ -91,9 +91,9 @@ internal sealed partial class OperationContext
 
         var query = _resolveQueryRootValue();
 
-        if (query is null &&
-            typeof(T) == typeof(object) &&
-            new object() is T dummy)
+        if (query is null
+            && typeof(T) == typeof(object)
+            && new object() is T dummy)
         {
             return dummy;
         }

@@ -348,7 +348,7 @@ public class StarWarsCodeFirstTests
                 }",
                 configure: c =>
                 {
-                    c.AddInputParser(options => { options.IgnoreAdditionalInputFields = true; });
+                    c.AddInputParser(options => options.IgnoreAdditionalInputFields = true);
                     AddDefaultConfiguration(c);
                 },
                 request: r => r
@@ -913,7 +913,7 @@ public class StarWarsCodeFirstTests
                 AddDefaultConfiguration(c);
                 c.AddMaxExecutionDepthRule(3, allowRequestOverrides: true);
             },
-            request: r => { r.SetMaximumAllowedExecutionDepth(100); });
+            request: r => r.SetMaximumAllowedExecutionDepth(100));
     }
 
     [Fact]
@@ -963,7 +963,7 @@ public class StarWarsCodeFirstTests
                 AddDefaultConfiguration(c);
                 c.AddMaxExecutionDepthRule(3, allowRequestOverrides: true);
             },
-            request: r => { r.SkipExecutionDepthAnalysis(); });
+            request: r => r.SkipExecutionDepthAnalysis());
     }
 
     // this test ensures that overridden depth validations are not cached.

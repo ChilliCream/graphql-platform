@@ -164,9 +164,9 @@ internal sealed class FetchResultStore : IDisposable
                 {
                     if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
                     {
-                        if (result.TryGetValue(IntrospectionFieldNames.TypeName, out var value) &&
-                            value is LeafFieldResult leaf &&
-                            (leaf.Value.GetString()?.Equals(segment.Name) ?? false))
+                        if (result.TryGetValue(IntrospectionFieldNames.TypeName, out var value)
+                            && value is LeafFieldResult leaf
+                            && (leaf.Value.GetString()?.Equals(segment.Name) ?? false))
                         {
                             next.Add(result);
                         }
@@ -393,8 +393,8 @@ internal sealed class FetchResultStore : IDisposable
         for (var i = sourcePath.Segments.Length - 1; i >= 0; i--)
         {
             var segment = sourcePath.Segments[i];
-            if (current.ValueKind != JsonValueKind.Object ||
-                !current.TryGetProperty(segment.Name, out current))
+            if (current.ValueKind != JsonValueKind.Object
+                || !current.TryGetProperty(segment.Name, out current))
             {
                 throw new InvalidOperationException(
                     $"The path segment '{segment.Name}' does not exist in the data.");

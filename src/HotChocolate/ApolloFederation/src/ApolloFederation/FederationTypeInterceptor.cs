@@ -64,8 +64,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext discoveryContext,
         TypeSystemConfiguration configuration)
     {
-        if (discoveryContext.Type is ObjectType objectType &&
-            configuration is ObjectTypeConfiguration objectTypeCfg)
+        if (discoveryContext.Type is ObjectType objectType
+            && configuration is ObjectTypeConfiguration objectTypeCfg)
         {
             ApplyMethodLevelReferenceResolvers(
                 objectType,
@@ -149,8 +149,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         var hasRuntimeType = (IHasRuntimeType)configuration;
         var type = hasRuntimeType.RuntimeType;
 
-        if (type != typeof(object) &&
-            type.IsDefined(typeof(PackageAttribute)))
+        if (type != typeof(object)
+            && type.IsDefined(typeof(PackageAttribute)))
         {
             RegisterImport(type);
             return;
@@ -239,8 +239,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 throw new SchemaException(
                     SchemaErrorBuilder.New()
                         .SetMessage(
-                            "The following federation types were used and are not supported by " +
-                            "the current federation version: {0}",
+                            "The following federation types were used and are not supported by "
+                            + "the current federation version: {0}",
                             string.Join(", ", import.Value))
                         .Build());
             }
@@ -340,8 +340,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if (completionContext.Type is ObjectType type &&
-            configuration is ObjectTypeConfiguration typeCfg)
+        if (completionContext.Type is ObjectType type
+            && configuration is ObjectTypeConfiguration typeCfg)
         {
             CompleteExternalFieldSetters(type, typeCfg);
             CompleteReferenceResolver(typeCfg);
@@ -456,8 +456,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ObjectType objectType,
         ObjectTypeConfiguration objectTypeCfg)
     {
-        if (objectTypeCfg.Directives.FirstOrDefault(d => d.Value is KeyDirective) is { } keyDirective &&
-            ((KeyDirective)keyDirective.Value).Resolvable)
+        if (objectTypeCfg.Directives.FirstOrDefault(d => d.Value is KeyDirective) is { } keyDirective
+            && ((KeyDirective)keyDirective.Value).Resolvable)
         {
             _entityTypes.Add(objectType);
             return;
@@ -536,8 +536,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration? definition)
     {
-        if (completionContext.Type is _EntityType &&
-            definition is UnionTypeConfiguration unionTypeCfg)
+        if (completionContext.Type is _EntityType
+            && definition is UnionTypeConfiguration unionTypeCfg)
         {
             foreach (var objectType in _entityTypes)
             {

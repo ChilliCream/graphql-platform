@@ -114,8 +114,8 @@ public static class ReflectionUtils
                 return true;
             }
 
-            if (m.Member is MethodInfo mi &&
-                (IsInstanceMethod(type, mi) || allowStatic && IsStaticMethod(mi)))
+            if (m.Member is MethodInfo mi
+                && (IsInstanceMethod(type, mi) || allowStatic && IsStaticMethod(mi)))
             {
                 member = GetBestMatchingMethod(type, mi);
                 return true;
@@ -145,8 +145,8 @@ public static class ReflectionUtils
                 type,
                 unwrappedExpr,
                 allowStatic,
-                out var member) ||
-            TryExtractMemberFromMemberCallExpression(
+                out var member)
+            || TryExtractMemberFromMemberCallExpression(
                 type,
                 unwrappedExpr,
                 allowStatic,
@@ -164,8 +164,8 @@ public static class ReflectionUtils
         bool allowStatic,
         out MemberInfo member)
     {
-        if (memberExpression is MethodCallExpression mc &&
-            (IsInstanceMethod(type, mc.Method) || allowStatic && IsStaticMethod(mc.Method)))
+        if (memberExpression is MethodCallExpression mc
+            && (IsInstanceMethod(type, mc.Method) || allowStatic && IsStaticMethod(mc.Method)))
         {
             member = GetBestMatchingMethod(type, mc.Method);
             return true;

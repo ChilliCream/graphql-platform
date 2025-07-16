@@ -27,7 +27,7 @@ public class FileValueNode
     public SyntaxKind Kind => SyntaxKind.StringValue;
 
     /// <inheritdoc />
-    public Language.Location? Location => null;
+    public Location? Location => null;
 
     /// <inheritdoc />
     public IFile Value { get; }
@@ -57,8 +57,8 @@ public class FileValueNode
             return false;
         }
 
-        if (ReferenceEquals(this, other) ||
-            ReferenceEquals(Value, other.Value))
+        if (ReferenceEquals(this, other)
+            || ReferenceEquals(Value, other.Value))
         {
             return true;
         }

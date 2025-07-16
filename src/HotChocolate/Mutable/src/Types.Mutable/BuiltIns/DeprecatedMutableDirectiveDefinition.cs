@@ -7,10 +7,10 @@ public sealed class DeprecatedMutableDirectiveDefinition : MutableDirectiveDefin
     {
         IsSpecDirective = true;
         Arguments.Add(new MutableInputFieldDefinition(BuiltIns.Deprecated.Reason, stringType));
-        Locations = DirectiveLocation.FieldDefinition |
-            DirectiveLocation.ArgumentDefinition |
-            DirectiveLocation.InputFieldDefinition |
-            DirectiveLocation.EnumValue;
+        Locations = DirectiveLocation.FieldDefinition
+            | DirectiveLocation.ArgumentDefinition
+            | DirectiveLocation.InputFieldDefinition
+            | DirectiveLocation.EnumValue;
     }
 
     public MutableInputFieldDefinition Reason => Arguments[BuiltIns.Deprecated.Reason];

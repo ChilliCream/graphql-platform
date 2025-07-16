@@ -41,8 +41,8 @@ public class SortInputTypeDescriptor<T>
         IDictionary<string, SortFieldConfiguration> fields,
         ISet<MemberInfo> handledProperties)
     {
-        if (Configuration.Fields.IsImplicitBinding() &&
-            Configuration.EntityType is { })
+        if (Configuration.Fields.IsImplicitBinding()
+            && Configuration.EntityType is { })
         {
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
@@ -52,10 +52,10 @@ public class SortInputTypeDescriptor<T>
                     .CreateConfiguration(),
                 fields,
                 handledProperties,
-                include: (_, member) => member is PropertyInfo p &&
-                    !handledProperties.Contains(member) &&
-                    !Context.TypeInspector.GetReturnType(member).IsArrayOrList &&
-                    !typeof(IFieldResult).IsAssignableFrom(p.PropertyType));
+                include: (_, member) => member is PropertyInfo p
+                && !handledProperties.Contains(member)
+                && !Context.TypeInspector.GetReturnType(member).IsArrayOrList
+                && !typeof(IFieldResult).IsAssignableFrom(p.PropertyType));
         }
 
         base.OnCompleteFields(fields, handledProperties);

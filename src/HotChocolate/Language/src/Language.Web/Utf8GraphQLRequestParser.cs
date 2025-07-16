@@ -354,7 +354,7 @@ public ref partial struct Utf8GraphQLRequestParser
 
             if (_useCache)
             {
-                if (request.DocumentId.HasValue 
+                if (request.DocumentId.HasValue
                     && _cache!.TryGetDocument(request.DocumentId.Value.Value, out var cachedDocument))
                 {
                     document = cachedDocument.Body;

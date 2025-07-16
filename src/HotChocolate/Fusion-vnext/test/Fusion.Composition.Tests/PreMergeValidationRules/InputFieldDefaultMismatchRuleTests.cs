@@ -158,8 +158,8 @@ public sealed class InputFieldDefaultMismatchRuleTests
                     """
                 ],
                 [
-                    "The default value '10' of input field 'BookFilter.minPageCount' in schema " +
-                    "'A' differs from the default value of '20' in schema 'B'."
+                    "The default value '10' of input field 'BookFilter.minPageCount' in schema "
+                    + "'A' differs from the default value of '20' in schema 'B'."
                 ]
             },
             // Two different default values, and one without a default value.
@@ -185,8 +185,8 @@ public sealed class InputFieldDefaultMismatchRuleTests
                     """
                 ],
                 [
-                    "The default value '10' of input field 'BookFilter.minPageCount' in schema " +
-                    "'A' differs from the default value of '20' in schema 'C'."
+                    "The default value '10' of input field 'BookFilter.minPageCount' in schema "
+                    + "'A' differs from the default value of '20' in schema 'C'."
                 ]
             },
             // Three different default values.
@@ -212,11 +212,11 @@ public sealed class InputFieldDefaultMismatchRuleTests
                     """
                 ],
                 [
-                    "The default value '10' of input field 'BookFilter.minPageCount' in schema " +
-                    "'A' differs from the default value of '20' in schema 'B'.",
+                    "The default value '10' of input field 'BookFilter.minPageCount' in schema "
+                    + "'A' differs from the default value of '20' in schema 'B'.",
 
-                    "The default value '20' of input field 'BookFilter.minPageCount' in schema " +
-                    "'B' differs from the default value of '30' in schema 'C'."
+                    "The default value '20' of input field 'BookFilter.minPageCount' in schema "
+                    + "'B' differs from the default value of '30' in schema 'C'."
                 ]
             }
         };

@@ -166,9 +166,9 @@ public ref partial struct Utf8GraphQLReader
 
         if (code is GraphQLConstants.Quote)
         {
-            if (_length > _position + 2 &&
-                _graphQLData[_position + 1] is GraphQLConstants.Quote &&
-                _graphQLData[_position + 2] is GraphQLConstants.Quote)
+            if (_length > _position + 2
+                && _graphQLData[_position + 1] is GraphQLConstants.Quote
+                && _graphQLData[_position + 2] is GraphQLConstants.Quote)
             {
                 _position += 2;
                 ReadBlockStringToken();
@@ -397,8 +397,8 @@ ReadNameToken_Next:
         // NOTE:
         // Not checking for Digit because there is no situation
         // where that hasn't been consumed at this point.
-        if (code.IsLetterOrUnderscore() ||
-            code == GraphQLConstants.Dot)
+        if (code.IsLetterOrUnderscore()
+            || code == GraphQLConstants.Dot)
         {
             throw new SyntaxException(this, DisallowedNameCharacterAfterNumber, (char)code, code);
         }
@@ -629,8 +629,8 @@ ReadNameToken_Next:
 
                 // Closing Triple-Quote (""")
                 case GraphQLConstants.Quote:
-                    if (_graphQLData[_position + 1] is GraphQLConstants.Quote &&
-                        _graphQLData[_position + 2] is GraphQLConstants.Quote)
+                    if (_graphQLData[_position + 1] is GraphQLConstants.Quote
+                        && _graphQLData[_position + 2] is GraphQLConstants.Quote)
                     {
                         _kind = TokenKind.BlockString;
                         _start = start;
@@ -644,9 +644,9 @@ ReadNameToken_Next:
                     break;
 
                 case GraphQLConstants.Backslash:
-                    if (_graphQLData[_position + 1] is GraphQLConstants.Quote &&
-                        _graphQLData[_position + 2] is GraphQLConstants.Quote &&
-                        _graphQLData[_position + 3] is GraphQLConstants.Quote)
+                    if (_graphQLData[_position + 1] is GraphQLConstants.Quote
+                        && _graphQLData[_position + 2] is GraphQLConstants.Quote
+                        && _graphQLData[_position + 3] is GraphQLConstants.Quote)
                     {
                         _position += 3;
                     }
@@ -713,8 +713,8 @@ ReadNameToken_Next:
                     break;
 
                 case GraphQLConstants.Return:
-                    if (++_position < _length &&
-                        _graphQLData[_position] is GraphQLConstants.LineFeed)
+                    if (++_position < _length
+                        && _graphQLData[_position] is GraphQLConstants.LineFeed)
                     {
                         ++_position;
                     }

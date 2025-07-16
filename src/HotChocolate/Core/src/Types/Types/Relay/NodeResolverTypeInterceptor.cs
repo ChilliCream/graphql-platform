@@ -30,9 +30,9 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 
     [MemberNotNullWhen(true, nameof(QueryType), nameof(TypeDef), nameof(CompletionContext))]
     private bool IsInitialized
-        => QueryType is not null &&
-            TypeDef is not null &&
-            CompletionContext is not null;
+        => QueryType is not null
+            && TypeDef is not null
+            && CompletionContext is not null;
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
@@ -40,8 +40,8 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
         OperationType operationType)
     {
         // we are only interested in the query type to infer node resolvers.
-        if (operationType is OperationType.Query &&
-            completionContext.Type is ObjectType queryType)
+        if (operationType is OperationType.Query
+            && completionContext.Type is ObjectType queryType)
         {
             CompletionContext = completionContext;
             TypeDef = configuration;
@@ -69,10 +69,10 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
             // Candidate fields that we might be able to use as node resolvers must specify
             // a resolver member. Delegates or expressions are not supported as node resolvers.
             // Further, we only will look at annotated fields. This feature is always opt-in.
-            if (fieldDef.Type is not null &&
-                resolverMember is not null &&
-                fieldDef.Expression is null &&
-                resolverMember.IsDefined(typeof(NodeResolverAttribute)))
+            if (fieldDef.Type is not null
+                && resolverMember is not null
+                && fieldDef.Expression is null
+                && resolverMember.IsDefined(typeof(NodeResolverAttribute)))
             {
                 // Query fields that users want to reuse as node resolvers must exactly specify
                 // one argument, and that argument must be the node id.
@@ -199,8 +199,8 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
         {
             foreach (var interfaceRef in typeDef.Interfaces)
             {
-                if (context.TryGetType<InterfaceType>(interfaceRef, out var type) &&
-                    type.Name.Equals(NodeType.Names.Node))
+                if (context.TryGetType<InterfaceType>(interfaceRef, out var type)
+                    && type.Name.Equals(NodeType.Names.Node))
                 {
                     return true;
                 }

@@ -95,8 +95,8 @@ public sealed class ProvidesInvalidFieldsTypeRuleTests
                     """
                 ],
                 [
-                    "The @provides directive on field 'Product.details' in schema 'A' must " +
-                    "specify a string value for the 'fields' argument."
+                    "The @provides directive on field 'Product.details' in schema 'A' must "
+                    + "specify a string value for the 'fields' argument."
                 ]
             }
         };

@@ -170,11 +170,11 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         => x.Value.Equals(y.Value);
 
     private bool Equals(DirectiveDefinitionNode x, DirectiveDefinitionNode y)
-        => Equals(x.Name, y.Name) &&
-            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
-            x.IsRepeatable.Equals(y.IsRepeatable) &&
-            Equals(x.Arguments, y.Arguments) &&
-            Equals(x.Locations, y.Locations);
+        => Equals(x.Name, y.Name)
+            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && x.IsRepeatable.Equals(y.IsRepeatable)
+            && Equals(x.Arguments, y.Arguments)
+            && Equals(x.Locations, y.Locations);
 
     private bool Equals(DirectiveNode x, DirectiveNode y)
         => Equals(x.Name, y.Name) && Equals(x.Arguments, y.Arguments);
@@ -183,86 +183,86 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         => Equals(x.Definitions, y.Definitions);
 
     private bool Equals(EnumTypeDefinitionNode x, EnumTypeDefinitionNode y)
-        => Equals(x.Name, y.Name) &&
-            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
-            Equals(x.Directives, y.Directives) &&
-            Equals(x.Values, y.Values);
+        => Equals(x.Name, y.Name)
+            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && Equals(x.Directives, y.Directives)
+            && Equals(x.Values, y.Values);
 
     private bool Equals(EnumTypeExtensionNode x, EnumTypeExtensionNode y)
-        => Equals(x.Name, y.Name) &&
-            Equals(x.Directives, y.Directives) &&
-            Equals(x.Values, y.Values);
+        => Equals(x.Name, y.Name)
+            && Equals(x.Directives, y.Directives)
+            && Equals(x.Values, y.Values);
 
     private bool Equals(EnumValueDefinitionNode x, EnumValueDefinitionNode y)
-        => Equals(x.Name, y.Name) &&
-            SyntaxComparer.BySyntax.Equals(x.Description, y.Description);
+        => Equals(x.Name, y.Name)
+            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description);
 
     private bool Equals(EnumValueNode x, EnumValueNode y)
         => x.AsSpan().SequenceEqual(y.AsSpan());
 
     private bool Equals(FieldDefinitionNode x, FieldDefinitionNode y)
-        => Equals(x.Name, y.Name) &&
-            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
-            Equals(x.Directives, y.Directives) &&
-            Equals(x.Arguments, y.Arguments) &&
-            Equals(x.Type, y.Type);
+        => Equals(x.Name, y.Name)
+            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && Equals(x.Directives, y.Directives)
+            && Equals(x.Arguments, y.Arguments)
+            && Equals(x.Type, y.Type);
 
     private bool Equals(FieldNode x, FieldNode y)
-        => Equals(x.Name, y.Name) &&
-            SyntaxComparer.BySyntax.Equals(x.Alias, y.Alias) &&
-            Equals(x.Arguments, y.Arguments) &&
-            Equals(x.Directives, y.Directives) &&
-            SyntaxComparer.BySyntax.Equals(x.SelectionSet, y.SelectionSet);
+        => Equals(x.Name, y.Name)
+            && SyntaxComparer.BySyntax.Equals(x.Alias, y.Alias)
+            && Equals(x.Arguments, y.Arguments)
+            && Equals(x.Directives, y.Directives)
+            && SyntaxComparer.BySyntax.Equals(x.SelectionSet, y.SelectionSet);
 
     private bool Equals(FloatValueNode x, FloatValueNode y)
         => x.AsSpan().SequenceEqual(y.AsSpan());
 
     private bool Equals(FragmentDefinitionNode x, FragmentDefinitionNode y)
-        => Equals(x.Name, y.Name) &&
-            Equals(x.TypeCondition, y.TypeCondition) &&
-            Equals(x.Directives, y.Directives) &&
-            Equals(x.VariableDefinitions, y.VariableDefinitions) &&
-            Equals(x.SelectionSet, y.SelectionSet);
+        => Equals(x.Name, y.Name)
+            && Equals(x.TypeCondition, y.TypeCondition)
+            && Equals(x.Directives, y.Directives)
+            && Equals(x.VariableDefinitions, y.VariableDefinitions)
+            && Equals(x.SelectionSet, y.SelectionSet);
 
     private bool Equals(FragmentSpreadNode x, FragmentSpreadNode y)
-        => Equals(x.Name, y.Name) &&
-            Equals(x.Directives, y.Directives);
+        => Equals(x.Name, y.Name)
+            && Equals(x.Directives, y.Directives);
 
     private bool Equals(InlineFragmentNode x, InlineFragmentNode y)
-        => SyntaxComparer.BySyntax.Equals(x.TypeCondition, y.TypeCondition) &&
-            Equals(x.SelectionSet, y.SelectionSet) &&
-            Equals(x.Directives, y.Directives);
+        => SyntaxComparer.BySyntax.Equals(x.TypeCondition, y.TypeCondition)
+            && Equals(x.SelectionSet, y.SelectionSet)
+            && Equals(x.Directives, y.Directives);
 
     private bool Equals(InputObjectTypeDefinitionNode x, InputObjectTypeDefinitionNode y)
-        => Equals(x.Name, y.Name) &&
-            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
-            Equals(x.Directives, y.Directives) &&
-            Equals(x.Fields, y.Fields);
+        => Equals(x.Name, y.Name)
+            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && Equals(x.Directives, y.Directives)
+            && Equals(x.Fields, y.Fields);
 
     private bool Equals(InputObjectTypeExtensionNode x, InputObjectTypeExtensionNode y)
-        => Equals(x.Name, y.Name) &&
-            Equals(x.Directives, y.Directives) &&
-            Equals(x.Fields, y.Fields);
+        => Equals(x.Name, y.Name)
+            && Equals(x.Directives, y.Directives)
+            && Equals(x.Fields, y.Fields);
 
     private bool Equals(InputValueDefinitionNode x, InputValueDefinitionNode y)
-        => Equals(x.Name, y.Name) &&
-            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
-            Equals(x.Type, y.Type) &&
-            Equals(x.DefaultValue, y.DefaultValue) &&
-            Equals(x.Directives, y.Directives);
+        => Equals(x.Name, y.Name)
+            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && Equals(x.Type, y.Type)
+            && Equals(x.DefaultValue, y.DefaultValue)
+            && Equals(x.Directives, y.Directives);
 
     private bool Equals(InterfaceTypeDefinitionNode x, InterfaceTypeDefinitionNode y)
-        => Equals(x.Name, y.Name) &&
-            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
-            Equals(x.Directives, y.Directives) &&
-            Equals(x.Interfaces, y.Interfaces) &&
-            Equals(x.Fields, y.Fields);
+        => Equals(x.Name, y.Name)
+            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && Equals(x.Directives, y.Directives)
+            && Equals(x.Interfaces, y.Interfaces)
+            && Equals(x.Fields, y.Fields);
 
     private bool Equals(InterfaceTypeExtensionNode x, InterfaceTypeExtensionNode y)
-        => Equals(x.Name, y.Name) &&
-            Equals(x.Directives, y.Directives) &&
-            Equals(x.Interfaces, y.Interfaces) &&
-            Equals(x.Fields, y.Fields);
+        => Equals(x.Name, y.Name)
+            && Equals(x.Directives, y.Directives)
+            && Equals(x.Interfaces, y.Interfaces)
+            && Equals(x.Fields, y.Fields);
 
     private bool Equals(IntValueNode x, IntValueNode y)
     {
@@ -303,59 +303,59 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         => Equals(x.Type, y.Type);
 
     private bool Equals(ObjectFieldNode x, ObjectFieldNode y)
-        => Equals(x.Name, y.Name) &&
-            Equals(x.Value, y.Value);
+        => Equals(x.Name, y.Name)
+            && Equals(x.Value, y.Value);
 
     private bool Equals(ObjectTypeDefinitionNode x, ObjectTypeDefinitionNode y)
-        => Equals(x.Name, y.Name) &&
-            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
-            Equals(x.Directives, y.Directives) &&
-            Equals(x.Interfaces, y.Interfaces) &&
-            Equals(x.Fields, y.Fields);
+        => Equals(x.Name, y.Name)
+            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && Equals(x.Directives, y.Directives)
+            && Equals(x.Interfaces, y.Interfaces)
+            && Equals(x.Fields, y.Fields);
 
     private bool Equals(ObjectTypeExtensionNode x, ObjectTypeExtensionNode y)
-        => Equals(x.Name, y.Name) &&
-            Equals(x.Directives, y.Directives) &&
-            Equals(x.Interfaces, y.Interfaces) &&
-            Equals(x.Fields, y.Fields);
+        => Equals(x.Name, y.Name)
+            && Equals(x.Directives, y.Directives)
+            && Equals(x.Interfaces, y.Interfaces)
+            && Equals(x.Fields, y.Fields);
 
     private bool Equals(ObjectValueNode x, ObjectValueNode y)
         => Equals(x.Fields, y.Fields);
 
     private bool Equals(OperationDefinitionNode x, OperationDefinitionNode y)
-        => SyntaxComparer.BySyntax.Equals(x.Name, y.Name) &&
-            Equals(x.Operation, y.Operation) &&
-            Equals(x.VariableDefinitions, y.VariableDefinitions) &&
-            Equals(x.Directives, y.Directives) &&
-            Equals(x.SelectionSet, y.SelectionSet);
+        => SyntaxComparer.BySyntax.Equals(x.Name, y.Name)
+            && Equals(x.Operation, y.Operation)
+            && Equals(x.VariableDefinitions, y.VariableDefinitions)
+            && Equals(x.Directives, y.Directives)
+            && Equals(x.SelectionSet, y.SelectionSet);
 
     private bool Equals(OperationTypeDefinitionNode x, OperationTypeDefinitionNode y)
-        => Equals(x.Operation, y.Operation) &&
-            Equals(x.Type, y.Type);
+        => Equals(x.Operation, y.Operation)
+            && Equals(x.Type, y.Type);
 
     private bool Equals(ScalarTypeDefinitionNode x, ScalarTypeDefinitionNode y)
-        => Equals(x.Name, y.Name) &&
-            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
-            Equals(x.Directives, y.Directives);
+        => Equals(x.Name, y.Name)
+            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && Equals(x.Directives, y.Directives);
 
     private bool Equals(ScalarTypeExtensionNode x, ScalarTypeExtensionNode y)
-        => Equals(x.Name, y.Name) &&
-            Equals(x.Directives, y.Directives);
+        => Equals(x.Name, y.Name)
+            && Equals(x.Directives, y.Directives);
 
     private bool Equals(SchemaCoordinateNode x, SchemaCoordinateNode y)
-        => Equals(x.OfDirective, y.OfDirective) &&
-            Equals(x.Name, y.Name) &&
-            SyntaxComparer.BySyntax.Equals(x.MemberName, y.MemberName) &&
-            SyntaxComparer.BySyntax.Equals(x.ArgumentName, y.ArgumentName);
+        => Equals(x.OfDirective, y.OfDirective)
+            && Equals(x.Name, y.Name)
+            && SyntaxComparer.BySyntax.Equals(x.MemberName, y.MemberName)
+            && SyntaxComparer.BySyntax.Equals(x.ArgumentName, y.ArgumentName);
 
     private bool Equals(SchemaDefinitionNode x, SchemaDefinitionNode y)
-        => SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
-            Equals(x.Directives, y.Directives) &&
-            Equals(x.OperationTypes, y.OperationTypes);
+        => SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && Equals(x.Directives, y.Directives)
+            && Equals(x.OperationTypes, y.OperationTypes);
 
     private bool Equals(SchemaExtensionNode x, SchemaExtensionNode y)
-        => Equals(x.Directives, y.Directives) &&
-            Equals(x.OperationTypes, y.OperationTypes);
+        => Equals(x.Directives, y.Directives)
+            && Equals(x.OperationTypes, y.OperationTypes);
 
     private bool Equals(SelectionSetNode x, SelectionSetNode y)
         => Equals(x.Selections, y.Selections);
@@ -364,21 +364,21 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         => x.AsSpan().SequenceEqual(y.AsSpan());
 
     private bool Equals(UnionTypeDefinitionNode x, UnionTypeDefinitionNode y)
-        => Equals(x.Name, y.Name) &&
-            SyntaxComparer.BySyntax.Equals(x.Description, y.Description) &&
-            Equals(x.Directives, y.Directives) &&
-            Equals(x.Types, y.Types);
+        => Equals(x.Name, y.Name)
+            && SyntaxComparer.BySyntax.Equals(x.Description, y.Description)
+            && Equals(x.Directives, y.Directives)
+            && Equals(x.Types, y.Types);
 
     private bool Equals(UnionTypeExtensionNode x, UnionTypeExtensionNode y)
-        => Equals(x.Name, y.Name) &&
-            Equals(x.Directives, y.Directives) &&
-            Equals(x.Types, y.Types);
+        => Equals(x.Name, y.Name)
+            && Equals(x.Directives, y.Directives)
+            && Equals(x.Types, y.Types);
 
     private bool Equals(VariableDefinitionNode x, VariableDefinitionNode y)
-        => Equals(x.Variable, y.Variable) &&
-            Equals(x.Type, y.Type) &&
-            Equals(x.DefaultValue, y.DefaultValue) &&
-            Equals(x.Directives, y.Directives);
+        => Equals(x.Variable, y.Variable)
+            && Equals(x.Type, y.Type)
+            && Equals(x.DefaultValue, y.DefaultValue)
+            && Equals(x.Directives, y.Directives);
 
     private bool Equals(VariableNode x, VariableNode y)
         => Equals(x.Name, y.Name);
