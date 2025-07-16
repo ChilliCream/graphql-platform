@@ -2791,6 +2791,71 @@ public class DemoIntegrationTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public async Task Viewer_Bug_3() {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer!
+            }
+
+            type Viewer {
+              subgraphA: String!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer!
+            }
+
+            type Viewer {
+              subgraphB: String!
+            }
+            """);
+
+        var subgraphC = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              subgraphC: SubgraphC!
+            }
+
+            type SubgraphC {
+              someField: String!
+              anotherField: String!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB, subgraphC]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = Parse("""
+                            query {
+                              viewer {
+                                subgraphA
+                                subgraphB
+                              }
+                              subgraphC {
+                                someField
+                                anotherField
+                              }
+                            }
+                            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task Two_Arguments_Differing_Nullability_Does_Not_Duplicate_Forwarded_Variables()
     {
         // arrange
