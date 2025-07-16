@@ -802,6 +802,34 @@ public class DirectiveTypeTests : TypeTestBase
     }
 
     [Fact]
+    public async Task Directive_ArgumentDirective_AddedToSchema()
+    {
+        // arrange
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("Qux"))
+            .AddDocumentFromString(
+                """
+                directive @Example on ARGUMENT_DEFINITION
+                directive @Qux(bar: String @Example) on FIELD_DEFINITION
+                """)
+            .BuildSchemaAsync();
+
+        // assert
+        Assert.True(
+            schema.DirectiveTypes
+                .Single(d => d.Name == "Qux")
+                .Arguments["bar"]
+                .Directives[0].Type.Name == "Example");
+    }
+
+    [Fact]
     public async Task AnnotationBased_Directive()
     {
         // arrange
