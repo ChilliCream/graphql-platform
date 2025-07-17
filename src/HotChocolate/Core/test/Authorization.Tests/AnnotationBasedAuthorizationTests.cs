@@ -796,6 +796,79 @@ public class AnnotationBasedAuthorizationTests
     }
 
     [Fact]
+    public async Task Authorize_Nodes_Field_Different_Ids_BeforeResolver()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, _) => AuthorizeResult.NotAllowed,
+            validation: (_, _) => AuthorizeResult.Allowed);
+        var services = CreateServices(handler);
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(builder =>
+            builder.SetDocument(
+                """
+                query($ids: [ID!]!) {
+                  nodes(ids: $ids) {
+                    __typename
+                  }
+                }
+                """)
+            .SetVariableValues(new Dictionary<string, object?>
+            {
+                {
+                    "ids",
+                    new List<string>
+                    {
+                        Convert.ToBase64String("BlogPage:1"u8),
+                        Convert.ToBase64String("Order:1"u8),
+                        Convert.ToBase64String("BlogPage:2"u8)
+                    }
+                }
+            }));
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "locations": [
+                        {
+                          "line": 2,
+                          "column": 3
+                        }
+                      ],
+                      "path": [
+                        "nodes",
+                        1
+                      ],
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ],
+                  "data": {
+                    "nodes": [
+                      {
+                        "__typename": "BlogPage"
+                      },
+                      null,
+                      {
+                        "__typename": "BlogPage"
+                      }
+                    ]
+                  }
+                }
+                """);
+    }
+
+    [Fact]
     public async Task Skip_Authorize_On_Node_Field()
     {
         // arrange
@@ -871,18 +944,17 @@ public class AnnotationBasedAuthorizationTests
         var executor = await services.GetRequestExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync(
-            builder =>
-                builder
-                    .SetDocument(
-                        """
-                        {
-                          nodes(ids: "abc") {
-                            __typename
-                          }
-                        }
-                        """)
-                    .SetUser(new ClaimsPrincipal()));
+        var result = await executor.ExecuteAsync(builder =>
+            builder
+                .SetDocument(
+                    """
+                    {
+                      nodes(ids: "abc") {
+                        __typename
+                      }
+                    }
+                    """)
+                .SetUser(new ClaimsPrincipal()));
 
         // assert
         Snapshot
@@ -930,16 +1002,15 @@ public class AnnotationBasedAuthorizationTests
         var executor = await services.GetRequestExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync(
-            builder =>
-                builder
-                    .SetDocument(
-                        """
-                        {
-                          null
-                        }
-                        """)
-                    .SetUser(new ClaimsPrincipal()));
+        var result = await executor.ExecuteAsync(builder =>
+            builder
+                .SetDocument(
+                    """
+                    {
+                      null
+                    }
+                    """)
+                .SetUser(new ClaimsPrincipal()));
 
         // assert
         Snapshot
@@ -965,6 +1036,8 @@ public class AnnotationBasedAuthorizationTests
             .AddType<Street>()
             .AddTypeExtension(typeof(StreetExtensions))
             .AddType<City>()
+            .AddType<Order>()
+            .AddType<BlogPage>()
             .AddGlobalObjectIdentification()
             .AddAuthorizationHandler(_ => handler)
             .ModifyAuthorizationOptions(configure ?? (_ => { }))
@@ -1013,6 +1086,23 @@ public class AnnotationBasedAuthorizationTests
 
     [UnionType]
     public interface ICityOrStreet;
+
+    [Node]
+    [Authorize(ApplyPolicy.BeforeResolver)]
+    public sealed record Order(string Id)
+    {
+        [NodeResolver]
+        public static Order GetOrderById(string id)
+            => new(id);
+    }
+
+    [Node]
+    public sealed record BlogPage(string Id)
+    {
+        [NodeResolver]
+        public static BlogPage GetBlogPageById(string id)
+            => new(id);
+    }
 
     [Node]
     [ExtendObjectType<Street>]
