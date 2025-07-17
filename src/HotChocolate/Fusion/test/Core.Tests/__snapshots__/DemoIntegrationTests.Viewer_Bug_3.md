@@ -4,43 +4,16 @@
 
 ```json
 {
-  "errors": [
-    {
-      "message": "The field `viewer` does not exist on the type `Viewer`.",
-      "locations": [
-        {
-          "line": 2,
-          "column": 3
-        }
-      ],
-      "path": [
-        "viewer"
-      ],
-      "extensions": {
-        "type": "Viewer",
-        "field": "viewer",
-        "responseName": "viewer",
-        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-      }
+  "data": {
+    "viewer": {
+      "subgraphA": "string",
+      "subgraphB": "string"
     },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 4,
-          "column": 5
-        }
-      ],
-      "path": [
-        "viewer",
-        "subgraphB"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
+    "subgraphC": {
+      "someField": "string",
+      "anotherField": "string"
     }
-  ],
-  "data": null
+  }
 }
 ```
 
@@ -62,7 +35,7 @@
 ## QueryPlan Hash
 
 ```text
-89E310ABAAB1592F3550B4B6772D3D740DACBD2B
+0343522DE0DDC505C43E45B0E95A7AED449C0B87
 ```
 
 ## QueryPlan
@@ -91,7 +64,7 @@
           {
             "type": "Resolve",
             "subgraph": "Subgraph_2",
-            "document": "query fetch_viewer_subgraphC_3 { viewer { viewer { subgraphB } } }",
+            "document": "query fetch_viewer_subgraphC_3 { viewer { subgraphB } }",
             "selectionSetId": 0
           }
         ]

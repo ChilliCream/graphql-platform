@@ -156,6 +156,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
                 if (!fieldInfo.Bindings.ContainsSubgraph(subgraph))
                 {
+                    path.RemoveAt(pathIndex);
                     (leftovers ??= []).Add(selection);
                     continue;
                 }
