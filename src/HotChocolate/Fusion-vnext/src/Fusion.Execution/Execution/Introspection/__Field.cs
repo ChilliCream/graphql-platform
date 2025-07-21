@@ -1,4 +1,5 @@
 #pragma warning disable IDE1006 // Naming Styles
+using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -6,8 +7,38 @@ using HotChocolate.Types;
 namespace HotChocolate.Fusion.Execution.Introspection;
 
 // ReSharper disable once InconsistentNaming
-internal static class __Field
+internal sealed class __Field : ITypeResolverInterceptor
 {
+    public void OnApplyResolver(string fieldName, IFeatureCollection features)
+    {
+        switch (fieldName)
+        {
+            case "name":
+                features.Set(new ResolveFieldValue(Name));
+                break;
+
+            case "description":
+                features.Set(new ResolveFieldValue(Description));
+                break;
+
+            case "args":
+                features.Set(new ResolveFieldValue(Arguments));
+                break;
+
+            case "type":
+                features.Set(new ResolveFieldValue(Type));
+                break;
+
+            case "isDeprecated":
+                features.Set(new ResolveFieldValue(IsDeprecated));
+                break;
+
+            case "deprecationReason":
+                features.Set(new ResolveFieldValue(DeprecationReason));
+                break;
+        }
+    }
+
     public static void Name(FieldContext context)
         => context.WriteValue(context.Parent<IOutputFieldDefinition>().Name);
 

@@ -1,4 +1,5 @@
 #pragma warning disable IDE1006 // Naming Styles
+using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -6,8 +7,58 @@ using HotChocolate.Types;
 namespace HotChocolate.Fusion.Execution.Introspection;
 
 // ReSharper disable once InconsistentNaming
-internal static class __Type
+internal sealed class __Type : ITypeResolverInterceptor
 {
+    public void OnApplyResolver(string fieldName, IFeatureCollection features)
+    {
+        switch (fieldName)
+        {
+            case "kind":
+                features.Set(new ResolveFieldValue(Kind));
+                break;
+
+            case "name":
+                features.Set(new ResolveFieldValue(Name));
+                break;
+
+            case "description":
+                features.Set(new ResolveFieldValue(Description));
+                break;
+
+            case "fields":
+                features.Set(new ResolveFieldValue(Fields));
+                break;
+
+            case "interfaces":
+                features.Set(new ResolveFieldValue(Interfaces));
+                break;
+
+            case "possibleTypes":
+                features.Set(new ResolveFieldValue(PossibleTypes));
+                break;
+
+            case "enumValues":
+                features.Set(new ResolveFieldValue(EnumValues));
+                break;
+
+            case "inputFields":
+                features.Set(new ResolveFieldValue(InputFields));
+                break;
+
+            case "ofType":
+                features.Set(new ResolveFieldValue(OfType));
+                break;
+
+            case "isOneOf":
+                features.Set(new ResolveFieldValue(IsOneOf));
+                break;
+
+            case "specifiedBy":
+                features.Set(new ResolveFieldValue(SpecifiedBy));
+                break;
+        }
+    }
+
     public static void Kind(FieldContext context)
     {
         switch (context.Parent<IType>().Kind)
@@ -62,20 +113,27 @@ internal static class __Type
         }
     }
 
-    public static object? Fields(FieldContext context)
+    public static void Fields(FieldContext context)
     {
         var type = context.Parent<IType>();
 
         if (type is IComplexTypeDefinition ct)
         {
-            var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated");
+            var includeDeprecated = context.ArgumentValue<BooleanValueNode>("includeDeprecated").Value;
+            var list = context.ResultPool.RentObjectListResult();
+            context.FieldResult.SetNextValue(list);
 
-            return !includeDeprecated.Value
-                ? ct.Fields.Where(t => !t.IsIntrospectionField && !t.IsDeprecated)
-                : ct.Fields.Where(t => !t.IsIntrospectionField);
+            foreach (var field in ct.Fields)
+            {
+                if (field.IsIntrospectionField || (!includeDeprecated && field.IsDeprecated))
+                {
+                    continue;
+                }
+
+                context.AddRuntimeResult(field);
+                list.SetNextValue(context.ResultPool.RentObjectResult());
+            }
         }
-
-        return null;
     }
 
     public static void Interfaces(FieldContext context)

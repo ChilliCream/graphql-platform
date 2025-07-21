@@ -7,7 +7,7 @@ public interface IScalarTypeDefinition
     , IInputTypeDefinition
     , ISyntaxNodeProvider<ScalarTypeDefinitionNode>
 {
-    string? SpecifiedBy { get; }
+    Uri? SpecifiedBy { get; }
 
     /// <summary>
     /// Checks if the value is an instance of this type.

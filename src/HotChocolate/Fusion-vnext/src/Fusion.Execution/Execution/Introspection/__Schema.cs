@@ -1,11 +1,42 @@
 #pragma warning disable IDE1006 // Naming Styles
+using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Execution.Introspection;
 
 // ReSharper disable once InconsistentNaming
-internal static class __Schema
+internal sealed class __Schema : ITypeResolverInterceptor
 {
+    public void OnApplyResolver(string fieldName, IFeatureCollection features)
+    {
+        switch (fieldName)
+        {
+            case "description":
+                features.Set(new ResolveFieldValue(Description));
+                break;
+
+            case "types":
+                features.Set(new ResolveFieldValue(Types));
+                break;
+
+            case "queryType":
+                features.Set(new ResolveFieldValue(QueryType));
+                break;
+
+            case "mutationType":
+                features.Set(new ResolveFieldValue(MutationType));
+                break;
+
+            case "subscriptionType":
+                features.Set(new ResolveFieldValue(SubscriptionType));
+                break;
+
+            case "directives":
+                features.Set(new ResolveFieldValue(Directives));
+                break;
+        }
+    }
+
     public static void Description(FieldContext context)
         => context.WriteValue(context.Schema.Description);
 

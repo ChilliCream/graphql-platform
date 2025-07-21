@@ -11,9 +11,11 @@ using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Execution.Introspection;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
@@ -215,6 +217,7 @@ internal sealed class FusionRequestExecutorManager
         features.Set(requestOptions);
         features.Set(parserOptions);
         features.Set(clientConfigurations);
+        features.Set(CreateTypeResolverInterceptors());
 
         foreach (var configure in setup.SchemaFeaturesModifiers)
         {
@@ -223,6 +226,18 @@ internal sealed class FusionRequestExecutorManager
 
         return features;
     }
+
+    private static Dictionary<string, ITypeResolverInterceptor> CreateTypeResolverInterceptors()
+        => new()
+        {
+            { nameof(Query), new Query() },
+            { nameof(__Directive), new __Directive() },
+            { nameof(__EnumValue), new __EnumValue() },
+            { nameof(__Field), new __Field() },
+            { nameof(__InputValue), new __InputValue() },
+            { nameof(__Schema), new __Schema() },
+            { nameof(__Type), new __Type() }
+        };
 
     private ServiceProvider CreateSchemaServices(
         FusionGatewaySetup setup)

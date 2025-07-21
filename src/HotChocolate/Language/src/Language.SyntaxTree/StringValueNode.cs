@@ -152,7 +152,7 @@ public sealed class StringValueNode : IValueNode<string>, IHasSpan
 
         byte[]? rented = null;
         var requiredLength = encoding.GetByteCount(_value!);
-        Span<byte> buffer = requiredLength < 256
+        var buffer = requiredLength < 256
             ? stackalloc byte[256]
             : (rented = ArrayPool<byte>.Shared.Rent(requiredLength)).AsSpan();
 
