@@ -1,3 +1,5 @@
+#nullable disable
+
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 

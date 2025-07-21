@@ -1,8 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Resolvers;
 
-#nullable enable
-
 namespace HotChocolate.Types.Pagination;
 
 public class PagingMiddleware(FieldDelegate next, IPagingHandler pagingHandler)

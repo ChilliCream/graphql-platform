@@ -1,7 +1,5 @@
 using System.Diagnostics;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 public abstract class Convention<TConfiguration> : Convention where TConfiguration : class

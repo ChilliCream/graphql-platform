@@ -3,8 +3,6 @@ using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal static class TypeDiscoveryDescriptorContextExtensions

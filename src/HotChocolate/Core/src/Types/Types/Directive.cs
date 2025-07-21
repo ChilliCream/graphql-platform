@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Collections.Immutable;
 using HotChocolate.Language;
 using static HotChocolate.Language.SyntaxComparison;

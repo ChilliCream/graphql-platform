@@ -2,8 +2,6 @@ using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types.Factories;
 
 internal class SchemaSyntaxVisitorContext(IDescriptorContext descriptorContext)

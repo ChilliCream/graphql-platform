@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Collections;
 using HotChocolate.Types;
 

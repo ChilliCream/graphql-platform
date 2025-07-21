@@ -2,8 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Internal;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 /// <summary>

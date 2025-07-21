@@ -1,8 +1,6 @@
 using HotChocolate.Internal;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors.Configurations;
 
 public sealed class TypeDependency

@@ -3,8 +3,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Introspection;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class TypeDiscoverer

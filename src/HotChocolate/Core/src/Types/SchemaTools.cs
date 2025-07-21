@@ -1,3 +1,5 @@
+#nullable disable
+
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Types;

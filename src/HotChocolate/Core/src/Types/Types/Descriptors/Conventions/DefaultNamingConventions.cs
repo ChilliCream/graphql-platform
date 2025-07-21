@@ -3,8 +3,6 @@ using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 public class DefaultNamingConventions

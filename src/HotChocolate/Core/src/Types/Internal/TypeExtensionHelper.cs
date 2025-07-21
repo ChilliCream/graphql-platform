@@ -4,8 +4,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 public static class TypeExtensionHelper
