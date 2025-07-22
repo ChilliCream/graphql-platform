@@ -1,5 +1,5 @@
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 #nullable enable
 
@@ -9,27 +9,24 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
     : IDescriptor<T>
     , IDescriptorExtension<T>
     , IDescriptorExtension
-    , IDefinitionFactory<T>
-    where T : DefinitionBase
+    , IConfigurationFactory<T>
+    where T : TypeSystemConfiguration
 {
     protected internal IDescriptorContext Context { get; } =
         context ?? throw new ArgumentNullException(nameof(context));
 
     IDescriptorContext IHasDescriptorContext.Context => Context;
 
-    protected internal abstract T Definition { get; protected set; }
+    protected internal abstract T Configuration { get; protected set; }
 
-    T IDescriptorExtension<T>.Definition => Definition;
+    T IDescriptorExtension<T>.Configuration => Configuration;
 
     public IDescriptorExtension<T> Extend() => this;
 
     public IDescriptorExtension<T> ExtendWith(
         Action<IDescriptorExtension<T>> configure)
     {
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(configure);
 
         configure(this);
         return this;
@@ -39,31 +36,27 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
         Action<IDescriptorExtension<T>, TState> configure,
         TState state)
     {
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(configure);
 
         configure(this, state);
         return this;
     }
 
-
-    public T CreateDefinition()
+    public T CreateConfiguration()
     {
-        OnCreateDefinition(Definition);
+        OnCreateConfiguration(Configuration);
 
-        if (Definition.HasConfigurations)
+        if (Configuration.HasTasks)
         {
             var i = 0;
-            var configurations = Definition.Configurations;
+            var configurations = Configuration.Tasks;
 
             do
             {
-                if (configurations[i] is { On: ApplyConfigurationOn.Create, } config)
+                if (configurations[i] is { On: ApplyConfigurationOn.Create } config)
                 {
                     configurations.RemoveAt(i);
-                    ((CreateConfiguration)config).Configure(Context);
+                    ((OnCreateTypeSystemConfigurationTask)config).Configure(Context);
                 }
                 else
                 {
@@ -72,15 +65,15 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
             } while (i < configurations.Count);
         }
 
-        return Definition;
+        return Configuration;
     }
 
-    protected virtual void OnCreateDefinition(T definition)
+    protected virtual void OnCreateConfiguration(T definition)
     {
     }
 
-    DefinitionBase IDefinitionFactory.CreateDefinition()
-        => CreateDefinition();
+    TypeSystemConfiguration IConfigurationFactory.CreateConfiguration()
+        => CreateConfiguration();
 
     void IDescriptorExtension<T>.OnBeforeCreate(
         Action<T> configure)
@@ -91,23 +84,20 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
         => OnBeforeCreate(configure);
 
     void IDescriptorExtension.OnBeforeCreate(
-        Action<DefinitionBase> configure)
+        Action<TypeSystemConfiguration> configure)
         => OnBeforeCreate((_, d) => configure(d));
 
     void IDescriptorExtension.OnBeforeCreate(
-        Action<IDescriptorContext, DefinitionBase> configure)
+        Action<IDescriptorContext, TypeSystemConfiguration> configure)
         => OnBeforeCreate(configure);
 
     private void OnBeforeCreate(Action<IDescriptorContext, T> configure)
     {
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(configure);
 
-        Definition.Configurations.Add(new CreateConfiguration(
+        Configuration.Tasks.Add(new OnCreateTypeSystemConfigurationTask(
             (c, d) => configure(c, (T)d),
-            Definition));
+            Configuration));
     }
 
     INamedDependencyDescriptor IDescriptorExtension<T>.OnBeforeNaming(
@@ -115,23 +105,20 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
         => OnBeforeNaming(configure);
 
     INamedDependencyDescriptor IDescriptorExtension.OnBeforeNaming(
-        Action<ITypeCompletionContext, DefinitionBase> configure)
+        Action<ITypeCompletionContext, TypeSystemConfiguration> configure)
         => OnBeforeNaming(configure);
 
     private INamedDependencyDescriptor OnBeforeNaming(
         Action<ITypeCompletionContext, T> configure)
     {
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(configure);
 
-        var configuration = new CompleteConfiguration(
+        var configuration = new OnCompleteTypeSystemConfigurationTask(
             (c, d) => configure(c, (T)d),
-            Definition,
+            Configuration,
             ApplyConfigurationOn.BeforeNaming);
 
-        Definition.Configurations.Add(configuration);
+        Configuration.Tasks.Add(configuration);
 
         return new NamedDependencyDescriptor(Context.TypeInspector, configuration);
     }
@@ -141,18 +128,18 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
         => OnBeforeCompletion(configure);
 
     ICompletedDependencyDescriptor IDescriptorExtension.OnBeforeCompletion(
-        Action<ITypeCompletionContext, DefinitionBase> configure)
+        Action<ITypeCompletionContext, TypeSystemConfiguration> configure)
         => OnBeforeCompletion(configure);
 
     private ICompletedDependencyDescriptor OnBeforeCompletion(
         Action<ITypeCompletionContext, T> configure)
     {
-        var configuration = new CompleteConfiguration(
+        var configuration = new OnCompleteTypeSystemConfigurationTask(
             (c, d) => configure(c, (T)d),
-            Definition,
+            Configuration,
             ApplyConfigurationOn.BeforeCompletion);
 
-        Definition.Configurations.Add(configuration);
+        Configuration.Tasks.Add(configuration);
 
         return new CompletedDependencyDescriptor(Context.TypeInspector, configuration);
     }

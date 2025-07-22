@@ -1,56 +1,53 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Descriptors;
 
 public class SchemaTypeDescriptor
-    : DescriptorBase<SchemaTypeDefinition>
+    : DescriptorBase<SchemaTypeConfiguration>
     , ISchemaTypeDescriptor
 {
     protected SchemaTypeDescriptor(IDescriptorContext context, Type type)
         : base(context)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-        Definition.Name = context.Naming.GetTypeName(type);
+        ArgumentNullException.ThrowIfNull(type);
+        Configuration.Name = context.Naming.GetTypeName(type);
     }
 
     protected SchemaTypeDescriptor(
         IDescriptorContext context,
-        SchemaTypeDefinition definition)
+        SchemaTypeConfiguration definition)
         : base(context)
     {
-        Definition = definition;
+        Configuration = definition;
     }
 
-    protected internal override SchemaTypeDefinition Definition { get; protected set; } = new();
+    protected internal override SchemaTypeConfiguration Configuration { get; protected set; } = new();
 
     public ISchemaTypeDescriptor Name(string value)
     {
-        Definition.Name = value;
+        Configuration.Name = value;
         return this;
     }
 
     public ISchemaTypeDescriptor Description(string value)
     {
-        Definition.Description = value;
+        Configuration.Description = value;
         return this;
     }
 
     public ISchemaTypeDescriptor Directive<T>(T directiveInstance)
         where T : class
     {
-        Definition.GetLegacyDefinition().AddDirective(directiveInstance, Context.TypeInspector);
+        Configuration.GetLegacyConfiguration().AddDirective(directiveInstance, Context.TypeInspector);
         return this;
     }
 
     public ISchemaTypeDescriptor Directive<T>()
         where T : class, new()
     {
-        Definition.GetLegacyDefinition().AddDirective(new T(), Context.TypeInspector);
+        Configuration.GetLegacyConfiguration().AddDirective(new T(), Context.TypeInspector);
         return this;
     }
 
@@ -58,7 +55,7 @@ public class SchemaTypeDescriptor
         string name,
         params ArgumentNode[] arguments)
     {
-        Definition.GetLegacyDefinition().AddDirective(name, arguments);
+        Configuration.GetLegacyConfiguration().AddDirective(name, arguments);
         return this;
     }
 
@@ -69,6 +66,6 @@ public class SchemaTypeDescriptor
 
     public static SchemaTypeDescriptor From(
         IDescriptorContext context,
-        SchemaTypeDefinition definition) =>
+        SchemaTypeConfiguration definition) =>
         new SchemaTypeDescriptor(context, definition);
 }

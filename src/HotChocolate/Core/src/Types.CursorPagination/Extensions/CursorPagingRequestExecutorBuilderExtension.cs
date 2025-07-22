@@ -38,7 +38,7 @@ public static class CursorPagingRequestExecutorBuilderExtension
         string? providerName = null,
         bool defaultProvider = false,
         bool? inlineTotalCount = null)
-        => AddCursorPagingProvider<QueryableCursorPagingProvider>(
+        => AddCursorPagingProvider(
             builder,
             _ => new QueryableCursorPagingProvider(inlineTotalCount),
             providerName,
@@ -71,10 +71,7 @@ public static class CursorPagingRequestExecutorBuilderExtension
         bool defaultProvider = false)
         where TProvider : CursorPagingProvider
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.TryAddSingleton<TProvider>();
 
@@ -118,10 +115,7 @@ public static class CursorPagingRequestExecutorBuilderExtension
         bool defaultProvider = false)
         where TProvider : CursorPagingProvider
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         if (defaultProvider)
         {

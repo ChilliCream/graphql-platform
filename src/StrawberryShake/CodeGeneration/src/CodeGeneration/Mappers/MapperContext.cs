@@ -16,7 +16,7 @@ public class MapperContext : IMapperContext
     private readonly List<ResultFromEntityDescriptor> _mappers = [];
     private readonly Dictionary<string, OperationDescriptor> _operations = new(Ordinal);
     private readonly Dictionary<string, ResultBuilderDescriptor> _resultBuilder = new(Ordinal);
-    private readonly Dictionary<(string, TypeKind), RuntimeTypeInfo> _runtimeTypes = new();
+    private readonly Dictionary<(string, TypeKind), RuntimeTypeInfo> _runtimeTypes = [];
     private readonly HashSet<string> _runtimeTypeNames = [];
     private ClientDescriptor? _client;
     private EntityIdFactoryDescriptor? _entityIdFactory;

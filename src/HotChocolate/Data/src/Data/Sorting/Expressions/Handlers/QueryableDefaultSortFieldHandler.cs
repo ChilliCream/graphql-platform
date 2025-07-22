@@ -12,9 +12,9 @@ public class QueryableDefaultSortFieldHandler
 {
     public override bool CanHandle(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition) =>
-        fieldDefinition.Member is not null || fieldDefinition.Expression is not null;
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration) =>
+        fieldConfiguration.Member is not null || fieldConfiguration.Expression is not null;
 
     public override bool TryHandleEnter(
         QueryableSortContext context,
@@ -37,17 +37,17 @@ public class QueryableDefaultSortFieldHandler
             return false;
         }
 
-        if (!(context.GetInstance() is QueryableFieldSelector lastFieldSelector))
+        if (context.GetInstance() is not QueryableFieldSelector lastFieldSelector)
         {
             throw ThrowHelper.Sorting_InvalidState_ParentIsNoFieldSelector(field);
         }
 
         var lastSelector = lastFieldSelector.Selector;
         Expression nextSelector;
-        if (field.Metadata is ExpressionSortMetadata { Expression: LambdaExpression expression, })
+        if (field.Metadata is ExpressionSortMetadata { Expression: LambdaExpression expression })
         {
-            if (expression.Parameters.Count != 1 ||
-                expression.Parameters[0].Type != context.RuntimeTypes.Peek()!.Source)
+            if (expression.Parameters.Count != 1
+                || expression.Parameters[0].Type != context.RuntimeTypes.Peek().Source)
             {
                 throw ThrowHelper.QueryableSorting_ExpressionParameterInvalid(
                     field.RuntimeType.Source,
@@ -64,7 +64,7 @@ public class QueryableDefaultSortFieldHandler
                 PropertyInfo i => Expression.Property(lastSelector, i),
                 MethodInfo i => Expression.Call(lastSelector, i),
                 { } i => throw ThrowHelper.QueryableSorting_MemberInvalid(i, field),
-                null => throw ThrowHelper.QueryableSorting_NoMemberDeclared(field),
+                null => throw ThrowHelper.QueryableSorting_NoMemberDeclared(field)
             };
         }
 

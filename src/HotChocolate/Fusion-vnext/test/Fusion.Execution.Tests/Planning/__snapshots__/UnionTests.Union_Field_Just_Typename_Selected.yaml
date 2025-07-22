@@ -1,0 +1,15 @@
+operation: >-
+  query testQuery {
+    post {
+      __typename
+    }
+  }
+nodes:
+  - id: 1
+    schema: SUBGRAPH_1
+    operation: >-
+      query testQuery_1 {
+        post {
+          __typename
+        }
+      }

@@ -7,27 +7,23 @@ namespace HotChocolate.Configuration.Validation;
 
 internal static class TypeValidationHelper
 {
-    private const char _prefixCharacter = '_';
-
     public static void EnsureTypeHasFields(
-        IComplexOutputType type,
+        IComplexTypeDefinition type,
         ICollection<ISchemaError> errors)
     {
-        if (type.Fields.Count == 0 ||
-            type.Fields.All(t => t.IsIntrospectionField))
+        if (type.Fields.Count == 0
+            || type.Fields.All(t => t.IsIntrospectionField))
         {
             errors.Add(NeedsOneAtLeastField(type));
         }
     }
 
     public static void EnsureFieldDeprecationIsValid(
-        IInputObjectType type,
+        IInputObjectTypeDefinition type,
         ICollection<ISchemaError> errors)
     {
-        for (var i = 0; i < type.Fields.Count; i++)
+        foreach (var field in type.Fields)
         {
-            var field = type.Fields[i];
-
             if (field.IsDeprecated && field.Type.IsNonNullType() && field.DefaultValue is null)
             {
                 errors.Add(RequiredFieldCannotBeDeprecated(type, field));
@@ -36,16 +32,13 @@ internal static class TypeValidationHelper
     }
 
     public static void EnsureArgumentDeprecationIsValid(
-        IComplexOutputType type,
+        IComplexTypeDefinition type,
         ICollection<ISchemaError> errors)
     {
-        for (var i = 0; i < type.Fields.Count; i++)
+        foreach (var field in type.Fields)
         {
-            var field = type.Fields[i];
-            for (var j = 0; j < field.Arguments.Count; j++)
+            foreach (var argument in field.Arguments)
             {
-                var argument = field.Arguments[j];
-
                 if (argument.IsDeprecated && argument.Type.IsNonNullType() && argument.DefaultValue is null)
                 {
                     errors.Add(RequiredArgumentCannotBeDeprecated(type, field, argument));
@@ -55,12 +48,11 @@ internal static class TypeValidationHelper
     }
 
     public static void EnsureArgumentDeprecationIsValid(
-        DirectiveType type,
+        IDirectiveDefinition type,
         ICollection<ISchemaError> errors)
     {
-        for (var i = 0; i < type.Arguments.Count; i++)
+        foreach (var argument in type.Arguments)
         {
-            var argument = type.Arguments[i];
             if (argument.IsDeprecated && argument.Type.IsNonNullType() && argument.DefaultValue is null)
             {
                 errors.Add(RequiredArgumentCannotBeDeprecated(type, argument));
@@ -79,13 +71,11 @@ internal static class TypeValidationHelper
     }
 
     public static void EnsureFieldNamesAreValid(
-        IComplexOutputType type,
+        IComplexTypeDefinition type,
         ICollection<ISchemaError> errors)
     {
-        for (var i = 0; i < type.Fields.Count; i++)
+        foreach (var field in type.Fields)
         {
-            var field = type.Fields[i];
-
             if (!field.IsIntrospectionField)
             {
                 if (StartsWithTwoUnderscores(field.Name))
@@ -93,15 +83,15 @@ internal static class TypeValidationHelper
                     errors.Add(TwoUnderscoresNotAllowedField(type, field));
                 }
 
-                for (var j = 0; j < field.Arguments.Count; j++)
+                foreach (var argument in field.Arguments)
                 {
-                    var argument = field.Arguments[j];
                     if (StartsWithTwoUnderscores(argument.Name))
                     {
-                        errors.Add(TwoUnderscoresNotAllowedOnArgument(
-                            type,
-                            field,
-                            argument));
+                        errors.Add(
+                            TwoUnderscoresNotAllowedOnArgument(
+                                type,
+                                field,
+                                argument));
                     }
                 }
             }
@@ -112,9 +102,8 @@ internal static class TypeValidationHelper
         InputObjectType type,
         ICollection<ISchemaError> errors)
     {
-        for (var i = 0; i < type.Fields.Count; i++)
+        foreach (var field in type.Fields)
         {
-            var field = type.Fields[i];
             if (StartsWithTwoUnderscores(field.Name))
             {
                 errors.Add(TwoUnderscoresNotAllowedField(type, field));
@@ -123,21 +112,20 @@ internal static class TypeValidationHelper
     }
 
     public static void EnsureArgumentNamesAreValid(
-        DirectiveType type,
+        IDirectiveDefinition directiveDefinition,
         ICollection<ISchemaError> errors)
     {
-        for (var i = 0; i < type.Arguments.Count; i++)
+        foreach (var argument in directiveDefinition.Arguments)
         {
-            IInputField field = type.Arguments[i];
-            if (StartsWithTwoUnderscores(field.Name))
+            if (StartsWithTwoUnderscores(argument.Name))
             {
-                errors.Add(TwoUnderscoresNotAllowedOnArgument(type, field));
+                errors.Add(TwoUnderscoresNotAllowedOnArgument(directiveDefinition, argument));
             }
         }
     }
 
     public static void EnsureInterfacesAreCorrectlyImplemented(
-        IComplexOutputType type,
+        IComplexTypeDefinition type,
         ICollection<ISchemaError> errors)
     {
         if (type.Implements.Count > 0)
@@ -151,8 +139,8 @@ internal static class TypeValidationHelper
 
     // https://spec.graphql.org/draft/#IsValidImplementation()
     private static void ValidateImplementation(
-        IComplexOutputType type,
-        IInterfaceType implementedType,
+        IComplexTypeDefinition type,
+        IInterfaceTypeDefinition implementedType,
         ICollection<ISchemaError> errors)
     {
         if (!IsFullyImplementingInterface(type, implementedType))
@@ -170,6 +158,15 @@ internal static class TypeValidationHelper
                 {
                     errors.Add(InvalidFieldType(type, field, implementedField));
                 }
+
+                if (field.IsDeprecated && !implementedField.IsDeprecated)
+                {
+                    errors.Add(InvalidFieldDeprecation(
+                        implementedType.Name,
+                        implementedField,
+                        type,
+                        field));
+                }
             }
             else
             {
@@ -179,47 +176,49 @@ internal static class TypeValidationHelper
     }
 
     private static void ValidateArguments(
-        IOutputField field,
-        IOutputField implementedField,
+        IOutputFieldDefinition field,
+        IOutputFieldDefinition implementedField,
         ICollection<ISchemaError> errors)
     {
         var implArgs = implementedField.Arguments.ToDictionary(t => t.Name);
 
         foreach (var argument in field.Arguments)
         {
-            if (implArgs.TryGetValue(argument.Name, out var implementedArgument))
+            if (implArgs.Remove(argument.Name, out var implementedArgument))
             {
-                implArgs.Remove(argument.Name);
-                if (!argument.Type.IsEqualTo(implementedArgument.Type))
+                if (!argument.Type.IsStructurallyEqual(implementedArgument.Type))
                 {
-                    errors.Add(InvalidArgumentType(
-                        field,
-                        implementedField,
-                        argument,
-                        implementedArgument));
+                    errors.Add(
+                        InvalidArgumentType(
+                            field,
+                            implementedField,
+                            argument,
+                            implementedArgument));
                 }
             }
             else if (argument.Type.IsNonNullType())
             {
-                errors.Add(AdditionalArgumentNotNullable(
-                    field,
-                    implementedField,
-                    argument));
+                errors.Add(
+                    AdditionalArgumentNotNullable(
+                        field,
+                        implementedField,
+                        argument));
             }
         }
 
         foreach (var missingArgument in implArgs.Values)
         {
-            errors.Add(ArgumentNotImplemented(
-                field,
-                implementedField,
-                missingArgument));
+            errors.Add(
+                ArgumentNotImplemented(
+                    field,
+                    implementedField,
+                    missingArgument));
         }
     }
 
     private static bool IsFullyImplementingInterface(
-        IComplexOutputType type,
-        IInterfaceType implementedType)
+        IComplexTypeDefinition type,
+        IInterfaceTypeDefinition implementedType)
     {
         foreach (var interfaceType in implementedType.Implements)
         {
@@ -239,14 +238,21 @@ internal static class TypeValidationHelper
     {
         if (fieldType.IsNonNullType())
         {
-            fieldType = (IOutputType)fieldType.InnerType();
-
-            if (implementedType.IsNonNullType())
+            if (!implementedType.IsNonNullType())
             {
-                implementedType = (IOutputType)implementedType.InnerType();
+                return IsValidImplementationFieldType(
+                    (IOutputType)fieldType.InnerType(),
+                    implementedType);
             }
 
-            return IsValidImplementationFieldType(fieldType, implementedType);
+            return IsValidImplementationFieldType(
+                (IOutputType)fieldType.InnerType(),
+                (IOutputType)implementedType.InnerType());
+        }
+
+        if (implementedType.IsNonNullType())
+        {
+            return false;
         }
 
         if (fieldType.IsListType() && implementedType.IsListType())
@@ -261,16 +267,16 @@ internal static class TypeValidationHelper
             return true;
         }
 
-        if (fieldType is ObjectType objectType &&
-            implementedType is UnionType unionType &&
-            unionType.IsAssignableFrom(objectType))
+        if (fieldType is ObjectType objectType
+            && implementedType.Kind is TypeKind.Union
+            && implementedType.AsTypeDefinition().IsAssignableFrom(objectType))
         {
             return true;
         }
 
-        if (fieldType is IComplexOutputType complexType &&
-            implementedType is InterfaceType interfaceType &&
-            complexType.IsImplementing(interfaceType))
+        if (fieldType is IComplexTypeDefinition complexType
+            && implementedType.Kind is TypeKind.Interface
+            && complexType.IsImplementing(implementedType.TypeName()))
         {
             return true;
         }
@@ -280,17 +286,11 @@ internal static class TypeValidationHelper
 
     private static bool StartsWithTwoUnderscores(string name)
     {
-        if (name.Length > 2)
+        if (name.Length < 2)
         {
-            var firstTwoLetters = name.AsSpan().Slice(0, 2);
-
-            if (firstTwoLetters[0] == _prefixCharacter &&
-                firstTwoLetters[1] == _prefixCharacter)
-            {
-                return true;
-            }
+            return false;
         }
 
-        return false;
+        return name.AsSpan(0, 2).SequenceEqual("__");
     }
 }

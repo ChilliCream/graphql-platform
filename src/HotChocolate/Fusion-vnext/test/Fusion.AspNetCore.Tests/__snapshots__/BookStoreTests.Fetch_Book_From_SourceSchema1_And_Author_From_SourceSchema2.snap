@@ -1,0 +1,10 @@
+{
+  "data": {
+    "bookById": {
+      "title": "C# in Depth",
+      "author": {
+        "name": "Jon Skeet"
+      }
+    }
+  }
+}

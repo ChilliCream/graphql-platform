@@ -1,7 +1,7 @@
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -78,24 +78,21 @@ public class TypeModuleTests
         services
             .AddGraphQL()
             .AddTypeModule(_ => typeModule)
-            .InitializeOnStartup(keepWarm: true, warmup: (_, _) =>
-            {
-                warmups++;
-                warmupResetEvent.Set();
-                return Task.CompletedTask;
-            })
+            .InitializeOnStartup(
+                warmup: (_, _) =>
+                {
+                    warmups++;
+                    warmupResetEvent.Set();
+                    return Task.CompletedTask;
+                },
+                keepWarm: true)
             .AddQueryType(d => d.Field("foo").Resolve(""));
         var provider = services.BuildServiceProvider();
         var warmupService = provider.GetRequiredService<IHostedService>();
 
-        _ = Task.Run(async () =>
-        {
-            await warmupService.StartAsync(CancellationToken.None);
-        }, cts.Token);
+        _ = Task.Run(async () => await warmupService.StartAsync(CancellationToken.None), cts.Token);
 
-        var resolver = provider.GetRequiredService<IRequestExecutorResolver>();
-
-        await resolver.GetRequestExecutorAsync();
+        await provider.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
 
         // act
         // assert
@@ -134,14 +131,14 @@ public class TypeModuleTests
         {
             var list = new List<ITypeSystemMember>();
 
-            var typeDefinition = new ObjectTypeDefinition("Query");
+            var typeDefinition = new ObjectTypeConfiguration("Query");
             typeDefinition.Fields.Add(new(
                 "hello",
                 type: TypeReference.Parse("String!"),
                 pureResolver: _ => "world"));
             list.Add(ObjectType.CreateUnsafe(typeDefinition));
 
-            var typeExtensionDefinition = new ObjectTypeDefinition("Person");
+            var typeExtensionDefinition = new ObjectTypeConfiguration("Person");
             typeExtensionDefinition.Fields.Add(new(
                 "dynamic",
                 type: TypeReference.Parse("String!"),

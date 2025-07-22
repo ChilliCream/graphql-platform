@@ -1,5 +1,4 @@
 using HotChocolate.Types.Relay;
-using static HotChocolate.WellKnownContextData;
 
 #nullable enable
 
@@ -13,7 +12,11 @@ public static class RelaySchemaBuilderExtensions
     /// </summary>
     public static ISchemaBuilder AddGlobalObjectIdentification(
         this ISchemaBuilder schemaBuilder)
-        => AddGlobalObjectIdentification(schemaBuilder, true);
+    {
+        ArgumentNullException.ThrowIfNull(schemaBuilder);
+
+        return AddGlobalObjectIdentification(schemaBuilder, true);
+    }
 
     /// <summary>
     /// Adds a <c>node</c> field to the root query according to the
@@ -23,7 +26,9 @@ public static class RelaySchemaBuilderExtensions
         this ISchemaBuilder schemaBuilder,
         bool registerNodeInterface)
     {
-        schemaBuilder.SetContextData(GlobalIdSupportEnabled, 1);
+        ArgumentNullException.ThrowIfNull(schemaBuilder);
+
+        schemaBuilder.Features.Set(new NodeSchemaFeature());
 
         schemaBuilder.TryAddTypeInterceptor<NodeIdSerializerTypeInterceptor>();
 
@@ -45,19 +50,10 @@ public static class RelaySchemaBuilderExtensions
         this ISchemaBuilder schemaBuilder,
         Action<MutationPayloadOptions>? configureOptions = null)
     {
-        MutationPayloadOptions options = new();
+        ArgumentNullException.ThrowIfNull(schemaBuilder);
 
-        configureOptions?.Invoke(options);
-
-        return schemaBuilder.AddQueryFieldToMutationPayloads(options);
-    }
-
-    private static ISchemaBuilder AddQueryFieldToMutationPayloads(
-        this ISchemaBuilder schemaBuilder,
-        MutationPayloadOptions options)
-    {
         return schemaBuilder
-            .SetMutationPayloadOptions(options)
+            .ModifyMutationPayloadOptions(configureOptions)
             .TryAddTypeInterceptor<QueryFieldTypeInterceptor>();
     }
 }

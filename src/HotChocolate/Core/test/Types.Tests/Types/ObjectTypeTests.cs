@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Immutable;
 using System.Linq.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -10,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using static HotChocolate.Types.FieldBindingFlags;
 using static HotChocolate.WellKnownContextData;
-using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 
 namespace HotChocolate.Types;
 
@@ -32,7 +32,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<ObjectType>("StringFoo");
+        var type = schema.Types.GetType<ObjectType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -52,7 +52,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<ObjectType>("StringFoo");
+        var type = schema.Types.GetType<ObjectType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -69,7 +69,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<ObjectType>("StringFoo");
+        var type = schema.Types.GetType<ObjectType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -86,7 +86,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<ObjectType>("StringFoo");
+        var type = schema.Types.GetType<ObjectType>("StringFoo");
         Assert.NotNull(type);
     }
 
@@ -212,7 +212,7 @@ public class ObjectTypeTests : TypeTestBase
 
         // assert
         Assert.Equal(
-            WellKnownDirectives.DeprecationDefaultReason,
+            DirectiveNames.Deprecated.Arguments.DefaultReason,
             fooType.Fields["bar"].DeprecationReason);
         Assert.True(fooType.Fields["bar"].IsDeprecated);
     }
@@ -314,7 +314,7 @@ public class ObjectTypeTests : TypeTestBase
         var fooType = CreateType(
             new ObjectType<Foo>(
                 d => d
-                    .Field<FooResolver>(t => t.GetBar(default))));
+                    .Field<FooResolver>(t => t.GetBar(null))));
 
         // assert
         Assert.Equal("foo", fooType.Fields["bar"].Arguments.First().Name);
@@ -326,7 +326,7 @@ public class ObjectTypeTests : TypeTestBase
     public void TwoInterfacesProvideFieldAWithDifferentOutputType()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface A {
                     a: String
                 }
@@ -360,7 +360,7 @@ public class ObjectTypeTests : TypeTestBase
     public void TwoInterfacesProvideFieldAWithDifferentArguments1()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -394,7 +394,7 @@ public class ObjectTypeTests : TypeTestBase
     public void TwoInterfacesProvideFieldAWithDifferentArguments2()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -428,7 +428,7 @@ public class ObjectTypeTests : TypeTestBase
     public void TwoInterfacesProvideFieldAWithDifferentArguments3()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -462,7 +462,7 @@ public class ObjectTypeTests : TypeTestBase
     public void SpecifyQueryTypeNameInSchemaFirst()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 type A { field: String }
                 type B { field: String }
                 type C { field: String }
@@ -489,7 +489,7 @@ public class ObjectTypeTests : TypeTestBase
     public void SpecifyQueryTypeNameInSchemaFirstWithOptions()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 type A { field: String }
                 type B { field: String }
                 type C { field: String }";
@@ -516,7 +516,7 @@ public class ObjectTypeTests : TypeTestBase
     public void NoQueryType()
     {
         // arrange
-        var source = @"type A { field: String }";
+        const string source = @"type A { field: String }";
 
         // act
         void Action()
@@ -532,7 +532,7 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectFieldDoesNotMatchInterfaceDefinitionArgTypeInvalid()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -566,7 +566,7 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectFieldDoesNotMatchInterfaceDefinitionReturnTypeInvalid()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -600,7 +600,7 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectTypeImplementsAllFields()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -625,7 +625,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<ObjectType>("C");
+        var type = schema.Types.GetType<ObjectType>("C");
         Assert.Equal(2, type.Implements.Count);
     }
 
@@ -633,7 +633,7 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectTypeImplementsAllFieldsWithWrappedTypes()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface A {
                     a(a: String!): String!
                 }
@@ -658,7 +658,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-        var type = schema.GetType<ObjectType>("C");
+        var type = schema.Types.GetType<ObjectType>("C");
         Assert.Equal(2, type.Implements.Count);
     }
 
@@ -1152,7 +1152,7 @@ public class ObjectTypeTests : TypeTestBase
         // arrange
         var objectType = new ObjectType(
             t => t.Name("Bar")
-                .Field<FooResolver>(f => f.GetDescription(default))
+                .Field<FooResolver>(f => f.GetDescription(null))
                 .Name("desc")
                 .Type<StringType>());
 
@@ -1326,7 +1326,7 @@ public class ObjectTypeTests : TypeTestBase
             .AddQueryType<QueryWithIntArg>(
                 t => t
                     .Field(f => f.GetBar(1))
-                    .Argument("foo", a => a.DefaultValue(default)))
+                    .Argument("foo", a => a.DefaultValue(null)))
             .Create();
 
         // assert
@@ -1342,7 +1342,7 @@ public class ObjectTypeTests : TypeTestBase
             SchemaBuilder.New()
                 .AddQueryType<QueryWithIntArg>(
                     t => t.Field(f => f.GetBar(1))
-                        .Argument("bar", a => a.DefaultValue(default)))
+                        .Argument("bar", a => a.DefaultValue(null)))
                 .Create();
 
         // assert
@@ -1407,7 +1407,7 @@ public class ObjectTypeTests : TypeTestBase
 
         // assert
         Assert.Throws<SchemaException>(Action)
-            .Errors.Select(t => new { t.Message, t.Code, })
+            .Errors.Select(t => new { t.Message, t.Code })
             .MatchSnapshot();
     }
 
@@ -1477,7 +1477,7 @@ public class ObjectTypeTests : TypeTestBase
                 .SetDocument("{ bar baz }")
                 .SetGlobalState(
                     InitialValue,
-                    new FooStruct { Qux = "Qux_Value", Baz = "Baz_Value", })
+                    new FooStruct { Qux = "Qux_Value", Baz = "Baz_Value" })
                 .Build());
 
         // assert
@@ -1750,7 +1750,7 @@ public class ObjectTypeTests : TypeTestBase
         SchemaBuilder.New()
             .AddQueryType<QueryWithIndexer>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -1783,7 +1783,7 @@ public class ObjectTypeTests : TypeTestBase
                     d.Field("Foo").Type("String").Resolve(_ => null!);
                 })
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -1801,7 +1801,7 @@ public class ObjectTypeTests : TypeTestBase
                         .Resolve(_ => null!);
                 })
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -1811,7 +1811,7 @@ public class ObjectTypeTests : TypeTestBase
         SchemaBuilder.New()
             .AddQueryType<InferNonNullTypesWithResolveWith>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -1849,7 +1849,7 @@ public class ObjectTypeTests : TypeTestBase
             .BuildRequestExecutorAsync();
 
         // assert
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -1882,7 +1882,7 @@ public class ObjectTypeTests : TypeTestBase
             .BuildRequestExecutorAsync();
 
         // assert
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -1923,7 +1923,7 @@ public class ObjectTypeTests : TypeTestBase
             .BuildRequestExecutorAsync();
 
         // assert
-        executor.Schema.Print().MatchSnapshot();
+        executor.Schema.ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -2112,14 +2112,53 @@ public class ObjectTypeTests : TypeTestBase
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Ignore_Object_Lists()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<IgnoreObjectLists>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Ignore_Type_Members()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithTypeExtension>()
+            .AddTypeExtension<QueryWithTypeExtension.SomeClassExtension>()
+            .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [GraphQLName("Query")]
+    public class QueryWithTypeExtension
+    {
+        public SomeClass GetSomeClass() => null!;
+
+        [ExtendObjectType("SomeClass")]
+        public class SomeClassExtension
+        {
+            public int SomethingElse { get; set; }
+        }
+    }
+
+    public class SomeClass
+    {
+        public int Something { get; set; }
+    }
+
     public abstract class ResolverBase
     {
         public int GetValue() => 1024;
     }
 
-    public class ResolverWithAbstractBase : ResolverBase
-    {
-    }
+    public class ResolverWithAbstractBase : ResolverBase;
 
     public class GenericFoo<T>
     {
@@ -2159,7 +2198,7 @@ public class ObjectTypeTests : TypeTestBase
 #nullable enable
     public class Bar
     {
-        [GraphQLNonNullType] public string Baz { get; set; } = default!;
+        [GraphQLNonNullType] public string Baz { get; set; } = null!;
     }
 #nullable disable
 
@@ -2297,7 +2336,7 @@ public class ObjectTypeTests : TypeTestBase
     public class QueryWithNestedList
     {
         public List<List<FooIgnore>> FooMatrix =>
-            [[new(),],];
+            [[new()]];
     }
 
     public class ResolveWithQuery
@@ -2336,7 +2375,7 @@ public class ObjectTypeTests : TypeTestBase
                 .ResolveWith<ResolveWithQueryResolver, string>(t => t.FooAsync());
 
             descriptor.Field("quuz")
-                .ResolveWith<ResolveWithQueryResolver, bool>(t => t.BarAsync(default));
+                .ResolveWith<ResolveWithQueryResolver, bool>(t => t.BarAsync(null));
         }
     }
 
@@ -2426,9 +2465,9 @@ public class ObjectTypeTests : TypeTestBase
 
     public class Book
     {
-        public int Id => default;
+        public int Id => 0;
 
-        public string Title { get; set; } = default!;
+        public string Title { get; set; } = null!;
 
         public static bool IsComic => true;
     }
@@ -2438,5 +2477,22 @@ public class ObjectTypeTests : TypeTestBase
         public string Bar() => "bar";
 
         public T Foo<T>() => default!;
+    }
+
+    public class IgnoreObjectLists
+    {
+        public string Hello() => throw new InvalidOperationException();
+
+        public IEnumerable<object> ObjList1 => throw new InvalidOperationException();
+
+        public IReadOnlyCollection<object> ObjList2 => throw new InvalidOperationException();
+
+        public IReadOnlyList<object> ObjList3 => throw new InvalidOperationException();
+
+        public List<object> ObjList4 => throw new InvalidOperationException();
+
+        public object[] ObjList5 => throw new InvalidOperationException();
+
+        public ImmutableArray<object> ObjList6 => throw new InvalidOperationException();
     }
 }

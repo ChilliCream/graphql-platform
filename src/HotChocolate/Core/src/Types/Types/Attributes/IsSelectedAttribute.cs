@@ -52,8 +52,8 @@ public class IsSelectedAttribute : Attribute
 
         var selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(fieldName);
 
-        if (selectionSet.Selections.Count == 1 &&
-            selectionSet.Selections[0] is FieldNode { SelectionSet: null } field)
+        if (selectionSet.Selections.Count == 1
+            && selectionSet.Selections[0] is FieldNode { SelectionSet: null } field)
         {
             FieldNames = [field.Name.Value];
         }
@@ -85,7 +85,7 @@ public class IsSelectedAttribute : Attribute
     /// </param>
     public IsSelectedAttribute(string fieldName1, string fieldName2)
     {
-        FieldNames = [fieldName1, fieldName2,];
+        FieldNames = [fieldName1, fieldName2];
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public class IsSelectedAttribute : Attribute
     /// </param>
     public IsSelectedAttribute(string fieldName1, string fieldName2, string fieldName3)
     {
-        FieldNames = [fieldName1, fieldName2, fieldName3,];
+        FieldNames = [fieldName1, fieldName2, fieldName3];
     }
 
     /// <summary>

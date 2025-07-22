@@ -12,11 +12,11 @@ internal static class CompletionTools
 {
     public static FusionDirectiveCollection CreateDirectiveCollection(
         IReadOnlyList<DirectiveNode> directives,
-        CompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         directives = DirectiveTools.GetUserDirectives(directives);
 
-        if(directives.Count == 0)
+        if (directives.Count == 0)
         {
             return FusionDirectiveCollection.Empty;
         }
@@ -39,7 +39,7 @@ internal static class CompletionTools
     private static ArgumentAssignment[] CreateArgumentAssignments(
         IReadOnlyList<ArgumentNode> arguments)
     {
-        if(arguments.Count == 0)
+        if (arguments.Count == 0)
         {
             return [];
         }
@@ -60,9 +60,9 @@ internal static class CompletionTools
 
     public static FusionInterfaceTypeDefinitionCollection CreateInterfaceTypeCollection(
         IReadOnlyList<NamedTypeNode> interfaceTypes,
-        CompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
-        if(interfaceTypes.Count == 0)
+        if (interfaceTypes.Count == 0)
         {
             return FusionInterfaceTypeDefinitionCollection.Empty;
         }
@@ -77,9 +77,23 @@ internal static class CompletionTools
         return new FusionInterfaceTypeDefinitionCollection(temp);
     }
 
+    public static FusionObjectTypeDefinitionCollection CreateObjectTypeCollection(
+        IReadOnlyList<NamedTypeNode> types,
+        CompositeSchemaBuilderContext context)
+    {
+        var temp = new FusionObjectTypeDefinition[types.Count];
+
+        for (var i = 0; i < types.Count; i++)
+        {
+            temp[i] = (FusionObjectTypeDefinition)context.GetType(types[i]);
+        }
+
+        return new FusionObjectTypeDefinitionCollection(temp);
+    }
+
     public static SourceObjectTypeCollection CreateSourceObjectTypeCollection(
         ObjectTypeDefinitionNode typeDef,
-        CompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         var types = TypeDirectiveParser.Parse(typeDef.Directives);
         var lookups = LookupDirectiveParser.Parse(typeDef.Directives);
@@ -99,7 +113,7 @@ internal static class CompletionTools
 
     public static SourceInterfaceTypeCollection CreateSourceInterfaceTypeCollection(
         InterfaceTypeDefinitionNode typeDef,
-        CompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         var types = TypeDirectiveParser.Parse(typeDef.Directives);
         var lookups = LookupDirectiveParser.Parse(typeDef.Directives);

@@ -1,6 +1,6 @@
 #pragma warning disable IDE1006 // Naming Styles
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
 using Lang = HotChocolate.Language.DirectiveLocation;
 
@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Introspection;
 // ReSharper disable once InconsistentNaming
 internal sealed class __DirectiveLocation : EnumType<DirectiveLocation>
 {
-    protected override EnumTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override EnumTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
         => new(
             Names.__DirectiveLocation,
             DirectiveLocation_Description,
@@ -19,83 +19,83 @@ internal sealed class __DirectiveLocation : EnumType<DirectiveLocation>
         {
             Values =
             {
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.Query.Value,
                     DirectiveLocation_Query,
                     DirectiveLocation.Query),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.Mutation.Value,
                     DirectiveLocation_Mutation,
                     DirectiveLocation.Mutation),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.Subscription.Value,
                     DirectiveLocation_Subscription,
                     DirectiveLocation.Subscription),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.Field.Value,
                     DirectiveLocation_Field,
                     DirectiveLocation.Field),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.FragmentDefinition.Value,
                     DirectiveLocation_FragmentDefinition,
                     DirectiveLocation.FragmentDefinition),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.FragmentSpread.Value,
                     DirectiveLocation_FragmentSpread,
                     DirectiveLocation.FragmentSpread),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.InlineFragment.Value,
                     DirectiveLocation_InlineFragment,
                     DirectiveLocation.InlineFragment),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.VariableDefinition.Value,
                     DirectiveLocation_VariableDefinition,
                     DirectiveLocation.VariableDefinition),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.Schema.Value,
                     DirectiveLocation_Schema,
                     DirectiveLocation.Schema),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.Scalar.Value,
                     DirectiveLocation_Scalar,
                     DirectiveLocation.Scalar),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.Object.Value,
                     DirectiveLocation_Object,
                     DirectiveLocation.Object),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.FieldDefinition.Value,
                     DirectiveLocation_FieldDefinition,
                     DirectiveLocation.FieldDefinition),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.ArgumentDefinition.Value,
                     DirectiveLocation_ArgumentDefinition,
                     DirectiveLocation.ArgumentDefinition),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.Interface.Value,
                     DirectiveLocation_Interface,
                     DirectiveLocation.Interface),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.Union.Value,
                     DirectiveLocation_Union,
                     DirectiveLocation.Union),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.Enum.Value,
                     DirectiveLocation_Enum,
                     DirectiveLocation.Enum),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.EnumValue.Value,
                     DirectiveLocation_EnumValue,
                     DirectiveLocation.EnumValue),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.InputObject.Value,
                     DirectiveLocation_InputObject,
                     DirectiveLocation.InputObject),
-                new EnumValueDefinition(
+                new EnumValueConfiguration(
                     Lang.InputFieldDefinition.Value,
                     DirectiveLocation_InputFieldDefinition,
-                    DirectiveLocation.InputFieldDefinition),
-            },
+                    DirectiveLocation.InputFieldDefinition)
+            }
         };
 
     public static class Names

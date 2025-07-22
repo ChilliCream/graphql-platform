@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PostMergeValidationRules;
@@ -16,7 +17,9 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var merger = new SourceSchemaMerger(schemas);
+        var merger = new SourceSchemaMerger(
+            schemas,
+            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
         var mergeResult = merger.Merge();
         var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
@@ -34,7 +37,9 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var merger = new SourceSchemaMerger(schemas);
+        var merger = new SourceSchemaMerger(
+            schemas,
+            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
         var mergeResult = merger.Merge();
         var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
@@ -68,6 +73,28 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests
                     }
                     """
                 ]
+            },
+            // Non-nullable default values.
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        field1(type: Enum1! = FOO): [Baz!]!
+                        field2(type: [Int!]! = [1]): [Baz!]!
+                        field3(type: Input1! = { field1: 1 }): [Baz!]!
+                    }
+
+                    enum Enum1 {
+                        FOO
+                        BAR
+                    }
+
+                    input Input1 {
+                        field1: Int!
+                    }
+                    """
+                ]
             }
         };
     }
@@ -98,11 +125,11 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests
                     """
                 ],
                 [
-                    "The default value of 'Query.field(arg:)' references the inaccessible enum " +
-                    "value 'Enum1.FOO'.",
+                    "The default value of 'Query.field(arg:)' references the inaccessible enum "
+                    + "value 'Enum1.FOO'.",
 
-                    "The default value of 'Input1.field' references the inaccessible enum value " +
-                    "'Enum1.FOO'."
+                    "The default value of 'Input1.field' references the inaccessible enum value "
+                    + "'Enum1.FOO'."
                 ]
             },
             // The following example violates this rule because the default value for the argument
@@ -132,11 +159,11 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests
                     """
                 ],
                 [
-                    "The default value of 'Query.field(arg:)' references the inaccessible enum " +
-                    "value 'Enum1.FOO'.",
+                    "The default value of 'Query.field(arg:)' references the inaccessible enum "
+                    + "value 'Enum1.FOO'.",
 
-                    "The default value of 'Input1.field2' references the inaccessible enum value " +
-                    "'Enum1.FOO'."
+                    "The default value of 'Input1.field2' references the inaccessible enum value "
+                    + "'Enum1.FOO'."
                 ]
             },
             // The following example violates this rule because the default value for the argument
@@ -161,11 +188,11 @@ public sealed class EnumTypeDefaultValueInaccessibleRuleTests
                     """
                 ],
                 [
-                    "The default value of 'Query.field(arg:)' references the inaccessible enum " +
-                    "value 'Enum1.FOO'.",
+                    "The default value of 'Query.field(arg:)' references the inaccessible enum "
+                    + "value 'Enum1.FOO'.",
 
-                    "The default value of 'Input1.field' references the inaccessible enum value " +
-                    "'Enum1.FOO'."
+                    "The default value of 'Input1.field' references the inaccessible enum value "
+                    + "'Enum1.FOO'."
                 ]
             }
         };

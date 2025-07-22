@@ -124,7 +124,6 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
 
         base.WriteResolverMethods(objectType, typeLookup);
 
-
         if (objectType.NodeResolver is not null)
         {
             if (objectType.Resolvers.Length > 0)

@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Caching.Memory</PackageId>
+    <AssemblyName>HotChocolate.Caching.Memory</AssemblyName>
+    <RootNamespace>HotChocolate.Caching.Memory</RootNamespace>
+    <NoWarn>HC8001;$(NoWarn)</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAotCompatible>true</IsAotCompatible>
+    <NoWarn>$(NoWarn);CA1812</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Caching.Memory.Tests" />
+  </ItemGroup>
+
+</Project>

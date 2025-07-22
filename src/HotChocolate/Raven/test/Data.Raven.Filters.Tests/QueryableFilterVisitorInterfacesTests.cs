@@ -9,10 +9,10 @@ namespace HotChocolate.Data.Filters;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableFilterVisitorInterfacesTests
 {
-    private static readonly BarInterface[] _barEntities =
+    private static readonly BarInterface[] s_barEntities =
     [
-        new() { Test = new InterfaceImpl1 { Prop = "a", }, },
-        new() { Test = new InterfaceImpl1 { Prop = "b", }, },
+        new() { Test = new InterfaceImpl1 { Prop = "a" } },
+        new() { Test = new InterfaceImpl1 { Prop = "b" } }
     ];
 
     private readonly SchemaCache _cache;
@@ -27,29 +27,29 @@ public class QueryableFilterVisitorInterfacesTests
     {
         // arrange
         var tester = _cache
-            .CreateSchema<BarInterface, FilterInputType<BarInterface>>(_barEntities,
+            .CreateSchema<BarInterface, FilterInputType<BarInterface>>(s_barEntities,
                 configure: Configure);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { test: { prop: { eq: \"a\"}}}) " +
-                    "{ test{ prop }}}")
+                    "{ root(where: { test: { prop: { eq: \"a\"}}}) "
+                    + "{ test{ prop }}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { test: { prop: { eq: \"b\"}}}) " +
-                    "{ test{ prop }}}")
+                    "{ root(where: { test: { prop: { eq: \"b\"}}}) "
+                    + "{ test{ prop }}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { test: { prop: { eq: null}}}) " +
-                    "{ test{ prop}}}")
+                    "{ root(where: { test: { prop: { eq: null}}}) "
+                    + "{ test{ prop}}}")
                 .Build());
 
         // assert
@@ -72,17 +72,17 @@ public class QueryableFilterVisitorInterfacesTests
         [Key]
         public string? Id { get; set; }
 
-        public string Prop { get; set; } = default!;
+        public string Prop { get; set; } = null!;
     }
 
     public class InterfaceImpl1 : Test
     {
-        public string Specific1 { get; set; } = default!;
+        public string Specific1 { get; set; } = null!;
     }
 
     public class InterfaceImpl2 : Test
     {
-        public string Specific2 { get; set; } = default!;
+        public string Specific2 { get; set; } = null!;
     }
 
     public class BarInterface
@@ -90,6 +90,6 @@ public class QueryableFilterVisitorInterfacesTests
         [Key]
         public string? Id { get; set; }
 
-        public Test Test { get; set; } = default!;
+        public Test Test { get; set; } = null!;
     }
 }

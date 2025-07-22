@@ -1,7 +1,7 @@
 #nullable enable
 
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Helpers;
 
@@ -9,15 +9,15 @@ internal static class FieldMiddlewareCompiler
 {
     public static FieldDelegate? Compile(
         IReadOnlyList<FieldMiddleware> globalComponents,
-        IReadOnlyList<FieldMiddlewareDefinition> fieldComponents,
-        IReadOnlyList<ResultFormatterDefinition> resultConverters,
+        IReadOnlyList<FieldMiddlewareConfiguration> fieldComponents,
+        IReadOnlyList<ResultFormatterConfiguration> resultConverters,
         FieldResolverDelegate? fieldResolver,
         bool skipMiddleware)
     {
-        if (skipMiddleware ||
-            (globalComponents.Count == 0 &&
-            fieldComponents.Count == 0 &&
-            resultConverters.Count == 0))
+        if (skipMiddleware
+            || (globalComponents.Count == 0
+            && fieldComponents.Count == 0
+            && resultConverters.Count == 0))
         {
             return fieldResolver is null
                 ? null
@@ -32,7 +32,7 @@ internal static class FieldMiddlewareCompiler
     }
 
     public static PureFieldDelegate Compile(
-        IReadOnlyList<ResultFormatterDefinition> resultConverters,
+        IReadOnlyList<ResultFormatterConfiguration> resultConverters,
         PureFieldDelegate fieldResolver,
         bool skipMiddleware)
         => skipMiddleware || resultConverters.Count == 0
@@ -41,8 +41,8 @@ internal static class FieldMiddlewareCompiler
 
     private static FieldDelegate CompilePipeline(
         IReadOnlyList<FieldMiddleware> components,
-        IReadOnlyList<FieldMiddlewareDefinition> mappedComponents,
-        IReadOnlyList<ResultFormatterDefinition> resultConverters,
+        IReadOnlyList<FieldMiddlewareConfiguration> mappedComponents,
+        IReadOnlyList<ResultFormatterConfiguration> resultConverters,
         FieldResolverDelegate? fieldResolver)
         => CompileMiddlewareComponents(components,
             CompileMiddlewareComponents(mappedComponents,
@@ -64,7 +64,7 @@ internal static class FieldMiddlewareCompiler
     }
 
     private static FieldDelegate CompileMiddlewareComponents(
-        IReadOnlyList<FieldMiddlewareDefinition> components,
+        IReadOnlyList<FieldMiddlewareConfiguration> components,
         FieldDelegate first)
     {
         var next = first;
@@ -78,7 +78,7 @@ internal static class FieldMiddlewareCompiler
     }
 
     private static FieldDelegate CompileResultConverters(
-        IReadOnlyList<ResultFormatterDefinition> components,
+        IReadOnlyList<ResultFormatterConfiguration> components,
         FieldDelegate first)
     {
         var next = first;
@@ -92,7 +92,7 @@ internal static class FieldMiddlewareCompiler
     }
 
     private static PureFieldDelegate CompileResultConverters(
-        IReadOnlyList<ResultFormatterDefinition> components,
+        IReadOnlyList<ResultFormatterConfiguration> components,
         PureFieldDelegate first)
     {
         var next = first;

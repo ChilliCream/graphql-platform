@@ -1,5 +1,4 @@
 using System.Net;
-using Xunit;
 using HotChocolate.AspNetCore.Tests.Utilities;
 
 // ReSharper disable AccessToDisposedClosure

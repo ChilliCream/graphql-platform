@@ -14,7 +14,7 @@ internal static class InputObjectConstructorResolver
         FieldCollection<T> fields,
         Dictionary<string, T> fieldMap,
         HashSet<string> required)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider
     {
         var constructors = type.GetConstructors(NonPublic | Public | Instance);
 
@@ -63,14 +63,14 @@ internal static class InputObjectConstructorResolver
         }
 
         throw new InvalidOperationException(
-            $"No compatible constructor found for input type type `{type.FullName}`.\r\n" +
-            "Either you have to provide a public constructor with settable properties or " +
-            "a public constructor that allows to pass in values for read-only properties. " +
-            $"There was no way to set the following properties: {string.Join(", ", required)}.");
+            $"No compatible constructor found for input type type `{type.FullName}`.\r\n"
+            + "Either you have to provide a public constructor with settable properties or "
+            + "a public constructor that allows to pass in values for read-only properties. "
+            + $"There was no way to set the following properties: {string.Join(", ", required)}.");
     }
 
     private static bool AllPropertiesCanWrite<T>(FieldCollection<T> fields)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider
     {
         foreach (var field in fields.AsSpan())
         {
@@ -87,7 +87,7 @@ internal static class InputObjectConstructorResolver
         ConstructorInfo constructor,
         IReadOnlyDictionary<string, T> fields,
         HashSet<string> required)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider
     {
         var count = required.Count;
 
@@ -103,11 +103,11 @@ internal static class InputObjectConstructorResolver
                     }
                 }
                 else if (
-                    parameter.ParameterType.IsValueType &&
-                    field.Property!.PropertyType.IsValueType &&
-                    parameter.ParameterType.IsGenericType &&
-                    typeof(Nullable<>) == parameter.ParameterType.GetGenericTypeDefinition() &&
-                    parameter.ParameterType.GetGenericArguments()[0] == field.Property!.PropertyType)
+                    parameter.ParameterType.IsValueType
+                    && field.Property!.PropertyType.IsValueType
+                    && parameter.ParameterType.IsGenericType
+                    && typeof(Nullable<>) == parameter.ParameterType.GetGenericTypeDefinition()
+                    && parameter.ParameterType.GetGenericArguments()[0] == field.Property!.PropertyType)
                 {
                     if (required.Contains(field.Name))
                     {
@@ -131,7 +131,7 @@ internal static class InputObjectConstructorResolver
     private static void CollectReadOnlyProperties<T>(
         FieldCollection<T> fields,
         ISet<string> required)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider
     {
         required.Clear();
 
@@ -148,7 +148,7 @@ internal static class InputObjectConstructorResolver
         this IReadOnlyDictionary<string, T> fields,
         ParameterInfo parameter,
         [NotNullWhen(true)] out T? field)
-        where T : class, IInputField, IHasProperty
+        where T : class, IInputValueDefinition, IPropertyProvider
     {
         var name = parameter.Name!;
         var alterName = GetAlternativeParameterName(parameter.Name!);

@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PostMergeValidationRules;
@@ -16,7 +17,9 @@ public sealed class NonNullInputFieldIsInaccessibleRuleTests
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var merger = new SourceSchemaMerger(schemas);
+        var merger = new SourceSchemaMerger(
+            schemas,
+            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
         var mergeResult = merger.Merge();
         var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
@@ -34,7 +37,9 @@ public sealed class NonNullInputFieldIsInaccessibleRuleTests
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var merger = new SourceSchemaMerger(schemas);
+        var merger = new SourceSchemaMerger(
+            schemas,
+            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
         var mergeResult = merger.Merge();
         var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
@@ -116,8 +121,8 @@ public sealed class NonNullInputFieldIsInaccessibleRuleTests
                     """
                 ],
                 [
-                    "The non-null input field 'BookFilter.age' in schema 'A' must be accessible " +
-                    "in the composed schema."
+                    "The non-null input field 'BookFilter.age' in schema 'A' must be accessible "
+                    + "in the composed schema."
                 ]
             },
             // Another invalid case is when a non-null input field is removed during merging.
@@ -137,8 +142,8 @@ public sealed class NonNullInputFieldIsInaccessibleRuleTests
                     """
                 ],
                 [
-                    "The non-null input field 'BookFilter.age' in schema 'A' must be accessible " +
-                    "in the composed schema."
+                    "The non-null input field 'BookFilter.age' in schema 'A' must be accessible "
+                    + "in the composed schema."
                 ]
             }
         };

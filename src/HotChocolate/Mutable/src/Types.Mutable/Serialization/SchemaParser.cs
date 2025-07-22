@@ -1,5 +1,4 @@
 using System.Text;
-using HotChocolate.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Mutable.Serialization;
@@ -101,8 +100,8 @@ public static class SchemaParser
     {
         foreach (var definition in document.Definitions)
         {
-            if (definition is ITypeExtensionNode typeExt &&
-                !schema.Types.ContainsName(typeExt.Name.Value))
+            if (definition is ITypeExtensionNode typeExt
+                && !schema.Types.ContainsName(typeExt.Name.Value))
             {
                 switch (definition)
                 {
@@ -291,20 +290,20 @@ public static class SchemaParser
         // if we did not find a schema definition we will infer the root types.
         if (!hasDefinition)
         {
-            if (schema.QueryType is null &&
-                schema.Types.TryGetType<MutableObjectTypeDefinition>("Query", out var queryType))
+            if (schema.QueryType is null
+                && schema.Types.TryGetType<MutableObjectTypeDefinition>("Query", out var queryType))
             {
                 schema.QueryType = queryType;
             }
 
-            if (schema.MutationType is null &&
-                schema.Types.TryGetType<MutableObjectTypeDefinition>("Mutation", out var mutationType))
+            if (schema.MutationType is null
+                && schema.Types.TryGetType<MutableObjectTypeDefinition>("Mutation", out var mutationType))
             {
                 schema.MutationType = mutationType;
             }
 
-            if (schema.SubscriptionType is null &&
-                schema.Types.TryGetType<MutableObjectTypeDefinition>("Subscription", out var subscriptionType))
+            if (schema.SubscriptionType is null
+                && schema.Types.TryGetType<MutableObjectTypeDefinition>("Subscription", out var subscriptionType))
             {
                 schema.SubscriptionType = subscriptionType;
             }
@@ -350,7 +349,7 @@ public static class SchemaParser
 
         foreach (var interfaceRef in node.Interfaces)
         {
-            type.Implements.Add(schema.Types.ResolveType<MutableInterfaceTypeDefinition>(interfaceRef));
+            type.Implements.Add(schema.Types.BuildType<MutableInterfaceTypeDefinition>(interfaceRef));
         }
 
         foreach (var fieldNode in node.Fields)
@@ -363,7 +362,7 @@ public static class SchemaParser
 
             var field = new MutableOutputFieldDefinition(fieldNode.Name.Value);
             field.Description = fieldNode.Description?.Value;
-            field.Type = schema.Types.ResolveType(fieldNode.Type);
+            field.Type = schema.Types.BuildType(fieldNode.Type).ExpectOutputType();
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
 
@@ -383,7 +382,7 @@ public static class SchemaParser
 
                 var argument = new MutableInputFieldDefinition(argumentNode.Name.Value);
                 argument.Description = argumentNode.Description?.Value;
-                argument.Type = schema.Types.ResolveType(argumentNode.Type);
+                argument.Type = schema.Types.BuildType(argumentNode.Type).ExpectInputType();
                 argument.DefaultValue = argumentNode.DefaultValue;
 
                 BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
@@ -427,7 +426,7 @@ public static class SchemaParser
 
             var field = new MutableInputFieldDefinition(fieldNode.Name.Value);
             field.Description = fieldNode.Description?.Value;
-            field.Type = schema.Types.ResolveType(fieldNode.Type);
+            field.Type = schema.Types.BuildType(fieldNode.Type).ExpectInputType();
             field.DefaultValue = fieldNode.DefaultValue;
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
@@ -552,7 +551,7 @@ public static class SchemaParser
         {
             var argument = new MutableInputFieldDefinition(argumentNode.Name.Value);
             argument.Description = argumentNode.Description?.Value;
-            argument.Type = schema.Types.ResolveType(argumentNode.Type);
+            argument.Type = schema.Types.BuildType(argumentNode.Type).ExpectInputType();
             argument.DefaultValue = argumentNode.DefaultValue;
 
             BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
@@ -677,19 +676,19 @@ public static class SchemaParser
 
 file static class SchemaParserExtensions
 {
-    public static T ResolveType<T>(this TypeDefinitionCollection typesDefinition, ITypeNode typeRef)
+    public static T BuildType<T>(this TypeDefinitionCollection typesDefinition, ITypeNode typeRef)
         where T : IType
-        => (T)ResolveType(typesDefinition, typeRef);
+        => (T)BuildType(typesDefinition, typeRef);
 
-    public static IType ResolveType(this TypeDefinitionCollection typesDefinition, ITypeNode typeRef)
+    public static IType BuildType(this TypeDefinitionCollection typesDefinition, ITypeNode typeRef)
     {
         switch (typeRef)
         {
             case NonNullTypeNode nonNullTypeRef:
-                return new NonNullType(ResolveType(typesDefinition, nonNullTypeRef.Type));
+                return new NonNullType(BuildType(typesDefinition, nonNullTypeRef.Type));
 
             case ListTypeNode listTypeRef:
-                return new ListType(ResolveType(typesDefinition, listTypeRef.Type));
+                return new ListType(BuildType(typesDefinition, listTypeRef.Type));
 
             case NamedTypeNode namedTypeRef:
                 if (typesDefinition.TryGetType(namedTypeRef.Name.Value, out var type))
@@ -699,7 +698,7 @@ file static class SchemaParserExtensions
 
                 if (BuiltIns.IsBuiltInScalar(namedTypeRef.Name.Value))
                 {
-                    var scalar = new MutableScalarTypeDefinition(namedTypeRef.Name.Value) { IsSpecScalar = true, };
+                    var scalar = new MutableScalarTypeDefinition(namedTypeRef.Name.Value) { IsSpecScalar = true };
                     typesDefinition.Add(scalar);
                     return scalar;
                 }

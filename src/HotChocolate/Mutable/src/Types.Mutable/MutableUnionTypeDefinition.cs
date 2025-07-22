@@ -29,7 +29,7 @@ public class MutableUnionTypeDefinition
     /// <inheritdoc cref="IMutableTypeDefinition.Name" />
     public string Name
     {
-        get => field;
+        get;
         set => field = value.EnsureGraphQLName();
     }
 
@@ -55,6 +55,10 @@ public class MutableUnionTypeDefinition
     [field: AllowNull, MaybeNull]
     public IFeatureCollection Features
         => field ??= new FeatureCollection();
+
+    /// <inheritdoc />
+    public SchemaCoordinate Coordinate
+        => new(Name, ofDirective: false);
 
     /// <summary>
     /// Get the string representation of the union type definition.
@@ -93,10 +97,7 @@ public class MutableUnionTypeDefinition
     /// <inheritdoc />
     public bool IsAssignableFrom(ITypeDefinition type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         switch (type.Kind)
         {

@@ -39,7 +39,7 @@ public static class DataLoaderListBatchTests
         var dataLoader = services.GetRequiredService<TestDataLoader>();
 
         // act
-        List<Task> tasks = new();
+        List<Task> tasks = [];
         foreach (var _ in Enumerable.Range(0, 10))
         {
             tasks.Add(

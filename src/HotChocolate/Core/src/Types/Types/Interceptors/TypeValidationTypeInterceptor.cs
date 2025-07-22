@@ -1,5 +1,5 @@
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -10,32 +10,32 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
 {
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         if (discoveryContext.IsIntrospectionType)
         {
             return;
         }
 
-        switch (definition)
+        switch (configuration)
         {
-            case ObjectTypeDefinition od:
+            case ObjectTypeConfiguration od:
                 ValidateObjectType(discoveryContext, od);
                 return;
 
-            case InputObjectTypeDefinition ind:
+            case InputObjectTypeConfiguration ind:
                 ValidateInputObjectType(discoveryContext, ind);
                 return;
 
-            case InterfaceTypeDefinition id:
+            case InterfaceTypeConfiguration id:
                 ValidateInterfaceType(discoveryContext, id);
                 return;
 
-            case UnionTypeDefinition ud:
+            case UnionTypeConfiguration ud:
                 ValidateUnionType(discoveryContext, ud);
                 return;
 
-            case DirectiveTypeDefinition ud:
+            case DirectiveTypeConfiguration ud:
                 ValidateDirectiveType(discoveryContext, ud);
                 return;
         }
@@ -43,10 +43,10 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
 
     private void ValidateInputObjectType(
         ITypeDiscoveryContext context,
-        InputObjectTypeDefinition? definition)
+        InputObjectTypeConfiguration? definition)
     {
-        if (definition is { RuntimeType: { } runtimeType, } &&
-            IsTypeSystemType(definition.RuntimeType))
+        if (definition is { RuntimeType: { } runtimeType }
+            && IsTypeSystemType(definition.RuntimeType))
         {
             ReportRuntimeTypeError(context, runtimeType);
             definition.RuntimeType = typeof(object);
@@ -57,10 +57,10 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
 
     private void ValidateDirectiveType(
         ITypeDiscoveryContext context,
-        DirectiveTypeDefinition? definition)
+        DirectiveTypeConfiguration? definition)
     {
-        if (definition is { RuntimeType: { } runtimeType, } &&
-            IsTypeSystemType(definition.RuntimeType))
+        if (definition is { RuntimeType: { } runtimeType }
+            && IsTypeSystemType(definition.RuntimeType))
         {
             ReportRuntimeTypeError(context, runtimeType);
             definition.RuntimeType = typeof(object);
@@ -70,10 +70,10 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
 
     private void ValidateUnionType(
         ITypeDiscoveryContext context,
-        UnionTypeDefinition? definition)
+        UnionTypeConfiguration? definition)
     {
-        if (definition is { RuntimeType: { } runtimeType, } &&
-            IsTypeSystemType(definition.RuntimeType))
+        if (definition is { RuntimeType: { } runtimeType }
+            && IsTypeSystemType(definition.RuntimeType))
         {
             ReportRuntimeTypeError(context, runtimeType);
             definition.RuntimeType = typeof(object);
@@ -83,10 +83,10 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
 
     private void ValidateObjectType(
         ITypeDiscoveryContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
-        if (definition is { RuntimeType: { } runtimeType, } &&
-            IsTypeSystemType(definition.RuntimeType))
+        if (definition is { RuntimeType: { } runtimeType }
+            && IsTypeSystemType(definition.RuntimeType))
         {
             ReportRuntimeTypeError(context, runtimeType);
             definition.RuntimeType = typeof(object);
@@ -98,10 +98,10 @@ internal sealed class TypeValidationTypeInterceptor : TypeInterceptor
 
     private void ValidateInterfaceType(
         ITypeDiscoveryContext context,
-        InterfaceTypeDefinition? definition)
+        InterfaceTypeConfiguration? definition)
     {
-        if (definition is { RuntimeType: { } runtimeType, } &&
-            IsTypeSystemType(definition.RuntimeType))
+        if (definition is { RuntimeType: { } runtimeType }
+            && IsTypeSystemType(definition.RuntimeType))
         {
             ReportRuntimeTypeError(context, runtimeType);
             definition.RuntimeType = typeof(object);

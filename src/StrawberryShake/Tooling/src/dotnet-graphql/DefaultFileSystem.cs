@@ -4,7 +4,7 @@ namespace StrawberryShake.Tools;
 
 public class DefaultFileSystem : IFileSystem
 {
-    private const string _graphQLFilter = "*.graphql";
+    private const string GraphQLFilter = "*.graphql";
 
     public string CurrentDirectory => Environment.CurrentDirectory;
 
@@ -28,7 +28,7 @@ public class DefaultFileSystem : IFileSystem
             SearchOption.AllDirectories))
         {
             var directory = Path.GetDirectoryName(configFile)!;
-            if (Directory.GetFiles(directory, _graphQLFilter).Length > 0)
+            if (Directory.GetFiles(directory, GraphQLFilter).Length > 0)
             {
                 yield return directory;
             }
@@ -43,7 +43,7 @@ public class DefaultFileSystem : IFileSystem
     public string? GetDirectoryName(string path) => Path.GetDirectoryName(path);
 
     public IEnumerable<string> GetGraphQLFiles(string path) =>
-        Directory.GetFiles(path, _graphQLFilter);
+        Directory.GetFiles(path, GraphQLFilter);
 
     public string ResolvePath(string? path, string? fileName)
     {

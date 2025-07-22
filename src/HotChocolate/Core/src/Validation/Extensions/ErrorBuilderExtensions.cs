@@ -4,8 +4,8 @@ namespace HotChocolate.Validation;
 
 internal static class ErrorBuilderExtensions
 {
-    public static IErrorBuilder SpecifiedBy(
-        this IErrorBuilder errorBuilder,
+    public static ErrorBuilder SpecifiedBy(
+        this ErrorBuilder errorBuilder,
         string section,
         bool isDraft = false,
         int? rfc = null)
@@ -33,8 +33,8 @@ internal static class ErrorBuilderExtensions
         return errorBuilder;
     }
 
-    public static IErrorBuilder SetFragmentName(
-        this IErrorBuilder errorBuilder,
+    public static ErrorBuilder SetFragmentName(
+        this ErrorBuilder errorBuilder,
         ISyntaxNode node)
     {
         if (node.Kind == SyntaxKind.FragmentDefinition)

@@ -5,7 +5,7 @@ using MongoDB.Driver;
 namespace HotChocolate.Data.MongoDb.Filters;
 
 /// <summary>
-/// This filter operation handler maps a All operation field to a
+/// This filter operation handler maps an All operation field to a
 /// <see cref="FilterDefinition{TDocument}"/>
 /// </summary>
 public class MongoDbListNoneOperationHandler : MongoDbListOperationHandlerBase
@@ -26,7 +26,7 @@ public class MongoDbListNoneOperationHandler : MongoDbListOperationHandlerBase
                 new BsonDocument
                 {
                         { "$exists", true },
-                        { "$nin", new BsonArray { new BsonArray(), BsonNull.Value, } },
+                        { "$nin", new BsonArray { new BsonArray(), BsonNull.Value } }
                 }),
             new MongoDbFilterOperation(
                 path,

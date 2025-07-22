@@ -4,14 +4,14 @@ namespace HotChocolate.Execution.Requirements;
 
 internal sealed class TypeNode(Type type, List<PropertyNode>? nodes = null)
 {
-    private static readonly IReadOnlyList<PropertyNode> _emptyNodes = Array.Empty<PropertyNode>();
+    private static readonly IReadOnlyList<PropertyNode> s_emptyNodes = [];
     private List<PropertyNode>? _nodes = nodes ?? [];
     private bool _sealed;
 
     public Type Type => type;
 
     public IReadOnlyList<PropertyNode> Nodes
-        => _nodes ?? _emptyNodes;
+        => _nodes ?? s_emptyNodes;
 
     public PropertyNode AddOrGetNode(PropertyInfo property)
     {
@@ -20,7 +20,7 @@ internal sealed class TypeNode(Type type, List<PropertyNode>? nodes = null)
             throw new InvalidOperationException("The property node container is sealed.");
         }
 
-        _nodes ??= new();
+        _nodes ??= [];
 
         foreach (var node in Nodes)
         {
@@ -42,7 +42,7 @@ internal sealed class TypeNode(Type type, List<PropertyNode>? nodes = null)
             throw new InvalidOperationException("The property node container is sealed.");
         }
 
-        _nodes ??= new();
+        _nodes ??= [];
 
         foreach (var node in _nodes)
         {

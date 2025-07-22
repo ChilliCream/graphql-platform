@@ -315,6 +315,27 @@ internal static class LogEntryHelper
             schema);
     }
 
+    public static LogEntry ImplementedByInaccessible(
+        MutableOutputFieldDefinition field,
+        string typeName,
+        string interfaceFieldName,
+        string interfaceTypeName,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = new SchemaCoordinate(typeName, field.Name);
+
+        return new LogEntry(
+            string.Format(
+                LogEntryHelper_ImplementedByInaccessible,
+                coordinate,
+                new SchemaCoordinate(interfaceTypeName, interfaceFieldName)),
+            LogEntryCodes.ImplementedByInaccessible,
+            LogSeverity.Error,
+            coordinate,
+            field,
+            schema);
+    }
+
     public static LogEntry InputFieldDefaultMismatch(
         IValueNode defaultValueA,
         IValueNode defaultValueB,
@@ -420,6 +441,26 @@ internal static class LogEntryHelper
             coordinate,
             field,
             schema);
+    }
+
+    public static LogEntry IsInvalidField(
+        Directive isDirective,
+        string argumentName,
+        string fieldName,
+        string typeName,
+        MutableSchemaDefinition sourceSchema,
+        ImmutableArray<string> errors)
+    {
+        var coordinate = new SchemaCoordinate(typeName, fieldName, argumentName);
+
+        return new LogEntry(
+            string.Format(LogEntryHelper_IsInvalidField, coordinate, sourceSchema.Name),
+            LogEntryCodes.IsInvalidField,
+            LogSeverity.Error,
+            coordinate,
+            isDirective,
+            sourceSchema,
+            errors);
     }
 
     public static LogEntry IsInvalidFieldType(
@@ -855,23 +896,22 @@ internal static class LogEntryHelper
     }
 
     public static LogEntry RequireInvalidFields(
-        Directive fusionRequiresDirective,
+        Directive requireDirective,
         string argumentName,
         string fieldName,
         string typeName,
-        string sourceSchemaName,
-        MutableSchemaDefinition schema,
+        MutableSchemaDefinition sourceSchema,
         ImmutableArray<string> errors)
     {
         var coordinate = new SchemaCoordinate(typeName, fieldName, argumentName);
 
         return new LogEntry(
-            string.Format(LogEntryHelper_RequireInvalidFields, coordinate, sourceSchemaName),
+            string.Format(LogEntryHelper_RequireInvalidFields, coordinate, sourceSchema.Name),
             LogEntryCodes.RequireInvalidFields,
             LogSeverity.Error,
             coordinate,
-            fusionRequiresDirective,
-            schema,
+            requireDirective,
+            sourceSchema,
             errors);
     }
 

@@ -1,6 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting.Expressions;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -9,6 +9,6 @@ public class MatchAnyQueryableOperationHandler
 {
     public override bool CanHandle(
         ITypeCompletionContext context,
-        EnumTypeDefinition typeDefinition,
-        SortEnumValueDefinition valueDefinition) => true;
+        EnumTypeConfiguration typeDefinition,
+        SortEnumValueConfiguration valueConfiguration) => true;
 }

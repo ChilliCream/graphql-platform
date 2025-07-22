@@ -209,7 +209,7 @@ public sealed class FieldSelectionMapValidatorTests
             "The selection on one-of input type 'PersonByInput' must include a single field."
         })]
     [InlineData(
-        "{ id name }",
+        "{ id, name }",
         new[]
         {
             "The selection on one-of input type 'PersonByInput' must include a single field."
@@ -268,6 +268,7 @@ public sealed class FieldSelectionMapValidatorTests
             { "FindMediaInput", "Media", "{ bookId: <Book>.id } | { movieId: <Movie>.id }" },
             { "Nested", "Media", "{ nested: { bookId: <Book>.id } | { movieId: <Movie>.id } }" },
             // Other tests.
+            { "String", "Book", "{ id, title }" },
             { "ID", "Query", "mediaById<Book>.author.id | mediaById<Movie>.id" },
             { "ID", "Media", "{ bookId: <Book>.author.id } | { movieId: <Movie>.id }" }
         };
@@ -297,8 +298,8 @@ public sealed class FieldSelectionMapValidatorTests
                 "Book",
                 "title.something",
                 [
-                    "The field 'title' does not return a composite type and cannot have " +
-                    "subselections."
+                    "The field 'title' does not return a composite type and cannot have "
+                    + "subselections."
                 ]
             },
             // Invalid Path where non-leaf fields do not have further selections.
@@ -320,12 +321,21 @@ public sealed class FieldSelectionMapValidatorTests
             // Blocked by https://github.com/graphql/composite-schemas-spec/issues/171.
             // Additional tests.
             {
+                "String",
+                "Book",
+                "{ id, unknownField1, unknownField2 }",
+                [
+                    "The field 'unknownField1' does not exist on the type 'Book'.",
+                    "The field 'unknownField2' does not exist on the type 'Book'."
+                ]
+            },
+            {
                 "ID",
                 "Media",
                 "<MissingType>.movieId",
                 [
-                    "The type condition in path '<MissingType>.movieId' is invalid. Type " +
-                    "'MissingType' does not exist."
+                    "The type condition in path '<MissingType>.movieId' is invalid. Type "
+                    + "'MissingType' does not exist."
                 ]
             },
             {
@@ -333,8 +343,8 @@ public sealed class FieldSelectionMapValidatorTests
                 "Query",
                 "mediaById<MissingType>.movieId",
                 [
-                    "The type condition in path 'mediaById<MissingType>.movieId' is invalid. " +
-                    "Type 'MissingType' does not exist."
+                    "The type condition in path 'mediaById<MissingType>.movieId' is invalid. "
+                    + "Type 'MissingType' does not exist."
                 ]
             },
             {

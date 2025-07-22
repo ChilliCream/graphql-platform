@@ -1,8 +1,7 @@
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -31,32 +30,44 @@ namespace HotChocolate.Validation.Rules;
 /// http://facebook.github.io/graphql/June2018/#sec-Required-Arguments
 /// </summary>
 internal sealed class ArgumentVisitor()
-    : TypeDocumentValidatorVisitor(
-        new SyntaxVisitorOptions { VisitDirectives = true, })
+    : TypeDocumentValidatorVisitor(new SyntaxVisitorOptions { VisitDirectives = true })
 {
     protected override ISyntaxVisitorAction Enter(
-        FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentNode node,
+        DocumentValidatorContext context)
     {
-        context.Names.Clear();
+        // The document node is the root node that is entered once per visitation.
+        // We use this hook to ensure that the argument visitor feature is created
+        // and we can use it in consecutive visits of child nodes without extra
+        // checks at each point.
+        // We do use a GetOrSet here because the context is a pooled object.
+        context.Features.GetOrSet<ArgumentVisitorFeature>();
+        return base.Enter(node, context);
+    }
 
-        if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
+    protected override ISyntaxVisitorAction Enter(
+        FieldNode node,
+        DocumentValidatorContext context)
+    {
+        if (IntrospectionFieldNames.TypeName.Equals(node.Name.Value, StringComparison.Ordinal))
         {
+            var typeName = context.Types.Peek().NamedType().Name;
+
             ValidateArguments(
-                context, node, node.Arguments,
-                TypeNameField.Arguments, field: TypeNameField);
+                context,
+                node,
+                node.Arguments,
+                EmptyCollections.InputFieldDefinitions,
+                field: new SchemaCoordinate(typeName, IntrospectionFieldNames.TypeName));
 
             return Skip;
         }
 
-        if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is IComplexOutputType ot &&
-            ot.Fields.TryGetField(node.Name.Value, out var of))
+        if (context.Types.TryPeek(out var type)
+            && type.NamedType() is IComplexTypeDefinition ot
+            && ot.Fields.TryGetField(node.Name.Value, out var of))
         {
-            ValidateArguments(
-                context, node, node.Arguments,
-                of.Arguments, field: of);
-
+            ValidateArguments(context, node, node.Arguments, of.Arguments, field: of.Coordinate);
             context.OutputFields.Push(of);
             context.Types.Push(of.Type);
             return Continue;
@@ -68,7 +79,7 @@ internal sealed class ArgumentVisitor()
 
     protected override ISyntaxVisitorAction Leave(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.Types.Pop();
         context.OutputFields.Pop();
@@ -77,11 +88,9 @@ internal sealed class ArgumentVisitor()
 
     protected override ISyntaxVisitorAction Enter(
         DirectiveNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        context.Names.Clear();
-
-        if (context.Schema.TryGetDirectiveType(node.Name.Value, out var d))
+        if (context.Schema.DirectiveDefinitions.TryGetDirective(node.Name.Value, out var d))
         {
             context.Directives.Push(d);
 
@@ -100,60 +109,78 @@ internal sealed class ArgumentVisitor()
 
     protected override ISyntaxVisitorAction Leave(
         DirectiveNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.Directives.Pop();
         return Continue;
     }
 
-    private void ValidateArguments(
-        IDocumentValidatorContext context,
+    private static void ValidateArguments(
+        DocumentValidatorContext context,
         ISyntaxNode node,
         IReadOnlyList<ArgumentNode> argumentNodes,
-        IFieldCollection<IInputField> arguments,
-        IOutputField? field = null,
-        DirectiveType? directive = null)
+        IReadOnlyFieldDefinitionCollection<IInputValueDefinition> arguments,
+        SchemaCoordinate? field = null,
+        IDirectiveDefinition? directive = null)
     {
-        context.Names.Clear();
+        var argumentNames = context.Features.GetRequired<ArgumentVisitorFeature>().ArgumentNames;
+        argumentNames.Clear();
 
-        for (var i = 0; i < argumentNodes.Count; i++)
+        foreach (var argument in argumentNodes)
         {
-            var argument = argumentNodes[i];
-
             if (arguments.TryGetField(argument.Name.Value, out var arg))
             {
-                if (!context.Names.Add(argument.Name.Value))
+                if (!argumentNames.Add(argument.Name.Value))
                 {
-                    context.ReportError(context.ArgumentNotUnique(
-                        argument, field, directive));
+                    context.ReportError(
+                        context.ArgumentNotUnique(
+                            argument,
+                            field,
+                            directive));
                 }
 
-                if (arg.Type.IsNonNullType() &&
-                    arg.DefaultValue.IsNull() &&
-                    argument.Value.IsNull())
+                if (arg.Type.IsNonNullType()
+                    && arg.DefaultValue.IsNull()
+                    && argument.Value.IsNull())
                 {
-                    context.ReportError(context.ArgumentRequired(
-                        argument, argument.Name.Value, field, directive));
+                    context.ReportError(
+                        context.ArgumentRequired(
+                            argument,
+                            argument.Name.Value,
+                            field,
+                            directive));
                 }
             }
             else
             {
-                context.ReportError(context.ArgumentDoesNotExist(
-                    argument, field, directive));
+                context.ReportError(
+                    context.ArgumentDoesNotExist(
+                        argument,
+                        field,
+                        directive));
             }
         }
 
-        for (var i = 0; i < arguments.Count; i++)
+        foreach (var argument in arguments)
         {
-            var argument = arguments[i];
-
-            if (argument.Type.IsNonNullType() &&
-                argument.DefaultValue.IsNull() &&
-                context.Names.Add(argument.Name))
+            if (argument.Type.IsNonNullType()
+                && argument.DefaultValue.IsNull()
+                && argumentNames.Add(argument.Name))
             {
-                context.ReportError(context.ArgumentRequired(
-                    node, argument.Name, field, directive));
+                context.ReportError(
+                    context.ArgumentRequired(
+                        node,
+                        argument.Name,
+                        field,
+                        directive));
             }
         }
+    }
+
+    private sealed class ArgumentVisitorFeature : ValidatorFeature
+    {
+        public HashSet<string> ArgumentNames { get; } = [];
+
+        protected internal override void Reset() => ArgumentNames.Clear();
     }
 }

@@ -1,24 +1,21 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Descriptors;
 
 public class EnumValueDescriptor
-    : DescriptorBase<EnumValueDefinition>
+    : DescriptorBase<EnumValueConfiguration>
     , IEnumValueDescriptor
 {
     protected EnumValueDescriptor(IDescriptorContext context, object runtimeValue)
         : base(context)
     {
-        if (runtimeValue is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeValue));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeValue);
 
-        Definition.RuntimeValue = runtimeValue;
-        Definition.Description = context.Naming.GetEnumValueDescription(runtimeValue);
-        Definition.Member = context.TypeInspector.GetEnumValueMember(runtimeValue);
+        Configuration.RuntimeValue = runtimeValue;
+        Configuration.Description = context.Naming.GetEnumValueDescription(runtimeValue);
+        Configuration.Member = context.TypeInspector.GetEnumValueMember(runtimeValue);
 
         if (context.Naming.IsDeprecated(runtimeValue, out var reason))
         {
@@ -26,27 +23,27 @@ public class EnumValueDescriptor
         }
     }
 
-    protected EnumValueDescriptor(IDescriptorContext context, EnumValueDefinition definition)
+    protected EnumValueDescriptor(IDescriptorContext context, EnumValueConfiguration configuration)
         : base(context)
     {
-        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
-    protected internal override EnumValueDefinition Definition { get; protected set; } = new();
+    protected internal override EnumValueConfiguration Configuration { get; protected set; } = new();
 
-    protected override void OnCreateDefinition(EnumValueDefinition definition)
+    protected override void OnCreateConfiguration(EnumValueConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
-        if (Definition is { AttributesAreApplied: false, Member: not null, })
+        if (Configuration is { AttributesAreApplied: false, Member: not null })
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,
                 this,
-                Definition.Member);
-            Definition.AttributesAreApplied = true;
+                Configuration.Member);
+            Configuration.AttributesAreApplied = true;
 
-            if (Context.TypeInspector.IsMemberIgnored(Definition.Member))
+            if (Context.TypeInspector.IsMemberIgnored(Configuration.Member))
             {
                 Ignore();
             }
@@ -54,23 +51,23 @@ public class EnumValueDescriptor
 
         if (string.IsNullOrEmpty(definition.Name))
         {
-            Definition.Name = Context.Naming.GetEnumValueName(Definition.RuntimeValue!);
+            Configuration.Name = Context.Naming.GetEnumValueName(Configuration.RuntimeValue!);
         }
 
-        base.OnCreateDefinition(definition);
+        base.OnCreateConfiguration(definition);
 
         Context.Descriptors.Pop();
     }
 
     public IEnumValueDescriptor Name(string value)
     {
-        Definition.Name = value;
+        Configuration.Name = value;
         return this;
     }
 
     public IEnumValueDescriptor Description(string value)
     {
-        Definition.Description = value;
+        Configuration.Description = value;
         return this;
     }
 
@@ -81,39 +78,39 @@ public class EnumValueDescriptor
             return Deprecated();
         }
 
-        Definition.DeprecationReason = reason;
+        Configuration.DeprecationReason = reason;
         return this;
     }
 
     public IEnumValueDescriptor Deprecated()
     {
-        Definition.DeprecationReason = WellKnownDirectives.DeprecationDefaultReason;
+        Configuration.DeprecationReason = DirectiveNames.Deprecated.Arguments.DefaultReason;
         return this;
     }
 
     public IEnumValueDescriptor Ignore(bool ignore = true)
     {
-        Definition.Ignore = ignore;
+        Configuration.Ignore = ignore;
         return this;
     }
 
     public IEnumValueDescriptor Directive<T>(T directiveInstance)
         where T : class
     {
-        Definition.AddDirective(directiveInstance, Context.TypeInspector);
+        Configuration.AddDirective(directiveInstance, Context.TypeInspector);
         return this;
     }
 
     public IEnumValueDescriptor Directive<T>()
         where T : class, new()
     {
-        Definition.AddDirective(new T(), Context.TypeInspector);
+        Configuration.AddDirective(new T(), Context.TypeInspector);
         return this;
     }
 
     public IEnumValueDescriptor Directive(string name, params ArgumentNode[] arguments)
     {
-        Definition.AddDirective(name, arguments);
+        Configuration.AddDirective(name, arguments);
         return this;
     }
 
@@ -124,6 +121,6 @@ public class EnumValueDescriptor
 
     public static EnumValueDescriptor From(
         IDescriptorContext context,
-        EnumValueDefinition definition) =>
+        EnumValueConfiguration definition) =>
         new EnumValueDescriptor(context, definition);
 }

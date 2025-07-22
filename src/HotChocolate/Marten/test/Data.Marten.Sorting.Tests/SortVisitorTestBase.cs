@@ -13,7 +13,7 @@ namespace HotChocolate.Data;
 public sealed class ResourceContainer : IAsyncDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private int _testClassInstances = 0;
+    private int _testClassInstances;
 
     public PostgreSqlResource Resource { get; } = new();
 
@@ -115,11 +115,11 @@ public class SortVisitorTestBase : IAsyncLifetime
 
         return await new ServiceCollection()
             .Configure<RequestExecutorSetup>(
-                Schema.DefaultName,
+                ISchemaDefinition.DefaultName,
                 o => o.Schema = schema)
             .AddGraphQL()
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("sql", out var queryString))
@@ -135,8 +135,8 @@ public class SortVisitorTestBase : IAsyncLifetime
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync();
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync();
     }
 
     private void ApplyConfigurationToField<TEntity, TType>(

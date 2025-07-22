@@ -42,9 +42,9 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
 
         var current = _json![Data]!;
 
-        if (response.Body is not null &&
-            response.Body.RootElement.TryGetProperty(ResultFields.Path, out var pathProp) &&
-            response.Body.RootElement.TryGetProperty(Data, out var dataProp))
+        if (response.Body is not null
+            && response.Body.RootElement.TryGetProperty(ResultFields.Path, out var pathProp)
+            && response.Body.RootElement.TryGetProperty(Data, out var dataProp))
         {
             var path = pathProp.EnumerateArray().ToArray();
 
@@ -59,7 +59,7 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
                         JsonValueKind.String => current[path[i].GetString()!]!,
                         JsonValueKind.Number => current[path[i].GetInt32()]!,
                         _ => throw new NotSupportedException(
-                            JsonResultPatcher_PathSegmentMustBeStringOrInt),
+                            JsonResultPatcher_PathSegmentMustBeStringOrInt)
                     };
                 }
             }

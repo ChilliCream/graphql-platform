@@ -82,11 +82,11 @@ public sealed class TypeDefinitionInvalidRuleTests
                     """
                 ],
                 [
-                    "The type or directive 'FieldSelectionMap' in schema 'A' is incompatible " +
-                    "with the built-in type or directive of the same name.",
+                    "The type or directive 'FieldSelectionMap' in schema 'A' is incompatible "
+                    + "with the built-in type or directive of the same name.",
 
-                    "The type or directive 'require' in schema 'A' is incompatible with the " +
-                    "built-in type or directive of the same name."
+                    "The type or directive 'require' in schema 'A' is incompatible with the "
+                    + "built-in type or directive of the same name."
                 ]
             },
             // However, if the @key directive is defined without the required fields argument, as
@@ -96,8 +96,8 @@ public sealed class TypeDefinitionInvalidRuleTests
                     "directive @key(futureArg: String) repeatable on OBJECT | INTERFACE"
                 ],
                 [
-                    "The type or directive 'key' in schema 'A' is incompatible with the built-in " +
-                    "type or directive of the same name."
+                    "The type or directive 'key' in schema 'A' is incompatible with the built-in "
+                    + "type or directive of the same name."
                 ]
             },
             // Incompatible FieldSelectionSet scalar.
@@ -110,8 +110,8 @@ public sealed class TypeDefinitionInvalidRuleTests
                     """
                 ],
                 [
-                    "The type or directive 'FieldSelectionSet' in schema 'A' is incompatible " +
-                    "with the built-in type or directive of the same name."
+                    "The type or directive 'FieldSelectionSet' in schema 'A' is incompatible "
+                    + "with the built-in type or directive of the same name."
                 ]
             }
         };

@@ -15,6 +15,7 @@ internal static class LookupDirectiveParser
         SelectionSetNode? key = null;
         FieldDefinitionNode? field = null;
         ImmutableArray<string>? map = null;
+        ImmutableArray<string>? path = null;
 
         foreach (var argument in directive.Arguments)
         {
@@ -25,7 +26,14 @@ internal static class LookupDirectiveParser
                     break;
 
                 case "key":
-                    key = Utf8GraphQLParser.Syntax.ParseSelectionSet(((StringValueNode)argument.Value).Value);
+                    var keySourceText = ((StringValueNode)argument.Value).Value.Trim();
+
+                    if (!keySourceText.StartsWith('{'))
+                    {
+                        keySourceText = $"{{ {keySourceText} }}";
+                    }
+
+                    key = Utf8GraphQLParser.Syntax.ParseSelectionSet(keySourceText);
                     break;
 
                 case "field":
@@ -34,6 +42,13 @@ internal static class LookupDirectiveParser
 
                 case "map":
                     map = ParseMap(argument.Value);
+                    break;
+
+                case "path":
+                    if (argument.Value is StringValueNode pathValueNode)
+                    {
+                        path = pathValueNode.Value.Trim().Split('.').ToImmutableArray();
+                    }
                     break;
 
                 default:
@@ -66,7 +81,7 @@ internal static class LookupDirectiveParser
                 "The `map` argument is required on the @lookup directive.");
         }
 
-        return new LookupDirective(schemaName, key, field, map.Value);
+        return new LookupDirective(schemaName, key, field, map.Value, path ?? []);
     }
 
     private static ImmutableArray<string> ParseMap(IValueNode value)
@@ -107,7 +122,7 @@ internal static class LookupDirectiveParser
             }
         }
 
-        return temp?.ToImmutable() ?? ImmutableArray<LookupDirective>.Empty;
+        return temp?.ToImmutable() ?? [];
     }
 
     public static bool TryParse(

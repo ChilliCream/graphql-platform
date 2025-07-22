@@ -8,10 +8,7 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
 {
     public override bool IsInstanceOfType(IType type, IValueNode valueSyntax)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (valueSyntax is NullValueNode)
         {
@@ -27,8 +24,8 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
                 return false;
             }
 
-            if (listValueNode.Items[0] is IFloatValueLiteral &&
-                listValueNode.Items[1] is IFloatValueLiteral)
+            if (listValueNode.Items[0] is IFloatValueLiteral
+                && listValueNode.Items[1] is IFloatValueLiteral)
             {
                 if (numberOfItems == 2)
                 {
@@ -44,10 +41,7 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
 
     public override object? ParseLiteral(IType type, IValueNode valueSyntax)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (valueSyntax is null)
         {
@@ -66,16 +60,16 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
                 throw ThrowHelper.PositionScalar_InvalidPositionObject(null!);
             }
 
-            if (list.Items[0] is IFloatValueLiteral x &&
-                list.Items[1] is IFloatValueLiteral y)
+            if (list.Items[0] is IFloatValueLiteral x
+                && list.Items[1] is IFloatValueLiteral y)
             {
                 if (list.Items.Count == 2)
                 {
                     return new Coordinate(x.ToDouble(), y.ToDouble());
                 }
 
-                if (list.Items.Count == 3 &&
-                    list.Items[2] is IFloatValueLiteral z)
+                if (list.Items.Count == 3
+                    && list.Items[2] is IFloatValueLiteral z)
                 {
                     return new CoordinateZ(x.ToDouble(), y.ToDouble(), z.ToDouble());
                 }
@@ -89,19 +83,16 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
 
     public override IValueNode ParseValue(IType type, object? value)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (value is null)
         {
             return NullValueNode.Default;
         }
 
-        var x = double.NaN;
-        var y = double.NaN;
-        var z = double.NaN;
+        double x;
+        double y;
+        double z;
         switch (value)
         {
             case Coordinate coordinate:
@@ -110,7 +101,7 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
                 z = coordinate.Z;
                 break;
 
-            case double[] { Length: > 1 and < 4, } coordinateArray:
+            case double[] { Length: > 1 and < 4 } coordinateArray:
                 x = coordinateArray[0];
                 y = coordinateArray[1];
                 z = coordinateArray.Length == 3 ? coordinateArray[2] : double.NaN;
@@ -144,10 +135,7 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
 
     public override IValueNode ParseResult(IType type, object? resultValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (resultValue is null)
         {
@@ -193,10 +181,7 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
 
     public override bool TryDeserialize(IType type, object? serialized, out object? value)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (serialized is null)
         {
@@ -204,7 +189,7 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
             return true;
         }
 
-        if (!(serialized is IList list))
+        if (serialized is not IList list)
         {
             value = null;
             return false;
@@ -223,9 +208,9 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
             x = Convert.ToDouble(list[0]);
             y = Convert.ToDouble(list[1]);
         }
-        catch (Exception ex) when (ex is FormatException ||
-            ex is InvalidCastException ||
-            ex is OverflowException)
+        catch (Exception ex) when (ex is FormatException
+            || ex is InvalidCastException
+            || ex is OverflowException)
         {
             value = null;
             return false;
@@ -255,9 +240,9 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
             value = new CoordinateZ(x, y, z);
             return true;
         }
-        catch (Exception ex) when (ex is FormatException ||
-            ex is InvalidCastException ||
-            ex is OverflowException)
+        catch (Exception ex) when (ex is FormatException
+            || ex is InvalidCastException
+            || ex is OverflowException)
         {
             value = null;
             return false;
@@ -266,10 +251,7 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
 
     public override bool TrySerialize(IType type, object? value, out object? serialized)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (value is null)
         {
@@ -277,7 +259,7 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
             return true;
         }
 
-        if (!(value is Coordinate coordinate))
+        if (value is not Coordinate coordinate)
         {
             serialized = null;
             return false;
@@ -289,7 +271,7 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
             {
                     coordinate.X,
                     coordinate.Y,
-                    coordinate.Z,
+                    coordinate.Z
             };
             return true;
         }
@@ -297,7 +279,7 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
         serialized = new[]
         {
                 coordinate.X,
-                coordinate.Y,
+                coordinate.Y
         };
         return true;
     }

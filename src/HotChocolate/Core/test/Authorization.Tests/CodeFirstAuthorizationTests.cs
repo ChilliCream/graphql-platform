@@ -3,7 +3,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Authorization;
 
@@ -85,7 +84,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -268,7 +267,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -286,10 +285,7 @@ public class CodeFirstAuthorizationTests
             options =>
             {
                 options.ConfigureSchemaField =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
-                    };
+                    descriptor => descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -322,7 +318,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -340,10 +336,7 @@ public class CodeFirstAuthorizationTests
             options =>
             {
                 options.ConfigureTypeField =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
-                    };
+                    descriptor => descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -376,7 +369,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -394,10 +387,7 @@ public class CodeFirstAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
-                    };
+                    descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -430,7 +420,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -448,10 +438,7 @@ public class CodeFirstAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
-                    };
+                    descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -484,7 +471,7 @@ public class CodeFirstAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData!.TryGetValue(ExecutionContextData.HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -512,7 +499,7 @@ public class CodeFirstAuthorizationTests
                 .Type<PersonType>();
 
             descriptor
-                .Field(t => t.GetCityOrStreet(default))
+                .Field(t => t.GetCityOrStreet(false))
                 .Type<CityOrStreetType>();
 
             descriptor

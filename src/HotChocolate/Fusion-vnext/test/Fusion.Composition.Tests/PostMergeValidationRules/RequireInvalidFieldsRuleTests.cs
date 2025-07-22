@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion.PostMergeValidationRules;
@@ -16,7 +17,9 @@ public sealed class RequireInvalidFieldsRuleTests
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var merger = new SourceSchemaMerger(schemas);
+        var merger = new SourceSchemaMerger(
+            schemas,
+            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
         var mergeResult = merger.Merge();
         var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
@@ -34,7 +37,9 @@ public sealed class RequireInvalidFieldsRuleTests
     {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var merger = new SourceSchemaMerger(schemas);
+        var merger = new SourceSchemaMerger(
+            schemas,
+            new SourceSchemaMergerOptions { RemoveUnreferencedTypes = false });
         var mergeResult = merger.Merge();
         var validator = new PostMergeValidator(mergeResult.Value, s_rules, schemas, _log);
 
@@ -125,8 +130,8 @@ public sealed class RequireInvalidFieldsRuleTests
                     """
                 ],
                 [
-                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' " +
-                    "specifies an invalid field selection against the composed schema."
+                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' "
+                    + "specifies an invalid field selection against the composed schema."
                 ]
             },
             // In the following example, the @require directive references a field from itself
@@ -142,8 +147,8 @@ public sealed class RequireInvalidFieldsRuleTests
                     """
                 ],
                 [
-                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' " +
-                    "specifies an invalid field selection against the composed schema."
+                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' "
+                    + "specifies an invalid field selection against the composed schema."
                 ]
             },
             // Referencing a field that exists in both the current schema and another schema.
@@ -164,8 +169,8 @@ public sealed class RequireInvalidFieldsRuleTests
                     """
                 ],
                 [
-                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' " +
-                    "specifies an invalid field selection against the composed schema."
+                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' "
+                    + "specifies an invalid field selection against the composed schema."
                 ]
             }
         };

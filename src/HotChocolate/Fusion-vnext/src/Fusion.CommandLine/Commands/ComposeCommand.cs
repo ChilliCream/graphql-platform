@@ -3,8 +3,6 @@ using System.CommandLine;
 using System.CommandLine.IO;
 using System.Text;
 using HotChocolate.Fusion.Logging;
-using HotChocolate.Fusion.Results;
-using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CommandLineResources;
 
 namespace HotChocolate.Fusion.Commands;
@@ -37,7 +35,7 @@ internal sealed class ComposeCommand : Command
 
         var sourceSchemaFileOption = new Option<List<string>>("--source-schema-file")
         {
-            Description = ComposeCommand_SourceSchemaFile_Description,
+            Description = ComposeCommand_SourceSchemaFile_Description
         };
         sourceSchemaFileOption.AddAlias("-s");
         sourceSchemaFileOption.LegalFilePathsOnly();
@@ -97,7 +95,10 @@ internal sealed class ComposeCommand : Command
 
         var result = schemaComposer.Compose();
 
-        WriteCompositionLog(compositionLog, console, result);
+        WriteCompositionLog(
+            compositionLog,
+            writer: result.IsSuccess ? console.Out : console.Error,
+            writeAsGraphQLComments: result.IsSuccess && compositeSchemaFile is null);
 
         if (result.IsFailure)
         {
@@ -138,11 +139,10 @@ internal sealed class ComposeCommand : Command
 
     private static void WriteCompositionLog(
         CompositionLog compositionLog,
-        IConsole console,
-        CompositionResult<MutableSchemaDefinition> result)
+        IStandardStreamWriter writer,
+        bool writeAsGraphQLComments)
     {
         Console.OutputEncoding = Encoding.UTF8;
-        var writer = result.IsSuccess ? console.Out : console.Error;
 
         foreach (var entry in compositionLog)
         {
@@ -164,8 +164,7 @@ internal sealed class ComposeCommand : Command
 
             var message = $"{emoji} [{abbreviatedSeverity}] {entry.Message} ({entry.Code})";
 
-            // When the composition is successful, write log entries as GraphQL comments.
-            if (result.IsSuccess)
+            if (writeAsGraphQLComments)
             {
                 message = $"# {message}";
             }

@@ -7,7 +7,7 @@ internal sealed class AnalyzeOperationComplexityScope : RequestScopeBase
 {
     public AnalyzeOperationComplexityScope(
         ActivityEnricher enricher,
-        IRequestContext context,
+        RequestContext context,
         Activity activity)
         : base(enricher, context, activity)
     {

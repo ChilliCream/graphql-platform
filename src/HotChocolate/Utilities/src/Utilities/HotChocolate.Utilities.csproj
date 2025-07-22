@@ -7,7 +7,7 @@
     <Description>Contains internal helper classes and utilities used by the Hot Chocolate GraphQL type system and the GraphQL query execution engine.</Description>
   </PropertyGroup>
 
-  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
+  <PropertyGroup>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
   </PropertyGroup>
 
@@ -29,6 +29,11 @@
     <InternalsVisibleTo Include="HotChocolate.Types" />
     <InternalsVisibleTo Include="HotChocolate.Utilities.Tests" />
     <InternalsVisibleTo Include="StrawberryShake.Transport.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Utilities.Buffers\HotChocolate.Utilities.Buffers.csproj" />
+    <ProjectReference Include="..\Utilities.Tasks\HotChocolate.Utilities.Tasks.csproj" />
   </ItemGroup>
 
   <ItemGroup>

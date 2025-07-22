@@ -19,15 +19,14 @@ public static class GeneratorTestHelper
 {
     public static IReadOnlyList<IError> AssertError(params string[] fileNames)
     {
-        var result = GenerateAsync(
+        var result = Generate(
             fileNames,
             new CSharpGeneratorSettings
             {
                 Namespace = "Foo.Bar",
                 ClientName = "FooClient",
-                AccessModifier = AccessModifier.Public,
-            })
-            .Result;
+                AccessModifier = AccessModifier.Public
+            });
 
         Assert.True(
             result.Errors.Any(),
@@ -43,7 +42,7 @@ public static class GeneratorTestHelper
         bool strictValidation,
         params string[] sourceTexts) =>
         AssertResult(
-            new AssertSettings { StrictValidation = strictValidation, },
+            new AssertSettings { StrictValidation = strictValidation },
             sourceTexts);
 
     public static void AssertResult(
@@ -58,22 +57,22 @@ public static class GeneratorTestHelper
         bool skipWarnings,
         params string[] sourceTexts)
     {
-        var clientModel =
-            CreateClientModel(sourceTexts, settings.StrictValidation, settings.NoStore);
+        var clientModel = CreateClientModel(sourceTexts, settings.StrictValidation, settings.NoStore);
 
         var documents = new StringBuilder();
         var documentNames = new HashSet<string>();
 
-        documents.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");
-        documents.AppendLine("// ReSharper disable RedundantNameQualifier");
         documents.AppendLine("// ReSharper disable ArrangeObjectCreationWhenTypeEvident");
-        documents.AppendLine("// ReSharper disable UnusedType.Global");
-        documents.AppendLine("// ReSharper disable PartialTypeWithSinglePart");
-        documents.AppendLine("// ReSharper disable UnusedMethodReturnValue.Local");
+        documents.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");
         documents.AppendLine("// ReSharper disable ConvertToAutoProperty");
-        documents.AppendLine("// ReSharper disable UnusedMember.Global");
-        documents.AppendLine("// ReSharper disable SuggestVarOrType_SimpleTypes");
         documents.AppendLine("// ReSharper disable InconsistentNaming");
+        documents.AppendLine("// ReSharper disable PartialTypeWithSinglePart");
+        documents.AppendLine("// ReSharper disable PreferConcreteValueOverDefault");
+        documents.AppendLine("// ReSharper disable RedundantNameQualifier");
+        documents.AppendLine("// ReSharper disable SuggestVarOrType_SimpleTypes");
+        documents.AppendLine("// ReSharper disable UnusedMember.Global");
+        documents.AppendLine("// ReSharper disable UnusedMethodReturnValue.Local");
+        documents.AppendLine("// ReSharper disable UnusedType.Global");
         documents.AppendLine();
 
         if (settings.Profiles.Count == 0)
@@ -94,7 +93,7 @@ public static class GeneratorTestHelper
                 NoStore = settings.NoStore,
                 InputRecords = settings.InputRecords,
                 EntityRecords = settings.EntityRecords,
-                RazorComponents = settings.RazorComponents,
+                RazorComponents = settings.RazorComponents
             });
 
         Assert.False(
@@ -161,18 +160,18 @@ public static class GeneratorTestHelper
 
         if (diagnostics.Any())
         {
-            Assert.Fail("Diagnostic Errors: \n" +
-                diagnostics
+            Assert.Fail("Diagnostic Errors: \n"
+                + diagnostics
                     .Select(x =>
-                        $"{x.GetMessage()}" +
-                        $" (Line: {x.Location.GetLineSpan().StartLinePosition.Line})")
+                        $"{x.GetMessage()}"
+                        + $" (Line: {x.Location.GetLineSpan().StartLinePosition.Line})")
                     .Aggregate((acc, val) => acc + "\n" + val));
         }
     }
 
     public static void AssertStarWarsResult(params string[] sourceTexts) =>
         AssertStarWarsResult(
-            new AssertSettings { StrictValidation = true, },
+            new AssertSettings { StrictValidation = true },
             sourceTexts);
 
     public static void AssertStarWarsResult(
@@ -229,8 +228,8 @@ public static class GeneratorTestHelper
             NoStore = noStore,
             Profiles = (profiles ??
             [
-                TransportProfile.Default,
-            ]).ToList(),
+                TransportProfile.Default
+            ]).ToList()
         };
     }
 
@@ -255,7 +254,7 @@ public static class GeneratorTestHelper
             analyzer.AddDocument(executable);
         }
 
-        return analyzer.AnalyzeAsync().Result;
+        return analyzer.Analyze();
     }
 
     public class AssertSettings

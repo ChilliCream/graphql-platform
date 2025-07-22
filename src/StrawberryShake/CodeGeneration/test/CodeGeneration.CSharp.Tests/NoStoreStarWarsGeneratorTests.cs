@@ -9,7 +9,7 @@ public class NoStoreStarWarsGeneratorTests
     public void Interface_With_Default_Names()
     {
         AssertStarWarsResult(
-            new AssertSettings { NoStore = true, },
+            new AssertSettings { NoStore = true },
             @"query GetHero {
                     hero(episode: NEW_HOPE) {
                         name
@@ -22,7 +22,7 @@ public class NoStoreStarWarsGeneratorTests
     public void Operation_With_Leaf_Argument()
     {
         AssertStarWarsResult(
-            new AssertSettings { NoStore = true, },
+            new AssertSettings { NoStore = true },
             @"query GetHero($episode: Episode) {
                     hero(episode: $episode) {
                         name
@@ -35,7 +35,7 @@ public class NoStoreStarWarsGeneratorTests
     public void Operation_With_Type_Argument()
     {
         AssertStarWarsResult(
-            new AssertSettings { NoStore = true, },
+            new AssertSettings { NoStore = true },
             @"mutation createReviewMut($episode: Episode!, $review: ReviewInput!) {
                     createReview(episode: $episode, review: $review) {
                         stars
@@ -48,7 +48,7 @@ public class NoStoreStarWarsGeneratorTests
     public void Interface_With_Fragment_Definition_Two_Models()
     {
         AssertStarWarsResult(
-            new AssertSettings { NoStore = true, },
+            new AssertSettings { NoStore = true },
             @"query GetHero {
                     hero(episode: NEW_HOPE) {
                         ... Hero
@@ -79,7 +79,7 @@ public class NoStoreStarWarsGeneratorTests
     public void Subscription_With_Default_Names()
     {
         AssertStarWarsResult(
-            new AssertSettings { NoStore = true, },
+            new AssertSettings { NoStore = true },
             @"subscription OnReviewSub {
                     onReview(episode: NEW_HOPE) {
                         stars
@@ -92,14 +92,14 @@ public class NoStoreStarWarsGeneratorTests
     public void Generate_StarWarsIntegrationTest()
     {
         AssertStarWarsResult(
-            new AssertSettings { NoStore = true, },
+            new AssertSettings { NoStore = true },
             FileResource.Open("QueryWithSubscription.graphql"));
     }
 
     [Fact]
     public void StarWarsTypeNameOnUnions() =>
         AssertStarWarsResult(
-            new AssertSettings { NoStore = true, },
+            new AssertSettings { NoStore = true },
             @"query SearchHero {
                     search(text: ""l"") {
                         __typename
@@ -109,7 +109,7 @@ public class NoStoreStarWarsGeneratorTests
     [Fact]
     public void StarWarsUnionList() =>
         AssertStarWarsResult(
-            new AssertSettings { NoStore = true, },
+            new AssertSettings { NoStore = true },
             @"query SearchHero {
                     search(text: ""l"") {
                         ... on Human {

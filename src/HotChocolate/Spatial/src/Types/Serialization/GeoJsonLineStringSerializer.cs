@@ -17,19 +17,16 @@ internal class GeoJsonLineStringSerializer : GeoJsonInputObjectSerializer<LineSt
         object? coordinates,
         int? crs)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (coordinates is List<Coordinate> list)
         {
             coordinates = list.Count == 0 ? [] : list.ToArray();
         }
 
-        if (coordinates is not IList coordsObject ||
-            coordsObject.Count < 2 ||
-            !coordsObject.TryConvertToCoordinates(out var coords))
+        if (coordinates is not IList coordsObject
+            || coordsObject.Count < 2
+            || !coordsObject.TryConvertToCoordinates(out var coords))
         {
             throw Serializer_Parse_CoordinatesIsInvalid(type);
         }
@@ -43,10 +40,7 @@ internal class GeoJsonLineStringSerializer : GeoJsonInputObjectSerializer<LineSt
 
     public override object CreateInstance(IType type, object?[] fieldValues)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (fieldValues[0] is not GeoJsonGeometryType.LineString)
         {
@@ -58,10 +52,7 @@ internal class GeoJsonLineStringSerializer : GeoJsonInputObjectSerializer<LineSt
 
     public override void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is not Geometry geometry)
         {

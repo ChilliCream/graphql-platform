@@ -40,8 +40,8 @@ public class DefaultValueTests
             .AddMutationType<Mutations>();
 
         var serviceProvider = services.BuildServiceProvider();
-        var executorResolver = serviceProvider.GetRequiredService<IRequestExecutorResolver>();
-        var executor = await executorResolver.GetRequestExecutorAsync();
+        var executorProvider = serviceProvider.GetRequiredService<IRequestExecutorProvider>();
+        var executor = await executorProvider.GetExecutorAsync();
 
         // Act
         var result = await executor.ExecuteAsync("mutation{ doSomething(input: { }) { result } }");

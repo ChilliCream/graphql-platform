@@ -13,6 +13,7 @@ internal sealed class FusionRequiresMutableDirectiveDefinition : MutableDirectiv
 {
     public FusionRequiresMutableDirectiveDefinition(
         MutableEnumTypeDefinition schemaMutableEnumType,
+        MutableScalarTypeDefinition fieldSelectionSetType,
         MutableScalarTypeDefinition fieldDefinitionType,
         MutableScalarTypeDefinition fieldSelectionMapType)
         : base(FusionRequires)
@@ -23,6 +24,12 @@ internal sealed class FusionRequiresMutableDirectiveDefinition : MutableDirectiv
             new MutableInputFieldDefinition(Schema, new NonNullType(schemaMutableEnumType))
             {
                 Description = FusionRequiresMutableDirectiveDefinition_Schema_Description
+            });
+
+        Arguments.Add(
+            new MutableInputFieldDefinition(Requirements, new NonNullType(fieldSelectionSetType))
+            {
+                Description = FusionRequiresMutableDirectiveDefinition_Requirements_Description
             });
 
         Arguments.Add(

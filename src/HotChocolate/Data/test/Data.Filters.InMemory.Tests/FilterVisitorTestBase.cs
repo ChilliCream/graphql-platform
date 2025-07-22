@@ -6,8 +6,6 @@ namespace HotChocolate.Data.Filters;
 
 public class FilterVisitorTestBase
 {
-    private readonly object _lock = new();
-
     private Func<IResolverContext, IEnumerable<TResult>> BuildResolver<TResult>(
         params TResult[] results)
     {

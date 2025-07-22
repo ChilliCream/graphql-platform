@@ -56,7 +56,7 @@ public interface IProjectionProviderDescriptor
         where THandler : IProjectionOptimizer;
 
     /// <summary>
-    /// Registers a instance of an optimizer that is used to optimize a selection set before it
+    /// Registers an instance of an optimizer that is used to optimize a selection set before it
     /// is projected. With optimizers you can delete, add or rewrite fields on the selection
     /// set. This can also be used to rewrite the resolver pipeline.
     /// This instance is directly used by the visitor for projection the selection set

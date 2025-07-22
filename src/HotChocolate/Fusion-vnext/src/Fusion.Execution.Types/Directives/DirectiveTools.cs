@@ -8,7 +8,7 @@ internal static class DirectiveTools
     public static IImmutableList<DirectiveNode> GetUserDirectives(
         IReadOnlyList<DirectiveNode> directiveNodes)
     {
-        if(directiveNodes.Count == 0)
+        if (directiveNodes.Count == 0)
         {
             return ImmutableArray<DirectiveNode>.Empty;
         }
@@ -21,6 +21,12 @@ internal static class DirectiveTools
                 || FieldDirectiveParser.CanParse(directiveNode)
                 || TypeDirectiveParser.CanParse(directiveNode)
                 || LookupDirectiveParser.CanParse(directiveNode))
+            {
+                continue;
+            }
+
+            // TODO : Remove once we have a better way to handle built-in directives.
+            if (FusionBuiltIns.IsBuiltInDirective(directiveNode.Name.Value))
             {
                 continue;
             }

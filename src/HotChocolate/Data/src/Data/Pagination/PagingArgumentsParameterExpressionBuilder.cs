@@ -38,6 +38,5 @@ internal sealed class PagingArgumentsParameterExpressionBuilder()
         => new(arguments.First, arguments.After, arguments.Last, arguments.Before, includeTotalCount);
 
     private static bool IncludeTotalCount(ISelection selection)
-        => selection.Field.ContextData.TryGetValue(WellKnownContextData.PagingOptions, out var options)
-            && options is PagingOptions { IncludeTotalCount: true };
+        => selection.Field.Features.Get<PagingOptions>()?.IncludeTotalCount is true;
 }

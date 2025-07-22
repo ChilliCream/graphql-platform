@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 using static HotChocolate.Language.TokenPrinter;
@@ -94,6 +95,19 @@ public ref partial struct Utf8GraphQLParser
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private int ExpectRawString(IBufferWriter<byte> writer)
+    {
+        if (TokenHelper.IsString(ref _reader))
+        {
+            var written = _reader.GetRawString(writer);
+            MoveNext();
+            return written;
+        }
+
+        throw new SyntaxException(_reader, Parser_InvalidToken, TokenKind.String, _reader.Kind);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectSpread() => Expect(TokenKind.Spread);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -162,8 +176,8 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool SkipKeyword(ReadOnlySpan<byte> keyword)
     {
-        if (_reader.Kind == TokenKind.Name &&
-            _reader.Value.SequenceEqual(keyword))
+        if (_reader.Kind == TokenKind.Name
+            && _reader.Value.SequenceEqual(keyword))
         {
             MoveNext();
             return true;

@@ -15,16 +15,16 @@
   },
   {
     "Kind": "Name",
-    "Start": 9,
-    "End": 15,
+    "Start": 10,
+    "End": 16,
     "Line": 1,
-    "Column": 10
+    "Column": 11
   },
   {
     "Kind": "RightBrace",
-    "Start": 16,
-    "End": 17,
+    "Start": 17,
+    "End": 18,
     "Line": 1,
-    "Column": 17
+    "Column": 18
   }
 ]

@@ -89,8 +89,8 @@ public sealed class RequireInvalidSyntaxRuleTests
                     """
                 ],
                 [
-                    "The @require directive on argument 'User.profile(name:)' in schema 'A' " +
-                    "contains invalid syntax in the 'field' argument."
+                    "The @require directive on argument 'User.profile(name:)' in schema 'A' "
+                    + "contains invalid syntax in the 'field' argument."
                 ]
             }
         };

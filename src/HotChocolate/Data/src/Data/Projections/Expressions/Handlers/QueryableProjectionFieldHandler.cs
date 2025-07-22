@@ -10,8 +10,8 @@ public class QueryableProjectionFieldHandler
     : QueryableProjectionHandlerBase
 {
     public override bool CanHandle(ISelection selection) =>
-        selection.Field.Member is { } &&
-        selection.SelectionSet is not null;
+        selection.Field.Member is { }
+        && selection.SelectionSet is not null;
 
     public override bool TryHandleEnter(
         QueryableProjectionContext context,
@@ -22,7 +22,7 @@ public class QueryableProjectionFieldHandler
         Expression nestedProperty;
         Type memberType;
 
-        if (field.Member is PropertyInfo { CanWrite: true, } propertyInfo)
+        if (field.Member is PropertyInfo { CanWrite: true } propertyInfo)
         {
             memberType = propertyInfo.PropertyType;
             nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);

@@ -22,8 +22,8 @@ public class NodeTypeTests : TypeTestBase
             nodeInterface.Name);
 
         Assert.Equal(
-            "The node interface is implemented by entities that have " +
-            "a global unique identifier.",
+            "The node interface is implemented by entities that have "
+            + "a global unique identifier.",
             nodeInterface.Description);
 
         Assert.Collection(
@@ -32,7 +32,7 @@ public class NodeTypeTests : TypeTestBase
             {
                 Assert.Equal("id", t.Name);
                 Assert.IsType<IdType>(
-                    Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.IsType<NonNullType>(t.Type).NullableType);
             });
     }
 
@@ -169,7 +169,7 @@ public class NodeTypeTests : TypeTestBase
                                 }
                             }
                         }")
-                    .SetVariableValues(new Dictionary<string, object> { { "id", id }, })
+                    .SetVariableValues(new Dictionary<string, object> { { "id", id } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -224,7 +224,7 @@ public class NodeTypeTests : TypeTestBase
                                 }
                             }
                         }")
-                    .SetVariableValues(new Dictionary<string, object> { { "id", id }, })
+                    .SetVariableValues(new Dictionary<string, object> { { "id", id } })
                     .Build())
             .MatchSnapshotAsync();
     }

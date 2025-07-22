@@ -9,20 +9,12 @@ internal sealed class SyntaxTypeReferenceHandler : ITypeRegistrarHandler
 {
     private readonly HashSet<string> _handled = [];
     private readonly ITypeInspector _typeInspector;
-    private readonly Dictionary<string, Type> _scalarTypes = new();
+    private readonly Dictionary<string, Type> _scalarTypes;
 
     public SyntaxTypeReferenceHandler(IDescriptorContext context)
     {
         _typeInspector = context.TypeInspector;
-
-        if (context.ContextData.TryGetValue(WellKnownContextData.ScalarNameOverrides, out var value)
-            && value is List<(string, Type)> nameOverrides)
-        {
-            foreach (var (name, type) in nameOverrides)
-            {
-                _scalarTypes.TryAdd(name, type);
-            }
-        }
+        _scalarTypes = context.Features.Get<TypeSystemFeature>()?.ScalarNameOverrides ?? [];
     }
 
     public TypeReferenceKind Kind => TypeReferenceKind.Syntax;
@@ -51,8 +43,8 @@ internal sealed class SyntaxTypeReferenceHandler : ITypeRegistrarHandler
                 scalarTypeRef = _typeInspector.GetTypeRef(scalarType);
             }
 
-            if (scalarTypeRef is not null &&
-                !typeRegistrar.IsResolved(scalarTypeRef))
+            if (scalarTypeRef is not null
+                && !typeRegistrar.IsResolved(scalarTypeRef))
             {
                 typeRegistrar.Register(
                     typeRegistrar.CreateInstance(scalarTypeRef.Type.Type),

@@ -11,4 +11,3 @@ public interface ISourceComplexTypeCollection<TType>
 
     ImmutableArray<TType> Types { get; }
 }
-

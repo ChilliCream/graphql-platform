@@ -10,7 +10,7 @@ namespace HotChocolate.ApolloFederation.Resolvers;
 internal static class EntitiesResolver
 {
     public static async Task<IReadOnlyList<object?>> ResolveAsync(
-        ISchema schema,
+        Schema schema,
         IReadOnlyList<Representation> representations,
         IResolverContext context)
     {
@@ -23,18 +23,17 @@ internal static class EntitiesResolver
 
             var current = representations[i];
 
-            if (schema.TryGetType<ObjectType>(current.TypeName, out var objectType) &&
-                objectType.ContextData.TryGetValue(EntityResolver, out var value) &&
-                value is FieldResolverDelegate resolver)
+            if (schema.Types.TryGetType<ObjectType>(current.TypeName, out var objectType)
+                && objectType.Features.TryGet(out ReferenceResolver? entity))
             {
                 // We clone the resolver context here so that we can split the work
-                // into sub tasks that can be awaited in parallel and produce separate results.
+                // into subtasks that can be awaited in parallel and produce separate results.
                 var entityContext = context.Clone();
 
                 entityContext.SetLocalState(TypeField, objectType);
                 entityContext.SetLocalState(DataField, current.Data);
 
-                tasks[i] = resolver.Invoke(entityContext).AsTask();
+                tasks[i] = entity.Resolver.Invoke(entityContext).AsTask();
             }
             else
             {

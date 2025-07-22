@@ -120,8 +120,8 @@ public sealed class OutputFieldTypesMergeableRuleTests
                     """
                 ],
                 [
-                    "The output field 'User.birthdate' has a different type shape in schema 'A' " +
-                    "than it does in schema 'B'."
+                    "The output field 'User.birthdate' has a different type shape in schema 'A' "
+                    + "than it does in schema 'B'."
                 ]
             },
             {
@@ -144,8 +144,8 @@ public sealed class OutputFieldTypesMergeableRuleTests
                     """
                 ],
                 [
-                    "The output field 'User.tags' has a different type shape in schema 'A' than " +
-                    "it does in schema 'B'."
+                    "The output field 'User.tags' has a different type shape in schema 'A' than "
+                    + "it does in schema 'B'."
                 ]
             },
             // More than two schemas.
@@ -168,11 +168,11 @@ public sealed class OutputFieldTypesMergeableRuleTests
                     """
                 ],
                 [
-                    "The output field 'User.birthdate' has a different type shape in schema 'A' " +
-                    "than it does in schema 'B'.",
+                    "The output field 'User.birthdate' has a different type shape in schema 'A' "
+                    + "than it does in schema 'B'.",
 
-                    "The output field 'User.birthdate' has a different type shape in schema 'B' " +
-                    "than it does in schema 'C'."
+                    "The output field 'User.birthdate' has a different type shape in schema 'B' "
+                    + "than it does in schema 'C'."
                 ]
             }
         };

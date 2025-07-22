@@ -18,7 +18,7 @@ public static class SnapshotExtensions
             formatter: SnapshotValueFormatters.GraphQL);
 
     public static void MatchSnapshot(
-        this ISchema? value,
+        this ISchemaDefinition? value,
         string? postFix = null)
         => Snapshot.Match(
             value,
@@ -51,9 +51,9 @@ public static class SnapshotExtensions
                 ? "Result:"
                 : $"{name} Result:");
 
-        if (result.ContextData.TryGetValue("query", out var queryResult) &&
-            queryResult is string queryString &&
-            !string.IsNullOrWhiteSpace(queryString))
+        if (result.ContextData.TryGetValue("query", out var queryResult)
+            && queryResult is string queryString
+            && !string.IsNullOrWhiteSpace(queryString))
         {
             snapshot.Add(
                 queryString,

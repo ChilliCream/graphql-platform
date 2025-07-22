@@ -29,7 +29,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         IReadOnlyDictionary<string, object?>? variables = null,
         IReadOnlyDictionary<string, Upload?>? files = null,
         RequestStrategy strategy = RequestStrategy.Default)
-        : this(null, name, document, variables, files,  strategy)
+        : this(null, name, document, variables, files, strategy)
     {
     }
 
@@ -121,7 +121,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
     {
         get
         {
-            return _extensions ??= new();
+            return _extensions ??= [];
         }
     }
 
@@ -132,7 +132,7 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
     {
         get
         {
-            return _contextData ??= new();
+            return _contextData ??= [];
         }
     }
 
@@ -165,10 +165,10 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
             return true;
         }
 
-        return Id == other.Id &&
-            Name == other.Name &&
-            Document.Equals(other.Document) &&
-            ComparisonHelper.DictionaryEqual(Variables, other.Variables);
+        return Id == other.Id
+            && Name == other.Name
+            && Document.Equals(other.Document)
+            && ComparisonHelper.DictionaryEqual(Variables, other.Variables);
     }
 
     public override bool Equals(object? obj)
@@ -212,9 +212,9 @@ public sealed class OperationRequest : IEquatable<OperationRequest>
         unchecked
         {
             var hash =
-                (Id?.GetHashCode() ?? 0) * 397 ^
-                Name.GetHashCode() * 397 ^
-                Document.GetHashCode() * 397;
+                (Id?.GetHashCode() ?? 0) * 397
+                ^ Name.GetHashCode() * 397
+                ^ Document.GetHashCode() * 397;
 
             foreach (var variable in Variables)
             {

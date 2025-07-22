@@ -23,6 +23,9 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex
     public bool IsRegistered(SelectionSetNode selectionSet)
         => _selectionSets.ContainsKey(selectionSet);
 
+    public void Register(uint id, SelectionSetNode branch)
+        => _selectionSets = _selectionSets.SetItem(branch, id);
+
     public void Register(SelectionSet original, SelectionSetNode branch)
         => _selectionSets = _selectionSets.SetItem(branch, original.Id);
 
