@@ -22,6 +22,7 @@ internal sealed class FetchResultStore : IDisposable
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
     private readonly ValueCompletion _valueCompletion;
     private readonly Operation _operation;
+    private readonly ulong _includeFlags;
     private readonly ObjectResult _root;
 
     private readonly ImmutableArray<IError> _errors = [];
@@ -40,6 +41,7 @@ internal sealed class FetchResultStore : IDisposable
         ArgumentNullException.ThrowIfNull(operation);
 
         _operation = operation;
+        _includeFlags = includeFlags;
         _valueCompletion = new ValueCompletion(schema, resultPoolSession, ErrorHandling.Propagate, 32, includeFlags);
         _root = resultPoolSession.RentObjectResult();
         _root.Initialize(resultPoolSession, operation.RootSelectionSet, includeFlags);
@@ -99,6 +101,11 @@ internal sealed class FetchResultStore : IDisposable
         {
             foreach (var selection in selections)
             {
+                if (!selection.IsIncluded(_includeFlags))
+                {
+                    continue;
+                }
+
                 result.MoveFieldTo(selection.ResponseName, _root);
             }
         }

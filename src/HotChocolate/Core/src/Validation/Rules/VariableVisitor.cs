@@ -121,6 +121,18 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
     {
         if (IntrospectionFieldNames.TypeName.Equals(node.Name.Value, StringComparison.Ordinal))
         {
+            if (node.Directives.Count > 0)
+            {
+                foreach (var directive in node.Directives)
+                {
+                    var result = Visit(directive, context);
+                    if (result.IsBreak())
+                    {
+                        return result;
+                    }
+                }
+            }
+
             return Skip;
         }
 

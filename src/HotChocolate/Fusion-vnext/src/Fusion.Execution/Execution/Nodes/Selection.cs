@@ -82,9 +82,9 @@ public sealed class Selection
             var flags1 = _includeFlags[0];
             var flags2 = _includeFlags[1];
             var flags3 = _includeFlags[2];
-            return (flags1 & includeFlags) == flags1 ||
-                (flags2 & includeFlags) == flags2 ||
-                (flags3 & includeFlags) == flags3;
+            return (flags1 & includeFlags) == flags1
+                || (flags2 & includeFlags) == flags2
+                || (flags3 & includeFlags) == flags3;
         }
 
         var span = _includeFlags.AsSpan();

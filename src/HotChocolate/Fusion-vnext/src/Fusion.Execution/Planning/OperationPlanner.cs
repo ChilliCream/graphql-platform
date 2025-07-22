@@ -157,7 +157,9 @@ public sealed partial class OperationPlanner
 
         var input = new SelectionSetPartitionerInput
         {
-            SchemaName = current.SchemaName, SelectionSet = workItem.SelectionSet, SelectionSetIndex = index
+            SchemaName = current.SchemaName,
+            SelectionSet = workItem.SelectionSet,
+            SelectionSetIndex = index
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
@@ -485,7 +487,10 @@ public sealed partial class OperationPlanner
                         leftoverRequirements,
                         workItem.Selection.Field.DeclaringType,
                         workItem.Selection.Path),
-                    RequirementKey: requirementKey) { Dependents = ImmutableHashSet<int>.Empty.Add(stepId) });
+                    RequirementKey: requirementKey)
+                {
+                    Dependents = ImmutableHashSet<int>.Empty.Add(stepId)
+                });
         }
 
         var field = workItem.Selection.Field;
@@ -620,7 +625,9 @@ public sealed partial class OperationPlanner
 
         var input = new SelectionSetPartitionerInput
         {
-            SchemaName = current.SchemaName, SelectionSet = selectionSet, SelectionSetIndex = index
+            SchemaName = current.SchemaName,
+            SelectionSet = selectionSet,
+            SelectionSetIndex = index
         };
 
         var (resolvable, unresolvable, fieldsWithRequirements, _) = _partitioner.Partition(input);
@@ -1109,8 +1116,8 @@ file static class Extensions
 
     private static IEnumerable<Lookup> GetPossibleLookups(this ITypeDefinition type, string schemaName)
     {
-        if (type is FusionComplexTypeDefinition complexType &&
-            complexType.Sources.TryGetType(schemaName, out var source))
+        if (type is FusionComplexTypeDefinition complexType
+            && complexType.Sources.TryGetType(schemaName, out var source))
         {
             return source.Lookups;
         }
