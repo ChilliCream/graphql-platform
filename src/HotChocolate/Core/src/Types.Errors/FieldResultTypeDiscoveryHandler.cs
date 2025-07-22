@@ -11,9 +11,9 @@ internal sealed class FieldResultTypeDiscoveryHandler(ITypeInspector typeInspect
     {
         var runtimeType = typeInfo.RuntimeType;
 
-        if (runtimeType is { IsValueType: true, IsGenericType: true } &&
-            typeof(IFieldResult).IsAssignableFrom(runtimeType) &&
-            typeReference is ExtendedTypeReference typeRef)
+        if (runtimeType is { IsValueType: true, IsGenericType: true }
+            && typeof(IFieldResult).IsAssignableFrom(runtimeType)
+            && typeReference is ExtendedTypeReference typeRef)
         {
             var type = GetNamedType(typeInspector.GetType(runtimeType.GenericTypeArguments[0]));
             schemaTypeRefs = new TypeReference[runtimeType.GenericTypeArguments.Length];

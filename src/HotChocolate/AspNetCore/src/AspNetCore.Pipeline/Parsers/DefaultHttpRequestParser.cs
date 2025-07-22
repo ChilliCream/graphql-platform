@@ -149,8 +149,8 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 variableSet = ParseVariables(sv);
             }
 
-            if (extensions is null &&
-                (string?)parameters[ExtensionsKey] is { Length: > 0 } se)
+            if (extensions is null
+                && (string?)parameters[ExtensionsKey] is { Length: > 0 } se)
             {
                 extensions = ParseJsonObject(se);
             }
@@ -190,8 +190,8 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             }
 
             IReadOnlyDictionary<string, object?>? extensions = null;
-            if (extensions is null &&
-                (string?)parameters[ExtensionsKey] is { Length: > 0 } se)
+            if (extensions is null
+                && (string?)parameters[ExtensionsKey] is { Length: > 0 } se)
             {
                 extensions = ParseJsonObject(se);
             }

@@ -48,11 +48,6 @@ dotnet_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion
 
-# Prefer "var" everywhere
-csharp_style_var_for_built_in_types = true:suggestion
-csharp_style_var_when_type_is_apparent = true:suggestion
-csharp_style_var_elsewhere = true:suggestion
-
 # Prefer method-like constructs to have a block body
 csharp_style_expression_bodied_methods = false:none
 csharp_style_expression_bodied_constructors = false:none
@@ -117,6 +112,7 @@ resharper_braces_for_ifelse = required
 resharper_braces_for_while = required
 
 # ReSharper inspection severities
+resharper_condition_is_always_true_or_false_according_to_nullable_api_contract_highlighting = error
 resharper_enforce_do_while_statement_braces_highlighting = error
 resharper_enforce_fixed_statement_braces_highlighting = error
 resharper_enforce_foreach_statement_braces_highlighting = error
@@ -194,6 +190,13 @@ dotnet_diagnostic.IDE0002.severity = warning
 dotnet_diagnostic.IDE0004.severity = warning
 # Remove unnecessary using directives.
 dotnet_diagnostic.IDE0005.severity = warning
+# Use `var` instead of explicit type.
+dotnet_diagnostic.IDE0007.severity = warning
+csharp_style_var_for_built_in_types = true
+csharp_style_var_when_type_is_apparent = true
+csharp_style_var_elsewhere = true
+dotnet_diagnostic.RCS1264.severity = none # see https://github.com/dotnet/roslynator/issues/1665
+roslynator_use_var = always
 # Use collection initializers or expressions.
 dotnet_diagnostic.IDE0028.severity = warning
 # Order modifiers.
@@ -226,6 +229,8 @@ dotnet_remove_unnecessary_suppression_exclusions = CA1822, InconsistentNaming, R
 dotnet_diagnostic.IDE0083.severity = warning
 # Remove unnecessary lambda expression.
 dotnet_diagnostic.IDE0200.severity = warning
+# Struct can be made 'readonly'.
+dotnet_diagnostic.IDE0250.severity = warning
 # Use collection expression for array.
 dotnet_diagnostic.IDE0300.severity = warning
 # Use collection expression for empty.
@@ -241,13 +246,27 @@ dotnet_diagnostic.IDE0305.severity = silent # see https://github.com/dotnet/rosl
 # Use collection expression for new.
 dotnet_diagnostic.IDE0306.severity = warning
 dotnet_style_prefer_collection_expression = when_types_exactly_match
+# Place new line after/before binary operator.
+dotnet_diagnostic.RCS0027.severity = warning
+roslynator_binary_operator_new_line = before
+# Normalize whitespace at the end of a file.
+dotnet_diagnostic.RCS0058.severity = warning
+roslynator_new_line_at_end_of_file = true
 # Remove unnecessary blank line.
 dotnet_diagnostic.RCS0063.severity = warning
 dotnet_diagnostic.RCS1036.severity = none # see https://github.com/dotnet/roslynator/issues/1632
+# Convert lambda expression body to expression body.
+dotnet_diagnostic.RCS1021.severity = warning
+dotnet_diagnostic.IDE0053.severity = none # see https://github.com/dotnet/roslyn/issues/79246
+# Remove unnecessary braces in switch section.
+dotnet_diagnostic.RCS1031.severity = warning
 # Remove redundant 'ToString' call.
 dotnet_diagnostic.RCS1097.severity = warning
 # Mark local variable as const.
 dotnet_diagnostic.RCS1118.severity = warning
+# Use conditional access.
+dotnet_diagnostic.RCS1146.severity = warning
+dotnet_diagnostic.IDE0031.severity = none
 # Abstract type should not have public constructors.
 dotnet_diagnostic.RCS1160.severity = warning
 # Use constant instead of field.

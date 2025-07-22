@@ -59,16 +59,16 @@ public class SortEnumType : EnumType
     {
         ArgumentNullException.ThrowIfNull(valueSyntax);
 
-        if (valueSyntax is EnumValueNode evn &&
-            ValueLookup.TryGetValue(evn.Value, out var ev) &&
-            ev is SortEnumValue sortEnumValue)
+        if (valueSyntax is EnumValueNode evn
+            && ValueLookup.TryGetValue(evn.Value, out var ev)
+            && ev is SortEnumValue sortEnumValue)
         {
             return sortEnumValue;
         }
 
-        if (valueSyntax is StringValueNode svn &&
-            Values.TryGetValue(svn.Value, out ev) &&
-            ev is SortEnumValue sortEnumValueOfString)
+        if (valueSyntax is StringValueNode svn
+            && Values.TryGetValue(svn.Value, out ev)
+            && ev is SortEnumValue sortEnumValueOfString)
         {
             return sortEnumValueOfString;
         }

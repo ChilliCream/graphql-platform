@@ -1,7 +1,36 @@
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error"
+  "data": {
+    "books": {
+      "nodes": [
+        {
+          "id": 1,
+          "title": "C# in Depth",
+          "author": {
+            "name": "Jon Skeet"
+          }
+        },
+        {
+          "id": 2,
+          "title": "The Lord of the Rings",
+          "author": {
+            "name": "JRR Tolkien"
+          }
+        },
+        {
+          "id": 3,
+          "title": "The Hobbit",
+          "author": {
+            "name": "JRR Tolkien"
+          }
+        },
+        {
+          "id": 4,
+          "title": "The Silmarillion",
+          "author": {
+            "name": "JRR Tolkien"
+          }
+        }
+      ]
     }
-  ]
+  }
 }

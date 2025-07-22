@@ -174,8 +174,8 @@ internal static class MiddlewareHelper
                 newRequestFlags |= RequestFlags.AllowMutation;
             }
 
-            if ((flags & AllowedGetOperations.Subscription) == AllowedGetOperations.Subscription &&
-                (requestFlags & RequestFlags.AllowSubscription) == RequestFlags.AllowSubscription)
+            if ((flags & AllowedGetOperations.Subscription) == AllowedGetOperations.Subscription
+                && (requestFlags & RequestFlags.AllowSubscription) == RequestFlags.AllowSubscription)
             {
                 newRequestFlags |= RequestFlags.AllowSubscription;
             }

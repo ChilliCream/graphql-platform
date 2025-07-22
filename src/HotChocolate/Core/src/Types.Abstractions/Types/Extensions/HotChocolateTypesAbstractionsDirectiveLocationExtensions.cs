@@ -196,8 +196,8 @@ public static class HotChocolateTypesAbstractionsDirectiveLocationExtensions
             yield return DirectiveLocation.Field;
         }
 
-        if ((locations & DirectiveLocation.FragmentDefinition) ==
-            DirectiveLocation.FragmentDefinition)
+        if ((locations & DirectiveLocation.FragmentDefinition)
+            == DirectiveLocation.FragmentDefinition)
         {
             yield return DirectiveLocation.FragmentDefinition;
         }
@@ -212,8 +212,8 @@ public static class HotChocolateTypesAbstractionsDirectiveLocationExtensions
             yield return DirectiveLocation.InlineFragment;
         }
 
-        if ((locations & DirectiveLocation.VariableDefinition) ==
-            DirectiveLocation.VariableDefinition)
+        if ((locations & DirectiveLocation.VariableDefinition)
+            == DirectiveLocation.VariableDefinition)
         {
             yield return DirectiveLocation.VariableDefinition;
         }
@@ -233,14 +233,14 @@ public static class HotChocolateTypesAbstractionsDirectiveLocationExtensions
             yield return DirectiveLocation.Object;
         }
 
-        if ((locations & DirectiveLocation.FieldDefinition) ==
-            DirectiveLocation.FieldDefinition)
+        if ((locations & DirectiveLocation.FieldDefinition)
+            == DirectiveLocation.FieldDefinition)
         {
             yield return DirectiveLocation.FieldDefinition;
         }
 
-        if ((locations & DirectiveLocation.ArgumentDefinition) ==
-            DirectiveLocation.ArgumentDefinition)
+        if ((locations & DirectiveLocation.ArgumentDefinition)
+            == DirectiveLocation.ArgumentDefinition)
         {
             yield return DirectiveLocation.ArgumentDefinition;
         }
@@ -270,8 +270,8 @@ public static class HotChocolateTypesAbstractionsDirectiveLocationExtensions
             yield return DirectiveLocation.InputObject;
         }
 
-        if ((locations & DirectiveLocation.InputFieldDefinition) ==
-            DirectiveLocation.InputFieldDefinition)
+        if ((locations & DirectiveLocation.InputFieldDefinition)
+            == DirectiveLocation.InputFieldDefinition)
         {
             yield return DirectiveLocation.InputFieldDefinition;
         }

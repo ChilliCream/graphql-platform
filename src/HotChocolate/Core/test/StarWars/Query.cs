@@ -80,8 +80,8 @@ public class Query
             if (character is null)
             {
                 context.ReportError(
-                    "Could not resolve a character for the " +
-                    $"character-id {characterId}.");
+                    "Could not resolve a character for the "
+                    + $"character-id {characterId}.");
             }
             else
             {

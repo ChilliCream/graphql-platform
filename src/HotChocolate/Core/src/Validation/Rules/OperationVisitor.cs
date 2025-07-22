@@ -128,8 +128,8 @@ public class OperationVisitor : DocumentValidatorVisitor
 
         feature.ResponseNames.Add((node.Alias ?? node.Name).Value);
 
-        if (feature.OperationType is OperationType.Subscription &&
-            node.Directives.HasSkipOrIncludeDirective())
+        if (feature.OperationType is OperationType.Subscription
+            && node.Directives.HasSkipOrIncludeDirective())
         {
             context.ReportError(SkipAndIncludeNotAllowedOnSubscriptionRootField(node));
         }
@@ -203,8 +203,8 @@ file static class DirectiveExtensions
         {
             var directive = directives[i];
 
-            if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal) ||
-                directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal))
+            if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal)
+                || directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal))
             {
                 return true;
             }

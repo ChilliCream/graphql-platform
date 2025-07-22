@@ -176,8 +176,8 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool SkipKeyword(ReadOnlySpan<byte> keyword)
     {
-        if (_reader.Kind == TokenKind.Name &&
-            _reader.Value.SequenceEqual(keyword))
+        if (_reader.Kind == TokenKind.Name
+            && _reader.Value.SequenceEqual(keyword))
         {
             MoveNext();
             return true;

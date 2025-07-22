@@ -1428,11 +1428,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .AddConvention<IMockConvention>(convention)
             .Create();
         var result = context.GetConventionOrDefault<IMockConvention>(
@@ -1455,11 +1451,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .AddConvention<IMockConvention, MockConvention>()
             .Create();
         var result = context.GetConventionOrDefault<IMockConvention>(
@@ -1483,11 +1475,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .AddConvention<IMockConvention>(_ => convention)
             .Create();
         var result = context.GetConventionOrDefault<IMockConvention>(
@@ -1510,11 +1498,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .AddConvention<IMockConvention>(typeof(MockConvention))
             .Create();
         var result = context.GetConventionOrDefault<IMockConvention>(
@@ -1538,11 +1522,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .TryAddConvention<IMockConvention>(convention)
             .Create();
         var result = context.GetConventionOrDefault<IMockConvention>(
@@ -1565,11 +1545,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .TryAddConvention<IMockConvention, MockConvention>()
             .Create();
         var result = context.GetConventionOrDefault<IMockConvention>(
@@ -1593,11 +1569,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .TryAddConvention<IMockConvention>(_ => convention)
             .Create();
         var result = context.GetConventionOrDefault<IMockConvention>(
@@ -1620,11 +1592,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .TryAddConvention<IMockConvention>(typeof(MockConvention))
             .Create();
         var result = context.GetConventionOrDefault<IMockConvention>(
@@ -1648,11 +1616,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .AddConvention(typeof(IMockConvention), convention)
             .Create();
         var result = context.GetConventionOrDefault<IMockConvention>(
@@ -1676,11 +1640,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .AddConvention(typeof(IMockConvention), _ => convention)
             .Create();
         var result = context.GetConventionOrDefault<IMockConvention>(
@@ -1703,11 +1663,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .AddConvention(typeof(IMockConvention), typeof(MockConvention))
             .Create();
         var result = context.GetConventionOrDefault<IMockConvention>(
@@ -1731,11 +1687,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .TryAddConvention(typeof(IMockConvention), convention)
             .Create();
         var result = context.GetConventionOrDefault<IMockConvention>(
@@ -1759,11 +1711,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .TryAddConvention(typeof(IMockConvention), _ => convention)
             .Create();
         var result = context.GetConventionOrDefault<IMockConvention>(
@@ -1786,11 +1734,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .TryAddConvention<IMockConvention>(typeof(MockConvention))
             .Create();
         var result = context.GetConventionOrDefault<IMockConvention>(
@@ -1814,11 +1758,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .AddConvention<IMockConvention>(convention)
             .AddConvention<IMockConvention>(new MockConventionExtension())
             .Create();
@@ -1842,11 +1782,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .AddConvention<IMockConvention, MockConvention>()
             .AddConvention<IMockConvention, MockConventionExtension>()
             .Create();
@@ -1871,11 +1807,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .AddConvention<IMockConvention>(_ => convention)
             .AddConvention<IMockConvention>(_ => new MockConventionExtension())
             .Create();
@@ -1899,11 +1831,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .AddConvention<IMockConvention>(typeof(MockConvention))
             .AddConvention<IMockConvention>(typeof(MockConventionExtension))
             .Create();
@@ -1927,8 +1855,7 @@ public class SchemaBuilderTests
                     .Name("Query")
                     .Field("foo")
                     .Resolve("bar")
-                    .Extend().OnBeforeCreate(
-                        (ctx, _) => context = ctx))
+                    .Extend().OnBeforeCreate((ctx, _) => context = ctx))
             .AddConvention<IMockConvention>(typeof(MockConvention))
             .AddConvention<IMockConvention>(typeof(MockConvention))
             .Create();
@@ -1955,10 +1882,7 @@ public class SchemaBuilderTests
                     .Field("foo")
                     .Resolve("bar")
                     .Extend()
-                    .OnBeforeCreate((ctx, _) =>
-                    {
-                        context = ctx;
-                    }))
+                    .OnBeforeCreate((ctx, _) => context = ctx))
             .Create();
         var result = context.GetConventionOrDefault<IMockConvention>(
             () => convention);
@@ -1982,11 +1906,7 @@ public class SchemaBuilderTests
                     .Field("foo")
                     .Resolve("bar")
                     .Extend()
-                    .OnBeforeCreate(
-                        (ctx, _) =>
-                        {
-                            context = ctx;
-                        }))
+                    .OnBeforeCreate((ctx, _) => context = ctx))
             .AddConvention<IMockConvention>(typeof(MockConventionExtension))
             .Create();
         var result = context.GetConventionOrDefault<IMockConvention>(

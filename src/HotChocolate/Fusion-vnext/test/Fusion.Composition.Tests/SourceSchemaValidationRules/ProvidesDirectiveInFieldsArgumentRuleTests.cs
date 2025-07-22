@@ -93,8 +93,8 @@ public sealed class ProvidesDirectiveInFieldsArgumentRuleTests
                     """
                 ],
                 [
-                    "The @provides directive on field 'User.profile' in schema 'A' references " +
-                    "field 'name', which must not include directive applications."
+                    "The @provides directive on field 'User.profile' in schema 'A' references "
+                    + "field 'name', which must not include directive applications."
                 ]
             },
             // Nested field.
@@ -120,8 +120,8 @@ public sealed class ProvidesDirectiveInFieldsArgumentRuleTests
                     """
                 ],
                 [
-                    "The @provides directive on field 'User.profile' in schema 'A' references " +
-                    "field 'info.name', which must not include directive applications."
+                    "The @provides directive on field 'User.profile' in schema 'A' references "
+                    + "field 'info.name', which must not include directive applications."
                 ]
             },
             // Multiple fields.
@@ -143,11 +143,11 @@ public sealed class ProvidesDirectiveInFieldsArgumentRuleTests
                     """
                 ],
                 [
-                    "The @provides directive on field 'User.profile' in schema 'A' references " +
-                    "field 'id', which must not include directive applications.",
+                    "The @provides directive on field 'User.profile' in schema 'A' references "
+                    + "field 'id', which must not include directive applications.",
 
-                    "The @provides directive on field 'User.profile' in schema 'A' references " +
-                    "field 'name', which must not include directive applications."
+                    "The @provides directive on field 'User.profile' in schema 'A' references "
+                    + "field 'name', which must not include directive applications."
                 ]
             }
         };

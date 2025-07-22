@@ -37,8 +37,8 @@ public abstract class MongoDbComparableOperationHandler
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration)
     {
-        return context.Type is IComparableOperationFilterInputType &&
-            fieldConfiguration is FilterOperationFieldConfiguration operationField &&
-            operationField.Id == Operation;
+        return context.Type is IComparableOperationFilterInputType
+            && fieldConfiguration is FilterOperationFieldConfiguration operationField
+            && operationField.Id == Operation;
     }
 }

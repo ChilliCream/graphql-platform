@@ -51,9 +51,9 @@ public static class SnapshotExtensions
                 ? "Result:"
                 : $"{name} Result:");
 
-        if (result.ContextData.TryGetValue("query", out var queryResult) &&
-            queryResult is string queryString &&
-            !string.IsNullOrWhiteSpace(queryString))
+        if (result.ContextData.TryGetValue("query", out var queryResult)
+            && queryResult is string queryString
+            && !string.IsNullOrWhiteSpace(queryString))
         {
             snapshot.Add(
                 queryString,

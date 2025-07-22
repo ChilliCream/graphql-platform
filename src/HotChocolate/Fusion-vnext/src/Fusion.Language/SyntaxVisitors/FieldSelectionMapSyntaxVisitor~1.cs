@@ -325,14 +325,14 @@ public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defau
             return Break;
         }
 
-        if (node.SelectedObjectValue is not null &&
-            Visit(node.SelectedObjectValue, node, context).IsBreak())
+        if (node.SelectedObjectValue is not null
+            && Visit(node.SelectedObjectValue, node, context).IsBreak())
         {
             return Break;
         }
 
-        if (node.SelectedListValue is not null &&
-            Visit(node.SelectedListValue, node, context).IsBreak())
+        if (node.SelectedListValue is not null
+            && Visit(node.SelectedListValue, node, context).IsBreak())
         {
             return Break;
         }

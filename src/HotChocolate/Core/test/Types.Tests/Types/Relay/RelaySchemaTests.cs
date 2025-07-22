@@ -62,10 +62,8 @@ public class RelaySchemaTests
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation2>()
-            .AddQueryFieldToMutationPayloads(o =>
-            {
-                o.MutationPayloadPredicate = type => type.Name.EndsWith("Result");
-            })
+            .AddQueryFieldToMutationPayloads(
+                o => o.MutationPayloadPredicate = type => type.Name.EndsWith("Result"))
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }

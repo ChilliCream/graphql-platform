@@ -39,8 +39,8 @@ internal sealed class ClaimsPrincipalParameterExpressionBuilder
         IResolverContext context,
         bool nullable)
     {
-        if (context.ContextData.TryGetValue(nameof(ClaimsPrincipal), out var value) &&
-            value is ClaimsPrincipal user)
+        if (context.ContextData.TryGetValue(nameof(ClaimsPrincipal), out var value)
+            && value is ClaimsPrincipal user)
         {
             return user;
         }

@@ -23,8 +23,8 @@ public class AllVariablesUsedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The following variables were not used: " +
-                "atOtherHomes.", t.Message));
+                "The following variables were not used: "
+                + "atOtherHomes.", t.Message));
     }
 
     [Fact]
@@ -112,8 +112,8 @@ public class AllVariablesUsedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The following variables were not used: " +
-                "atOtherHomes.", t.Message));
+                "The following variables were not used: "
+                + "atOtherHomes.", t.Message));
     }
 
     [Fact]
@@ -138,8 +138,8 @@ public class AllVariablesUsedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The following variables were not used: " +
-                "extra.", t.Message));
+                "The following variables were not used: "
+                + "extra.", t.Message));
     }
 
     [Fact]
@@ -196,8 +196,8 @@ public class AllVariablesUsedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The following variables were not declared: " +
-                "atOtherHomes.", t.Message));
+                "The following variables were not declared: "
+                + "atOtherHomes.", t.Message));
     }
 
     [Fact]
@@ -220,8 +220,8 @@ public class AllVariablesUsedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The following variables were not declared: " +
-                "atOtherHomes.", t.Message));
+                "The following variables were not declared: "
+                + "atOtherHomes.", t.Message));
     }
 
     [Fact]
@@ -273,7 +273,7 @@ public class AllVariablesUsedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The following variables were not declared: " +
-                "atOtherHomes.", t.Message));
+                "The following variables were not declared: "
+                + "atOtherHomes.", t.Message));
     }
 }

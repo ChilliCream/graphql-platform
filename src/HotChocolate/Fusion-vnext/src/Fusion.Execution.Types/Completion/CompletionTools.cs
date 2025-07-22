@@ -12,7 +12,7 @@ internal static class CompletionTools
 {
     public static FusionDirectiveCollection CreateDirectiveCollection(
         IReadOnlyList<DirectiveNode> directives,
-        CompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         directives = DirectiveTools.GetUserDirectives(directives);
 
@@ -60,7 +60,7 @@ internal static class CompletionTools
 
     public static FusionInterfaceTypeDefinitionCollection CreateInterfaceTypeCollection(
         IReadOnlyList<NamedTypeNode> interfaceTypes,
-        CompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         if (interfaceTypes.Count == 0)
         {
@@ -79,7 +79,7 @@ internal static class CompletionTools
 
     public static FusionObjectTypeDefinitionCollection CreateObjectTypeCollection(
         IReadOnlyList<NamedTypeNode> types,
-        CompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         var temp = new FusionObjectTypeDefinition[types.Count];
 
@@ -93,7 +93,7 @@ internal static class CompletionTools
 
     public static SourceObjectTypeCollection CreateSourceObjectTypeCollection(
         ObjectTypeDefinitionNode typeDef,
-        CompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         var types = TypeDirectiveParser.Parse(typeDef.Directives);
         var lookups = LookupDirectiveParser.Parse(typeDef.Directives);
@@ -113,7 +113,7 @@ internal static class CompletionTools
 
     public static SourceInterfaceTypeCollection CreateSourceInterfaceTypeCollection(
         InterfaceTypeDefinitionNode typeDef,
-        CompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         var types = TypeDirectiveParser.Parse(typeDef.Directives);
         var lookups = LookupDirectiveParser.Parse(typeDef.Directives);

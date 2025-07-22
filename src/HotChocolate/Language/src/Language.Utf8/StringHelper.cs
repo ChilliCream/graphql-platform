@@ -39,9 +39,9 @@ internal static class StringHelper
             var indent = GetLeadingWhitespace(in data, ref position);
             var lineLength = indent + GoToNextLine(in data, ref position);
 
-            if (lineLength > 0 &&
-                indent <= lineLength &&
-                (commonIndent == null || indent < commonIndent))
+            if (lineLength > 0
+                && indent <= lineLength
+                && (commonIndent == null || indent < commonIndent))
             {
                 commonIndent = indent;
                 if (commonIndent == 0)

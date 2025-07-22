@@ -15,8 +15,8 @@ internal sealed class ObjectTypeParameterExpressionBuilder()
     public override ArgumentKind Kind => ArgumentKind.ObjectType;
 
     public override bool CanHandle(ParameterInfo parameter)
-        => typeof(ObjectType) == parameter.ParameterType ||
-           typeof(IObjectTypeDefinition) == parameter.ParameterType;
+        => typeof(ObjectType) == parameter.ParameterType
+            || typeof(IObjectTypeDefinition) == parameter.ParameterType;
 
     public override Expression Build(ParameterExpressionBuilderContext context)
     {

@@ -7,7 +7,7 @@ using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
-internal sealed class CompositeSchemaContext
+internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderContext
 {
     private readonly Dictionary<ITypeNode, IType> _compositeTypes = new(SyntaxComparer.BySyntax);
     private readonly Dictionary<string, ITypeDefinition> _typeDefinitionLookup;
@@ -15,7 +15,7 @@ internal sealed class CompositeSchemaContext
     private readonly Dictionary<string, FusionDirectiveDefinition> _directiveDefinitionLookup;
     private ImmutableDictionary<string, DirectiveDefinitionNode> _directiveDefinitionNodeLookup;
 
-    public CompositeSchemaContext(
+    public CompositeSchemaBuilderContext(
         string name,
         string? description,
         IServiceProvider services,
@@ -27,7 +27,8 @@ internal sealed class CompositeSchemaContext
         ImmutableDictionary<string, ITypeDefinitionNode> typeDefinitionNodeLookup,
         ImmutableArray<FusionDirectiveDefinition> directiveDefinitions,
         ImmutableDictionary<string, DirectiveDefinitionNode> directiveDefinitionNodeLookup,
-        IFeatureCollection features)
+        IFeatureCollection features,
+        CompositeTypeInterceptor interceptor)
     {
         _typeDefinitionLookup = typeDefinitions.ToDictionary(t => t.Name);
         _directiveDefinitionLookup = directiveDefinitions.ToDictionary(t => t.Name);
@@ -44,6 +45,7 @@ internal sealed class CompositeSchemaContext
         TypeDefinitions = typeDefinitions;
         DirectiveDefinitions = directiveDefinitions;
         Features = features;
+        Interceptor = interceptor;
 
         AddSpecDirectives();
     }
@@ -53,6 +55,8 @@ internal sealed class CompositeSchemaContext
     public string? Description { get; }
 
     public IServiceProvider Services { get; }
+
+    public CompositeTypeInterceptor Interceptor { get; }
 
     public string QueryType { get; }
 
@@ -134,7 +138,7 @@ internal sealed class CompositeSchemaContext
     {
         var type = new FusionScalarTypeDefinition(name, null);
         var typeDef = new ScalarTypeDefinitionNode(null, new NameNode(name), null, []);
-        type.Complete(new CompositeScalarTypeCompletionContext(default, FusionDirectiveCollection.Empty));
+        type.Complete(new CompositeScalarTypeCompletionContext(default, FusionDirectiveCollection.Empty, null));
 
         _typeDefinitionNodeLookup = _typeDefinitionNodeLookup.SetItem(name, typeDef);
         TypeDefinitions = TypeDefinitions.Add(type);

@@ -23,8 +23,8 @@ internal static class EntitiesResolver
 
             var current = representations[i];
 
-            if (schema.Types.TryGetType<ObjectType>(current.TypeName, out var objectType) &&
-                objectType.Features.TryGet(out ReferenceResolver? entity))
+            if (schema.Types.TryGetType<ObjectType>(current.TypeName, out var objectType)
+                && objectType.Features.TryGet(out ReferenceResolver? entity))
             {
                 // We clone the resolver context here so that we can split the work
                 // into subtasks that can be awaited in parallel and produce separate results.

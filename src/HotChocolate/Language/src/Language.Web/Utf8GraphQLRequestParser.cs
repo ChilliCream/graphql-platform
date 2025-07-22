@@ -326,7 +326,7 @@ public ref partial struct Utf8GraphQLRequestParser
                     var hasPayload = !IsNullToken();
                     var end = SkipValue();
                     message.Payload = hasPayload
-                        ? _reader.GraphQLData.Slice(start, end - start)
+                        ? _reader.SourceText.Slice(start, end - start)
                         : default;
                 }
 
@@ -354,7 +354,7 @@ public ref partial struct Utf8GraphQLRequestParser
 
             if (_useCache)
             {
-                if (request.DocumentId.HasValue 
+                if (request.DocumentId.HasValue
                     && _cache!.TryGetDocument(request.DocumentId.Value.Value, out var cachedDocument))
                 {
                     document = cachedDocument.Body;

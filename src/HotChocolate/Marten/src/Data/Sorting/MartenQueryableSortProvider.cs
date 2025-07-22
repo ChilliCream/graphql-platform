@@ -33,6 +33,6 @@ public class MartenQueryableSortProvider : QueryableSortProvider
         => descriptor.AddDefaultFieldHandlers();
 
     protected override bool IsInMemoryQuery<TEntityType>(object? input)
-        => base.IsInMemoryQuery<TEntityType>(input) &&
-            input is not IMartenQueryable<TEntityType>;
+        => base.IsInMemoryQuery<TEntityType>(input)
+            && input is not IMartenQueryable<TEntityType>;
 }

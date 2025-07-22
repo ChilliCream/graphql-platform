@@ -27,8 +27,8 @@ internal static class BindDirectiveHelper
         {
             var to = directive.Arguments[0];
 
-            if (to.Name.Value.EqualsOrdinal(ToArgument) &&
-                to.Value is StringValueNode { Value: { Length: > 0 } value })
+            if (to.Name.Value.EqualsOrdinal(ToArgument)
+                && to.Value is StringValueNode { Value: { Length: > 0 } value })
             {
                 return value;
             }
