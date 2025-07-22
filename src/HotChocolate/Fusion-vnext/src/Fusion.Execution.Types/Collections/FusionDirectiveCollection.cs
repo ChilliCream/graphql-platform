@@ -12,6 +12,7 @@ public sealed class FusionDirectiveCollection
 
     public FusionDirectiveCollection(FusionDirective[] directives)
     {
+        ArgumentNullException.ThrowIfNull(directives);
         _directives = directives;
     }
 

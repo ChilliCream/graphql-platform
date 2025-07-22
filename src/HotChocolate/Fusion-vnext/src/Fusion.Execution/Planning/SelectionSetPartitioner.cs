@@ -173,6 +173,12 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
         FieldNode fieldNode,
         FieldNode? providedFieldNode)
     {
+        // the __typename field is available on all subgraphs
+        if (fieldNode.Name.Value.Equals(IntrospectionFieldNames.TypeName))
+        {
+            return (fieldNode, null);
+        }
+
         var field = complexType.Fields[fieldNode.Name.Value];
 
         if (providedFieldNode is null)

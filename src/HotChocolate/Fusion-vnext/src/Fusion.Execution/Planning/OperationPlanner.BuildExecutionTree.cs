@@ -10,16 +10,30 @@ public sealed partial class OperationPlanner
     /// Builds the actual execution plan from the provided <paramref name="planSteps"/>.
     /// </summary>
     private OperationExecutionPlan BuildExecutionPlan(
-        string id,
+        Operation operation,
+        OperationDefinitionNode operationDefinition,
         ImmutableList<OperationPlanStep> planSteps,
-        OperationDefinitionNode originalOperation,
-        OperationDefinitionNode internalOperation)
+        bool isIntrospectionOnly)
     {
+        if (isIntrospectionOnly)
+        {
+            var introspectionNode = new IntrospectionExecutionNode(1, [.. operation.RootSelectionSet.Selections]);
+            introspectionNode.Seal();
+
+            return new OperationExecutionPlan
+            {
+                Operation = operation,
+                OperationDefinition = operationDefinition,
+                RootNodes = [introspectionNode],
+                AllNodes = [introspectionNode]
+            };
+        }
+
         var completedSteps = new HashSet<int>();
         var completedNodes = new Dictionary<int, ExecutionNode>();
         var dependencyLookup = new Dictionary<int, HashSet<int>>();
 
-        planSteps = PrepareSteps(planSteps, originalOperation, dependencyLookup);
+        planSteps = PrepareSteps(planSteps, operationDefinition, dependencyLookup);
         BuildExecutionNodes(planSteps, completedSteps, completedNodes, dependencyLookup);
         BuildDependencyStructure(completedNodes, dependencyLookup);
 
@@ -33,7 +47,14 @@ public sealed partial class OperationPlanner
             .Select(t => t.Value)
             .ToImmutableArray();
 
-        var operation = _operationCompiler.Compile(id, internalOperation);
+        if (operation.HasIntrospectionFields())
+        {
+            var introspectionNode = new IntrospectionExecutionNode(
+                allNodes.Max(t => t.Id) + 1,
+                operation.GetIntrospectionSelections());
+            rootNodes = rootNodes.Add(introspectionNode);
+            allNodes = allNodes.Add(introspectionNode);
+        }
 
         foreach (var node in allNodes)
         {
@@ -43,7 +64,7 @@ public sealed partial class OperationPlanner
         return new OperationExecutionPlan
         {
             Operation = operation,
-            OperationDefinition = originalOperation,
+            OperationDefinition = operationDefinition,
             RootNodes = rootNodes,
             AllNodes = allNodes
         };
@@ -216,5 +237,36 @@ public sealed partial class OperationPlanner
                 node.AddDependency(dependencyNode);
             }
         }
+    }
+}
+
+file static class Extensions
+{
+    public static bool HasIntrospectionFields(this Operation operation)
+    {
+        foreach (var selection in operation.RootSelectionSet.Selections)
+        {
+            if (selection.Field.IsIntrospectionField)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static Selection[] GetIntrospectionSelections(this Operation operation)
+    {
+        var selections = new List<Selection>(operation.RootSelectionSet.Selections.Length);
+
+        foreach (var selection in operation.RootSelectionSet.Selections)
+        {
+            if (selection.Field.IsIntrospectionField)
+            {
+                selections.Add(selection);
+            }
+        }
+
+        return selections.ToArray();
     }
 }

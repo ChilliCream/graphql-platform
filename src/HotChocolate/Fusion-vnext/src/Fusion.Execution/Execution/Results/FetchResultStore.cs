@@ -20,17 +20,15 @@ namespace HotChocolate.Fusion.Execution;
 internal sealed class FetchResultStore : IDisposable
 {
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
-    private readonly ResultPoolSession _resultPoolSession;
     private readonly ValueCompletion _valueCompletion;
     private readonly Operation _operation;
-    private readonly ObjectResult _root;
     private readonly ulong _includeFlags;
+    private readonly ObjectResult _root;
 
     private readonly ImmutableArray<IError> _errors = [];
 
     // TODO : attach resources to result object.
     private readonly ConcurrentStack<IDisposable> _memory = [];
-    private bool _isInitialized;
 
     public FetchResultStore(
         ISchemaDefinition schema,
@@ -42,18 +40,18 @@ internal sealed class FetchResultStore : IDisposable
         ArgumentNullException.ThrowIfNull(resultPoolSession);
         ArgumentNullException.ThrowIfNull(operation);
 
-        _resultPoolSession = resultPoolSession;
-        _valueCompletion = new ValueCompletion(schema, resultPoolSession, ErrorHandling.Propagate, 32, includeFlags);
         _operation = operation;
-        _root = resultPoolSession.RentObjectResult();
         _includeFlags = includeFlags;
+        _valueCompletion = new ValueCompletion(schema, resultPoolSession, ErrorHandling.Propagate, 32, includeFlags);
+        _root = resultPoolSession.RentObjectResult();
+        _root.Initialize(resultPoolSession, operation.RootSelectionSet, includeFlags);
     }
 
     public ObjectResult Data => _root;
 
     public ImmutableArray<IError> Errors => _errors;
 
-    public IEnumerable<IDisposable> MemoryOwners => _memory;
+    public ConcurrentStack<IDisposable> MemoryOwners => _memory;
 
     public bool AddPartialResults(
         SelectionPath sourcePath,
@@ -95,6 +93,28 @@ internal sealed class FetchResultStore : IDisposable
         }
     }
 
+    public void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
+    {
+        _lock.EnterWriteLock();
+
+        try
+        {
+            foreach (var selection in selections)
+            {
+                if (!selection.IsIncluded(_includeFlags))
+                {
+                    continue;
+                }
+
+                result.MoveFieldTo(selection.ResponseName, _root);
+            }
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+    }
+
     private bool SaveSafe(
         ReadOnlySpan<SourceSchemaResult> results,
         ReadOnlySpan<JsonElement> startElements)
@@ -112,13 +132,6 @@ internal sealed class FetchResultStore : IDisposable
                 if (result.Path.IsRoot)
                 {
                     var selectionSet = _operation.RootSelectionSet;
-
-                    if (!_isInitialized)
-                    {
-                        _root.Initialize(_resultPoolSession, selectionSet, _includeFlags);
-                        _isInitialized = true;
-                    }
-
                     if (!_valueCompletion.BuildResult(selectionSet, result, startElement, _root))
                     {
                         return false;
@@ -374,7 +387,7 @@ internal sealed class FetchResultStore : IDisposable
 #endif
     }
 
-    private PooledArrayWriter CreateRentedBuffer()
+    public PooledArrayWriter CreateRentedBuffer()
     {
         var buffer = new PooledArrayWriter();
         _memory.Push(buffer);
