@@ -121,6 +121,14 @@ public abstract class FusionTestBase : IDisposable
         actual.MatchInlineSnapshot(expected + Environment.NewLine);
     }
 
+    protected static void MatchSnapshot(
+        OperationExecutionPlan plan)
+    {
+        var formatter = new YamlExecutionPlanFormatter();
+        var actual = formatter.Format(plan);
+        actual.MatchSnapshot(extension: ".yaml");
+    }
+
     public void Dispose()
     {
         if (_disposed)

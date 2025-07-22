@@ -49,11 +49,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-            NOT SUPPORTED
-            """);
+        MatchSnapshot(plan);
     }
 
     [Fact(Skip = "Not yet supported")]
@@ -110,11 +106,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-            NOT SUPPORTED
-            """);
+        MatchSnapshot(plan);
     }
 
     [Fact(Skip = "Not yet supported")]
@@ -179,11 +171,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-            NOT SUPPORTED
-            """);
+        MatchSnapshot(plan);
     }
 
     [Fact(Skip = "Not yet supported")]
@@ -270,11 +258,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-            NOT SUPPORTED
-            """);
+        MatchSnapshot(plan);
     }
 
     [Fact(Skip = "Not yet supported")]
@@ -362,11 +346,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-            NOT SUPPORTED
-            """);
+        MatchSnapshot(plan);
     }
 
     #endregion
@@ -420,11 +400,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-            NOT SUPPORTED
-            """);
+        MatchSnapshot(plan);
     }
 
     [Fact(Skip = "Not yet supported")]
@@ -477,11 +453,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-            NOT SUPPORTED
-            """);
+        MatchSnapshot(plan);
     }
 
     [Fact(Skip = "Not yet supported")]
@@ -561,11 +533,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-            NOT SUPPORTED
-            """);
+        MatchSnapshot(plan);
     }
 
     [Fact(Skip = "Not yet supported")]
@@ -639,11 +607,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-            NOT SUPPORTED
-            """);
+        MatchSnapshot(plan);
     }
 
     #endregion
