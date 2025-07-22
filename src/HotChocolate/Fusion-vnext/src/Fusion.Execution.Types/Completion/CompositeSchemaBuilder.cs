@@ -18,15 +18,18 @@ internal static class CompositeSchemaBuilder
         IServiceProvider? services = null,
         IFeatureCollection? features = null)
     {
-        var context = CreateTypes(name, documentNode, services, features);
+        services ??= EmptyServiceProvider.Instance;
+        var typeInterceptor = CreateTypeInterceptor(services);
+        var context = CreateTypes(name, documentNode, services, features, typeInterceptor);
         return CompleteTypes(context);
     }
 
     private static CompositeSchemaBuilderContext CreateTypes(
         string name,
         DocumentNode schema,
-        IServiceProvider? services,
-        IFeatureCollection? features)
+        IServiceProvider services,
+        IFeatureCollection? features,
+        CompositeTypeInterceptor typeInterceptor)
     {
         string? description = null;
         var queryType = "Query";
@@ -42,7 +45,7 @@ internal static class CompositeSchemaBuilder
         if (schemaDefinition is not null)
         {
             description = schemaDefinition.Description?.Value;
-            directives = [..schemaDefinition.Directives];
+            directives = [.. schemaDefinition.Directives];
 
             foreach (var operationType in schemaDefinition.OperationTypes)
             {
@@ -114,7 +117,6 @@ internal static class CompositeSchemaBuilder
             }
         }
 
-        services ??= EmptyServiceProvider.Instance;
         features ??= FeatureCollection.Empty;
 
         return new CompositeSchemaBuilderContext(

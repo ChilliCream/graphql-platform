@@ -279,7 +279,7 @@ internal sealed class FusionRequestExecutorManager
             static _ => new DefaultObjectPool<PooledRequestContext>(
                 new RequestContextPooledObjectPolicy()));
 
-        services.AddSingleton<CompositeTypeInterceptor>(static _ => new IntrospectionFieldInterceptor());
+        services.AddTransient<CompositeTypeInterceptor>(static _ => new IntrospectionFieldInterceptor());
     }
 
     private static void AddOperationPlanner(IServiceCollection services)
