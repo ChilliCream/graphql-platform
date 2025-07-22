@@ -22,7 +22,7 @@ internal static class CompositeSchemaBuilder
         return CompleteTypes(context);
     }
 
-    private static CompositeCompositeSchemaContext CreateTypes(
+    private static CompositeSchemaBuilderContext CreateTypes(
         string name,
         DocumentNode schema,
         IServiceProvider? services,
@@ -117,7 +117,7 @@ internal static class CompositeSchemaBuilder
         services ??= EmptyServiceProvider.Instance;
         features ??= FeatureCollection.Empty;
 
-        return new CompositeCompositeSchemaContext(
+        return new CompositeSchemaBuilderContext(
             name,
             description,
             services,
@@ -356,7 +356,7 @@ internal static class CompositeSchemaBuilder
         return new FusionEnumValueCollection(sourceFields);
     }
 
-    private static FusionSchemaDefinition CompleteTypes(CompositeCompositeSchemaContext context)
+    private static FusionSchemaDefinition CompleteTypes(CompositeSchemaBuilderContext context)
     {
         foreach (var type in context.TypeDefinitions)
         {
@@ -439,7 +439,7 @@ internal static class CompositeSchemaBuilder
     private static void CompleteObjectType(
         FusionObjectTypeDefinition type,
         ObjectTypeDefinitionNode typeDef,
-        CompositeCompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         var operationType = GetOperationType(typeDef.Name.Value, context);
 
@@ -492,7 +492,7 @@ internal static class CompositeSchemaBuilder
     private static void CompleteInterfaceType(
         FusionInterfaceTypeDefinition type,
         InterfaceTypeDefinitionNode typeDef,
-        CompositeCompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         var operationType = GetOperationType(typeDef.Name.Value, context);
 
@@ -521,7 +521,7 @@ internal static class CompositeSchemaBuilder
     private static void CompleteUnionType(
         FusionUnionTypeDefinition type,
         UnionTypeDefinitionNode typeDef,
-        CompositeCompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, context);
         var types = CompletionTools.CreateObjectTypeCollection(typeDef.Types, context);
@@ -533,7 +533,7 @@ internal static class CompositeSchemaBuilder
         OperationType? operationType,
         FusionOutputFieldDefinition fieldDefinition,
         FieldDefinitionNode fieldDef,
-        CompositeCompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         foreach (var argumentDef in fieldDef.Arguments)
         {
@@ -568,7 +568,7 @@ internal static class CompositeSchemaBuilder
     private static SourceObjectFieldCollection BuildSourceObjectFieldCollection(
         FusionOutputFieldDefinition fieldDefinition,
         FieldDefinitionNode fieldDef,
-        CompositeCompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         var fieldDirectives = FieldDirectiveParser.Parse(fieldDef.Directives);
         var requireDirectives = RequiredDirectiveParser.Parse(fieldDef.Directives);
@@ -621,7 +621,7 @@ internal static class CompositeSchemaBuilder
         static IType CompleteType(
             ITypeNode type,
             ITypeNode? sourceType,
-            CompositeCompositeSchemaContext context)
+            CompositeSchemaBuilderContext context)
         {
             return sourceType is null
                 ? context.GetType(type)
@@ -632,7 +632,7 @@ internal static class CompositeSchemaBuilder
     private static void CompleteInputObjectType(
         FusionInputObjectTypeDefinition inputObjectType,
         InputObjectTypeDefinitionNode inputObjectTypeDef,
-        CompositeCompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         foreach (var fieldDef in inputObjectTypeDef.Fields)
         {
@@ -647,7 +647,7 @@ internal static class CompositeSchemaBuilder
         ITypeSystemMember declaringMember,
         FusionInputFieldDefinition inputField,
         InputValueDefinitionNode argumentDef,
-        CompositeCompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         var directives = CompletionTools.CreateDirectiveCollection(argumentDef.Directives, context);
         var type = context.GetType(argumentDef.Type).ExpectInputType();
@@ -663,7 +663,7 @@ internal static class CompositeSchemaBuilder
     private static void CompleteEnumType(
         FusionEnumTypeDefinition typeDefinition,
         EnumTypeDefinitionNode typeDefinitionNode,
-        CompositeCompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         var directives = CompletionTools.CreateDirectiveCollection(typeDefinitionNode.Directives, context);
 
@@ -686,7 +686,7 @@ internal static class CompositeSchemaBuilder
         IEnumTypeDefinition declaringType,
         FusionEnumValue enumValue,
         EnumValueDefinitionNode enumValueDef,
-        CompositeCompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         var directives = CompletionTools.CreateDirectiveCollection(enumValueDef.Directives, context);
 
@@ -700,7 +700,7 @@ internal static class CompositeSchemaBuilder
     private static void CompleteScalarType(
         FusionScalarTypeDefinition typeDefinition,
         ScalarTypeDefinitionNode typeDefinitionNode,
-        CompositeCompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         var directives = CompletionTools.CreateDirectiveCollection(typeDefinitionNode.Directives, context);
         var specifiedByDirective = directives.FirstOrDefault("specifiedBy");
@@ -726,7 +726,7 @@ internal static class CompositeSchemaBuilder
     private static void CompleteDirectiveType(
         FusionDirectiveDefinition directiveDefinition,
         DirectiveDefinitionNode directiveDefinitionNode,
-        CompositeCompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         foreach (var argumentDef in directiveDefinitionNode.Arguments)
         {
@@ -740,7 +740,7 @@ internal static class CompositeSchemaBuilder
 
     private static OperationType? GetOperationType(
         string typeName,
-        CompositeCompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         if (context.QueryType.Equals(typeName, StringComparison.OrdinalIgnoreCase))
         {

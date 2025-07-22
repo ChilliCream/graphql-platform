@@ -7,7 +7,7 @@ using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
-internal sealed class CompositeCompositeSchemaContext : ICompositeSchemaBuilderContext
+internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderContext
 {
     private readonly Dictionary<ITypeNode, IType> _compositeTypes = new(SyntaxComparer.BySyntax);
     private readonly Dictionary<string, ITypeDefinition> _typeDefinitionLookup;
@@ -15,7 +15,7 @@ internal sealed class CompositeCompositeSchemaContext : ICompositeSchemaBuilderC
     private readonly Dictionary<string, FusionDirectiveDefinition> _directiveDefinitionLookup;
     private ImmutableDictionary<string, DirectiveDefinitionNode> _directiveDefinitionNodeLookup;
 
-    public CompositeCompositeSchemaContext(
+    public CompositeSchemaBuilderContext(
         string name,
         string? description,
         IServiceProvider services,
