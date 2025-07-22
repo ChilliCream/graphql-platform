@@ -126,6 +126,44 @@ public class BookStoreTests : FusionTestBase
         response.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Fetch_Books_TypeName()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+              books {
+                nodes {
+                  __typename
+                }
+              }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
     public static class SourceSchema1
     {
         public record Book(int Id, string Title, Author Author);

@@ -17,7 +17,7 @@ public sealed partial class OperationPlanner
     {
         if (isIntrospectionOnly)
         {
-            var introspectionNode = new IntrospectionExecutionNode(1, [..operation.RootSelectionSet.Selections]);
+            var introspectionNode = new IntrospectionExecutionNode(1, [.. operation.RootSelectionSet.Selections]);
             introspectionNode.Seal();
 
             return new OperationExecutionPlan
