@@ -8,7 +8,7 @@ using static HotChocolate.Fusion.Types.ThrowHelper;
 
 namespace HotChocolate.Fusion.Types;
 
-public class FusionEnumTypeDefinition : IEnumTypeDefinition
+public sealed class FusionEnumTypeDefinition : IEnumTypeDefinition
 {
     private bool _completed;
 
