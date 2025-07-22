@@ -11,8 +11,8 @@ public static class CodeWriterExtensions
 
 #if DEBUG
         writer.WriteIndentedLine(
-            "[global::System.CodeDom.Compiler.GeneratedCode(" +
-            "\"HotChocolate\", \"11.0.0\")]");
+            "[global::System.CodeDom.Compiler.GeneratedCode("
+            + "\"HotChocolate\", \"11.0.0\")]");
 #else
         var version = typeof(CodeWriter).Assembly.GetName().Version!.ToString();
         writer.WriteIndentedLine(

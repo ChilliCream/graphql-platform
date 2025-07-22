@@ -6,8 +6,8 @@ internal static class HttpContextExtensions
 {
     public static GraphQLServerOptions? GetGraphQLServerOptions(this HttpContext context)
         => context.GetEndpoint()?.Metadata.GetMetadata<GraphQLServerOptions>() ??
-           (context.Items.TryGetValue(nameof(GraphQLServerOptions), out var o) &&
-            o is GraphQLServerOptions options
+           (context.Items.TryGetValue(nameof(GraphQLServerOptions), out var o)
+            && o is GraphQLServerOptions options
                 ? options
                 : null);
 
@@ -18,8 +18,8 @@ internal static class HttpContextExtensions
     {
         var headers = context.Request.Headers;
 
-        if (headers.TryGetValue(HttpHeaderKeys.QueryPlan, out var values) &&
-            values.Any(v => v == HttpHeaderValues.IncludeQueryPlan))
+        if (headers.TryGetValue(HttpHeaderKeys.QueryPlan, out var values)
+            && values.Any(v => v == HttpHeaderValues.IncludeQueryPlan))
         {
             return true;
         }
@@ -57,8 +57,8 @@ internal static class HttpContextExtensions
 
     public static RequestContentType ParseContentType(this HttpContext context)
     {
-        if (context.Items.TryGetValue(nameof(RequestContentType), out var value) &&
-            value is RequestContentType contentType)
+        if (context.Items.TryGetValue(nameof(RequestContentType), out var value)
+            && value is RequestContentType contentType)
         {
             return contentType;
         }

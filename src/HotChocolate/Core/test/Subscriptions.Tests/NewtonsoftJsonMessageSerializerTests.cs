@@ -32,8 +32,8 @@ public class NewtonsoftJsonMessageSerializerTests
             .Create()
             .Add(serializedMessage)
             .MatchInline(
-                "{\"$type\":\"HotChocolate.Subscriptions.MessageEnvelope`1[[System.String, " +
-                "System.Private.CoreLib]], HotChocolate.Subscriptions\"," +
-                "\"Body\":\"abc\",\"Kind\":0}");
+                "{\"$type\":\"HotChocolate.Subscriptions.MessageEnvelope`1[[System.String, "
+                + "System.Private.CoreLib]], HotChocolate.Subscriptions\","
+                + "\"Body\":\"abc\",\"Kind\":0}");
     }
 }

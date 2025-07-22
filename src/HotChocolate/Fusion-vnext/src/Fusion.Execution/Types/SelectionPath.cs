@@ -117,8 +117,8 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
 
         for (var i = 0; i < _segments.Length; i++)
         {
-            if (_segments[i].Kind != other._segments[i].Kind ||
-                !string.Equals(_segments[i].Name, other._segments[i].Name, StringComparison.Ordinal))
+            if (_segments[i].Kind != other._segments[i].Kind
+                || !string.Equals(_segments[i].Name, other._segments[i].Name, StringComparison.Ordinal))
             {
                 return false;
             }

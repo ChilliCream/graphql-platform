@@ -23,8 +23,8 @@ internal static class ResolveResultHelper
             return resolver;
         }
 
-        if (typeof(Task).IsAssignableFrom(result) &&
-            result.IsGenericType)
+        if (typeof(Task).IsAssignableFrom(result)
+            && result.IsGenericType)
         {
             return AwaitTaskMethodCall(
                 resolver,

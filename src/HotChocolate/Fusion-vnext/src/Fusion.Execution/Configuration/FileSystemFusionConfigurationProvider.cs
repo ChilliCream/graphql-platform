@@ -48,12 +48,12 @@ public class FileSystemFusionConfigurationProvider : IFusionSchemaDocumentProvid
             Filter = "*.*",
 
             NotifyFilter =
-                NotifyFilters.FileName |
-                NotifyFilters.DirectoryName |
-                NotifyFilters.Attributes |
-                NotifyFilters.CreationTime |
-                NotifyFilters.LastWrite |
-                NotifyFilters.Size
+                NotifyFilters.FileName
+                | NotifyFilters.DirectoryName
+                | NotifyFilters.Attributes
+                | NotifyFilters.CreationTime
+                | NotifyFilters.LastWrite
+                | NotifyFilters.Size
         };
 
         _watcher.Created += (_, e) =>

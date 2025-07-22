@@ -43,8 +43,8 @@ public class ReflectionUtilsTests
 
         // assert
         Assert.Equal(
-            "HotChocolate.Utilities.ReflectionUtilsTests" +
-            ".GenericNestedFoo<System.String>",
+            "HotChocolate.Utilities.ReflectionUtilsTests"
+            + ".GenericNestedFoo<System.String>",
             typeName);
     }
 

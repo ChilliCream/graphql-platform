@@ -66,9 +66,9 @@ internal static class Utf8Helper
                                 {
                                     throw new Utf8EncodingException("Unexpected low surrogate.");
                                 }
-                                var fullUnicode = ((highSurrogate.Value - 0xD800) << 10) +
-                                    (unicodeDecimal - 0xDC00) +
-                                    0x10000;
+                                var fullUnicode = ((highSurrogate.Value - 0xD800) << 10)
+                                    + (unicodeDecimal - 0xDC00)
+                                    + 0x10000;
                                 UnescapeUtf8Hex(fullUnicode, ref writePosition, unescapedString);
                                 highSurrogate = null;
                             }

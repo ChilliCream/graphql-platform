@@ -18,10 +18,10 @@ internal static class FusionBuiltIns
 
     public static bool IsBuiltInType(string typeName)
     {
-        if (typeName == FieldDefinition ||
-            typeName == FieldSelectionMap ||
-            typeName == FieldSelectionSet ||
-            typeName == FusionSelectionPath)
+        if (typeName == FieldDefinition
+            || typeName == FieldSelectionMap
+            || typeName == FieldSelectionSet
+            || typeName == FusionSelectionPath)
         {
             return true;
         }
@@ -31,14 +31,14 @@ internal static class FusionBuiltIns
 
     public static bool IsBuiltInDirective(string directiveName)
     {
-        if (directiveName == Type ||
-            directiveName == Field ||
-            directiveName == InputField ||
-            directiveName == Requires ||
-            directiveName == Lookup ||
-            directiveName == Implements ||
-            directiveName == UnionMember ||
-            directiveName == EnumValue)
+        if (directiveName == Type
+            || directiveName == Field
+            || directiveName == InputField
+            || directiveName == Requires
+            || directiveName == Lookup
+            || directiveName == Implements
+            || directiveName == UnionMember
+            || directiveName == EnumValue)
         {
             return true;
         }

@@ -32,8 +32,8 @@ public class InputObjectFieldNamesRuleTests
             }
             """,
             t => Assert.Equal(
-                "The specified input object field " +
-                "`favoriteCookieFlavor` does not exist.",
+                "The specified input object field "
+                + "`favoriteCookieFlavor` does not exist.",
                 t.Message));
     }
 
@@ -48,8 +48,8 @@ public class InputObjectFieldNamesRuleTests
             }
             """,
             t => Assert.Equal(
-                "The specified input object field " +
-                "`favoriteCookieFlavor` does not exist.",
+                "The specified input object field "
+                + "`favoriteCookieFlavor` does not exist.",
                 t.Message));
     }
 }

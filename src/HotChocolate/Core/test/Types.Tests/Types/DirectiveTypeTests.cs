@@ -166,8 +166,8 @@ public class DirectiveTypeTests : TypeTestBase
             t =>
             {
                 Assert.Equal(
-                    "The specified directive `@foo` " +
-                    "is unique and cannot be added twice.",
+                    "The specified directive `@foo` "
+                    + "is unique and cannot be added twice.",
                     t.Message);
             });
     }

@@ -35,9 +35,9 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
         var sourceElement = ExtendedType.Tools.GetElementType(source);
         var targetElement = ExtendedType.Tools.GetElementType(target);
 
-        if (sourceElement is not null &&
-            targetElement is not null &&
-            root(sourceElement, targetElement, out var elementConverter))
+        if (sourceElement is not null
+            && targetElement is not null
+            && root(sourceElement, targetElement, out var elementConverter))
         {
             if (target.IsArray)
             {
@@ -82,15 +82,15 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
                 }
             }
 
-            if (target is { IsGenericType: true, IsClass: true } &&
-                typeof(ICollection).IsAssignableFrom(target))
+            if (target is { IsGenericType: true, IsClass: true }
+                && typeof(ICollection).IsAssignableFrom(target))
             {
                 converter = s => GenericListConverter((ICollection?)s, target, elementConverter);
                 return true;
             }
 
-            if (target is { IsGenericType: true, IsClass: true } &&
-                IsGenericCollection(target))
+            if (target is { IsGenericType: true, IsClass: true }
+                && IsGenericCollection(target))
             {
                 var converterMethod = s_collectionConvert.MakeGenericMethod(targetElement);
                 converter = s => converterMethod.Invoke(null, [s, target, elementConverter]);
@@ -204,8 +204,8 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
         {
             var interfaceType = Unsafe.Add(ref start, i);
 
-            if (interfaceType.IsGenericType &&
-                interfaceType.GetGenericTypeDefinition() == typeof(ISet<>))
+            if (interfaceType.IsGenericType
+                && interfaceType.GetGenericTypeDefinition() == typeof(ISet<>))
             {
                 return true;
             }

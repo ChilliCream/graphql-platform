@@ -57,8 +57,8 @@ public class FileValueNode
             return false;
         }
 
-        if (ReferenceEquals(this, other) ||
-            ReferenceEquals(Value, other.Value))
+        if (ReferenceEquals(this, other)
+            || ReferenceEquals(Value, other.Value))
         {
             return true;
         }

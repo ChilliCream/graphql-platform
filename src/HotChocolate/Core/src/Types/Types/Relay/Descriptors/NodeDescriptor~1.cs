@@ -133,8 +133,8 @@ public class NodeDescriptor<TNode>
 
         return ResolveNode(async ctx =>
         {
-            if (ctx.LocalContextData.TryGetValue(WellKnownContextData.InternalId, out var o) &&
-                o is TId id)
+            if (ctx.LocalContextData.TryGetValue(WellKnownContextData.InternalId, out var o)
+                && o is TId id)
             {
                 return await fieldResolver(ctx, id).ConfigureAwait(false);
             }

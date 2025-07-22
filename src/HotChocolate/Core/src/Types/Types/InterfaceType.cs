@@ -137,8 +137,8 @@ public partial class InterfaceType
         switch (namedType.Kind)
         {
             case TypeKind.Interface:
-                return ReferenceEquals(namedType, this) ||
-                    ((InterfaceType)namedType).IsImplementing(this);
+                return ReferenceEquals(namedType, this)
+                    || ((InterfaceType)namedType).IsImplementing(this);
 
             case TypeKind.Object:
                 return ((ObjectType)namedType).IsImplementing(this);

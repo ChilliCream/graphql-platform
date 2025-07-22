@@ -226,10 +226,7 @@ public class EnumTypeTests : TypeTestBase
     {
         // act
         var schema = SchemaBuilder.New()
-            .AddEnumType<Foo>(d =>
-            {
-                d.Value(Foo.Bar1).Name("FOOBAR");
-            })
+            .AddEnumType<Foo>(d => d.Value(Foo.Bar1).Name("FOOBAR"))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 

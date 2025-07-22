@@ -21,8 +21,8 @@ internal sealed class ParentParameterExpressionBuilder
     private static readonly MethodInfo s_getParentMethod = ContextType.GetMethods().First(IsParentMethod);
 
     private static bool IsParentMethod(MethodInfo method)
-        => method.Name.Equals(Parent, StringComparison.Ordinal) &&
-           method.IsGenericMethod;
+        => method.Name.Equals(Parent, StringComparison.Ordinal)
+            && method.IsGenericMethod;
 
     public ArgumentKind Kind => ArgumentKind.Source;
 

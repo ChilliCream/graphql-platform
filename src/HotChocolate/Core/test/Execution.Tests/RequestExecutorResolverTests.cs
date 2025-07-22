@@ -144,10 +144,7 @@ public class RequestExecutorResolverTests
         // arrange
         var manager = new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(d =>
-            {
-                d.Field("foo").Resolve("");
-            })
+            .AddQueryType(d => d.Field("foo").Resolve(""))
             .Services.BuildServiceProvider()
             .GetRequiredService<RequestExecutorManager>();
 
@@ -179,10 +176,7 @@ public class RequestExecutorResolverTests
             });
         services
             .AddGraphQL("schema2")
-            .AddQueryType(d =>
-            {
-                d.Field("foo").Resolve("");
-            });
+            .AddQueryType(d => d.Field("foo").Resolve(""));
         var provider = services.BuildServiceProvider();
         var manager = provider.GetRequiredService<RequestExecutorManager>();
 

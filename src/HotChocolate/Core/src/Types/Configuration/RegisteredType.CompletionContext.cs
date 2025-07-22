@@ -59,8 +59,8 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
             throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
         }
 
-        if (_typeReferenceResolver.TryGetType(typeRef, out var t) &&
-            t is T casted)
+        if (_typeReferenceResolver.TryGetType(typeRef, out var t)
+            && t is T casted)
         {
             type = casted;
             return true;

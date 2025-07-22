@@ -82,8 +82,8 @@ public class BlockStringTokenReaderTests
     {
         // arrange
         var source = Encoding.UTF8.GetBytes(
-            "\"\"\"\r\n\t\r\n\t\r\n\thelloWorld_123" +
-            "\r\n\t\tfoo\r\n\tbar\"\"\"");
+            "\"\"\"\r\n\t\r\n\t\r\n\thelloWorld_123"
+            + "\r\n\t\tfoo\r\n\tbar\"\"\"");
         var reader = new Utf8GraphQLReader(source);
 
         // act
@@ -106,8 +106,8 @@ public class BlockStringTokenReaderTests
     {
         // arrange
         var source = Encoding.UTF8.GetBytes(
-            "\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar" +
-            "\r\n\t\r\n\t\r\n\t\r\n\t\"\"\"");
+            "\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar"
+            + "\r\n\t\r\n\t\r\n\t\r\n\t\"\"\"");
         var reader = new Utf8GraphQLReader(source);
 
         // act

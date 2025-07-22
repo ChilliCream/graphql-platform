@@ -22,8 +22,8 @@ public sealed class SourceSchemaParserTests
         Assert.Equal("Source schema parsing failed.", result.Errors[0].Message);
         Assert.Single(log);
         Assert.Equal(
-            "Invalid GraphQL in source schema. Exception message: Expected a `Name`-token, but " +
-            "found a `EndOfFile`-token..",
+            "Invalid GraphQL in source schema. Exception message: Expected a `Name`-token, but "
+            + "found a `EndOfFile`-token..",
             log.First().Message);
     }
 

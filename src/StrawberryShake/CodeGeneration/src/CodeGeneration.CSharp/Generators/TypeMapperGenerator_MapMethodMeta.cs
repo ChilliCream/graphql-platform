@@ -42,8 +42,8 @@ public partial class TypeMapperGenerator
                     constructorBuilder,
                     processed);
 
-                if (property.Type.NamedType() is ComplexTypeDescriptor ct &&
-                    !ct.IsLeaf() && !stopAtEntityMappers)
+                if (property.Type.NamedType() is ComplexTypeDescriptor ct
+                    && !ct.IsLeaf() && !stopAtEntityMappers)
                 {
                     AddRequiredMapMethods(
                         settings,

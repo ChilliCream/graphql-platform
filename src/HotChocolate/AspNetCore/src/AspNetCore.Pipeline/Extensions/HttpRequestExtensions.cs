@@ -10,8 +10,8 @@ internal static class HttpRequestExtensions
 
     internal static bool AcceptHeaderContainsHtml(this HttpRequest request)
     {
-        return request.Headers.TryGetValue(HeaderNames.Accept, out var values) &&
-            values.Count > 0 && (values[0]?.Contains(ContentType.Html) ?? false);
+        return request.Headers.TryGetValue(HeaderNames.Accept, out var values)
+            && values.Count > 0 && (values[0]?.Contains(ContentType.Html) ?? false);
     }
 
     internal static bool IsGetOrHeadMethod(this HttpRequest request)

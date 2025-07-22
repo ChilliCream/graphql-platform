@@ -126,8 +126,8 @@ internal class GeoJsonCoordinatesSerializer : GeoJsonSerializerBase
             return GeoJsonPositionSerializer.Default.ParseResult(type, runtimeValue);
         }
 
-        if (runtimeValue is Geometry g &&
-            GeoJsonSerializers.SerializersByTypeName
+        if (runtimeValue is Geometry g
+            && GeoJsonSerializers.SerializersByTypeName
                 .TryGetValue(g.GeometryType, out var serializer))
         {
             return serializer.ParseCoordinateValue(type, runtimeValue);
@@ -306,8 +306,8 @@ internal class GeoJsonCoordinatesSerializer : GeoJsonSerializerBase
             else if (GeoJsonPositionSerializer.Default.TryDeserialize(
                     type,
                     runtimeValue,
-                    out var result) &&
-                result is not null)
+                    out var result)
+                && result is not null)
             {
                 return result;
             }

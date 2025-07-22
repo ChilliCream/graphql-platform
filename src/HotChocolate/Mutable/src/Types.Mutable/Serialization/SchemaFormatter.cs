@@ -56,9 +56,9 @@ public static class SchemaFormatter
 
             var definitions = new List<IDefinitionNode>();
 
-            if (schema.QueryType is not null ||
-                schema.MutationType is not null ||
-                schema.SubscriptionType is not null)
+            if (schema.QueryType is not null
+                || schema.MutationType is not null
+                || schema.SubscriptionType is not null)
             {
                 var operationTypes = new List<OperationTypeDefinitionNode>();
 
@@ -176,9 +176,9 @@ public static class SchemaFormatter
 
             foreach (var type in typesDefinition.OfType<MutableObjectTypeDefinition>().OrderBy(t => t.Name))
             {
-                if (context.Schema?.QueryType == type ||
-                   context.Schema?.MutationType == type ||
-                   context.Schema?.SubscriptionType == type)
+                if (context.Schema?.QueryType == type
+                    || context.Schema?.MutationType == type
+                    || context.Schema?.SubscriptionType == type)
                 {
                     continue;
                 }

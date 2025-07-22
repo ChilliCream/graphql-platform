@@ -94,8 +94,8 @@ internal sealed class TypeLookup
 
         // if the typeRef refers to a schema type base class we skip since such a type is not
         // resolvable.
-        if (typeRef.Type.Type.IsNonGenericSchemaType() ||
-            !_typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo))
+        if (typeRef.Type.Type.IsNonGenericSchemaType()
+            || !_typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo))
         {
             namedTypeRef = null;
             return false;
@@ -115,8 +115,8 @@ internal sealed class TypeLookup
         {
             var componentType = typeInfo.Components[i].Type;
             var componentRef = typeRef.WithType(componentType);
-            if (_typeRegistry.TryGetTypeRef(componentRef, out namedTypeRef) ||
-                _typeRegistry.TryGetTypeRef(componentRef.WithContext(), out namedTypeRef))
+            if (_typeRegistry.TryGetTypeRef(componentRef, out namedTypeRef)
+                || _typeRegistry.TryGetTypeRef(componentRef.WithContext(), out namedTypeRef))
             {
                 return true;
             }
