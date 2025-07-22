@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Language;
 
@@ -15,14 +16,27 @@ public static class SchemaParser
         return schema;
     }
 
-    public static void Parse(MutableSchemaDefinition schema, string sourceText)
-        => Parse(schema, Encoding.UTF8.GetBytes(sourceText));
+    public static void Parse(
+        MutableSchemaDefinition schema,
+        string sourceText,
+        SchemaParserOptions options = default)
+        => Parse(schema, Encoding.UTF8.GetBytes(sourceText), options);
 
-    public static void Parse(MutableSchemaDefinition schema, ReadOnlySpan<byte> sourceText)
+    public static void Parse(
+        MutableSchemaDefinition schema,
+        ReadOnlySpan<byte> sourceText,
+        SchemaParserOptions options = default)
     {
         var document = Utf8GraphQLParser.Parse(sourceText);
+        var existingTypeNames = schema.Types.Select(t => t.Name);
+        var existingDirectiveNames = schema.DirectiveDefinitions.AsEnumerable().Select(d => d.Name);
 
-        DiscoverTypesAndDirectives(schema, document);
+        DiscoverTypesAndDirectives(
+            schema,
+            document,
+            [.. existingTypeNames],
+            [.. existingDirectiveNames],
+            options);
         DiscoverExtensions(schema, document);
 
         BuildTypes(schema, document);
@@ -31,7 +45,12 @@ public static class SchemaParser
         BuildAndExtendSchema(schema, document);
     }
 
-    private static void DiscoverTypesAndDirectives(MutableSchemaDefinition schema, DocumentNode document)
+    private static void DiscoverTypesAndDirectives(
+        MutableSchemaDefinition schema,
+        DocumentNode document,
+        ImmutableArray<string> existingTypeNames,
+        ImmutableArray<string> existingDirectiveNames,
+        SchemaParserOptions options)
     {
         foreach (var definition in document.Definitions)
         {
@@ -39,6 +58,12 @@ public static class SchemaParser
             {
                 if (schema.Types.ContainsName(typeDef.Name.Value))
                 {
+                    if (options.IgnoreExistingTypes
+                        && existingTypeNames.Contains(typeDef.Name.Value))
+                    {
+                        continue;
+                    }
+
                     // TODO : parsing error
                     throw new Exception("duplicate");
                 }
@@ -83,6 +108,12 @@ public static class SchemaParser
             {
                 if (schema.DirectiveDefinitions.ContainsName(directiveDef.Name.Value))
                 {
+                    if (options.IgnoreExistingDirectives
+                        && existingDirectiveNames.Contains(directiveDef.Name.Value))
+                    {
+                        continue;
+                    }
+
                     // TODO : parsing error
                     throw new Exception("duplicate");
                 }

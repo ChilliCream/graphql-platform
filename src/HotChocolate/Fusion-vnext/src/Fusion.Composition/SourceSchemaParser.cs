@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Comparers;
 using HotChocolate.Fusion.Errors;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
@@ -23,7 +24,17 @@ internal sealed class SourceSchemaParser(IEnumerable<string> sourceSchemas, ICom
         {
             try
             {
-                var schema = SchemaParser.Parse(sourceSchema);
+                var schema = new MutableSchemaDefinition();
+                schema.AddBuiltInFusionTypes();
+                schema.AddBuiltInFusionDirectives();
+                SchemaParser.Parse(
+                    schema,
+                    sourceSchema,
+                    new SchemaParserOptions
+                    {
+                        IgnoreExistingTypes = true,
+                        IgnoreExistingDirectives = true
+                    });
                 var schemaNameDirective = schema.Directives.FirstOrDefault(SchemaName);
 
                 if (schema.Name == "default"
