@@ -135,7 +135,7 @@ internal static class CompositeSchemaBuilder
 
     private static CompositeTypeInterceptor CreateTypeInterceptor(IServiceProvider services)
     {
-        var interceptors = services.GetServices<CompositeTypeInterceptor>().ToArray();
+        var interceptors = services.GetService<IEnumerable<CompositeTypeInterceptor>>()?.ToArray() ?? [];
 
         return interceptors.Length switch
         {
