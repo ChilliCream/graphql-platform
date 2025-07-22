@@ -1,4 +1,3 @@
-#pragma warning disable IDE1006 // Naming Styles
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -65,7 +64,7 @@ internal sealed class __Field : ITypeResolverInterceptor
             }
 
             context.AddRuntimeResult(value);
-            list.SetNextValue(context.ResultPool.RentObjectResult());
+            list.SetNextValue(context.RentInitializedObjectResult());
         }
     }
 
@@ -73,7 +72,7 @@ internal sealed class __Field : ITypeResolverInterceptor
     {
         var field = context.Parent<IOutputFieldDefinition>();
         context.AddRuntimeResult(field.Type);
-        context.FieldResult.SetNextValue(context.ResultPool.RentObjectResult());
+        context.FieldResult.SetNextValue(context.RentInitializedObjectResult());
     }
 
     public static void IsDeprecated(FieldContext context)
@@ -91,4 +90,3 @@ internal sealed class __Field : ITypeResolverInterceptor
         }
     }
 }
-#pragma warning restore IDE1006 // Naming Styles

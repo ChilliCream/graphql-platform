@@ -1,4 +1,3 @@
-#pragma warning disable IDE1006 // Naming Styles
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -131,7 +130,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(field);
-                list.SetNextValue(context.ResultPool.RentObjectResult());
+                list.SetNextValue(context.RentInitializedObjectResult());
             }
         }
     }
@@ -146,7 +145,7 @@ internal sealed class __Type : ITypeResolverInterceptor
             foreach (var type in complexType.Implements)
             {
                 context.AddRuntimeResult(type);
-                list.SetNextValue(context.ResultPool.RentObjectResult());
+                list.SetNextValue(context.RentInitializedObjectResult());
             }
         }
     }
@@ -161,7 +160,7 @@ internal sealed class __Type : ITypeResolverInterceptor
             foreach (var type in context.Schema.GetPossibleTypes(nt))
             {
                 context.AddRuntimeResult(type);
-                list.SetNextValue(context.ResultPool.RentObjectResult());
+                list.SetNextValue(context.RentInitializedObjectResult());
             }
         }
     }
@@ -182,7 +181,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(value);
-                list.SetNextValue(context.ResultPool.RentObjectResult());
+                list.SetNextValue(context.RentInitializedObjectResult());
             }
         }
     }
@@ -203,7 +202,7 @@ internal sealed class __Type : ITypeResolverInterceptor
                 }
 
                 context.AddRuntimeResult(value);
-                list.SetNextValue(context.ResultPool.RentObjectResult());
+                list.SetNextValue(context.RentInitializedObjectResult());
             }
         }
     }
@@ -214,7 +213,7 @@ internal sealed class __Type : ITypeResolverInterceptor
         {
             case ListType lt:
             {
-                var obj = context.ResultPool.RentObjectResult();
+                var obj = context.RentInitializedObjectResult();
                 context.FieldResult.SetNextValue(obj);
                 context.AddRuntimeResult(lt.ElementType);
                 break;
@@ -246,4 +245,3 @@ internal sealed class __Type : ITypeResolverInterceptor
         }
     }
 }
-#pragma warning restore IDE1006 // Naming Styles

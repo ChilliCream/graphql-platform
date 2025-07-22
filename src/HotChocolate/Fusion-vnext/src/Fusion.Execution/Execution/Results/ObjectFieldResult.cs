@@ -40,17 +40,8 @@ public sealed class ObjectFieldResult : FieldResult
         objectResult.SetParent(Parent!, ParentIndex);
     }
 
-    /// <inheritdoc />
-    public override void CopyTo(FieldResult other)
-    {
-        if (other is not ObjectFieldResult objectField)
-        {
-            throw new InvalidOperationException("Cannot copy to non-object field result.");
-        }
-
-        objectField.Value = Value;
-        objectField.Value?.SetParent(objectField.Parent!, objectField.ParentIndex);
-    }
+    protected override void OnSetParent(ResultData parent, int index)
+        => Value?.SetParent(parent, index);
 
     /// <summary>
     /// Writes the object result to a JSON writer.

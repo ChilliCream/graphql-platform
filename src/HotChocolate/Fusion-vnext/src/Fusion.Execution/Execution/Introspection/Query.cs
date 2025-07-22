@@ -1,7 +1,6 @@
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Introspection;
 
@@ -23,11 +22,8 @@ internal class Query : ITypeResolverInterceptor
 
     public static void Schema(FieldContext context)
     {
-        var operation = context.Selection.DeclaringSelectionSet.DeclaringOperation;
-        var type = context.Selection.Field.Type.NamedType().ExpectObjectType();
-        var schema = context.ResultPool.RentObjectResult();
-        schema.Initialize(context.ResultPool, operation.GetSelectionSet(context.Selection, type), context.IncludeFlags);
-        context.FieldResult.SetNextValue(schema);
+        var result = context.RentInitializedObjectResult();
+        context.FieldResult.SetNextValue(result);
         context.AddRuntimeResult(context.Schema);
     }
 
@@ -36,8 +32,8 @@ internal class Query : ITypeResolverInterceptor
         var name = context.ArgumentValue<StringValueNode>("name");
         if (context.Schema.Types.TryGetType(name.Value, out var type))
         {
-            var schema = context.ResultPool.RentObjectResult();
-            context.FieldResult.SetNextValue(schema);
+            var result = context.RentInitializedObjectResult();
+            context.FieldResult.SetNextValue(result);
             context.AddRuntimeResult(type);
         }
     }

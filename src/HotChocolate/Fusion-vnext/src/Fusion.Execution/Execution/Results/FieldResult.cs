@@ -21,14 +21,6 @@ public abstract class FieldResult : ResultData
     public abstract bool HasNullValue { get; }
 
     /// <summary>
-    /// Copies the value of this field result to the other field result.
-    /// </summary>
-    /// <param name="other">
-    /// The other field result.
-    /// </param>
-    public abstract void CopyTo(FieldResult other);
-
-    /// <summary>
     /// Gets the key-value pair representation of this result.
     /// </summary>
     /// <returns>

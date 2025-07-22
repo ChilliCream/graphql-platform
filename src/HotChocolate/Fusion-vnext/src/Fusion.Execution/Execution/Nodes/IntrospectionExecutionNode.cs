@@ -24,7 +24,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         var backlog = new Stack<(object? Parent, Selection Selection, FieldResult Result)>();
         var root = context.ResultPool.RentObjectResult();
         var selectionSet = context.OperationPlan.Operation.RootSelectionSet;
-        root.Initialize(resultPool, selectionSet, context.IncludeFlags);
+        root.Initialize(resultPool, selectionSet, context.IncludeFlags, rawLeafFields: true);
 
         foreach (var selection in _selections)
         {
@@ -50,10 +50,11 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
     {
         var operation = context.OperationPlan.Operation;
         var fieldContext = new ReusableFieldContext(
-            context.ResultPool,
-            context.CreateRentedBuffer(),
             context.Schema,
-            context.IncludeFlags);
+            context.Variables,
+            context.IncludeFlags,
+            context.ResultPool,
+            context.CreateRentedBuffer());
 
         while (backlog.TryPop(out var current))
         {
@@ -62,23 +63,56 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
             selection.Resolver?.Invoke(fieldContext);
 
-            if (!selection.IsLeaf && result is ObjectFieldResult { HasNullValue: false } objectFieldResult)
+            if (!selection.IsLeaf)
             {
-                var objectType = selection.Type.NamedType<IObjectTypeDefinition>();
-                var selectionSet = operation.GetSelectionSet(selection, objectType);
-                var objectResult = objectFieldResult.Value;
-                var insertIndex = 0;
-
-                for (var i = 0; i < selectionSet.Selections.Length; i++)
+                if (result is ObjectFieldResult { HasNullValue: false } objectFieldResult)
                 {
-                    var childSelection = selectionSet.Selections[i];
+                    var objectType = selection.Type.NamedType<IObjectTypeDefinition>();
+                    var selectionSet = operation.GetSelectionSet(selection, objectType);
+                    var objectResult = objectFieldResult.Value;
+                    var insertIndex = 0;
 
-                    if (!childSelection.IsIncluded(context.IncludeFlags))
+                    for (var i = 0; i < selectionSet.Selections.Length; i++)
                     {
-                        continue;
-                    }
+                        var childSelection = selectionSet.Selections[i];
 
-                    backlog.Push((fieldContext.RuntimeResults, childSelection, objectResult.Fields[insertIndex++]));
+                        if (!childSelection.IsIncluded(context.IncludeFlags))
+                        {
+                            continue;
+                        }
+
+                        backlog.Push((fieldContext.RuntimeResults[0], childSelection, objectResult.Fields[insertIndex++]));
+                    }
+                }
+                else if (result is ListFieldResult { HasNullValue: false, Value: ObjectListResult list })
+                {
+                    var objectType = selection.Type.NamedType<IObjectTypeDefinition>();
+                    var selectionSet = operation.GetSelectionSet(selection, objectType);
+
+                    for (var i = 0; i < list.Items.Count; i++)
+                    {
+                        var objectResult = list.Items[i];
+                        var runtimeResult = fieldContext.RuntimeResults[i];
+
+                        if (objectResult is null)
+                        {
+                            continue;
+                        }
+
+                        var insertIndex = 0;
+
+                        for (var j = 0; j < selectionSet.Selections.Length; j++)
+                        {
+                            var childSelection = selectionSet.Selections[j];
+
+                            if (!childSelection.IsIncluded(context.IncludeFlags))
+                            {
+                                continue;
+                            }
+
+                            backlog.Push((runtimeResult, childSelection, objectResult.Fields[insertIndex++]));
+                        }
+                    }
                 }
             }
         }

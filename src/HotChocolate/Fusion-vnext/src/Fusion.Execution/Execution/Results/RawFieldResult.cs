@@ -12,16 +12,6 @@ public sealed class RawFieldResult : FieldResult
 
     public override void SetNextValue(ReadOnlyMemorySegment value) => Value = value;
 
-    public override void CopyTo(FieldResult other)
-    {
-        if(other is not RawFieldResult rawField)
-        {
-            throw new InvalidOperationException("Cannot copy to non-raw field result.");
-        }
-
-        rawField.Value = Value;
-    }
-
     public override void WriteTo(
         Utf8JsonWriter writer,
         JsonSerializerOptions? options = null,

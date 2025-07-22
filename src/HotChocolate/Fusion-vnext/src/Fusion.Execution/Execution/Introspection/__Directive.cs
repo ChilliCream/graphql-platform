@@ -1,4 +1,3 @@
-#pragma warning disable IDE1006 // Naming Styles
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -132,8 +131,7 @@ internal sealed class __Directive : ITypeResolverInterceptor
             }
 
             context.AddRuntimeResult(argument);
-            list.SetNextValue(context.ResultPool.RentObjectResult());
+            list.SetNextValue(context.RentInitializedObjectResult());
         }
     }
 }
-#pragma warning restore IDE1006 // Naming Styles

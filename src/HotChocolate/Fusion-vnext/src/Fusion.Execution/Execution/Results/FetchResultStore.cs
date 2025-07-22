@@ -99,7 +99,7 @@ internal sealed class FetchResultStore : IDisposable
         {
             foreach (var selection in selections)
             {
-                result[selection.ResponseName].CopyTo(_root[selection.ResponseName]);
+                result.MoveFieldTo(selection.ResponseName, _root);
             }
         }
         finally

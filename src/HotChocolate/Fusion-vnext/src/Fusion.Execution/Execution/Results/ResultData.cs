@@ -79,6 +79,11 @@ public abstract class ResultData : IResultDataJsonFormatter
 
         Parent = parent;
         ParentIndex = index;
+        OnSetParent(parent, index);
+    }
+
+    protected virtual void OnSetParent(ResultData parent, int index)
+    {
     }
 
     /// <summary>

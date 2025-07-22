@@ -28,17 +28,6 @@ public sealed class LeafFieldResult : FieldResult
     public override void SetNextValue(JsonElement value)
         => Value = value;
 
-    /// <inheritdoc />
-    public override void CopyTo(FieldResult other)
-    {
-        if (other is not LeafFieldResult leafField)
-        {
-            throw new InvalidOperationException("Cannot copy to non-leaf field result.");
-        }
-
-        leafField.Value = Value;
-    }
-
     /// <summary>
     /// Writes the result of the leaf field to the specified JSON writer.
     /// </summary>

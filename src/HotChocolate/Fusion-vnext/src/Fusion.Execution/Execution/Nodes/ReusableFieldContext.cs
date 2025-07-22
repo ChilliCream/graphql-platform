@@ -1,14 +1,19 @@
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
 internal sealed class ReusableFieldContext(
-    ResultPoolSession resultPool,
-    PooledArrayWriter memory,
     ISchemaDefinition schema,
-    ulong includeFlags)
+    IVariableValueCollection variableValues,
+    ulong includeFlags,
+    ResultPoolSession resultPool,
+    PooledArrayWriter memory)
     : FieldContext
 {
+    private readonly Dictionary<string, IValueNode> _arguments = [];
     private readonly List<object?> _runtimeResults = [];
     private Selection _selection = null!;
     private object? _parent;
@@ -32,7 +37,19 @@ internal sealed class ReusableFieldContext(
 
     public override T ArgumentValue<T>(string name)
     {
-        throw new NotImplementedException();
+        if (_arguments.TryGetValue(name, out var value))
+        {
+            if (value is T casted)
+            {
+                return casted;
+            }
+
+            // todo: add proper exception.
+            throw new Exception("Invalid argument value!");
+        }
+
+        // todo: add proper exception.
+        throw new Exception("Invalid argument name!");
     }
 
     public override void AddRuntimeResult<T>(T result)
@@ -46,5 +63,41 @@ internal sealed class ReusableFieldContext(
         _result = result;
         _selection = selection;
         _runtimeResults.Clear();
+        CoerceArgumentValues(selection);
+    }
+
+    private void CoerceArgumentValues(Selection selection)
+    {
+        _arguments.Clear();
+
+        if (selection.Field.Arguments.Count == 0)
+        {
+            return;
+        }
+
+        var syntaxNode = selection.SyntaxNodes[0].Node;
+
+        foreach (var argument in selection.Field.Arguments)
+        {
+            var argumentValue = syntaxNode.Arguments.FirstOrDefault(
+                t => t.Name.Value.Equals(argument.Name, StringComparison.Ordinal))
+                    ?.Value;
+
+            if (argumentValue is VariableNode variable
+                && variableValues.TryGetValue(variable.Name.Value, out IValueNode? variableValue))
+            {
+                argumentValue = variableValue;
+            }
+
+            argumentValue ??= argument.DefaultValue;
+
+            if (argument.Type.IsNonNullType() && argumentValue is null or NullValueNode)
+            {
+                // TODO: The argument value is invalid.
+                throw new Exception("The argument value is invalid.");
+            }
+
+            _arguments.Add(argument.Name, argumentValue ?? NullValueNode.Default);
+        }
     }
 }

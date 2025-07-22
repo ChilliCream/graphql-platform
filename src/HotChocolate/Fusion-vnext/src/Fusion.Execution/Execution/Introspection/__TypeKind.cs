@@ -1,4 +1,3 @@
-#pragma warning disable IDE1006 // Naming Styles
 namespace HotChocolate.Fusion.Execution.Introspection;
 
 // ReSharper disable once InconsistentNaming
@@ -13,4 +12,3 @@ internal static class __TypeKind
     public static ReadOnlySpan<byte> List => "LIST"u8;
     public static ReadOnlySpan<byte> NonNull => "NON_NULL"u8;
 }
-#pragma warning restore IDE1006 // Naming Styles

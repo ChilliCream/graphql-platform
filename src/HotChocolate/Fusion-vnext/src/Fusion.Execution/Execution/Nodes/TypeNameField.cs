@@ -1,4 +1,5 @@
 using HotChocolate.Features;
+using HotChocolate.Fusion.Execution.Introspection;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -11,6 +12,10 @@ internal sealed class TypeNameField : IOutputFieldDefinition
     {
         ArgumentNullException.ThrowIfNull(nonNullStringType);
         Type = nonNullStringType;
+        var features = new FeatureCollection();
+        features.Set(new ResolveFieldValue(
+            ctx => ctx.WriteValue(ctx.Selection.DeclaringSelectionSet.DeclaringOperation.RootType.Name)));
+        Features = features.ToReadOnly();
     }
 
     public string Name => IntrospectionFieldNames.TypeName;
@@ -41,7 +46,7 @@ internal sealed class TypeNameField : IOutputFieldDefinition
 
     public FieldFlags Flags => FieldFlags.TypeNameIntrospectionField;
 
-    public IFeatureCollection Features => FeatureCollection.Empty;
+    public IFeatureCollection Features { get; }
 
     public FieldDefinitionNode ToSyntaxNode()
         => new FieldDefinitionNode(

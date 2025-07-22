@@ -2,7 +2,6 @@ using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Types;
 
-#pragma warning disable IDE1006 // Naming Styles
 namespace HotChocolate.Fusion.Execution.Introspection;
 
 // ReSharper disable once InconsistentNaming
@@ -42,4 +41,3 @@ internal sealed class __EnumValue : ITypeResolverInterceptor
     public static void DeprecationReason(FieldContext context)
         => context.WriteValue(context.Parent<IEnumValue>().DeprecationReason);
 }
-#pragma warning restore IDE1006 // Naming Styles

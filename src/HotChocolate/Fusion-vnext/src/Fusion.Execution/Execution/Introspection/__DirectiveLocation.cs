@@ -1,4 +1,3 @@
-#pragma warning disable IDE1006 // Naming Styles
 namespace HotChocolate.Fusion.Execution.Introspection;
 
 // ReSharper disable once InconsistentNaming
@@ -24,4 +23,3 @@ internal static class __DirectiveLocation
     public static ReadOnlySpan<byte> InputObject => "INPUT_OBJECT"u8;
     public static ReadOnlySpan<byte> InputFieldDefinition => "INPUT_FIELD_DEFINITION"u8;
 }
-#pragma warning restore IDE1006 // Naming Styles

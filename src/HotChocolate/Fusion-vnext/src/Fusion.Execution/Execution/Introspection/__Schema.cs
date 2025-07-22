@@ -1,4 +1,3 @@
-#pragma warning disable IDE1006 // Naming Styles
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
 
@@ -48,14 +47,14 @@ internal sealed class __Schema : ITypeResolverInterceptor
         foreach (var type in context.Schema.Types)
         {
             context.AddRuntimeResult(type);
-            list.SetNextValue(context.ResultPool.RentObjectResult());
+            list.SetNextValue(context.RentInitializedObjectResult());
         }
     }
 
     public static void QueryType(FieldContext context)
     {
         context.AddRuntimeResult(context.Schema.QueryType);
-        context.FieldResult.SetNextValue(context.ResultPool.RentObjectResult());
+        context.FieldResult.SetNextValue(context.RentInitializedObjectResult());
     }
 
     public static void MutationType(FieldContext context)
@@ -63,7 +62,7 @@ internal sealed class __Schema : ITypeResolverInterceptor
         if (context.Schema.MutationType is not null)
         {
             context.AddRuntimeResult(context.Schema.MutationType);
-            context.FieldResult.SetNextValue(context.ResultPool.RentObjectResult());
+            context.FieldResult.SetNextValue(context.RentInitializedObjectResult());
         }
     }
 
@@ -72,7 +71,7 @@ internal sealed class __Schema : ITypeResolverInterceptor
         if (context.Schema.MutationType is not null)
         {
             context.AddRuntimeResult(context.Schema.MutationType);
-            context.FieldResult.SetNextValue(context.ResultPool.RentObjectResult());
+            context.FieldResult.SetNextValue(context.RentInitializedObjectResult());
         }
     }
 
@@ -84,8 +83,7 @@ internal sealed class __Schema : ITypeResolverInterceptor
         foreach (var directiveDefinition in context.Schema.DirectiveDefinitions)
         {
             context.AddRuntimeResult(directiveDefinition);
-            list.SetNextValue(context.ResultPool.RentObjectResult());
+            list.SetNextValue(context.RentInitializedObjectResult());
         }
     }
 }
-#pragma warning restore IDE1006 // Naming Styles
