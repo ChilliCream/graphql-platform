@@ -29,7 +29,7 @@ internal static class CompositeSchemaBuilder
         IFeatureCollection? features)
     {
         string? description = null;
-        string? queryType = null;
+        var queryType = "Query";
         string? mutationType = null;
         string? subscriptionType = null;
         var directives = ImmutableArray<DirectiveNode>.Empty;
@@ -37,6 +37,31 @@ internal static class CompositeSchemaBuilder
         var typeDefinitions = ImmutableDictionary.CreateBuilder<string, ITypeDefinitionNode>();
         var directiveTypes = ImmutableArray.CreateBuilder<FusionDirectiveDefinition>();
         var directiveDefinitions = ImmutableDictionary.CreateBuilder<string, DirectiveDefinitionNode>();
+
+        var schemaDefinition = schema.Definitions.OfType<SchemaDefinitionNode>().FirstOrDefault();
+        if (schemaDefinition is not null)
+        {
+            description = schemaDefinition.Description?.Value;
+            directives = [..schemaDefinition.Directives];
+
+            foreach (var operationType in schemaDefinition.OperationTypes)
+            {
+                switch (operationType.Operation)
+                {
+                    case OperationType.Query:
+                        queryType = operationType.Type.Name.Value;
+                        break;
+
+                    case OperationType.Mutation:
+                        mutationType = operationType.Type.Name.Value;
+                        break;
+
+                    case OperationType.Subscription:
+                        subscriptionType = operationType.Type.Name.Value;
+                        break;
+                }
+            }
+        }
 
         foreach (var definition in IntrospectionSchema.Document.Definitions.Concat(schema.Definitions))
         {
@@ -50,7 +75,10 @@ internal static class CompositeSchemaBuilder
             switch (definition)
             {
                 case ObjectTypeDefinitionNode objectType:
-                    types.Add(CreateObjectType(objectType));
+                    var type = CreateObjectType(
+                        objectType,
+                        objectType.Name.Value.Equals(queryType, StringComparison.Ordinal));
+                    types.Add(type);
                     typeDefinitions.Add(objectType.Name.Value, objectType);
                     break;
 
@@ -69,6 +97,11 @@ internal static class CompositeSchemaBuilder
                     typeDefinitions.Add(inputObjectType.Name.Value, inputObjectType);
                     break;
 
+                case EnumTypeDefinitionNode enumType:
+                    types.Add(CreateEnumType(enumType));
+                    typeDefinitions.Add(enumType.Name.Value, enumType);
+                    break;
+
                 case ScalarTypeDefinitionNode scalarType:
                     types.Add(CreateScalarType(scalarType));
                     typeDefinitions.Add(scalarType.Name.Value, scalarType);
@@ -77,29 +110,6 @@ internal static class CompositeSchemaBuilder
                 case DirectiveDefinitionNode directiveType:
                     directiveTypes.Add(CreateDirectiveType(directiveType));
                     directiveDefinitions.Add(directiveType.Name.Value, directiveType);
-                    break;
-
-                case SchemaDefinitionNode schemaDefinition:
-                    description = schemaDefinition.Description?.Value;
-                    directives = [.. schemaDefinition.Directives];
-
-                    foreach (var operationType in schemaDefinition.OperationTypes)
-                    {
-                        switch (operationType.Operation)
-                        {
-                            case OperationType.Query:
-                                queryType = operationType.Type.Name.Value;
-                                break;
-
-                            case OperationType.Mutation:
-                                mutationType = operationType.Type.Name.Value;
-                                break;
-
-                            case OperationType.Subscription:
-                                subscriptionType = operationType.Type.Name.Value;
-                                break;
-                        }
-                    }
                     break;
             }
         }
@@ -111,7 +121,7 @@ internal static class CompositeSchemaBuilder
             name,
             description,
             services,
-            queryType ?? "Query",
+            queryType,
             mutationType,
             subscriptionType,
             directives,
@@ -136,12 +146,13 @@ internal static class CompositeSchemaBuilder
     }
 
     private static FusionObjectTypeDefinition CreateObjectType(
-        ObjectTypeDefinitionNode definition)
+        ObjectTypeDefinitionNode definition,
+        bool isQuery)
     {
         return new FusionObjectTypeDefinition(
             definition.Name.Value,
             definition.Description?.Value,
-            CreateOutputFields(definition.Fields));
+            CreateOutputFields(definition.Fields, isQuery));
     }
 
     private static FusionInterfaceTypeDefinition CreateInterfaceType(
@@ -150,7 +161,7 @@ internal static class CompositeSchemaBuilder
         return new FusionInterfaceTypeDefinition(
             definition.Name.Value,
             definition.Description?.Value,
-            CreateOutputFields(definition.Fields));
+            CreateOutputFields(definition.Fields, false));
     }
 
     private static FusionUnionTypeDefinition CreateUnionType(
@@ -170,22 +181,99 @@ internal static class CompositeSchemaBuilder
             CreateInputFields(definition.Fields));
     }
 
-    private static FusionOutputFieldDefinitionCollection CreateOutputFields(
-        IReadOnlyList<FieldDefinitionNode> fields)
+    private static FusionEnumTypeDefinition CreateEnumType(
+        EnumTypeDefinitionNode definition)
     {
-        var sourceFields = new FusionOutputFieldDefinition[fields.Count];
+        return new FusionEnumTypeDefinition(
+            definition.Name.Value,
+            definition.Description?.Value,
+            CreateEnumValues(definition.Values));
+    }
 
-        for (var i = 0; i < fields.Count; i++)
+    private static FusionScalarTypeDefinition CreateScalarType(
+        ScalarTypeDefinitionNode definition)
+    {
+        return new FusionScalarTypeDefinition(
+            definition.Name.Value,
+            definition.Description?.Value);
+    }
+
+    private static FusionDirectiveDefinition CreateDirectiveType(
+        DirectiveDefinitionNode definition)
+    {
+        return new FusionDirectiveDefinition(
+            definition.Name.Value,
+            definition.Description?.Value,
+            definition.IsRepeatable,
+            CreateInputFields(definition.Arguments),
+            DirectiveLocationUtils.Parse(definition.Locations));
+    }
+
+    private static FusionOutputFieldDefinitionCollection CreateOutputFields(
+        IReadOnlyList<FieldDefinitionNode> fields,
+        bool isQuery)
+    {
+        var size = isQuery ? fields.Count + 3 : fields.Count;
+        var sourceFields = new FusionOutputFieldDefinition[size];
+
+        if (isQuery)
         {
-            var field = fields[i];
-            var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
+            sourceFields[0] = new FusionOutputFieldDefinition(
+                "__schema",
+                null,
+                isDeprecated: false,
+                deprecationReason: null,
+                arguments: FusionInputFieldDefinitionCollection.Empty);
 
-            sourceFields[i] = new FusionOutputFieldDefinition(
-                field.Name.Value,
-                field.Description?.Value,
-                isDeprecated,
-                deprecated?.Reason,
-                CreateOutputFieldArguments(field.Arguments));
+            sourceFields[1] = new FusionOutputFieldDefinition(
+                "__type",
+                null,
+                isDeprecated: false,
+                deprecationReason: null,
+                arguments: new FusionInputFieldDefinitionCollection(
+                [
+                    new FusionInputFieldDefinition(
+                        "name",
+                        null,
+                        null,
+                        isDeprecated: false,
+                        deprecationReason:  null)
+                ]));
+
+            sourceFields[2] = new FusionOutputFieldDefinition(
+                "__typename",
+                null,
+                isDeprecated: false,
+                deprecationReason: null,
+                arguments: FusionInputFieldDefinitionCollection.Empty);
+
+            for (var i = 0; i < fields.Count; i++)
+            {
+                var field = fields[i];
+                var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
+
+                sourceFields[i + 3] = new FusionOutputFieldDefinition(
+                    field.Name.Value,
+                    field.Description?.Value,
+                    isDeprecated,
+                    deprecated?.Reason,
+                    CreateOutputFieldArguments(field.Arguments));
+            }
+        }
+        else
+        {
+            for (var i = 0; i < fields.Count; i++)
+            {
+                var field = fields[i];
+                var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
+
+                sourceFields[i] = new FusionOutputFieldDefinition(
+                    field.Name.Value,
+                    field.Description?.Value,
+                    isDeprecated,
+                    deprecated?.Reason,
+                    CreateOutputFieldArguments(field.Arguments));
+            }
         }
 
         return new FusionOutputFieldDefinitionCollection(sourceFields);
@@ -217,24 +305,6 @@ internal static class CompositeSchemaBuilder
         return new FusionInputFieldDefinitionCollection(temp);
     }
 
-    private static FusionScalarTypeDefinition CreateScalarType(ScalarTypeDefinitionNode definition)
-    {
-        return new FusionScalarTypeDefinition(
-            definition.Name.Value,
-            definition.Description?.Value);
-    }
-
-    private static FusionDirectiveDefinition CreateDirectiveType(
-        DirectiveDefinitionNode definition)
-    {
-        return new FusionDirectiveDefinition(
-            definition.Name.Value,
-            definition.Description?.Value,
-            definition.IsRepeatable,
-            CreateInputFields(definition.Arguments),
-            DirectiveLocationUtils.Parse(definition.Locations));
-    }
-
     private static FusionInputFieldDefinitionCollection CreateInputFields(
         IReadOnlyList<InputValueDefinitionNode> fields)
     {
@@ -259,6 +329,31 @@ internal static class CompositeSchemaBuilder
         }
 
         return new FusionInputFieldDefinitionCollection(sourceFields);
+    }
+
+    private static FusionEnumValueCollection CreateEnumValues(
+        IReadOnlyList<EnumValueDefinitionNode> fields)
+    {
+        if (fields.Count == 0)
+        {
+            return FusionEnumValueCollection.Empty;
+        }
+
+        var sourceFields = new FusionEnumValue[fields.Count];
+
+        for (var i = 0; i < fields.Count; i++)
+        {
+            var field = fields[i];
+            var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
+
+            sourceFields[i] = new FusionEnumValue(
+                field.Name.Value,
+                field.Description?.Value,
+                isDeprecated,
+                deprecated?.Reason);
+        }
+
+        return new FusionEnumValueCollection(sourceFields);
     }
 
     private static FusionSchemaDefinition CompleteTypes(CompositeCompositeSchemaContext context)
@@ -292,6 +387,13 @@ internal static class CompositeSchemaBuilder
                     CompleteInputObjectType(
                         inputObjectType,
                         context.GetTypeDefinition<InputObjectTypeDefinitionNode>(inputObjectType.Name),
+                        context);
+                    break;
+
+                case FusionEnumTypeDefinition enumType:
+                    CompleteEnumType(
+                        enumType,
+                        context.GetTypeDefinition<EnumTypeDefinitionNode>(enumType.Name),
                         context);
                     break;
 
@@ -348,6 +450,30 @@ internal static class CompositeSchemaBuilder
                 operationType,
                 type.Fields[fieldDef.Name.Value],
                 fieldDef,
+                context);
+        }
+
+        if (operationType is OperationType.Query)
+        {
+            CompleteOutputField(
+                type,
+                operationType,
+                type.Fields["__schema"],
+                Utf8GraphQLParser.Syntax.ParseFieldDefinition("__schema: __Schema!"),
+                context);
+
+            CompleteOutputField(
+                type,
+                operationType,
+                type.Fields["__type"],
+                Utf8GraphQLParser.Syntax.ParseFieldDefinition("__type(name: String!): __Type"),
+                context);
+
+            CompleteOutputField(
+                type,
+                operationType,
+                type.Fields["__typename"],
+                Utf8GraphQLParser.Syntax.ParseFieldDefinition("__typename: String!"),
                 context);
         }
 
@@ -534,6 +660,43 @@ internal static class CompositeSchemaBuilder
                 FeatureCollection.Empty));
     }
 
+    private static void CompleteEnumType(
+        FusionEnumTypeDefinition typeDefinition,
+        EnumTypeDefinitionNode typeDefinitionNode,
+        CompositeCompositeSchemaContext context)
+    {
+        var directives = CompletionTools.CreateDirectiveCollection(typeDefinitionNode.Directives, context);
+
+        foreach (var value in typeDefinitionNode.Values)
+        {
+            CompleteEnumValue(
+                typeDefinition,
+                typeDefinition.Values[value.Name.Value],
+                value,
+                context);
+        }
+
+        typeDefinition.Complete(
+            new CompositeEnumTypeCompletionContext(
+                directives,
+                FeatureCollection.Empty));
+    }
+
+    private static void CompleteEnumValue(
+        IEnumTypeDefinition declaringType,
+        FusionEnumValue enumValue,
+        EnumValueDefinitionNode enumValueDef,
+        CompositeCompositeSchemaContext context)
+    {
+        var directives = CompletionTools.CreateDirectiveCollection(enumValueDef.Directives, context);
+
+        enumValue.Complete(
+            new CompositeEnumValueCompletionContext(
+                declaringType,
+                directives,
+                FeatureCollection.Empty));
+    }
+
     private static void CompleteScalarType(
         FusionScalarTypeDefinition typeDefinition,
         ScalarTypeDefinitionNode typeDefinitionNode,
@@ -553,7 +716,11 @@ internal static class CompositeSchemaBuilder
             specifiedBy = new Uri(url.Value);
         }
 
-        typeDefinition.Complete(new CompositeScalarTypeCompletionContext(default, directives, specifiedBy));
+        typeDefinition.Complete(
+            new CompositeScalarTypeCompletionContext(
+                default,
+                directives,
+                specifiedBy));
     }
 
     private static void CompleteDirectiveType(
@@ -598,5 +765,12 @@ internal static class CompositeSchemaBuilder
         public object? GetService(Type serviceType) => null;
 
         public static EmptyServiceProvider Instance { get; } = new();
+    }
+
+    private enum ComplexType
+    {
+        Query,
+        Object,
+        Interface
     }
 }

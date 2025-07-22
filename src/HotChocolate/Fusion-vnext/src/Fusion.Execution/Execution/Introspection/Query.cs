@@ -1,6 +1,7 @@
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Introspection;
 
@@ -22,7 +23,10 @@ internal class Query : ITypeResolverInterceptor
 
     public static void Schema(FieldContext context)
     {
+        var operation = context.Selection.DeclaringSelectionSet.DeclaringOperation;
+        var type = context.Selection.Field.Type.NamedType().ExpectObjectType();
         var schema = context.ResultPool.RentObjectResult();
+        schema.Initialize(context.ResultPool, operation.GetSelectionSet(context.Selection, type), context.IncludeFlags);
         context.FieldResult.SetNextValue(schema);
         context.AddRuntimeResult(context.Schema);
     }

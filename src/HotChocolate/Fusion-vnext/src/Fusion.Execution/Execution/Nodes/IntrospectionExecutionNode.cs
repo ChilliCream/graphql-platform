@@ -20,8 +20,11 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var resultPoolSession = context.ResultPoolSession;
+        var resultPool = context.ResultPool;
         var backlog = new Stack<(object? Parent, Selection Selection, FieldResult Result)>();
+        var root = context.ResultPool.RentObjectResult();
+        var selectionSet = context.OperationPlan.Operation.RootSelectionSet;
+        root.Initialize(resultPool, selectionSet, context.IncludeFlags);
 
         foreach (var selection in _selections)
         {
@@ -32,16 +35,11 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                 continue;
             }
 
-            FieldResult result = selection.Field.Name.Equals(IntrospectionFieldNames.TypeName)
-                ? new RawFieldResult()
-                : resultPoolSession.RentObjectFieldResult();
-
-            backlog.Push((null!, selection, result));
+            backlog.Push((null, selection, root[selection.ResponseName]));
         }
 
         ExecuteSelections(context, backlog);
-
-        // copy result
+        context.AddPartialResults(root, _selections);
 
         return Task.FromResult(new ExecutionStatus(Id, IsSkipped: false));
     }
@@ -52,9 +50,10 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
     {
         var operation = context.OperationPlan.Operation;
         var fieldContext = new ReusableFieldContext(
-            context.ResultPoolSession,
+            context.ResultPool,
             context.CreateRentedBuffer(),
-            context.Schema);
+            context.Schema,
+            context.IncludeFlags);
 
         while (backlog.TryPop(out var current))
         {
@@ -79,7 +78,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                         continue;
                     }
 
-                    backlog.Push((fieldContext.RuntimeResults, childSelection,  objectResult.Fields[insertIndex++]));
+                    backlog.Push((fieldContext.RuntimeResults, childSelection, objectResult.Fields[insertIndex++]));
                 }
             }
         }

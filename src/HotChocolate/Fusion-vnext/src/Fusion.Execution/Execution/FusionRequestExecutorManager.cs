@@ -37,12 +37,13 @@ internal sealed class FusionRequestExecutorManager
     private readonly IOptionsMonitor<FusionGatewaySetup> _optionsMonitor;
     private readonly IServiceProvider _applicationServices;
     private readonly Channel<RequestExecutorEvent> _executorEvents =
-        Channel.CreateBounded<RequestExecutorEvent>(new BoundedChannelOptions(1)
-        {
-            FullMode = BoundedChannelFullMode.Wait,
-            SingleReader = true,
-            SingleWriter = false
-        });
+        Channel.CreateBounded<RequestExecutorEvent>(
+            new BoundedChannelOptions(1)
+            {
+                FullMode = BoundedChannelFullMode.Wait,
+                SingleReader = true,
+                SingleWriter = false
+            });
     private ImmutableArray<ObserverSession> _observers = [];
 
     private bool _disposed;
@@ -277,6 +278,8 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton<ObjectPool<PooledRequestContext>>(
             static _ => new DefaultObjectPool<PooledRequestContext>(
                 new RequestContextPooledObjectPolicy()));
+
+        services.AddSingleton<CompositeTypeInterceptor>(static _ => new IntrospectionFieldInterceptor());
     }
 
     private static void AddOperationPlanner(IServiceCollection services)

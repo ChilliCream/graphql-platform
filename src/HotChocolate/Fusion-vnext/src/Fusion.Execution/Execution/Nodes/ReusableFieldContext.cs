@@ -5,7 +5,8 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 internal sealed class ReusableFieldContext(
     ResultPoolSession resultPool,
     PooledArrayWriter memory,
-    ISchemaDefinition schema)
+    ISchemaDefinition schema,
+    ulong includeFlags)
     : FieldContext
 {
     private readonly List<object?> _runtimeResults = [];
@@ -24,6 +25,8 @@ internal sealed class ReusableFieldContext(
     public override FieldResult FieldResult => _result;
 
     public List<object?> RuntimeResults => _runtimeResults;
+
+    public override ulong IncludeFlags => includeFlags;
 
     public override T Parent<T>() => (T)_parent!;
 

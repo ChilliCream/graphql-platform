@@ -152,7 +152,13 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
         {
             FieldResult field;
 
-            if (selection.Field.Type.IsListType())
+            if (selection.Field.IsIntrospectionField
+                && selection.Field.Name.Equals(IntrospectionFieldNames.TypeName))
+            {
+                // TODO : pool
+                field = new RawFieldResult();
+            }
+            else if (selection.Field.Type.IsListType())
             {
                 field = resultPoolSession.RentListFieldResult();
             }

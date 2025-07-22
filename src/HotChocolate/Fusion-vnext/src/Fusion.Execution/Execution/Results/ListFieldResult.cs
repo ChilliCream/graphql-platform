@@ -52,6 +52,18 @@ public sealed class ListFieldResult : FieldResult
         listResult.SetParent(Parent!, ParentIndex);
     }
 
+    /// <inheritdoc />
+    public override void CopyTo(FieldResult other)
+    {
+        if (other is not ListFieldResult listField)
+        {
+            throw new InvalidOperationException("Cannot copy to non-list field result.");
+        }
+
+        listField.Value = Value;
+        listField.Value?.SetParent(listField.Parent!, listField.ParentIndex);
+    }
+
     /// <summary>
     /// Writes the list field to the specified JSON writer.
     /// </summary>

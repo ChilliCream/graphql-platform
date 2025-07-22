@@ -91,6 +91,23 @@ internal sealed class FetchResultStore : IDisposable
         }
     }
 
+    public void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
+    {
+        _lock.EnterWriteLock();
+
+        try
+        {
+            foreach (var selection in selections)
+            {
+                result[selection.ResponseName].CopyTo(_root[selection.ResponseName]);
+            }
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+    }
+
     private bool SaveSafe(
         ReadOnlySpan<SourceSchemaResult> results,
         ReadOnlySpan<JsonElement> startElements)

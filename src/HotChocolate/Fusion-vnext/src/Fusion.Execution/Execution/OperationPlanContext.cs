@@ -37,7 +37,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         // create a client scope for the current request context.
         var clientScopeFactory = requestContext.RequestServices.GetRequiredService<ISourceSchemaClientScopeFactory>();
         ClientScope = clientScopeFactory.CreateScope(requestContext.Schema);
-        ResultPoolSession = resultPoolSession;
+        ResultPool = resultPoolSession;
     }
 
     public OperationExecutionPlan OperationPlan { get; }
@@ -50,7 +50,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     public ISourceSchemaClientScope ClientScope { get; }
 
-    public ResultPoolSession ResultPoolSession { get; }
+    public ResultPoolSession ResultPool { get; }
 
     public ulong IncludeFlags { get; }
 
@@ -82,6 +82,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     public void AddPartialResults(SelectionPath sourcePath, ReadOnlySpan<SourceSchemaResult> results)
         => _resultStore.AddPartialResults(sourcePath, results);
+
+    public void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
+        => _resultStore.AddPartialResults(result, selections);
 
     public PooledArrayWriter CreateRentedBuffer()
         => _resultStore.CreateRentedBuffer();

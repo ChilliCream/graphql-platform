@@ -44,8 +44,8 @@ internal sealed class IntrospectionFieldInterceptor : CompositeTypeInterceptor
             features = features.IsReadOnly
                 ? new FeatureCollection(features)
                 : features;
-        }
 
-        features.Set<Dictionary<string, ITypeResolverInterceptor>>(null);
+            features.Set<Dictionary<string, ITypeResolverInterceptor>>(null);
+        }
     }
 }
