@@ -1,0 +1,16 @@
+{
+  "errors": [
+    {
+      "message": "The following variables were not used: s.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "extensions": {
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
+      }
+    }
+  ]
+}
