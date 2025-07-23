@@ -96,7 +96,7 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
     }
 
     protected override ISyntaxVisitorAction Enter(
-        SelectedObjectValueNode node,
+        ObjectValueSelectionNode selectionNode,
         ISyntaxWriter writer)
     {
         writer.Write(LeftBrace);
@@ -104,14 +104,14 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
 
         writer.Indent();
 
-        if (node.Fields.Count > 0)
+        if (selectionNode.Fields.Count > 0)
         {
-            Visit(node.Fields[0], writer);
+            Visit(selectionNode.Fields[0], writer);
 
-            for (var i = 1; i < node.Fields.Count; i++)
+            for (var i = 1; i < selectionNode.Fields.Count; i++)
             {
                 WriteLineOrCommaSpace(writer);
-                Visit(node.Fields[i], writer);
+                Visit(selectionNode.Fields[i], writer);
             }
         }
 
@@ -125,7 +125,7 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
     }
 
     protected override ISyntaxVisitorAction Enter(
-        SelectedValueNode node,
+        ChoiceValueSelectionNode node,
         ISyntaxWriter writer)
     {
         Visit(node.Entries, writer);

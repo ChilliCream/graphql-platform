@@ -66,9 +66,9 @@ public class FieldSelectionMapSyntaxVisitor<TContext> : FieldSelectionMapSyntaxV
             FieldSelectionMapSyntaxKind.SelectedObjectField
                 => Enter((SelectedObjectFieldNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectValue
-                => Enter((SelectedObjectValueNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedValue
-                => Enter((SelectedValueNode)node, context),
+                => Enter((ObjectValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.ChoiceValueSelection
+                => Enter((ChoiceValueSelectionNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedValueEntry
                 => Enter((SelectedValueEntryNode)node, context),
             _ => throw new NotSupportedException(node.GetType().FullName)
@@ -101,12 +101,12 @@ public class FieldSelectionMapSyntaxVisitor<TContext> : FieldSelectionMapSyntaxV
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
-        SelectedObjectValueNode node,
+        ObjectValueSelectionNode selectionNode,
         TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
-        SelectedValueNode node,
+        ChoiceValueSelectionNode node,
         TContext context) =>
         DefaultAction;
 
@@ -132,9 +132,9 @@ public class FieldSelectionMapSyntaxVisitor<TContext> : FieldSelectionMapSyntaxV
             FieldSelectionMapSyntaxKind.SelectedObjectField
                 => Leave((SelectedObjectFieldNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectValue
-                => Leave((SelectedObjectValueNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedValue
-                => Leave((SelectedValueNode)node, context),
+                => Leave((ObjectValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.ChoiceValueSelection
+                => Leave((ChoiceValueSelectionNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedValueEntry
                 => Leave((SelectedValueEntryNode)node, context),
             _ => throw new NotSupportedException(node.GetType().FullName)
@@ -167,12 +167,12 @@ public class FieldSelectionMapSyntaxVisitor<TContext> : FieldSelectionMapSyntaxV
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
-        SelectedObjectValueNode node,
+        ObjectValueSelectionNode selectionNode,
         TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
-        SelectedValueNode node,
+        ChoiceValueSelectionNode node,
         TContext context) =>
         DefaultAction;
 
@@ -224,9 +224,9 @@ public class FieldSelectionMapSyntaxVisitor<TContext> : FieldSelectionMapSyntaxV
             FieldSelectionMapSyntaxKind.SelectedObjectField
                 => VisitChildren((SelectedObjectFieldNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectValue
-                => VisitChildren((SelectedObjectValueNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedValue
-                => VisitChildren((SelectedValueNode)node, context),
+                => VisitChildren((ObjectValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.ChoiceValueSelection
+                => VisitChildren((ChoiceValueSelectionNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedValueEntry
                 => VisitChildren((SelectedValueEntryNode)node, context),
             _ => throw new NotSupportedException(node.GetType().FullName)
@@ -290,12 +290,12 @@ public class FieldSelectionMapSyntaxVisitor<TContext> : FieldSelectionMapSyntaxV
     }
 
     protected virtual ISyntaxVisitorAction VisitChildren(
-        SelectedObjectValueNode node,
+        ObjectValueSelectionNode selectionNode,
         TContext context)
     {
-        foreach (var field in node.Fields)
+        foreach (var field in selectionNode.Fields)
         {
-            if (Visit(field, node, context).IsBreak())
+            if (Visit(field, selectionNode, context).IsBreak())
             {
                 return Break;
             }
@@ -305,7 +305,7 @@ public class FieldSelectionMapSyntaxVisitor<TContext> : FieldSelectionMapSyntaxV
     }
 
     protected virtual ISyntaxVisitorAction VisitChildren(
-        SelectedValueNode node,
+        ChoiceValueSelectionNode node,
         TContext context)
     {
         if (Visit(node.Entries, node, context).IsBreak())

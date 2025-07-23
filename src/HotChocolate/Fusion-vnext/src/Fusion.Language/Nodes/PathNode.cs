@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Language;
 /// specifying a path to that value. This path is defined as a sequence of field names, each
 /// separated by a period (<c>.</c>) to create segments.
 /// </summary>
-public sealed class PathNode : IFieldSelectionMapSyntaxNode, IValueSelectionNode
+public sealed class PathNode : IValueSelectionNode
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PathNode"/> class.

@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace HotChocolate.Fusion.Language;
 
 /// <summary>
@@ -11,50 +13,21 @@ namespace HotChocolate.Fusion.Language;
 /// specification by only allowing one <c>SelectedValue</c> as an element.
 /// </para>
 /// </summary>
-public sealed class ListValueSelectionNode : IFieldSelectionMapSyntaxNode
+public sealed class ListValueSelectionNode : IValueSelectionNode
 {
-    public ListValueSelectionNode(SelectedValueNode selectedValue)
-    {
-        SelectedValue = selectedValue;
-    }
-
-    public ListValueSelectionNode(ListValueSelectionNode listValueSelection)
-    {
-        ListValueSelection = listValueSelection;
-    }
-
-    public ListValueSelectionNode(Location? location, SelectedValueNode selectedValue)
-        : this(selectedValue)
+    public ListValueSelectionNode(Location? location, ImmutableArray<IValueSelectionNode> items)
     {
         Location = location;
-    }
-
-    public ListValueSelectionNode(Location? location, ListValueSelectionNode listValueSelection)
-        : this(listValueSelection)
-    {
-        Location = location;
+        Items = items;
     }
 
     public FieldSelectionMapSyntaxKind Kind => FieldSelectionMapSyntaxKind.ListValueSelection;
 
     public Location? Location { get; }
 
-    public SelectedValueNode? SelectedValue { get; }
+    public ImmutableArray<IValueSelectionNode> Items { get; }
 
-    public ListValueSelectionNode? ListValueSelection { get; }
-
-    public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
-    {
-        if (SelectedValue is not null)
-        {
-            yield return SelectedValue;
-        }
-
-        if (ListValueSelection is not null)
-        {
-            yield return ListValueSelection;
-        }
-    }
+    public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes() => Items;
 
     public override string ToString() => this.Print();
 

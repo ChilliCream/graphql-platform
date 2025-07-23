@@ -78,7 +78,7 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     {
         // arrange
         var node = new ListValueSelectionNode(
-            selectedValue: new SelectedValueNode(
+            selectedValue: new ChoiceValueSelectionNode(
                 entries: new SelectedValueEntryNode(
                     path: new PathNode(
                         pathSegment: new PathSegmentNode(fieldName: new NameNode("field1"))))));
@@ -96,7 +96,7 @@ public sealed class FieldSelectionMapSyntaxNodeTests
         // arrange
         var node = new ObjectValueSelectionNode(
             new NameNode("field1"),
-            new SelectedValueNode(
+            new ChoiceValueSelectionNode(
                 entries: new SelectedValueEntryNode(
                     path: new PathNode(
                         pathSegment: new PathSegmentNode(fieldName: new NameNode("field1"))))));
@@ -112,18 +112,18 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     public void ToString_SelectedObjectValueNode_ReturnsExpectedString()
     {
         // arrange
-        var node = new SelectedObjectValueNode(fields:
+        var node = new ObjectValueSelectionNode(fields:
             [
                 new ObjectValueSelectionNode(
                     new NameNode("field1"),
-                    new SelectedValueNode(
+                    new ChoiceValueSelectionNode(
                         entries: new SelectedValueEntryNode(
                             path: new PathNode(
                                 pathSegment: new PathSegmentNode(
                                     fieldName: new NameNode("field1")))))),
                 new ObjectValueSelectionNode(
                     new NameNode("field2"),
-                    new SelectedValueNode(
+                    new ChoiceValueSelectionNode(
                         entries: new SelectedValueEntryNode(
                             path: new PathNode(
                                 pathSegment: new PathSegmentNode(
@@ -153,19 +153,19 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     public void ToString_SelectedValueNode_ReturnsExpectedString()
     {
         // arrange
-        var node = new SelectedValueNode(
+        var node = new ChoiceValueSelectionNode(
             entries: new SelectedValueEntryNode(
                 path: new PathNode(
                     pathSegment: new PathSegmentNode(
                         fieldName: new NameNode("field1"),
                         pathSegment: new PathSegmentNode(fieldName: new NameNode("field2"))))),
-            selectedValue: new SelectedValueNode(
+            selectedValue: new ChoiceValueSelectionNode(
                 entries: new SelectedValueEntryNode(
                     path: new PathNode(
                         pathSegment: new PathSegmentNode(
                             fieldName: new NameNode("field3"),
                             pathSegment: new PathSegmentNode(fieldName: new NameNode("field4"))))),
-                selectedValue: new SelectedValueNode(
+                selectedValue: new ChoiceValueSelectionNode(
                     entries: new SelectedValueEntryNode(
                         path: new PathNode(
                             pathSegment: new PathSegmentNode(

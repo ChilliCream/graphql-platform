@@ -10,22 +10,22 @@ public sealed class SelectedValueToSelectionSetRewriter(ISchemaDefinition schema
     private readonly MergeSelectionSetRewriter _mergeSelectionSetRewriter = new(schema);
 
     public SelectionSetNode SelectedValueToSelectionSet(
-        SelectedValueNode selectedValue,
+        ChoiceValueSelectionNode choiceValueSelection,
         ITypeDefinition type)
     {
-        var selections = Visit(selectedValue);
+        var selections = Visit(choiceValueSelection);
         var selectionSets = selections.Select(s => new SelectionSetNode([s])).ToArray();
 
         return _mergeSelectionSetRewriter.Merge(selectionSets, type);
     }
 
-    private static List<ISelectionNode> Visit(SelectedValueNode selectedValue)
+    private static List<ISelectionNode> Visit(ChoiceValueSelectionNode choiceValueSelection)
     {
-        var selections = Visit(selectedValue.Entries);
+        var selections = Visit(choiceValueSelection.Entries);
 
-        if (selectedValue.SelectedValue is not null)
+        if (choiceValueSelection.SelectedValue is not null)
         {
-            selections.AddRange(Visit(selectedValue.SelectedValue));
+            selections.AddRange(Visit(choiceValueSelection.SelectedValue));
         }
 
         return selections;
@@ -150,11 +150,11 @@ public sealed class SelectedValueToSelectionSetRewriter(ISchemaDefinition schema
         return selections;
     }
 
-    private static List<ISelectionNode> Visit(SelectedObjectValueNode selectedObjectValue)
+    private static List<ISelectionNode> Visit(ObjectValueSelectionNode objectValueSelection)
     {
         var selections = new List<ISelectionNode>();
 
-        foreach (var field in selectedObjectValue.Fields)
+        foreach (var field in objectValueSelection.Fields)
         {
             if (field.SelectedValue is null)
             {

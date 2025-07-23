@@ -11,26 +11,26 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
     : FieldSelectionMapSyntaxVisitor<FieldSelectionMapValidatorContext>(Continue)
 {
     public ImmutableArray<string> Validate(
-        SelectedValueNode selectedValue,
+        ChoiceValueSelectionNode choiceValueSelection,
         ITypeDefinition inputType,
         ITypeDefinition outputType)
     {
         var context = new FieldSelectionMapValidatorContext(inputType, outputType);
 
-        Visit(selectedValue, context);
+        Visit(choiceValueSelection, context);
 
         return [.. context.Errors];
     }
 
     public ImmutableArray<string> Validate(
-        SelectedValueNode selectedValue,
+        ChoiceValueSelectionNode choiceValueSelection,
         ITypeDefinition inputType,
         ITypeDefinition outputType,
         out ImmutableHashSet<IOutputFieldDefinition> selectedFields)
     {
         var context = new FieldSelectionMapValidatorContext(inputType, outputType);
 
-        Visit(selectedValue, context);
+        Visit(choiceValueSelection, context);
 
         selectedFields = [.. context.SelectedFields];
 
@@ -212,7 +212,7 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
     }
 
     protected override ISyntaxVisitorAction Enter(
-        SelectedObjectValueNode node,
+        ObjectValueSelectionNode selectionNode,
         FieldSelectionMapValidatorContext context)
     {
         if (context.InputTypes.Peek() is not IInputObjectTypeDefinition inputType)
@@ -227,7 +227,7 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
                 .Select(f => f.Name)
                 .ToHashSet();
 
-        var selectedFieldNames = node.Fields.Select(f => f.Name.Value).ToImmutableHashSet();
+        var selectedFieldNames = selectionNode.Fields.Select(f => f.Name.Value).ToImmutableHashSet();
 
         // For an input type with the @oneOf directive, we need to ensure that exactly one of the
         // required fields is selected.

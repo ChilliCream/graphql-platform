@@ -29,7 +29,7 @@ public ref struct FieldSelectionMapParser
         _reader = new FieldSelectionMapReader(sourceText, options.MaxAllowedTokens);
     }
 
-    public SelectedValueNode Parse()
+    public ChoiceValueSelectionNode Parse()
     {
         _parsedNodes = 0;
 
@@ -43,7 +43,7 @@ public ref struct FieldSelectionMapParser
     }
 
     /// <summary>
-    /// Parses a <see cref="SelectedValueNode"/>.
+    /// Parses a <see cref="ChoiceValueSelectionNode"/>.
     ///
     /// <code>
     /// SelectedValue ::
@@ -51,13 +51,13 @@ public ref struct FieldSelectionMapParser
     ///     |opt SelectedValueEntry
     /// </code>
     /// </summary>
-    /// <returns>The parsed <see cref="SelectedValueNode"/>.</returns>
-    private SelectedValueNode ParseSelectedValue()
+    /// <returns>The parsed <see cref="ChoiceValueSelectionNode"/>.</returns>
+    private ChoiceValueSelectionNode ParseSelectedValue()
     {
         var start = Start();
 
         var selectedValueEntry = ParseSelectedValueEntry();
-        SelectedValueNode? selectedValue = null;
+        ChoiceValueSelectionNode? selectedValue = null;
 
         if (_reader.TokenKind == TokenKind.Pipe)
         {
@@ -67,7 +67,7 @@ public ref struct FieldSelectionMapParser
 
         var location = CreateLocation(in start);
 
-        return new SelectedValueNode(location, selectedValueEntry, selectedValue);
+        return new ChoiceValueSelectionNode(location, selectedValueEntry, selectedValue);
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ public ref struct FieldSelectionMapParser
         var start = Start();
 
         PathNode? path = null;
-        SelectedObjectValueNode? selectedObjectValue = null;
+        ObjectValueSelectionNode? selectedObjectValue = null;
         ListValueSelectionNode? selectedListValue = null;
 
         // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
@@ -223,16 +223,16 @@ public ref struct FieldSelectionMapParser
     }
 
     /// <summary>
-    /// Parses a <see cref="SelectedObjectValueNode"/>.
+    /// Parses a <see cref="ObjectValueSelectionNode"/>.
     ///
     /// <code>
     /// SelectedObjectValue ::
     ///     { SelectedObjectField+ }
     /// </code>
     /// </summary>
-    /// <returns>The parsed <see cref="SelectedObjectValueNode"/>.</returns>
+    /// <returns>The parsed <see cref="ObjectValueSelectionNode"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private SelectedObjectValueNode ParseSelectedObjectValue()
+    private ObjectValueSelectionNode ParseSelectedObjectValue()
     {
         var start = Start();
 
@@ -249,7 +249,7 @@ public ref struct FieldSelectionMapParser
 
         var location = CreateLocation(in start);
 
-        return new SelectedObjectValueNode(location, fields);
+        return new ObjectValueSelectionNode(location, fields);
     }
 
     /// <summary>
@@ -269,7 +269,7 @@ public ref struct FieldSelectionMapParser
 
         var name = ParseName();
 
-        SelectedValueNode? selectedValue = null;
+        ChoiceValueSelectionNode? selectedValue = null;
         if (_reader.TokenKind == TokenKind.Colon)
         {
             MoveNext(); // skip ":"
@@ -299,7 +299,7 @@ public ref struct FieldSelectionMapParser
         Expect(TokenKind.LeftSquareBracket);
 
         ListValueSelectionNode? selectedListValue = null;
-        SelectedValueNode? selectedValue = null;
+        ChoiceValueSelectionNode? selectedValue = null;
 
         if (_reader.TokenKind == TokenKind.LeftSquareBracket)
         {

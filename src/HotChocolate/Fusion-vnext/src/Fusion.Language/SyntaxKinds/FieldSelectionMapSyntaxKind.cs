@@ -5,9 +5,10 @@ public enum FieldSelectionMapSyntaxKind
     Name,
     Path,
     PathSegment,
-    ListValueSelection,
     ObjectFieldSelection,
     ObjectValueSelection,
-    SelectedValue,
-    SelectedValueEntry
+    ListValueSelection,
+    PathObjectValueSelection,
+    PathListValueSelection,
+    ChoiceValueSelection
 }

@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Execution;
 
 internal sealed class FieldSelectionMapExecutor
 {
-    public IValueNode? Visit(SelectedValueNode node, FieldSelectionMapExecutorContext context)
+    public IValueNode? Visit(ChoiceValueSelectionNode node, FieldSelectionMapExecutorContext context)
     {
         foreach (var entry in node.Entries)
         {

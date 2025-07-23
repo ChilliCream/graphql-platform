@@ -1,47 +1,34 @@
+using System.Collections.Immutable;
+
 namespace HotChocolate.Fusion.Language;
 
 /// <summary>
-/// <see cref="ObjectFieldSelectionNode"/> represents a field within a
-/// <see cref="SelectedObjectValueNode"/>.
+/// <c>SelectedObjectValue</c> are unordered lists of keyed input values wrapped in curly-braces
+/// <c>{}</c>. This structure is similar to the <c>ObjectValue</c> defined in the GraphQL
+/// specification, but it differs by allowing the inclusion of <c>Path</c> values within a
+/// <c>SelectedValue</c>, thus extending the traditional <c>ObjectValue</c> capabilities to support
+/// direct path selections.
 /// </summary>
-public sealed class ObjectFieldSelectionNode : IFieldSelectionMapSyntaxNode
+public sealed class ObjectValueSelectionNode : IValueSelectionNode
 {
-    public ObjectFieldSelectionNode(NameNode name)
-        : this(null, name, null)
+    public ObjectValueSelectionNode(ImmutableArray<ObjectFieldSelectionNode> fields)
+        : this(null, fields)
     {
     }
 
-    public ObjectFieldSelectionNode(NameNode name, IValueSelectionNode? selectedValue)
-        : this(null, name, selectedValue)
+    public ObjectValueSelectionNode(Location? location, ImmutableArray<ObjectFieldSelectionNode> fields)
     {
-    }
-
-    public ObjectFieldSelectionNode(Location? location, NameNode name, IValueSelectionNode? selectedValue)
-    {
-        ArgumentNullException.ThrowIfNull(name);
-
         Location = location;
-        Name = name;
-        SelectedValue = selectedValue;
+        Fields = fields;
     }
 
-    public FieldSelectionMapSyntaxKind Kind => FieldSelectionMapSyntaxKind.ObjectFieldSelection;
+    public FieldSelectionMapSyntaxKind Kind => FieldSelectionMapSyntaxKind.ObjectValueSelection;
 
     public Location? Location { get; }
 
-    public NameNode Name { get; }
+    public readonly ImmutableArray<ObjectFieldSelectionNode> Fields;
 
-    public IValueSelectionNode? SelectedValue { get; }
-
-    public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
-    {
-        yield return Name;
-
-        if (SelectedValue is not null)
-        {
-            yield return SelectedValue;
-        }
-    }
+    public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes() => Fields;
 
     public override string ToString() => this.Print();
 
