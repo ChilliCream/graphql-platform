@@ -21,7 +21,7 @@ public sealed class SelectedValueToSelectionSetRewriter(ISchemaDefinition schema
 
     private static List<ISelectionNode> Visit(SelectedValueNode selectedValue)
     {
-        var selections = Visit(selectedValue.SelectedValueEntry);
+        var selections = Visit(selectedValue.Entries);
 
         if (selectedValue.SelectedValue is not null)
         {
@@ -169,18 +169,18 @@ public sealed class SelectedValueToSelectionSetRewriter(ISchemaDefinition schema
         return selections;
     }
 
-    private static List<ISelectionNode> Visit(SelectedListValueNode selectedListValue)
+    private static List<ISelectionNode> Visit(ListValueSelectionNode listValueSelection)
     {
         var selections = new List<ISelectionNode>();
 
-        if (selectedListValue.SelectedValue is not null)
+        if (listValueSelection.SelectedValue is not null)
         {
-            selections.AddRange(Visit(selectedListValue.SelectedValue));
+            selections.AddRange(Visit(listValueSelection.SelectedValue));
         }
 
-        if (selectedListValue.SelectedListValue is not null)
+        if (listValueSelection.ListValueSelection is not null)
         {
-            selections.AddRange(Visit(selectedListValue.SelectedListValue));
+            selections.AddRange(Visit(listValueSelection.ListValueSelection));
         }
 
         return selections;

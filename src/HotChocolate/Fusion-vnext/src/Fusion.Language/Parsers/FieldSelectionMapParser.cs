@@ -88,7 +88,7 @@ public ref struct FieldSelectionMapParser
 
         PathNode? path = null;
         SelectedObjectValueNode? selectedObjectValue = null;
-        SelectedListValueNode? selectedListValue = null;
+        ListValueSelectionNode? selectedListValue = null;
 
         // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
         switch (_reader.TokenKind)
@@ -282,7 +282,7 @@ public ref struct FieldSelectionMapParser
     }
 
     /// <summary>
-    /// Parses a <see cref="SelectedListValueNode"/>.
+    /// Parses a <see cref="ListValueSelectionNode"/>.
     ///
     /// <code>
     /// SelectedListValue ::
@@ -290,15 +290,15 @@ public ref struct FieldSelectionMapParser
     ///     [ SelectedListValue ]
     /// </code>
     /// </summary>
-    /// <returns>The parsed <see cref="SelectedListValueNode"/>.</returns>
+    /// <returns>The parsed <see cref="ListValueSelectionNode"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private SelectedListValueNode ParseSelectedListValue()
+    private ListValueSelectionNode ParseSelectedListValue()
     {
         var start = Start();
 
         Expect(TokenKind.LeftSquareBracket);
 
-        SelectedListValueNode? selectedListValue = null;
+        ListValueSelectionNode? selectedListValue = null;
         SelectedValueNode? selectedValue = null;
 
         if (_reader.TokenKind == TokenKind.LeftSquareBracket)
@@ -316,12 +316,12 @@ public ref struct FieldSelectionMapParser
 
         if (selectedListValue is not null)
         {
-            return new SelectedListValueNode(location, selectedListValue);
+            return new ListValueSelectionNode(location, selectedListValue);
         }
 
         if (selectedValue is not null)
         {
-            return new SelectedListValueNode(location, selectedValue);
+            return new ListValueSelectionNode(location, selectedValue);
         }
 
         throw new InvalidOperationException();

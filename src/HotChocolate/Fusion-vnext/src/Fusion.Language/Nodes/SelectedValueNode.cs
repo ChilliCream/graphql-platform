@@ -1,39 +1,55 @@
+using System.Collections.Immutable;
+
 namespace HotChocolate.Fusion.Language;
 
 /// <summary>
 /// A <c>SelectedValue</c> consists of one or more <c>SelectedValueEntry</c> components, which may
 /// be joined by a pipe (<c>|</c>) operator to indicate alternative selections based on type.
 /// </summary>
-public sealed class SelectedValueNode(
-    SelectedValueEntryNode selectedValueEntry,
-    SelectedValueNode? selectedValue = null)
-    : IFieldSelectionMapSyntaxNode
+public sealed class SelectedValueNode : IFieldSelectionMapSyntaxNode
 {
+    public SelectedValueNode(SelectedValueEntryNode entry)
+        : this(null, entry)
+    {
+    }
+
     public SelectedValueNode(
         Location? location,
-        SelectedValueEntryNode selectedValueEntry,
-        SelectedValueNode? selectedValue) : this(selectedValueEntry, selectedValue)
+        SelectedValueEntryNode entry)
     {
+        ArgumentNullException.ThrowIfNull(entry);
+
         Location = location;
+        Entries = [entry];
+    }
+
+    public SelectedValueNode(ImmutableArray<SelectedValueEntryNode> entries)
+        : this(null, entries)
+    {
+    }
+
+    public SelectedValueNode(
+        Location? location,
+        ImmutableArray<SelectedValueEntryNode> entries)
+    {
+        if (entries.IsEmpty)
+        {
+            throw new ArgumentException(
+                $"{nameof(entries)} is empty.",
+                nameof(entries));
+        }
+
+        Location = location;
+        Entries = entries;
     }
 
     public FieldSelectionMapSyntaxKind Kind => FieldSelectionMapSyntaxKind.SelectedValue;
 
     public Location? Location { get; }
 
-    public SelectedValueEntryNode SelectedValueEntry { get; } = selectedValueEntry;
+    public ImmutableArray<SelectedValueEntryNode> Entries { get; }
 
-    public SelectedValueNode? SelectedValue { get; } = selectedValue;
-
-    public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
-    {
-        yield return SelectedValueEntry;
-
-        if (SelectedValue is not null)
-        {
-            yield return SelectedValue;
-        }
-    }
+    public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes() => Entries;
 
     public override string ToString() => this.Print();
 

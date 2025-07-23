@@ -233,6 +233,11 @@ internal sealed class FetchResultStore : IDisposable
                 Array.Resize(ref variableValueSets, nextIndex);
             }
 
+            if (buffer is not null)
+            {
+                _memory.Push(buffer);
+            }
+
             return variableValueSets is not null
                 ? ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets)
                 : [];

@@ -59,18 +59,18 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
     }
 
     protected override ISyntaxVisitorAction Enter(
-        SelectedListValueNode node,
+        ListValueSelectionNode selectionNode,
         ISyntaxWriter writer)
     {
         writer.Write(LeftSquareBracket);
 
-        if (node.SelectedValue is not null)
+        if (selectionNode.SelectedValue is not null)
         {
-            Visit(node.SelectedValue, writer);
+            Visit(selectionNode.SelectedValue, writer);
         }
-        else if (node.SelectedListValue is not null)
+        else if (selectionNode.ListValueSelection is not null)
         {
-            Visit(node.SelectedListValue, writer);
+            Visit(selectionNode.ListValueSelection, writer);
         }
 
         writer.Write(RightSquareBracket);
@@ -128,7 +128,7 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
         SelectedValueNode node,
         ISyntaxWriter writer)
     {
-        Visit(node.SelectedValueEntry, writer);
+        Visit(node.Entries, writer);
 
         if (node.SelectedValue is not null)
         {

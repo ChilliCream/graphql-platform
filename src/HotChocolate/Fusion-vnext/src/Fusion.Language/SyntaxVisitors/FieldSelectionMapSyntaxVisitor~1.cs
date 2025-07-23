@@ -1,16 +1,21 @@
 namespace HotChocolate.Fusion.Language;
 
-public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defaultAction)
-    : FieldSelectionMapSyntaxVisitor, ISyntaxVisitor<TContext>
+public class FieldSelectionMapSyntaxVisitor<TContext> : FieldSelectionMapSyntaxVisitor
+    , ISyntaxVisitor<TContext>
 {
     public FieldSelectionMapSyntaxVisitor() : this(Skip)
     {
     }
 
+    public FieldSelectionMapSyntaxVisitor(ISyntaxVisitorAction defaultAction)
+    {
+        DefaultAction = defaultAction;
+    }
+
     /// <summary>
     /// The visitor default action.
     /// </summary>
-    protected virtual ISyntaxVisitorAction DefaultAction { get; } = defaultAction;
+    protected virtual ISyntaxVisitorAction DefaultAction { get; }
 
     public ISyntaxVisitorAction Visit(IFieldSelectionMapSyntaxNode node, TContext context)
         => Visit<IFieldSelectionMapSyntaxNode, IFieldSelectionMapSyntaxNode?>(node, null, context);
@@ -57,7 +62,7 @@ public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defau
             FieldSelectionMapSyntaxKind.PathSegment
                 => Enter((PathSegmentNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedListValue
-                => Enter((SelectedListValueNode)node, context),
+                => Enter((ListValueSelectionNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectField
                 => Enter((SelectedObjectFieldNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectValue
@@ -86,7 +91,7 @@ public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defau
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
-        SelectedListValueNode node,
+        ListValueSelectionNode selectionNode,
         TContext context) =>
         DefaultAction;
 
@@ -123,7 +128,7 @@ public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defau
             FieldSelectionMapSyntaxKind.PathSegment
                 => Leave((PathSegmentNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedListValue
-                => Leave((SelectedListValueNode)node, context),
+                => Leave((ListValueSelectionNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectField
                 => Leave((SelectedObjectFieldNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectValue
@@ -152,7 +157,7 @@ public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defau
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
-        SelectedListValueNode node,
+        ListValueSelectionNode selectionNode,
         TContext context) =>
         DefaultAction;
 
@@ -215,7 +220,7 @@ public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defau
             FieldSelectionMapSyntaxKind.PathSegment
                 => VisitChildren((PathSegmentNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedListValue
-                => VisitChildren((SelectedListValueNode)node, context),
+                => VisitChildren((ListValueSelectionNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectField
                 => VisitChildren((SelectedObjectFieldNode)node, context),
             FieldSelectionMapSyntaxKind.SelectedObjectValue
@@ -303,7 +308,7 @@ public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defau
         SelectedValueNode node,
         TContext context)
     {
-        if (Visit(node.SelectedValueEntry, node, context).IsBreak())
+        if (Visit(node.Entries, node, context).IsBreak())
         {
             return Break;
         }

@@ -77,9 +77,9 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     public void ToString_SelectedListValueNode_ReturnsExpectedString()
     {
         // arrange
-        var node = new SelectedListValueNode(
+        var node = new ListValueSelectionNode(
             selectedValue: new SelectedValueNode(
-                selectedValueEntry: new SelectedValueEntryNode(
+                entries: new SelectedValueEntryNode(
                     path: new PathNode(
                         pathSegment: new PathSegmentNode(fieldName: new NameNode("field1"))))));
 
@@ -94,10 +94,10 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     public void ToString_SelectedObjectFieldNode_ReturnsExpectedString()
     {
         // arrange
-        var node = new SelectedObjectFieldNode(
+        var node = new ObjectValueSelectionNode(
             new NameNode("field1"),
             new SelectedValueNode(
-                selectedValueEntry: new SelectedValueEntryNode(
+                entries: new SelectedValueEntryNode(
                     path: new PathNode(
                         pathSegment: new PathSegmentNode(fieldName: new NameNode("field1"))))));
 
@@ -114,17 +114,17 @@ public sealed class FieldSelectionMapSyntaxNodeTests
         // arrange
         var node = new SelectedObjectValueNode(fields:
             [
-                new SelectedObjectFieldNode(
+                new ObjectValueSelectionNode(
                     new NameNode("field1"),
                     new SelectedValueNode(
-                        selectedValueEntry: new SelectedValueEntryNode(
+                        entries: new SelectedValueEntryNode(
                             path: new PathNode(
                                 pathSegment: new PathSegmentNode(
                                     fieldName: new NameNode("field1")))))),
-                new SelectedObjectFieldNode(
+                new ObjectValueSelectionNode(
                     new NameNode("field2"),
                     new SelectedValueNode(
-                        selectedValueEntry: new SelectedValueEntryNode(
+                        entries: new SelectedValueEntryNode(
                             path: new PathNode(
                                 pathSegment: new PathSegmentNode(
                                     fieldName: new NameNode("field2"))))))
@@ -154,19 +154,19 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     {
         // arrange
         var node = new SelectedValueNode(
-            selectedValueEntry: new SelectedValueEntryNode(
+            entries: new SelectedValueEntryNode(
                 path: new PathNode(
                     pathSegment: new PathSegmentNode(
                         fieldName: new NameNode("field1"),
                         pathSegment: new PathSegmentNode(fieldName: new NameNode("field2"))))),
             selectedValue: new SelectedValueNode(
-                selectedValueEntry: new SelectedValueEntryNode(
+                entries: new SelectedValueEntryNode(
                     path: new PathNode(
                         pathSegment: new PathSegmentNode(
                             fieldName: new NameNode("field3"),
                             pathSegment: new PathSegmentNode(fieldName: new NameNode("field4"))))),
                 selectedValue: new SelectedValueNode(
-                    selectedValueEntry: new SelectedValueEntryNode(
+                    entries: new SelectedValueEntryNode(
                         path: new PathNode(
                             pathSegment: new PathSegmentNode(
                                 fieldName: new NameNode("field5"),

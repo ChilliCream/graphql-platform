@@ -11,37 +11,37 @@ namespace HotChocolate.Fusion.Language;
 /// specification by only allowing one <c>SelectedValue</c> as an element.
 /// </para>
 /// </summary>
-public sealed class SelectedListValueNode : IFieldSelectionMapSyntaxNode
+public sealed class ListValueSelectionNode : IFieldSelectionMapSyntaxNode
 {
-    public SelectedListValueNode(SelectedValueNode selectedValue)
+    public ListValueSelectionNode(SelectedValueNode selectedValue)
     {
         SelectedValue = selectedValue;
     }
 
-    public SelectedListValueNode(SelectedListValueNode selectedListValue)
+    public ListValueSelectionNode(ListValueSelectionNode listValueSelection)
     {
-        SelectedListValue = selectedListValue;
+        ListValueSelection = listValueSelection;
     }
 
-    public SelectedListValueNode(Location? location, SelectedValueNode selectedValue)
+    public ListValueSelectionNode(Location? location, SelectedValueNode selectedValue)
         : this(selectedValue)
     {
         Location = location;
     }
 
-    public SelectedListValueNode(Location? location, SelectedListValueNode selectedListValue)
-        : this(selectedListValue)
+    public ListValueSelectionNode(Location? location, ListValueSelectionNode listValueSelection)
+        : this(listValueSelection)
     {
         Location = location;
     }
 
-    public FieldSelectionMapSyntaxKind Kind => FieldSelectionMapSyntaxKind.SelectedListValue;
+    public FieldSelectionMapSyntaxKind Kind => FieldSelectionMapSyntaxKind.ListValueSelection;
 
     public Location? Location { get; }
 
     public SelectedValueNode? SelectedValue { get; }
 
-    public SelectedListValueNode? SelectedListValue { get; }
+    public ListValueSelectionNode? ListValueSelection { get; }
 
     public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
     {
@@ -50,9 +50,9 @@ public sealed class SelectedListValueNode : IFieldSelectionMapSyntaxNode
             yield return SelectedValue;
         }
 
-        if (SelectedListValue is not null)
+        if (ListValueSelection is not null)
         {
-            yield return SelectedListValue;
+            yield return ListValueSelection;
         }
     }
 

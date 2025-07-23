@@ -106,9 +106,9 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
     public void Serialize_SelectedListValue_ReturnsExpectedString()
     {
         // arrange
-        var selectedListValueNode = new SelectedListValueNode(
+        var selectedListValueNode = new ListValueSelectionNode(
             selectedValue: new SelectedValueNode(
-                selectedValueEntry: new SelectedValueEntryNode(
+                entries: new SelectedValueEntryNode(
                     path: new PathNode(
                         pathSegment: new PathSegmentNode(fieldName: new NameNode("field1"))))));
 
@@ -123,10 +123,10 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
     public void Serialize_SelectedObjectField_ReturnsExpectedString()
     {
         // arrange
-        var selectedObjectFieldNode = new SelectedObjectFieldNode(
+        var selectedObjectFieldNode = new ObjectValueSelectionNode(
             new NameNode("field1"),
             new SelectedValueNode(
-                selectedValueEntry: new SelectedValueEntryNode(
+                entries: new SelectedValueEntryNode(
                     path: new PathNode(
                         pathSegment: new PathSegmentNode(fieldName: new NameNode("field1"))))));
 
@@ -141,7 +141,7 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
     public void Serialize_SelectedObjectFieldNoSelectedValue_ReturnsExpectedString()
     {
         // arrange
-        var selectedObjectFieldNode = new SelectedObjectFieldNode(new NameNode("field1"));
+        var selectedObjectFieldNode = new ObjectValueSelectionNode(new NameNode("field1"));
 
         // act
         _serializer.Serialize(selectedObjectFieldNode, _writer);
@@ -165,10 +165,10 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
         var selectedObjectValueNode = new SelectedObjectValueNode(
             fields:
             [
-                new SelectedObjectFieldNode(
+                new ObjectValueSelectionNode(
                     new NameNode("field1"),
                     new SelectedValueNode(
-                        selectedValueEntry: new SelectedValueEntryNode(
+                        entries: new SelectedValueEntryNode(
                             path: new PathNode(
                                 pathSegment: new PathSegmentNode(
                                     fieldName: new NameNode("field1"))))))
@@ -197,7 +197,7 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
     {
         // arrange
         var selectedObjectValueNode = new SelectedObjectValueNode(
-            fields: [new SelectedObjectFieldNode(new NameNode("field1"))]);
+            fields: [new ObjectValueSelectionNode(new NameNode("field1"))]);
 
         // act
         var serializer = indent ? _serializer : _serializerNoIndent;
@@ -212,14 +212,14 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
     {
         // arrange
         var selectedValueNode = new SelectedValueNode(
-            selectedValueEntry: new SelectedValueEntryNode(
+            entries: new SelectedValueEntryNode(
                 path: new PathNode(
                     pathSegment: new PathSegmentNode(
                         fieldName: new NameNode("field1"),
                         typeName: new NameNode("Type1"),
                         pathSegment: new PathSegmentNode(fieldName: new NameNode("field2"))))),
             selectedValue: new SelectedValueNode(
-                selectedValueEntry: new SelectedValueEntryNode(
+                entries: new SelectedValueEntryNode(
                     path: new PathNode(
                         pathSegment: new PathSegmentNode(
                             fieldName: new NameNode("field1"),
@@ -251,27 +251,27 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
     {
         // arrange
         var selectedValueNode = new SelectedValueNode(
-            selectedValueEntry: new SelectedValueEntryNode(
+            entries: new SelectedValueEntryNode(
                 selectedObjectValue: new SelectedObjectValueNode(
                     fields:
                     [
-                        new SelectedObjectFieldNode(
+                        new ObjectValueSelectionNode(
                             new NameNode("field1"),
                             new SelectedValueNode(
-                                selectedValueEntry: new SelectedValueEntryNode(
+                                entries: new SelectedValueEntryNode(
                                     path: new PathNode(
                                         pathSegment: new PathSegmentNode(
                                             fieldName: new NameNode("field1"))))))
                     ])),
             selectedValue: new SelectedValueNode(
-                selectedValueEntry: new SelectedValueEntryNode(
+                entries: new SelectedValueEntryNode(
                     selectedObjectValue: new SelectedObjectValueNode(
                         fields:
                         [
-                            new SelectedObjectFieldNode(
+                            new ObjectValueSelectionNode(
                                 new NameNode("field2"),
                                 new SelectedValueNode(
-                                    selectedValueEntry: new SelectedValueEntryNode(
+                                    entries: new SelectedValueEntryNode(
                                         path: new PathNode(
                                             pathSegment: new PathSegmentNode(
                                                 fieldName: new NameNode("field2"))))))
@@ -304,35 +304,35 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
     {
         // arrange
         var selectedValueNode = new SelectedValueNode(
-            selectedValueEntry: new SelectedValueEntryNode(
+            entries: new SelectedValueEntryNode(
                 selectedObjectValue: new SelectedObjectValueNode(
                     fields:
                     [
-                        new SelectedObjectFieldNode(
+                        new ObjectValueSelectionNode(
                             new NameNode("nested"),
                             new SelectedValueNode(
-                                selectedValueEntry: new SelectedValueEntryNode(
+                                entries: new SelectedValueEntryNode(
                                     selectedObjectValue: new SelectedObjectValueNode(
                                         fields:
                                         [
-                                            new SelectedObjectFieldNode(
+                                            new ObjectValueSelectionNode(
                                                 new NameNode("field1"),
                                                 new SelectedValueNode(
-                                                    selectedValueEntry: new SelectedValueEntryNode(
+                                                    entries: new SelectedValueEntryNode(
                                                         path: new PathNode(
                                                             pathSegment: new PathSegmentNode(
                                                                 fieldName:
                                                                     new NameNode("field1"))))))
                                         ])),
                                 selectedValue: new SelectedValueNode(
-                                    selectedValueEntry: new SelectedValueEntryNode(
+                                    entries: new SelectedValueEntryNode(
                                         selectedObjectValue: new SelectedObjectValueNode(
                                             fields:
                                             [
-                                                new SelectedObjectFieldNode(
+                                                new ObjectValueSelectionNode(
                                                     new NameNode("field2"),
                                                     new SelectedValueNode(
-                                                        selectedValueEntry:
+                                                        entries:
                                                             new SelectedValueEntryNode(
                                                                 path: new PathNode(
                                                                     pathSegment:

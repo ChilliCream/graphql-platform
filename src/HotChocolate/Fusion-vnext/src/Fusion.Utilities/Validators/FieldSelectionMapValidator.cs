@@ -258,7 +258,7 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
     }
 
     protected override ISyntaxVisitorAction Enter(
-        SelectedObjectFieldNode node,
+        ObjectValueSelectionNode node,
         FieldSelectionMapValidatorContext context)
     {
         var currentInputType = context.InputTypes.Peek();
@@ -306,7 +306,7 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
     }
 
     protected override ISyntaxVisitorAction Leave(
-        SelectedObjectFieldNode node,
+        ObjectValueSelectionNode node,
         FieldSelectionMapValidatorContext context)
     {
         context.InputTypes.Pop();
