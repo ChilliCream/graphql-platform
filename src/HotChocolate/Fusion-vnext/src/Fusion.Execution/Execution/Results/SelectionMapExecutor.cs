@@ -6,11 +6,35 @@ namespace HotChocolate.Fusion.Execution;
 
 internal sealed class FieldSelectionMapExecutor
 {
+    public IValueNode? Visit(IValueSelectionNode node, FieldSelectionMapExecutorContext context)
+    {
+        switch (node)
+        {
+            case ChoiceValueSelectionNode choice:
+                return Visit(choice, context);
+
+            case PathNode path:
+                return Visit(path, context);
+
+            case ObjectValueSelectionNode objectValue:
+                return Visit(objectValue, context);
+
+            case PathObjectValueSelectionNode objectValue:
+                return Visit(objectValue, context);
+
+            case PathListValueSelectionNode listValue:
+                return Visit(listValue, context);
+
+            default:
+                throw new NotSupportedException("Unknown value selection node type.");
+        }
+    }
+
     public IValueNode? Visit(ChoiceValueSelectionNode node, FieldSelectionMapExecutorContext context)
     {
-        foreach (var entry in node.Entries)
+        foreach (var branch in node.Branches)
         {
-            var value = Visit(entry, context);
+            var value = Visit(branch, context);
 
             if (value is null)
             {
@@ -23,16 +47,7 @@ internal sealed class FieldSelectionMapExecutor
         return null;
     }
 
-    public IValueNode? Visit(SelectedValueEntryNode node, FieldSelectionMapExecutorContext context)
-    {
-
-    }
-
-
-
-    protected override ISyntaxVisitorAction Enter(
-        PathNode node,
-        FieldSelectionMapExecutorContext context)
+    public IValueNode? Visit(PathNode node, FieldSelectionMapExecutorContext context)
     {
         var current = context.Results.Peek();
 
@@ -62,9 +77,61 @@ internal sealed class FieldSelectionMapExecutor
 
         current.Clear();
         current.AddRange(next);
-
-        return DefaultAction;
     }
+
+    public IValueNode? Visit(ObjectValueSelectionNode node, FieldSelectionMapExecutorContext context)
+    {
+        return null;
+    }
+
+    public IValueNode? Visit(PathObjectValueSelectionNode node, FieldSelectionMapExecutorContext context)
+    {
+        return null;
+    }
+
+    public IValueNode? Visit(PathListValueSelectionNode node, FieldSelectionMapExecutorContext context)
+    {
+        return null;
+    }
+
+
+    /*
+       protected override ISyntaxVisitorAction Enter(
+           PathNode node,
+           FieldSelectionMapExecutorContext context)
+       {
+           var current = context.Results.Peek();
+
+           var next = new List<ResultData>();
+
+           foreach (var result in current)
+           {
+               var currentResult = result;
+
+               if (currentResult is ObjectFieldResult objectFieldResult)
+               {
+                   currentResult = objectFieldResult.Value;
+               }
+
+               if (currentResult is not ObjectResult objectResult)
+               {
+                   continue;
+               }
+
+               var resolved = ResolvePath(context.Schema, objectResult, node);
+
+               if (resolved is not null)
+               {
+                   next.Add(resolved.Value.Result);
+               }
+           }
+
+           current.Clear();
+           current.AddRange(next);
+
+           return DefaultAction;
+       }
+       */
 
     private (ResultData Result, IType Type)? ResolvePath(
         ISchemaDefinition schema,
