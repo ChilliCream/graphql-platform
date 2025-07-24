@@ -15,6 +15,11 @@ namespace HotChocolate.Fusion.Language;
 /// </summary>
 public sealed class ListValueSelectionNode : IValueSelectionNode
 {
+    public ListValueSelectionNode(IValueSelectionNode elementSelection)
+        : this(null, elementSelection)
+    {
+    }
+
     public ListValueSelectionNode(Location? location, IValueSelectionNode elementSelection)
     {
         Location = location;

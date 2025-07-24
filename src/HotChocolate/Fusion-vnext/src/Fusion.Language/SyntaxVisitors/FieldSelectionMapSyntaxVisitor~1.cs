@@ -359,7 +359,8 @@ public class FieldSelectionMapSyntaxVisitor<TContext>
             return Break;
         }
 
-        if (Visit(node.ValueSelection, node, context).IsBreak())
+        if (node.ValueSelection is not null
+            && Visit(node.ValueSelection, node, context).IsBreak())
         {
             return Break;
         }
