@@ -83,6 +83,7 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
         ISyntaxWriter writer)
     {
         Visit(node.Path, writer);
+        writer.Write(Period);
         Visit(node.ObjectValueSelection, writer);
 
         return Skip;

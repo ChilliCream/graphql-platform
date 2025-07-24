@@ -11,7 +11,7 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
     : FieldSelectionMapSyntaxVisitor<FieldSelectionMapValidatorContext>(Continue)
 {
     public ImmutableArray<string> Validate(
-        ChoiceValueSelectionNode choiceValueSelection,
+        IValueSelectionNode choiceValueSelection,
         ITypeDefinition inputType,
         ITypeDefinition outputType)
     {
@@ -23,7 +23,7 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
     }
 
     public ImmutableArray<string> Validate(
-        ChoiceValueSelectionNode choiceValueSelection,
+        IValueSelectionNode choiceValueSelection,
         ITypeDefinition inputType,
         ITypeDefinition outputType,
         out ImmutableHashSet<IOutputFieldDefinition> selectedFields)
@@ -258,7 +258,7 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
     }
 
     protected override ISyntaxVisitorAction Enter(
-        ObjectValueSelectionNode node,
+        ObjectFieldSelectionNode node,
         FieldSelectionMapValidatorContext context)
     {
         var currentInputType = context.InputTypes.Peek();
@@ -285,7 +285,7 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
             context.InputTypes.Push(currentInputType);
         }
 
-        if (node.SelectedValue is null
+        if (node.ValueSelection is null
             && context.OutputTypes.Peek() is IComplexTypeDefinition complexType)
         {
             if (!complexType.Fields.TryGetField(node.Name.Value, out var field))

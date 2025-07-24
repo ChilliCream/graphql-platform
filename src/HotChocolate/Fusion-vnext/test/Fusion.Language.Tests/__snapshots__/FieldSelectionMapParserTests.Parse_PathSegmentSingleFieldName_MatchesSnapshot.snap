@@ -1,52 +1,31 @@
 {
-  "Kind": "SelectedValue",
+  "Kind": "Path",
   "Location": {
     "Start": 0,
     "End": 6,
     "Line": 1,
     "Column": 1
   },
-  "SelectedValueEntry": {
-    "Kind": "SelectedValueEntry",
+  "PathSegment": {
+    "Kind": "PathSegment",
     "Location": {
       "Start": 0,
       "End": 6,
       "Line": 1,
       "Column": 1
     },
-    "Path": {
-      "Kind": "Path",
+    "FieldName": {
+      "Kind": "Name",
       "Location": {
         "Start": 0,
         "End": 6,
         "Line": 1,
         "Column": 1
       },
-      "PathSegment": {
-        "Kind": "PathSegment",
-        "Location": {
-          "Start": 0,
-          "End": 6,
-          "Line": 1,
-          "Column": 1
-        },
-        "FieldName": {
-          "Kind": "Name",
-          "Location": {
-            "Start": 0,
-            "End": 6,
-            "Line": 1,
-            "Column": 1
-          },
-          "Value": "field1"
-        },
-        "TypeName": null,
-        "PathSegment": null
-      },
-      "TypeName": null
+      "Value": "field1"
     },
-    "SelectedObjectValue": null,
-    "SelectedListValue": null
+    "TypeName": null,
+    "PathSegment": null
   },
-  "SelectedValue": null
+  "TypeName": null
 }

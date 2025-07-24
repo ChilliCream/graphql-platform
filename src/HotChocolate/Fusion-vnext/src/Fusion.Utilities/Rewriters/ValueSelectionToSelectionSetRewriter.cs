@@ -114,7 +114,7 @@ public sealed class ValueSelectionToSelectionSetRewriter(ISchemaDefinition schem
             }
             else
             {
-                selections.AddRange(Visit(field.ValueSelection));
+                selections.Add(Visit(field.ValueSelection));
             }
         }
 
