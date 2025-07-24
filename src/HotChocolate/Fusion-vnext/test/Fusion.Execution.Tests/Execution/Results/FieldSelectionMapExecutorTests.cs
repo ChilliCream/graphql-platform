@@ -15,17 +15,17 @@ public class FieldSelectionMapExecutorTests : FusionTestBase
         new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(new FieldMapPooledObjectPolicy());
 
     [Fact]
-    public void ResolvePath_ObjectResult_PathNode()
+    public void Resolve_Path_Single_Segment()
     {
         // arrange
-        var parser = new FieldSelectionMapParser("id | id");
+        var parser = new FieldSelectionMapParser("id");
         var fieldSelectionMap = parser.Parse();
 
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 """
                 type Query {
-                    id: String!
+                  id: String!
                 }
                 """)
             .Use(n => n)
@@ -35,11 +35,11 @@ public class FieldSelectionMapExecutorTests : FusionTestBase
 
         var operationDefinition =
             Utf8GraphQLParser.Parse(
-                    """
-                    {
-                        id
-                    }
-                    """)
+                """
+                {
+                  id
+                }
+                """)
                 .Definitions.OfType<OperationDefinitionNode>().First();
         var operationCompiler = new OperationCompiler(schema, _fieldMapPool);
         var operation = operationCompiler.Compile("1", operationDefinition);
@@ -47,7 +47,7 @@ public class FieldSelectionMapExecutorTests : FusionTestBase
         var jsonDocument = JsonDocument.Parse(
             """
             {
-                "id": "123"
+              "id": "123"
             }
             """);
 
@@ -65,14 +65,83 @@ public class FieldSelectionMapExecutorTests : FusionTestBase
 
         // act
         var executor = new FieldSelectionMapExecutor();
-        // var context = new FieldSelectionMapExecutorContext(schema);
-
-        // context.Type.Push(targetType);
-        // context.InputTypes.Push(targetType);
-        // context.Results.Push([objectResult]);
-
-        // var result = executor.Visit(fieldSelectionMap, context);
+        var context = new FieldSelectionMapExecutorContext(schema, targetType, objectResult);
+        var result = executor.Visit(fieldSelectionMap, context);
 
         // assert
+        Assert.Equal("\"123\"", result?.ToString());
+    }
+
+    [Fact]
+    public void Resolve_Path_Two_Segments()
+    {
+        // arrange
+        var parser = new FieldSelectionMapParser("id");
+        var fieldSelectionMap = parser.Parse();
+
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                """
+                type Query {
+                  product: Product
+                }
+
+                type Product {
+                  id: String!
+                }
+                """)
+            .Use(n => n)
+            .Create();
+
+        var targetType = schema.Types.GetType<ITypeDefinition>("String");
+
+        var operationDefinition =
+            Utf8GraphQLParser.Parse(
+                """
+                {
+                  product {
+                    id
+                  }
+                }
+                """)
+                .Definitions.OfType<OperationDefinitionNode>().First();
+        var operationCompiler = new OperationCompiler(schema, _fieldMapPool);
+        var operation = operationCompiler.Compile("1", operationDefinition);
+
+        var jsonDocument = JsonDocument.Parse(
+            """
+            {
+              "product": {
+                "id": "123"
+              }
+            }
+            """);
+
+        var serviceCollection = new ServiceCollection();
+        HotChocolateFusionServiceCollectionExtensions.AddResultObjectPools(
+            serviceCollection,
+            new FusionMemoryPoolOptions());
+        using var services = serviceCollection.BuildServiceProvider();
+        using var scope = services.CreateScope();
+        var resultPoolSession = scope.ServiceProvider.GetRequiredService<ResultPoolSession>();
+
+        var rootResult = new ObjectResult();
+        rootResult.Initialize(resultPoolSession, operation.RootSelectionSet, 0);
+
+        var productSelection = operation.RootSelectionSet.Selections[0];
+        var productType = productSelection.Type.NamedType<ObjectType>();
+        var productSelectionSet = operation.GetSelectionSet(productSelection, productType);
+
+        var productResult = new ObjectResult();
+        productResult.Initialize(resultPoolSession, productSelectionSet, 0);
+        productResult["id"].SetNextValue(jsonDocument.RootElement.GetProperty("product").GetProperty("id"));
+
+        // act
+        var executor = new FieldSelectionMapExecutor();
+        var context = new FieldSelectionMapExecutorContext(schema, targetType, productResult);
+        var result = executor.Visit(fieldSelectionMap, context);
+
+        // assert
+        Assert.Equal("123", result?.ToString());
     }
 }

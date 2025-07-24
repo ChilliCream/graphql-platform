@@ -52,35 +52,27 @@ internal sealed class FieldSelectionMapExecutor
 
     public IValueNode? Visit(PathNode node, FieldSelectionMapExecutorContext context)
     {
-        if (context.Results.Count == 0)
+        var result = ResolvePath(context.Schema, context.Result, node);
+
+        if (result is null)
         {
             return null;
         }
 
-        if (context.Results is [ObjectResult objectResult])
+        var (data, _) = result.Value;
+
+        // Note: to capture data from the introspection
+        // system we would need to also cover raw field results.
+        if (data is LeafFieldResult field)
         {
-            var result = ResolvePath(context.Schema, objectResult, node);
-
-            if (result is null)
+            if (field.HasNullValue)
             {
-                return null;
+                return NullValueNode.Default;
             }
 
-            var (data, type) = result.Value;
-
-            // Note: to capture data from the introspection
-            // system we would need to also cover raw field results.
-            if (type.IsLeafType() && data is LeafFieldResult field)
-            {
-                if (field.HasNullValue)
-                {
-                    return NullValueNode.Default;
-                }
-
-                _writer ??= new PooledArrayWriter();
-                var parser = new JsonValueParser(buffer: _writer);
-                return parser.Parse(field.Value);
-            }
+            _writer ??= new PooledArrayWriter();
+            var parser = new JsonValueParser(buffer: _writer);
+            return parser.Parse(field.Value);
         }
 
         throw new InvalidSelectionMapPathException(node);
@@ -88,62 +80,136 @@ internal sealed class FieldSelectionMapExecutor
 
     public IValueNode? Visit(ObjectValueSelectionNode node, FieldSelectionMapExecutorContext context)
     {
-        return null;
+        if (context.Result is not ObjectResult)
+        {
+            throw new InvalidOperationException("Only object results are supported.");
+        }
+
+        var fields = new List<ObjectFieldNode>();
+
+        foreach (var field in node.Fields)
+        {
+            var value = field.ValueSelection is null
+                ? Visit(new PathNode(new PathSegmentNode(field.Name)), context)
+                : Visit(field.ValueSelection, context);
+
+            if (value is null)
+            {
+                return null;
+            }
+
+            fields.Add(new ObjectFieldNode(field.Name.Value, value));
+        }
+
+        fields.Capacity = fields.Count;
+        return new ObjectValueNode(fields);
     }
 
     public IValueNode? Visit(PathObjectValueSelectionNode node, FieldSelectionMapExecutorContext context)
     {
-        return null;
+        var resolved = ResolvePath(context.Schema, context.Result, node.Path);
+
+        if (resolved is null)
+        {
+            return null;
+        }
+
+        if (resolved.Value.Result is not ObjectFieldResult obj)
+        {
+            throw new InvalidOperationException("Only object results are supported.");
+        }
+
+        return Visit(node.ObjectValueSelection, new(context.Schema, resolved.Value.Type, obj));
+    }
+
+    public IValueNode? Visit(ListValueSelectionNode node, FieldSelectionMapExecutorContext context)
+    {
+        switch (context.Result)
+        {
+            case ObjectListResult listResult:
+            {
+                var items = new List<IValueNode>();
+
+                foreach (var item in listResult.Items)
+                {
+                    if (item is null)
+                    {
+                        items.Add(NullValueNode.Default);
+                        continue;
+                    }
+
+                    var value = Visit(node.ElementSelection, new(context.Schema, listResult.ElementType, item));
+
+                    if (value is null)
+                    {
+                        return null;
+                    }
+
+                    items.Add(value);
+                }
+
+                return new ListValueNode(items);
+            }
+
+            case NestedListResult listResult:
+            {
+                var items = new List<IValueNode>();
+
+                foreach (var item in listResult.Items)
+                {
+                    if (item is null)
+                    {
+                        items.Add(NullValueNode.Default);
+                        continue;
+                    }
+
+                    var value = Visit(node.ElementSelection, new(context.Schema, listResult.ElementType, item));
+
+                    if (value is null)
+                    {
+                        return null;
+                    }
+
+                    items.Add(value);
+                }
+
+                return new ListValueNode(items);
+            }
+
+            default:
+                return null;
+        }
     }
 
     public IValueNode? Visit(PathListValueSelectionNode node, FieldSelectionMapExecutorContext context)
     {
+        var result = ResolvePath(context.Schema, context.Result, node.Path);
+
+        if (result is null)
+        {
+            return null;
+        }
+
+        if (result.Value.Result is ListFieldResult listField)
+        {
+            return listField.Value is null
+                ? NullValueNode.Default
+                : Visit(node.ListValueSelection, new(context.Schema, context.Type, listField.Value));
+        }
+
         return null;
     }
 
-    /*
-       protected override ISyntaxVisitorAction Enter(
-           PathNode node,
-           FieldSelectionMapExecutorContext context)
-       {
-           var current = context.Results.Peek();
-
-           var next = new List<ResultData>();
-
-           foreach (var result in current)
-           {
-               var currentResult = result;
-
-               if (currentResult is ObjectFieldResult objectFieldResult)
-               {
-                   currentResult = objectFieldResult.Value;
-               }
-
-               if (currentResult is not ObjectResult objectResult)
-               {
-                   continue;
-               }
-
-               var resolved = ResolvePath(context.Schema, objectResult, node);
-
-               if (resolved is not null)
-               {
-                   next.Add(resolved.Value.Result);
-               }
-           }
-
-           current.Clear();
-           current.AddRange(next);
-
-           return DefaultAction;
-       }
-       */
-
-    private (ResultData Result, IType Type)? ResolvePath(
+    private static (ResultData Result, IType Type)? ResolvePath(
         ISchemaDefinition schema,
-        ObjectResult obj,
+        ResultData result,
         PathNode path)
     {
+        if (result is not ObjectResult obj)
+        {
+            throw new InvalidOperationException("Only object results are supported.");
+        }
+
         if (path.TypeName is not null)
         {
             var type = schema.Types.GetType<IOutputTypeDefinition>(path.TypeName.Value);
@@ -213,20 +279,13 @@ internal sealed class FieldSelectionMapExecutor
     }
 }
 
-internal ref struct FieldSelectionMapExecutorContext
+internal readonly ref struct FieldSelectionMapExecutorContext(ISchemaDefinition schema, IType type, ResultData result)
 {
-    public FieldSelectionMapExecutorContext(ISchemaDefinition schema, IType type, List<ResultData> results)
-    {
-        Schema = schema;
-        Type = type;
-        Results = results;
-    }
+    public ISchemaDefinition Schema { get; } = schema;
 
-    public ISchemaDefinition Schema { get; }
+    public IType Type { get; } = type;
 
-    public IType Type { get; }
-
-    public List<ResultData> Results { get; } = new();
+    public ResultData Result { get; } = result;
 }
 
 internal sealed class InvalidSelectionMapPathException(PathNode path)
