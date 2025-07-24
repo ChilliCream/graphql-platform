@@ -5,11 +5,19 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class FieldSelectionMapExecutor
+internal static class ResultDataMapper
 {
-    private PooledArrayWriter? _writer;
+    public static IValueNode? Map(
+        ObjectResult result,
+        IValueSelectionNode valueSelection,
+        ISchemaDefinition schema,
+        ref PooledArrayWriter? writer)
+    {
+        var context = new Context(schema, result, ref writer);
+        return Visit(valueSelection, context);
+    }
 
-    public IValueNode? Visit(IValueSelectionNode node, FieldSelectionMapExecutorContext context)
+    private static IValueNode? Visit(IValueSelectionNode node, Context context)
     {
         switch (node)
         {
@@ -33,7 +41,7 @@ internal sealed class FieldSelectionMapExecutor
         }
     }
 
-    public IValueNode? Visit(ChoiceValueSelectionNode node, FieldSelectionMapExecutorContext context)
+    private static IValueNode? Visit(ChoiceValueSelectionNode node, Context context)
     {
         foreach (var branch in node.Branches)
         {
@@ -50,7 +58,7 @@ internal sealed class FieldSelectionMapExecutor
         return null;
     }
 
-    public IValueNode? Visit(PathNode node, FieldSelectionMapExecutorContext context)
+    private static IValueNode? Visit(PathNode node, Context context)
     {
         var result = ResolvePath(context.Schema, context.Result, node);
 
@@ -59,26 +67,24 @@ internal sealed class FieldSelectionMapExecutor
             return null;
         }
 
-        var (data, _) = result.Value;
-
         // Note: to capture data from the introspection
         // system we would need to also cover raw field results.
-        if (data is LeafFieldResult field)
+        if (result is LeafFieldResult field)
         {
             if (field.HasNullValue)
             {
                 return NullValueNode.Default;
             }
 
-            _writer ??= new PooledArrayWriter();
-            var parser = new JsonValueParser(buffer: _writer);
+            context.Writer ??= new PooledArrayWriter();
+            var parser = new JsonValueParser(buffer: context.Writer);
             return parser.Parse(field.Value);
         }
 
         throw new InvalidSelectionMapPathException(node);
     }
 
-    public IValueNode? Visit(ObjectValueSelectionNode node, FieldSelectionMapExecutorContext context)
+    private static IValueNode? Visit(ObjectValueSelectionNode node, Context context)
     {
         if (context.Result is not ObjectResult)
         {
@@ -105,24 +111,24 @@ internal sealed class FieldSelectionMapExecutor
         return new ObjectValueNode(fields);
     }
 
-    public IValueNode? Visit(PathObjectValueSelectionNode node, FieldSelectionMapExecutorContext context)
+    private static IValueNode? Visit(PathObjectValueSelectionNode node, Context context)
     {
-        var resolved = ResolvePath(context.Schema, context.Result, node.Path);
+        var result = ResolvePath(context.Schema, context.Result, node.Path);
 
-        if (resolved is null)
+        if (result is null)
         {
             return null;
         }
 
-        if (resolved.Value.Result is not ObjectFieldResult obj)
+        if (result is not ObjectFieldResult obj)
         {
             throw new InvalidOperationException("Only object results are supported.");
         }
 
-        return Visit(node.ObjectValueSelection, new(context.Schema, resolved.Value.Type, obj));
+        return Visit(node.ObjectValueSelection, context.WithResult(obj));
     }
 
-    public IValueNode? Visit(ListValueSelectionNode node, FieldSelectionMapExecutorContext context)
+    private static IValueNode? Visit(ListValueSelectionNode node, Context context)
     {
         switch (context.Result)
         {
@@ -138,7 +144,7 @@ internal sealed class FieldSelectionMapExecutor
                         continue;
                     }
 
-                    var value = Visit(node.ElementSelection, new(context.Schema, listResult.ElementType, item));
+                    var value = Visit(node.ElementSelection, context.WithResult(item));
 
                     if (value is null)
                     {
@@ -163,7 +169,7 @@ internal sealed class FieldSelectionMapExecutor
                         continue;
                     }
 
-                    var value = Visit(node.ElementSelection, new(context.Schema, listResult.ElementType, item));
+                    var value = Visit(node.ElementSelection, context.WithResult(item));
 
                     if (value is null)
                     {
@@ -181,7 +187,7 @@ internal sealed class FieldSelectionMapExecutor
         }
     }
 
-    public IValueNode? Visit(PathListValueSelectionNode node, FieldSelectionMapExecutorContext context)
+    private static IValueNode? Visit(PathListValueSelectionNode node, Context context)
     {
         var result = ResolvePath(context.Schema, context.Result, node.Path);
 
@@ -190,17 +196,17 @@ internal sealed class FieldSelectionMapExecutor
             return null;
         }
 
-        if (result.Value.Result is ListFieldResult listField)
+        if (result is ListFieldResult listField)
         {
             return listField.Value is null
                 ? NullValueNode.Default
-                : Visit(node.ListValueSelection, new(context.Schema, context.Type, listField.Value));
+                : Visit(node.ListValueSelection, context.WithResult(listField.Value));
         }
 
         return null;
     }
 
-    private static (ResultData Result, IType Type)? ResolvePath(
+    private static ResultData? ResolvePath(
         ISchemaDefinition schema,
         ResultData result,
         PathNode path)
@@ -267,26 +273,30 @@ internal sealed class FieldSelectionMapExecutor
                 continue;
             }
 
-            return (fieldResult, fieldResult.Selection.Type);
+            return fieldResult;
         }
 
-        if (currentResult is null)
+        return currentResult;
+    }
+
+    private readonly ref struct Context
+    {
+        private readonly ref PooledArrayWriter? _writer;
+
+        public Context(ISchemaDefinition schema, ResultData result, ref PooledArrayWriter? writer)
         {
-            return null;
+            Schema = schema;
+            Result = result;
+            _writer = ref writer;
         }
 
-        return (currentResult, currentResult.SelectionSet.Type);
+        public ISchemaDefinition Schema { get; }
+
+        public ResultData Result { get; }
+
+        public ref PooledArrayWriter? Writer => ref _writer;
+
+        public Context WithResult(ResultData result)
+            => new(Schema, result, ref _writer);
     }
 }
-
-internal readonly ref struct FieldSelectionMapExecutorContext(ISchemaDefinition schema, IType type, ResultData result)
-{
-    public ISchemaDefinition Schema { get; } = schema;
-
-    public IType Type { get; } = type;
-
-    public ResultData Result { get; } = result;
-}
-
-internal sealed class InvalidSelectionMapPathException(PathNode path)
-    : Exception($"The path is invalid: {path}");

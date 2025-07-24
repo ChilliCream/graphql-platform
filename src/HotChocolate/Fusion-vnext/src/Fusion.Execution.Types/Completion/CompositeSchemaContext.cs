@@ -14,6 +14,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
     private ImmutableDictionary<string, ITypeDefinitionNode> _typeDefinitionNodeLookup;
     private readonly Dictionary<string, FusionDirectiveDefinition> _directiveDefinitionLookup;
     private ImmutableDictionary<string, DirectiveDefinitionNode> _directiveDefinitionNodeLookup;
+    private readonly List<INeedsCompletion> _completions = [];
 
     public CompositeSchemaBuilderContext(
         string name,
@@ -71,6 +72,20 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
     public ImmutableArray<FusionDirectiveDefinition> DirectiveDefinitions { get; private set; }
 
     public IFeatureCollection Features { get; }
+
+    public void RegisterForCompletion(INeedsCompletion completion)
+        => _completions.Add(completion);
+
+    public void RegisterForCompletionRange(IEnumerable<INeedsCompletion> completion)
+        => _completions.AddRange(completion);
+
+    public void Complete(FusionSchemaDefinition schema)
+    {
+        foreach (var completion in _completions)
+        {
+            completion.Complete(schema, this);
+        }
+    }
 
     public T GetTypeDefinition<T>(string typeName)
         where T : ITypeDefinitionNode
@@ -210,12 +225,12 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
                     new StringValueNode("Skips this field or fragment when the condition is true."),
                     new NonNullTypeNode(new NamedTypeNode(new NameNode("Boolean"))),
                     null,
-                    Array.Empty<DirectiveNode>())
+                    [])
             ],
             [
-                new NameNode(Language.DirectiveLocation.Field.Value),
-                new NameNode(Language.DirectiveLocation.FragmentSpread.Value),
-                new NameNode(Language.DirectiveLocation.InlineFragment.Value)
+                new NameNode(HotChocolate.Language.DirectiveLocation.Field.Value),
+                new NameNode(HotChocolate.Language.DirectiveLocation.FragmentSpread.Value),
+                new NameNode(HotChocolate.Language.DirectiveLocation.InlineFragment.Value)
             ]);
 
         _directiveDefinitionNodeLookup = _directiveDefinitionNodeLookup.SetItem("skip", skipDirectiveDef);
@@ -254,9 +269,9 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
                     Array.Empty<DirectiveNode>())
             ],
             [
-                new NameNode(Language.DirectiveLocation.Field.Value),
-                new NameNode(Language.DirectiveLocation.FragmentSpread.Value),
-                new NameNode(Language.DirectiveLocation.InlineFragment.Value)
+                new NameNode(HotChocolate.Language.DirectiveLocation.Field.Value),
+                new NameNode(HotChocolate.Language.DirectiveLocation.FragmentSpread.Value),
+                new NameNode(HotChocolate.Language.DirectiveLocation.InlineFragment.Value)
             ]);
 
         _directiveDefinitionNodeLookup = _directiveDefinitionNodeLookup.Add("include", includeDirectiveDef);

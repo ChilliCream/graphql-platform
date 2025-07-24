@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
@@ -9,7 +10,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution;
 
-public class FieldSelectionMapExecutorTests : FusionTestBase
+public class ResultDataMapperTests : FusionTestBase
 {
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldMapPool =
         new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(new FieldMapPooledObjectPolicy());
@@ -64,19 +65,19 @@ public class FieldSelectionMapExecutorTests : FusionTestBase
         objectResult["id"].SetNextValue(jsonDocument.RootElement.GetProperty("id"));
 
         // act
-        var executor = new FieldSelectionMapExecutor();
-        var context = new FieldSelectionMapExecutorContext(schema, targetType, objectResult);
-        var result = executor.Visit(fieldSelectionMap, context);
+        var writer = new PooledArrayWriter();
+        var result = ResultDataMapper.Map(objectResult, fieldSelectionMap, schema, ref writer);
 
         // assert
         Assert.Equal("\"123\"", result?.ToString());
+        writer?.Dispose();
     }
 
     [Fact]
     public void Resolve_Path_Two_Segments()
     {
         // arrange
-        var parser = new FieldSelectionMapParser("id");
+        var parser = new FieldSelectionMapParser("product.id");
         var fieldSelectionMap = parser.Parse();
 
         var schema = SchemaBuilder.New()
@@ -135,11 +136,11 @@ public class FieldSelectionMapExecutorTests : FusionTestBase
         var productResult = new ObjectResult();
         productResult.Initialize(resultPoolSession, productSelectionSet, 0);
         productResult["id"].SetNextValue(jsonDocument.RootElement.GetProperty("product").GetProperty("id"));
+        rootResult["product"].SetNextValue(productResult);
 
         // act
-        var executor = new FieldSelectionMapExecutor();
-        var context = new FieldSelectionMapExecutorContext(schema, targetType, productResult);
-        var result = executor.Visit(fieldSelectionMap, context);
+        var writer = new PooledArrayWriter();
+        var result = ResultDataMapper.Map(rootResult, fieldSelectionMap, schema, ref writer);
 
         // assert
         Assert.Equal("\"123\"", result?.ToString());

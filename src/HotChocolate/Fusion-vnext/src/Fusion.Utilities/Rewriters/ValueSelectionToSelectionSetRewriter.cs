@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -14,6 +15,26 @@ public sealed class ValueSelectionToSelectionSetRewriter(ISchemaDefinition schem
         ArgumentNullException.ThrowIfNull(type);
 
         return _mergeSelectionSetRewriter.Merge([new SelectionSetNode([Visit(node)])], type);
+    }
+
+    public SelectionSetNode Rewrite(IEnumerable<IValueSelectionNode> nodes, ITypeDefinition type)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        var selections = new List<ISelectionNode>();
+
+        foreach (var node in nodes)
+        {
+            selections.Add(Visit(node));
+        }
+
+        if (selections.Count == 0)
+        {
+            throw new ArgumentException(
+                "At least one value selection is required.");
+        }
+
+        return _mergeSelectionSetRewriter.Merge([new SelectionSetNode(selections)], type);
     }
 
     private static ISelectionNode Visit(IValueSelectionNode node)

@@ -1,8 +1,9 @@
 using System.Collections.Immutable;
 using HotChocolate.Features;
+using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Directives;
-using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -117,7 +118,7 @@ internal static class CompositeSchemaBuilder
             }
         }
 
-        features ??= FeatureCollection.Empty;
+        features ??= new FeatureCollection();
 
         return new CompositeSchemaBuilderContext(
             name,
@@ -131,8 +132,8 @@ internal static class CompositeSchemaBuilder
             typeDefinitions.ToImmutable(),
             directiveTypes.ToImmutable(),
             directiveDefinitions.ToImmutable(),
-            features.ToReadOnly(),
-            CreateTypeInterceptor(services));
+            features,
+            typeInterceptor);
     }
 
     private static CompositeTypeInterceptor CreateTypeInterceptor(IServiceProvider services)
@@ -221,14 +222,14 @@ internal static class CompositeSchemaBuilder
         if (isQuery)
         {
             sourceFields[0] = new FusionOutputFieldDefinition(
-                "__schema",
+                IntrospectionFieldNames.Schema,
                 null,
                 isDeprecated: false,
                 deprecationReason: null,
                 arguments: FusionInputFieldDefinitionCollection.Empty);
 
             sourceFields[1] = new FusionOutputFieldDefinition(
-                "__type",
+                IntrospectionFieldNames.Type,
                 null,
                 isDeprecated: false,
                 deprecationReason: null,
@@ -239,11 +240,11 @@ internal static class CompositeSchemaBuilder
                         null,
                         null,
                         isDeprecated: false,
-                        deprecationReason:  null)
+                        deprecationReason: null)
                 ]));
 
             sourceFields[2] = new FusionOutputFieldDefinition(
-                "__typename",
+                IntrospectionFieldNames.TypeName,
                 null,
                 isDeprecated: false,
                 deprecationReason: null,
@@ -419,9 +420,10 @@ internal static class CompositeSchemaBuilder
         var directives = CompletionTools.CreateDirectiveCollection(context.Directives, context);
         var features = context.Features;
 
-        context.Interceptor.OnCompleteSchema(context, ref features);
+        context.Interceptor.OnBeforeCompleteSchema(context, ref features);
+        features.Set<ValueSelectionToSelectionSetRewriter>(null);
 
-        return new FusionSchemaDefinition(
+        var schema = new FusionSchemaDefinition(
             context.Name,
             context.Description,
             context.Services,
@@ -436,6 +438,9 @@ internal static class CompositeSchemaBuilder
             new FusionTypeDefinitionCollection(AsArray(context.TypeDefinitions)!),
             new FusionDirectiveDefinitionCollection(AsArray(context.DirectiveDefinitions)!),
             features.ToReadOnly());
+
+        context.Complete(schema);
+        return schema;
     }
 
     private static void CompleteObjectType(
@@ -460,21 +465,21 @@ internal static class CompositeSchemaBuilder
             CompleteOutputField(
                 type,
                 operationType,
-                type.Fields["__schema"],
+                type.Fields[IntrospectionFieldNames.Schema],
                 Utf8GraphQLParser.Syntax.ParseFieldDefinition("__schema: __Schema!"),
                 context);
 
             CompleteOutputField(
                 type,
                 operationType,
-                type.Fields["__type"],
+                type.Fields[IntrospectionFieldNames.Type],
                 Utf8GraphQLParser.Syntax.ParseFieldDefinition("__type(name: String!): __Type"),
                 context);
 
             CompleteOutputField(
                 type,
                 operationType,
-                type.Fields["__typename"],
+                type.Fields[IntrospectionFieldNames.TypeName],
                 Utf8GraphQLParser.Syntax.ParseFieldDefinition("__typename: String!"),
                 context);
         }
@@ -548,7 +553,7 @@ internal static class CompositeSchemaBuilder
 
         var directives = CompletionTools.CreateDirectiveCollection(fieldDef.Directives, context);
         var type = context.GetType(fieldDef.Type).ExpectOutputType();
-        var sources = BuildSourceObjectFieldCollection(fieldDefinition, fieldDef, context);
+        var sources = BuildSourceObjectFieldCollection(declaringType.Name, fieldDefinition, fieldDef, context);
         var features = FeatureCollection.Empty;
 
         context.Interceptor.OnCompleteOutputField(
@@ -568,6 +573,7 @@ internal static class CompositeSchemaBuilder
     }
 
     private static SourceObjectFieldCollection BuildSourceObjectFieldCollection(
+        string declaringTypeName,
         FusionOutputFieldDefinition fieldDefinition,
         FieldDefinitionNode fieldDef,
         CompositeSchemaBuilderContext context)
@@ -578,17 +584,25 @@ internal static class CompositeSchemaBuilder
 
         foreach (var fieldDirective in fieldDirectives)
         {
+            var requirements = ParseRequirements(declaringTypeName, requireDirectives, fieldDirective.SchemaName);
+
+            if (requirements is not null)
+            {
+                context.RegisterForCompletion(requirements);
+            }
+
             temp.Add(
                 new SourceOutputField(
                     fieldDirective.SourceName ?? fieldDefinition.Name,
                     fieldDirective.SchemaName,
-                    ParseRequirements(requireDirectives, fieldDirective.SchemaName),
+                    requirements,
                     CompleteType(fieldDef.Type, fieldDirective.SourceType, context)));
         }
 
         return new SourceObjectFieldCollection(temp.ToImmutable());
 
         static FieldRequirements? ParseRequirements(
+            string declaringTypeName,
             ImmutableArray<RequireDirective> requireDirectives,
             string schemaName)
         {
@@ -603,18 +617,25 @@ internal static class CompositeSchemaBuilder
                     argumentsBuilder.Add(new RequiredArgument(argument.Name.Value, argument.Type));
                 }
 
-                var fieldsBuilder = ImmutableArray.CreateBuilder<FieldPath?>();
+                var fieldsBuilder = ImmutableArray.CreateBuilder<IValueSelectionNode?>();
 
                 foreach (var field in requireDirective.Map)
                 {
-                    fieldsBuilder.Add(field is not null ? FieldPath.Parse(field) : null);
+                    IValueSelectionNode? selection = null;
+
+                    if (field is not null)
+                    {
+                        var parser = new FieldSelectionMapParser(field);
+                        selection = parser.Parse();
+                    }
+
+                    fieldsBuilder.Add(selection);
                 }
 
                 var arguments = argumentsBuilder.ToImmutable();
                 var fields = fieldsBuilder.ToImmutable();
-                var selectionSet = fields.ToSelectionSetNode();
 
-                return new FieldRequirements(schemaName, arguments, fields, selectionSet);
+                return new FieldRequirements(schemaName, declaringTypeName, arguments, fields);
             }
 
             return null;
@@ -767,12 +788,5 @@ internal static class CompositeSchemaBuilder
         public object? GetService(Type serviceType) => null;
 
         public static EmptyServiceProvider Instance { get; } = new();
-    }
-
-    private enum ComplexType
-    {
-        Query,
-        Object,
-        Interface
     }
 }
