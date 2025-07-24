@@ -15,19 +15,22 @@ namespace HotChocolate.Fusion.Language;
 /// </summary>
 public sealed class ListValueSelectionNode : IValueSelectionNode
 {
-    public ListValueSelectionNode(Location? location, ImmutableArray<IValueSelectionNode> items)
+    public ListValueSelectionNode(Location? location, IValueSelectionNode elementSelection)
     {
         Location = location;
-        Items = items;
+        ElementSelection = elementSelection;
     }
 
     public FieldSelectionMapSyntaxKind Kind => FieldSelectionMapSyntaxKind.ListValueSelection;
 
     public Location? Location { get; }
 
-    public ImmutableArray<IValueSelectionNode> Items { get; }
+    public IValueSelectionNode ElementSelection { get; }
 
-    public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes() => Items;
+    public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
+    {
+        yield return ElementSelection;
+    }
 
     public override string ToString() => this.Print();
 

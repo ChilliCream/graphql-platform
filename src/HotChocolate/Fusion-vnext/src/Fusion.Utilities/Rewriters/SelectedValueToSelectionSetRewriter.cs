@@ -156,13 +156,13 @@ public sealed class SelectedValueToSelectionSetRewriter(ISchemaDefinition schema
 
         foreach (var field in objectValueSelection.Fields)
         {
-            if (field.SelectedValue is null)
+            if (field.ValueSelection is null)
             {
                 selections.Add(new FieldNode(field.Name.Value));
             }
             else
             {
-                selections.AddRange(Visit(field.SelectedValue));
+                selections.AddRange(Visit(field.ValueSelection));
             }
         }
 

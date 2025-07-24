@@ -1,3 +1,4 @@
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -6,6 +7,8 @@ namespace HotChocolate.Fusion.Execution;
 
 internal sealed class FieldSelectionMapExecutor
 {
+    private PooledArrayWriter? _writer;
+
     public IValueNode? Visit(IValueSelectionNode node, FieldSelectionMapExecutorContext context)
     {
         switch (node)
@@ -49,34 +52,38 @@ internal sealed class FieldSelectionMapExecutor
 
     public IValueNode? Visit(PathNode node, FieldSelectionMapExecutorContext context)
     {
-        var current = context.Results.Peek();
-
-        var next = new List<ResultData>();
-
-        foreach (var result in current)
+        if (context.Results.Count == 0)
         {
-            var currentResult = result;
+            return null;
+        }
 
-            if (currentResult is ObjectFieldResult objectFieldResult)
+        if (context.Results is [ObjectResult objectResult])
+        {
+            var result = ResolvePath(context.Schema, objectResult, node);
+
+            if (result is null)
             {
-                currentResult = objectFieldResult.Value;
+                return null;
             }
 
-            if (currentResult is not ObjectResult objectResult)
-            {
-                continue;
-            }
+            var (data, type) = result.Value;
 
-            var resolved = ResolvePath(context.Schema, objectResult, node);
-
-            if (resolved is not null)
+            // Note: to capture data from the introspection
+            // system we would need to also cover raw field results.
+            if (type.IsLeafType() && data is LeafFieldResult field)
             {
-                next.Add(resolved.Value.Result);
+                if (field.HasNullValue)
+                {
+                    return NullValueNode.Default;
+                }
+
+                _writer ??= new PooledArrayWriter();
+                var parser = new JsonValueParser(buffer: _writer);
+                return parser.Parse(field.Value);
             }
         }
 
-        current.Clear();
-        current.AddRange(next);
+        throw new InvalidSelectionMapPathException(node);
     }
 
     public IValueNode? Visit(ObjectValueSelectionNode node, FieldSelectionMapExecutorContext context)
@@ -93,7 +100,6 @@ internal sealed class FieldSelectionMapExecutor
     {
         return null;
     }
-
 
     /*
        protected override ISyntaxVisitorAction Enter(
@@ -207,22 +213,20 @@ internal sealed class FieldSelectionMapExecutor
     }
 }
 
-internal sealed class FieldSelectionMapExecutorContext
+internal ref struct FieldSelectionMapExecutorContext
 {
-    public FieldSelectionMapExecutorContext(ISchemaDefinition schema)
+    public FieldSelectionMapExecutorContext(ISchemaDefinition schema, IType type, List<ResultData> results)
     {
         Schema = schema;
+        Type = type;
+        Results = results;
     }
 
     public ISchemaDefinition Schema { get; }
 
-    public Stack<IType> Types { get; } = new();
+    public IType Type { get; }
 
-    public Stack<IType> InputTypes { get; } = new();
-
-    public Stack<List<ResultData>> Results { get; } = new();
-
-    public List<IValueNode?> Inputs { get; } = new();
+    public List<ResultData> Results { get; } = new();
 }
 
 internal sealed class InvalidSelectionMapPathException(PathNode path)

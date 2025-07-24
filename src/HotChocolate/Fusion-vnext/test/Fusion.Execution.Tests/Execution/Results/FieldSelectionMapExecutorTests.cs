@@ -67,7 +67,7 @@ public class FieldSelectionMapExecutorTests : FusionTestBase
         var executor = new FieldSelectionMapExecutor();
         var context = new FieldSelectionMapExecutorContext(schema);
 
-        context.Types.Push(targetType);
+        context.Type.Push(targetType);
         context.InputTypes.Push(targetType);
         context.Results.Push([objectResult]);
 

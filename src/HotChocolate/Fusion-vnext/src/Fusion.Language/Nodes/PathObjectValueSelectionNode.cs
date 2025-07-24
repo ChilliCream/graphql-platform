@@ -9,7 +9,7 @@ public sealed class PathObjectValueSelectionNode : IValueSelectionNode
 
         Location = location;
         Path = path;
-        Value = value;
+        ObjectValueSelection = value;
     }
 
     public FieldSelectionMapSyntaxKind Kind => FieldSelectionMapSyntaxKind.PathObjectValueSelection;
@@ -18,12 +18,12 @@ public sealed class PathObjectValueSelectionNode : IValueSelectionNode
 
     public PathNode Path { get; }
 
-    public ObjectValueSelectionNode Value { get; }
+    public ObjectValueSelectionNode ObjectValueSelection { get; }
 
     public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
     {
         yield return Path;
-        yield return Value;
+        yield return ObjectValueSelection;
     }
 
     public override string ToString() => this.Print();

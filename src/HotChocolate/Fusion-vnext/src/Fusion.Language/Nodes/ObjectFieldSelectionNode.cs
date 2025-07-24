@@ -11,18 +11,18 @@ public sealed class ObjectFieldSelectionNode : IFieldSelectionMapSyntaxNode
     {
     }
 
-    public ObjectFieldSelectionNode(NameNode name, IValueSelectionNode? selectedValue)
-        : this(null, name, selectedValue)
+    public ObjectFieldSelectionNode(NameNode name, IValueSelectionNode? valueSelection)
+        : this(null, name, valueSelection)
     {
     }
 
-    public ObjectFieldSelectionNode(Location? location, NameNode name, IValueSelectionNode? selectedValue)
+    public ObjectFieldSelectionNode(Location? location, NameNode name, IValueSelectionNode? valueSelection)
     {
         ArgumentNullException.ThrowIfNull(name);
 
         Location = location;
         Name = name;
-        SelectedValue = selectedValue;
+        ValueSelection = valueSelection;
     }
 
     public FieldSelectionMapSyntaxKind Kind => FieldSelectionMapSyntaxKind.ObjectFieldSelection;
@@ -31,15 +31,15 @@ public sealed class ObjectFieldSelectionNode : IFieldSelectionMapSyntaxNode
 
     public NameNode Name { get; }
 
-    public IValueSelectionNode? SelectedValue { get; }
+    public IValueSelectionNode? ValueSelection { get; }
 
     public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
     {
         yield return Name;
 
-        if (SelectedValue is not null)
+        if (ValueSelection is not null)
         {
-            yield return SelectedValue;
+            yield return ValueSelection;
         }
     }
 
