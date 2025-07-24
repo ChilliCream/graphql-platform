@@ -9,6 +9,7 @@ public sealed class OperationCompiler
 {
     private readonly ISchemaDefinition _schema;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
+    private readonly TypeNameField _typeNameField;
 
     public OperationCompiler(
         ISchemaDefinition schema,
@@ -19,6 +20,8 @@ public sealed class OperationCompiler
 
         _schema = schema;
         _fieldsPool = fieldsPool;
+        var nonNullStringType = new NonNullType(_schema.Types.GetType<IScalarTypeDefinition>(SpecScalarNames.String));
+        _typeNameField = new TypeNameField(nonNullStringType);
     }
 
     public Operation Compile(string id, OperationDefinitionNode operationDefinition)
@@ -215,7 +218,9 @@ public sealed class OperationCompiler
                 CollapseIncludeFlags(includeFlags);
             }
 
-            var field = typeContext.Fields[first.Node.Name.Value];
+            var field = first.Node.Name.Value.Equals(IntrospectionFieldNames.TypeName)
+                ? _typeNameField
+                : typeContext.Fields[first.Node.Name.Value];
 
             selections[i++] = new Selection(
                 ++lastId,

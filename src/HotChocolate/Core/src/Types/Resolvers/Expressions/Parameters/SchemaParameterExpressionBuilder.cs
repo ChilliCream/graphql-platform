@@ -22,8 +22,8 @@ internal sealed class SchemaParameterExpressionBuilder
     public bool IsDefaultHandler => false;
 
     public bool CanHandle(ParameterInfo parameter)
-        => typeof(ISchemaDefinition) == parameter.ParameterType ||
-           typeof(Schema) == parameter.ParameterType;
+        => typeof(ISchemaDefinition) == parameter.ParameterType
+            || typeof(Schema) == parameter.ParameterType;
 
     public Expression Build(ParameterExpressionBuilderContext context)
         => Expression.Convert(

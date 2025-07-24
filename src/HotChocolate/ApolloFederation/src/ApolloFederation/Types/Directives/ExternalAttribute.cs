@@ -44,15 +44,12 @@ public sealed class ExternalAttribute : DescriptorAttribute
         switch (descriptor)
         {
             case IObjectTypeDescriptor objectTypeDescriptor:
-            {
                 objectTypeDescriptor.External();
                 break;
-            }
+
             case IObjectFieldDescriptor objectFieldDescriptor:
-            {
                 objectFieldDescriptor.External();
                 break;
-            }
         }
     }
 }

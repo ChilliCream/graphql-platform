@@ -21,8 +21,8 @@ namespace HotChocolate.Types;
 /// </code>
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Property |
-    AttributeTargets.Method,
+    AttributeTargets.Property
+    | AttributeTargets.Method,
     AllowMultiple = false)]
 public sealed class LookupAttribute : DescriptorAttribute
 {

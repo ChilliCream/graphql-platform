@@ -59,26 +59,30 @@ public sealed partial class OperationPlanner
         foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
         {
             possiblePlans.Enqueue(
-                node with
-                {
-                    SchemaName = schemaName,
-                    BacklogCost = 1 + resolutionCost
-                });
+                node with { SchemaName = schemaName, BacklogCost = 1 + resolutionCost });
         }
 
-        var (internalOperationDefinition, planSteps) = Plan(possiblePlans)
-            ?? throw new InvalidOperationException("The operation cannot be resolved.");
+        var plan = Plan(possiblePlans);
+        var internalOperationDefinition = plan.HasValue ? plan.Value.InternalOperationDefinition : operationDefinition;
+        var operation = _operationCompiler.Compile(id, internalOperationDefinition);
+        var isIntrospectionOnly = operation.IsIntrospectionOnly();
+
+        if (!plan.HasValue && !isIntrospectionOnly)
+        {
+            throw new InvalidOperationException("No possible plan was found for.");
+        }
 
         return BuildExecutionPlan(
-            id,
+            operation,
+            operationDefinition,
             // this is not ideal and are we going to rework this once we figured out
             // introspection and defer and stream.
-            planSteps.OfType<OperationPlanStep>().ToImmutableList(),
-            operationDefinition,
-            internalOperationDefinition);
+            plan.HasValue ? plan.Value.Steps.OfType<OperationPlanStep>().ToImmutableList() : [],
+            isIntrospectionOnly);
     }
 
-    private (OperationDefinitionNode, ImmutableList<PlanStep>)? Plan(PriorityQueue<PlanNode, double> possiblePlans)
+    private (OperationDefinitionNode InternalOperationDefinition, ImmutableList<PlanStep> Steps)? Plan(
+        PriorityQueue<PlanNode, double> possiblePlans)
     {
         while (possiblePlans.TryDequeue(out var current, out _))
         {
@@ -417,11 +421,7 @@ public sealed partial class OperationPlanner
             requirements = requirements.Add(argumentRequirementKey, operationRequirement);
         }
 
-        var updatedStep = currentStep with
-        {
-            Definition = operation,
-            Requirements = requirements
-        };
+        var updatedStep = currentStep with { Definition = operation, Requirements = requirements };
 
         steps = steps.SetItem(workItem.StepIndex, updatedStep);
 
@@ -450,9 +450,9 @@ public sealed partial class OperationPlanner
     {
         var selectionSetStub = new SelectionSet(
             workItem.Selection.SelectionSetId,
-                new SelectionSetNode([workItem.Selection.Node]),
-                workItem.Selection.Field.DeclaringType,
-                workItem.Selection.Path);
+            new SelectionSetNode([workItem.Selection.Node]),
+            workItem.Selection.Field.DeclaringType,
+            workItem.Selection.Path);
         current = InlineLookupRequirements(selectionSetStub, current, lookup, backlog);
 
         if (current.Steps.ById(workItem.StepId) is not OperationPlanStep currentStep)
@@ -847,8 +847,7 @@ file static class Extensions
     {
         for (var i = 0; i < current.Steps.Count; i++)
         {
-            if (current.Steps[i] is OperationPlanStep step
-                && step.SelectionSets.Contains(selectionSetId))
+            if (current.Steps[i] is OperationPlanStep step && step.SelectionSets.Contains(selectionSetId))
             {
                 yield return (step, i, step.SchemaName);
             }
@@ -1124,6 +1123,21 @@ file static class Extensions
         }
 
         return [];
+    }
+
+    public static bool IsIntrospectionOnly(this Operation operation)
+    {
+        foreach (var selection in operation.RootSelectionSet.Selections)
+        {
+            if (selection.Field.IsIntrospectionField)
+            {
+                continue;
+            }
+
+            return false;
+        }
+
+        return true;
     }
 
     public static int NextId(this ImmutableList<PlanStep> steps)

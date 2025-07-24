@@ -52,8 +52,8 @@ public class IsSelectedAttribute : Attribute
 
         var selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(fieldName);
 
-        if (selectionSet.Selections.Count == 1 &&
-            selectionSet.Selections[0] is FieldNode { SelectionSet: null } field)
+        if (selectionSet.Selections.Count == 1
+            && selectionSet.Selections[0] is FieldNode { SelectionSet: null } field)
         {
             FieldNames = [field.Name.Value];
         }

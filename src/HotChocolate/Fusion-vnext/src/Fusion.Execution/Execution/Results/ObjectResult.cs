@@ -16,7 +16,7 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
 {
     private int _maxAllowedCapacity = 512;
     private readonly Dictionary<string, FieldResult> _fieldMap = [];
-    private FieldResult[] _buffer = [];
+    private FieldResult[] _fields = [];
 
     /// <summary>
     /// Gets the selection set represents the structure of this object result.
@@ -31,7 +31,7 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
     /// <summary>
     /// Gets the fields of the object result.
     /// </summary>
-    public ReadOnlySpan<FieldResult> Fields => _buffer.AsSpan(0, _fieldMap.Count);
+    public ReadOnlySpan<FieldResult> Fields => _fields.AsSpan(0, _fieldMap.Count);
 
     /// <summary>
     /// Gets the number of fields in the object result.
@@ -64,6 +64,14 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
     public bool TryGetValue(string responseName, [MaybeNullWhen(false)] out FieldResult value)
         => _fieldMap.TryGetValue(responseName, out value);
 
+    internal void MoveFieldTo(string fieldName, ObjectResult target)
+    {
+        var field = _fieldMap[fieldName];
+        field.SetParent(target, field.ParentIndex);
+        target._fields[field.ParentIndex] = field;
+        target._fieldMap[fieldName] = field;
+    }
+
     /// <summary>
     /// Writes the object result to the specified JSON writer.
     /// </summary>
@@ -84,7 +92,7 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
     {
         writer.WriteStartObject();
 
-        var fields = _buffer.AsSpan(0, _fieldMap.Count);
+        var fields = _fields.AsSpan(0, _fieldMap.Count);
         ref var field = ref MemoryMarshal.GetReference(fields);
         ref var end = ref Unsafe.Add(ref field, fields.Length);
 
@@ -115,17 +123,24 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
     /// <param name="includeFlags">
     /// The include flags.
     /// </param>
-    public void Initialize(ResultPoolSession resultPoolSession, SelectionSet selectionSet, ulong includeFlags)
+    /// <param name="rawLeafFields">
+    /// Leaf fields will be stored as raw memory.
+    /// </param>
+    public void Initialize(
+        ResultPoolSession resultPoolSession,
+        SelectionSet selectionSet,
+        ulong includeFlags,
+        bool rawLeafFields = false)
     {
         ArgumentNullException.ThrowIfNull(resultPoolSession);
         ArgumentNullException.ThrowIfNull(selectionSet);
 
         SelectionSet = selectionSet;
 
-        if (_buffer.Length < selectionSet.Selections.Length)
+        if (_fields.Length < selectionSet.Selections.Length)
         {
             _fieldMap.EnsureCapacity(selectionSet.Selections.Length);
-            _buffer = new FieldResult[selectionSet.Selections.Length];
+            _fields = new FieldResult[selectionSet.Selections.Length];
         }
 
         var insertIndex = 0;
@@ -139,8 +154,8 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
             }
 
             var ii = insertIndex++;
-            var field = CreateFieldResult(this, ii, resultPoolSession, selection);
-            _buffer[ii] = field;
+            var field = CreateFieldResult(this, ii, resultPoolSession, selection, rawLeafFields);
+            _fields[ii] = field;
             _fieldMap.Add(selection.ResponseName, field);
         }
 
@@ -148,7 +163,8 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
             ResultData parent,
             int parentIndex,
             ResultPoolSession resultPoolSession,
-            Selection selection)
+            Selection selection,
+            bool rawLeafFields)
         {
             FieldResult field;
 
@@ -156,9 +172,17 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
             {
                 field = resultPoolSession.RentListFieldResult();
             }
-            else if (selection.Field.Type.NamedType().IsLeafType())
+            else if (selection.IsLeaf)
             {
-                field = resultPoolSession.RentLeafFieldResult();
+                if (rawLeafFields)
+                {
+                    // TODO : shall we pool these as well?
+                    field = new RawFieldResult();
+                }
+                else
+                {
+                    field = resultPoolSession.RentLeafFieldResult();
+                }
             }
             else
             {
@@ -179,7 +203,7 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
 
         _maxAllowedCapacity = maxAllowedCapacity;
         _fieldMap.EnsureCapacity(capacity);
-        _buffer = new FieldResult[capacity];
+        _fields = new FieldResult[capacity];
     }
 
     /// <summary>
@@ -192,14 +216,14 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
     {
         SelectionSet = null!;
 
-        if (_fieldMap.Count > _buffer.Length)
+        if (_fieldMap.Count > _fields.Length)
         {
             return false;
         }
 
         for (var i = 0; i < _fieldMap.Count; i++)
         {
-            _buffer[i] = null!;
+            _fields[i] = null!;
         }
 
 #if NET9_0_OR_GREATER
@@ -237,7 +261,7 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
     {
         for (var i = 0; i < _fieldMap.Count; i++)
         {
-            yield return _buffer[i].AsKeyValuePair();
+            yield return _fields[i].AsKeyValuePair();
         }
     }
 
@@ -245,7 +269,7 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
     {
         for (var i = 0; i < _fieldMap.Count; i++)
         {
-            yield return _buffer[i].AsKeyValuePair();
+            yield return _fields[i].AsKeyValuePair();
         }
     }
 }

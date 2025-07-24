@@ -113,7 +113,6 @@ public static class TypeExtensions
                     continue;
 
                 case TypeKind.List:
-                {
                     if (literal.Kind is SyntaxKind.ListValue)
                     {
                         var list = (ListValueNode)literal;
@@ -128,7 +127,6 @@ public static class TypeExtensions
 
                     type = (IInputType)((ListType)type).ElementType;
                     continue;
-                }
 
                 case TypeKind.InputObject:
                     return literal.Kind == SyntaxKind.ObjectValue;

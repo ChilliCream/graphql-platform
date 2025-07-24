@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangWebResources;
 
 namespace HotChocolate.Language;
@@ -19,7 +18,6 @@ public ref partial struct Utf8GraphQLRequestParser
         };
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ObjectValueNode ParseObjectSyntax()
     {
         _reader.Expect(TokenKind.LeftBrace);
@@ -37,7 +35,6 @@ public ref partial struct Utf8GraphQLRequestParser
         return new ObjectValueNode(fields);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ObjectFieldNode ParseObjectFieldSyntax()
     {
         if (_reader.Kind != TokenKind.String)
@@ -56,7 +53,6 @@ public ref partial struct Utf8GraphQLRequestParser
         return new ObjectFieldNode(name, value);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ListValueNode ParseListSyntax()
     {
         if (_reader.Kind != TokenKind.LeftBracket)
@@ -83,28 +79,32 @@ public ref partial struct Utf8GraphQLRequestParser
         return new ListValueNode(list);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IValueNode ParseScalarSyntax()
     {
         switch (_reader.Kind)
         {
             case TokenKind.String:
             {
-                var value = _reader.GetString();
+                _memory ??= new Utf8MemoryBuilder();
+                var index = _memory.NextIndex;
+                var length = _reader.GetRawString(_memory);
+                var value = _memory.GetMemorySegment(index, length);
                 _reader.MoveNext();
-                return new StringValueNode(value);
+                return new StringValueNode(null, value, block: false);
             }
 
             case TokenKind.Integer:
             {
-                ReadOnlyMemory<byte> value = _reader.Value.ToArray();
+                _memory ??= new Utf8MemoryBuilder();
+                var value = _memory.Write(_reader.Value);
                 _reader.MoveNext();
                 return new IntValueNode(null, value);
             }
 
             case TokenKind.Float:
             {
-                ReadOnlyMemory<byte> value = _reader.Value.ToArray();
+                _memory ??= new Utf8MemoryBuilder();
+                var value = _memory.Write(_reader.Value);
                 var format = _reader.FloatFormat;
                 _reader.MoveNext();
                 return new FloatValueNode(null, value, format ?? FloatFormat.FixedPoint);

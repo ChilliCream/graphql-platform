@@ -65,7 +65,7 @@ public class DefaultInMemoryClientBuilderTests
         var wasCalled = false;
         var executorResolver = new Mock<IRequestExecutorProvider>().Object;
         var optionsMonitor = new ServiceCollection()
-            .Configure<InMemoryClientFactoryOptions>("Foo", _ => { wasCalled = true; })
+            .Configure<InMemoryClientFactoryOptions>("Foo", _ => wasCalled = true)
             .BuildServiceProvider()
             .GetRequiredService<IOptionsMonitor<InMemoryClientFactoryOptions>>();
         var factory = new DefaultInMemoryClientFactory(executorResolver, optionsMonitor);

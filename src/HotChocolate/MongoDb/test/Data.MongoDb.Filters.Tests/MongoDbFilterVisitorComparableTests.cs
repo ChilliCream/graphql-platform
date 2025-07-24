@@ -68,14 +68,14 @@ public class MongoDbFilterVisitorComparableTests
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})" +
-                    "{ barDateTime}}")
+                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})"
+                    + "{ barDateTime}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})" +
-                    "{ barDateTime}}")
+                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})"
+                    + "{ barDateTime}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
@@ -102,14 +102,14 @@ public class MongoDbFilterVisitorComparableTests
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})" +
-                    "{ barDateTime}}")
+                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})"
+                    + "{ barDateTime}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})" +
-                    "{ barDateTime}}")
+                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})"
+                    + "{ barDateTime}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(

@@ -60,8 +60,8 @@ internal sealed class MaxExecutionDepthVisitor(
         FieldNode node,
         DocumentValidatorContext context)
     {
-        if (options.SkipIntrospectionFields &&
-            node.Name.Value.StartsWith("__"))
+        if (options.SkipIntrospectionFields
+            && node.Name.Value.StartsWith("__"))
         {
             return Skip;
         }

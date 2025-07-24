@@ -187,7 +187,7 @@ public class ObjectTypeAttributeTests
     }
 
     [ObjectType("Query")]
-    public struct StructQuery
+    public readonly struct StructQuery
     {
         public string? Foo { get; }
     }

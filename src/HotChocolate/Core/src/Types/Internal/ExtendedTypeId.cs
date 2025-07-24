@@ -18,9 +18,9 @@ public readonly struct ExtendedTypeId
     public uint Nullability { get; }
 
     public bool Equals(ExtendedTypeId other) =>
-        Type == other.Type &&
-        Nullability == other.Nullability &&
-        Kind == other.Kind;
+        Type == other.Type
+        && Nullability == other.Nullability
+        && Kind == other.Kind;
 
     public override bool Equals(object? obj) =>
         obj is ExtendedTypeId other && Equals(other);
@@ -29,9 +29,9 @@ public readonly struct ExtendedTypeId
     {
         unchecked
         {
-            return Type.GetHashCode() * 397 ^
-                   Nullability.GetHashCode() * 397 ^
-                   Kind.GetHashCode() * 397;
+            return Type.GetHashCode() * 397
+                ^ Nullability.GetHashCode() * 397
+                ^ Kind.GetHashCode() * 397;
         }
     }
 }

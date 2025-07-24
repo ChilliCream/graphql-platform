@@ -186,7 +186,7 @@ export const Header: FC = () => {
               onTopNavClose={handleTopNavClose}
               onSearchOpen={handleSearchOpen}
             />
-            {/* <PricingNavItem /> */}
+            <PricingNavItem />
             <HelpNavItem />
             <NavItemContainer className="mobile-only double-height">
               <DemoAndLaunch tools={tools!} />
@@ -689,11 +689,10 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({
             {products.map((product, index) => (
               <SubNavLink
                 key={index}
-                to={`/docs/${product!.path!}${
-                  product?.latestStableVersion
-                    ? "/" + product?.latestStableVersion
-                    : ""
-                }`}
+                to={`/docs/${product!.path!}${product?.latestStableVersion
+                  ? "/" + product?.latestStableVersion
+                  : ""
+                  }`}
                 onClick={hideTopAndSubNav}
               >
                 <IconContainer $size={16}>
@@ -899,13 +898,13 @@ const CompanyNavItem: FC<CompanyNavItemProps> = ({
   );
 };
 
-// const PricingNavItem: FC = () => {
-//   return (
-//     <NavItemContainer>
-//       <NavLink to={"/pricing"}>Pricing</NavLink>
-//     </NavItemContainer>
-//   );
-// };
+const PricingNavItem: FC = () => {
+  return (
+    <NavItemContainer>
+      <NavLink to={"/pricing"}>Pricing</NavLink>
+    </NavItemContainer>
+  );
+};
 
 const HelpNavItem: FC = () => {
   return (
@@ -1180,9 +1179,9 @@ const SubNav = styled.div.attrs({
     overflow-y: initial;
 
     ${ApplyBackdropBlur(
-      48,
-      `background-color: ${THEME_COLORS.backgroundMenu};`
-    )}
+  48,
+  `background-color: ${THEME_COLORS.backgroundMenu};`
+)}
   }
 `;
 

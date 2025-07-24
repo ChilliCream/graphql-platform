@@ -1,4 +1,4 @@
-using System.Text;
+using HotChocolate.Buffers;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -385,8 +385,12 @@ public class DecimalTypeTests
     }
 
     private FloatValueNode CreateExponentialLiteral() =>
-        new FloatValueNode(Encoding.UTF8.GetBytes("1.000000E+000"), FloatFormat.Exponential);
+        new FloatValueNode(
+            new ReadOnlyMemorySegment("1.000000E+000"u8.ToArray()),
+            FloatFormat.Exponential);
 
     private FloatValueNode CreateFixedPointLiteral() =>
-        new FloatValueNode(Encoding.UTF8.GetBytes("1.23"), FloatFormat.FixedPoint);
+        new FloatValueNode(
+            new ReadOnlyMemorySegment("1.23"u8.ToArray()),
+            FloatFormat.FixedPoint);
 }

@@ -146,8 +146,8 @@ public class ObjectTypeDescriptor
         HashSet<string>? subscribeRes = null;
         Dictionary<MemberInfo, string>? subscribeResLook = null;
 
-        if (Configuration.Fields.IsImplicitBinding() &&
-            Configuration.FieldBindingType is not null)
+        if (Configuration.Fields.IsImplicitBinding()
+            && Configuration.FieldBindingType is not null)
         {
             var inspector = Context.TypeInspector;
             var naming = Context.Naming;
@@ -160,9 +160,9 @@ public class ObjectTypeDescriptor
             {
                 var name = naming.GetMemberName(member, MemberKind.ObjectField);
 
-                if (handledMembers.Add(member) &&
-                    !fields.ContainsKey(name) &&
-                    IncludeField(ref skip, ref subscribeRes, ref subscribeResLook, members, member))
+                if (handledMembers.Add(member)
+                    && !fields.ContainsKey(name)
+                    && IncludeField(ref skip, ref subscribeRes, ref subscribeResLook, members, member))
                 {
                     var descriptor = ObjectFieldDescriptor.New(
                         Context,
@@ -170,8 +170,8 @@ public class ObjectTypeDescriptor
                         Configuration.RuntimeType,
                         type);
 
-                    if (subscribeResLook is not null &&
-                        subscribeResLook.TryGetValue(member, out var with))
+                    if (subscribeResLook is not null
+                        && subscribeResLook.TryGetValue(member, out var with))
                     {
                         descriptor.Configuration.SubscribeWith = with;
                     }
@@ -212,8 +212,8 @@ public class ObjectTypeDescriptor
             {
                 foreach (var member in allMembers)
                 {
-                    if (member.IsDefined(typeof(SubscribeAttribute)) &&
-                        member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } a)
+                    if (member.IsDefined(typeof(SubscribeAttribute))
+                        && member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } a)
                     {
                         subscribeResolver ??= [];
                         subscribeResolverLookup ??= [];

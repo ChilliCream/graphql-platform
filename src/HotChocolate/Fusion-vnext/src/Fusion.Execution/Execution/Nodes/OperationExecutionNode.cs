@@ -196,7 +196,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         ArgumentNullException.ThrowIfNull(node);
 
-        if (node == this)
+        if (node.Equals(this))
         {
             throw new InvalidOperationException("An operation cannot depend on itself.");
         }

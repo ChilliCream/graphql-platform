@@ -16,7 +16,36 @@ public static class PooledArrayWriterMarshal
     /// </returns>
     public static byte[] GetUnderlyingBuffer(PooledArrayWriter writer)
     {
+#if NET8_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(writer);
+#else
+        if (writer is null)
+        {
+            throw new ArgumentNullException(nameof(writer));
+        }
+#endif
+        return writer.GetInternalBuffer();
+    }
+
+    /// <summary>
+    /// Gets the underlying buffer of a <see cref="PooledArrayWriter"/> as span.
+    /// </summary>
+    /// <param name="writer">
+    /// The <see cref="PooledArrayWriter"/> to get the underlying buffer from.
+    /// </param>
+    /// <returns>
+    /// The underlying buffer of the <paramref name="writer"/> as span.
+    /// </returns>
+    public static Span<byte> GetUnderlyingBufferSpan(PooledArrayWriter writer)
+    {
+#if NET8_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(writer);
+#else
+        if (writer is null)
+        {
+            throw new ArgumentNullException(nameof(writer));
+        }
+#endif
         return writer.GetInternalBuffer();
     }
 }

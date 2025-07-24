@@ -61,10 +61,8 @@ public class PostgresPubSubIntegrationTests
         graphqlBuilder.Services.AddLogging();
 
         // register subscription provider
-        graphqlBuilder.AddPostgresSubscriptions((_, options) =>
-        {
-            options.ConnectionFactory = _ => new(_resource.GetConnection(_dbName));
-        });
+        graphqlBuilder.AddPostgresSubscriptions(
+            (_, options) => options.ConnectionFactory = _ => new(_resource.GetConnection(_dbName)));
     }
 
     /// <inheritdoc />

@@ -49,8 +49,8 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext discoveryContext,
         TypeSystemConfiguration configuration)
     {
-        if (discoveryContext is { IsIntrospectionType: false, Type: INameProvider namedType } &&
-            configuration is ITypeConfiguration { NeedsNameCompletion: false } typeDef)
+        if (discoveryContext is { IsIntrospectionType: false, Type: INameProvider namedType }
+            && configuration is ITypeConfiguration { NeedsNameCompletion: false } typeDef)
         {
             if (typeDef.RuntimeType == typeof(object))
             {
@@ -96,8 +96,8 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if (completionContext is { IsIntrospectionType: false, Type: INameProvider namedType } &&
-            configuration is ITypeConfiguration typeDef)
+        if (completionContext is { IsIntrospectionType: false, Type: INameProvider namedType }
+            && configuration is ITypeConfiguration typeDef)
         {
             if (typeDef.RuntimeType == typeof(object))
             {
@@ -172,8 +172,8 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
             foreach (var field in objectTypeDef.Fields)
             {
-                if (!field.Resolvers.HasResolvers &&
-                    context.Members.TryGetValue(field.Name, out var member))
+                if (!field.Resolvers.HasResolvers
+                    && context.Members.TryGetValue(field.Name, out var member))
                 {
                     field.ResolverMember = member;
 
@@ -246,8 +246,8 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                 initialized = true;
             }
 
-            if (field.Member is null &&
-                context.Members.TryGetValue(field.Name, out var member))
+            if (field.Member is null
+                && context.Members.TryGetValue(field.Name, out var member))
             {
                 field.Member = member;
 
@@ -301,9 +301,9 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
                 initialized = true;
             }
 
-            if (field.Property is null &&
-                context.Members.TryGetValue(field.Name, out var member) &&
-                member is PropertyInfo property)
+            if (field.Property is null
+                && context.Members.TryGetValue(field.Name, out var member)
+                && member is PropertyInfo property)
             {
                 field.Property = property;
 
@@ -341,11 +341,11 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
             }
 
             (object Value, MemberInfo Member) info;
-            if (enumValue.Member is null &&
-                (enumValue.BindTo is null &&
-                    context.Values.TryGetValue(enumValue.Name, out info) ||
-                 enumValue.BindTo is { } b &&
-                    context.ValuesToName.TryGetValue(b, out info)))
+            if (enumValue.Member is null
+                && (enumValue.BindTo is null
+                && context.Values.TryGetValue(enumValue.Name, out info)
+                || enumValue.BindTo is { } b
+                && context.ValuesToName.TryGetValue(b, out info)))
             {
                 enumValue.RuntimeValue = info.Value;
                 enumValue.Member = info.Member;
@@ -383,9 +383,9 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
         ObjectFieldConfiguration field,
         FieldResolverConfiguration config)
     {
-        if (config.ResultType != typeof(object) &&
-            field.Type is not null &&
-            _typeReferenceResolver.TryGetType(field.Type, out var type))
+        if (config.ResultType != typeof(object)
+            && field.Type is not null
+            && _typeReferenceResolver.TryGetType(field.Type, out var type))
         {
             foreach (var typeDef in context.TypeDefs[type.NamedType().Name])
             {

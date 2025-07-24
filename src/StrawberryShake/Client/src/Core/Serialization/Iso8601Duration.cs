@@ -276,8 +276,8 @@ internal struct Iso8601Duration
 
                 parts |= Parts.HasMinutes;
                 minutes = value;
-                if (++pos <= length &&
-                    !TryParseDigits(s, ref pos, false, out value, out numDigits))
+                if (++pos <= length
+                    && !TryParseDigits(s, ref pos, false, out value, out numDigits))
                 {
                     return false;
                 }

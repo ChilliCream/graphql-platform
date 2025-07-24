@@ -87,8 +87,8 @@ public sealed class KeyInvalidSyntaxRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'Product' in schema 'A' contains invalid syntax in " +
-                    "the 'fields' argument."
+                    "A @key directive on type 'Product' in schema 'A' contains invalid syntax in "
+                    + "the 'fields' argument."
                 ]
             }
         };

@@ -13,7 +13,7 @@ public class QueryableDataOperationHandler
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration)
     {
-        return fieldConfiguration is FilterOperationFieldConfiguration def &&
-            def.Id == Operation;
+        return fieldConfiguration is FilterOperationFieldConfiguration def
+            && def.Id == Operation;
     }
 }

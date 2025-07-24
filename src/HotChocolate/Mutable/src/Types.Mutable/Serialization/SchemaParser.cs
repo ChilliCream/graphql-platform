@@ -100,8 +100,8 @@ public static class SchemaParser
     {
         foreach (var definition in document.Definitions)
         {
-            if (definition is ITypeExtensionNode typeExt &&
-                !schema.Types.ContainsName(typeExt.Name.Value))
+            if (definition is ITypeExtensionNode typeExt
+                && !schema.Types.ContainsName(typeExt.Name.Value))
             {
                 switch (definition)
                 {
@@ -290,20 +290,20 @@ public static class SchemaParser
         // if we did not find a schema definition we will infer the root types.
         if (!hasDefinition)
         {
-            if (schema.QueryType is null &&
-                schema.Types.TryGetType<MutableObjectTypeDefinition>("Query", out var queryType))
+            if (schema.QueryType is null
+                && schema.Types.TryGetType<MutableObjectTypeDefinition>("Query", out var queryType))
             {
                 schema.QueryType = queryType;
             }
 
-            if (schema.MutationType is null &&
-                schema.Types.TryGetType<MutableObjectTypeDefinition>("Mutation", out var mutationType))
+            if (schema.MutationType is null
+                && schema.Types.TryGetType<MutableObjectTypeDefinition>("Mutation", out var mutationType))
             {
                 schema.MutationType = mutationType;
             }
 
-            if (schema.SubscriptionType is null &&
-                schema.Types.TryGetType<MutableObjectTypeDefinition>("Subscription", out var subscriptionType))
+            if (schema.SubscriptionType is null
+                && schema.Types.TryGetType<MutableObjectTypeDefinition>("Subscription", out var subscriptionType))
             {
                 schema.SubscriptionType = subscriptionType;
             }

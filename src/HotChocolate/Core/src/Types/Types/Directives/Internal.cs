@@ -23,8 +23,8 @@ namespace HotChocolate.Types;
 /// </summary>
 [DirectiveType(
     DirectiveNames.Internal.Name,
-    DirectiveLocation.Object |
-    DirectiveLocation.FieldDefinition,
+    DirectiveLocation.Object
+    | DirectiveLocation.FieldDefinition,
     IsRepeatable = false)]
 public sealed class Internal
 {

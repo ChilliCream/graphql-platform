@@ -1,7 +1,7 @@
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Provides extension methods to configure the <see cref="HotChocolate.Types.Internal"/> directive with the fluent API.
+/// Provides extension methods to configure the <see cref="Types.Internal"/> directive with the fluent API.
 /// </summary>
 public static class InternalDirectiveExtensions
 {
