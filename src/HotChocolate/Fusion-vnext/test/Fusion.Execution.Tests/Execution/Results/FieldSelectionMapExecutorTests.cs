@@ -142,6 +142,6 @@ public class FieldSelectionMapExecutorTests : FusionTestBase
         var result = executor.Visit(fieldSelectionMap, context);
 
         // assert
-        Assert.Equal("123", result?.ToString());
+        Assert.Equal("\"123\"", result?.ToString());
     }
 }
