@@ -59,44 +59,38 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
     }
 
     protected override ISyntaxVisitorAction Enter(
-        SelectedListValueNode node,
+        PathListValueSelectionNode node,
+        ISyntaxWriter writer)
+    {
+        Visit(node.Path, writer);
+        Visit(node.ListValueSelection, writer);
+        return Skip;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        ListValueSelectionNode node,
         ISyntaxWriter writer)
     {
         writer.Write(LeftSquareBracket);
-
-        if (node.SelectedValue is not null)
-        {
-            Visit(node.SelectedValue, writer);
-        }
-        else if (node.SelectedListValue is not null)
-        {
-            Visit(node.SelectedListValue, writer);
-        }
-
+        Visit(node.ElementSelection, writer);
         writer.Write(RightSquareBracket);
 
         return Skip;
     }
 
     protected override ISyntaxVisitorAction Enter(
-        SelectedObjectFieldNode node,
+        PathObjectValueSelectionNode node,
         ISyntaxWriter writer)
     {
-        writer.WriteIndent(options.Indented);
-
-        writer.Write(node.Name.Value);
-
-        if (node.SelectedValue is not null)
-        {
-            writer.Write($"{Colon} ");
-            Visit(node.SelectedValue, writer);
-        }
+        Visit(node.Path, writer);
+        writer.Write(Period);
+        Visit(node.ObjectValueSelection, writer);
 
         return Skip;
     }
 
     protected override ISyntaxVisitorAction Enter(
-        SelectedObjectValueNode node,
+        ObjectValueSelectionNode node,
         ISyntaxWriter writer)
     {
         writer.Write(LeftBrace);
@@ -104,11 +98,11 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
 
         writer.Indent();
 
-        if (node.Fields.Count > 0)
+        if (node.Fields.Length > 0)
         {
             Visit(node.Fields[0], writer);
 
-            for (var i = 1; i < node.Fields.Count; i++)
+            for (var i = 1; i < node.Fields.Length; i++)
             {
                 WriteLineOrCommaSpace(writer);
                 Visit(node.Fields[i], writer);
@@ -125,42 +119,32 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
     }
 
     protected override ISyntaxVisitorAction Enter(
-        SelectedValueNode node,
+        ObjectFieldSelectionNode node,
         ISyntaxWriter writer)
     {
-        Visit(node.SelectedValueEntry, writer);
+        writer.WriteIndent(options.Indented);
 
-        if (node.SelectedValue is not null)
+        writer.Write(node.Name.Value);
+
+        if (node.ValueSelection is not null)
         {
-            writer.Write($" {Pipe} ");
-            Visit(node.SelectedValue, writer);
+            writer.Write($"{Colon} ");
+            Visit(node.ValueSelection, writer);
         }
 
         return Skip;
     }
 
     protected override ISyntaxVisitorAction Enter(
-        SelectedValueEntryNode node,
+        ChoiceValueSelectionNode node,
         ISyntaxWriter writer)
     {
-        if (node.Path is not null)
-        {
-            Visit(node.Path, writer);
+        Visit(node.Branches[0], writer);
 
-            if (node.SelectedObjectValue is not null)
-            {
-                writer.Write(Period);
-            }
-        }
-
-        if (node.SelectedObjectValue is not null)
+        for (var i = 1; i < node.Branches.Length; i++)
         {
-            Visit(node.SelectedObjectValue, writer);
-        }
-
-        if (node.SelectedListValue is not null)
-        {
-            Visit(node.SelectedListValue, writer);
+            writer.Write($" {Pipe} ");
+            Visit(node.Branches[i], writer);
         }
 
         return Skip;

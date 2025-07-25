@@ -250,7 +250,7 @@ public sealed partial class OperationPlanner
         var lookupStepId = current.Steps.NextId();
         var steps = current.Steps;
         var index = current.SelectionSetIndex.ToBuilder();
-        var selectionSet = lookup.SelectionSet;
+        var selectionSet = lookup.Requirements;
         index.Register(workItemSelectionSet, selectionSet);
 
         var internalOperation = InlineSelections(
@@ -650,7 +650,7 @@ public sealed partial class OperationPlanner
 
         // TODO: we need a deep copy of this selection set or there might be problems if a requirement
         // is used on different parts of the operation.
-        var requirements = fieldSource.Requirements!.SelectionSet;
+        var requirements = fieldSource.Requirements!.Requirements;
 
         // TODO : WHY?
         /*var internalOperation =*/

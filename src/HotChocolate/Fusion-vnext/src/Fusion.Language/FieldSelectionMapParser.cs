@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using TokenKind = HotChocolate.Fusion.Language.FieldSelectionMapTokenKind;
 using static HotChocolate.Fusion.Language.Properties.FusionLanguageResources;
@@ -29,66 +30,52 @@ public ref struct FieldSelectionMapParser
         _reader = new FieldSelectionMapReader(sourceText, options.MaxAllowedTokens);
     }
 
-    public SelectedValueNode Parse()
+    public IValueSelectionNode Parse()
     {
         _parsedNodes = 0;
 
         Expect(TokenKind.StartOfFile);
 
-        var selectedValue = ParseSelectedValue();
+        var selectedValue = ParseValueSelectionOrChoice();
 
         Expect(TokenKind.EndOfFile);
 
         return selectedValue;
     }
 
-    /// <summary>
-    /// Parses a <see cref="SelectedValueNode"/>.
-    ///
-    /// <code>
-    /// SelectedValue ::
-    ///     SelectedValue | SelectedValueEntry
-    ///     |opt SelectedValueEntry
-    /// </code>
-    /// </summary>
-    /// <returns>The parsed <see cref="SelectedValueNode"/>.</returns>
-    private SelectedValueNode ParseSelectedValue()
+    private IValueSelectionNode ParseValueSelectionOrChoice()
     {
         var start = Start();
 
-        var selectedValueEntry = ParseSelectedValueEntry();
-        SelectedValueNode? selectedValue = null;
+        var first = ParseValueSelection();
+        ImmutableArray<IValueSelectionNode>.Builder? branches = null;
 
-        if (_reader.TokenKind == TokenKind.Pipe)
+        while (_reader.TokenKind == TokenKind.Pipe)
         {
+            if (branches is null)
+            {
+                branches = ImmutableArray.CreateBuilder<IValueSelectionNode>();
+                branches.Add(first);
+            }
+
             MoveNext(); // skip "|"
-            selectedValue = ParseSelectedValue();
+            branches.Add(ParseValueSelection());
         }
 
         var location = CreateLocation(in start);
 
-        return new SelectedValueNode(location, selectedValueEntry, selectedValue);
+        return branches is null
+            ? first
+            : new ChoiceValueSelectionNode(location, branches.ToImmutable());
     }
 
-    /// <summary>
-    /// Parses a <see cref="SelectedValueEntryNode"/>.
-    ///
-    /// <code>
-    /// SelectedValueEntry ::
-    ///     Path [lookahead != .]
-    ///     Path . SelectedObjectValue
-    ///     Path SelectedListValue
-    ///     SelectedObjectValue
-    /// </code>
-    /// </summary>
-    /// <returns>The parsed <see cref="SelectedValueEntryNode"/>.</returns>
-    private SelectedValueEntryNode ParseSelectedValueEntry()
+    private IValueSelectionNode ParseValueSelection()
     {
         var start = Start();
 
         PathNode? path = null;
-        SelectedObjectValueNode? selectedObjectValue = null;
-        SelectedListValueNode? selectedListValue = null;
+        ObjectValueSelectionNode? objectValueSelection = null;
+        ListValueSelectionNode? listValueSelection = null;
 
         // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
         switch (_reader.TokenKind)
@@ -102,18 +89,18 @@ public ref struct FieldSelectionMapParser
                 {
                     case TokenKind.Period:
                         MoveNext(); // skip "."
-                        selectedObjectValue = ParseSelectedObjectValue();
+                        objectValueSelection = ParseObjectValueSelection();
                         break;
 
                     case TokenKind.LeftSquareBracket:
-                        selectedListValue = ParseSelectedListValue();
+                        listValueSelection = ParseListValueSelection();
                         break;
                 }
 
                 break;
 
             case TokenKind.LeftBrace:
-                selectedObjectValue = ParseSelectedObjectValue();
+                objectValueSelection = ParseObjectValueSelection();
                 break;
 
             default:
@@ -123,33 +110,29 @@ public ref struct FieldSelectionMapParser
                     _reader.TokenKind);
         }
 
-        var location = CreateLocation(in start);
+        if (path is not null)
+        {
+            if (objectValueSelection is not null)
+            {
+                return new PathObjectValueSelectionNode(CreateLocation(in start), path, objectValueSelection);
+            }
 
-        return new SelectedValueEntryNode(location, path, selectedObjectValue, selectedListValue);
+            if (listValueSelection is not null)
+            {
+                return new PathListValueSelectionNode(CreateLocation(in start), path, listValueSelection);
+            }
+
+            return path;
+        }
+
+        if (objectValueSelection is not null)
+        {
+            return objectValueSelection;
+        }
+
+        throw new FieldSelectionMapSyntaxException(_reader, "Unexpected value selection.");
     }
 
-    /// <summary>
-    /// Parses a <see cref="PathNode"/>.
-    ///
-    /// <code>
-    /// Path ::
-    ///     &lt; TypeName &gt; . PathSegment
-    ///     PathSegment
-    ///
-    /// PathSegment ::
-    ///     FieldName
-    ///     FieldName . PathSegment
-    ///     FieldName &lt; TypeName &gt; . PathSegment
-    ///
-    /// FieldName ::
-    ///     Name
-    ///
-    /// TypeName ::
-    ///     Name
-    /// </code>
-    /// </summary>
-    /// <returns>The parsed <see cref="PathNode"/>.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private PathNode ParsePath()
     {
         var start = Start();
@@ -170,24 +153,6 @@ public ref struct FieldSelectionMapParser
         return new PathNode(location, pathSegment, typeName);
     }
 
-    /// <summary>
-    /// Parses a <see cref="PathSegmentNode"/>.
-    ///
-    /// <code>
-    /// PathSegment ::
-    ///     FieldName
-    ///     FieldName . PathSegment
-    ///     FieldName &lt; TypeName &gt; . PathSegment
-    ///
-    /// FieldName ::
-    ///     Name
-    ///
-    /// TypeName ::
-    ///     Name
-    /// </code>
-    /// </summary>
-    /// <returns>The parsed <see cref="PathSegmentNode"/>.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private PathSegmentNode ParsePathSegment()
     {
         var start = Start();
@@ -210,8 +175,7 @@ public ref struct FieldSelectionMapParser
             Expect(TokenKind.Period);
             pathSegment = ParsePathSegment();
         }
-        else if (_reader.TokenKind == TokenKind.Period
-            && _reader.GetNextTokenKind() != TokenKind.LeftBrace)
+        else if (_reader.TokenKind == TokenKind.Period && _reader.GetNextTokenKind() != TokenKind.LeftBrace)
         {
             MoveNext(); // skip "."
             pathSegment = ParsePathSegment();
@@ -222,92 +186,60 @@ public ref struct FieldSelectionMapParser
         return new PathSegmentNode(location, fieldName, typeName, pathSegment);
     }
 
-    /// <summary>
-    /// Parses a <see cref="SelectedObjectValueNode"/>.
-    ///
-    /// <code>
-    /// SelectedObjectValue ::
-    ///     { SelectedObjectField+ }
-    /// </code>
-    /// </summary>
-    /// <returns>The parsed <see cref="SelectedObjectValueNode"/>.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private SelectedObjectValueNode ParseSelectedObjectValue()
+    private ObjectValueSelectionNode ParseObjectValueSelection()
     {
         var start = Start();
 
         Expect(TokenKind.LeftBrace);
 
-        var fields = new List<SelectedObjectFieldNode>();
+        var fields = ImmutableArray.CreateBuilder<ObjectFieldSelectionNode>();
 
         while (_reader.TokenKind != TokenKind.RightBrace)
         {
-            fields.Add(ParseSelectedObjectField());
+            fields.Add(ParseObjectFieldSelection());
         }
 
         Expect(TokenKind.RightBrace);
 
         var location = CreateLocation(in start);
 
-        return new SelectedObjectValueNode(location, fields);
+        return new ObjectValueSelectionNode(location, fields.ToImmutable());
     }
 
-    /// <summary>
-    /// Parses a <see cref="SelectedObjectFieldNode"/>.
-    ///
-    /// <code>
-    /// SelectedObjectField ::
-    ///     Name : SelectedValue
-    ///     Name
-    /// </code>
-    /// </summary>
-    /// <returns>The parsed <see cref="SelectedObjectFieldNode"/>.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private SelectedObjectFieldNode ParseSelectedObjectField()
+    private ObjectFieldSelectionNode ParseObjectFieldSelection()
     {
         var start = Start();
 
         var name = ParseName();
 
-        SelectedValueNode? selectedValue = null;
+        IValueSelectionNode? selectedValue = null;
         if (_reader.TokenKind == TokenKind.Colon)
         {
             MoveNext(); // skip ":"
-            selectedValue = ParseSelectedValue();
+            selectedValue = ParseValueSelectionOrChoice();
         }
 
         var location = CreateLocation(in start);
 
-        return new SelectedObjectFieldNode(location, name, selectedValue);
+        return new ObjectFieldSelectionNode(location, name, selectedValue);
     }
 
-    /// <summary>
-    /// Parses a <see cref="SelectedListValueNode"/>.
-    ///
-    /// <code>
-    /// SelectedListValue ::
-    ///     [ SelectedValue ]
-    ///     [ SelectedListValue ]
-    /// </code>
-    /// </summary>
-    /// <returns>The parsed <see cref="SelectedListValueNode"/>.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private SelectedListValueNode ParseSelectedListValue()
+    private ListValueSelectionNode ParseListValueSelection()
     {
         var start = Start();
 
         Expect(TokenKind.LeftSquareBracket);
 
-        SelectedListValueNode? selectedListValue = null;
-        SelectedValueNode? selectedValue = null;
+        ListValueSelectionNode? selectedListValue = null;
+        IValueSelectionNode? selectedValue = null;
 
         if (_reader.TokenKind == TokenKind.LeftSquareBracket)
         {
-            selectedListValue = ParseSelectedListValue();
+            selectedListValue = ParseListValueSelection();
         }
         else
         {
-            selectedValue = ParseSelectedValue();
+            selectedValue = ParseValueSelectionOrChoice();
         }
 
         Expect(TokenKind.RightSquareBracket);
@@ -316,23 +248,17 @@ public ref struct FieldSelectionMapParser
 
         if (selectedListValue is not null)
         {
-            return new SelectedListValueNode(location, selectedListValue);
+            return new ListValueSelectionNode(location, selectedListValue);
         }
 
         if (selectedValue is not null)
         {
-            return new SelectedListValueNode(location, selectedValue);
+            return new ListValueSelectionNode(location, selectedValue);
         }
 
         throw new InvalidOperationException();
     }
 
-    /// <summary>
-    /// Parses a <see cref="NameNode"/>.
-    /// </summary>
-    /// <returns>The parsed <see cref="NameNode"/>.</returns>
-    /// <seealso href="https://spec.graphql.org/October2021/#sec-Names">Specification</seealso>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private NameNode ParseName()
     {
         var start = Start();

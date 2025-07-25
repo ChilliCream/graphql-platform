@@ -35,7 +35,7 @@ internal sealed class IntrospectionFieldInterceptor : CompositeTypeInterceptor
         }
     }
 
-    public override void OnCompleteSchema(
+    public override void OnBeforeCompleteSchema(
         ICompositeSchemaBuilderContext context,
         ref IFeatureCollection features)
     {
