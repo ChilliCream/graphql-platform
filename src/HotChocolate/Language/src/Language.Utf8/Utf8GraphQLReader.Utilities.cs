@@ -157,7 +157,6 @@ public ref partial struct Utf8GraphQLReader
 
     public readonly string GetScalarValue() => GetString(_value);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void UnescapeValue(
         in ReadOnlySpan<byte> escaped,
         ref Span<byte> unescapedValue,

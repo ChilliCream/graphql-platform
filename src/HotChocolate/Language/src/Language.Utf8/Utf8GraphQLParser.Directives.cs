@@ -81,7 +81,6 @@ public ref partial struct Utf8GraphQLParser
         return s_emptyDirectives;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private DirectiveNode ParseDirective(bool isConstant)
     {
         var start = Start();

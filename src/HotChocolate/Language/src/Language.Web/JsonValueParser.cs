@@ -78,7 +78,7 @@ public ref struct JsonValueParser
             case JsonValueKind.Number:
             {
                 var value = JsonMarshal.GetRawUtf8Value(element);
-                var segment = WriteValue(value, false);
+                var segment = WriteValue(value);
 
                 if (value.IndexOfAny((byte)'e', (byte)'E') > -1)
                 {
