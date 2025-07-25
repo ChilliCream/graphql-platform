@@ -111,7 +111,7 @@ public ref struct FieldSelectionMapParser
                 {
                     case TokenKind.Period:
                         MoveNext(); // skip "."
-                        objectValueSelection = ParseSelectedObjectValue();
+                        objectValueSelection = ParseObjectValueSelection();
                         break;
 
                     case TokenKind.LeftSquareBracket:
@@ -122,7 +122,7 @@ public ref struct FieldSelectionMapParser
                 break;
 
             case TokenKind.LeftBrace:
-                objectValueSelection = ParseSelectedObjectValue();
+                objectValueSelection = ParseObjectValueSelection();
                 break;
 
             default:
@@ -255,7 +255,7 @@ public ref struct FieldSelectionMapParser
     /// </code>
     /// </summary>
     /// <returns>The parsed <see cref="ObjectValueSelectionNode"/>.</returns>
-    private ObjectValueSelectionNode ParseSelectedObjectValue()
+    private ObjectValueSelectionNode ParseObjectValueSelection()
     {
         var start = Start();
 
@@ -353,7 +353,6 @@ public ref struct FieldSelectionMapParser
     /// </summary>
     /// <returns>The parsed <see cref="NameNode"/>.</returns>
     /// <seealso href="https://spec.graphql.org/October2021/#sec-Names">Specification</seealso>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private NameNode ParseName()
     {
         var start = Start();
