@@ -70,7 +70,8 @@ public ref struct JsonValueParser
             case JsonValueKind.String:
             {
                 var value = JsonMarshal.GetRawUtf8Value(element);
-                var segment = WriteValue(value, true);
+                value = value.Slice(1, value.Length - 2); // Remove quotes.
+                var segment = WriteValue(value);
                 return new StringValueNode(null, segment, false);
             }
 
@@ -221,16 +222,16 @@ public ref struct JsonValueParser
             case JsonTokenType.String:
             {
                 var segment = reader.HasValueSequence
-                    ? WriteValue(reader.ValueSequence, true)
-                    : WriteValue(reader.ValueSpan, true);
+                    ? WriteValue(reader.ValueSequence.Slice(1, reader.ValueSequence.Length - 2))
+                    : WriteValue(reader.ValueSpan.Slice(1, reader.ValueSpan.Length - 2));
                 return new StringValueNode(null, segment, false);
             }
 
             case JsonTokenType.Number:
             {
                 var segment = reader.HasValueSequence
-                    ? WriteValue(reader.ValueSequence, false)
-                    : WriteValue(reader.ValueSpan, false);
+                    ? WriteValue(reader.ValueSequence)
+                    : WriteValue(reader.ValueSpan);
 
                 if (segment.Span.IndexOfAny((byte)'e', (byte)'E') > -1)
                 {
@@ -325,32 +326,26 @@ public ref struct JsonValueParser
         }
     }
 
-    private ReadOnlyMemorySegment WriteValue(ReadOnlySequence<byte> value, bool trim)
+    private ReadOnlyMemorySegment WriteValue(ReadOnlySequence<byte> value)
     {
         if (_externalBuffer is not null)
         {
-            var range = WriteValue(_externalBuffer, value, trim);
+            var range = WriteValue(_externalBuffer, value);
             return new ReadOnlyMemorySegment(_externalBuffer, range.Start, range.Length);
         }
         else
         {
             _memory ??= new Utf8MemoryBuilder();
-            var range = WriteValue(_memory, value, trim);
+            var range = WriteValue(_memory, value);
             return new ReadOnlyMemorySegment(_memory, range.Start, range.Length);
         }
     }
 
     private static (int Start, int Length) WriteValue(
         IWritableMemory buffer,
-        ReadOnlySequence<byte> value,
-        bool trim)
+        ReadOnlySequence<byte> value)
     {
         var start = buffer.WrittenSpan.Length;
-
-        if (trim)
-        {
-            value = value.Slice(1, value.Length - 2);
-        }
 
         foreach (var segment in value)
         {
@@ -362,13 +357,8 @@ public ref struct JsonValueParser
         return (start, buffer.WrittenSpan.Length - start);
     }
 
-    private ReadOnlyMemorySegment WriteValue(ReadOnlySpan<byte> value, bool trim)
+    private ReadOnlyMemorySegment WriteValue(ReadOnlySpan<byte> value)
     {
-        if (trim)
-        {
-            value = value.Slice(1, value.Length - 2);
-        }
-
         if (_externalBuffer is not null)
         {
             var start = _externalBuffer.Length;
