@@ -20,11 +20,13 @@
     <Project Path="GreenDonut/src/GreenDonut.Data.Primitives/GreenDonut.Data.Primitives.csproj" />
     <Project Path="GreenDonut/src/GreenDonut.Data/GreenDonut.Data.csproj" />
     <Project Path="GreenDonut/src/GreenDonut/GreenDonut.csproj" />
+    <Project Path="GreenDonut\src\GreenDonut.Data.Marten\GreenDonut.Data.Marten.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/GreenDonut/test/">
     <Project Path="GreenDonut/test/GreenDonut.Data.EntityFramework.Tests/GreenDonut.Data.EntityFramework.Tests.csproj" />
     <Project Path="GreenDonut/test/GreenDonut.Data.Tests/GreenDonut.Data.Tests.csproj" />
     <Project Path="GreenDonut/test/GreenDonut.Tests/GreenDonut.Tests.csproj" />
+    <Project Path="GreenDonut\test\GreenDonut.Data.Marten.Tests\GreenDonut.Data.Marten.Tests.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/HotChocolate/" />
   <Folder Name="/HotChocolate/ApolloFederation/" />
