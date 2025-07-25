@@ -16,8 +16,8 @@ public static class CodeWriterExtensions
 #else
         var version = typeof(CodeWriter).Assembly.GetName().Version!.ToString();
         writer.WriteIndentedLine(
-            "[global::System.CodeDom.Compiler.GeneratedCode(" +
-            $"\"HotChocolate\", \"{version}\")]");
+            "[global::System.CodeDom.Compiler.GeneratedCode("
+            + $"\"HotChocolate\", \"{version}\")]");
 #endif
     }
 

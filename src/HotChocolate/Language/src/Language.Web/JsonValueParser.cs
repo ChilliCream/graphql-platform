@@ -70,6 +70,7 @@ public ref struct JsonValueParser
             case JsonValueKind.String:
             {
                 var value = JsonMarshal.GetRawUtf8Value(element);
+                value = value.Slice(1, value.Length - 2); // Remove quotes.
                 var segment = WriteValue(value);
                 return new StringValueNode(null, segment, false);
             }
