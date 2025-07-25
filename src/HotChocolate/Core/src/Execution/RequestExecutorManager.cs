@@ -61,7 +61,12 @@ internal sealed partial class RequestExecutorManager
         ConsumeExecutorEvictionsAsync(executorEvictionChannel.Reader, _cts.Token).FireAndForget();
 
         _optionsMonitor.OnChange(EvictRequestExecutor);
+        var schemaNames = _applicationServices.GetService<IEnumerable<SchemaName>>()?
+            .Select(x => x.Value).Distinct().Order().ToImmutableArray();
+        SchemaNames = schemaNames ?? [];
     }
+
+    public ImmutableArray<string> SchemaNames { get; }
 
     public async ValueTask<IRequestExecutor> GetExecutorAsync(
         string? schemaName = null,
