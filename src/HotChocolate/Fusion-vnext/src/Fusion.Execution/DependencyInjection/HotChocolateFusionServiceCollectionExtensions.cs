@@ -34,17 +34,15 @@ public static class HotChocolateFusionServiceCollectionExtensions
         IServiceCollection services)
     {
         services.TryAddSingleton<FusionRequestExecutorManager>();
-        services.TryAddSingleton<IRequestExecutorProvider>(
-            sp => sp.GetRequiredService<FusionRequestExecutorManager>());
-        services.TryAddSingleton<IRequestExecutorEvents>(
-            sp => sp.GetRequiredService<FusionRequestExecutorManager>());
+        services.TryAddSingleton<IRequestExecutorProvider>(sp => sp.GetRequiredService<FusionRequestExecutorManager>());
+        services.TryAddSingleton<IRequestExecutorEvents>(sp => sp.GetRequiredService<FusionRequestExecutorManager>());
     }
 
     private static void AddSourceSchemaScope(
         IServiceCollection services)
     {
-        services.TryAddSingleton<ISourceSchemaClientScopeFactory>(
-            static sp => new DefaultSourceSchemaClientScopeFactory(
+        services.TryAddSingleton<ISourceSchemaClientScopeFactory>(static sp =>
+            new DefaultSourceSchemaClientScopeFactory(
                 sp.GetRequiredService<IHttpClientFactory>()));
     }
 
@@ -140,6 +138,14 @@ public static class HotChocolateFusionServiceCollectionExtensions
         IServiceCollection services,
         string name)
     {
+        if (!services.Any(x =>
+            x.ServiceType == typeof(SchemaName)
+                && x.ImplementationInstance is SchemaName s
+                && s.Value.Equals(name, StringComparison.Ordinal)))
+        {
+            services.AddSingleton(new SchemaName(name));
+        }
+
         var builder = new DefaultFusionGatewayBuilder(services, name);
         builder.UseDefaultPipeline();
         return builder;

@@ -15,5 +15,6 @@ internal sealed class SchemaCommand : Command
         Description = "Schema management commands.";
 
         AddCommand(new ExportCommand());
+        AddCommand(new ListCommand());
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Execution.Configuration;
@@ -34,6 +35,13 @@ internal sealed class DefaultRequestExecutorOptionsMonitor(
         }
 
         return options;
+    }
+
+    public async ValueTask<ImmutableArray<string>> GetSchemaNamesAsync(
+        CancellationToken cancellationToken)
+    {
+        await TryInitializeAsync(cancellationToken).ConfigureAwait(false);
+        return [.._configs.Keys.Order()];
     }
 
     private async ValueTask TryInitializeAsync(CancellationToken cancellationToken)

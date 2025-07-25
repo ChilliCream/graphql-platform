@@ -58,8 +58,14 @@ internal sealed class FusionRequestExecutorManager
         _optionsMonitor = optionsMonitor;
         _applicationServices = applicationServices;
 
+        var schemaNames = _applicationServices.GetService<IEnumerable<SchemaName>>()?
+            .Select(x => x.Value).Distinct().Order().ToImmutableArray();
+        SchemaNames = schemaNames ?? [];
+
         NotifyObserversAsync().FireAndForget();
     }
+
+    public ImmutableArray<string> SchemaNames { get; }
 
     public ValueTask<IRequestExecutor> GetExecutorAsync(
         string? schemaName = null,
