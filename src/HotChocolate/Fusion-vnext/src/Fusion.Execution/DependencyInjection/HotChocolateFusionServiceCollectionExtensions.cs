@@ -48,7 +48,7 @@ public static class HotChocolateFusionServiceCollectionExtensions
                 sp.GetRequiredService<IHttpClientFactory>()));
     }
 
-    private static void AddResultObjectPools(
+    internal static void AddResultObjectPools(
         IServiceCollection services,
         FusionMemoryPoolOptions options)
     {

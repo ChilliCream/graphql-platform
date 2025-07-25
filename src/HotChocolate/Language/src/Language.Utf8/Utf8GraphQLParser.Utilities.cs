@@ -8,7 +8,6 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLParser
 {
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private NameNode ParseName()
     {
         var start = Start();
@@ -56,7 +55,6 @@ public ref partial struct Utf8GraphQLParser
                 start.Column)
             : null;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private string ExpectName()
     {
         if (_reader.Kind == TokenKind.Name)
@@ -81,20 +79,6 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectRightBracket() => Expect(TokenKind.RightBracket);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private string ExpectString()
-    {
-        if (TokenHelper.IsString(ref _reader))
-        {
-            var value = _reader.GetString();
-            MoveNext();
-            return value;
-        }
-
-        throw new SyntaxException(_reader, Parser_InvalidToken, TokenKind.String, _reader.Kind);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private int ExpectRawString(IBufferWriter<byte> writer)
     {
         if (TokenHelper.IsString(ref _reader))

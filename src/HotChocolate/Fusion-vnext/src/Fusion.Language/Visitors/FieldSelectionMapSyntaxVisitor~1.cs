@@ -1,16 +1,22 @@
 namespace HotChocolate.Fusion.Language;
 
-public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defaultAction)
-    : FieldSelectionMapSyntaxVisitor, ISyntaxVisitor<TContext>
+public class FieldSelectionMapSyntaxVisitor<TContext>
+    : FieldSelectionMapSyntaxVisitor
+    , ISyntaxVisitor<TContext>
 {
     public FieldSelectionMapSyntaxVisitor() : this(Skip)
     {
     }
 
+    public FieldSelectionMapSyntaxVisitor(ISyntaxVisitorAction defaultAction)
+    {
+        DefaultAction = defaultAction;
+    }
+
     /// <summary>
     /// The visitor default action.
     /// </summary>
-    protected virtual ISyntaxVisitorAction DefaultAction { get; } = defaultAction;
+    protected virtual ISyntaxVisitorAction DefaultAction { get; }
 
     public ISyntaxVisitorAction Visit(IFieldSelectionMapSyntaxNode node, TContext context)
         => Visit<IFieldSelectionMapSyntaxNode, IFieldSelectionMapSyntaxNode?>(node, null, context);
@@ -56,16 +62,18 @@ public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defau
                 => Enter((PathNode)node, context),
             FieldSelectionMapSyntaxKind.PathSegment
                 => Enter((PathSegmentNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedListValue
-                => Enter((SelectedListValueNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedObjectField
-                => Enter((SelectedObjectFieldNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedObjectValue
-                => Enter((SelectedObjectValueNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedValue
-                => Enter((SelectedValueNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedValueEntry
-                => Enter((SelectedValueEntryNode)node, context),
+            FieldSelectionMapSyntaxKind.PathListValueSelection
+                => Enter((PathListValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.ListValueSelection
+                => Enter((ListValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.PathObjectValueSelection
+                => Enter((PathObjectValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.ObjectValueSelection
+                => Enter((ObjectValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.ObjectFieldSelection
+                => Enter((ObjectFieldSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.ChoiceValueSelection
+                => Enter((ChoiceValueSelectionNode)node, context),
             _ => throw new NotSupportedException(node.GetType().FullName)
         };
     }
@@ -86,27 +94,32 @@ public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defau
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
-        SelectedListValueNode node,
+        PathListValueSelectionNode node,
         TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
-        SelectedObjectFieldNode node,
+        ListValueSelectionNode selectionNode,
         TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
-        SelectedObjectValueNode node,
+        PathObjectValueSelectionNode node,
         TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
-        SelectedValueNode node,
+        ObjectValueSelectionNode selectionNode,
         TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
-        SelectedValueEntryNode node,
+        ObjectFieldSelectionNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Enter(
+        ChoiceValueSelectionNode node,
         TContext context) =>
         DefaultAction;
 
@@ -122,16 +135,18 @@ public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defau
                 => Leave((PathNode)node, context),
             FieldSelectionMapSyntaxKind.PathSegment
                 => Leave((PathSegmentNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedListValue
-                => Leave((SelectedListValueNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedObjectField
-                => Leave((SelectedObjectFieldNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedObjectValue
-                => Leave((SelectedObjectValueNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedValue
-                => Leave((SelectedValueNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedValueEntry
-                => Leave((SelectedValueEntryNode)node, context),
+            FieldSelectionMapSyntaxKind.PathListValueSelection
+                => Leave((PathListValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.ListValueSelection
+                => Leave((ListValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.PathObjectValueSelection
+                => Leave((PathObjectValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.ObjectValueSelection
+                => Leave((ObjectValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.ObjectFieldSelection
+                => Leave((ObjectFieldSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.ChoiceValueSelection
+                => Leave((ChoiceValueSelectionNode)node, context),
             _ => throw new NotSupportedException(node.GetType().FullName)
         };
     }
@@ -152,27 +167,32 @@ public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defau
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
-        SelectedListValueNode node,
+        PathListValueSelectionNode node,
         TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
-        SelectedObjectFieldNode node,
+        ListValueSelectionNode selectionNode,
         TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
-        SelectedObjectValueNode node,
+        PathObjectValueSelectionNode node,
         TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
-        SelectedValueNode node,
+        ObjectValueSelectionNode selectionNode,
         TContext context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Leave(
-        SelectedValueEntryNode node,
+        ObjectFieldSelectionNode node,
+        TContext context) =>
+        DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Leave(
+        ChoiceValueSelectionNode node,
         TContext context) =>
         DefaultAction;
 
@@ -214,16 +234,18 @@ public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defau
                 => VisitChildren((PathNode)node, context),
             FieldSelectionMapSyntaxKind.PathSegment
                 => VisitChildren((PathSegmentNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedListValue
-                => VisitChildren((SelectedListValueNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedObjectField
-                => VisitChildren((SelectedObjectFieldNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedObjectValue
-                => VisitChildren((SelectedObjectValueNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedValue
-                => VisitChildren((SelectedValueNode)node, context),
-            FieldSelectionMapSyntaxKind.SelectedValueEntry
-                => VisitChildren((SelectedValueEntryNode)node, context),
+            FieldSelectionMapSyntaxKind.PathListValueSelection
+                => VisitChildren((PathListValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.ListValueSelection
+                => VisitChildren((ListValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.PathObjectValueSelection
+                => VisitChildren((PathObjectValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.ObjectValueSelection
+                => VisitChildren((ObjectValueSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.ObjectFieldSelection
+                => VisitChildren((ObjectFieldSelectionNode)node, context),
+            FieldSelectionMapSyntaxKind.ChoiceValueSelection
+                => VisitChildren((ChoiceValueSelectionNode)node, context),
             _ => throw new NotSupportedException(node.GetType().FullName)
         };
     }
@@ -268,15 +290,15 @@ public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defau
     }
 
     protected virtual ISyntaxVisitorAction VisitChildren(
-        SelectedObjectFieldNode node,
+        PathListValueSelectionNode node,
         TContext context)
     {
-        if (Visit(node.Name, node, context).IsBreak())
+        if (Visit(node.Path, node, context).IsBreak())
         {
             return Break;
         }
 
-        if (node.SelectedValue is not null && Visit(node.SelectedValue, node, context).IsBreak())
+        if (Visit(node.ListValueSelection, node, context).IsBreak())
         {
             return Break;
         }
@@ -285,7 +307,36 @@ public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defau
     }
 
     protected virtual ISyntaxVisitorAction VisitChildren(
-        SelectedObjectValueNode node,
+        ListValueSelectionNode node,
+        TContext context)
+    {
+        if (Visit(node.ElementSelection, node, context).IsBreak())
+        {
+            return Break;
+        }
+
+        return DefaultAction;
+    }
+
+    protected virtual ISyntaxVisitorAction VisitChildren(
+        PathObjectValueSelectionNode node,
+        TContext context)
+    {
+        if (Visit(node.Path, node, context).IsBreak())
+        {
+            return Break;
+        }
+
+        if (Visit(node.ObjectValueSelection, node, context).IsBreak())
+        {
+            return Break;
+        }
+
+        return DefaultAction;
+    }
+
+    protected virtual ISyntaxVisitorAction VisitChildren(
+        ObjectValueSelectionNode node,
         TContext context)
     {
         foreach (var field in node.Fields)
@@ -300,15 +351,16 @@ public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defau
     }
 
     protected virtual ISyntaxVisitorAction VisitChildren(
-        SelectedValueNode node,
+        ObjectFieldSelectionNode node,
         TContext context)
     {
-        if (Visit(node.SelectedValueEntry, node, context).IsBreak())
+        if (Visit(node.Name, node, context).IsBreak())
         {
             return Break;
         }
 
-        if (node.SelectedValue is not null && Visit(node.SelectedValue, node, context).IsBreak())
+        if (node.ValueSelection is not null
+            && Visit(node.ValueSelection, node, context).IsBreak())
         {
             return Break;
         }
@@ -317,24 +369,15 @@ public class FieldSelectionMapSyntaxVisitor<TContext>(ISyntaxVisitorAction defau
     }
 
     protected virtual ISyntaxVisitorAction VisitChildren(
-        SelectedValueEntryNode node,
+        ChoiceValueSelectionNode node,
         TContext context)
     {
-        if (node.Path is not null && Visit(node.Path, node, context).IsBreak())
+        foreach (var branch in node.Branches)
         {
-            return Break;
-        }
-
-        if (node.SelectedObjectValue is not null
-            && Visit(node.SelectedObjectValue, node, context).IsBreak())
-        {
-            return Break;
-        }
-
-        if (node.SelectedListValue is not null
-            && Visit(node.SelectedListValue, node, context).IsBreak())
-        {
-            return Break;
+            if (Visit(branch, node, context).IsBreak())
+            {
+                return Break;
+            }
         }
 
         return DefaultAction;

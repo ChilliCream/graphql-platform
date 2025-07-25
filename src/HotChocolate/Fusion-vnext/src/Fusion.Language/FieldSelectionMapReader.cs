@@ -177,7 +177,6 @@ internal ref struct FieldSelectionMapReader
         return false;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void SkipWhiteSpace()
     {
         if (_nextNewLines > 0)
@@ -277,7 +276,6 @@ internal ref struct FieldSelectionMapReader
     /// <summary>
     /// Reads name tokens.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ReadNameToken()
     {
         var start = Position;

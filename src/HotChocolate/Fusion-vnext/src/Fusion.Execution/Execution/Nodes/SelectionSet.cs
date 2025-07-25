@@ -1,3 +1,5 @@
+using HotChocolate.Types;
+
 namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed class SelectionSet
@@ -5,7 +7,7 @@ public sealed class SelectionSet
     private readonly Selection[] _selections;
     private bool _isSealed;
 
-    public SelectionSet(uint id, Selection[] selections, bool isConditional)
+    public SelectionSet(uint id, IObjectTypeDefinition type, Selection[] selections, bool isConditional)
     {
         ArgumentNullException.ThrowIfNull(selections);
 
@@ -15,6 +17,7 @@ public sealed class SelectionSet
         }
 
         Id = id;
+        Type = type;
         IsConditional = isConditional;
         _selections = selections;
     }
@@ -28,6 +31,11 @@ public sealed class SelectionSet
     /// Defines if this list needs post-processing for skip and include.
     /// </summary>
     public bool IsConditional { get; }
+
+    /// <summary>
+    /// Gets the type that declares this selection set.
+    /// </summary>
+    public IObjectTypeDefinition Type { get; }
 
     /// <summary>
     /// Gets the selections that shall be executed.

@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace HotChocolate.Fusion.Language;
 
 /// <summary>
@@ -7,27 +9,26 @@ namespace HotChocolate.Fusion.Language;
 /// <c>SelectedValue</c>, thus extending the traditional <c>ObjectValue</c> capabilities to support
 /// direct path selections.
 /// </summary>
-public sealed class SelectedObjectValueNode(IReadOnlyList<SelectedObjectFieldNode> fields)
-    : IFieldSelectionMapSyntaxNode
+public sealed class ObjectValueSelectionNode : IValueSelectionNode
 {
-    public SelectedObjectValueNode(
-        Location? location,
-        IReadOnlyList<SelectedObjectFieldNode> fields) : this(fields)
+    public ObjectValueSelectionNode(ImmutableArray<ObjectFieldSelectionNode> fields)
+        : this(null, fields)
     {
-        Location = location;
     }
 
-    public FieldSelectionMapSyntaxKind Kind => FieldSelectionMapSyntaxKind.SelectedObjectValue;
+    public ObjectValueSelectionNode(Location? location, ImmutableArray<ObjectFieldSelectionNode> fields)
+    {
+        Location = location;
+        Fields = fields;
+    }
+
+    public FieldSelectionMapSyntaxKind Kind => FieldSelectionMapSyntaxKind.ObjectValueSelection;
 
     public Location? Location { get; }
 
-    public readonly IReadOnlyList<SelectedObjectFieldNode> Fields = fields
-        ?? throw new ArgumentNullException(nameof(fields));
+    public readonly ImmutableArray<ObjectFieldSelectionNode> Fields;
 
-    public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
-    {
-        return Fields;
-    }
+    public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes() => Fields;
 
     public override string ToString() => this.Print();
 

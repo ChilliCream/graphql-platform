@@ -205,14 +205,12 @@ public ref partial struct Utf8GraphQLReader
     /// <returns>
     /// Returns the name token read from the current lexer state.
     /// </returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ReadNameToken()
     {
         var start = _position;
         var position = _position;
 
 ReadNameToken_Next:
-
         if (++position < _length && _sourceText[position].IsLetterOrDigitOrUnderscore())
         {
             goto ReadNameToken_Next;
@@ -231,7 +229,6 @@ ReadNameToken_Next:
     /// one of ! ? $ ( ) ... . : = @ [ ] { | }
     /// additionally the reader will tokenize ampersands.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ReadPunctuatorToken(byte code)
     {
         _start = _position;
@@ -344,7 +341,6 @@ ReadNameToken_Next:
     /// http://facebook.github.io/graphql/October2021/#FloatValue
     /// from the current lexer state.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ReadNumberToken(byte firstCode)
     {
         var start = _position;
@@ -411,7 +407,6 @@ ReadNameToken_Next:
         _value = _sourceText.Slice(start, _position - start);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private byte ReadDigits(byte firstCode)
     {
         if (!firstCode.IsDigit())
@@ -446,7 +441,6 @@ ReadNameToken_Next:
     /// #[\u0009\u0020-\uFFFF]*
     /// from the current lexer state.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ReadCommentToken()
     {
         var start = _position;
@@ -523,7 +517,6 @@ ReadNameToken_Next:
     /// "([^"\\\u000A\u000D]|(\\(u[0-9a-fA-F]{4}|["\\/bfnrt])))*"
     /// from the current lexer state.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ReadStringValueToken()
     {
         var start = _position;
@@ -601,7 +594,6 @@ ReadNameToken_Next:
     /// http://facebook.github.io/graphql/draft/#BlockStringCharacter
     /// from the current lexer state.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ReadBlockStringToken()
     {
         var start = _position - 2;
@@ -692,7 +684,6 @@ ReadNameToken_Next:
         throw new SyntaxException(this, UnterminatedString);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void SkipWhitespaces()
     {
         if (_nextNewLines > 0)

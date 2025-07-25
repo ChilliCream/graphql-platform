@@ -51,8 +51,8 @@ public ref partial struct Utf8GraphQLParser
             name: null,
             description: null,
             OperationType.Query,
-            Array.Empty<VariableDefinitionNode>(),
-            Array.Empty<DirectiveNode>(),
+            [],
+            [],
             selectionSet);
     }
 

@@ -15,7 +15,7 @@ public sealed class SelectedValueToSelectionSetRewriterTests
 
         // act
         var selectionSetNode =
-            s_selectedValueToSelectionSetRewriter.SelectedValueToSelectionSet(
+            s_selectedValueToSelectionSetRewriter.Rewrite(
                 selectedValueNode,
                 s_schema.Types[typeName]);
 
@@ -248,6 +248,6 @@ public sealed class SelectedValueToSelectionSetRewriterTests
         }
         """);
 
-    private static readonly SelectedValueToSelectionSetRewriter
+    private static readonly ValueSelectionToSelectionSetRewriter
         s_selectedValueToSelectionSetRewriter = new(s_schema);
 }

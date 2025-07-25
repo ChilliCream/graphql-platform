@@ -177,12 +177,7 @@ public sealed class OperationCompiler
             includeFlags.Clear();
 
             var first = nodes[0];
-            var isInternal = true;
-
-            if (!IsInternal(first.Node))
-            {
-                isInternal = false;
-            }
+            var isInternal = IsInternal(first.Node);
 
             if (first.PathIncludeFlags > 0)
             {
@@ -236,7 +231,7 @@ public sealed class OperationCompiler
             }
         }
 
-        return new SelectionSet(++lastId, selections, isConditional);
+        return new SelectionSet(++lastId, typeContext, selections, isConditional);
     }
 
     private static void CollapseIncludeFlags(List<ulong> includeFlags)

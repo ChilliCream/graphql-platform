@@ -29,7 +29,7 @@ internal sealed class SourceSchemaMerger
     private readonly FrozenDictionary<string, ITypeDefinition> _fusionTypeDefinitions;
     private readonly FrozenDictionary<string, MutableDirectiveDefinition>
         _fusionDirectiveDefinitions;
-    private readonly Dictionary<string, SelectedValueToSelectionSetRewriter>
+    private readonly Dictionary<string, ValueSelectionToSelectionSetRewriter>
         _selectedValueToSelectionSetRewriters = [];
     private readonly Dictionary<string, MergeSelectionSetRewriter> _mergeSelectionSetRewriters = [];
 
@@ -978,7 +978,7 @@ internal sealed class SourceSchemaMerger
                 GetSelectedValueToSelectionSetRewriter(sourceSchema);
             var selectionSets = selectedValues
                 .Select(
-                    s => selectedValueToSelectionSetRewriter.SelectedValueToSelectionSet(s, type))
+                    s => selectedValueToSelectionSetRewriter.Rewrite(s, type))
                 .ToImmutableArray();
             var mergedSelectionSet = selectionSets.Length == 1
                 ? selectionSets[0]
@@ -1060,7 +1060,7 @@ internal sealed class SourceSchemaMerger
                     .Select(
                         s =>
                             selectedValueToSelectionSetRewriter
-                                .SelectedValueToSelectionSet(s, complexType))
+                                .Rewrite(s, complexType))
                     .ToImmutableArray();
                 var mergedSelectionSet = selectionSets.Length == 1
                     ? selectionSets[0]
@@ -1226,7 +1226,7 @@ internal sealed class SourceSchemaMerger
         }
     }
 
-    private SelectedValueToSelectionSetRewriter GetSelectedValueToSelectionSetRewriter(
+    private ValueSelectionToSelectionSetRewriter GetSelectedValueToSelectionSetRewriter(
         MutableSchemaDefinition schema)
     {
         if (_selectedValueToSelectionSetRewriters.TryGetValue(schema.Name, out var rewriter))
@@ -1234,7 +1234,7 @@ internal sealed class SourceSchemaMerger
             return rewriter;
         }
 
-        rewriter = new SelectedValueToSelectionSetRewriter(schema);
+        rewriter = new ValueSelectionToSelectionSetRewriter(schema);
         _selectedValueToSelectionSetRewriters.Add(schema.Name, rewriter);
 
         return rewriter;

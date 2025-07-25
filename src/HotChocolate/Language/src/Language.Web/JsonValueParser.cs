@@ -222,8 +222,8 @@ public ref struct JsonValueParser
             case JsonTokenType.String:
             {
                 var segment = reader.HasValueSequence
-                    ? WriteValue(reader.ValueSequence)
-                    : WriteValue(reader.ValueSpan);
+                    ? WriteValue(reader.ValueSequence.Slice(1, reader.ValueSequence.Length - 2))
+                    : WriteValue(reader.ValueSpan.Slice(1, reader.ValueSpan.Length - 2));
                 return new StringValueNode(null, segment, false);
             }
 
@@ -341,7 +341,9 @@ public ref struct JsonValueParser
         }
     }
 
-    private static (int Start, int Length) WriteValue(IWritableMemory buffer, ReadOnlySequence<byte> value)
+    private static (int Start, int Length) WriteValue(
+        IWritableMemory buffer,
+        ReadOnlySequence<byte> value)
     {
         var start = buffer.WrittenSpan.Length;
 

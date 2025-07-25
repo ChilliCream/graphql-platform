@@ -7,6 +7,7 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -18,6 +19,7 @@ internal sealed class FetchResultStore : IDisposable
 {
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
     private readonly ValueCompletion _valueCompletion;
+    private readonly ISchemaDefinition _schema;
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
     private readonly ObjectResult _root;
@@ -37,6 +39,7 @@ internal sealed class FetchResultStore : IDisposable
         ArgumentNullException.ThrowIfNull(resultPoolSession);
         ArgumentNullException.ThrowIfNull(operation);
 
+        _schema = schema;
         _operation = operation;
         _includeFlags = includeFlags;
         _valueCompletion = new ValueCompletion(schema, resultPoolSession, ErrorHandling.Propagate, 32, includeFlags);
@@ -233,6 +236,11 @@ internal sealed class FetchResultStore : IDisposable
                 Array.Resize(ref variableValueSets, nextIndex);
             }
 
+            if (buffer is not null)
+            {
+                _memory.Push(buffer);
+            }
+
             return variableValueSets is not null
                 ? ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets)
                 : [];
@@ -256,6 +264,11 @@ internal sealed class FetchResultStore : IDisposable
         {
             var field = MapRequirement(result, requirement.Key, requirement.Map, ref buffer);
 
+            if (field is null)
+            {
+                return null;
+            }
+
             if (field.Value.Kind == SyntaxKind.NullValue && requirement.Type.Kind == SyntaxKind.NonNullType)
             {
                 return null;
@@ -267,43 +280,14 @@ internal sealed class FetchResultStore : IDisposable
         return new ObjectValueNode(fields);
     }
 
-    private static ObjectFieldNode MapRequirement(
+    private ObjectFieldNode? MapRequirement(
         ObjectResult result,
         string key,
-        FieldPath path,
+        IValueSelectionNode path,
         ref PooledArrayWriter? buffer)
     {
-        var current = result;
-
-        foreach (var segment in path.Reverse())
-        {
-            if (!current.TryGetValue(segment.Name, out var value))
-            {
-                continue;
-            }
-
-            if (value.HasNullValue)
-            {
-                return new ObjectFieldNode(key, NullValueNode.Default);
-            }
-
-            if (value is ObjectFieldResult objectField)
-            {
-                current = objectField.Value!;
-                continue;
-            }
-
-            if (value is LeafFieldResult leafField)
-            {
-                buffer ??= new PooledArrayWriter();
-                var parser = new JsonValueParser(buffer: buffer);
-                return new ObjectFieldNode(key, parser.Parse(leafField.Value));
-            }
-
-            throw new NotSupportedException("Must be list or object.");
-        }
-
-        throw new InvalidOperationException("The path segment does not exist in the data.");
+        var value = ResultDataMapper.Map(result, path, _schema, ref buffer);
+        return value is null ? null : new ObjectFieldNode(key, value);
     }
 
     private static IEnumerable<ObjectResult> UnrollLists(ListResult list)
