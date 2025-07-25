@@ -43,16 +43,6 @@ public ref struct FieldSelectionMapParser
         return selectedValue;
     }
 
-    /// <summary>
-    /// Parses a <see cref="ChoiceValueSelectionNode"/>.
-    ///
-    /// <code>
-    /// SelectedValue ::
-    ///     SelectedValue | SelectedValueEntry
-    ///     |opt SelectedValueEntry
-    /// </code>
-    /// </summary>
-    /// <returns>The parsed <see cref="ChoiceValueSelectionNode"/>.</returns>
     private IValueSelectionNode ParseValueSelectionOrChoice()
     {
         var start = Start();
@@ -79,18 +69,6 @@ public ref struct FieldSelectionMapParser
             : new ChoiceValueSelectionNode(location, branches.ToImmutable());
     }
 
-    /// <summary>
-    /// Parses a <see cref="IValueSelectionNode"/>.
-    ///
-    /// <code>
-    /// SelectedValueEntry ::
-    ///     Path [lookahead != .]
-    ///     Path . SelectedObjectValue
-    ///     Path SelectedListValue
-    ///     SelectedObjectValue
-    /// </code>
-    /// </summary>
-    /// <returns>The parsed <see cref="IValueSelectionNode"/>.</returns>
     private IValueSelectionNode ParseValueSelection()
     {
         var start = Start();
@@ -155,27 +133,6 @@ public ref struct FieldSelectionMapParser
         throw new FieldSelectionMapSyntaxException(_reader, "Unexpected value selection.");
     }
 
-    /// <summary>
-    /// Parses a <see cref="PathNode"/>.
-    ///
-    /// <code>
-    /// Path ::
-    ///     &lt; TypeName &gt; . PathSegment
-    ///     PathSegment
-    ///
-    /// PathSegment ::
-    ///     FieldName
-    ///     FieldName . PathSegment
-    ///     FieldName &lt; TypeName &gt; . PathSegment
-    ///
-    /// FieldName ::
-    ///     Name
-    ///
-    /// TypeName ::
-    ///     Name
-    /// </code>
-    /// </summary>
-    /// <returns>The parsed <see cref="PathNode"/>.</returns>
     private PathNode ParsePath()
     {
         var start = Start();
@@ -196,23 +153,6 @@ public ref struct FieldSelectionMapParser
         return new PathNode(location, pathSegment, typeName);
     }
 
-    /// <summary>
-    /// Parses a <see cref="PathSegmentNode"/>.
-    ///
-    /// <code>
-    /// PathSegment ::
-    ///     FieldName
-    ///     FieldName . PathSegment
-    ///     FieldName &lt; TypeName &gt; . PathSegment
-    ///
-    /// FieldName ::
-    ///     Name
-    ///
-    /// TypeName ::
-    ///     Name
-    /// </code>
-    /// </summary>
-    /// <returns>The parsed <see cref="PathSegmentNode"/>.</returns>
     private PathSegmentNode ParsePathSegment()
     {
         var start = Start();
@@ -246,15 +186,6 @@ public ref struct FieldSelectionMapParser
         return new PathSegmentNode(location, fieldName, typeName, pathSegment);
     }
 
-    /// <summary>
-    /// Parses a <see cref="ObjectValueSelectionNode"/>.
-    ///
-    /// <code>
-    /// SelectedObjectValue ::
-    ///     { SelectedObjectField+ }
-    /// </code>
-    /// </summary>
-    /// <returns>The parsed <see cref="ObjectValueSelectionNode"/>.</returns>
     private ObjectValueSelectionNode ParseObjectValueSelection()
     {
         var start = Start();
@@ -275,16 +206,6 @@ public ref struct FieldSelectionMapParser
         return new ObjectValueSelectionNode(location, fields.ToImmutable());
     }
 
-    /// <summary>
-    /// Parses a <see cref="ObjectFieldSelectionNode"/>.
-    ///
-    /// <code>
-    /// SelectedObjectField ::
-    ///     Name : SelectedValue
-    ///     Name
-    /// </code>
-    /// </summary>
-    /// <returns>The parsed <see cref="ObjectFieldSelectionNode"/>.</returns>
     private ObjectFieldSelectionNode ParseObjectFieldSelection()
     {
         var start = Start();
@@ -303,16 +224,6 @@ public ref struct FieldSelectionMapParser
         return new ObjectFieldSelectionNode(location, name, selectedValue);
     }
 
-    /// <summary>
-    /// Parses a <see cref="ListValueSelectionNode"/>.
-    ///
-    /// <code>
-    /// SelectedListValue ::
-    ///     [ SelectedValue ]
-    ///     [ SelectedListValue ]
-    /// </code>
-    /// </summary>
-    /// <returns>The parsed <see cref="ListValueSelectionNode"/>.</returns>
     private ListValueSelectionNode ParseListValueSelection()
     {
         var start = Start();
@@ -348,11 +259,6 @@ public ref struct FieldSelectionMapParser
         throw new InvalidOperationException();
     }
 
-    /// <summary>
-    /// Parses a <see cref="NameNode"/>.
-    /// </summary>
-    /// <returns>The parsed <see cref="NameNode"/>.</returns>
-    /// <seealso href="https://spec.graphql.org/October2021/#sec-Names">Specification</seealso>
     private NameNode ParseName()
     {
         var start = Start();
