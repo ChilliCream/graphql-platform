@@ -101,12 +101,12 @@ internal sealed class ComposeCommand : Command
             return 1;
         }
 
-        var mergerOptions = new SourceSchemaMergerOptions
+        var schemaComposerOptions = new SchemaComposerOptions
         {
             EnableGlobalObjectIdentification = enableGlobalObjectIdentification
         };
         var compositionLog = new CompositionLog();
-        var schemaComposer = new SchemaComposer(sourceSchemas, mergerOptions, compositionLog);
+        var schemaComposer = new SchemaComposer(sourceSchemas, schemaComposerOptions, compositionLog);
 
         var result = schemaComposer.Compose();
 

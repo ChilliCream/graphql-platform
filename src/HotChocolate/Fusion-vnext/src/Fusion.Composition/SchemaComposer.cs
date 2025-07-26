@@ -9,13 +9,13 @@ using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, SourceSchemaMergerOptions sourceSchemaMergerOptions, ICompositionLog log)
+public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, SchemaComposerOptions schemaComposerOptions, ICompositionLog log)
 {
     private readonly IEnumerable<string> _sourceSchemas = sourceSchemas
         ?? throw new ArgumentNullException(nameof(sourceSchemas));
 
-    private readonly SourceSchemaMergerOptions _sourceSchemaMergerOptions = sourceSchemaMergerOptions
-        ?? throw new ArgumentNullException(nameof(sourceSchemaMergerOptions));
+    private readonly SchemaComposerOptions _schemaComposerOptions = schemaComposerOptions
+        ?? throw new ArgumentNullException(nameof(schemaComposerOptions));
 
     private readonly ICompositionLog _log = log
         ?? throw new ArgumentNullException(nameof(log));
@@ -50,8 +50,12 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, SourceSche
         }
 
         // Merge Source Schemas
+        var sourceSchemaMergerOptions = new SourceSchemaMergerOptions
+        {
+            EnableGlobalObjectIdentification = _schemaComposerOptions.EnableGlobalObjectIdentification
+        };
         var (_, isMergeFailure, mergedSchema, mergeErrors) =
-            new SourceSchemaMerger(schemas, _sourceSchemaMergerOptions).Merge();
+            new SourceSchemaMerger(schemas, sourceSchemaMergerOptions).Merge();
 
         if (isMergeFailure)
         {

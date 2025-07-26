@@ -56,7 +56,7 @@ public abstract class FusionTestBase : IDisposable
         }
 
         var compositionLog = new CompositionLog();
-        var composer = new SchemaComposer(sourceSchemas, new SourceSchemaMergerOptions(), compositionLog);
+        var composer = new SchemaComposer(sourceSchemas, new SchemaComposerOptions(), compositionLog);
         var result = composer.Compose();
 
         if (!result.IsSuccess)

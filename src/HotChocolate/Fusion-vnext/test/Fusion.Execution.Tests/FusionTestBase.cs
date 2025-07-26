@@ -41,7 +41,7 @@ public abstract class FusionTestBase : IDisposable
         [StringSyntax("graphql")] params string[] schemas)
     {
         var compositionLog = new CompositionLog();
-        var composer = new SchemaComposer(schemas, new SourceSchemaMergerOptions(), compositionLog);
+        var composer = new SchemaComposer(schemas, new SchemaComposerOptions(), compositionLog);
         var result = composer.Compose();
 
         if (!result.IsSuccess)
@@ -57,7 +57,7 @@ public abstract class FusionTestBase : IDisposable
         [StringSyntax("graphql")] params string[] schemas)
     {
         var compositionLog = new CompositionLog();
-        var composer = new SchemaComposer(schemas, new SourceSchemaMergerOptions(), compositionLog);
+        var composer = new SchemaComposer(schemas, new SchemaComposerOptions(), compositionLog);
         var result = composer.Compose();
 
         if (!result.IsSuccess)
