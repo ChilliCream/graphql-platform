@@ -50,6 +50,17 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
                 continue;
             }
 
+            // A source schema doesn't have to have a node field for the node field
+            // inserted in the composed schema to work, so we skip the satisfiability
+            // validation for the node field.
+            if (field.Name == "node"
+                && objectType == schema.QueryType
+                && schema.Types.TryGetType<IInterfaceTypeDefinition>("Node", out var nodeType)
+                && field.Type == nodeType)
+            {
+                continue;
+            }
+
             VisitOutputField(field, context);
         }
 

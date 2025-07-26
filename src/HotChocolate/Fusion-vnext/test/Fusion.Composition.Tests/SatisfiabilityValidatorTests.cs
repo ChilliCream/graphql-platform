@@ -1107,7 +1107,7 @@ public sealed class SatisfiabilityValidatorTests
                 }
                 """
             ]),
-            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false, EnableGlobalObjectIdentification = true });
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
@@ -1373,7 +1373,7 @@ public sealed class SatisfiabilityValidatorTests
                 }
                 """
             ]),
-            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false, EnableGlobalObjectIdentification = true });
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
