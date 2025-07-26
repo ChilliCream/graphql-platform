@@ -3,6 +3,7 @@ using System.CommandLine;
 using System.CommandLine.IO;
 using System.Text;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 using static HotChocolate.Fusion.Properties.CommandLineResources;
 
 namespace HotChocolate.Fusion.Commands;
@@ -47,9 +48,15 @@ internal sealed class ComposeCommand : Command
         compositeSchemaFileOption.AddAlias("-c");
         compositeSchemaFileOption.LegalFilePathsOnly();
 
+        var enableGlobalObjectIdentificationOption = new Option<bool>("--enable-global-object-identification")
+        {
+            Description = ComposeCommand_EnableGlobalObjectIdentification_Description
+        };
+
         AddOption(workingDirectoryOption);
         AddOption(sourceSchemaFileOption);
         AddOption(compositeSchemaFileOption);
+        AddOption(enableGlobalObjectIdentificationOption);
 
         this.SetHandler(async context =>
         {
@@ -57,12 +64,15 @@ internal sealed class ComposeCommand : Command
             var sourceSchemaFiles = context.ParseResult.GetValueForOption(sourceSchemaFileOption)!;
             var compositeSchemaFile =
                 context.ParseResult.GetValueForOption(compositeSchemaFileOption);
+            var enableGlobalObjectIdentification =
+                context.ParseResult.GetValueForOption(enableGlobalObjectIdentificationOption);
 
             context.ExitCode = await ExecuteAsync(
                 context.Console,
                 workingDirectory,
                 sourceSchemaFiles,
                 compositeSchemaFile,
+                enableGlobalObjectIdentification,
                 context.GetCancellationToken());
         });
     }
@@ -72,6 +82,7 @@ internal sealed class ComposeCommand : Command
         string workingDirectory,
         List<string> sourceSchemaFiles,
         string? compositeSchemaFile,
+        bool enableGlobalObjectIdentification,
         CancellationToken cancellationToken)
     {
         IEnumerable<string> sourceSchemas;
@@ -90,8 +101,12 @@ internal sealed class ComposeCommand : Command
             return 1;
         }
 
+        var mergerOptions = new SourceSchemaMergerOptions
+        {
+            EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+        };
         var compositionLog = new CompositionLog();
-        var schemaComposer = new SchemaComposer(sourceSchemas, compositionLog);
+        var schemaComposer = new SchemaComposer(sourceSchemas, mergerOptions, compositionLog);
 
         var result = schemaComposer.Compose();
 

@@ -90,6 +90,28 @@ internal sealed class SourceSchemaMerger
             }
         }
 
+        if (mergedSchema.Types.TryGetType<IInterfaceTypeDefinition>("Node", out var nodeType) && mergedSchema.QueryType is { } queryType)
+        {
+            if (queryType.Fields.TryGetField("node", out var nodeField) && nodeField.Type == nodeType)
+            {
+                queryType.Fields.Remove(nodeField);
+            }
+
+            // Until gateway support is implemented, we never expose the nodes field in the merged schema.
+            if (queryType.Fields.TryGetField("nodes", out var nodesField) && nodesField.Type.NamedType() == nodeType)
+            {
+                queryType.Fields.Remove(nodesField);
+            }
+
+            if (_options.EnableGlobalObjectIdentification && mergedSchema.Types.TryGetType<IScalarTypeDefinition>("ID", out var idType))
+            {
+                var canonicalNodeField = new MutableOutputFieldDefinition("node", nodeType);
+                canonicalNodeField.Arguments.Add(new MutableInputFieldDefinition("id", new NonNullType(idType)));
+
+                queryType.Fields.Add(canonicalNodeField);
+            }
+        }
+
         // Add Fusion definitions.
         if (_options.AddFusionDefinitions)
         {
