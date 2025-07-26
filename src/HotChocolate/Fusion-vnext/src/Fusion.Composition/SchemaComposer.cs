@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging.Contracts;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.PostMergeValidationRules;
 using HotChocolate.Fusion.PreMergeValidationRules;
 using HotChocolate.Fusion.Results;
@@ -8,10 +9,13 @@ using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositionLog log)
+public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, SourceSchemaMergerOptions sourceSchemaMergerOptions, ICompositionLog log)
 {
     private readonly IEnumerable<string> _sourceSchemas = sourceSchemas
         ?? throw new ArgumentNullException(nameof(sourceSchemas));
+
+    private readonly SourceSchemaMergerOptions _sourceSchemaMergerOptions = sourceSchemaMergerOptions
+        ?? throw new ArgumentNullException(nameof(sourceSchemaMergerOptions));
 
     private readonly ICompositionLog _log = log
         ?? throw new ArgumentNullException(nameof(log));
@@ -47,7 +51,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
 
         // Merge Source Schemas
         var (_, isMergeFailure, mergedSchema, mergeErrors) =
-            new SourceSchemaMerger(schemas).Merge();
+            new SourceSchemaMerger(schemas, _sourceSchemaMergerOptions).Merge();
 
         if (isMergeFailure)
         {
