@@ -1,6 +1,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,7 +56,7 @@ public abstract class FusionTestBase : IDisposable
         }
 
         var compositionLog = new CompositionLog();
-        var composer = new SchemaComposer(sourceSchemas, compositionLog);
+        var composer = new SchemaComposer(sourceSchemas, new SchemaComposerOptions(), compositionLog);
         var result = composer.Compose();
 
         if (!result.IsSuccess)
