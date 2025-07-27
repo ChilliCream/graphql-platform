@@ -232,4 +232,16 @@ public static class DirectiveNames
         /// </summary>
         public const string Name = "internal";
     }
+
+    /// <summary>
+    /// The name constants of the @inaccessible directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--inaccessible"/>
+    /// </summary>
+    public static class Inaccessible
+    {
+        /// <summary>
+        /// The name of the @inaccessible directive.
+        /// </summary>
+        public const string Name = "inaccessible";
+    }
 }

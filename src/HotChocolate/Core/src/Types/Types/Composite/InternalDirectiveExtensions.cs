@@ -1,7 +1,7 @@
-namespace HotChocolate.Types;
+namespace HotChocolate.Types.Composite;
 
 /// <summary>
-/// Provides extension methods to configure the <see cref="Types.Internal"/> directive with the fluent API.
+/// Provides extension methods to configure the <see cref="Composite.Internal"/> directive with the fluent API.
 /// </summary>
 public static class InternalDirectiveExtensions
 {
@@ -29,7 +29,7 @@ public static class InternalDirectiveExtensions
     public static IObjectTypeDescriptor Internal(this IObjectTypeDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        return descriptor.Directive(Types.Internal.Instance);
+        return descriptor.Directive(Composite.Internal.Instance);
     }
 
     /// <summary>
@@ -56,6 +56,6 @@ public static class InternalDirectiveExtensions
     public static IObjectFieldDescriptor Internal(this IObjectFieldDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        return descriptor.Directive(Types.Internal.Instance);
+        return descriptor.Directive(Composite.Internal.Instance);
     }
 }

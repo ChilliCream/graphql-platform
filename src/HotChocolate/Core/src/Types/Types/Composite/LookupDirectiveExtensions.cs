@@ -1,4 +1,4 @@
-namespace HotChocolate.Types;
+namespace HotChocolate.Types.Composite;
 
 /// <summary>
 /// Provides extension methods to configure the <see cref="Lookup"/> directive with the fluent API.
@@ -25,6 +25,6 @@ public static class LookupDirectiveExtensions
     public static IObjectFieldDescriptor Lookup(this IObjectFieldDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        return descriptor.Directive(Types.Lookup.Instance);
+        return descriptor.Directive(Composite.Lookup.Instance);
     }
 }

@@ -1,4 +1,4 @@
-namespace HotChocolate.Types;
+namespace HotChocolate.Types.Composite;
 
 /// <summary>
 /// <para>
@@ -31,4 +31,7 @@ public sealed class Lookup
     /// The singleton instance of the <see cref="Lookup"/> directive.
     /// </summary>
     public static Lookup Instance { get; } = new();
+
+    public override string ToString() => "@lookup";
 }
+
