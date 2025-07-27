@@ -1,6 +1,4 @@
-using System.Reflection;
 using HotChocolate.Fusion.Language;
-using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Composite;
 
@@ -63,51 +61,4 @@ public sealed class Is
 
     /// <inheritdoc />
     public override string ToString() => $"@is(field: \"{Field.ToString(false)}\")";
-}
-
-public sealed class IsAttribute : ArgumentDescriptorAttribute
-{
-    public IsAttribute(string field)
-    {
-        ArgumentNullException.ThrowIfNull(field);
-        Field = field;
-    }
-
-    public string Field { get; }
-
-    protected override void OnConfigure(
-        IDescriptorContext context,
-        IArgumentDescriptor descriptor,
-        ParameterInfo parameter)
-        => descriptor.Is(Field);
-}
-
-public static class IsDescriptorExtensions
-{
-    public static IArgumentDescriptor Is(
-        this IArgumentDescriptor descriptor,
-        string field)
-    {
-        ArgumentNullException.ThrowIfNull(descriptor);
-        ArgumentException.ThrowIfNullOrEmpty(field);
-
-        IValueSelectionNode valueSelection;
-
-        try
-        {
-            valueSelection = FieldSelectionMapParser.Parse(field);
-        }
-        catch (FieldSelectionMapSyntaxException ex)
-        {
-            descriptor.Extend().OnBeforeNaming(
-                (ctx, _) => ctx.ReportError(
-                    SchemaErrorBuilder.New()
-                        .SetMessage("The field selection map syntax is invalid.")
-                        .SetException(ex)
-                        .Build()));
-            return descriptor;
-        }
-
-        return descriptor.Directive(new Is(valueSelection));
-    }
 }
