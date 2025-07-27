@@ -5,19 +5,18 @@ namespace HotChocolate.Types.Composite;
 
 /// <summary>
 /// <para>
-/// The @inaccessible directive is used to prevent specific type system members
+/// Applies the @inaccessible directive to the type system member to prevent it
 /// from being accessible through the client-facing composite schema,
-/// even if they are accessible in the underlying source schemas.
+/// even if it is accessible in the underlying source schemas.
 /// </para>
 /// <para>
-/// This directive is useful for restricting access to type system members that
-/// are either irrelevant to the client-facing composite schema or sensitive in nature,
-/// such as internal identifiers or fields intended only for backend use.
-/// </para>
-/// <para>
-/// directive @inaccessible on FIELD_DEFINITION
-///   | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION
-///   | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+/// <code language="graphql">
+/// type User {
+///   id: ID!
+///   name: String!
+///   email: String! @inaccessible
+/// }
+/// </code>
 /// </para>
 /// <para>
 /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--inaccessible"/>

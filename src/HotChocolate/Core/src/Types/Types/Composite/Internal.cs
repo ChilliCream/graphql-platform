@@ -32,6 +32,9 @@ public sealed class Internal
     {
     }
 
+    /// <inheritdoc />
+    public override string ToString() => "@internal";
+
     /// <summary>
     /// The singleton instance of the <see cref="Internal"/> directive.
     /// </summary>

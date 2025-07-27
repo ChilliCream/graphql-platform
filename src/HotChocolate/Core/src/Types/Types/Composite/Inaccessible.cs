@@ -39,6 +39,9 @@ public sealed class Inaccessible
     {
     }
 
+    /// <inheritdoc />
+    public override string ToString() => "@inaccessible";
+
     /// <summary>
     /// The singleton instance of the <see cref="Internal"/> directive.
     /// </summary>

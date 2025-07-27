@@ -32,6 +32,6 @@ public sealed class Lookup
     /// </summary>
     public static Lookup Instance { get; } = new();
 
+    /// <inheritdoc />
     public override string ToString() => "@lookup";
 }
-

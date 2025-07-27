@@ -6,9 +6,20 @@ namespace HotChocolate.Types.Composite;
 public static class InaccessibleDescriptorExtensions
 {
     /// <summary>
+    /// <para>
     /// Applies the @inaccessible directive to the enum type to prevent it
     /// from being accessible through the client-facing composite schema,
     /// even if it is accessible in the underlying source schemas.
+    /// </para>
+    /// <para>
+    /// <code language="graphql">
+    /// enum UserType @inaccessible {
+    ///   ADMIN
+    ///   USER
+    ///   GUEST
+    /// }
+    /// </code>
+    /// </para>
     /// </summary>
     /// <param name="descriptor">
     /// The enum type descriptor to apply the directive to.
@@ -27,9 +38,20 @@ public static class InaccessibleDescriptorExtensions
     }
 
     /// <summary>
+    /// <para>
     /// Applies the @inaccessible directive to the enum value to prevent it
     /// from being accessible through the client-facing composite schema,
     /// even if it is accessible in the underlying source schemas.
+    /// </para>
+    /// <para>
+    /// <code language="graphql">
+    /// enum UserType {
+    ///   ADMIN @inaccessible
+    ///   USER
+    ///   GUEST
+    /// }
+    /// </code>
+    /// </para>
     /// </summary>
     /// <param name="descriptor">
     /// The enum value descriptor to apply the directive to.
@@ -48,9 +70,19 @@ public static class InaccessibleDescriptorExtensions
     }
 
     /// <summary>
+    /// <para>
     /// Applies the @inaccessible directive to the interface type to prevent it
     /// from being accessible through the client-facing composite schema,
     /// even if it is accessible in the underlying source schemas.
+    /// </para>
+    /// <para>
+    /// <code language="graphql">
+    /// interface User @inaccessible {
+    ///   id: ID!
+    ///   name: String!
+    /// }
+    /// </code>
+    /// </para>
     /// </summary>
     /// <param name="descriptor">
     /// The interface type descriptor to apply the directive to.
