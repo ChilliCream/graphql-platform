@@ -80,6 +80,10 @@ public sealed class InaccessibleAttribute : DescriptorAttribute
             case IUnionTypeDescriptor unionTypeDescriptor:
                 unionTypeDescriptor.Inaccessible();
                 break;
+
+            default:
+                throw new NotSupportedException(
+                    $"The {descriptor.GetType().Name} descriptor is not supported.");
         }
     }
 }

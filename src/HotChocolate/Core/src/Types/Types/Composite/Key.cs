@@ -17,8 +17,7 @@ namespace HotChocolate.Types.Composite;
 /// </summary>
 [DirectiveType(
     DirectiveNames.Key.Name,
-    DirectiveLocation.Object
-    | DirectiveLocation.Interface,
+    DirectiveLocation.Object | DirectiveLocation.Interface,
     IsRepeatable = false)]
 public sealed class Key
 {
