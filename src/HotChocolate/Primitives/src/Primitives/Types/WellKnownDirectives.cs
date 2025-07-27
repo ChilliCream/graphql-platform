@@ -244,4 +244,27 @@ public static class DirectiveNames
         /// </summary>
         public const string Name = "inaccessible";
     }
+
+    /// <summary>
+    /// The name constants of the @key directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--key"/>
+    /// </summary>
+    public static class Key
+    {
+        /// <summary>
+        /// The name of the @key directive.
+        /// </summary>
+        public const string Name = "key";
+
+        /// <summary>
+        /// The argument names of the @key directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the @key fields argument.
+            /// </summary>
+            public const string Fields = "fields";
+        }
+    }
 }
