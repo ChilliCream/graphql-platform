@@ -5,21 +5,38 @@ namespace HotChocolate.Types.Composite;
 
 /// <summary>
 /// <para>
-/// The @key directive is used to designate an entity’s unique key,
+/// Adds a @key directive to this object type to specify the fields that make up the unique key for an entity.
+/// </para>
+/// <para>
+/// The @key directive is used to designate an entity's unique key,
 /// which identifies how to uniquely reference an instance of
 /// an entity across different source schemas.
 /// </para>
 /// <para>
-/// directive @key(fields: FieldSelectionSet!) on OBJECT | INTERFACE
+/// One can specify multiple @key directives for an object type.
+/// </para>
+/// <para>
+/// <code language="graphql">
+/// # multiple single keys
+/// type User @key(fields: "id") @key(fields: "email") {
+///   id: ID!
+///   name: String!
+///   email: String!
+/// }
+///
+/// # composite key
+/// type Product @key(fields: "sku country") {
+///   sku: String!
+///   country: String!
+/// }
+/// </code>
 /// </para>
 /// <para>
 /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--key"/>
 /// </para>
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Class
-    | AttributeTargets.Interface
-    | AttributeTargets.Struct,
+    AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct,
     AllowMultiple = true)]
 public class KeyAttribute : DescriptorAttribute
 {
@@ -29,6 +46,9 @@ public class KeyAttribute : DescriptorAttribute
         Fields = fields;
     }
 
+    /// <summary>
+    /// Gets the fields that make up the unique key for an entity.
+    /// </summary>
     public string Fields { get; }
 
     protected internal override void TryConfigure(

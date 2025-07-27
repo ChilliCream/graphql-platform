@@ -20,6 +20,9 @@ public static class InaccessibleDescriptorExtensions
     /// }
     /// </code>
     /// </para>
+    /// <para>
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--inaccessible"/>
+    /// </para>
     /// </summary>
     /// <param name="descriptor">
     /// The enum type descriptor to apply the directive to.
@@ -52,6 +55,9 @@ public static class InaccessibleDescriptorExtensions
     /// }
     /// </code>
     /// </para>
+    /// <para>
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--inaccessible"/>
+    /// </para>
     /// </summary>
     /// <param name="descriptor">
     /// The enum value descriptor to apply the directive to.
@@ -83,6 +89,9 @@ public static class InaccessibleDescriptorExtensions
     /// }
     /// </code>
     /// </para>
+    /// <para>
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--inaccessible"/>
+    /// </para>
     /// </summary>
     /// <param name="descriptor">
     /// The interface type descriptor to apply the directive to.
@@ -101,9 +110,22 @@ public static class InaccessibleDescriptorExtensions
     }
 
     /// <summary>
+    /// <para>
     /// Applies the @inaccessible directive to the interface field to prevent it
     /// from being accessible through the client-facing composite schema,
     /// even if it is accessible in the underlying source schemas.
+    /// </para>
+    /// <para>
+    /// <code language="graphql">
+    /// interface User {
+    ///   id: ID! @inaccessible
+    ///   name: String!
+    /// }
+    /// </code>
+    /// </para>
+    /// <para>
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--inaccessible"/>
+    /// </para>
     /// </summary>
     /// <param name="descriptor">
     /// The interface field descriptor to apply the directive to.
@@ -122,9 +144,22 @@ public static class InaccessibleDescriptorExtensions
     }
 
     /// <summary>
+    /// <para>
     /// Applies the @inaccessible directive to the input object type to prevent it
     /// from being accessible through the client-facing composite schema,
     /// even if it is accessible in the underlying source schemas.
+    /// </para>
+    /// <para>
+    /// <code language="graphql">
+    /// input UserInput @inaccessible {
+    ///   id: ID!
+    ///   name: String!
+    /// }
+    /// </code>
+    /// </para>
+    /// <para>
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--inaccessible"/>
+    /// </para>
     /// </summary>
     /// <param name="descriptor">
     /// The input object type descriptor to apply the directive to.
@@ -143,9 +178,22 @@ public static class InaccessibleDescriptorExtensions
     }
 
     /// <summary>
+    /// <para>
     /// Applies the @inaccessible directive to the input field to prevent it
     /// from being accessible through the client-facing composite schema,
     /// even if it is accessible in the underlying source schemas.
+    /// </para>
+    /// <para>
+    /// <code language="graphql">
+    /// input UserInput {
+    ///   id: ID! @inaccessible
+    ///   name: String!
+    /// }
+    /// </code>
+    /// </para>
+    /// <para>
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--inaccessible"/>
+    /// </para>
     /// </summary>
     /// <param name="descriptor">
     /// The input field descriptor to apply the directive to.
@@ -164,9 +212,22 @@ public static class InaccessibleDescriptorExtensions
     }
 
     /// <summary>
+    /// <para>
     /// Applies the @inaccessible directive to the object type to prevent it
     /// from being accessible through the client-facing composite schema,
     /// even if it is accessible in the underlying source schemas.
+    /// </para>
+    /// <para>
+    /// <code language="graphql">
+    /// type User @inaccessible {
+    ///   id: ID!
+    ///   name: String!
+    /// }
+    /// </code>
+    /// </para>
+    /// <para>
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--inaccessible"/>
+    /// </para>
     /// </summary>
     /// <param name="descriptor">
     /// The object type descriptor to apply the directive to.
@@ -185,9 +246,22 @@ public static class InaccessibleDescriptorExtensions
     }
 
     /// <summary>
+    /// <para>
     /// Applies the @inaccessible directive to the object field to prevent it
     /// from being accessible through the client-facing composite schema,
     /// even if it is accessible in the underlying source schemas.
+    /// </para>
+    /// <para>
+    /// <code language="graphql">
+    /// type User {
+    ///   id: ID! @inaccessible
+    ///   name: String!
+    /// }
+    /// </code>
+    /// </para>
+    /// <para>
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--inaccessible"/>
+    /// </para>
     /// </summary>
     /// <param name="descriptor">
     /// The object field descriptor to apply the directive to.
@@ -206,9 +280,21 @@ public static class InaccessibleDescriptorExtensions
     }
 
     /// <summary>
+    /// <para>
     /// Applies the @inaccessible directive to the argument to prevent it
     /// from being accessible through the client-facing composite schema,
     /// even if it is accessible in the underlying source schemas.
+    /// </para>
+    /// <para>
+    /// <code language="graphql">
+    /// type Query {
+    ///   user(id: ID!): User! @inaccessible
+    /// }
+    /// </code>
+    /// </para>
+    /// <para>
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--inaccessible"/>
+    /// </para>
     /// </summary>
     /// <param name="descriptor">
     /// The argument descriptor to apply the directive to.
@@ -227,9 +313,19 @@ public static class InaccessibleDescriptorExtensions
     }
 
     /// <summary>
+    /// <para>
     /// Applies the @inaccessible directive to the union type to prevent it
     /// from being accessible through the client-facing composite schema,
     /// even if it is accessible in the underlying source schemas.
+    /// </para>
+    /// <para>
+    /// <code language="graphql">
+    /// union User @inaccessible = Admin | User | Guest
+    /// </code>
+    /// </para>
+    /// <para>
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--inaccessible"/>
+    /// </para>
     /// </summary>
     /// <param name="descriptor">
     /// The union type descriptor to apply the directive to.

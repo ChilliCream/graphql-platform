@@ -5,16 +5,21 @@ namespace HotChocolate.Types.Composite;
 
 /// <summary>
 /// <para>
-/// The @is directive is utilized on lookup fields to describe how the arguments
+/// Applies the @is directive to this lookup argument to describe how the argument
 /// can be mapped from the entity type that the lookup field resolves.
 /// </para>
 /// <para>
-/// The mapping establishes semantic equivalence between disparate type system members
-/// across source schemas and is used in cases where an argument does not directly align
-/// with a field on the entity type.
+/// The mapping establishes semantic equivalence between disparate type system members across
+/// source schemas and is used in cases where an argument does not directly align with a field
+/// on the entity type.
 /// </para>
 /// <para>
-/// directive @is(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+/// <code language="graphql">
+/// type Query {
+///   productById(productId: ID! @is(field: "id")): Product @lookup
+///   user(by: UserByInput! @is(field: "{ id } | { email }")): User @lookup
+/// }
+/// </code>
 /// </para>
 /// <para>
 /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--is"/>

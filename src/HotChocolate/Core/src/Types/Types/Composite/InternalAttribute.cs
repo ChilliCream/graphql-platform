@@ -24,7 +24,9 @@ namespace HotChocolate.Types.Composite;
 /// </para>
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Method,
+    AttributeTargets.Class
+    | AttributeTargets.Property
+    | AttributeTargets.Method,
     AllowMultiple = false)]
 public sealed class InternalAttribute : DescriptorAttribute
 {
