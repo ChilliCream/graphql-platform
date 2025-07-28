@@ -30,19 +30,21 @@ public static class SchemaParser
         var document = Utf8GraphQLParser.Parse(sourceText);
         var existingTypeNames = schema.Types.Select(t => t.Name);
         var existingDirectiveNames = schema.DirectiveDefinitions.AsEnumerable().Select(d => d.Name);
+        var skippedNodes = new HashSet<ISyntaxNode>();
 
         DiscoverTypesAndDirectives(
             schema,
             document,
             [.. existingTypeNames],
             [.. existingDirectiveNames],
+            skippedNodes,
             options);
         DiscoverExtensions(schema, document);
 
-        BuildTypes(schema, document);
-        ExtendTypes(schema, document);
-        BuildDirectiveTypes(schema, document);
-        BuildAndExtendSchema(schema, document);
+        BuildTypes(schema, document, skippedNodes);
+        ExtendTypes(schema, document, skippedNodes);
+        BuildDirectiveTypes(schema, document, skippedNodes);
+        BuildAndExtendSchema(schema, document, skippedNodes);
     }
 
     private static void DiscoverTypesAndDirectives(
@@ -50,6 +52,7 @@ public static class SchemaParser
         DocumentNode document,
         ImmutableArray<string> existingTypeNames,
         ImmutableArray<string> existingDirectiveNames,
+        HashSet<ISyntaxNode> skip,
         SchemaParserOptions options)
     {
         foreach (var definition in document.Definitions)
@@ -61,6 +64,7 @@ public static class SchemaParser
                     if (options.IgnoreExistingTypes
                         && existingTypeNames.Contains(typeDef.Name.Value))
                     {
+                        skip.Add(typeDef);
                         continue;
                     }
 
@@ -111,6 +115,7 @@ public static class SchemaParser
                     if (options.IgnoreExistingDirectives
                         && existingDirectiveNames.Contains(directiveDef.Name.Value))
                     {
+                        skip.Add(directiveDef);
                         continue;
                     }
 
@@ -180,10 +185,15 @@ public static class SchemaParser
         }
     }
 
-    private static void BuildTypes(MutableSchemaDefinition schema, DocumentNode document)
+    private static void BuildTypes(MutableSchemaDefinition schema, DocumentNode document, HashSet<ISyntaxNode> skip)
     {
         foreach (var definition in document.Definitions)
         {
+            if (skip.Contains(definition))
+            {
+                continue;
+            }
+
             if (definition is ITypeDefinitionNode)
             {
                 switch (definition)
@@ -238,10 +248,15 @@ public static class SchemaParser
         }
     }
 
-    private static void ExtendTypes(MutableSchemaDefinition schema, DocumentNode document)
+    private static void ExtendTypes(MutableSchemaDefinition schema, DocumentNode document, HashSet<ISyntaxNode> skip)
     {
         foreach (var definition in document.Definitions)
         {
+            if (skip.Contains(definition))
+            {
+                continue;
+            }
+
             if (definition is ITypeExtensionNode)
             {
                 switch (definition)
@@ -296,12 +311,20 @@ public static class SchemaParser
         }
     }
 
-    private static void BuildAndExtendSchema(MutableSchemaDefinition schema, DocumentNode document)
+    private static void BuildAndExtendSchema(
+        MutableSchemaDefinition schema,
+        DocumentNode document,
+        HashSet<ISyntaxNode> skip)
     {
         var hasDefinition = false;
 
         foreach (var definition in document.Definitions)
         {
+            if (skip.Contains(definition))
+            {
+                continue;
+            }
+
             if (definition is SchemaDefinitionNode node)
             {
                 BuildSchema(schema, node);
@@ -312,6 +335,11 @@ public static class SchemaParser
 
         foreach (var definition in document.Definitions)
         {
+            if (skip.Contains(definition))
+            {
+                continue;
+            }
+
             if (definition is SchemaExtensionNode node)
             {
                 ExtendSchema(schema, node);
@@ -556,10 +584,18 @@ public static class SchemaParser
         BuildDirectiveCollection(schema, type.Directives, node.Directives);
     }
 
-    private static void BuildDirectiveTypes(MutableSchemaDefinition schema, DocumentNode document)
+    private static void BuildDirectiveTypes(
+        MutableSchemaDefinition schema,
+        DocumentNode document,
+        HashSet<ISyntaxNode> skip)
     {
         foreach (var definition in document.Definitions)
         {
+            if (skip.Contains(definition))
+            {
+                continue;
+            }
+
             if (definition is DirectiveDefinitionNode directiveDef)
             {
                 BuildDirectiveType(
