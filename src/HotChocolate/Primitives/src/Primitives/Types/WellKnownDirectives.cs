@@ -303,4 +303,27 @@ public static class DirectiveNames
         /// </summary>
         public const string Name = "provides";
     }
+
+    /// <summary>
+    /// The name constants of the @require directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--require"/>
+    /// </summary>
+    public static class Require
+    {
+        /// <summary>
+        /// The name of the @require directive.
+        /// </summary>
+        public const string Name = "require";
+
+        /// <summary>
+        /// The argument names of the @require directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the @require field argument.
+            /// </summary>
+            public const string Field = "field";
+        }
+    }
 }

@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
@@ -25,20 +27,29 @@ public class RequireAttribute : ArgumentDescriptorAttribute
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="field"/> is <c>null</c>.
     /// </exception>
-    public RequireAttribute(string field)
+    public RequireAttribute(string? field = null)
     {
-        ArgumentNullException.ThrowIfNull(field);
         Field = field;
     }
 
     /// <summary>
     /// Gets the field selection map.
     /// </summary>
-    public string Field { get; }
+    public string? Field { get; }
 
     protected override void OnConfigure(
         IDescriptorContext context,
         IArgumentDescriptor descriptor,
         ParameterInfo parameter)
-        => descriptor.Require(Field);
+    {
+        var field = Field;
+
+        if (string.IsNullOrEmpty(field))
+        {
+            // todo : this works only for leafs, we need to validate this.
+            field = context.Naming.GetArgumentName(parameter);
+        }
+
+        descriptor.Require(field);
+    }
 }

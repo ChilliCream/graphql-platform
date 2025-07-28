@@ -1,3 +1,5 @@
+#nullable enable
+
 using HotChocolate.Fusion.Language;
 
 namespace HotChocolate.Types.Composite;
@@ -16,7 +18,7 @@ namespace HotChocolate.Types.Composite;
 /// </para>
 /// </summary>
 [DirectiveType(
-    DirectiveNames.Lookup.Name,
+    DirectiveNames.Require.Name,
     DirectiveLocation.ArgumentDefinition,
     IsRepeatable = false)]
 public sealed class Require
@@ -50,6 +52,8 @@ public sealed class Require
     /// <summary>
     /// Gets the field selection map.
     /// </summary>
+    [GraphQLName(DirectiveNames.Require.Arguments.Field)]
+    [GraphQLDescription("The field selection map syntax.")]
     [GraphQLType<NonNullType<FieldSelectionMapType>>]
     public IValueSelectionNode Field { get; }
 

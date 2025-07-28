@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
