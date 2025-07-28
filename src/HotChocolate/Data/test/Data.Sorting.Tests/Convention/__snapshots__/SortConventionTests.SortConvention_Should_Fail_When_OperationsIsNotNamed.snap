@@ -1,19 +1,3 @@
-For more details look at the `Errors` property.
-
-1. `` is not a valid GraphQL name.
+`` is not a valid GraphQL name.
 https://spec.graphql.org/October2021/#sec-Names
- (Parameter 'configuration.Name') (HotChocolate.Data.Sorting.SortConventionTests.FooSortType)
-
-   at HotChocolate.Utilities.NameUtils.EnsureGraphQLName(String name, String argumentName) in NameUtils.cs:line 35
-   at HotChocolate.Data.Sorting.SortOperation.FromConfiguration(SortOperationConventionConfiguration configuration) in SortOperation.cs:line 15
-   at System.Linq.Enumerable.ToDictionary[TSource,TKey,TElement](List`1 source, Func`2 keySelector, Func`2 elementSelector, IEqualityComparer`1 comparer)
-   at HotChocolate.Data.Sorting.SortConvention.Complete(IConventionContext context) in SortConvention.cs:line 89
-   at HotChocolate.Types.Descriptors.DescriptorContext.GetConventionOrDefault[T](Func`1 factory, String scope) in DescriptorContext.cs:line 174
-   at HotChocolate.Data.SortDescriptorContextExtensions.GetSortConvention(IDescriptorContext context, String scope) in SortDescriptorContextExtensions.cs:line 19
-   at HotChocolate.Data.Sorting.SortInputTypeDescriptor..ctor(IDescriptorContext context, Type entityType, String scope) in SortInputTypeDescriptor.cs:line 20
-   at HotChocolate.Data.Sorting.SortInputTypeDescriptor`1..ctor(IDescriptorContext context, Type entityType, String scope) in SortInputTypeDescriptor`1.cs:line 21
-   at HotChocolate.Data.Sorting.SortInputTypeDescriptor.New[T](IDescriptorContext context, Type entityType, String scope) in SortInputTypeDescriptor.cs:line 192
-   at HotChocolate.Data.Sorting.SortInputType`1.CreateConfiguration(ITypeDiscoveryContext context) in SortInputType`1.cs:line 26
-   at HotChocolate.Types.TypeSystemObject`1.Initialize(ITypeDiscoveryContext context) in TypeSystemObjectBase~1.cs:line 31
-   at HotChocolate.Configuration.TypeRegistrar.InitializeType(TypeSystemObject typeSystemObject, String scope, Boolean isInferred) in TypeRegistrar.cs:line 179
-
+ (Parameter 'configuration.Name')
