@@ -222,7 +222,7 @@ public static class LookupTests
 
             directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
             """
-            directive @require("Gets the field selection map." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+            directive @require("The field selection map syntax." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
 
             scalar FieldSelectionMap
             """");
