@@ -1,4 +1,6 @@
-namespace HotChocolate.Types;
+#nullable enable
+
+namespace HotChocolate.Types.Composite;
 
 /// <summary>
 /// <para>
@@ -31,6 +33,9 @@ public sealed class Internal
     private Internal()
     {
     }
+
+    /// <inheritdoc />
+    public override string ToString() => "@internal";
 
     /// <summary>
     /// The singleton instance of the <see cref="Internal"/> directive.

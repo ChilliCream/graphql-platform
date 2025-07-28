@@ -1,9 +1,9 @@
+using System.Collections.Immutable;
 using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
-namespace HotChocolate;
+namespace HotChocolate.Types;
 
 public static class DirectiveLocationUtils
 {
@@ -55,6 +55,87 @@ public static class DirectiveLocationUtils
             { DirectiveLocation.InputFieldDefinition, Language.DirectiveLocation.InputFieldDefinition }
         };
 
+    private static readonly Dictionary<DirectiveLocation, Language.DirectiveLocation> s_typeToLang =
+        new()
+        {
+            {
+                DirectiveLocation.Query,
+                Language.DirectiveLocation.Query
+            },
+            {
+                DirectiveLocation.Mutation,
+                Language.DirectiveLocation.Mutation
+            },
+            {
+                DirectiveLocation.Subscription,
+                Language.DirectiveLocation.Subscription
+            },
+            {
+                DirectiveLocation.Field,
+                Language.DirectiveLocation.Field
+            },
+            {
+                DirectiveLocation.FragmentDefinition,
+                Language.DirectiveLocation.FragmentDefinition
+            },
+            {
+                DirectiveLocation.FragmentSpread,
+                Language.DirectiveLocation.FragmentSpread
+            },
+            {
+                DirectiveLocation.InlineFragment,
+                Language.DirectiveLocation.InlineFragment
+            },
+            {
+                DirectiveLocation.VariableDefinition,
+                Language.DirectiveLocation.VariableDefinition
+            },
+            {
+                DirectiveLocation.Schema,
+                Language.DirectiveLocation.Schema
+            },
+            {
+                DirectiveLocation.Scalar,
+                Language.DirectiveLocation.Scalar
+            },
+            {
+                DirectiveLocation.Object,
+                Language.DirectiveLocation.Object
+            },
+            {
+                DirectiveLocation.FieldDefinition,
+                Language.DirectiveLocation.FieldDefinition
+            },
+            {
+                DirectiveLocation.ArgumentDefinition,
+                Language.DirectiveLocation.ArgumentDefinition
+            },
+            {
+                DirectiveLocation.Interface,
+                Language.DirectiveLocation.Interface
+            },
+            {
+                DirectiveLocation.Union,
+                Language.DirectiveLocation.Union
+            },
+            {
+                DirectiveLocation.Enum,
+                Language.DirectiveLocation.Enum
+            },
+            {
+                DirectiveLocation.EnumValue,
+                Language.DirectiveLocation.EnumValue
+            },
+            {
+                DirectiveLocation.InputObject,
+                Language.DirectiveLocation.InputObject
+            },
+            {
+                DirectiveLocation.InputFieldDefinition,
+                Language.DirectiveLocation.InputFieldDefinition
+            }
+        };
+
     public static DirectiveLocation Parse(
         IReadOnlyList<NameNode> locations)
     {
@@ -99,6 +180,12 @@ public static class DirectiveLocationUtils
         }
         return l;
     }
+
+    public static ImmutableArray<NameNode> ToNameNodes(
+        this DirectiveLocation locations)
+        => AsEnumerable(locations)
+            .Select(t => new NameNode(null, s_typeToLang[t].Value))
+            .ToImmutableArray();
 
     public static IEnumerable<DirectiveLocation> AsEnumerable(
         this DirectiveLocation locations)

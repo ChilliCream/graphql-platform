@@ -149,10 +149,9 @@ public class SortConventionTests
         var type = new FooSortType();
 
         //act
-        var error =
-            Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+        var error = Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
-        error.Message.MatchSnapshot();
+        error.Errors[0].Message.MatchSnapshot();
     }
 
     [Fact]
