@@ -1107,7 +1107,7 @@ public sealed class SatisfiabilityValidatorTests
                 }
                 """
             ]),
-            new SourceSchemaMergerOptions { AddFusionDefinitions = false, EnableGlobalObjectIdentification = true });
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
@@ -1373,7 +1373,7 @@ public sealed class SatisfiabilityValidatorTests
                 }
                 """
             ]),
-            new SourceSchemaMergerOptions { AddFusionDefinitions = false, EnableGlobalObjectIdentification = true });
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
@@ -1937,5 +1937,169 @@ public sealed class SatisfiabilityValidatorTests
                       Unable to transition between schemas 'B' and 'C' for access to required field 'C:Section.name<String>'.
                         No lookups found for type 'Section' in schema 'C'.
             """);
+    }
+
+    [Theory]
+    [MemberData(nameof(GlobalObjectIdentificationExamplesData))]
+    public void GlobalObjectIdentification_Examples(string[] sdl, bool success, string? logs = null)
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(sdl),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false, EnableGlobalObjectIdentification = true });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.Equal(success, result.IsSuccess);
+
+        if (!success && !string.IsNullOrEmpty(logs))
+        {
+            string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(logs);
+        }
+    }
+
+    public static TheoryData<string[], bool, string?> GlobalObjectIdentificationExamplesData()
+    {
+        return new TheoryData<string[], bool, string?>
+        {
+            // A source schema doesn't have the node field - okay as long as there's another lookup
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        catById(id: ID!): Cat @lookup
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                    }
+                    """
+                ],
+                true,
+                null
+            },
+            // A source schema doesn't have any lookup for a type implementing Node
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        myCat: Cat
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                        name: String!
+                    }
+                    """
+                ],
+                false,
+                """
+                Type 'Cat' implements the 'Node' interface, but has no lookups.
+                """
+            },
+            // A source schema is missing a lookup for an exclusive field
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        catById(id: ID!): Cat @lookup @inaccessible
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Cat {
+                        name: String!
+                    }
+                    """
+                ],
+                false,
+                """
+                Unable to access the field 'Cat.name' on path 'Query.node<Node> -> A:Query.catById<Cat>'.
+                  Unable to transition between schemas 'A' and 'B' for access to field 'B:Cat.name<String>'.
+                    No lookups found for type 'Cat' in schema 'B'.
+                """
+            },
+            // A source schema is missing a lookup, but the fields it's contributing aren't exclusive
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        catById(id: ID!): Cat @lookup @inaccessible
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                        name: String!
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Cat {
+                        id: ID!
+                    }
+                    """
+                ],
+                true,
+                null
+            },
+            // Same case as above, just the order of schemas is different
+            {
+                [
+                    """
+                    # Schema A
+                    type Cat {
+                        id: ID!
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Query {
+                        catById(id: ID!): Cat @lookup @inaccessible
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                        name: String!
+                    }
+                    """,
+                ],
+                true,
+                null
+            }
+        };
     }
 }

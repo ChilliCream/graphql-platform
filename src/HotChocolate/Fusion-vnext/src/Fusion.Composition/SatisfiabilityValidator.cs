@@ -50,14 +50,22 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
                 continue;
             }
 
-            // A source schema doesn't have to have a node field for the node field
-            // inserted in the composed schema to work, so we skip the satisfiability
-            // validation for the node field.
-            if (field.Name == "node"
+            // The node and nodes field are "virtual" fields that might not directly map
+            // to an underlying source schema, so we have to validate them differently.
+            if (field.Name is "node" or "nodes"
                 && objectType == schema.QueryType
                 && schema.Types.TryGetType<IInterfaceTypeDefinition>("Node", out var nodeType)
-                && field.Type == nodeType)
+                && field.Type.NamedType() == nodeType)
             {
+                if (field.Name == "nodes")
+                {
+                    // The node and nodes field always appear in pair, so we can skip nodes entirely
+                    // and only do the validation once for the node field.
+                    continue;
+                }
+
+                VisitNodeField(objectType, field, nodeType, context);
+
                 continue;
             }
 
@@ -201,6 +209,36 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         }
     }
 
+    private void VisitNodeField(
+        MutableObjectTypeDefinition queryType,
+        MutableOutputFieldDefinition nodeField,
+        IInterfaceTypeDefinition nodeType,
+        SatisfiabilityValidatorContext context)
+    {
+        foreach (var possibleType in nodeType.GetPossibleTypes(schema))
+        {
+            var entryLookupDirective = GetFirstLookupDirective(possibleType);
+
+            if (entryLookupDirective is null)
+            {
+                var error = new SatisfiabilityError(
+                    string.Format(SatisfiabilityValidator_NodeTypeHasNoLookup, possibleType.Name));
+
+                log.Write(new LogEntry(error.ToString(), LogEntryCodes.Unsatisfiable, extension: error));
+
+                continue;
+            }
+
+            var nodePathItem = new NodeSatisfiabilityPathItem(nodeField, queryType, entryLookupDirective);
+
+            context.Path.Push(nodePathItem);
+
+            VisitObjectType(possibleType, context);
+
+            context.Path.Pop();
+        }
+    }
+
     private ImmutableArray<SatisfiabilityError> ValidateSourceSchemaTransition(
         MutableObjectTypeDefinition type,
         SatisfiabilityValidatorContext context,
@@ -265,6 +303,24 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         }
 
         return [.. errors];
+    }
+
+    private IDirective? GetFirstLookupDirective(MutableObjectTypeDefinition type)
+    {
+        var unionTypes =
+            schema.Types.OfType<MutableUnionTypeDefinition>().Where(u => u.Types.Contains(type));
+
+        foreach (var sourceSchemaName in type.GetSourceSchemaNames())
+        {
+            var lookupDirective = type.GetFusionLookupDirectives(sourceSchemaName, unionTypes).FirstOrDefault();
+
+            if (lookupDirective is not null)
+            {
+                return lookupDirective;
+            }
+        }
+
+        return null;
     }
 }
 

@@ -18,6 +18,13 @@ internal static class MutableObjectTypeDefinitionExtensions
             d => d.Name == FusionType && (string)d.Arguments[Schema].Value! == schemaName);
     }
 
+    public static IEnumerable<string> GetSourceSchemaNames(this MutableObjectTypeDefinition type)
+    {
+        return type.Directives.AsEnumerable()
+            .Where(d => d.Name == FusionType)
+            .Select(d => (string)d.Arguments[Schema].Value!);
+    }
+
     public static IEnumerable<IDirective> GetFusionLookupDirectives(
         this MutableObjectTypeDefinition type,
         string schemaName,

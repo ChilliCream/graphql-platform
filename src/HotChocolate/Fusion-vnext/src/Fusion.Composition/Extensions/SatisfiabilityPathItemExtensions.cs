@@ -8,22 +8,27 @@ namespace HotChocolate.Fusion.Extensions;
 internal static class SatisfiabilityPathItemExtensions
 {
     /// <summary>
-    /// Determines if the <see cref="SatisfiabilityPathItem"/> provides the given field on the given
+    /// Determines if the <see cref="ISatisfiabilityPathItem"/> provides the given field on the given
     /// type and schema.
     /// </summary>
     public static bool Provides(
-        this SatisfiabilityPathItem item,
+        this ISatisfiabilityPathItem item,
         MutableOutputFieldDefinition field,
         MutableObjectTypeDefinition type,
         string schemaName,
         MutableSchemaDefinition schema)
     {
-        if (item.SchemaName != schemaName)
+        if (item is not SatisfiabilityPathItem pathItem)
         {
             return false;
         }
 
-        var selectionSetText = item.Field.GetFusionFieldProvides(item.SchemaName);
+        if (pathItem.SchemaName != schemaName)
+        {
+            return false;
+        }
+
+        var selectionSetText = pathItem.Field.GetFusionFieldProvides(pathItem.SchemaName);
 
         if (selectionSetText is null)
         {
@@ -33,6 +38,6 @@ internal static class SatisfiabilityPathItemExtensions
         var selectionSet = ParseSelectionSet($"{{ {selectionSetText} }}");
         var validator = new FieldInSelectionSetValidator(schema);
 
-        return validator.Validate(selectionSet, item.FieldType, field, type);
+        return validator.Validate(selectionSet, pathItem.FieldType, field, type);
     }
 }
