@@ -46,6 +46,14 @@ public sealed class SchemaException : Exception
                 message.Append($" ({error.TypeSystemObject.GetType().GetTypeName()})");
             }
 
+            if (error.Exception is not null)
+            {
+                message.AppendLine();
+                message.AppendLine();
+                message.Append(error.Exception.StackTrace);
+                message.AppendLine();
+            }
+
             message.AppendLine();
         }
 
