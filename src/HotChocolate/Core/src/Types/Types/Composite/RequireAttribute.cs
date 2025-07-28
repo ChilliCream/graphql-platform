@@ -31,6 +31,9 @@ public class RequireAttribute : ArgumentDescriptorAttribute
         Field = field;
     }
 
+    /// <summary>
+    /// Gets the field selection map.
+    /// </summary>
     public string Field { get; }
 
     protected override void OnConfigure(

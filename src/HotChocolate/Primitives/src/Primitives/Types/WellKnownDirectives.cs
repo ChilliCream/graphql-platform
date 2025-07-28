@@ -267,4 +267,13 @@ public static class DirectiveNames
             public const string Fields = "fields";
         }
     }
+
+    /// <summary>
+    /// The name constants of the @shareable directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--shareable"/>
+    /// </summary>
+    public static class Shareable
+    {
+        public const string Name = "shareable";
+    }
 }

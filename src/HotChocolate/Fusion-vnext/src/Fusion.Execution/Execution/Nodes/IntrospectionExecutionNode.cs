@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -16,10 +17,11 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
     public override ReadOnlySpan<ExecutionNode> Dependencies => default;
 
-    public override Task<ExecutionStatus> ExecuteAsync(
+    public override Task<ExecutionNodeResult> ExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
+        var start = Stopwatch.GetTimestamp();
         var resultPool = context.ResultPool;
         var backlog = new Stack<(object? Parent, Selection Selection, FieldResult Result)>();
         var root = context.ResultPool.RentObjectResult();
@@ -41,7 +43,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         ExecuteSelections(context, backlog);
         context.AddPartialResults(root, _selections);
 
-        return Task.FromResult(new ExecutionStatus(Id, IsSkipped: false));
+        return Task.FromResult(new ExecutionNodeResult(Id, ExecutionStatus.Success, Stopwatch.GetElapsedTime(start)));
     }
 
     private static void ExecuteSelections(
