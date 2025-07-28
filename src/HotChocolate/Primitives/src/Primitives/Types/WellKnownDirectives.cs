@@ -1,4 +1,4 @@
-namespace HotChocolate;
+namespace HotChocolate.Types;
 
 /// <summary>
 /// Provides well-known directive names.
@@ -222,6 +222,18 @@ public static class DirectiveNames
     }
 
     /// <summary>
+    /// The name constants of the @is directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--is"/>
+    /// </summary>
+    public static class Is
+    {
+        /// <summary>
+        /// The name of the @is directive.
+        /// </summary>
+        public const string Name = "is";
+    }
+
+    /// <summary>
     /// The name constants of the @internal directive.
     /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--internal"/>
     /// </summary>
@@ -231,5 +243,64 @@ public static class DirectiveNames
         /// The name of the @internal directive.
         /// </summary>
         public const string Name = "internal";
+    }
+
+    /// <summary>
+    /// The name constants of the @inaccessible directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--inaccessible"/>
+    /// </summary>
+    public static class Inaccessible
+    {
+        /// <summary>
+        /// The name of the @inaccessible directive.
+        /// </summary>
+        public const string Name = "inaccessible";
+    }
+
+    /// <summary>
+    /// The name constants of the @key directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--key"/>
+    /// </summary>
+    public static class Key
+    {
+        /// <summary>
+        /// The name of the @key directive.
+        /// </summary>
+        public const string Name = "key";
+
+        /// <summary>
+        /// The argument names of the @key directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the @key fields argument.
+            /// </summary>
+            public const string Fields = "fields";
+        }
+    }
+
+    /// <summary>
+    /// The name constants of the @shareable directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--shareable"/>
+    /// </summary>
+    public static class Shareable
+    {
+        /// <summary>
+        /// The name of the @shareable directive.
+        /// </summary>
+        public const string Name = "shareable";
+    }
+
+    /// <summary>
+    /// The name constants of the @provides directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--provides"/>
+    /// </summary>
+    public static class Provides
+    {
+        /// <summary>
+        /// The name of the @provides directive.
+        /// </summary>
+        public const string Name = "provides";
     }
 }

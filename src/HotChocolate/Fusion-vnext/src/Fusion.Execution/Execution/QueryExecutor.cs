@@ -12,7 +12,7 @@ public class QueryExecutor
         var nodeMap = context.OperationPlan.AllNodes.ToDictionary(t => t.Id);
         var waitingToRun = new HashSet<ExecutionNode>(context.OperationPlan.AllNodes);
         var completed = new HashSet<ExecutionNode>();
-        var running = new HashSet<Task<ExecutionStatus>>();
+        var running = new HashSet<Task<ExecutionNodeResult>>();
 
         foreach (var root in context.OperationPlan.RootNodes)
         {
@@ -27,7 +27,7 @@ public class QueryExecutor
 
             var node = nodeMap[task.Result.Id];
 
-            if (task.Result.IsSkipped)
+            if (task.Result.Status is ExecutionStatus.Skipped)
             {
                 // if a node is skipped, all dependents are skipped as well
                 PurgeSkippedNodes(node, waitingToRun);
@@ -46,7 +46,7 @@ public class QueryExecutor
         OperationPlanContext context,
         HashSet<ExecutionNode> waitingToRun,
         HashSet<ExecutionNode> completed,
-        HashSet<Task<ExecutionStatus>> running,
+        HashSet<Task<ExecutionNodeResult>> running,
         CancellationToken cancellationToken)
     {
         var selected = new List<ExecutionNode>();

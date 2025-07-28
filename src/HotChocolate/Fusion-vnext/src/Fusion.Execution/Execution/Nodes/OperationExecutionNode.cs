@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using HotChocolate.Fusion.Execution.Clients;
@@ -103,15 +104,17 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// </summary>
     public ReadOnlySpan<string> Variables => _variables;
 
-    public override async Task<ExecutionStatus> ExecuteAsync(
+    public override async Task<ExecutionNodeResult> ExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
+        var start = Stopwatch.GetTimestamp();
+
         var variables = context.CreateVariableValueSets(Target, Variables, Requirements);
 
         if (variables.Length == 0 && (Requirements.Length > 0 || Variables.Length > 0))
         {
-            return new ExecutionStatus(Id, IsSkipped: true);
+            return new ExecutionNodeResult(Id, ExecutionStatus.Skipped, Stopwatch.GetElapsedTime(start));
         }
 
         var request = new SourceSchemaClientRequest
@@ -157,7 +160,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             }
         }
 
-        return new ExecutionStatus(Id, IsSkipped: false);
+        return new ExecutionNodeResult(Id, ExecutionStatus.Success, Stopwatch.GetElapsedTime(start));
     }
 
     internal void AddDependency(ExecutionNode node)

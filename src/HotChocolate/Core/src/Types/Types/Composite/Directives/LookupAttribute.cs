@@ -1,7 +1,7 @@
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Types;
+namespace HotChocolate.Types.Composite;
 
 /// <summary>
 /// <para>

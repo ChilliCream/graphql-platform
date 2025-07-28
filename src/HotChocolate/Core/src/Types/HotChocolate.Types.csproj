@@ -59,6 +59,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut\GreenDonut.csproj" />
+    <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Language\HotChocolate.Fusion.Language.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\Features\HotChocolate.Features.csproj" />

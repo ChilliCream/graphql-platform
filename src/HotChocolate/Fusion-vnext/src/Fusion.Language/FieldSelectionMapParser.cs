@@ -30,6 +30,15 @@ public ref struct FieldSelectionMapParser
         _reader = new FieldSelectionMapReader(sourceText, options.MaxAllowedTokens);
     }
 
+    public static IValueSelectionNode Parse(
+        string sourceText,
+        FieldSelectionMapParserOptions? options = null)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(sourceText);
+        var parser = new FieldSelectionMapParser(sourceText.AsSpan(), options);
+        return parser.Parse();
+    }
+
     public IValueSelectionNode Parse()
     {
         _parsedNodes = 0;
