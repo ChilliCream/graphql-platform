@@ -147,7 +147,7 @@ internal sealed class ComposeCommand : Command
             cancellationToken);
 
         // set up file watcher for source schema files
-        fileWatcher.Filter = "*.graphqls";
+        fileWatcher.Filter = "*.graphql*";
         fileWatcher.IncludeSubdirectories = true;
         fileWatcher.NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite | NotifyFilters.FileName;
 
@@ -208,10 +208,20 @@ internal sealed class ComposeCommand : Command
 
         void OnSourceSchemaFileChanged(FileSystemEventArgs e)
         {
+            // skip if this is the gateway file as this is handled somewhere else.
+            if (compositeSchemaFile is not null)
+            {
+                var compositeSchemaPath = Path.Combine(workingDirectory, compositeSchemaFile);
+                if (string.Equals(e.FullPath, compositeSchemaPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+            }
+
             // only process files that are in our source schema paths or match the pattern
             var isRelevantFile = sourceSchemaFilePaths.Any(path =>
                 string.Equals(path, e.FullPath, StringComparison.OrdinalIgnoreCase))
-                || e.Name?.EndsWith(".graphqls", StringComparison.OrdinalIgnoreCase) == true;
+                || IsGraphQLSchemaFile(e.Name);
 
             if (!isRelevantFile)
             {
@@ -222,7 +232,17 @@ internal sealed class ComposeCommand : Command
         }
 
         void OnGatewayFileDeleted(FileSystemEventArgs e)
-            => TriggerComposition($"Gateway file deleted: {e.Name}");
+        {
+            // we wait 500ms to see if the gateway file is recreated.
+            Thread.Sleep(500);
+
+            // if it's still missing we trigger a new composition.
+            var compositeSchemaPath = Path.Combine(workingDirectory, compositeSchemaFile);
+            if (!File.Exists(compositeSchemaPath))
+            {
+                TriggerComposition($"Gateway file deleted: {e.Name}");
+            }
+        }
 
         void TriggerComposition(string reason)
             => compositionChannel.Writer.TryWrite(reason);
@@ -255,29 +275,44 @@ internal sealed class ComposeCommand : Command
                 lastComposition = DateTime.UtcNow;
 
                 console.Out.WriteLine($"\n🔄 {reason}");
-                console.Out.WriteLine("Recomposing schema...");
 
                 // Add a small delay to ensure file operations are complete
-                await Task.Delay(100, cancellationToken);
+                await Task.Delay(200, cancellationToken);
 
-                await ComposeAsync(console, workingDirectory, sourceSchemaFiles, compositeSchemaFile, cancellationToken);
-
-                console.Out.WriteLine("✅ Recomposition complete");
-                console.Out.WriteLine("👀 Watching for changes...");
+                await ComposeAsync(
+                    console,
+                    workingDirectory,
+                    sourceSchemaFiles,
+                    compositeSchemaFile,
+                    cancellationToken);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 console.Error.WriteLine($"❌ Error during recomposition: {ex.Message}");
+            }
+            finally
+            {
                 console.Out.WriteLine("👀 Watching for changes...");
             }
         }
+    }
+
+    private static bool IsGraphQLSchemaFile(string? fileName)
+    {
+        if (fileName is null)
+        {
+            return false;
+        }
+
+        return fileName.EndsWith(".graphql", StringComparison.OrdinalIgnoreCase)
+            || fileName.EndsWith(".graphqls", StringComparison.OrdinalIgnoreCase);
     }
 
     private static ImmutableSortedSet<string> GetSourceSchemaFilePaths(
         List<string> sourceSchemaFiles,
         string workingDirectory)
     {
-        // If no source schema files were specified, scan the working directory for *.graphqls files
+        // if no source schema files were specified, scan the working directory for *.graphql* files
         if (sourceSchemaFiles.Count > 0)
         {
             return sourceSchemaFiles
@@ -286,7 +321,8 @@ internal sealed class ComposeCommand : Command
         }
 
         var foundFiles = new DirectoryInfo(workingDirectory)
-            .GetFiles("*.graphqls", SearchOption.AllDirectories)
+            .GetFiles("*.graphql*", SearchOption.AllDirectories)
+            .Where(f => IsGraphQLSchemaFile(f.Name))
             .Select(i => i.FullName)
             .ToImmutableSortedSet();
 
@@ -317,13 +353,11 @@ internal sealed class ComposeCommand : Command
         catch (Exception e)
         {
             console.Error.WriteLine(e.Message);
-
             return 1;
         }
 
         var compositionLog = new CompositionLog();
         var schemaComposer = new SchemaComposer(sourceSchemas, compositionLog);
-
         var result = schemaComposer.Compose();
 
         WriteCompositionLog(
@@ -416,13 +450,13 @@ internal sealed class ComposeCommand : Command
     {
         ImmutableSortedSet<string> sourceSchemaFilePaths;
 
-        // If no source schema files were specified, scan the working directory for *.graphqls
-        // files.
+        // If no source schema files were specified, scan the working directory for *.graphql* files
         if (sourceSchemaFiles.Count == 0)
         {
             sourceSchemaFilePaths =
                 new DirectoryInfo(workingDirectory)
-                    .GetFiles("*.graphqls")
+                    .GetFiles("*.graphql*")
+                    .Where(f => IsGraphQLSchemaFile(f.Name))
                     .Select(i => i.FullName)
                     .ToImmutableSortedSet();
 
