@@ -12,4 +12,6 @@ internal static class WellKnownTypeNames
     public const string Mutation = "Mutation";
     public const string Query = "Query";
     public const string Subscription = "Subscription";
+    public const string Node = "Node";
+    public const string ID = "ID";
 }

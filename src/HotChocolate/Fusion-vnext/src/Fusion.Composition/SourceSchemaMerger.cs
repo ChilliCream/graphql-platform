@@ -17,6 +17,7 @@ using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.StringUtilities;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
 using TypeNames = HotChocolate.Fusion.WellKnownTypeNames;
+using FieldNames = HotChocolate.Fusion.WellKnownFieldNames;
 
 namespace HotChocolate.Fusion;
 
@@ -90,23 +91,24 @@ internal sealed class SourceSchemaMerger
             }
         }
 
-        if (mergedSchema.Types.TryGetType<IInterfaceTypeDefinition>("Node", out var nodeType) && mergedSchema.QueryType is { } queryType)
+        if (mergedSchema.Types.TryGetType<IInterfaceTypeDefinition>(TypeNames.Node, out var nodeType)
+            && mergedSchema.QueryType is { } queryType)
         {
-            if (queryType.Fields.TryGetField("node", out var nodeField) && nodeField.Type == nodeType)
+            if (queryType.Fields.TryGetField(FieldNames.Node, out var nodeField) && nodeField.Type == nodeType)
             {
                 queryType.Fields.Remove(nodeField);
             }
 
             // Until gateway support is implemented, we never expose the nodes field in the merged schema.
-            if (queryType.Fields.TryGetField("nodes", out var nodesField) && nodesField.Type.NamedType() == nodeType)
+            if (queryType.Fields.TryGetField(FieldNames.Nodes, out var nodesField) && nodesField.Type.NamedType() == nodeType)
             {
                 queryType.Fields.Remove(nodesField);
             }
 
-            if (_options.EnableGlobalObjectIdentification && mergedSchema.Types.TryGetType<IScalarTypeDefinition>("ID", out var idType))
+            if (_options.EnableGlobalObjectIdentification && mergedSchema.Types.TryGetType<IScalarTypeDefinition>(TypeNames.ID, out var idType))
             {
-                var canonicalNodeField = new MutableOutputFieldDefinition("node", nodeType);
-                canonicalNodeField.Arguments.Add(new MutableInputFieldDefinition("id", new NonNullType(idType)));
+                var canonicalNodeField = new MutableOutputFieldDefinition(FieldNames.Node, nodeType);
+                canonicalNodeField.Arguments.Add(new MutableInputFieldDefinition(ArgumentNames.Id, new NonNullType(idType)));
 
                 queryType.Fields.Add(canonicalNodeField);
             }

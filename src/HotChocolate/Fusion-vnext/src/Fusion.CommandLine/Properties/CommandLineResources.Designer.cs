@@ -114,6 +114,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Determines whether the &apos;Query.node&apos; field shall be added..
+        /// </summary>
+        internal static string ComposeCommand_EnableGlobalObjectIdentification_Description {
+            get {
+                return ResourceManager.GetString("ComposeCommand_EnableGlobalObjectIdentification_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to ❌ No GraphQL schema files were found in the working directory..
         /// </summary>
         internal static string ComposeCommand_Error_NoSourceSchemaFilesFound {
@@ -137,15 +146,6 @@ namespace HotChocolate.Fusion.Properties {
         internal static string ComposeCommand_Error_WorkingDirectoryDoesNotExist {
             get {
                 return ResourceManager.GetString("ComposeCommand_Error_WorkingDirectoryDoesNotExist", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Determines whether the &apos;Query.node&apos; field shall be added..
-        /// </summary>
-        internal static string ComposeCommand_EnableGlobalObjectIdentification_Description {
-            get {
-                return ResourceManager.GetString("ComposeCommand_EnableGlobalObjectIdentification_Description", resourceCulture);
             }
         }
 

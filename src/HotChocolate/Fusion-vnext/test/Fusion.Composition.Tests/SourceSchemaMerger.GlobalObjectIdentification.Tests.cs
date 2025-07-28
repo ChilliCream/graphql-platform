@@ -38,16 +38,16 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests
                     """
                     # Schema A
                     type Query {
-                      node(id: ID!): Node
-                      nodes(ids: [ID!]!): [Node]!
+                        node(id: ID!): Node
+                        nodes(ids: [ID!]!): [Node]!
                     }
 
                     interface Node {
-                      id: ID!
+                        id: ID!
                     }
 
                     type Product implements Node {
-                      id: ID!
+                        id: ID!
                     }
                     """
                 ],
@@ -82,11 +82,11 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests
                     """
                     # Schema A
                     type Query {
-                      node: SomethingElse
+                        node: SomethingElse
                     }
 
                     type SomethingElse {
-                      id: ID!
+                        id: ID!
                     }
                     """
                 ],
@@ -115,16 +115,16 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests
                     """
                     # Schema A
                     type Query {
-                      node(id: ID!): Node
-                      nodes(ids: [ID!]!): [Node]!
+                        node(id: ID!): Node
+                        nodes(ids: [ID!]!): [Node]!
                     }
 
                     interface Node {
-                      id: ID!
+                        id: ID!
                     }
 
                     type Product implements Node {
-                      id: ID!
+                        id: ID!
                     }
                     """
                 ],

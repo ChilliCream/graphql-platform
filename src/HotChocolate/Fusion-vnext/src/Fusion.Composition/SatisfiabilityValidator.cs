@@ -10,6 +10,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CompositionResources;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
+using FieldNames = HotChocolate.Fusion.WellKnownFieldNames;
 
 namespace HotChocolate.Fusion;
 
@@ -52,14 +53,14 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
 
             // The node and nodes field are "virtual" fields that might not directly map
             // to an underlying source schema, so we have to validate them differently.
-            if (field.Name is "node" or "nodes"
+            if (field.Name is FieldNames.Node or FieldNames.Nodes
                 && objectType == schema.QueryType
-                && schema.Types.TryGetType<IInterfaceTypeDefinition>("Node", out var nodeType)
+                && schema.Types.TryGetType<IInterfaceTypeDefinition>(WellKnownTypeNames.Node, out var nodeType)
                 && field.Type.NamedType() == nodeType)
             {
-                if (field.Name == "nodes")
+                if (field.Name == FieldNames.Nodes)
                 {
-                    // The node and nodes field always appear in pair, so we can skip nodes entirely
+                    // The node and nodes fields always appear in pairs, so we can skip nodes entirely
                     // and only do the validation once for the node field.
                     continue;
                 }
@@ -215,7 +216,7 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         IInterfaceTypeDefinition nodeType,
         SatisfiabilityValidatorContext context)
     {
-        foreach (var possibleType in nodeType.GetPossibleTypes(schema))
+        foreach (var possibleType in schema.GetPossibleTypes(nodeType))
         {
             var entryLookupDirective = GetFirstLookupDirective(possibleType);
 

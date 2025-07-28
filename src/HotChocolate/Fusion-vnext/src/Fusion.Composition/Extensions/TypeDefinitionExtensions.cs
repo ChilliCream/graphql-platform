@@ -61,47 +61,4 @@ internal static class TypeDefinitionExtensions
                 break;
         }
     }
-
-    public static IEnumerable<MutableObjectTypeDefinition> GetPossibleTypes(
-        this ITypeDefinition type,
-        MutableSchemaDefinition schema)
-    {
-        if (type.Kind is not TypeKind.Object and not TypeKind.Interface and not TypeKind.Union)
-        {
-            throw new ArgumentException(
-                "The specified type is not an abstract type.", // tmp not very accurate message + loc
-                nameof(type));
-        }
-
-        switch (type)
-        {
-            case MutableObjectTypeDefinition objectType:
-                yield return objectType;
-                break;
-
-            case MutableInterfaceTypeDefinition interfaceType:
-                foreach (var possibleType in schema.Types)
-                {
-                    if (possibleType is not MutableObjectTypeDefinition objectType)
-                    {
-                        continue;
-                    }
-
-                    if (objectType.IsImplementing(interfaceType))
-                    {
-                        yield return objectType;
-                    }
-                }
-
-                break;
-
-            case MutableUnionTypeDefinition unionType:
-                foreach (var memberType in unionType.Types)
-                {
-                    yield return memberType;
-                }
-
-                break;
-        }
-    }
 }
