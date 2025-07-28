@@ -205,7 +205,7 @@ public static class LookupTests
             }
 
             type Book5 {
-              someField(author: String! @lookup(field: "author")): String!
+              someField(author: String! @require(field: "author")): String!
               id: Int!
               title: String!
             }
@@ -222,7 +222,7 @@ public static class LookupTests
 
             directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
             """
-            directive @lookup("Gets the field selection map." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+            directive @require("The field selection map syntax." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
 
             scalar FieldSelectionMap
             """");

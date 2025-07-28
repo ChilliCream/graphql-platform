@@ -1,3 +1,5 @@
+#nullable enable
+
 using HotChocolate.Fusion.Language;
 
 namespace HotChocolate.Types.Composite;

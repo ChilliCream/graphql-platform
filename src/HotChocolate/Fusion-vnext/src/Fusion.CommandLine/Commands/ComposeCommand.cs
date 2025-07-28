@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.CommandLine;
 using System.CommandLine.IO;
 using System.Text;
+using System.Threading.Channels;
 using HotChocolate.Fusion.Logging;
 using static HotChocolate.Fusion.Properties.CommandLineResources;
 
@@ -47,27 +48,257 @@ internal sealed class ComposeCommand : Command
         compositeSchemaFileOption.AddAlias("-c");
         compositeSchemaFileOption.LegalFilePathsOnly();
 
+        var watchModeOption = new Option<bool>("--watch")
+        {
+            Arity = ArgumentArity.ZeroOrOne
+        };
+
         AddOption(workingDirectoryOption);
         AddOption(sourceSchemaFileOption);
         AddOption(compositeSchemaFileOption);
+        AddOption(watchModeOption);
 
         this.SetHandler(async context =>
         {
             var workingDirectory = context.ParseResult.GetValueForOption(workingDirectoryOption)!;
             var sourceSchemaFiles = context.ParseResult.GetValueForOption(sourceSchemaFileOption)!;
-            var compositeSchemaFile =
-                context.ParseResult.GetValueForOption(compositeSchemaFileOption);
+            var compositeSchemaFile = context.ParseResult.GetValueForOption(compositeSchemaFileOption);
+            var watchMode = context.ParseResult.GetValueForOption(watchModeOption);
 
             context.ExitCode = await ExecuteAsync(
                 context.Console,
                 workingDirectory,
                 sourceSchemaFiles,
                 compositeSchemaFile,
+                watchMode,
                 context.GetCancellationToken());
         });
     }
 
     private static async Task<int> ExecuteAsync(
+        IConsole console,
+        string workingDirectory,
+        List<string> sourceSchemaFiles,
+        string? compositeSchemaFile,
+        bool watchMode,
+        CancellationToken cancellationToken)
+    {
+        if (watchMode)
+        {
+            return await WatchComposeAsync(
+                console,
+                workingDirectory,
+                sourceSchemaFiles,
+                compositeSchemaFile,
+                cancellationToken);
+        }
+
+        return await ComposeAsync(
+            console,
+            workingDirectory,
+            sourceSchemaFiles,
+            compositeSchemaFile,
+            cancellationToken);
+    }
+
+    private static async Task<int> WatchComposeAsync(
+        IConsole console,
+        string workingDirectory,
+        List<string> sourceSchemaFiles,
+        string? compositeSchemaFile,
+        CancellationToken cancellationToken)
+    {
+        console.Out.WriteLine("🔍 Starting watch mode...");
+
+        // Initial composition
+        await ComposeAsync(console, workingDirectory, sourceSchemaFiles, compositeSchemaFile, cancellationToken);
+
+        ImmutableSortedSet<string> sourceSchemaFilePaths;
+
+        try
+        {
+            sourceSchemaFilePaths = GetSourceSchemaFilePaths(sourceSchemaFiles, workingDirectory);
+        }
+        catch (Exception e)
+        {
+            console.Error.WriteLine(e.Message);
+            return 1;
+        }
+
+        using var fileWatcher = new FileSystemWatcher(workingDirectory);
+
+        // use a bounded channel to queue composition requests
+        // when already a composition is running we enqueue a new message ...
+        // a single message which will trigger a new composition after the current one has completed.
+        var compositionChannel = Channel.CreateBounded<string>(new BoundedChannelOptions(1)
+        {
+            FullMode = BoundedChannelFullMode.DropOldest,
+            SingleReader = true,
+            SingleWriter = false
+        });
+
+        // start the composition processor task
+        var compositionTask = ProcessCompositionRequestsAsync(
+            compositionChannel.Reader,
+            console,
+            workingDirectory,
+            sourceSchemaFiles,
+            compositeSchemaFile,
+            cancellationToken);
+
+        // set up file watcher for source schema files
+        fileWatcher.Filter = "*.graphqls";
+        fileWatcher.IncludeSubdirectories = true;
+        fileWatcher.NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite | NotifyFilters.FileName;
+
+        FileSystemWatcher? gatewayFileWatcher = null;
+
+        // Set up gateway file watcher if composite schema file is specified
+        if (compositeSchemaFile is not null)
+        {
+            var compositeSchemaPath = Path.Combine(workingDirectory, compositeSchemaFile);
+            var gatewayDirectory = Path.GetDirectoryName(compositeSchemaPath);
+            var gatewayFileName = Path.GetFileName(compositeSchemaPath);
+
+            if (gatewayDirectory is not null)
+            {
+                gatewayFileWatcher = new FileSystemWatcher(gatewayDirectory);
+                gatewayFileWatcher.Filter = gatewayFileName;
+                gatewayFileWatcher.NotifyFilter = NotifyFilters.FileName;
+
+                gatewayFileWatcher.Deleted += (_, e) => OnGatewayFileDeleted(e);
+                gatewayFileWatcher.EnableRaisingEvents = true;
+            }
+        }
+
+        fileWatcher.Changed += (_, e) => OnSourceSchemaFileChanged(e);
+        fileWatcher.Created += (_, e) => OnSourceSchemaFileChanged(e);
+        fileWatcher.Deleted += (_, e) => OnSourceSchemaFileChanged(e);
+        fileWatcher.Renamed += (_, e) => OnSourceSchemaFileChanged(e);
+
+        fileWatcher.EnableRaisingEvents = true;
+
+        console.Out.WriteLine($"👀 Watching for changes in {workingDirectory}");
+        console.Out.WriteLine("Press Ctrl+C to stop watching...");
+
+        try
+        {
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            console.Out.WriteLine("\n🛑 Watch mode stopped.");
+        }
+        finally
+        {
+            compositionChannel.Writer.Complete();
+            gatewayFileWatcher?.Dispose();
+
+            try
+            {
+                await compositionTask;
+            }
+            catch (OperationCanceledException)
+            {
+                // expected when cancellation is requested
+            }
+        }
+
+        return 0;
+
+        void OnSourceSchemaFileChanged(FileSystemEventArgs e)
+        {
+            // only process files that are in our source schema paths or match the pattern
+            var isRelevantFile = sourceSchemaFilePaths.Any(path =>
+                string.Equals(path, e.FullPath, StringComparison.OrdinalIgnoreCase))
+                || e.Name?.EndsWith(".graphqls", StringComparison.OrdinalIgnoreCase) == true;
+
+            if (!isRelevantFile)
+            {
+                return;
+            }
+
+            TriggerComposition($"Source schema file {e.ChangeType.ToString().ToLower()}: {e.Name}");
+        }
+
+        void OnGatewayFileDeleted(FileSystemEventArgs e)
+            => TriggerComposition($"Gateway file deleted: {e.Name}");
+
+        void TriggerComposition(string reason)
+            => compositionChannel.Writer.TryWrite(reason);
+    }
+
+    private static async Task ProcessCompositionRequestsAsync(
+        ChannelReader<string> reader,
+        IConsole console,
+        string workingDirectory,
+        List<string> sourceSchemaFiles,
+        string? compositeSchemaFile,
+        CancellationToken cancellationToken)
+    {
+        var lastComposition = DateTime.MinValue;
+
+        await foreach (var reason in reader.ReadAllAsync(cancellationToken))
+        {
+            try
+            {
+                // Debounce rapid file changes (wait at least 500ms between compositions)
+                var now = DateTime.UtcNow;
+                var timeSinceLastComposition = now - lastComposition;
+
+                if (timeSinceLastComposition.TotalMilliseconds < 500)
+                {
+                    var delayTime = 500 - (int)timeSinceLastComposition.TotalMilliseconds;
+                    await Task.Delay(delayTime, cancellationToken);
+                }
+
+                lastComposition = DateTime.UtcNow;
+
+                console.Out.WriteLine($"\n🔄 {reason}");
+                console.Out.WriteLine("Recomposing schema...");
+
+                // Add a small delay to ensure file operations are complete
+                await Task.Delay(100, cancellationToken);
+
+                await ComposeAsync(console, workingDirectory, sourceSchemaFiles, compositeSchemaFile, cancellationToken);
+
+                console.Out.WriteLine("✅ Recomposition complete");
+                console.Out.WriteLine("👀 Watching for changes...");
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                console.Error.WriteLine($"❌ Error during recomposition: {ex.Message}");
+                console.Out.WriteLine("👀 Watching for changes...");
+            }
+        }
+    }
+
+    private static ImmutableSortedSet<string> GetSourceSchemaFilePaths(
+        List<string> sourceSchemaFiles,
+        string workingDirectory)
+    {
+        // If no source schema files were specified, scan the working directory for *.graphqls files
+        if (sourceSchemaFiles.Count > 0)
+        {
+            return sourceSchemaFiles
+                .Select(f => Path.Combine(workingDirectory, f))
+                .ToImmutableSortedSet();
+        }
+
+        var foundFiles = new DirectoryInfo(workingDirectory)
+            .GetFiles("*.graphqls", SearchOption.AllDirectories)
+            .Select(i => i.FullName)
+            .ToImmutableSortedSet();
+
+        if (foundFiles.Count == 0)
+        {
+            throw new Exception(ComposeCommand_Error_NoSourceSchemaFilesFound);
+        }
+
+        return foundFiles;
+    }
+
+    private static async Task<int> ComposeAsync(
         IConsole console,
         string workingDirectory,
         List<string> sourceSchemaFiles,
