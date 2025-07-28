@@ -51,7 +51,7 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
                 continue;
             }
 
-            // The node and nodes field are "virtual" fields that might not directly map
+            // The node and nodes fields are "virtual" fields that might not directly map
             // to an underlying source schema, so we have to validate them differently.
             if (field.Name is FieldNames.Node or FieldNames.Nodes
                 && objectType == schema.QueryType
