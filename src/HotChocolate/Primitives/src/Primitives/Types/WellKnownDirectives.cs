@@ -1,4 +1,4 @@
-namespace HotChocolate;
+namespace HotChocolate.Types;
 
 /// <summary>
 /// Provides well-known directive names.
@@ -222,6 +222,18 @@ public static class DirectiveNames
     }
 
     /// <summary>
+    /// The name constants of the @is directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--is"/>
+    /// </summary>
+    public static class Is
+    {
+        /// <summary>
+        /// The name of the @is directive.
+        /// </summary>
+        public const string Name = "is";
+    }
+
+    /// <summary>
     /// The name constants of the @internal directive.
     /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--internal"/>
     /// </summary>
@@ -274,6 +286,21 @@ public static class DirectiveNames
     /// </summary>
     public static class Shareable
     {
+        /// <summary>
+        /// The name of the @shareable directive.
+        /// </summary>
         public const string Name = "shareable";
+    }
+
+    /// <summary>
+    /// The name constants of the @provides directive.
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--provides"/>
+    /// </summary>
+    public static class Provides
+    {
+        /// <summary>
+        /// The name of the @provides directive.
+        /// </summary>
+        public const string Name = "provides";
     }
 }

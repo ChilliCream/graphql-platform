@@ -50,6 +50,7 @@ public sealed class Require
     /// <summary>
     /// Gets the field selection map.
     /// </summary>
+    [GraphQLType<NonNullType<FieldSelectionMapType>>]
     public IValueSelectionNode Field { get; }
 
     /// <inheritdoc />

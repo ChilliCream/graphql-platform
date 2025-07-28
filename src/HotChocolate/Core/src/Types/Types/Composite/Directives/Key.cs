@@ -4,7 +4,7 @@ namespace HotChocolate.Types.Composite;
 
 /// <summary>
 /// <para>
-/// The @key directive is used to designate an entity’s unique key,
+/// The @key directive is used to designate an entity's unique key,
 /// which identifies how to uniquely reference an instance of
 /// an entity across different source schemas.
 /// </para>
@@ -17,8 +17,15 @@ namespace HotChocolate.Types.Composite;
 /// </summary>
 [DirectiveType(
     DirectiveNames.Key.Name,
-    DirectiveLocation.Object | DirectiveLocation.Interface,
+    DirectiveLocation.Object
+    | DirectiveLocation.Interface,
     IsRepeatable = false)]
+[GraphQLDescription(
+    """
+    The @key directive is used to designate an entity's unique key,
+    which identifies how to uniquely reference an instance of
+    an entity across different source schemas.
+    """)]
 public sealed class Key
 {
     /// <summary>
@@ -50,14 +57,16 @@ public sealed class Key
     /// </exception>
     public Key(string fields)
     {
-        // TODO : we need to ensure that the curly braces are present!
         ArgumentNullException.ThrowIfNull(fields);
+        fields = $"{{ {fields.Trim('{', '}')} }}";
         Fields = Utf8GraphQLParser.Syntax.ParseSelectionSet(fields);
     }
 
     /// <summary>
     /// A selection set that represents the fields that make up the unique key for an entity.
     /// </summary>
+    [GraphQLType<NonNullType<FieldSelectionSetType>>]
+    [GraphQLDescription("The field selection set syntax.")]
     public SelectionSetNode Fields { get; }
 
     /// <inheritdoc />

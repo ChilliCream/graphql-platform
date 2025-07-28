@@ -36,7 +36,9 @@ namespace HotChocolate.Types.Composite;
 /// </para>
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct,
+    AttributeTargets.Class
+    | AttributeTargets.Interface
+    | AttributeTargets.Struct,
     AllowMultiple = true)]
 public class KeyAttribute : DescriptorAttribute
 {
@@ -49,6 +51,7 @@ public class KeyAttribute : DescriptorAttribute
     /// <summary>
     /// Gets the fields that make up the unique key for an entity.
     /// </summary>
+    [GraphQLType<NonNullType<FieldSelectionSetType>>]
     public string Fields { get; }
 
     protected internal override void TryConfigure(

@@ -21,6 +21,12 @@ namespace HotChocolate.Types.Composite;
     DirectiveNames.Lookup.Name,
     DirectiveLocation.FieldDefinition,
     IsRepeatable = false)]
+[GraphQLDescription(
+    """
+    The @lookup directive is used within a source schema to specify output fields
+    that can be used by the distributed GraphQL executor to resolve an entity by
+    a stable key.
+    """)]
 public sealed class Lookup
 {
     private Lookup()

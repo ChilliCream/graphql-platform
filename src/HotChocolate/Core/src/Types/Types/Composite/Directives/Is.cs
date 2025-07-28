@@ -20,9 +20,14 @@ namespace HotChocolate.Types.Composite;
 /// </para>
 /// </summary>
 [DirectiveType(
-    DirectiveNames.Lookup.Name,
+    DirectiveNames.Is.Name,
     DirectiveLocation.ArgumentDefinition,
     IsRepeatable = false)]
+[GraphQLDescription(
+    """
+    The @is directive is utilized on lookup fields to describe how the arguments
+    can be mapped from the entity type that the lookup field resolves.
+    """)]
 public sealed class Is
 {
     /// <summary>
@@ -57,6 +62,8 @@ public sealed class Is
     /// <summary>
     /// Gets the field selection map.
     /// </summary>
+    [GraphQLType<NonNullType<FieldSelectionMapType>>]
+    [GraphQLDescription("The field selection map syntax.")]
     public IValueSelectionNode Field { get; }
 
     /// <inheritdoc />
