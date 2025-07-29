@@ -1095,11 +1095,11 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///  Looks up a localized string similar to Type &apos;{0}&apos; implements the &apos;Node&apos; interface, but has no lookups..
+        ///  Looks up a localized string similar to Type &apos;{0}&apos; implements the &apos;Node&apos; interface, but does not have a lookup by id..
         /// </summary>
-        internal static string SatisfiabilityValidator_NodeTypeHasNoLookup {
+        internal static string SatisfiabilityValidator_NodeTypeHasNoLookupById {
             get {
-                return ResourceManager.GetString("SatisfiabilityValidator_NodeTypeHasNoLookup", resourceCulture);
+                return ResourceManager.GetString("SatisfiabilityValidator_NodeTypeHasNoLookupById", resourceCulture);
             }
         }
 

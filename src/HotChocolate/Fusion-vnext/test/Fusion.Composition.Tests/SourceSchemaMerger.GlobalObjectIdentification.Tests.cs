@@ -38,7 +38,7 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests
                     """
                     # Schema A
                     type Query {
-                        node(id: ID!): Node
+                        node(id: ID!): Node @lookup
                         nodes(ids: [ID!]!): [Node]!
                     }
 
@@ -70,7 +70,8 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests
                 }
 
                 interface Node
-                  @fusion__type(schema: A) {
+                  @fusion__type(schema: A)
+                  @fusion__lookup(schema: A, key: "id", field: "node(id: ID!): Node", map: [ "id" ], path: null) {
                   id: ID!
                     @fusion__field(schema: A)
                 }

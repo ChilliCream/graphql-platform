@@ -6,6 +6,7 @@ using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Fusion.Satisfiability;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CompositionResources;
@@ -218,25 +219,28 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
     {
         foreach (var possibleType in schema.GetPossibleTypes(nodeType))
         {
-            var entryLookupDirective = GetFirstLookupDirective(possibleType);
+            var lookups = GetLookupsById(possibleType);
 
-            if (entryLookupDirective is null)
+            if (!lookups.Any())
             {
                 var error = new SatisfiabilityError(
-                    string.Format(SatisfiabilityValidator_NodeTypeHasNoLookup, possibleType.Name));
+                    string.Format(SatisfiabilityValidator_NodeTypeHasNoLookupById, possibleType.Name));
 
                 log.Write(new LogEntry(error.ToString(), LogEntryCodes.Unsatisfiable, extension: error));
 
                 continue;
             }
 
-            var nodePathItem = new NodeSatisfiabilityPathItem(nodeField, queryType, entryLookupDirective);
+            foreach (var lookup in lookups)
+            {
+                var nodePathItem = new NodeSatisfiabilityPathItem(nodeField, queryType, lookup);
 
-            context.Path.Push(nodePathItem);
+                context.Path.Push(nodePathItem);
 
-            VisitObjectType(possibleType, context);
+                VisitObjectType(possibleType, context);
 
-            context.Path.Pop();
+                context.Path.Pop();
+            }
         }
     }
 
@@ -306,8 +310,9 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         return [.. errors];
     }
 
-    private IDirective? GetFirstLookupDirective(MutableObjectTypeDefinition type)
+    private List<IDirective> GetLookupsById(MutableObjectTypeDefinition type)
     {
+        var lookups = new List<IDirective>();
         var unionTypes =
             schema.Types.OfType<MutableUnionTypeDefinition>().Where(u => u.Types.Contains(type));
 
@@ -315,13 +320,14 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         {
             var lookupDirective = type.GetFusionLookupDirectives(sourceSchemaName, unionTypes).FirstOrDefault();
 
-            if (lookupDirective is not null)
+            if (lookupDirective?.Arguments[WellKnownArgumentNames.Map] is ListValueNode mapArg
+                && mapArg.Items.Count == 1 && mapArg.Items[0].Value?.Equals("id") == true)
             {
-                return lookupDirective;
+                lookups.Add(lookupDirective);
             }
         }
 
-        return null;
+        return lookups;
     }
 }
 
