@@ -9,10 +9,20 @@
       "operationPlan": {
         "operation": {
           "document": "{\n  __type(name: \"String\") {\n    name\n  }\n}",
-          "hash": "5cddb45336fd254ecdaf2e7cb5e89de1",
-          "duration": 7.6879
+          "hash": "5cddb45336fd254ecdaf2e7cb5e89de1"
         },
-        "nodes": []
+        "nodes": [
+          {
+            "id": 1,
+            "selections": [
+              {
+                "id": 1,
+                "responseName": "__type",
+                "fieldName": "__type"
+              }
+            ]
+          }
+        ]
       }
     }
   }

@@ -24,6 +24,8 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
     public override int Id { get; }
 
+    public ReadOnlySpan<Selection> Selections => _selections;
+
     public override ReadOnlySpan<ExecutionNode> Dependencies => default;
 
     public override Task<ExecutionNodeResult> ExecuteAsync(

@@ -1,9 +1,12 @@
-operation: >-
-  query testQuery {
-    votables {
-      viewerCanVote
+operation:
+  - document: >-
+    query testQuery {
+      votables {
+        viewerCanVote
+      }
     }
-  }
+    name: testQuery
+    hash: 123
 nodes:
   - id: 1
     schema: SUBGRAPH_1

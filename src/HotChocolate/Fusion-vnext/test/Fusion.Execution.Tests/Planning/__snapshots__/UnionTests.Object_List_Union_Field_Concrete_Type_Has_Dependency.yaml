@@ -1,17 +1,20 @@
-operation: >-
-  query testQuery {
-    postEdges {
-      node {
-        ... on Photo {
-          subgraph2
-          id @fusion_internal
-        }
-        ... on Discussion {
-          subgraph1
+operation:
+  - document: >-
+    query testQuery {
+      postEdges {
+        node {
+          ... on Photo {
+            subgraph2
+            id @fusion__requirement
+          }
+          ... on Discussion {
+            subgraph1
+          }
         }
       }
     }
-  }
+    name: testQuery
+    hash: 123
 nodes:
   - id: 1
     schema: SUBGRAPH_1
@@ -38,9 +41,10 @@ nodes:
           subgraph2
         }
       }
+    source: $.photoById
+    target: $.postEdges.node.<Photo>
     requirements:
       - name: __fusion_1_id
-        selectionSet: $.postEdges.node.<Photo>
         selectionMap: id
     dependencies:
       - id: 1

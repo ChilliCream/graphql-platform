@@ -1,15 +1,18 @@
-operation: >-
-  query testQuery {
-    votable {
-      viewerCanVote
-      ... on Discussion {
-        author {
-          displayName
-          id @fusion_internal
+operation:
+  - document: >-
+    query testQuery {
+      votable {
+        viewerCanVote
+        ... on Discussion {
+          author {
+            displayName
+            id @fusion__requirement
+          }
         }
       }
     }
-  }
+    name: testQuery
+    hash: 123
 nodes:
   - id: 1
     schema: SUBGRAPH_1
@@ -34,9 +37,10 @@ nodes:
           displayName
         }
       }
+    source: $.authorById
+    target: $.votable.<Discussion>.author
     requirements:
       - name: __fusion_1_id
-        selectionSet: $.votable.<Discussion>.author
         selectionMap: id
     dependencies:
       - id: 1

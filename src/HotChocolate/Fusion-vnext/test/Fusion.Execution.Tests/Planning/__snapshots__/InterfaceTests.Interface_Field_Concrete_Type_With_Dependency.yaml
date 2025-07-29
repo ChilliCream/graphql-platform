@@ -1,13 +1,16 @@
-operation: >-
-  query testQuery {
-    votable {
-      viewerCanVote
-      ... on Discussion {
-        viewerRating
-        id @fusion_internal
+operation:
+  - document: >-
+    query testQuery {
+      votable {
+        viewerCanVote
+        ... on Discussion {
+          viewerRating
+          id @fusion__requirement
+        }
       }
     }
-  }
+    name: testQuery
+    hash: 123
 nodes:
   - id: 1
     schema: SUBGRAPH_1
@@ -30,9 +33,10 @@ nodes:
           viewerRating
         }
       }
+    source: $.discussionById
+    target: $.votable.<Discussion>
     requirements:
       - name: __fusion_1_id
-        selectionSet: $.votable.<Discussion>
         selectionMap: id
     dependencies:
       - id: 1

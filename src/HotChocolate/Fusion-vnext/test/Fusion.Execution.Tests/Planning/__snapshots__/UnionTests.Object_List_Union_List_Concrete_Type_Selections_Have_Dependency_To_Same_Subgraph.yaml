@@ -1,22 +1,25 @@
-operation: >-
-  query testQuery {
-    users {
-      posts {
-        ... on Photo {
-          product {
-            subgraph2
-            id @fusion_internal
+operation:
+  - document: >-
+    query testQuery {
+      users {
+        posts {
+          ... on Photo {
+            product {
+              subgraph2
+              id @fusion__requirement
+            }
           }
-        }
-        ... on Discussion {
-          author {
-            subgraph2
-            id @fusion_internal
+          ... on Discussion {
+            author {
+              subgraph2
+              id @fusion__requirement
+            }
           }
         }
       }
     }
-  }
+    name: testQuery
+    hash: 123
 nodes:
   - id: 1
     schema: SUBGRAPH_1
@@ -47,9 +50,10 @@ nodes:
           subgraph2
         }
       }
+    source: $.authorById
+    target: $.users.posts.<Discussion>.author
     requirements:
       - name: __fusion_1_id
-        selectionSet: $.users.posts.<Discussion>.author
         selectionMap: id
     dependencies:
       - id: 1
@@ -63,9 +67,10 @@ nodes:
           subgraph2
         }
       }
+    source: $.productById
+    target: $.users.posts.<Photo>.product
     requirements:
       - name: __fusion_2_id
-        selectionSet: $.users.posts.<Photo>.product
         selectionMap: id
     dependencies:
       - id: 1

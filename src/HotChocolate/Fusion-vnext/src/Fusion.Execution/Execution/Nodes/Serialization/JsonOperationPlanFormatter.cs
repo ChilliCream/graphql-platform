@@ -96,7 +96,8 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
                     WriteOperationNode(jsonWriter, operationNode, nodeTrace);
                     break;
 
-                case IntrospectionExecutionNode:
+                case IntrospectionExecutionNode introspectionNode:
+                    WriteIntrospectionNode(jsonWriter, introspectionNode, nodeTrace);
                     break;
             }
         }
@@ -152,6 +153,41 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
 
             jsonWriter.WriteEndArray();
         }
+
+        if (trace is not null)
+        {
+            if (!string.IsNullOrEmpty(trace.SpanId))
+            {
+                jsonWriter.WriteString("spanId", trace.SpanId);
+            }
+
+            jsonWriter.WriteNumber("duration", trace.Duration.TotalMilliseconds);
+            jsonWriter.WriteString("status", trace.Status.ToString());
+        }
+
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteIntrospectionNode(
+        Utf8JsonWriter jsonWriter,
+        IntrospectionExecutionNode node,
+        ExecutionNodeTrace? trace)
+    {
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteNumber("id", node.Id);
+
+        jsonWriter.WriteStartArray("selections");
+
+        foreach (var selection in node.Selections)
+        {
+            jsonWriter.WriteStartObject();
+            jsonWriter.WriteNumber("id", selection.Id);
+            jsonWriter.WriteString("responseName", selection.ResponseName);
+            jsonWriter.WriteString("fieldName", selection.Field.Name);
+            jsonWriter.WriteEndObject();
+        }
+
+        jsonWriter.WriteEndArray();
 
         if (trace is not null)
         {

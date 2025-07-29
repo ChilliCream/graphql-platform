@@ -25,7 +25,8 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
                     WriteOperationNode(operationNode, nodeTrace, writer);
                     break;
 
-                case IntrospectionExecutionNode:
+                case IntrospectionExecutionNode introspectionNode:
+                    WriteIntrospectionNode(introspectionNode, nodeTrace, writer);
                     break;
             }
         }
@@ -147,6 +148,37 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         }
 
         writer.Unindent();
+        writer.Unindent();
+    }
+
+    private static void WriteIntrospectionNode(IntrospectionExecutionNode node, ExecutionNodeTrace? trace, CodeWriter writer)
+    {
+        writer.WriteLine("- id: {0}", node.Id);
+        writer.Indent();
+
+        writer.WriteLine("selections:");
+        writer.Indent();
+        foreach (var selection in node.Selections)
+        {
+            writer.WriteLine("- id: {0}", selection.Id);
+            writer.Indent();
+            writer.WriteLine("responseName: {0}", selection.ResponseName);
+            writer.WriteLine("fieldName: {0}", selection.Field.Name);
+            writer.Unindent();
+        }
+        writer.Unindent();
+
+        if (trace is not null)
+        {
+            if (trace.SpanId is not null)
+            {
+                writer.WriteLine("spanId: {0}", trace.SpanId);
+            }
+
+            writer.WriteLine("duration: {0}", trace.Duration.TotalMilliseconds);
+            writer.WriteLine("status: {0}", trace.Status.ToString());
+        }
+
         writer.Unindent();
     }
 }

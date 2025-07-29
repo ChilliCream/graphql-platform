@@ -1,9 +1,12 @@
-operation: >-
-  query testQuery {
-    post {
-      __typename
+operation:
+  - document: >-
+    query testQuery {
+      post {
+        __typename
+      }
     }
-  }
+    name: testQuery
+    hash: 123
 nodes:
   - id: 1
     schema: SUBGRAPH_1
