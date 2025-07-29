@@ -130,9 +130,9 @@ internal static class DirectiveClassMiddlewareFactory
         }
 
         public bool CanHandle(ParameterInfo parameter)
-            => parameter.ParameterType == typeof(Directive) ||
-                parameter.ParameterType == typeof(DirectiveNode) ||
-                (_runtimeType != typeof(object) && _runtimeType == parameter.ParameterType);
+            => parameter.ParameterType == typeof(Directive)
+                || parameter.ParameterType == typeof(DirectiveNode)
+                || (_runtimeType != typeof(object) && _runtimeType == parameter.ParameterType);
 
         public Expression CreateExpression(ParameterInfo parameter)
         {
@@ -146,7 +146,7 @@ internal static class DirectiveClassMiddlewareFactory
                 return Expression.Constant(_directive.ToSyntaxNode(), typeof(DirectiveNode));
             }
 
-            return  Expression.Constant(_directive.ToValue<object>(), _runtimeType);
+            return Expression.Constant(_directive.ToValue<object>(), _runtimeType);
         }
     }
 }

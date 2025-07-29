@@ -33,7 +33,7 @@ public sealed class FusionObjectTypeDefinition(
         Complete();
     }
 
-     /// <inheritdoc />
+    /// <inheritdoc />
     public override bool Equals(IType? other, TypeComparison comparison)
     {
         if (comparison is TypeComparison.Reference)

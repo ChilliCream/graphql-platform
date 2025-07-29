@@ -131,7 +131,7 @@ internal sealed class TypeInitializer
             throw new SchemaException(errors);
         }
 
-        // lets tell the type interceptors what types we have initialized.
+        // let's tell the type interceptors what types we have initialized.
         _interceptor.OnTypesInitialized();
         _interceptor.OnAfterDiscoverTypes();
     }
@@ -155,7 +155,7 @@ internal sealed class TypeInitializer
                     {
                         var typeRef = interfaceType.TypeReference;
                         ((ObjectType)objectType.Type).Configuration!.Interfaces.Add(typeRef);
-                        objectType.Dependencies.Add(new(typeRef, Completed));
+                        objectType.Dependencies.Add(new TypeDependency(typeRef, Completed));
                     }
                 }
             }
@@ -169,7 +169,7 @@ internal sealed class TypeInitializer
                     {
                         var typeRef = interfaceType.TypeReference;
                         ((InterfaceType)implementing.Type).Configuration!.Interfaces.Add(typeRef);
-                        implementing.Dependencies.Add(new(typeRef, Completed));
+                        implementing.Dependencies.Add(new TypeDependency(typeRef, Completed));
                     }
                 }
             }
@@ -219,7 +219,7 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeCompleteTypeNames();
 
-        if (ProcessTypes(Named, type => CompleteTypeName(type)))
+        if (ProcessTypes(Named, CompleteTypeName))
         {
             _interceptor.OnTypesCompletedName();
         }
@@ -437,7 +437,7 @@ internal sealed class TypeInitializer
                 }
             }
         }
-        else if(registeredType.Type is InterfaceType interfaceType)
+        else if (registeredType.Type is InterfaceType interfaceType)
         {
             foreach (var field in interfaceType.Configuration!.Fields)
             {
@@ -575,7 +575,7 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeCompleteTypes();
 
-        if(ProcessTypes(Completed, type => CompleteType(type)))
+        if (ProcessTypes(Completed, CompleteType))
         {
             _interceptor.OnTypesCompleted();
         }

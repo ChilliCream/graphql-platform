@@ -6,7 +6,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
-using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 
 namespace HotChocolate.Types;
 
@@ -1412,7 +1411,7 @@ public class AnnotationBasedMutations
             ITypeCompletionContext completionContext,
             TypeSystemConfiguration configuration)
         {
-            if (configuration is not ObjectTypeConfiguration objTypeDef)
+            if (configuration is not ObjectTypeConfiguration _)
             {
                 return;
             }

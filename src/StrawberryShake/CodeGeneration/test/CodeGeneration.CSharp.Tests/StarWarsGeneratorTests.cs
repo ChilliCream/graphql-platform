@@ -94,7 +94,8 @@ public class StarWarsGeneratorTests
     public void Generate_Client_With_Internal_Access_Modifier()
     {
         AssertStarWarsResult(
-            new AssertSettings {
+            new AssertSettings
+            {
                 StrictValidation = true,
                 AccessModifier = AccessModifier.Internal
             },

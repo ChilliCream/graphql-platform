@@ -1,4 +1,3 @@
-using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;

@@ -1,5 +1,6 @@
 using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -10,12 +11,14 @@ public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
         var sb = new StringBuilder();
         var writer = new CodeWriter(sb);
 
+        WriteOperation(plan.Operation.Definition, writer);
+
         writer.WriteLine("nodes:");
         writer.Indent();
 
         foreach (var node in plan.AllNodes)
         {
-            if(node is OperationExecutionNode operationNode)
+            if (node is OperationExecutionNode operationNode)
             {
                 WriteNode(operationNode, writer);
             }
@@ -29,22 +32,14 @@ public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
         writer.WriteLine("- id: " + node.Id);
         writer.Indent();
         writer.WriteLine("schema: " + node.SchemaName);
-        writer.WriteLine("operation: >-");
-        writer.Indent();
-        var reader = new StringReader(node.Operation.ToString());
-        var line = reader.ReadLine();
-        while (line != null)
-        {
-            writer.WriteLine(line);
-            line = reader.ReadLine();
-        }
-        writer.Unindent();
 
-        if (node.Requirements.Any())
+        WriteOperation(node.Operation, writer);
+
+        if (node.Requirements.Length > 0)
         {
             writer.WriteLine("requirements:");
             writer.Indent();
-            foreach (var requirement in node.Requirements.OrderBy(t => t.Key))
+            foreach (var requirement in node.Requirements.ToArray().OrderBy(t => t.Key))
             {
                 writer.WriteLine("- name: " + requirement.Key);
                 writer.Indent();
@@ -56,11 +51,11 @@ public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
             writer.Unindent();
         }
 
-        if (node.Dependencies.Any())
+        if (node.Dependencies.Length > 0)
         {
             writer.WriteLine("dependencies:");
             writer.Indent();
-            foreach (var dependency in node.Dependencies.OrderBy(t => t.Id))
+            foreach (var dependency in node.Dependencies.ToArray().OrderBy(t => t.Id))
             {
                 writer.WriteLine("- id: " + dependency.Id);
             }
@@ -68,6 +63,20 @@ public sealed class YamlExecutionPlanFormatter : ExecutionPlanFormatter
             writer.Unindent();
         }
 
+        writer.Unindent();
+    }
+
+    private static void WriteOperation(OperationDefinitionNode operation, CodeWriter writer)
+    {
+        writer.WriteLine("operation: >-");
+        writer.Indent();
+        var reader = new StringReader(operation.ToString());
+        var line = reader.ReadLine();
+        while (line != null)
+        {
+            writer.WriteLine(line);
+            line = reader.ReadLine();
+        }
         writer.Unindent();
     }
 }

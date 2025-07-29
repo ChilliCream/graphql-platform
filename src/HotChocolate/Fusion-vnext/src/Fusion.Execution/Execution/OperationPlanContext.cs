@@ -1,5 +1,8 @@
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
@@ -8,75 +11,106 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
-public sealed class OperationPlanContext
+public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 {
-    private readonly ISourceSchemaClientScope _clientScope;
+    private readonly FetchResultStore _resultStore;
+    private bool _disposed;
 
     public OperationPlanContext(
         OperationExecutionPlan operationPlan,
-        IReadOnlyDictionary<string, IValueNode>? variables,
-        RequestContext requestContext)
+        IVariableValueCollection variables,
+        RequestContext requestContext,
+        ResultPoolSession resultPoolSession)
     {
         OperationPlan = operationPlan;
         RequestContext = requestContext;
         Variables = variables;
-        _clientScope = requestContext.RequestServices.GetRequiredService<ISourceSchemaClientScope>();
+        IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
+
+        // TODO : fully implement and inject ResultPoolSession
+        _resultStore = new FetchResultStore(
+            RequestContext.Schema,
+            resultPoolSession,
+            operationPlan.Operation,
+            IncludeFlags);
+
+        // create a client scope for the current request context.
+        var clientScopeFactory = requestContext.RequestServices.GetRequiredService<ISourceSchemaClientScopeFactory>();
+        ClientScope = clientScopeFactory.CreateScope(requestContext.Schema);
+        ResultPool = resultPoolSession;
     }
 
     public OperationExecutionPlan OperationPlan { get; }
 
-    public IReadOnlyDictionary<string, IValueNode>? Variables { get; }
+    public IVariableValueCollection Variables { get; }
 
     public ISchemaDefinition Schema => RequestContext.Schema;
 
     public RequestContext RequestContext { get; }
 
-    public FetchResultStore ResultStore { get; } = new();
+    public ISourceSchemaClientScope ClientScope { get; }
 
-    // NOTE: this version is too simple, we will rewrite it once we have implemented the SelectionSetMap.
-    public ImmutableArray<VariableValues>? TryCreateVariables(
-        SelectionPath currentPath,
-        ImmutableArray<string> variables,
-        ImmutableArray<OperationRequirement> requirements)
+    public ResultPoolSession ResultPool { get; }
+
+    public ulong IncludeFlags { get; }
+
+    public IFeatureCollection Features => RequestContext.Features;
+
+    public ImmutableArray<VariableValues> CreateVariableValueSets(
+        SelectionPath selectionSet,
+        ReadOnlySpan<string> requiredVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
     {
-        if(variables.Length == 0 && requirements.Length == 0)
+        ArgumentNullException.ThrowIfNull(selectionSet);
+
+        if (requiredData.Length == 0)
         {
-            return ImmutableArray<VariableValues>.Empty;
-        }
-
-        var pathThroughVariables = GetPathThroughVariables(variables);
-
-        if (requirements.Length > 0)
-        {
-            ImmutableArray<VariableValues>.Builder? builder = null;
-
-            foreach (var (path, variableValues) in ResultStore.GetValues(currentPath, [..requirements.Select(t => (t.Key, t.Map))]))
+            if (requiredVariables.Length == 0)
             {
-                variableValues.AddRange(pathThroughVariables);
-                builder ??= ImmutableArray.CreateBuilder<VariableValues>(requirements.Length);
-                builder.Add(new VariableValues(path, new ObjectValueNode(variableValues)));
+                return [];
             }
 
-            return builder?.ToImmutable() ?? null;
+            var variableValues = GetPathThroughVariables(requiredVariables);
+            return [new VariableValues(Path.Root, new ObjectValueNode(variableValues))];
         }
-
-        return ImmutableArray<VariableValues>.Empty.Add(
-            new VariableValues(Path.Root, new ObjectValueNode(pathThroughVariables)));
+        else
+        {
+            var variableValues = GetPathThroughVariables(requiredVariables);
+            return _resultStore.CreateVariableValueSets(selectionSet, variableValues, requiredData);
+        }
     }
 
-    private IReadOnlyList<ObjectFieldNode> GetPathThroughVariables(
-        ImmutableArray<string> requiredVariables)
+    public void AddPartialResults(SelectionPath sourcePath, ReadOnlySpan<SourceSchemaResult> results)
+        => _resultStore.AddPartialResults(sourcePath, results);
+
+    public void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
+        => _resultStore.AddPartialResults(result, selections);
+
+    public PooledArrayWriter CreateRentedBuffer()
+        => _resultStore.CreateRentedBuffer();
+
+    internal IExecutionResult CreateFinalResult()
     {
-        if (Variables is null || requiredVariables.Length == 0)
+        return OperationResultBuilder.New()
+            .AddErrors(_resultStore.Errors)
+            .SetData(_resultStore.Data)
+            .RegisterForCleanup(_resultStore.MemoryOwners)
+            .Build();
+    }
+
+    private List<ObjectFieldNode> GetPathThroughVariables(
+        ReadOnlySpan<string> requiredVariables)
+    {
+        if (Variables.IsEmpty || requiredVariables.Length == 0)
         {
             return [];
         }
 
-        var variables = new List<ObjectFieldNode>(Variables.Count);
+        var variables = new List<ObjectFieldNode>();
 
         foreach (var variableName in requiredVariables)
         {
-            if (Variables.TryGetValue(variableName, out var variableValue))
+            if (Variables.TryGetValue<IValueNode>(variableName, out var variableValue))
             {
                 variables.Add(new ObjectFieldNode(variableName, variableValue));
             }
@@ -90,6 +124,38 @@ public sealed class OperationPlanContext
         return variables;
     }
 
-    public ISourceSchemaClient GetClient(string schemaName)
-        => _clientScope.GetClient(schemaName);
+    public ISourceSchemaClient GetClient(string schemaName, OperationType operationType)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(schemaName);
+
+        return ClientScope.GetClient(schemaName, operationType);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (!_disposed)
+        {
+            _disposed = true;
+            await ClientScope.DisposeAsync().ConfigureAwait(false);
+        }
+    }
+}
+
+file static class OperationPlanContextExtensions
+{
+    public static OperationResultBuilder RegisterForCleanup(
+        this OperationResultBuilder builder,
+        ConcurrentStack<IDisposable> disposables)
+    {
+        while (disposables.TryPop(out var disposable))
+        {
+            builder.RegisterForCleanup(() =>
+            {
+                disposable.Dispose();
+                return ValueTask.CompletedTask;
+            });
+        }
+
+        return builder;
+    }
 }

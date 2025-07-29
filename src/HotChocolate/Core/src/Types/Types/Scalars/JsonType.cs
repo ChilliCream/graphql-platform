@@ -1,11 +1,11 @@
 #nullable enable
-using System.Buffers;
+
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Properties;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
 
@@ -151,23 +151,8 @@ public sealed class JsonType : ScalarType<JsonElement>
 
         private static IValueNode ParseNumber(JsonElement element)
         {
-            var text = element.GetRawText();
-            var length = checked(text.Length * 4);
-            byte[]? source = null;
-
-            var sourceSpan = length <= GraphQLConstants.StackallocThreshold
-                ? stackalloc byte[length]
-                : source = ArrayPool<byte>.Shared.Rent(length);
-            Utf8GraphQLParser.ConvertToBytes(text, ref sourceSpan);
-
-            var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(sourceSpan);
-
-            if (source is not null)
-            {
-                ArrayPool<byte>.Shared.Return(source);
-            }
-
-            return value;
+            var sourceText = JsonMarshal.GetRawUtf8Value(element);
+            return Utf8GraphQLParser.Syntax.ParseValueLiteral(sourceText);
         }
     }
 
@@ -182,7 +167,7 @@ public sealed class JsonType : ScalarType<JsonElement>
             s_visitor.Visit(node, new JsonFormatterContext(jsonWriter));
             jsonWriter.Flush();
 
-            var jsonReader = new Utf8JsonReader(bufferWriter.GetWrittenSpan());
+            var jsonReader = new Utf8JsonReader(bufferWriter.WrittenSpan);
             return JsonElement.ParseValue(ref jsonReader);
         }
 

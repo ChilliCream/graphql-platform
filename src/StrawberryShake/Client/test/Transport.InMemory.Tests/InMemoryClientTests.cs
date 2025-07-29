@@ -16,7 +16,7 @@ public class InMemoryClientTests
     public void Constructor_AllArgs_NoException()
     {
         // arrange
-        var name = "Foo";
+        const string name = "Foo";
 
         // act
         var ex = Record.Exception(() => new InMemoryClient(name));
@@ -29,10 +29,10 @@ public class InMemoryClientTests
     public void Constructor_NoName_ThrowException()
     {
         // arrange
-        string name = null!;
+        const string name = null!;
 
         // act
-        var ex = Record.Exception(() => new InMemoryClient(name));
+        var ex = Record.Exception(() => new InMemoryClient(name!));
 
         // assert
         Assert.IsType<ArgumentException>(ex);
@@ -130,6 +130,8 @@ public class InMemoryClientTests
 
         public ulong Version { get; }
 
+        public IFeatureCollection Features { get; } = new FeatureCollection();
+
         public Task<IExecutionResult> ExecuteAsync(
             IOperationRequest request,
             CancellationToken cancellationToken = default)
@@ -160,17 +162,17 @@ public class InMemoryClientTests
         private class StubSchema(IServiceProvider services) : ISchemaDefinition
         {
             public string Name => null!;
-            public string? Description  => null;
-            public IReadOnlyDirectiveCollection Directives  => null!;
-            public IFeatureCollection Features  => null!;
+            public string? Description => null;
+            public IReadOnlyDirectiveCollection Directives => null!;
+            public IFeatureCollection Features => null!;
             public ISyntaxNode ToSyntaxNode() => null!;
 
             public IServiceProvider Services => services;
-            public IObjectTypeDefinition QueryType  => null!;
+            public IObjectTypeDefinition QueryType => null!;
             public IObjectTypeDefinition? MutationType => null;
-            public IObjectTypeDefinition? SubscriptionType  => null;
-            public IReadOnlyTypeDefinitionCollection Types  => null!;
-            public IReadOnlyDirectiveDefinitionCollection DirectiveDefinitions  => null!;
+            public IObjectTypeDefinition? SubscriptionType => null;
+            public IReadOnlyTypeDefinitionCollection Types => null!;
+            public IReadOnlyDirectiveDefinitionCollection DirectiveDefinitions => null!;
             public IObjectTypeDefinition GetOperationType(OperationType operation)
             {
                 throw new NotImplementedException();

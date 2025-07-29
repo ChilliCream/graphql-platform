@@ -1,5 +1,5 @@
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Utilities;
 using HotChocolate.Language;
 
 namespace HotChocolate.PersistedOperations.FileSystem;
@@ -9,7 +9,6 @@ namespace HotChocolate.PersistedOperations.FileSystem;
 /// </summary>
 public class FileSystemOperationDocumentStorage : IOperationDocumentStorage
 {
-    private static readonly Task<OperationDocument?> s_null = Task.FromResult<OperationDocument?>(null);
     private readonly IOperationDocumentFileMap _documentMap;
 
     /// <summary>
@@ -47,18 +46,19 @@ public class FileSystemOperationDocumentStorage : IOperationDocumentStorage
         string filePath,
         CancellationToken cancellationToken)
     {
+        const int chunkSize = 4096;
         await using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+        using var writer = new PooledArrayWriter();
+        var read = 0;
 
-        var document = await BufferHelper.ReadAsync(
-                stream,
-                static (buffer, buffered) =>
-                {
-                    var span = buffer.AsSpan()[..buffered];
-                    return Utf8GraphQLParser.Parse(span);
-                },
-                cancellationToken)
-            .ConfigureAwait(false);
+        do
+        {
+            var memory = writer.GetMemory(chunkSize);
+            read = await stream.ReadAsync(memory, cancellationToken).ConfigureAwait(false);
+            writer.Advance(read);
+        } while (read == chunkSize);
 
+        var document = Utf8GraphQLParser.Parse(writer.WrittenSpan);
         return new OperationDocument(document);
     }
 

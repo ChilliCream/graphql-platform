@@ -1,9 +1,5 @@
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Json;
 
 namespace HotChocolate.Transport.Http;

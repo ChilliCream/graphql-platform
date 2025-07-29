@@ -10,7 +10,6 @@ namespace StrawberryShake.Transport.WebSockets.Protocols;
 /// </summary>
 internal ref struct GraphQLWebSocketMessageParser
 {
-    private readonly ReadOnlySequence<byte> _messageData;
     private const byte A = (byte)'a';
     private const byte C = (byte)'c';
     private const byte D = (byte)'d';
@@ -57,7 +56,6 @@ internal ref struct GraphQLWebSocketMessageParser
     /// </param>
     private GraphQLWebSocketMessageParser(ReadOnlySequence<byte> messageData)
     {
-        _messageData = messageData;
         _reader = new Utf8JsonReader(messageData);
     }
 

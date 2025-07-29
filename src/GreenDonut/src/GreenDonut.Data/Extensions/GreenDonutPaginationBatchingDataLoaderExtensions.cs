@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using GreenDonut.Data.Internal;
@@ -13,34 +13,6 @@ namespace GreenDonut.Data;
 /// </summary>
 public static class GreenDonutPaginationBatchingDataLoaderExtensions
 {
-    /// <summary>
-    /// Branches a DataLoader with the provided <see cref="PagingArguments"/>.
-    /// </summary>
-    /// <param name="dataLoader">
-    /// The DataLoader that shall be branched.
-    /// </param>
-    /// <param name="pagingArguments">
-    /// The paging arguments that shall exist as state in the branched DataLoader.
-    /// </param>
-    /// <typeparam name="TKey">
-    /// The key type of the DataLoader.
-    /// </typeparam>
-    /// <typeparam name="TValue">
-    /// The value type of the DataLoader.
-    /// </typeparam>
-    /// <returns>
-    /// Returns a branched DataLoader with the provided <see cref="PagingArguments"/>.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// Throws if the <paramref name="dataLoader"/> is <c>null</c>.
-    /// </exception>
-    [Obsolete("Use With() instead.")]
-    public static IDataLoader<TKey, Page<TValue>> WithPagingArguments<TKey, TValue>(
-        this IDataLoader<TKey, Page<TValue>> dataLoader,
-        PagingArguments pagingArguments)
-        where TKey : notnull
-        => WithInternal(dataLoader, pagingArguments, null);
-
     /// <summary>
     /// Branches a DataLoader with the provided <see cref="PagingArguments"/>.
     /// </summary>

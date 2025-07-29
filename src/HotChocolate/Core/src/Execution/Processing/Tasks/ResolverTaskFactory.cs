@@ -191,7 +191,7 @@ internal static class ResolverTaskFactory
                         context.ResolverContext.ScopedContextData));
             }
 
-            NEXT:
+NEXT:
             selection = ref Unsafe.Add(ref selection, 1)!;
         }
 

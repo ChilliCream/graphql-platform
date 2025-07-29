@@ -27,8 +27,8 @@ internal sealed class QueryContextParameterExpressionBuilder()
     public bool IsDefaultHandler => false;
 
     public bool CanHandle(ParameterInfo parameter)
-        => parameter.ParameterType.IsGenericType &&
-           parameter.ParameterType.GetGenericTypeDefinition() == typeof(QueryContext<>);
+        => parameter.ParameterType.IsGenericType
+            && parameter.ParameterType.GetGenericTypeDefinition() == typeof(QueryContext<>);
 
     public Expression Build(ParameterExpressionBuilderContext context)
     {
@@ -46,7 +46,7 @@ internal sealed class QueryContextParameterExpressionBuilder()
                     return new FactoryCacheEntry(factoryMethod, factory);
                 });
 
-        if(factoryCacheEntry.Factory is not null)
+        if (factoryCacheEntry.Factory is not null)
         {
             return factoryCacheEntry.Factory;
         }

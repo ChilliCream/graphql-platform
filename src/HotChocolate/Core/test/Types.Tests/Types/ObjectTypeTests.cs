@@ -11,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using static HotChocolate.Types.FieldBindingFlags;
 using static HotChocolate.WellKnownContextData;
-using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 
 namespace HotChocolate.Types;
 
@@ -327,7 +326,7 @@ public class ObjectTypeTests : TypeTestBase
     public void TwoInterfacesProvideFieldAWithDifferentOutputType()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface A {
                     a: String
                 }
@@ -361,7 +360,7 @@ public class ObjectTypeTests : TypeTestBase
     public void TwoInterfacesProvideFieldAWithDifferentArguments1()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -395,7 +394,7 @@ public class ObjectTypeTests : TypeTestBase
     public void TwoInterfacesProvideFieldAWithDifferentArguments2()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -429,7 +428,7 @@ public class ObjectTypeTests : TypeTestBase
     public void TwoInterfacesProvideFieldAWithDifferentArguments3()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -463,7 +462,7 @@ public class ObjectTypeTests : TypeTestBase
     public void SpecifyQueryTypeNameInSchemaFirst()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 type A { field: String }
                 type B { field: String }
                 type C { field: String }
@@ -490,7 +489,7 @@ public class ObjectTypeTests : TypeTestBase
     public void SpecifyQueryTypeNameInSchemaFirstWithOptions()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 type A { field: String }
                 type B { field: String }
                 type C { field: String }";
@@ -517,7 +516,7 @@ public class ObjectTypeTests : TypeTestBase
     public void NoQueryType()
     {
         // arrange
-        var source = @"type A { field: String }";
+        const string source = @"type A { field: String }";
 
         // act
         void Action()
@@ -533,7 +532,7 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectFieldDoesNotMatchInterfaceDefinitionArgTypeInvalid()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -567,7 +566,7 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectFieldDoesNotMatchInterfaceDefinitionReturnTypeInvalid()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -601,7 +600,7 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectTypeImplementsAllFields()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -634,7 +633,7 @@ public class ObjectTypeTests : TypeTestBase
     public void ObjectTypeImplementsAllFieldsWithWrappedTypes()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface A {
                     a(a: String!): String!
                 }
@@ -2123,6 +2122,35 @@ public class ObjectTypeTests : TypeTestBase
                 .BuildSchemaAsync();
 
         schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Ignore_Type_Members()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithTypeExtension>()
+            .AddTypeExtension<QueryWithTypeExtension.SomeClassExtension>()
+            .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [GraphQLName("Query")]
+    public class QueryWithTypeExtension
+    {
+        public SomeClass GetSomeClass() => null!;
+
+        [ExtendObjectType("SomeClass")]
+        public class SomeClassExtension
+        {
+            public int SomethingElse { get; set; }
+        }
+    }
+
+    public class SomeClass
+    {
+        public int Something { get; set; }
     }
 
     public abstract class ResolverBase

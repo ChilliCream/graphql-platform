@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 
@@ -79,8 +78,8 @@ internal static class OperationContextExtensions
         if (depth > 4)
         {
             throw new InvalidOperationException(
-                "Error reporting depth exceeded. " +
-                "Aggregate error are not allowed to be nested beyond 4 levels.");
+                "Error reporting depth exceeded. "
+                + "Aggregate error are not allowed to be nested beyond 4 levels.");
         }
 
         var handled = errorHandler.Handle(error);

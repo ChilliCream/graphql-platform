@@ -149,13 +149,13 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
             }
 
             var beforeArg = definition.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal("before"));
-            if(beforeArg is not null)
+            if (beforeArg is not null)
             {
                 definition.Arguments.Remove(beforeArg);
             }
 
             var lastArg = definition.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal("last"));
-            if(lastArg is not null)
+            if (lastArg is not null)
             {
                 definition.Arguments.Remove(lastArg);
             }

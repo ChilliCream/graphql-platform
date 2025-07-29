@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Language;
-using static HotChocolate.ExecutionAbstractionsResources;
 
 namespace HotChocolate.Execution;
 
@@ -395,7 +394,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
         var variableSet = GetVariableValues();
         var features = _features;
 
-        if (features is null || features.IsEmpty)
+        if (features?.IsEmpty != false)
         {
             features = FeatureCollection.Empty;
         }

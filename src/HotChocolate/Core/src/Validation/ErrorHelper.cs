@@ -13,8 +13,8 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(
-                "The following variables were not used: " +
-                $"{string.Join(", ", unusedVariables)}.")
+                "The following variables were not used: "
+                + $"{string.Join(", ", unusedVariables)}.")
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SpecifiedBy("sec-All-Variables-Used")
@@ -28,8 +28,8 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(
-                "The following variables were not declared: " +
-                $"{string.Join(", ", usedVariables)}.")
+                "The following variables were not declared: "
+                + $"{string.Join(", ", usedVariables)}.")
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
             .SpecifiedBy("sec-All-Variable-Uses-Defined")
@@ -705,7 +705,7 @@ internal static class ErrorHelper
             .SetMessage(Resources.ErrorHelper_DeferAndStreamLabelIsVariable)
             .AddLocation(selection)
             .SpecifiedBy("sec-Defer-And-Stream-Directive-Labels-Are-Unique")
-            .SetExtension(nameof(variable),$"${variable}")
+            .SetExtension(nameof(variable), $"${variable}")
             .SetPath(context.CreateErrorPath())
             .Build();
 

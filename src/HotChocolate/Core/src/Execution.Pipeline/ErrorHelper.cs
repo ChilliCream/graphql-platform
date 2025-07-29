@@ -7,11 +7,11 @@ internal static class ErrorHelper
 {
     public static IError OperationCanceled(Exception ex)
         => new Error
-            {
-                Message = ExecutionPipelineResources.ErrorHelper_OperationCanceled_Message,
-                Extensions = ImmutableDictionary<string, object?>.Empty.Add("code", ErrorCodes.Execution.Canceled),
-                Exception = ex
-            };
+        {
+            Message = ExecutionPipelineResources.ErrorHelper_OperationCanceled_Message,
+            Extensions = ImmutableDictionary<string, object?>.Empty.Add("code", ErrorCodes.Execution.Canceled),
+            Exception = ex
+        };
 
     public static NotSupportedException QueryTypeNotSupported()
         => new(ExecutionPipelineResources.ThrowHelper_QueryTypeNotSupported_Message);

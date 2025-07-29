@@ -7,8 +7,16 @@ interface Node {
   id: ID!
 }
 
+type BlogPage implements Node {
+  id: ID!
+}
+
 type City @authorize(policy: "READ_CITY", apply: AFTER_RESOLVER) {
   value: String
+}
+
+type Order implements Node @authorize {
+  id: ID!
 }
 
 type Person implements Node @authorize(policy: "READ_PERSON", apply: AFTER_RESOLVER) {

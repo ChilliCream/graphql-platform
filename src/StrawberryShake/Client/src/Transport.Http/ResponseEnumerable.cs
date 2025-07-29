@@ -2,7 +2,6 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Transport.Http;
-using HotChocolate.Utilities;
 using StrawberryShake.Internal;
 using static StrawberryShake.Properties.Resources;
 
@@ -100,10 +99,10 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         // handle the transport errors our self.
         // Strawberry Shake only outputs the exceptions though if there is no error in the errors
         // field
-        if (result.Errors.ValueKind is not JsonValueKind.Array ||
-            result.Errors.GetArrayLength() != 1 ||
-            !result.Errors[0].TryGetProperty("message", out var message) ||
-            message.GetString() is not "Internal Execution Error")
+        if (result.Errors.ValueKind is not JsonValueKind.Array
+            || result.Errors.GetArrayLength() != 1
+            || !result.Errors[0].TryGetProperty("message", out var message)
+            || message.GetString() is not "Internal Execution Error")
         {
             WriteProperty(writer, "errors", result.Errors);
         }
@@ -113,7 +112,7 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
 
         writer.Flush();
 
-        return JsonDocument.Parse(buffer.GetWrittenMemory());
+        return JsonDocument.Parse(buffer.WrittenMemory);
     }
 
     private static void WriteProperty(Utf8JsonWriter writer, string propertyName, JsonElement value)

@@ -1,4 +1,3 @@
-using System.Collections.Frozen;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +26,7 @@ public sealed class DataLoaderScopeHolder
 
     public IDataLoaderScope GetOrCreateScope(IServiceProvider scopedServiceProvider, IBatchScheduler? scheduler = null)
     {
-        if(s_currentScope.Value?.Scope is null)
+        if (s_currentScope.Value?.Scope is null)
         {
             CurrentScope = PinNewScope(scopedServiceProvider, scheduler);
         }

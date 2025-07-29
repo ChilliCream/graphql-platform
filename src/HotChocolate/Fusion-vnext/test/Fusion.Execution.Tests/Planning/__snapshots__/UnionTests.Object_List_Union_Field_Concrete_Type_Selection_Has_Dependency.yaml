@@ -1,0 +1,71 @@
+operation: >-
+  query testQuery {
+    postEdges {
+      node {
+        ... on Photo {
+          product {
+            subgraph2
+            id @fusion_internal
+          }
+        }
+        ... on Discussion {
+          author {
+            subgraph3
+            id @fusion_internal
+          }
+        }
+      }
+    }
+  }
+nodes:
+  - id: 1
+    schema: SUBGRAPH_1
+    operation: >-
+      query testQuery_1 {
+        postEdges {
+          node {
+            ... on Photo {
+              product {
+                id
+              }
+            }
+            ... on Discussion {
+              author {
+                id
+              }
+            }
+          }
+        }
+      }
+  - id: 2
+    schema: SUBGRAPH_3
+    operation: >-
+      query testQuery_2(
+        $__fusion_1_id: ID!
+      ) {
+        authorById(id: $__fusion_1_id) {
+          subgraph3
+        }
+      }
+    requirements:
+      - name: __fusion_1_id
+        selectionSet: $.postEdges.node.<Discussion>.author
+        selectionMap: id
+    dependencies:
+      - id: 1
+  - id: 3
+    schema: SUBGRAPH_2
+    operation: >-
+      query testQuery_3(
+        $__fusion_2_id: ID!
+      ) {
+        productById(id: $__fusion_2_id) {
+          subgraph2
+        }
+      }
+    requirements:
+      - name: __fusion_2_id
+        selectionSet: $.postEdges.node.<Photo>.product
+        selectionMap: id
+    dependencies:
+      - id: 1

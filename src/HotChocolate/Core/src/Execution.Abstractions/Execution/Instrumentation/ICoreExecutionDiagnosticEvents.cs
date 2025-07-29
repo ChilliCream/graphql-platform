@@ -1,4 +1,3 @@
-using System.Data;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Instrumentation;

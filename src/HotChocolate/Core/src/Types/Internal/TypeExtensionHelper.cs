@@ -174,8 +174,8 @@ public static class TypeExtensionHelper
             }
         }
 
-        if (extension.FieldBindingType != null &&
-            extension.FieldBindingType != typeof(object))
+        if (extension.FieldBindingType != null
+            && extension.FieldBindingType != typeof(object))
         {
             type.KnownRuntimeTypes.Add(extension.FieldBindingType);
         }

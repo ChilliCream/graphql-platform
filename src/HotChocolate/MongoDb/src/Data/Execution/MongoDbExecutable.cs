@@ -57,7 +57,7 @@ public abstract class MongoDbExecutable<T> : IExecutable<T>, IMongoDbExecutable
     async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        await foreach(var item in ToAsyncEnumerable(cancellationToken))
+        await foreach (var item in ToAsyncEnumerable(cancellationToken))
         {
             yield return item;
         }

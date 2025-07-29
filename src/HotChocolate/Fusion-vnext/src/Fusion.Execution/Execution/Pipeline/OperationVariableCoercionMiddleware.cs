@@ -25,7 +25,7 @@ internal sealed class OperationVariableCoercionMiddleware
         RequestContext context,
         RequestDelegate next)
     {
-        var operationExecutionPlan = context.GetOperationExecutionPlan();
+        var operationExecutionPlan = context.GetOperationPlan();
 
         if (operationExecutionPlan is null)
         {
@@ -35,13 +35,13 @@ internal sealed class OperationVariableCoercionMiddleware
 
         return TryCoerceVariables(
             context,
-            operationExecutionPlan.Operation.VariableDefinitions,
+            operationExecutionPlan.VariableDefinitions,
             _diagnosticEvents)
             ? next(context)
             : default;
     }
 
-    public static bool TryCoerceVariables(
+    private static bool TryCoerceVariables(
         RequestContext context,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
         ICoreExecutionDiagnosticEvents diagnosticEvents)
@@ -61,7 +61,7 @@ internal sealed class OperationVariableCoercionMiddleware
         {
             using (diagnosticEvents.CoerceVariables(context))
             {
-                if(VariableCoercionHelper.TryCoerceVariableValues(
+                if (VariableCoercionHelper.TryCoerceVariableValues(
                     context.Schema,
                     variableDefinitions,
                     operationRequest.VariableValues ?? s_empty,
@@ -71,11 +71,9 @@ internal sealed class OperationVariableCoercionMiddleware
                     context.VariableValues = [new VariableValueCollection(coercedValues)];
                     return true;
                 }
-                else
-                {
-                    context.Result = OperationResultBuilder.CreateError(error);
-                    return false;
-                }
+
+                context.Result = OperationResultBuilder.CreateError(error);
+                return false;
             }
         }
 
@@ -83,14 +81,13 @@ internal sealed class OperationVariableCoercionMiddleware
         {
             using (diagnosticEvents.CoerceVariables(context))
             {
-                var schema = context.Schema;
                 var variableSetCount = variableBatchRequest.VariableValues?.Count ?? 0;
                 var variableSetInput = variableBatchRequest.VariableValues!;
                 var variableSet = new IVariableValueCollection[variableSetCount];
 
                 for (var i = 0; i < variableSetCount; i++)
                 {
-                    if(VariableCoercionHelper.TryCoerceVariableValues(
+                    if (VariableCoercionHelper.TryCoerceVariableValues(
                         context.Schema,
                         variableDefinitions,
                         variableSetInput[i],

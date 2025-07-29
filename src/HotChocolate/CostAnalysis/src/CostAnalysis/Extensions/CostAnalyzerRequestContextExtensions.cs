@@ -1,6 +1,4 @@
 using HotChocolate.CostAnalysis;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
@@ -58,7 +56,7 @@ public static class CostAnalyzerRequestContextExtensions
             return CostAnalyzerMode.Skip;
         }
 
-        if (context.ContextData.ContainsKey(WellKnownContextData.ValidateCost))
+        if (context.ContextData.ContainsKey(ExecutionContextData.ValidateCost))
         {
             return CostAnalyzerMode.Analyze | CostAnalyzerMode.Report;
         }
@@ -72,7 +70,7 @@ public static class CostAnalyzerRequestContextExtensions
 
         flags |= CostAnalyzerMode.Execute;
 
-        if (context.ContextData.ContainsKey(WellKnownContextData.ReportCost))
+        if (context.ContextData.ContainsKey(ExecutionContextData.ReportCost))
         {
             flags |= CostAnalyzerMode.Report;
         }

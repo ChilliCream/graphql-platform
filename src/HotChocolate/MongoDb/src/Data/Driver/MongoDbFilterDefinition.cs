@@ -6,7 +6,7 @@ namespace HotChocolate.Data.MongoDb;
 
 public abstract class MongoDbFilterDefinition : FilterDefinition<BsonDocument>
 {
-    private static readonly MongoDbFilterDefinition s_empty =  new MongoDbEmptyFilterDefinition();
+    private static readonly MongoDbFilterDefinition s_empty = new MongoDbEmptyFilterDefinition();
 
     /// <summary>
     /// Gets an empty filter. An empty filter matches everything.

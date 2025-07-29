@@ -1,0 +1,15 @@
+operation: >-
+  query testQuery {
+    votables {
+      viewerCanVote
+    }
+  }
+nodes:
+  - id: 1
+    schema: SUBGRAPH_1
+    operation: >-
+      query testQuery_1 {
+        votables {
+          viewerCanVote
+        }
+      }

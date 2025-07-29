@@ -15,7 +15,7 @@ public sealed class PooledFeatureCollection : IFeatureCollection
     private static readonly KeyComparer s_featureKeyComparer = new();
     private readonly Dictionary<Type, object> _features = [];
     private readonly List<KeyValuePair<Type, object>> _pooledFeatures = [];
-    private object _state;
+    private readonly object _state;
     private IFeatureCollection? _defaults;
     private volatile int _containerRevision;
 
@@ -89,10 +89,10 @@ public sealed class PooledFeatureCollection : IFeatureCollection
             if (feature is null && Nullable.GetUnderlyingType(typeof(TFeature)) is null)
             {
                 throw new InvalidOperationException(
-                    $"{typeof(TFeature).FullName} does not exist in the feature collection " +
-                    $"and because it is a struct the method can't return null. " +
-                    $"Use 'featureCollection[typeof({typeof(TFeature).FullName})] is not null' " +
-                    $"to check if the feature exists.");
+                    $"{typeof(TFeature).FullName} does not exist in the feature collection "
+                    + $"and because it is a struct the method can't return null. "
+                    + $"Use 'featureCollection[typeof({typeof(TFeature).FullName})] is not null' "
+                    + $"to check if the feature exists.");
             }
             return (TFeature?)feature;
         }
@@ -103,7 +103,7 @@ public sealed class PooledFeatureCollection : IFeatureCollection
     /// <inheritdoc />
     public bool TryGet<TFeature>([NotNullWhen(true)] out TFeature? feature)
     {
-        if (_features is not null && _features.TryGetValue(typeof(TFeature), out var result))
+        if (_features.TryGetValue(typeof(TFeature), out var result))
         {
             if (result is TFeature f)
             {
@@ -166,18 +166,15 @@ public sealed class PooledFeatureCollection : IFeatureCollection
     /// <inheritdoc />
     public IEnumerator<KeyValuePair<Type, object>> GetEnumerator()
     {
-        if (_features != null)
+        foreach (var pair in _features)
         {
-            foreach (var pair in _features)
-            {
-                yield return pair;
-            }
+            yield return pair;
         }
 
         if (_defaults != null)
         {
             // Don't return features masked by the wrapper.
-            foreach (var pair in _features == null ? _defaults : _defaults.Except(_features, s_featureKeyComparer))
+            foreach (var pair in _defaults.Except(_features, s_featureKeyComparer))
             {
                 yield return pair;
             }

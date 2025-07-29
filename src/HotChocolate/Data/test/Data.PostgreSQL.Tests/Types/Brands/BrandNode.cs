@@ -23,7 +23,7 @@ public static partial class BrandNode
         CancellationToken cancellationToken)
     {
         // we for test purposes only return an empty page if the connection flags are set to PageInfo
-        if(connectionFlags == ConnectionFlags.PageInfo)
+        if (connectionFlags == ConnectionFlags.PageInfo)
         {
             return new PageConnection<Product>(Page<Product>.Empty);
         }

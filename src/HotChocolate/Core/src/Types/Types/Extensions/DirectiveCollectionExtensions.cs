@@ -166,7 +166,7 @@ public static class DirectiveCollectionExtensions
                     case DirectiveNames.Stream.Arguments.InitialCount:
                         initialCount = argument.Value switch
                         {
-                            VariableNode variable =>  variables.GetIntValue(variable.Name.Value) ?? 0,
+                            VariableNode variable => variables.GetIntValue(variable.Name.Value) ?? 0,
                             IntValueNode b => b.ToInt32(),
                             _ => 0
                         };
@@ -187,9 +187,9 @@ public static class DirectiveCollectionExtensions
         var argsA = CreateStreamArgs(streamA);
         var argsB = CreateStreamArgs(streamB);
 
-        return SyntaxComparer.BySyntax.Equals(argsA.If, argsB.If) &&
-            SyntaxComparer.BySyntax.Equals(argsA.InitialCount, argsB.InitialCount) &&
-            SyntaxComparer.BySyntax.Equals(argsA.Label, argsB.Label);
+        return SyntaxComparer.BySyntax.Equals(argsA.If, argsB.If)
+            && SyntaxComparer.BySyntax.Equals(argsA.InitialCount, argsB.InitialCount)
+            && SyntaxComparer.BySyntax.Equals(argsA.Label, argsB.Label);
     }
 
     private static StreamArgs CreateStreamArgs(DirectiveNode directiveNode)
@@ -220,7 +220,7 @@ public static class DirectiveCollectionExtensions
     }
 
     internal static DirectiveNode? GetDeferDirectiveNode(
-        this Language.IHasDirectives container) =>
+        this IHasDirectives container) =>
         GetDirectiveNode(container.Directives, DirectiveNames.Defer.Name);
 
     internal static DirectiveNode? GetDeferDirectiveNode(

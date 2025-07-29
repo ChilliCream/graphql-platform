@@ -110,7 +110,7 @@ internal sealed class CombinedServiceProvider : IServiceProvider
         : IServiceProviderIsService
     {
         public bool IsService(Type serviceType)
-            => first.IsService(serviceType) ||
-                second.IsService(serviceType);
+            => first.IsService(serviceType)
+                || second.IsService(serviceType);
     }
 }

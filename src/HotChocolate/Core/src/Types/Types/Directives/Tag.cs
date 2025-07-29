@@ -21,17 +21,17 @@ namespace HotChocolate.Types;
 /// </summary>
 [DirectiveType(
     DirectiveNames.Tag.Name,
-    DirectiveLocation.Object |
-    DirectiveLocation.Interface |
-    DirectiveLocation.Union |
-    DirectiveLocation.InputObject |
-    DirectiveLocation.Enum |
-    DirectiveLocation.Scalar |
-    DirectiveLocation.FieldDefinition |
-    DirectiveLocation.InputFieldDefinition |
-    DirectiveLocation.ArgumentDefinition |
-    DirectiveLocation.EnumValue |
-    DirectiveLocation.Schema,
+    DirectiveLocation.Object
+    | DirectiveLocation.Interface
+    | DirectiveLocation.Union
+    | DirectiveLocation.InputObject
+    | DirectiveLocation.Enum
+    | DirectiveLocation.Scalar
+    | DirectiveLocation.FieldDefinition
+    | DirectiveLocation.InputFieldDefinition
+    | DirectiveLocation.ArgumentDefinition
+    | DirectiveLocation.EnumValue
+    | DirectiveLocation.Schema,
     IsRepeatable = true)]
 [TagDirectiveConfig]
 [GraphQLDescription(

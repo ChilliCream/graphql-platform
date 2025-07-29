@@ -145,17 +145,17 @@ public static class PagingObjectFieldDescriptorExtensions
                     ? c.TypeInspector.GetTypeRef(nodeType)
                     : null;
 
-                if (typeRef is null &&
-                    d.Type is SyntaxTypeReference syntaxTypeRef &&
-                    syntaxTypeRef.Type.IsListType())
+                if (typeRef is null
+                    && d.Type is SyntaxTypeReference syntaxTypeRef
+                    && syntaxTypeRef.Type.IsListType())
                 {
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
 
-                if (typeRef is null &&
-                    d.Type is ExtendedTypeReference extendedTypeRef &&
-                    c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo) &&
-                    GetElementType(typeInfo) is { } elementType)
+                if (typeRef is null
+                    && d.Type is ExtendedTypeReference extendedTypeRef
+                    && c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo)
+                    && GetElementType(typeInfo) is { } elementType)
                 {
                     typeRef = TypeReference.Create(elementType, TypeContext.Output);
                 }
@@ -228,9 +228,9 @@ public static class PagingObjectFieldDescriptorExtensions
                     ? c.TypeInspector.GetTypeRef(nodeType)
                     : null;
 
-                if (typeRef is null &&
-                    d.Type is SyntaxTypeReference syntaxTypeRef &&
-                    syntaxTypeRef.Type.IsListType())
+                if (typeRef is null
+                    && d.Type is SyntaxTypeReference syntaxTypeRef
+                    && syntaxTypeRef.Type.IsListType())
                 {
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
@@ -319,19 +319,16 @@ public static class PagingObjectFieldDescriptorExtensions
     {
         var typeInspector = context.TypeInspector;
 
-        if (nodeType is null)
-        {
-            // if there is no explicit node type provided we will try and
-            // infer the schema type from the resolver member.
-            nodeType = TypeReference.Create(
-                PagingHelper.GetSchemaType(context, resolverMember),
-                TypeContext.Output);
-        }
+        // if there is no explicit node type provided we will try and
+        // infer the schema type from the resolver member.
+        nodeType ??= TypeReference.Create(
+            PagingHelper.GetSchemaType(context, resolverMember),
+            TypeContext.Output);
 
         // if the node type is a syntax type reference we will try to preserve the actual
         // runtime type for later usage.
-        if (nodeType.Kind == TypeReferenceKind.Syntax &&
-            PagingHelper.TryGetNamedType(typeInspector, resolverMember, out var namedType))
+        if (nodeType.Kind == TypeReferenceKind.Syntax
+            && PagingHelper.TryGetNamedType(typeInspector, resolverMember, out var namedType))
         {
             context.TryBindRuntimeType(
                 ((SyntaxTypeReference)nodeType).Type.NamedType().Name.Value,

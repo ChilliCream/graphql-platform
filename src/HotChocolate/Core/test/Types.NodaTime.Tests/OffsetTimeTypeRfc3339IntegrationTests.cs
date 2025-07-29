@@ -33,7 +33,7 @@ public class OffsetTimeTypeRfc3339IntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13.010011234+02:00" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "18:30:13.010011234+02:00" } })
                 .Build());
 
         Assert.Equal("18:30:13.010011234+02:00", result.ExpectOperationResult().Data!["test"]);
@@ -45,7 +45,7 @@ public class OffsetTimeTypeRfc3339IntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13.010011234+02:35" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "18:30:13.010011234+02:35" } })
                 .Build());
         Assert.Equal("18:30:13.010011234+02:35", result.ExpectOperationResult().Data!["test"]);
     }
@@ -56,7 +56,7 @@ public class OffsetTimeTypeRfc3339IntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13.010011234+02" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "18:30:13.010011234+02" } })
                 .Build());
         Assert.Null(result.ExpectOperationResult().Data);
         Assert.Single(result.ExpectOperationResult().Errors!);

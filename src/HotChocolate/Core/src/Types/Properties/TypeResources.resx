@@ -700,11 +700,7 @@ Type: `{0}`</value>
     <value>The fieldName cannot be null or empty.</value>
   </data>
   <data name="OneOfDirectiveType_Description" xml:space="preserve">
-    <value>The `@oneOf` directive is used within the type system definition language
- to indicate:
-
- - an Input Object is a Oneof Input Object, or
- - an Object Type's Field is a Oneof Field.</value>
+    <value>The `@oneOf` directive is used within the type system definition language to indicate that an input object is a oneof input object.</value>
   </data>
   <data name="ThrowHelper_OneOfNoFieldSet" xml:space="preserve">
     <value>The Oneof Input Objects `{0}` require that exactly one field must be supplied and that field must not be `null`. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.</value>

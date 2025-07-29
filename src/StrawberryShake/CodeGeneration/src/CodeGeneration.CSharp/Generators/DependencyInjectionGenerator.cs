@@ -90,8 +90,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             addClientMethod
                 .AddParameter(Profile)
                 .SetType(CreateProfileEnumReference(descriptor))
-                .SetDefault(CreateProfileEnumReference(descriptor) + "." +
-                            descriptor.TransportProfiles[0].Name);
+                .SetDefault(CreateProfileEnumReference(descriptor) + "."
+                    + descriptor.TransportProfiles[0].Name);
         }
 
         foreach (var profile in descriptor.TransportProfiles)
@@ -99,7 +99,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             GenerateClientForProfile(settings, factory, descriptor, profile);
         }
 
-        factory.AddClass(s_clientServiceProvider);
+        factory.AddClass(ClientServiceProvider);
 
         factory.Build(writer);
     }
@@ -488,9 +488,9 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         foreach (var scalar in
                  descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
         {
-            if (scalar.RuntimeType.Equals(stringTypeInfo) &&
-                scalar.SerializationType.Equals(stringTypeInfo) &&
-                !BuiltInScalarNames.IsBuiltInScalar(scalar.Name))
+            if (scalar.RuntimeType.Equals(stringTypeInfo)
+                && scalar.SerializationType.Equals(stringTypeInfo)
+                && !BuiltInScalarNames.IsBuiltInScalar(scalar.Name))
             {
                 body.AddMethodCall()
                     .SetMethodName(AddSingleton)
@@ -900,7 +900,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                             .AddArgument(Sp)))));
     }
 
-    private static string s_clientServiceProvider =
+    private const string ClientServiceProvider =
         @"private sealed class ClientServiceProvider
                 : System.IServiceProvider
                 , System.IDisposable

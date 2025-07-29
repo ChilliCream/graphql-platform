@@ -38,7 +38,7 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
     /// </param>
     /// <param name="configure">
     /// An action delegate to configure the provided
-    /// <see cref="Microsoft.AspNetCore.Authorization.AuthorizationOptions"/>.
+    /// <see cref="AspNetCore.Authorization.AuthorizationOptions"/>.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> for chaining in more configurations.

@@ -46,7 +46,7 @@ internal sealed class Fragment : IFragment
         => Directives.GetDeferDirective(variables)?.Label;
 
     public bool IsIncluded(long includeFlags, bool allowInternals = false)
-        => (includeFlags & _includeCondition) == _includeCondition &&
-            (_deferIfCondition is 0 || (includeFlags & _deferIfCondition) != _deferIfCondition) &&
-            (!IsInternal || allowInternals);
+        => (includeFlags & _includeCondition) == _includeCondition
+            && (_deferIfCondition is 0 || (includeFlags & _deferIfCondition) != _deferIfCondition)
+            && (!IsInternal || allowInternals);
 }

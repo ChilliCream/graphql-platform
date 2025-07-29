@@ -16,8 +16,8 @@ internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector)
     {
         var typeRef = (ExtendedTypeReference)typeReference;
 
-        if (!typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo) ||
-            ExtendedType.Tools.IsNonGenericBaseType(typeInfo.NamedType))
+        if (!typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo)
+            || ExtendedType.Tools.IsNonGenericBaseType(typeInfo.NamedType))
         {
             return;
         }

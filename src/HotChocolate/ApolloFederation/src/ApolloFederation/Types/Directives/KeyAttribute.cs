@@ -35,9 +35,9 @@ namespace HotChocolate.ApolloFederation.Types;
 /// </example>
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Interface |
-    AttributeTargets.Property,
+    AttributeTargets.Class
+    | AttributeTargets.Interface
+    | AttributeTargets.Property,
     AllowMultiple = true)]
 public sealed class KeyAttribute : DescriptorAttribute
 {

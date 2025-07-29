@@ -6,8 +6,8 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Types;
 
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Interface)]
+    AttributeTargets.Class
+    | AttributeTargets.Interface)]
 public sealed class UnionTypeAttribute
     : UnionTypeDescriptorAttribute
     , ITypeAttribute

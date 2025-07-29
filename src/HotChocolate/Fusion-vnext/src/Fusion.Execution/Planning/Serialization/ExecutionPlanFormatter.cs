@@ -1,4 +1,3 @@
-using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Planning;

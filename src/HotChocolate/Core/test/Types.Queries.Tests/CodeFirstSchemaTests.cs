@@ -511,7 +511,7 @@ public class CodeFirstSchemaTests
                 .Field("users")
                 .Argument("error", a => a.Type<NonNullType<BooleanType>>().DefaultValue(false))
                 .UsePaging()
-                .Resolve<FieldResult<IQueryable<User>, UserNotFound>>(
+                .Resolve(
                     ctx =>
                     {
                         var error = ctx.ArgumentValue<bool>("error");

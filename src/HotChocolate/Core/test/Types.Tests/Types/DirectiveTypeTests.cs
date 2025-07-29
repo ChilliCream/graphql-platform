@@ -166,8 +166,8 @@ public class DirectiveTypeTests : TypeTestBase
             t =>
             {
                 Assert.Equal(
-                    "The specified directive `@foo` " +
-                    "is unique and cannot be added twice.",
+                    "The specified directive `@foo` "
+                    + "is unique and cannot be added twice.",
                     t.Message);
             });
     }
@@ -703,7 +703,7 @@ public class DirectiveTypeTests : TypeTestBase
     public void Directive_ValidateArgs_InvalidArg()
     {
         // arrange
-        var sourceText = @"
+        const string sourceText = @"
             type Query {
                 foo: String @a(d:1 e:true)
             }
@@ -728,7 +728,7 @@ public class DirectiveTypeTests : TypeTestBase
     public void Directive_ValidateArgs_ArgMissing()
     {
         // arrange
-        var sourceText = @"
+        const string sourceText = @"
             type Query {
                 foo: String @a
             }
@@ -753,7 +753,7 @@ public class DirectiveTypeTests : TypeTestBase
     public void Directive_ValidateArgs_NonNullArgIsNull()
     {
         // arrange
-        var sourceText = @"
+        const string sourceText = @"
             type Query {
                 foo: String @a(d: null)
             }
@@ -778,12 +778,14 @@ public class DirectiveTypeTests : TypeTestBase
     public void Directive_ValidateArgs_Overflow()
     {
         // arrange
-        var sourceText = $@"
-            type Query {{
-                foo: String @a(d: {long.MaxValue})
-            }}
+        var sourceText =
+            $$"""
+            type Query {
+               foo: String @a(d: {{long.MaxValue}})
+            }
 
-            directive @a(c:Int d:Int! e:Int) on FIELD_DEFINITION";
+            directive @a(c:Int d:Int! e:Int) on FIELD_DEFINITION
+            """;
 
         // act
         void Action() =>
@@ -895,7 +897,9 @@ public class DirectiveTypeTests : TypeTestBase
 
     public class DirectiveMiddleware
     {
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly FieldDelegate _next;
+#pragma warning restore IDE0052 // Remove unread private members
 
         public DirectiveMiddleware(FieldDelegate next)
         {

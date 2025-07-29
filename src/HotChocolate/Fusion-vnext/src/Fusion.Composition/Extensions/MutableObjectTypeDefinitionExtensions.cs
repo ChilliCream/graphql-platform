@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.WellKnownArgumentNames;
@@ -59,6 +60,31 @@ internal static class MutableObjectTypeDefinitionExtensions
         }
 
         return lookupDirectives;
+    }
+
+    public static IEnumerable<IDirective> GetFusionLookupDirectivesById(
+        this MutableObjectTypeDefinition type,
+        IEnumerable<MutableUnionTypeDefinition> unionTypes)
+    {
+        var lookups = new List<IDirective>();
+        var sourceSchemaNames = type.Directives.AsEnumerable()
+            .Where(d => d.Name == FusionType)
+            .Select(d => (string)d.Arguments[Schema].Value!);
+        unionTypes = unionTypes.ToList();
+
+        foreach (var sourceSchemaName in sourceSchemaNames)
+        {
+            foreach (var lookupDirective in type.GetFusionLookupDirectives(sourceSchemaName, unionTypes))
+            {
+                if (lookupDirective.Arguments[Map] is ListValueNode { Items.Count: 1 } mapArg
+                    && mapArg.Items[0].Value?.Equals(Id) == true)
+                {
+                    lookups.Add(lookupDirective);
+                }
+            }
+        }
+
+        return lookups;
     }
 
     public static bool HasInternalDirective(this MutableObjectTypeDefinition type)

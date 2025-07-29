@@ -3,7 +3,6 @@
 using System.Collections.Frozen;
 using System.Collections.Immutable;
 using HotChocolate.Configuration;
-using HotChocolate.Features;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;

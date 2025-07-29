@@ -56,7 +56,7 @@ public class OffsetDateTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31+02" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31+02" } })
                 .Build());
         Assert.Equal("2020-12-31+02", result.ExpectOperationResult().Data!["test"]);
     }
@@ -67,7 +67,7 @@ public class OffsetDateTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31+02:35" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31+02:35" } })
                 .Build());
         Assert.Equal("2020-12-31+02:35", result.ExpectOperationResult().Data!["test"]);
     }
@@ -78,7 +78,7 @@ public class OffsetDateTypeIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31" } })
                 .Build());
         Assert.Null(result.ExpectOperationResult().Data);
         Assert.Single(result.ExpectOperationResult().Errors!);

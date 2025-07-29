@@ -96,8 +96,8 @@ public sealed class ExternalMissingOnBaseRuleTests
                     """
                 ],
                 [
-                    "The external field 'Product.name' in schema 'B' is not defined " +
-                    "(non-external) in any other schema."
+                    "The external field 'Product.name' in schema 'B' is not defined "
+                    + "(non-external) in any other schema."
                 ]
             },
             // The "name" field is marked as @external in both source schemas.
@@ -119,11 +119,11 @@ public sealed class ExternalMissingOnBaseRuleTests
                     """
                 ],
                 [
-                    "The external field 'Product.name' in schema 'A' is not defined " +
-                    "(non-external) in any other schema.",
+                    "The external field 'Product.name' in schema 'A' is not defined "
+                    + "(non-external) in any other schema.",
 
-                    "The external field 'Product.name' in schema 'B' is not defined " +
-                    "(non-external) in any other schema."
+                    "The external field 'Product.name' in schema 'B' is not defined "
+                    + "(non-external) in any other schema."
                 ]
             }
         };

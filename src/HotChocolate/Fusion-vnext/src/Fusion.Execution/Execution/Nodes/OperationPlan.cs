@@ -5,9 +5,13 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed record OperationExecutionPlan
 {
-    public required OperationDefinitionNode Operation { get; init; }
+    public required Operation Operation { get; init; }
 
-    public string? OperationName => Operation.Name?.Value;
+    public required OperationDefinitionNode OperationDefinition { get; init; }
+
+    public IReadOnlyList<VariableDefinitionNode> VariableDefinitions => OperationDefinition.VariableDefinitions;
+
+    public string? OperationName => OperationDefinition.Name?.Value;
 
     public required ImmutableArray<ExecutionNode> RootNodes { get; init; }
 

@@ -45,7 +45,7 @@ public class ZonedDateTimeTypeCustomIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31T19:30:13 Asia/Kathmandu (+05:45)" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T19:30:13 Asia/Kathmandu (+05:45)" } })
                 .Build());
 
         Assert.Equal(
@@ -59,7 +59,7 @@ public class ZonedDateTimeTypeCustomIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31T19:30:13 UTC (+00)" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T19:30:13 UTC (+00)" } })
                 .Build());
 
         Assert.Equal("2020-12-31T19:40:13 UTC (+00)", result.ExpectOperationResult().Data!["test"]);
@@ -71,7 +71,7 @@ public class ZonedDateTimeTypeCustomIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-12-31T19:30:13 (UTC)" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T19:30:13 (UTC)" } })
                 .Build());
 
         Assert.Null(result.ExpectOperationResult().Data);

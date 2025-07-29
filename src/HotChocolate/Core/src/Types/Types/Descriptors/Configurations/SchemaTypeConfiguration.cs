@@ -1,5 +1,3 @@
-using HotChocolate.Features;
-
 #nullable enable
 
 namespace HotChocolate.Types.Descriptors.Configurations;

@@ -81,7 +81,7 @@ public class ComparableOperationInputTests
 
         public Uri BarUri { get; set; } = null!;
 
-        public byte BarByte { get; set; } = 0;
+        public byte BarByte { get; set; }
 
         public Uri? BarUriNullable { get; set; }
 

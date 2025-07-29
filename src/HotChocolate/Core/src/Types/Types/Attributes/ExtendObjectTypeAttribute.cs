@@ -16,16 +16,14 @@ public sealed class ExtendObjectTypeAttribute
     : ObjectTypeDescriptorAttribute
     , ITypeAttribute
 {
-    private string? _name;
-
     public ExtendObjectTypeAttribute(string? name = null)
     {
-        _name = name;
+        Name = name;
     }
 
     public ExtendObjectTypeAttribute(OperationType operationType)
     {
-        _name = operationType.ToString();
+        Name = operationType.ToString();
     }
 
     public ExtendObjectTypeAttribute(Type extendsType)
@@ -36,12 +34,7 @@ public sealed class ExtendObjectTypeAttribute
     /// <summary>
     /// Gets the GraphQL type name to which this extension is bound to.
     /// </summary>
-    public string? Name
-    {
-        get => _name;
-        [Obsolete("Use the new constructor.")]
-        set => _name = value;
-    }
+    public string? Name { get; }
 
     /// <summary>
     /// Defines if this attribute is inherited. The default is <c>false</c>.

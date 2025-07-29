@@ -1,7 +1,5 @@
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Validation;
 
@@ -43,11 +41,11 @@ public class FieldMustBeDefinedRuleTests
         // assert
         Assert.Collection(context.Errors,
             t => Assert.Equal(
-                "The field `meowVolume` does not exist " +
-                "on the type `Dog`.", t.Message),
+                "The field `meowVolume` does not exist "
+                + "on the type `Dog`.", t.Message),
             t => Assert.Equal(
-                "The field `kawVolume` does not exist " +
-                "on the type `Dog`.", t.Message));
+                "The field `kawVolume` does not exist "
+                + "on the type `Dog`.", t.Message));
         context.Errors.MatchSnapshot();
     }
 
@@ -100,8 +98,8 @@ public class FieldMustBeDefinedRuleTests
         // assert
         Assert.Collection(context.Errors,
             t => Assert.Equal(
-                "The field `nickname` does not exist " +
-                "on the type `Pet`.", t.Message));
+                "The field `nickname` does not exist "
+                + "on the type `Pet`.", t.Message));
         context.Errors[0].MatchSnapshot();
     }
 
@@ -161,8 +159,8 @@ public class FieldMustBeDefinedRuleTests
         // assert
         Assert.Collection(context.Errors,
             t => Assert.Equal(
-                "A union type cannot declare a field directly. " +
-                "Use inline fragments or fragments instead.", t.Message));
+                "A union type cannot declare a field directly. "
+                + "Use inline fragments or fragments instead.", t.Message));
         context.Errors[0].MatchSnapshot();
     }
 

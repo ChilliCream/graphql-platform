@@ -45,10 +45,10 @@ public sealed class GraphQLHttpRequest
     /// </exception>
     public GraphQLHttpRequest(OperationRequest body, Uri? requestUri = null)
     {
-        if (string.IsNullOrEmpty(body.Id) &&
-            string.IsNullOrEmpty(body.Query) &&
-            body.Extensions is null &&
-            body.ExtensionsNode is null)
+        if (string.IsNullOrEmpty(body.Id)
+            && string.IsNullOrEmpty(body.Query)
+            && body.Extensions is null
+            && body.ExtensionsNode is null)
         {
             throw new ArgumentException(
                 HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,
@@ -74,10 +74,10 @@ public sealed class GraphQLHttpRequest
     /// </exception>
     public GraphQLHttpRequest(VariableBatchRequest body, Uri? requestUri = null)
     {
-        if (string.IsNullOrEmpty(body.Id) &&
-            string.IsNullOrEmpty(body.Query) &&
-            body.Extensions is null &&
-            body.ExtensionsNode is null)
+        if (string.IsNullOrEmpty(body.Id)
+            && string.IsNullOrEmpty(body.Query)
+            && body.Extensions is null
+            && body.ExtensionsNode is null)
         {
             throw new ArgumentException(
                 HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,
@@ -111,10 +111,10 @@ public sealed class GraphQLHttpRequest
 
         foreach (var request in body.Requests)
         {
-            if (string.IsNullOrEmpty(request.Id) &&
-                string.IsNullOrEmpty(request.Query) &&
-                request.Extensions is null &&
-                request.ExtensionsNode is null)
+            if (string.IsNullOrEmpty(request.Id)
+                && string.IsNullOrEmpty(request.Query)
+                && request.Extensions is null
+                && request.ExtensionsNode is null)
             {
                 throw new ArgumentException(
                     HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,
@@ -147,6 +147,11 @@ public sealed class GraphQLHttpRequest
     public OnHttpRequestMessageCreated? OnMessageCreated { get; set; }
 
     /// <summary>
+    /// Gets or sets a hook that can inspect the <see cref="HttpResponseMessage"/> after it is received.
+    /// </summary>
+    public OnHttpResponseMessageReceived? OnMessageReceived { get; set; }
+
+    /// <summary>
     /// Specifies if files shall be uploaded using the multipart request spec.
     /// </summary>
     public bool EnableFileUploads { get; set; }
@@ -155,6 +160,11 @@ public sealed class GraphQLHttpRequest
     /// Specifies that the request URI represents a persisted document URI.
     /// </summary>
     public bool PersistedDocumentUri { get; set; }
+
+    /// <summary>
+    /// Allows to specify some custom request state, that will be passed into the request hooks.
+    /// </summary>
+    public object? State { get; set; }
 
     public static implicit operator GraphQLHttpRequest(OperationRequest body) => new(body);
 

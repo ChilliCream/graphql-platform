@@ -52,7 +52,7 @@ public class SortTypeAttributeTests
         [SortFieldAttributeTest] public string Field { get; set; } = null!;
     }
 
-    [AttributeUsageAttribute(AttributeTargets.Class, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class GenericTypeSortAttribute : DescriptorAttribute
     {
         public static string TypeName { get; } = "ThisIsATest";

@@ -23,9 +23,9 @@ internal sealed class InferredServiceParameterExpressionBuilder(IServiceProvider
 
     public bool CanHandle(ParameterInfo parameter)
     {
-        if (parameter.ParameterType.IsGenericType &&
-            typeof(IEnumerable).IsAssignableFrom(parameter.ParameterType) &&
-            parameter.ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+        if (parameter.ParameterType.IsGenericType
+            && typeof(IEnumerable).IsAssignableFrom(parameter.ParameterType)
+            && parameter.ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
         {
             return serviceInspector.IsService(parameter.ParameterType.GetGenericArguments()[0]);
         }

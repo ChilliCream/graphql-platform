@@ -30,7 +30,7 @@ public sealed class FeatureCollection : IFeatureCollection
     /// <param name="initialCapacity">
     /// The initial number of elements that the collection can contain.
     /// </param>
-    /// <exception cref="System.ArgumentOutOfRangeException">
+    /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="initialCapacity"/> is less than 0
     /// </exception>
     public FeatureCollection(int initialCapacity)
@@ -61,8 +61,7 @@ public sealed class FeatureCollection : IFeatureCollection
         {
             if (_features is not null)
             {
-                return _features.Count == 0
-                    || _features.Values.All(f => f is null);
+                return _features.Count == 0;
             }
 
             if (_defaults is not null)
@@ -114,10 +113,10 @@ public sealed class FeatureCollection : IFeatureCollection
             if (feature is null && Nullable.GetUnderlyingType(typeof(TFeature)) is null)
             {
                 throw new InvalidOperationException(
-                    $"{typeof(TFeature).FullName} does not exist in the feature collection " +
-                    $"and because it is a struct the method can't return null. " +
-                    $"Use 'featureCollection[typeof({typeof(TFeature).FullName})] is not null' " +
-                    $"to check if the feature exists.");
+                    $"{typeof(TFeature).FullName} does not exist in the feature collection "
+                    + $"and because it is a struct the method can't return null. "
+                    + $"Use 'featureCollection[typeof({typeof(TFeature).FullName})] is not null' "
+                    + $"to check if the feature exists.");
             }
             return (TFeature?)feature;
         }
