@@ -47,13 +47,13 @@ public static class UploadSchemaHelpers
 
             if (list is not null)
             {
-                return string.Join(",", list.Select(x => Format(x)));
+                return string.Join(",", list.Select(Format));
             }
 
             if (nested is not null)
             {
                 return string.Join(",",
-                    nested.SelectMany(y => y!.Select(x => Format(x))));
+                    nested.SelectMany(y => y!.Select(Format)));
             }
 
             if (objectSingle is not null)
@@ -64,14 +64,14 @@ public static class UploadSchemaHelpers
             if (objectList is not null)
             {
                 return string.Join(",",
-                    objectList.Select(x => Format(x?.Bar!.Baz!.File) ?? "null"));
+                    objectList.Select(x => Format(x?.Bar!.Baz!.File)));
             }
 
             if (objectNested is not null)
             {
                 return string.Join(",",
                     objectNested.SelectMany(y
-                        => y!.Select(x => Format(x?.Bar!.Baz!.File) ?? "null")));
+                        => y!.Select(x => Format(x?.Bar!.Baz!.File))));
             }
 
             return "error";
