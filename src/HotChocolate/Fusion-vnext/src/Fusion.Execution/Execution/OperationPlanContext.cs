@@ -137,7 +137,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             .Build();
 
         result.Features.Set(OperationPlan);
-        result.Features.Set(trace);
+
+        if (trace is not null)
+        {
+            result.Features.Set(trace);
+        }
 
         return result;
     }
