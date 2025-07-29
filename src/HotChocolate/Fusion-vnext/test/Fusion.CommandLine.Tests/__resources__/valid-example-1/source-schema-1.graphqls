@@ -5,11 +5,3 @@ schema @schemaName(value: "Schema1") {
 type Query {
   schema1Field: Int!
 }
-
-# FIXME: Temporary (remove), to show issue with user-defined @schemaName directive.
-directive @schemaName(value: String!) on SCHEMA
-# FIXME: Temporary (remove), to show issue with user-defined FieldSelectionSet (as different kind).
-#type FieldSelectionSet {
-#  field1: String
-#  field2: Int
-#}
