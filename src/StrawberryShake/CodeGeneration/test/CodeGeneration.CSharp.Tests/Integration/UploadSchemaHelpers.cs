@@ -38,48 +38,47 @@ public static class UploadSchemaHelpers
             IFile?[]?[]? nested,
             [GraphQLName("object")] Test? objectSingle,
             Test?[]? objectList,
-            Test?[]?[]? objectNested,
-            bool detailedOutput = false)
+            Test?[]?[]? objectNested)
         {
             if (single is not null)
             {
-                return Format(single, detailedOutput)!;
+                return Format(single);
             }
 
             if (list is not null)
             {
-                return string.Join(",", list.Select(x => Format(x, detailedOutput) ?? "null"));
+                return string.Join(",", list.Select(x => Format(x)));
             }
 
             if (nested is not null)
             {
                 return string.Join(",",
-                    nested.SelectMany(y => y!.Select(x => Format(x, detailedOutput) ?? "null")));
+                    nested.SelectMany(y => y!.Select(x => Format(x))));
             }
 
             if (objectSingle is not null)
             {
-                return Format(objectSingle.Bar!.Baz!.File, detailedOutput)!;
+                return Format(objectSingle.Bar!.Baz!.File);
             }
 
             if (objectList is not null)
             {
                 return string.Join(",",
-                    objectList.Select(x => Format(x?.Bar!.Baz!.File, detailedOutput) ?? "null"));
+                    objectList.Select(x => Format(x?.Bar!.Baz!.File) ?? "null"));
             }
 
             if (objectNested is not null)
             {
                 return string.Join(",",
                     objectNested.SelectMany(y
-                        => y!.Select(x => Format(x?.Bar!.Baz!.File, detailedOutput) ?? "null")));
+                        => y!.Select(x => Format(x?.Bar!.Baz!.File) ?? "null")));
             }
 
             return "error";
         }
 
-        private static string? Format(IFile? file, bool detailed) =>
-            detailed ? $"[{file?.ReadContents()}|{file?.Name}|{file?.ContentType}]" : file?.ReadContents();
+        private static string Format(IFile? file) =>
+            $"[{file?.ReadContents()}|{file?.ContentType}]";
     }
 
     public record Test(Bar? Bar);

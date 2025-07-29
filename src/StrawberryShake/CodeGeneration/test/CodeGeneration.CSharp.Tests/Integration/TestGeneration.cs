@@ -337,8 +337,7 @@ public class TestGeneration
                 $nested: [[Upload]]
                 $object: TestInput
                 $objectList: [TestInput]
-                $objectNested: [[TestInput]]
-                $detailedOutput: Boolean) {
+                $objectNested: [[TestInput]]) {
             upload(
                 nonUpload: $nonUpload
                 single: $single
@@ -346,8 +345,7 @@ public class TestGeneration
                 nested: $nested
                 object: $object
                 objectList: $objectList
-                objectNested: $objectNested
-                detailedOutput: $detailedOutput)
+                objectNested: $objectNested)
         }";
     private const string UploadSchema = @"
         type Query {
@@ -358,8 +356,7 @@ public class TestGeneration
                 nested: [[Upload]]
                 object: TestInput
                 objectList: [TestInput]
-                objectNested: [[TestInput]]
-                detailedOutput: Boolean): String
+                objectNested: [[TestInput]]): String
         }
 
         input TestInput {

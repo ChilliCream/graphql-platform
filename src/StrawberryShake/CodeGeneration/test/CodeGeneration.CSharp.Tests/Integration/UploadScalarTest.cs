@@ -13,9 +13,9 @@ public class UploadScalarTest : ServerTestBase
     }
 
     [Theory]
-    [InlineData(null, "test-file:a")]
-    [InlineData("application/pdf", "[test-file:a|test-file|application/pdf]")]
-    public async Task Execute_UploadScalar_Argument(string? contentType, string expectedResponse)
+    [InlineData(null)]
+    [InlineData("application/pdf")]
+    public async Task Execute_UploadScalar_Argument(string? contentType)
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
@@ -32,17 +32,16 @@ public class UploadScalarTest : ServerTestBase
             null,
             null,
             null,
-            contentType != null,
             cancellationToken: ct);
 
         // assert
-        Assert.Equal(expectedResponse, result.Data!.Upload);
+        Assert.Equal($"[test-file:a|{contentType}]", result.Data!.Upload);
     }
 
     [Theory]
-    [InlineData(null, "A:a,B:b")]
-    [InlineData("application/pdf", "[A:a|A|application/pdf],[B:b|B|application/pdf]")]
-    public async Task Execute_UploadScalarList_Argument(string? contentType, string expectedResponse)
+    [InlineData(null)]
+    [InlineData("application/pdf")]
+    public async Task Execute_UploadScalarList_Argument(string? contentType)
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
@@ -60,17 +59,16 @@ public class UploadScalarTest : ServerTestBase
             null,
             null,
             null,
-            contentType != null,
             cancellationToken: ct);
 
         // assert
-        Assert.Equal(expectedResponse, result.Data!.Upload);
+        Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);
     }
 
     [Theory]
-    [InlineData(null, "A:a,B:b")]
-    [InlineData("application/pdf", "[A:a|A|application/pdf],[B:b|B|application/pdf]")]
-    public async Task Execute_UploadScalarNested_Argument(string? contentType, string expectedResponse)
+    [InlineData(null)]
+    [InlineData("application/pdf")]
+    public async Task Execute_UploadScalarNested_Argument(string? contentType)
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
@@ -88,17 +86,16 @@ public class UploadScalarTest : ServerTestBase
             null,
             null,
             null,
-            contentType != null,
             cancellationToken: ct);
 
         // assert
-        Assert.Equal(expectedResponse, result.Data!.Upload);
+        Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);
     }
 
     [Theory]
-    [InlineData(null, "test-file:a")]
-    [InlineData("application/pdf", "[test-file:a|test-file|application/pdf]")]
-    public async Task Execute_Input_Argument(string? contentType, string expectedResponse)
+    [InlineData(null)]
+    [InlineData("application/pdf")]
+    public async Task Execute_Input_Argument(string? contentType)
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
@@ -121,17 +118,16 @@ public class UploadScalarTest : ServerTestBase
             },
             null,
             null,
-            contentType != null,
             cancellationToken: ct);
 
         // assert
-        Assert.Equal(expectedResponse, result.Data!.Upload);
+        Assert.Equal($"[test-file:a|{contentType}]", result.Data!.Upload);
     }
 
     [Theory]
-    [InlineData(null, "A:a,B:b")]
-    [InlineData("application/pdf", "[A:a|A|application/pdf],[B:b|B|application/pdf]")]
-    public async Task Execute_InputList_Argument(string? contentType, string expectedResponse)
+    [InlineData(null)]
+    [InlineData("application/pdf")]
+    public async Task Execute_InputList_Argument(string? contentType)
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
@@ -164,17 +160,16 @@ public class UploadScalarTest : ServerTestBase
                 }
             },
             null,
-            contentType != null,
             cancellationToken: ct);
 
         // assert
-        Assert.Equal(expectedResponse, result.Data!.Upload);
+        Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);
     }
 
     [Theory]
-    [InlineData(null, "A:a,B:b")]
-    [InlineData("application/pdf", "[A:a|A|application/pdf],[B:b|B|application/pdf]")]
-    public async Task Execute_InputNested_Argument(string? contentType, string expectedResponse)
+    [InlineData(null)]
+    [InlineData("application/pdf")]
+    public async Task Execute_InputNested_Argument(string? contentType)
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
@@ -211,11 +206,10 @@ public class UploadScalarTest : ServerTestBase
                     }
                 }
             },
-            contentType != null,
             cancellationToken: ct);
 
         // assert
-        Assert.Equal(expectedResponse, result.Data!.Upload);
+        Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);
     }
 
     public static UploadScalarClient CreateClient(IWebHost host, int port)
@@ -237,9 +231,9 @@ public class UploadScalarTest : ServerTestBase
     }
 
     [Theory]
-    [InlineData(null, "A:a,null,B:b")]
-    [InlineData("application/pdf", "[A:a|A|application/pdf],[||],[B:b|B|application/pdf]")]
-    public async Task Execute_ListWorksWithNull(string? contentType, string expectedResponse)
+    [InlineData(null)]
+    [InlineData("application/pdf")]
+    public async Task Execute_ListWorksWithNull(string? contentType)
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
@@ -257,10 +251,9 @@ public class UploadScalarTest : ServerTestBase
             null,
             null,
             null,
-            contentType != null,
             cancellationToken: ct);
 
         // assert
-        Assert.Equal(expectedResponse, result.Data!.Upload);
+        Assert.Equal($"[A:a|{contentType}],[|],[B:b|{contentType}]", result.Data!.Upload);
     }
 }
