@@ -1,8 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Planning;
@@ -10,7 +10,6 @@ using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
@@ -41,8 +40,13 @@ public abstract class FusionTestBase : IDisposable
     protected static FusionSchemaDefinition ComposeSchema(
         [StringSyntax("graphql")] params string[] schemas)
     {
+        var composerOptions = new SchemaComposerOptions
+        {
+            EnableGlobalObjectIdentification = true
+        };
+
         var compositionLog = new CompositionLog();
-        var composer = new SchemaComposer(schemas, new SchemaComposerOptions(), compositionLog);
+        var composer = new SchemaComposer(schemas, composerOptions, compositionLog);
         var result = composer.Compose();
 
         if (!result.IsSuccess)
@@ -161,8 +165,8 @@ public abstract class FusionTestBase : IDisposable
             for (var i = 0; i < schemas.Length; i++)
             {
                 var sourceSchema = SchemaParser.Parse(schemas[i]);
-
-                AddFusionDirectives(sourceSchema);
+                sourceSchema.AddBuiltInFusionTypes();
+                sourceSchema.AddBuiltInFusionDirectives();
 
                 if (sourceSchema.Name == "default")
                 {
@@ -180,53 +184,6 @@ public abstract class FusionTestBase : IDisposable
             }
 
             return ComposeSchema(rewrittenSchemas);
-        }
-
-        private static void AddFusionDirectives(MutableSchemaDefinition schema)
-        {
-            var fieldSelectionMapType = new FusionFieldSelectionMapMutableScalarTypeDefinition();
-            var fieldSelectionSetType = new FusionFieldSelectionSetMutableScalarTypeDefinition();
-            var stringType = BuiltIns.String.Create();
-
-            var fusionDirectives = new Dictionary<string, MutableDirectiveDefinition>()
-            {
-                { "external", new ExternalMutableDirectiveDefinition() },
-                { "inaccessible", new InaccessibleMutableDirectiveDefinition() },
-                { "internal", new InternalMutableDirectiveDefinition() },
-                { "is", new IsMutableDirectiveDefinition(fieldSelectionMapType) },
-                { "key", new KeyMutableDirectiveDefinition(fieldSelectionSetType) },
-                { "lookup", new LookupMutableDirectiveDefinition() },
-                { "override", new OverrideMutableDirectiveDefinition(stringType) },
-                { "provides", new ProvidesMutableDirectiveDefinition(fieldSelectionSetType) },
-                { "require", new RequireMutableDirectiveDefinition(fieldSelectionMapType) },
-                { "schemaName", new SchemaNameMutableDirectiveDefinition(stringType) },
-                { "shareable", new ShareableMutableDirectiveDefinition() }
-            };
-
-            if (schema.Types.TryGetType(fieldSelectionMapType.Name, out var existingFieldSelectionMapType))
-            {
-                schema.Types.Remove(existingFieldSelectionMapType);
-            }
-
-            schema.Types.Add(fieldSelectionMapType);
-
-            if (schema.Types.TryGetType(fieldSelectionSetType.Name, out var existingFieldSelectionSetType))
-            {
-                schema.Types.Remove(existingFieldSelectionSetType);
-            }
-
-            schema.Types.Add(fieldSelectionSetType);
-
-            foreach (var fusionDirective in fusionDirectives.Values)
-            {
-                if (schema.DirectiveDefinitions.TryGetDirective(fusionDirective.Name,
-                    out var existingDirectiveDefinition))
-                {
-                    schema.DirectiveDefinitions.Remove(existingDirectiveDefinition);
-                }
-
-                schema.DirectiveDefinitions.Add(fusionDirective);
-            }
         }
     }
 }
