@@ -1,0 +1,60 @@
+operation:
+  - document: >-
+    query GetTopProducts {
+      topProducts {
+        id
+        name
+        sku @fusion__requirement
+        id @fusion__requirement
+        region @fusion__requirement
+      }
+    }
+    name: GetTopProducts
+    hash: 123
+nodes:
+  - id: 1
+    schema: A
+    operation: >-
+      query GetTopProducts_1 {
+        topProducts {
+          id
+          region
+        }
+      }
+  - id: 2
+    schema: C
+    operation: >-
+      query GetTopProducts_2(
+        $__fusion_1_sku: String!
+      ) {
+        productBySku(sku: $__fusion_1_sku) {
+          name
+        }
+      }
+    source: $.productBySku
+    target: $.topProducts
+    requirements:
+      - name: __fusion_1_sku
+        selectionMap: sku
+    dependencies:
+      - id: 3
+  - id: 3
+    schema: B
+    operation: >-
+      query GetTopProducts_3(
+        $__fusion_2_id: ID!
+        $__fusion_3_region: String!
+      ) {
+        productById(id: $__fusion_2_id) {
+          sku(region: $__fusion_3_region)
+        }
+      }
+    source: $.productById
+    target: $.topProducts
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: id
+      - name: __fusion_3_region
+        selectionMap: region
+    dependencies:
+      - id: 1

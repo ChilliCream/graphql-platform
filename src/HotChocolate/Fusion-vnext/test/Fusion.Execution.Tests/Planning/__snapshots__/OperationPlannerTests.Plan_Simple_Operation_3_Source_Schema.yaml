@@ -1,0 +1,71 @@
+operation:
+  - document: >-
+    {
+      productBySlug(slug: "1") {
+        name
+        reviews(first: 10) {
+          nodes {
+            body
+            stars
+            author {
+              displayName
+              id @fusion__requirement
+            }
+          }
+        }
+        id @fusion__requirement
+      }
+    }
+    hash: 123
+nodes:
+  - id: 1
+    schema: PRODUCTS
+    operation: >-
+      {
+        productBySlug(slug: "1") {
+          name
+          id
+        }
+      }
+  - id: 2
+    schema: REVIEWS
+    operation: >-
+      query(
+        $__fusion_1_id: ID!
+      ) {
+        productById(id: $__fusion_1_id) {
+          reviews(first: 10) {
+            nodes {
+              body
+              stars
+              author {
+                id
+              }
+            }
+          }
+        }
+      }
+    source: $.productById
+    target: $.productBySlug
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: id
+    dependencies:
+      - id: 1
+  - id: 3
+    schema: ACCOUNTS
+    operation: >-
+      query(
+        $__fusion_2_id: ID!
+      ) {
+        userById(id: $__fusion_2_id) {
+          displayName
+        }
+      }
+    source: $.userById
+    target: $.reviews.nodes.author.productBySlug
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: id
+    dependencies:
+      - id: 2

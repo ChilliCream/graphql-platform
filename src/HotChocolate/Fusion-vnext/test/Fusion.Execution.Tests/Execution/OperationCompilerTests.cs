@@ -120,7 +120,7 @@ public class OperationCompilerTests
             """
             query {
                 product {
-                    id @fusion_internal
+                    id @fusion__requirement
                     name
                 }
             }

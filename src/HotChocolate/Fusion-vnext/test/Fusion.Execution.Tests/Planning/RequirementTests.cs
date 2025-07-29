@@ -48,10 +48,6 @@ public class RequirementTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-
-            """);
+        MatchSnapshot(plan);
     }
 }

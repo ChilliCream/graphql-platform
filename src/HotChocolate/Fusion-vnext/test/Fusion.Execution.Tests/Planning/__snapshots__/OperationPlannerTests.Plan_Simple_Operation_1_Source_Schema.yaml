@@ -1,0 +1,19 @@
+operation:
+  - document: >-
+    {
+      productBySlug(slug: "1") {
+        id
+        name
+      }
+    }
+    hash: 123
+nodes:
+  - id: 1
+    schema: PRODUCTS
+    operation: >-
+      {
+        productBySlug(slug: "1") {
+          id
+          name
+        }
+      }
