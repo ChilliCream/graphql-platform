@@ -2063,7 +2063,7 @@ public sealed class SatisfiabilityValidatorTests
                 ],
                 false,
                 """
-                Unable to access the field 'Cat.name' on path 'Query.node<Node> -> A:Query.catById<Cat>'.
+                Unable to access the field 'Cat.name' on path '*:Query.node<Node> -> A:Query.catById<Cat>'.
                   Unable to transition between schemas 'A' and 'B' for access to field 'B:Cat.name<String>'.
                     No lookups found for type 'Cat' in schema 'B'.
                 """

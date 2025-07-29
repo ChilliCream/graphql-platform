@@ -231,16 +231,32 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
                 continue;
             }
 
+            var nodePathItem = new SatisfiabilityPathItem(nodeField, queryType, "*");
+            context.Path.Push(nodePathItem);
+
             foreach (var lookup in lookups)
             {
-                var nodePathItem = new NodeSatisfiabilityPathItem(nodeField, queryType, lookup);
+                var schemaName = (string)lookup.Arguments[WellKnownArgumentNames.Schema].Value!;
+                var fieldDirectiveArgument = (string)lookup.Arguments[WellKnownArgumentNames.Field].Value!;
+                var lookupFieldDefinition = ParseFieldDefinition(fieldDirectiveArgument);
 
-                context.Path.Push(nodePathItem);
+                if (!schema.Types.TryGetType(lookupFieldDefinition.Type.NamedType().Name.Value, out var namedType))
+                {
+                    continue;
+                }
+
+                var lookupFieldType = CreateType(lookupFieldDefinition.Type, namedType).ExpectOutputType();
+                var lookupField = new MutableOutputFieldDefinition(lookupFieldDefinition.Name.Value, lookupFieldType);
+
+                var lookupPathItem = new SatisfiabilityPathItem(lookupField, queryType, schemaName);
+                context.Path.Push(lookupPathItem);
 
                 VisitObjectType(possibleType, context);
 
                 context.Path.Pop();
             }
+
+            context.Path.Pop();
         }
     }
 
@@ -318,7 +334,8 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
 
         foreach (var sourceSchemaName in type.GetSourceSchemaNames())
         {
-            var lookupDirective = type.GetFusionLookupDirectives(sourceSchemaName, unionTypes).FirstOrDefault();
+            var lookupDirective = type.GetFusionLookupDirectives(sourceSchemaName, unionTypes)
+                .FirstOrDefault();
 
             if (lookupDirective?.Arguments[WellKnownArgumentNames.Map] is ListValueNode mapArg
                 && mapArg.Items.Count == 1 && mapArg.Items[0].Value?.Equals("id") == true)
@@ -328,6 +345,21 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         }
 
         return lookups;
+    }
+
+    private static IType CreateType(ITypeNode typeNode, ITypeDefinition namedType)
+    {
+        if (typeNode is NonNullTypeNode nonNullType)
+        {
+            return new NonNullType(CreateType(nonNullType.InnerType(), namedType));
+        }
+
+        if (typeNode is ListTypeNode listType)
+        {
+            return new ListType(CreateType(listType.Type, namedType));
+        }
+
+        return namedType;
     }
 }
 

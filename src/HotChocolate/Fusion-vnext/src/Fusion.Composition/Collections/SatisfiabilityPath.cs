@@ -1,24 +1,23 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Collections;
 
-internal sealed class SatisfiabilityPath : IEnumerable<ISatisfiabilityPathItem>
+internal sealed class SatisfiabilityPath : IEnumerable<SatisfiabilityPathItem>
 {
-    private readonly Stack<ISatisfiabilityPathItem> _stack = [];
-    private readonly HashSet<ISatisfiabilityPathItem> _hashSet = [];
+    private readonly Stack<SatisfiabilityPathItem> _stack = [];
+    private readonly HashSet<SatisfiabilityPathItem> _hashSet = [];
 
-    public bool Contains(ISatisfiabilityPathItem item)
+    public bool Contains(SatisfiabilityPathItem item)
     {
         return _hashSet.Contains(item);
     }
 
     public int Count => _stack.Count;
 
-    public bool Push(ISatisfiabilityPathItem item)
+    public bool Push(SatisfiabilityPathItem item)
     {
         if (_hashSet.Contains(item))
         {
@@ -31,7 +30,7 @@ internal sealed class SatisfiabilityPath : IEnumerable<ISatisfiabilityPathItem>
         return true;
     }
 
-    public ISatisfiabilityPathItem Pop()
+    public SatisfiabilityPathItem Pop()
     {
         if (_stack.Count == 0)
         {
@@ -44,7 +43,7 @@ internal sealed class SatisfiabilityPath : IEnumerable<ISatisfiabilityPathItem>
         return item;
     }
 
-    public ISatisfiabilityPathItem Peek()
+    public SatisfiabilityPathItem Peek()
     {
         if (_stack.Count == 0)
         {
@@ -54,7 +53,7 @@ internal sealed class SatisfiabilityPath : IEnumerable<ISatisfiabilityPathItem>
         return _stack.Peek();
     }
 
-    public bool TryPeek([MaybeNullWhen(false)] out ISatisfiabilityPathItem item)
+    public bool TryPeek([MaybeNullWhen(false)] out SatisfiabilityPathItem item)
     {
         if (_stack.Count == 0)
         {
@@ -72,7 +71,7 @@ internal sealed class SatisfiabilityPath : IEnumerable<ISatisfiabilityPathItem>
         _hashSet.Clear();
     }
 
-    public IEnumerator<ISatisfiabilityPathItem> GetEnumerator()
+    public IEnumerator<SatisfiabilityPathItem> GetEnumerator()
     {
         return _stack.GetEnumerator();
     }
@@ -88,15 +87,10 @@ internal sealed class SatisfiabilityPath : IEnumerable<ISatisfiabilityPathItem>
     }
 }
 
-internal interface ISatisfiabilityPathItem
-{
-    string SchemaName { get; }
-}
-
 internal sealed record SatisfiabilityPathItem(
     MutableOutputFieldDefinition Field,
     MutableComplexTypeDefinition Type,
-    string SchemaName) : ISatisfiabilityPathItem
+    string SchemaName)
 {
     public ITypeDefinition FieldType { get; } = Field.Type.AsTypeDefinition();
 
@@ -105,44 +99,6 @@ internal sealed record SatisfiabilityPathItem(
     public override string ToString()
     {
         return $"{SchemaName}:{Type.Name}.{Field.Name}<{FieldType.Name}>";
-    }
-
-    public override int GetHashCode() => _hashCode;
-}
-
-internal sealed class NodeSatisfiabilityPathItem : ISatisfiabilityPathItem
-{
-    private readonly MutableOutputFieldDefinition _nodeField;
-    private readonly MutableObjectTypeDefinition _queryType;
-    private readonly FieldDefinitionNode _lookupFieldDefinition;
-    private readonly int _hashCode;
-
-    public NodeSatisfiabilityPathItem(
-        MutableOutputFieldDefinition nodeField,
-        MutableObjectTypeDefinition queryType,
-        IDirective lookupDirective)
-    {
-        _nodeField = nodeField;
-        _queryType = queryType;
-
-        var fieldDirectiveArgument = (string)lookupDirective.Arguments[WellKnownArgumentNames.Field].Value!;
-        _lookupFieldDefinition = Utf8GraphQLParser.Syntax.ParseFieldDefinition(fieldDirectiveArgument);
-
-        SchemaName = (string)lookupDirective.Arguments[WellKnownArgumentNames.Schema].Value!;
-
-        _hashCode = HashCode.Combine(nodeField, queryType, SchemaName);
-    }
-
-    public string SchemaName { get; }
-
-    public override string ToString()
-    {
-        var nodeFieldType = _nodeField.Type.AsTypeDefinition();
-        var lookupFieldType = _lookupFieldDefinition.Type.NamedType();
-
-        return
-            $"{_queryType.Name}.{_nodeField.Name}<{nodeFieldType.Name}> -> "
-            + $"{SchemaName}:{_queryType.Name}.{_lookupFieldDefinition.Name}<{lookupFieldType.Name}>";
     }
 
     public override int GetHashCode() => _hashCode;

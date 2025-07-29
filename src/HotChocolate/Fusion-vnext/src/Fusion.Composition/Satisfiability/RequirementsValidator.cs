@@ -14,7 +14,7 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
     public ImmutableArray<SatisfiabilityError> Validate(
         SelectionSetNode requirements,
         MutableObjectTypeDefinition contextType,
-        ISatisfiabilityPathItem parentPathItem,
+        SatisfiabilityPathItem parentPathItem,
         string excludeSchemaName,
         SatisfiabilityPath? cycleDetectionPath = null)
     {
@@ -349,7 +349,7 @@ internal sealed class RequirementsValidatorContext
 {
     public RequirementsValidatorContext(
         MutableObjectTypeDefinition contextType,
-        ISatisfiabilityPathItem parentPathItem,
+        SatisfiabilityPathItem parentPathItem,
         string excludeSchemaName,
         SatisfiabilityPath? cycleDetectionPath = null)
     {
