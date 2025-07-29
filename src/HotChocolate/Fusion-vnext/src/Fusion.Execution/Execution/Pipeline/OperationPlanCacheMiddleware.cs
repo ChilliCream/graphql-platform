@@ -5,9 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
-internal sealed class OperationPlanCacheMiddleware(Cache<OperationExecutionPlan> cache)
+internal sealed class OperationPlanCacheMiddleware(Cache<OperationPlan> cache)
 {
-    private readonly Cache<OperationExecutionPlan> _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+    private readonly Cache<OperationPlan> _cache = cache ?? throw new ArgumentNullException(nameof(cache));
 
     public async ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
     {
@@ -53,7 +53,7 @@ internal sealed class OperationPlanCacheMiddleware(Cache<OperationExecutionPlan>
         => new RequestMiddlewareConfiguration(
             static (fc, next) =>
             {
-                var cache = fc.SchemaServices.GetRequiredService<Cache<OperationExecutionPlan>>();
+                var cache = fc.SchemaServices.GetRequiredService<Cache<OperationPlan>>();
                 var middleware = new OperationPlanCacheMiddleware(cache);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },

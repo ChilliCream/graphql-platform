@@ -3,5 +3,17 @@
     "__type": {
       "name": "String"
     }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "{\n  __type(name: \"String\") {\n    name\n  }\n}",
+          "hash": "5cddb45336fd254ecdaf2e7cb5e89de1",
+          "duration": 7.6879
+        },
+        "nodes": []
+      }
+    }
   }
 }

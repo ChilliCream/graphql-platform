@@ -1,5 +1,17 @@
 {
   "data": {
     "__typename": "Query"
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "{\n  __typename\n}",
+          "hash": "ef5c9e7b1e24de261642083d4e294322",
+          "duration": 0.0367
+        },
+        "nodes": []
+      }
+    }
   }
 }

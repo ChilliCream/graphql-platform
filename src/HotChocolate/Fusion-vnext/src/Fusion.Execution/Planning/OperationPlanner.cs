@@ -26,7 +26,7 @@ public sealed partial class OperationPlanner
         _partitioner = new SelectionSetPartitioner(schema);
     }
 
-    public OperationExecutionPlan CreatePlan(string id, OperationDefinitionNode operationDefinition)
+    public OperationPlan CreatePlan(string id, OperationDefinitionNode operationDefinition)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(operationDefinition);

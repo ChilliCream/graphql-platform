@@ -114,7 +114,11 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         if (variables.Length == 0 && (Requirements.Length > 0 || Variables.Length > 0))
         {
-            return new ExecutionNodeResult(Id, ExecutionStatus.Skipped, Stopwatch.GetElapsedTime(start));
+            return new ExecutionNodeResult(
+                Id,
+                Activity.Current,
+                ExecutionStatus.Skipped,
+                Stopwatch.GetElapsedTime(start));
         }
 
         var request = new SourceSchemaClientRequest
@@ -148,6 +152,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 // are returned to the pool.
                 foreach (var result in buffer.AsSpan(0, index))
                 {
+                    // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
                     result?.Dispose();
                 }
 
@@ -160,7 +165,11 @@ public sealed class OperationExecutionNode : ExecutionNode
             }
         }
 
-        return new ExecutionNodeResult(Id, ExecutionStatus.Success, Stopwatch.GetElapsedTime(start));
+        return new ExecutionNodeResult(
+            Id,
+            Activity.Current,
+            ExecutionStatus.Success,
+            Stopwatch.GetElapsedTime(start));
     }
 
     internal void AddDependency(ExecutionNode node)
@@ -172,7 +181,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         ArgumentNullException.ThrowIfNull(node);
 
-        if (node == this)
+        if (node.Equals(this))
         {
             throw new InvalidOperationException("An operation cannot depend on itself.");
         }

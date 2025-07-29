@@ -1,3 +1,15 @@
 {
-  "data": {}
+  "data": {},
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "query(\n  $s: Boolean! = true\n) {\n  __typename @skip(if: $s)\n}",
+          "hash": "6fe5ef6b2885d351015c1d64f6c1eda8",
+          "duration": 0.0212
+        },
+        "nodes": []
+      }
+    }
+  }
 }

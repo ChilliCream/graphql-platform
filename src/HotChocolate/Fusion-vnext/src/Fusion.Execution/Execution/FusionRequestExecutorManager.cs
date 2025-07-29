@@ -300,7 +300,7 @@ internal sealed class FusionRequestExecutorManager
             static sp =>
             {
                 var options = sp.GetRequiredService<ISchemaDefinition>().GetRequestOptions();
-                return new Cache<OperationExecutionPlan>(
+                return new Cache<OperationPlan>(
                     options.OperationExecutionPlanCacheSize,
                     options.OperationExecutionPlanCacheDiagnostics);
             });

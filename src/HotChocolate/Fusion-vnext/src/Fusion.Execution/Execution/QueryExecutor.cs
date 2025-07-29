@@ -1,97 +1,153 @@
+using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 
-public class QueryExecutor
+public sealed class QueryExecutor
 {
     public async ValueTask<IExecutionResult> QueryAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var nodeMap = context.OperationPlan.AllNodes.ToDictionary(t => t.Id);
-        var waitingToRun = new HashSet<ExecutionNode>(context.OperationPlan.AllNodes);
-        var completed = new HashSet<ExecutionNode>();
-        var running = new HashSet<Task<ExecutionNodeResult>>();
-
-        foreach (var root in context.OperationPlan.RootNodes)
-        {
-            waitingToRun.Remove(root);
-            running.Add(root.ExecuteAsync(context, cancellationToken));
-        }
-
-        while (running.Count > 0)
-        {
-            var task = await Task.WhenAny(running);
-            running.Remove(task);
-
-            var node = nodeMap[task.Result.Id];
-
-            if (task.Result.Status is ExecutionStatus.Skipped)
-            {
-                // if a node is skipped, all dependents are skipped as well
-                PurgeSkippedNodes(node, waitingToRun);
-            }
-            else
-            {
-                completed.Add(node);
-                EnqueueNextNodes(context, waitingToRun, completed, running, cancellationToken);
-            }
-        }
-
-        return context.CreateFinalResult();
+        context.Begin();
+        await ExecuteAsync(new QueryContext(context, cancellationToken));
+        return context.Complete();
     }
 
-    private static void EnqueueNextNodes(
-        OperationPlanContext context,
-        HashSet<ExecutionNode> waitingToRun,
-        HashSet<ExecutionNode> completed,
-        HashSet<Task<ExecutionNodeResult>> running,
-        CancellationToken cancellationToken)
+    private static async ValueTask ExecuteAsync(QueryContext context)
     {
-        var selected = new List<ExecutionNode>();
+        context.Start();
 
-        foreach (var node in waitingToRun)
+        while (context.IsProcessing)
         {
-            var isSuperset = true;
+            await context.WaitForNextCompletionAsync();
+            EnqueueNextNodes(context);
+        }
+    }
+
+    private static void EnqueueNextNodes(QueryContext context)
+    {
+        foreach (var node in context.WaitingToRun)
+        {
+            var dependenciesFulfilled = true;
 
             foreach (var dependency in node.Dependencies)
             {
-                if (!completed.Contains(dependency))
+                if (context.IsCompleted(dependency))
                 {
-                    isSuperset = false;
-                    break;
+                    continue;
                 }
+
+                dependenciesFulfilled = false;
             }
 
-            if (isSuperset)
+            if (dependenciesFulfilled)
             {
-                selected.Add(node);
+                context.StartNode(node);
             }
-        }
-
-        foreach (var node in selected)
-        {
-            waitingToRun.Remove(node);
-            running.Add(node.ExecuteAsync(context, cancellationToken));
         }
     }
 
-    private static void PurgeSkippedNodes(ExecutionNode skipped, HashSet<ExecutionNode> waitingToRun)
+    private sealed class QueryContext
     {
-        var remove = new Stack<ExecutionNode>();
-        remove.Push(skipped);
+        private readonly List<ExecutionNode> _stack = [];
+        private readonly HashSet<ExecutionNode> _completed = [];
+        private readonly HashSet<Task<ExecutionNodeResult>> _activeTasks = [];
+        private readonly List<Task<ExecutionNodeResult>> _completedTasks = [];
+        private readonly List<ExecutionNode> _backlog;
+        private readonly OperationPlanContext  _context;
+        private readonly OperationPlan _plan;
+        private readonly List<ExecutionNodeTrace> _traces = [];
+        private readonly CancellationToken _cancellationToken;
 
-        while (remove.TryPop(out var node))
+        public QueryContext(OperationPlanContext context, CancellationToken cancellationToken)
         {
-            waitingToRun.Remove(node);
+            _context = context;
+            _cancellationToken = cancellationToken;
+            _plan = context.OperationPlan;
+            _backlog = [.. context.OperationPlan.AllNodes];
+        }
 
-            foreach (var enqueuedNode in waitingToRun)
+        public ReadOnlySpan<ExecutionNode> WaitingToRun
+            => CollectionsMarshal.AsSpan(_backlog);
+
+        public bool IsProcessing => _backlog.Count > 0 || _activeTasks.Count > 0;
+
+        public bool IsCompleted(ExecutionNode node)
+            => _completed.Contains(node);
+
+        private void SkipNode(ExecutionNode node)
+        {
+            _stack.Clear();
+            _stack.Push(node);
+
+            while (_stack.TryPop(out var current))
             {
-                if (enqueuedNode.Dependencies.Contains(enqueuedNode))
+                _backlog.Remove(current);
+
+                foreach (var enqueuedNode in WaitingToRun)
                 {
-                    remove.Push(enqueuedNode);
+                    if (enqueuedNode.Dependencies.Contains(current))
+                    {
+                        _stack.Push(enqueuedNode);
+                    }
                 }
+            }
+        }
+
+        public void Start()
+        {
+            foreach (var node in _context.OperationPlan.RootNodes)
+            {
+                StartNode(node);
+            }
+        }
+
+        public void StartNode(ExecutionNode node)
+        {
+            _backlog.Remove(node);
+            _activeTasks.Add(node.ExecuteAsync(_context, _cancellationToken));
+        }
+
+        public async Task WaitForNextCompletionAsync()
+        {
+            await Task.WhenAny(_activeTasks);
+
+            foreach (var task in _activeTasks)
+            {
+                if (task.IsCompletedSuccessfully)
+                {
+                    var node = _plan.GetNodeById(task.Result.Id);
+
+                    _completedTasks.Add(task);
+                    _completed.Add(node);
+                    _traces.Add(new ExecutionNodeTrace
+                    {
+                        Id = task.Result.Id,
+                        SpanId = task.Result.Activity?.Id,
+                        Status = task.Result.Status,
+                        Duration = task.Result.Duration
+                    });
+
+                    if (task.Result.Status is ExecutionStatus.Skipped or ExecutionStatus.Failed)
+                    {
+                        SkipNode(node);
+                    }
+                }
+            }
+
+            foreach (var task in _completedTasks)
+            {
+                _activeTasks.Remove(task);
+            }
+
+            _completedTasks.Clear();
+
+            if (_backlog.Count == 0)
+            {
+                _context.Traces = [.._traces];
             }
         }
     }
