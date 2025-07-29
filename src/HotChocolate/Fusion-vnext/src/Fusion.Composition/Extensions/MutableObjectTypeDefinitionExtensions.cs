@@ -85,6 +85,7 @@ internal static class MutableObjectTypeDefinitionExtensions
 
         return lookups;
     }
+
     public static bool HasInternalDirective(this MutableObjectTypeDefinition type)
     {
         return type.Directives.ContainsName(Internal);
