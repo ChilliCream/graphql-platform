@@ -695,10 +695,12 @@ public static class SchemaParser
                 if (directiveNode.Name.Value == BuiltIns.Deprecated.Name)
                 {
                     directiveType = BuiltIns.Deprecated.Create(schema);
+                    schema.DirectiveDefinitions.Add(directiveType);
                 }
                 else if (directiveNode.Name.Value == BuiltIns.SpecifiedBy.Name)
                 {
                     directiveType = BuiltIns.SpecifiedBy.Create(schema);
+                    schema.DirectiveDefinitions.Add(directiveType);
                 }
                 else
                 {
@@ -707,8 +709,6 @@ public static class SchemaParser
                     // directives to work, since they don't have definitions in the source schema.
                     directiveType.IsRepeatable = true;
                 }
-
-                schema.DirectiveDefinitions.Add(directiveType);
             }
 
             var directive = new Directive(
