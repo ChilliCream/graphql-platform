@@ -107,9 +107,11 @@ internal static class Utf8Helper
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int UnescapeUtf8Hex(byte a, byte b, byte c, byte d)
         => (HexToDecimal(a) << 12) | (HexToDecimal(b) << 8) | (HexToDecimal(c) << 4) | HexToDecimal(d);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void UnescapeUtf8Hex(
         int unicodeDecimal,
         ref int writePosition,

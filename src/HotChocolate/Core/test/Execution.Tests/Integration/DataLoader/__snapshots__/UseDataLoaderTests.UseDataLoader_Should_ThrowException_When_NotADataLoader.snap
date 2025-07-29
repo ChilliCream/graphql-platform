@@ -1,6 +1,13 @@
-﻿For more details look at the `Errors` property.
+For more details look at the `Errors` property.
 
 1. For more details look at the `Errors` property.
 
 1. The provided type HotChocolate.Execution.Integration.DataLoader.UseDataLoaderTests+Foo is not a dataloader
  (HotChocolate.Types.ObjectType<HotChocolate.Execution.Integration.DataLoader.UseDataLoaderTests.Query>)
+
+   at HotChocolate.Types.DataLoaderObjectFieldExtensions.UseDataLoader(IObjectFieldDescriptor descriptor, Type dataLoaderType) in ObjectFieldDataLoaderExtensions.cs:line 28
+   at HotChocolate.Execution.Integration.DataLoader.UseDataLoaderTests.<>c.<UseDataLoader_Should_ThrowException_When_NotADataLoader>b__0_1(IObjectTypeDescriptor`1 x) in UseDataLoaderTests.cs:line 16
+   at HotChocolate.Types.ObjectType`1.CreateConfiguration(ITypeDiscoveryContext context) in ObjectType~1.cs:line 49
+   at HotChocolate.Types.TypeSystemObject`1.Initialize(ITypeDiscoveryContext context) in TypeSystemObjectBase~1.cs:line 31
+   at HotChocolate.Configuration.TypeRegistrar.InitializeType(TypeSystemObject typeSystemObject, String scope, Boolean isInferred) in TypeRegistrar.cs:line 179
+

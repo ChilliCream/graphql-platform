@@ -1,0 +1,42 @@
+operation: >-
+  query testQuery {
+    votables {
+      viewerCanVote
+      ... on Discussion {
+        author {
+          displayName
+          id @fusion_internal
+        }
+      }
+    }
+  }
+nodes:
+  - id: 1
+    schema: SUBGRAPH_1
+    operation: >-
+      query testQuery_1 {
+        votables {
+          viewerCanVote
+          ... on Discussion {
+            author {
+              id
+            }
+          }
+        }
+      }
+  - id: 2
+    schema: SUBGRAPH_2
+    operation: >-
+      query testQuery_2(
+        $__fusion_1_id: ID!
+      ) {
+        authorById(id: $__fusion_1_id) {
+          displayName
+        }
+      }
+    requirements:
+      - name: __fusion_1_id
+        selectionSet: $.votables.<Discussion>.author
+        selectionMap: id
+    dependencies:
+      - id: 1

@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
+using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Directives;
-using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -96,16 +96,19 @@ internal static class CompletionTools
         CompositeSchemaBuilderContext context)
     {
         var types = TypeDirectiveParser.Parse(typeDef.Directives);
-        var lookups = LookupDirectiveParser.Parse(typeDef.Directives);
+        var lookupDirectives = LookupDirectiveParser.Parse(typeDef.Directives);
         var temp = new SourceObjectType[types.Length];
 
         for (var i = 0; i < types.Length; i++)
         {
             var type = types[i];
+            var lookups = GetLookupBySchema(lookupDirectives, type.SchemaName, typeDef.Name.Value);
+            context.RegisterForCompletionRange(lookups);
+
             temp[i] = new SourceObjectType(
                 typeDef.Name.Value,
                 type.SchemaName,
-                GetLookupBySchema(lookups, type.SchemaName));
+                lookups);
         }
 
         return new SourceObjectTypeCollection(temp);
@@ -116,16 +119,19 @@ internal static class CompletionTools
         CompositeSchemaBuilderContext context)
     {
         var types = TypeDirectiveParser.Parse(typeDef.Directives);
-        var lookups = LookupDirectiveParser.Parse(typeDef.Directives);
+        var lookupDirectives = LookupDirectiveParser.Parse(typeDef.Directives);
         var temp = new SourceInterfaceType[types.Length];
 
         for (var i = 0; i < types.Length; i++)
         {
             var type = types[i];
+            var lookups = GetLookupBySchema(lookupDirectives, type.SchemaName, typeDef.Name.Value);
+            context.RegisterForCompletionRange(lookups);
+
             temp[i] = new SourceInterfaceType(
                 typeDef.Name.Value,
                 type.SchemaName,
-                GetLookupBySchema(lookups, type.SchemaName));
+                lookups);
         }
 
         return new SourceInterfaceTypeCollection(temp);
@@ -133,13 +139,14 @@ internal static class CompletionTools
 
     private static ImmutableArray<Lookup> GetLookupBySchema(
         ImmutableArray<LookupDirective> allLookups,
-        string schemaName)
+        string schemaName,
+        string declaringTypeName)
     {
         var lookups = ImmutableArray.CreateBuilder<Lookup>();
 
         foreach (var lookup in allLookups)
         {
-            if (lookup.SchemaName.Equals(schemaName, StringComparison.Ordinal))
+            if (lookup.Schema.Equals(schemaName, StringComparison.Ordinal))
             {
                 var arguments = ImmutableArray.CreateBuilder<LookupArgument>(lookup.Field.Arguments.Count);
 
@@ -148,23 +155,23 @@ internal static class CompletionTools
                     arguments.Add(new LookupArgument(argument.Name.Value, argument.Type));
                 }
 
-                var fieldsBuilder = ImmutableArray.CreateBuilder<FieldPath>();
+                var fieldsBuilder = ImmutableArray.CreateBuilder<IValueSelectionNode>();
 
                 foreach (var field in lookup.Map)
                 {
-                    fieldsBuilder.Add(FieldPath.Parse(field));
+                    var parser = new FieldSelectionMapParser(field);
+                    fieldsBuilder.Add(parser.Parse());
                 }
 
                 var fields = fieldsBuilder.ToImmutable();
-                var selectionSet = fields.ToSelectionSetNode();
 
                 lookups.Add(
                     new Lookup(
-                        lookup.SchemaName,
+                        lookup.Schema,
+                        declaringTypeName,
                         lookup.Field.Name.Value,
                         arguments.ToImmutable(),
-                        fields,
-                        selectionSet));
+                        fields));
             }
         }
 

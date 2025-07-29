@@ -326,7 +326,7 @@ public ref partial struct Utf8GraphQLRequestParser
                     var hasPayload = !IsNullToken();
                     var end = SkipValue();
                     message.Payload = hasPayload
-                        ? _reader.GraphQLData.Slice(start, end - start)
+                        ? _reader.SourceText.Slice(start, end - start)
                         : default;
                 }
 

@@ -1,0 +1,65 @@
+operation: >-
+  query testQuery {
+    authorable {
+      author {
+        id
+        displayName
+        id @fusion_internal
+      }
+      ... on Discussion {
+        author {
+          id
+          displayName
+          id @fusion_internal
+        }
+      }
+    }
+  }
+nodes:
+  - id: 1
+    schema: SUBGRAPH_1
+    operation: >-
+      query testQuery_1 {
+        authorable {
+          author {
+            id
+          }
+          ... on Discussion {
+            author {
+              id
+            }
+          }
+        }
+      }
+  - id: 2
+    schema: SUBGRAPH_2
+    operation: >-
+      query testQuery_2(
+        $__fusion_1_id: ID!
+      ) {
+        authorById(id: $__fusion_1_id) {
+          displayName
+        }
+      }
+    requirements:
+      - name: __fusion_1_id
+        selectionSet: $.authorable.<Discussion>.author
+        selectionMap: id
+    dependencies:
+      - id: 1
+  - id: 3
+    schema: SUBGRAPH_2
+    operation: >-
+      query testQuery_3(
+        $__fusion_2_id: ID!
+      ) {
+        authorById(id: $__fusion_2_id) {
+          displayName
+        }
+      }
+    requirements:
+      - name: __fusion_2_id
+        selectionSet: $.authorable.author
+        selectionMap: id
+    dependencies:
+      - id: 1

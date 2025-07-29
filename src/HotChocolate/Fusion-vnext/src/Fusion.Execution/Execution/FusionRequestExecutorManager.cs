@@ -58,8 +58,14 @@ internal sealed class FusionRequestExecutorManager
         _optionsMonitor = optionsMonitor;
         _applicationServices = applicationServices;
 
+        var schemaNames = _applicationServices.GetService<IEnumerable<SchemaName>>()?
+            .Select(x => x.Value).Distinct().Order().ToImmutableArray();
+        SchemaNames = schemaNames ?? [];
+
         NotifyObserversAsync().FireAndForget();
     }
+
+    public ImmutableArray<string> SchemaNames { get; }
 
     public ValueTask<IRequestExecutor> GetExecutorAsync(
         string? schemaName = null,
@@ -279,7 +285,7 @@ internal sealed class FusionRequestExecutorManager
             static _ => new DefaultObjectPool<PooledRequestContext>(
                 new RequestContextPooledObjectPolicy()));
 
-        services.AddSingleton<CompositeTypeInterceptor>(static _ => new IntrospectionFieldInterceptor());
+        services.AddTransient<CompositeTypeInterceptor>(static _ => new IntrospectionFieldInterceptor());
     }
 
     private static void AddOperationPlanner(IServiceCollection services)

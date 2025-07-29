@@ -3,13 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-#if NET8_0
-using System.Text;
-#endif
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -21,6 +19,7 @@ internal sealed class FetchResultStore : IDisposable
 {
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
     private readonly ValueCompletion _valueCompletion;
+    private readonly ISchemaDefinition _schema;
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
     private readonly ObjectResult _root;
@@ -40,6 +39,7 @@ internal sealed class FetchResultStore : IDisposable
         ArgumentNullException.ThrowIfNull(resultPoolSession);
         ArgumentNullException.ThrowIfNull(operation);
 
+        _schema = schema;
         _operation = operation;
         _includeFlags = includeFlags;
         _valueCompletion = new ValueCompletion(schema, resultPoolSession, ErrorHandling.Propagate, 32, includeFlags);
@@ -186,23 +186,25 @@ internal sealed class FetchResultStore : IDisposable
                     }
                     else if (segment.Kind is SelectionPathSegmentKind.Field)
                     {
-                        if (result.TryGetValue(segment.Name, out var value) && !value.HasNullValue)
+                        if (!result.TryGetValue(segment.Name, out var value) || value.HasNullValue)
                         {
-                            if (value is ListFieldResult listField)
-                            {
-                                // TODO : "We need to unroll the values"
-                                throw new Exception("We need to unroll the values");
-                            }
-
-                            if (value is ObjectFieldResult objectField)
-                            {
-                                next.Add(objectField.Value!);
-                                continue;
-                            }
-
-                            // TODO : Better error
-                            throw new NotSupportedException("Must be list or object.");
+                            continue;
                         }
+
+                        if (value is ListFieldResult { Value: { } list })
+                        {
+                            next.AddRange(UnrollLists(list));
+                            continue;
+                        }
+
+                        if (value is ObjectFieldResult objectField)
+                        {
+                            next.Add(objectField.Value!);
+                            continue;
+                        }
+
+                        // TODO : Better error
+                        throw new NotSupportedException("Must be list or object.");
                     }
                 }
 
@@ -234,6 +236,11 @@ internal sealed class FetchResultStore : IDisposable
                 Array.Resize(ref variableValueSets, nextIndex);
             }
 
+            if (buffer is not null)
+            {
+                _memory.Push(buffer);
+            }
+
             return variableValueSets is not null
                 ? ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets)
                 : [];
@@ -244,7 +251,7 @@ internal sealed class FetchResultStore : IDisposable
         }
     }
 
-    public ObjectValueNode? MapRequirements(
+    private ObjectValueNode? MapRequirements(
         ObjectResult result,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData,
@@ -257,6 +264,11 @@ internal sealed class FetchResultStore : IDisposable
         {
             var field = MapRequirement(result, requirement.Key, requirement.Map, ref buffer);
 
+            if (field is null)
+            {
+                return null;
+            }
+
             if (field.Value.Kind == SyntaxKind.NullValue && requirement.Type.Kind == SyntaxKind.NonNullType)
             {
                 return null;
@@ -268,123 +280,50 @@ internal sealed class FetchResultStore : IDisposable
         return new ObjectValueNode(fields);
     }
 
-    // TODO : we need a separate utility for this that is properly implemented.
-    private ObjectFieldNode MapRequirement(
+    private ObjectFieldNode? MapRequirement(
         ObjectResult result,
         string key,
-        FieldPath path,
+        IValueSelectionNode path,
         ref PooledArrayWriter? buffer)
     {
-        var current = result;
-
-        foreach (var segment in path.Reverse())
-        {
-            if (current.TryGetValue(segment.Name, out var value))
-            {
-                if (value.HasNullValue)
-                {
-                    return new ObjectFieldNode(key, NullValueNode.Default);
-                }
-
-                if (value is ObjectFieldResult objectField)
-                {
-                    current = objectField.Value!;
-                }
-
-                if (value is LeafFieldResult leaf)
-                {
-                    return new ObjectFieldNode(key, MapValue(leaf.Value, ref buffer));
-                }
-
-                throw new NotSupportedException("Must be list or object.");
-            }
-        }
-
-        throw new InvalidOperationException("The path segment does not exist in the data.");
+        var value = ResultDataMapper.Map(result, path, _schema, ref buffer);
+        return value is null ? null : new ObjectFieldNode(key, value);
     }
 
-    private IValueNode MapValue(JsonElement value, ref PooledArrayWriter? buffer)
+    private static IEnumerable<ObjectResult> UnrollLists(ListResult list)
     {
-        if (value.ValueKind == JsonValueKind.Object)
+        if (list is NestedListResult nestedList)
         {
-            // TODO : Implement proper converter
-            throw new NotSupportedException();
-        }
-
-        if (value.ValueKind == JsonValueKind.Array)
-        {
-            // TODO : Implement proper converter
-            throw new NotSupportedException();
-        }
-
-        if (value.ValueKind == JsonValueKind.Number)
-        {
-            // TODO : Exponential notation is not supported yet.
-            var rawValue = GetRawValue(value);
-
-            if (rawValue.IndexOf((byte)'.') > -1)
+            foreach (var item in nestedList.Items)
             {
-                buffer ??= CreateRentedBuffer();
+                if (item is null)
+                {
+                    continue;
+                }
 
-                var start = buffer.Length;
-                var length = rawValue.Length;
-                buffer.Write(rawValue);
-
-                return new FloatValueNode(buffer.GetWrittenMemorySegment(start, length), FloatFormat.FixedPoint);
-            }
-            else
-            {
-                buffer ??= CreateRentedBuffer();
-
-                var start = buffer.Length;
-                var length = rawValue.Length;
-                var d = buffer.GetSpan(rawValue.Length);
-                rawValue.CopyTo(d);
-                buffer.Advance(rawValue.Length);
-
-                return new IntValueNode(buffer.GetWrittenMemorySegment(start, length));
+                foreach (var result in UnrollLists(item))
+                {
+                    yield return result;
+                }
             }
         }
-
-        if (value.ValueKind == JsonValueKind.String)
+        else if (list is ObjectListResult objectList)
         {
-            var rawValue = GetRawValue(value);
+            foreach (var result in objectList.Items)
+            {
+                if (result is null)
+                {
+                    continue;
+                }
 
-            buffer ??= CreateRentedBuffer();
-
-            var start = buffer.Length;
-            var length = rawValue.Length;
-            buffer.Write(rawValue);
-
-            return new StringValueNode(null, buffer.GetWrittenMemorySegment(start, length), false);
+                yield return result;
+            }
         }
-
-        if (value.ValueKind == JsonValueKind.True)
+        else
         {
-            return BooleanValueNode.True;
+            throw new NotSupportedException(
+                "Only nested lists and object lists are supported.");
         }
-
-        if (value.ValueKind == JsonValueKind.False)
-        {
-            return BooleanValueNode.False;
-        }
-
-        if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-        {
-            return NullValueNode.Default;
-        }
-
-        throw new NotSupportedException();
-    }
-
-    // TODO : Create Polyfill
-    private static ReadOnlySpan<byte> GetRawValue(JsonElement value)
-    {
-#if NET9_0_OR_GREATER
-        return JsonMarshal.GetRawUtf8Value(value);
-#else
-        return Encoding.UTF8.GetBytes(value.GetRawText());
-#endif
     }
 
     public PooledArrayWriter CreateRentedBuffer()
