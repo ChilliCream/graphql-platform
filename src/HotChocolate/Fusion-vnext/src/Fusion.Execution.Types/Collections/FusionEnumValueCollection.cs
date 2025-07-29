@@ -52,7 +52,7 @@ public sealed class FusionEnumValueCollection
 
     bool IReadOnlyEnumValueCollection.TryGetValue(string name, [NotNullWhen(true)] out IEnumValue? value)
     {
-        if(_map.TryGetValue(name, out var enumValue))
+        if (_map.TryGetValue(name, out var enumValue))
         {
             value = enumValue;
             return true;

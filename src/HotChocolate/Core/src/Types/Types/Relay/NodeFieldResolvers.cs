@@ -165,7 +165,7 @@ internal static class NodeFieldResolvers
                 SetLocalContext(nodeContext, nodeId, deserializedId, type);
                 TryReplaceArguments(nodeContext, feature.NodeResolver, Ids, nodeId);
 
-                var result  = await ExecutePipelineAsync(nodeContext, feature.NodeResolver);
+                var result = await ExecutePipelineAsync(nodeContext, feature.NodeResolver);
 
                 if (result is IError error)
                 {

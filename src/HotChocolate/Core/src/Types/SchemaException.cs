@@ -28,7 +28,7 @@ public sealed partial class SchemaException : Exception
 
     private static string CreateErrorMessage(IReadOnlyList<ISchemaError> errors)
     {
-        if (errors is null || errors.Count == 0)
+        if (errors.Count == 0)
         {
             return SchemaException_UnexpectedError;
         }
