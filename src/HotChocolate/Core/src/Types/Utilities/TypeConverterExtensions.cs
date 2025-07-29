@@ -1,3 +1,5 @@
+#nullable disable
+
 namespace HotChocolate.Utilities;
 
 public static class TypeConverterExtensions

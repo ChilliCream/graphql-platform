@@ -3,8 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.MemberKind;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 public class InputFieldDescriptor

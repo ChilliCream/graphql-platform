@@ -2,8 +2,6 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Resolvers;
 
-#nullable enable
-
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>

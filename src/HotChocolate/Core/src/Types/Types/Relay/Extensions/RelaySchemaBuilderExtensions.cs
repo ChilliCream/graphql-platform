@@ -1,7 +1,5 @@
 using HotChocolate.Types.Relay;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public static class RelaySchemaBuilderExtensions
