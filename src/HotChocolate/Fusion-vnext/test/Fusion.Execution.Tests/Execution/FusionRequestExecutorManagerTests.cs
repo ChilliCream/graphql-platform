@@ -3,6 +3,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -114,7 +115,7 @@ public class FusionRequestExecutorManagerTests
         [StringSyntax("graphql")] params string[] schemas)
     {
         var compositionLog = new CompositionLog();
-        var composer = new SchemaComposer(schemas, compositionLog);
+        var composer = new SchemaComposer(schemas, new SchemaComposerOptions(), compositionLog);
         var result = composer.Compose();
 
         if (!result.IsSuccess)

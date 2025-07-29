@@ -4,6 +4,7 @@ using System.CommandLine.IO;
 using System.Text;
 using System.Threading.Channels;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 using static HotChocolate.Fusion.Properties.CommandLineResources;
 
 namespace HotChocolate.Fusion.Commands;
@@ -48,6 +49,11 @@ internal sealed class ComposeCommand : Command
         compositeSchemaFileOption.AddAlias("-c");
         compositeSchemaFileOption.LegalFilePathsOnly();
 
+        var enableGlobalObjectIdentificationOption = new Option<bool>("--enable-global-object-identification")
+        {
+            Description = ComposeCommand_EnableGlobalObjectIdentification_Description
+        };
+
         var watchModeOption = new Option<bool>("--watch")
         {
             Arity = ArgumentArity.ZeroOrOne
@@ -56,6 +62,7 @@ internal sealed class ComposeCommand : Command
         AddOption(workingDirectoryOption);
         AddOption(sourceSchemaFileOption);
         AddOption(compositeSchemaFileOption);
+        AddOption(enableGlobalObjectIdentificationOption);
         AddOption(watchModeOption);
 
         this.SetHandler(async context =>
@@ -63,6 +70,8 @@ internal sealed class ComposeCommand : Command
             var workingDirectory = context.ParseResult.GetValueForOption(workingDirectoryOption)!;
             var sourceSchemaFiles = context.ParseResult.GetValueForOption(sourceSchemaFileOption)!;
             var compositeSchemaFile = context.ParseResult.GetValueForOption(compositeSchemaFileOption);
+            var enableGlobalObjectIdentification =
+                context.ParseResult.GetValueForOption(enableGlobalObjectIdentificationOption);
             var watchMode = context.ParseResult.GetValueForOption(watchModeOption);
 
             context.ExitCode = await ExecuteAsync(
@@ -70,6 +79,7 @@ internal sealed class ComposeCommand : Command
                 workingDirectory,
                 sourceSchemaFiles,
                 compositeSchemaFile,
+                enableGlobalObjectIdentification,
                 watchMode,
                 context.GetCancellationToken());
         });
@@ -80,6 +90,7 @@ internal sealed class ComposeCommand : Command
         string workingDirectory,
         List<string> sourceSchemaFiles,
         string? compositeSchemaFile,
+        bool enableGlobalObjectIdentification,
         bool watchMode,
         CancellationToken cancellationToken)
     {
@@ -90,6 +101,7 @@ internal sealed class ComposeCommand : Command
                 workingDirectory,
                 sourceSchemaFiles,
                 compositeSchemaFile,
+                enableGlobalObjectIdentification,
                 cancellationToken);
         }
 
@@ -98,6 +110,7 @@ internal sealed class ComposeCommand : Command
             workingDirectory,
             sourceSchemaFiles,
             compositeSchemaFile,
+            enableGlobalObjectIdentification,
             cancellationToken);
     }
 
@@ -106,12 +119,19 @@ internal sealed class ComposeCommand : Command
         string workingDirectory,
         List<string> sourceSchemaFiles,
         string? compositeSchemaFile,
+        bool enableGlobalObjectIdentification,
         CancellationToken cancellationToken)
     {
         console.Out.WriteLine("🔍 Starting watch mode...");
 
         // Initial composition
-        await ComposeAsync(console, workingDirectory, sourceSchemaFiles, compositeSchemaFile, cancellationToken);
+        await ComposeAsync(
+            console,
+            workingDirectory,
+            sourceSchemaFiles,
+            compositeSchemaFile,
+            enableGlobalObjectIdentification,
+            cancellationToken);
 
         ImmutableSortedSet<string> sourceSchemaFilePaths;
 
@@ -144,6 +164,7 @@ internal sealed class ComposeCommand : Command
             workingDirectory,
             sourceSchemaFiles,
             compositeSchemaFile,
+            enableGlobalObjectIdentification,
             cancellationToken);
 
         // set up file watcher for source schema files
@@ -254,6 +275,7 @@ internal sealed class ComposeCommand : Command
         string workingDirectory,
         List<string> sourceSchemaFiles,
         string? compositeSchemaFile,
+        bool enableGlobalObjectIdentification,
         CancellationToken cancellationToken)
     {
         var lastComposition = DateTime.MinValue;
@@ -284,6 +306,7 @@ internal sealed class ComposeCommand : Command
                     workingDirectory,
                     sourceSchemaFiles,
                     compositeSchemaFile,
+                    enableGlobalObjectIdentification,
                     cancellationToken);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
@@ -339,6 +362,7 @@ internal sealed class ComposeCommand : Command
         string workingDirectory,
         List<string> sourceSchemaFiles,
         string? compositeSchemaFile,
+        bool enableGlobalObjectIdentification,
         CancellationToken cancellationToken)
     {
         IEnumerable<string> sourceSchemas;
@@ -356,8 +380,13 @@ internal sealed class ComposeCommand : Command
             return 1;
         }
 
+        var schemaComposerOptions = new SchemaComposerOptions
+        {
+            EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+        };
         var compositionLog = new CompositionLog();
-        var schemaComposer = new SchemaComposer(sourceSchemas, compositionLog);
+        var schemaComposer = new SchemaComposer(sourceSchemas, schemaComposerOptions, compositionLog);
+
         var result = schemaComposer.Compose();
 
         WriteCompositionLog(
