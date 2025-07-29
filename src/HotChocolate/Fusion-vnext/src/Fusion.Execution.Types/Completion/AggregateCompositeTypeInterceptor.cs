@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Types.Completion;
 
 internal sealed class AggregateCompositeTypeInterceptor : CompositeTypeInterceptor
 {
-    private readonly CompositeTypeInterceptor[]  _interceptors;
+    private readonly CompositeTypeInterceptor[] _interceptors;
 
     public AggregateCompositeTypeInterceptor(CompositeTypeInterceptor[] interceptors)
     {

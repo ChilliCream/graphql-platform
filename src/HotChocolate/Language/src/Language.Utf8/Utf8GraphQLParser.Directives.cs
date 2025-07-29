@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-
 namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLParser

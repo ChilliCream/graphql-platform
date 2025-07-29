@@ -928,7 +928,7 @@ public class UnionTests : FusionTestBase
 
     #region objects { unions { ... } }
 
-        [Fact]
+    [Fact]
     public void Object_List_Union_List_Concrete_Type_Has_Dependency()
     {
         // arrange
