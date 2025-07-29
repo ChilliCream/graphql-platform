@@ -25,8 +25,6 @@ public class FusionRequestExecutorManagerTests
                 type Query {
                     foo: String
                 }
-
-                directive @schemaName(value: String!) on SCHEMA
                 """);
 
         var services =
@@ -59,8 +57,6 @@ public class FusionRequestExecutorManagerTests
                 type Query {
                     foo: String
                 }
-
-                directive @schemaName(value: String!) on SCHEMA
                 """);
 
         var services =

@@ -255,8 +255,6 @@ public class OperationPlannerTests : FusionTestBase
               id: ID!
               name: String!
             }
-
-            directive @schemaName(value: String!) on SCHEMA
             """,
             """
             schema @schemaName(value: "B") {
@@ -271,10 +269,6 @@ public class OperationPlannerTests : FusionTestBase
               id: ID!
               price: Float!
             }
-
-            directive @lookup on FIELD_DEFINITION
-
-            directive @schemaName(value: String!) on SCHEMA
             """);
 
         // act
@@ -351,8 +345,6 @@ public class OperationPlannerTests : FusionTestBase
               name: String!
               region: String!
             }
-
-            directive @schemaName(value: String!) on SCHEMA
             """,
             """
             schema @schemaName(value: "B") {
@@ -367,12 +359,6 @@ public class OperationPlannerTests : FusionTestBase
               id: ID!
               price(region: String! @require(field: "region")): Float!
             }
-
-            directive @lookup on FIELD_DEFINITION
-
-            directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
-
-            directive @schemaName(value: String!) on SCHEMA
             """);
 
         // assert
@@ -454,8 +440,6 @@ public class OperationPlannerTests : FusionTestBase
               name: String!
               region: String!
             }
-
-            directive @schemaName(value: String!) on SCHEMA
             """,
             """
             schema @schemaName(value: "B") {
@@ -470,12 +454,6 @@ public class OperationPlannerTests : FusionTestBase
               id: ID!
               price(region: String! @require(field: "region")): Float!
             }
-
-            directive @lookup on FIELD_DEFINITION
-
-            directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
-
-            directive @schemaName(value: String!) on SCHEMA
             """);
 
         // assert
@@ -556,8 +534,6 @@ public class OperationPlannerTests : FusionTestBase
               id: ID!
               region: String!
             }
-
-            directive @schemaName(value: String!) on SCHEMA
             """,
             """
             schema @schemaName(value: "B") {
@@ -572,12 +548,6 @@ public class OperationPlannerTests : FusionTestBase
               id: ID!
               sku(region: String! @require(field: "region")): String!
             }
-
-            directive @lookup on FIELD_DEFINITION
-
-            directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
-
-            directive @schemaName(value: String!) on SCHEMA
             """,
             """
             schema @schemaName(value: "C") {
@@ -592,12 +562,6 @@ public class OperationPlannerTests : FusionTestBase
               sku: String!
               name: String!
             }
-
-            directive @lookup on FIELD_DEFINITION
-
-            directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
-
-            directive @schemaName(value: String!) on SCHEMA
             """);
 
         // assert
