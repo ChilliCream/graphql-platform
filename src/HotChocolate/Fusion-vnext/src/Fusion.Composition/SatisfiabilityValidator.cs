@@ -219,9 +219,11 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
     {
         foreach (var possibleType in schema.GetPossibleTypes(nodeType))
         {
-            var lookups = GetLookupsById(possibleType);
+            var unionTypes =
+                schema.Types.OfType<MutableUnionTypeDefinition>().Where(u => u.Types.Contains(possibleType));
+            var byIdLookups = possibleType.GetFusionLookupDirectivesById(unionTypes);
 
-            if (!lookups.Any())
+            if (!byIdLookups.Any())
             {
                 var error = new SatisfiabilityError(
                     string.Format(SatisfiabilityValidator_NodeTypeHasNoLookupById, possibleType.Name));
@@ -234,7 +236,7 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
             var nodePathItem = new SatisfiabilityPathItem(nodeField, queryType, "*");
             context.Path.Push(nodePathItem);
 
-            foreach (var lookup in lookups)
+            foreach (var lookup in byIdLookups)
             {
                 var schemaName = (string)lookup.Arguments[WellKnownArgumentNames.Schema].Value!;
                 var fieldDirectiveArgument = (string)lookup.Arguments[WellKnownArgumentNames.Field].Value!;
@@ -324,27 +326,6 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         }
 
         return [.. errors];
-    }
-
-    private List<IDirective> GetLookupsById(MutableObjectTypeDefinition type)
-    {
-        var lookups = new List<IDirective>();
-        var unionTypes =
-            schema.Types.OfType<MutableUnionTypeDefinition>().Where(u => u.Types.Contains(type));
-
-        foreach (var sourceSchemaName in type.GetSourceSchemaNames())
-        {
-            var lookupDirective = type.GetFusionLookupDirectives(sourceSchemaName, unionTypes)
-                .FirstOrDefault();
-
-            if (lookupDirective?.Arguments[WellKnownArgumentNames.Map] is ListValueNode mapArg
-                && mapArg.Items.Count == 1 && mapArg.Items[0].Value?.Equals("id") == true)
-            {
-                lookups.Add(lookupDirective);
-            }
-        }
-
-        return lookups;
     }
 
     private static IType CreateType(ITypeNode typeNode, ITypeDefinition namedType)

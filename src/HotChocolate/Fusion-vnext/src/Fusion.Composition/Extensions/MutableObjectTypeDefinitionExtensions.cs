@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.WellKnownArgumentNames;
@@ -16,13 +17,6 @@ internal static class MutableObjectTypeDefinitionExtensions
     {
         return type.Directives.AsEnumerable().Any(
             d => d.Name == FusionType && (string)d.Arguments[Schema].Value! == schemaName);
-    }
-
-    public static IEnumerable<string> GetSourceSchemaNames(this MutableObjectTypeDefinition type)
-    {
-        return type.Directives.AsEnumerable()
-            .Where(d => d.Name == FusionType)
-            .Select(d => (string)d.Arguments[Schema].Value!);
     }
 
     public static IEnumerable<IDirective> GetFusionLookupDirectives(
@@ -68,6 +62,29 @@ internal static class MutableObjectTypeDefinitionExtensions
         return lookupDirectives;
     }
 
+    public static List<IDirective> GetFusionLookupDirectivesById(
+        this MutableObjectTypeDefinition type,
+        IEnumerable<MutableUnionTypeDefinition> unionTypes)
+    {
+        var lookups = new List<IDirective>();
+        var sourceSchemaNames = type.Directives.AsEnumerable()
+            .Where(d => d.Name == FusionType)
+            .Select(d => (string)d.Arguments[Schema].Value!);
+
+        foreach (var sourceSchemaName in sourceSchemaNames)
+        {
+            foreach (var lookupDirective in type.GetFusionLookupDirectives(sourceSchemaName, unionTypes))
+            {
+                if (lookupDirective?.Arguments[Map] is ListValueNode mapArg
+                    && mapArg.Items.Count == 1 && mapArg.Items[0].Value?.Equals("id") == true)
+                {
+                    lookups.Add(lookupDirective);
+                }
+            }
+        }
+
+        return lookups;
+    }
     public static bool HasInternalDirective(this MutableObjectTypeDefinition type)
     {
         return type.Directives.ContainsName(Internal);
