@@ -1,5 +1,27 @@
 {
   "data": {
     "__typename": "Query"
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "query(\n  $s: Boolean! = false\n) {\n  __typename @skip(if: $s)\n}",
+          "hash": "7000d58c5a91379479dee99795ff88dd"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "selections": [
+              {
+                "id": 1,
+                "responseName": "__typename",
+                "fieldName": "__typename"
+              }
+            ]
+          }
+        ]
+      }
+    }
   }
 }

@@ -4,5 +4,22 @@
       "id": 1,
       "title": "C# in Depth"
     }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "{\n  bookById(id: 1) {\n    id\n    title\n  }\n}",
+          "hash": "da31ef9bfb0a7c42de9b1578b454d0af"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "schema": "A",
+            "operation": "{\n  bookById(id: 1) {\n    id\n    title\n  }\n}"
+          }
+        ]
+      }
+    }
   }
 }

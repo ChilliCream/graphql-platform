@@ -25,27 +25,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-            operation: >-
-              {
-                productBySlug(slug: "1") {
-                  id
-                  name
-                }
-              }
-            nodes:
-              - id: 1
-                schema: PRODUCTS
-                operation: >-
-                  {
-                      productBySlug(slug: "1") {
-                      id
-                      name
-                      }
-                  }
-            """);
+        MatchSnapshot(plan);
     }
 
     [Fact]
@@ -72,57 +52,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-            operation: >-
-              {
-                productBySlug(slug: "1") {
-                  id
-                  name
-                  estimatedDelivery(postCode: "12345")
-                  id @fusion_internal
-                }
-              }
-            nodes:
-              - id: 1
-                schema: PRODUCTS
-                operation: >-
-                  {
-                    productBySlug(slug: "1") {
-                      id
-                      name
-                      dimension {
-                        height
-                        width
-                      }
-                    }
-                  }
-              - id: 2
-                schema: SHIPPING
-                operation: >-
-                  query(
-                    $__fusion_1_id: ID!
-                    $__fusion_2_height: Int!
-                    $__fusion_2_width: Int!
-                  ) {
-                    productById(id: $__fusion_1_id) {
-                      estimatedDelivery(postCode: "12345", height: $__fusion_2_height, width: $__fusion_2_width)
-                    }
-                  }
-                requirements:
-                  - name: __fusion_1_id
-                    selectionSet: $.productBySlug
-                    selectionMap: id
-                  - name: __fusion_2_height
-                    selectionSet: $.productBySlug
-                    selectionMap: dimension.height
-                  - name: __fusion_2_width
-                    selectionSet: $.productBySlug
-                    selectionMap: dimension.width
-                dependencies:
-                  - id: 1
-            """);
+        MatchSnapshot(plan);
     }
 
     [Fact]
@@ -164,77 +94,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-            operation: >-
-              {
-                productBySlug(slug: "1") {
-                  name
-                  reviews(first: 10) {
-                    nodes {
-                      body
-                      stars
-                      author {
-                        displayName
-                        id @fusion_internal
-                      }
-                    }
-                  }
-                  id @fusion_internal
-                }
-              }
-            nodes:
-              - id: 1
-                schema: PRODUCTS
-                operation: >-
-                  {
-                    productBySlug(slug: "1") {
-                      name
-                      id
-                    }
-                  }
-              - id: 2
-                schema: REVIEWS
-                operation: >-
-                  query(
-                    $__fusion_1_id: ID!
-                  ) {
-                    productById(id: $__fusion_1_id) {
-                      reviews(first: 10) {
-                        nodes {
-                          body
-                          stars
-                          author {
-                            id
-                          }
-                        }
-                      }
-                    }
-                  }
-                requirements:
-                  - name: __fusion_1_id
-                    selectionSet: $.productBySlug
-                    selectionMap: id
-                dependencies:
-                  - id: 1
-              - id: 3
-                schema: ACCOUNTS
-                operation: >-
-                  query(
-                    $__fusion_2_id: ID!
-                  ) {
-                    userById(id: $__fusion_2_id) {
-                      displayName
-                    }
-                  }
-                requirements:
-                  - name: __fusion_2_id
-                    selectionSet: $.reviews.nodes.author.productBySlug
-                    selectionMap: id
-                dependencies:
-                  - id: 2
-            """);
+        MatchSnapshot(plan);
     }
 
     [Fact]
@@ -285,45 +145,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-            operation: >-
-              query GetTopProducts {
-                topProducts {
-                  id
-                  name
-                  price
-                  id @fusion_internal
-                }
-              }
-            nodes:
-              - id: 1
-                schema: A
-                operation: >-
-                  query GetTopProducts_1 {
-                    topProducts {
-                      id
-                      name
-                    }
-                  }
-              - id: 2
-                schema: B
-                operation: >-
-                  query GetTopProducts_2(
-                    $__fusion_1_id: ID!
-                  ) {
-                    productById(id: $__fusion_1_id) {
-                      price
-                    }
-                  }
-                requirements:
-                  - name: __fusion_1_id
-                    selectionSet: $.topProducts
-                    selectionMap: id
-                dependencies:
-                  - id: 1
-            """);
+        MatchSnapshot(plan);
     }
 
     [Fact]
@@ -375,50 +197,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-            operation: >-
-              query GetTopProducts {
-                topProducts {
-                  id
-                  name
-                  price
-                  id @fusion_internal
-                }
-              }
-            nodes:
-              - id: 1
-                schema: A
-                operation: >-
-                  query GetTopProducts_1 {
-                    topProducts {
-                      id
-                      name
-                      region
-                    }
-                  }
-              - id: 2
-                schema: B
-                operation: >-
-                  query GetTopProducts_2(
-                    $__fusion_1_id: ID!
-                    $__fusion_2_region: String!
-                  ) {
-                    productById(id: $__fusion_1_id) {
-                      price(region: $__fusion_2_region)
-                    }
-                  }
-                requirements:
-                  - name: __fusion_1_id
-                    selectionSet: $.topProducts
-                    selectionMap: id
-                  - name: __fusion_2_region
-                    selectionSet: $.topProducts
-                    selectionMap: region
-                dependencies:
-                  - id: 1
-            """);
+        MatchSnapshot(plan);
     }
 
     [Fact]
@@ -470,50 +249,7 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-            operation: >-
-              query GetTopProducts {
-                topProducts {
-                  id
-                  name
-                  price
-                  id @fusion_internal
-                }
-              }
-            nodes:
-              - id: 1
-                schema: A
-                operation: >-
-                  query GetTopProducts_1 {
-                    topProducts {
-                      id
-                      name
-                      region
-                    }
-                  }
-              - id: 2
-                schema: B
-                operation: >-
-                  query GetTopProducts_2(
-                    $__fusion_1_id: ID!
-                    $__fusion_2_region: String!
-                  ) {
-                    productById(id: $__fusion_1_id) {
-                      price(region: $__fusion_2_region)
-                    }
-                  }
-                requirements:
-                  - name: __fusion_1_id
-                    selectionSet: $.topProducts
-                    selectionMap: id
-                  - name: __fusion_2_region
-                    selectionSet: $.topProducts
-                    selectionMap: region
-                dependencies:
-                  - id: 1
-            """);
+        MatchSnapshot(plan);
     }
 
     [Fact]
@@ -577,64 +313,6 @@ public class OperationPlannerTests : FusionTestBase
             """);
 
         // assert
-        MatchInline(
-            plan,
-            """
-            operation: >-
-              query GetTopProducts {
-                topProducts {
-                  id
-                  name
-                  sku @fusion_internal
-                  id @fusion_internal
-                }
-              }
-            nodes:
-              - id: 1
-                schema: A
-                operation: >-
-                  query GetTopProducts_1 {
-                    topProducts {
-                      id
-                      region
-                    }
-                  }
-              - id: 2
-                schema: C
-                operation: >-
-                  query GetTopProducts_2(
-                    $__fusion_1_sku: String!
-                  ) {
-                    productBySku(sku: $__fusion_1_sku) {
-                      name
-                    }
-                  }
-                requirements:
-                  - name: __fusion_1_sku
-                    selectionSet: $.topProducts
-                    selectionMap: sku
-                dependencies:
-                  - id: 3
-              - id: 3
-                schema: B
-                operation: >-
-                  query GetTopProducts_3(
-                    $__fusion_2_id: ID!
-                    $__fusion_3_region: String!
-                  ) {
-                    productById(id: $__fusion_2_id) {
-                      sku(region: $__fusion_3_region)
-                    }
-                  }
-                requirements:
-                  - name: __fusion_2_id
-                    selectionSet: $.topProducts
-                    selectionMap: id
-                  - name: __fusion_3_region
-                    selectionSet: $.topProducts
-                    selectionMap: region
-                dependencies:
-                  - id: 1
-            """);
+        MatchSnapshot(plan);
     }
 }

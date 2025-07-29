@@ -308,7 +308,7 @@ public sealed class OperationCompiler
 
     private bool IsInternal(FieldNode fieldNode)
     {
-        const string isInternal = "fusion_internal";
+        const string isInternal = "fusion__requirement";
         var directives = fieldNode.Directives;
 
         if (directives.Count == 0)

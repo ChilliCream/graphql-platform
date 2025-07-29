@@ -1,0 +1,40 @@
+operation:
+  - document: >-
+    {
+      books {
+        titleAndId
+        id @fusion__requirement
+        title @fusion__requirement
+      }
+    }
+    hash: 123
+nodes:
+  - id: 1
+    schema: A
+    operation: >-
+      {
+        books {
+          id
+          title
+        }
+      }
+  - id: 2
+    schema: B
+    operation: >-
+      query(
+        $__fusion_1_id: String!
+        $__fusion_2_title: String
+      ) {
+        bookById(id: $__fusion_1_id) {
+          titleAndId(title: $__fusion_2_title)
+        }
+      }
+    source: $.bookById
+    target: $.books
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: id
+      - name: __fusion_2_title
+        selectionMap: title
+    dependencies:
+      - id: 1

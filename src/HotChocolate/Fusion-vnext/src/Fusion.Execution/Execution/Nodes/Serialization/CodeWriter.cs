@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
 internal sealed class CodeWriter(StringBuilder sb)
 {
@@ -18,6 +18,16 @@ internal sealed class CodeWriter(StringBuilder sb)
         }
 
         sb.AppendLine(line);
+    }
+
+    public void WriteLine(string format, params object[] args)
+    {
+        for (var i = 0; i < _indent; i++)
+        {
+            sb.Append("  ");
+        }
+
+        sb.AppendFormat(format, args).AppendLine();
     }
 
     public void Write(string s)

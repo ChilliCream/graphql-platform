@@ -16,5 +16,22 @@
         }
       ]
     }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "{\n  books {\n    nodes {\n      __typename\n    }\n  }\n}",
+          "hash": "710e4ed3371f4171a057deda56c473bb"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "schema": "A",
+            "operation": "{\n  books {\n    nodes {\n      __typename\n    }\n  }\n}"
+          }
+        ]
+      }
+    }
   }
 }

@@ -1,5 +1,27 @@
 {
   "data": {
     "__typename": "Query"
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "{\n  __typename\n}",
+          "hash": "ef5c9e7b1e24de261642083d4e294322"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "selections": [
+              {
+                "id": 1,
+                "responseName": "__typename",
+                "fieldName": "__typename"
+              }
+            ]
+          }
+        ]
+      }
+    }
   }
 }

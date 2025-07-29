@@ -1,11 +1,13 @@
+using System.Runtime.InteropServices;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
 internal sealed class OperationExecutionMiddleware
 {
-    private readonly QueryExecutor _queryExecutor = new();
+    private readonly OperationPlanExecutor _planExecutor = new();
 
     public async ValueTask InvokeAsync(
         RequestContext context,
@@ -17,16 +19,47 @@ internal sealed class OperationExecutionMiddleware
 
         if (operationPlan is null)
         {
-            throw new InvalidOperationException();
+            throw new InvalidOperationException(
+                "There is no operation plan available to be executed.");
         }
 
-        var operationPlanContext = new OperationPlanContext(
-            operationPlan,
-            context.VariableValues[0],
-            context,
-            resultPoolSession);
+        if (operationPlan.Operation.Definition.Operation is OperationType.Subscription)
+        {
+            // todo : implement
+            throw new NotSupportedException("Not yet supported.");
+        }
+        else
+        {
+            if (context.VariableValues.Length > 1)
+            {
+                var variableValues = ImmutableCollectionsMarshal.AsArray(context.VariableValues).AsSpan();
+                var tasks = new Task<IExecutionResult>[variableValues.Length];
 
-        context.Result = await _queryExecutor.QueryAsync(operationPlanContext, cancellationToken);
+                for (var i = 0; i < variableValues.Length; i++)
+                {
+                    var planContext = new OperationPlanContext(
+                        operationPlan,
+                        variableValues[i],
+                        context,
+                        resultPoolSession);
+
+                    tasks[i] = _planExecutor.ExecuteAsync(planContext, cancellationToken);
+                }
+
+                var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+                context.Result = new OperationResultBatch(results);
+            }
+            else
+            {
+                var planContext = new OperationPlanContext(
+                    operationPlan,
+                    context.VariableValues[0],
+                    context,
+                    resultPoolSession);
+
+                context.Result = await _planExecutor.ExecuteAsync(planContext, cancellationToken);
+            }
+        }
 
         await next(context);
     }

@@ -64,5 +64,27 @@
         }
       ]
     }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "{\n  __schema {\n    types {\n      name\n    }\n  }\n}",
+          "hash": "e4e78f6ce44f74870f424cc260b232a6"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "selections": [
+              {
+                "id": 1,
+                "responseName": "__schema",
+                "fieldName": "__schema"
+              }
+            ]
+          }
+        ]
+      }
+    }
   }
 }

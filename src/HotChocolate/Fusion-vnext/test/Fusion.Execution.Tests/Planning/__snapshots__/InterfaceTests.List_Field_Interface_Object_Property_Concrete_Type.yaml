@@ -1,14 +1,17 @@
-operation: >-
-  query testQuery {
-    wrappers {
-      votable {
-        viewerCanVote
-        ... on Discussion {
-          title
+operation:
+  - document: >-
+    query testQuery {
+      wrappers {
+        votable {
+          viewerCanVote
+          ... on Discussion {
+            title
+          }
         }
       }
     }
-  }
+    name: testQuery
+    hash: 123
 nodes:
   - id: 1
     schema: SUBGRAPH_1

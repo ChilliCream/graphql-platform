@@ -1,8 +1,10 @@
+using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -65,6 +67,8 @@ public abstract class FusionTestBase : IDisposable
         }
 
         gatewayBuilder.AddInMemoryConfiguration(result.Value.ToSyntaxNode());
+        gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
+        gatewayBuilder.ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = false);
 
         configureApplication ??=
             app =>
@@ -106,6 +110,19 @@ public abstract class FusionTestBase : IDisposable
         if (disposing)
         {
             _testServerSession.Dispose();
+        }
+    }
+
+    private sealed class OperationPlanHttpRequestInterceptor : DefaultHttpRequestInterceptor
+    {
+        public override ValueTask OnCreateAsync(
+            HttpContext context,
+            IRequestExecutor requestExecutor,
+            OperationRequestBuilder requestBuilder,
+            CancellationToken cancellationToken)
+        {
+            requestBuilder.TryAddGlobalState(ExecutionContextData.IncludeQueryPlan, true);
+            return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
         }
     }
 }

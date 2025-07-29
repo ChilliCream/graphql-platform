@@ -26,7 +26,7 @@ public sealed partial class OperationPlanner
         _partitioner = new SelectionSetPartitioner(schema);
     }
 
-    public OperationExecutionPlan CreatePlan(string id, OperationDefinitionNode operationDefinition)
+    public OperationPlan CreatePlan(string id, OperationDefinitionNode operationDefinition)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(operationDefinition);
@@ -359,7 +359,7 @@ public sealed partial class OperationPlanner
         var success =
             TryInlineFieldRequirements(
                     workItem,
-                    current,
+                    ref current,
                     currentStep,
                     requirementKey,
                     index,
@@ -470,7 +470,7 @@ public sealed partial class OperationPlanner
         var leftoverRequirements =
             TryInlineFieldRequirements(
                 workItem,
-                current,
+                ref current,
                 currentStep,
                 requirementKey,
                 index,
@@ -638,7 +638,7 @@ public sealed partial class OperationPlanner
 
     private SelectionSetNode? TryInlineFieldRequirements(
         FieldRequirementWorkItem workItem,
-        PlanNode current,
+        ref PlanNode current,
         OperationPlanStep currentStep,
         string requirementKey,
         SelectionSetIndexBuilder index,
@@ -652,15 +652,15 @@ public sealed partial class OperationPlanner
         // is used on different parts of the operation.
         var requirements = fieldSource.Requirements!.Requirements;
 
-        // TODO : WHY?
-        /*var internalOperation =*/
-        InlineSelections(
-            current.InternalOperationDefinition,
-            index,
-            workItem.Selection.Field.DeclaringType,
-            workItem.Selection.SelectionSetId,
-            requirements,
-            inlineInternal: true);
+        var internalOperation =
+            InlineSelections(
+                current.InternalOperationDefinition,
+                index,
+                workItem.Selection.Field.DeclaringType,
+                workItem.Selection.SelectionSetId,
+                requirements,
+                inlineInternal: true);
+        current = current with { InternalOperationDefinition = internalOperation };
 
         foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItem.Selection.SelectionSetId))
         {
@@ -832,7 +832,7 @@ public sealed partial class OperationPlanner
                 directives.AddRange(selection.Directives);
             }
 
-            directives.Add(new DirectiveNode("fusion_internal"));
+            directives.Add(new DirectiveNode("fusion__requirement"));
 
             return directives;
         }

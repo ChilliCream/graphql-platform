@@ -9,7 +9,7 @@ public sealed partial class OperationPlanner
     /// <summary>
     /// Builds the actual execution plan from the provided <paramref name="planSteps"/>.
     /// </summary>
-    private OperationExecutionPlan BuildExecutionPlan(
+    private OperationPlan BuildExecutionPlan(
         Operation operation,
         OperationDefinitionNode operationDefinition,
         ImmutableList<OperationPlanStep> planSteps,
@@ -20,7 +20,7 @@ public sealed partial class OperationPlanner
             var introspectionNode = new IntrospectionExecutionNode(1, [.. operation.RootSelectionSet.Selections]);
             introspectionNode.Seal();
 
-            return new OperationExecutionPlan
+            return new OperationPlan
             {
                 Operation = operation,
                 OperationDefinition = operationDefinition,
@@ -61,7 +61,7 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
-        return new OperationExecutionPlan
+        return new OperationPlan
         {
             Operation = operation,
             OperationDefinition = operationDefinition,

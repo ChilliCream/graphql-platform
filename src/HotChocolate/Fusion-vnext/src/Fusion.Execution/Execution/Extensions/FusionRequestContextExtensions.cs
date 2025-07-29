@@ -19,7 +19,7 @@ public static class FusionRequestContextExtensions
     /// The request context.
     /// </param>
     /// <returns>
-    /// The <see cref="OperationExecutionPlan"/> if it exists, otherwise <c>null</c>.
+    /// The <see cref="OperationPlan"/> if it exists, otherwise <c>null</c>.
     /// </returns>
     public static string GetOperationId(
         this RequestContext context)
@@ -37,15 +37,15 @@ public static class FusionRequestContextExtensions
     }
 
     /// <summary>
-    /// Gets the <see cref="OperationExecutionPlan"/> from the request context.
+    /// Gets the <see cref="OperationPlan"/> from the request context.
     /// </summary>
     /// <param name="context">
     /// The request context.
     /// </param>
     /// <returns>
-    /// The <see cref="OperationExecutionPlan"/> if it exists, otherwise <c>null</c>.
+    /// The <see cref="OperationPlan"/> if it exists, otherwise <c>null</c>.
     /// </returns>
-    public static OperationExecutionPlan? GetOperationPlan(
+    public static OperationPlan? GetOperationPlan(
         this RequestContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -73,7 +73,7 @@ public static class FusionRequestContextExtensions
     }
 
     /// <summary>
-    /// Sets the <see cref="OperationExecutionPlan"/> on the request context.
+    /// Sets the <see cref="OperationPlan"/> on the request context.
     /// </summary>
     /// <param name="context">
     /// The request context.
@@ -83,7 +83,7 @@ public static class FusionRequestContextExtensions
     /// </param>
     public static void SetOperationPlan(
         this RequestContext context,
-        OperationExecutionPlan plan)
+        OperationPlan plan)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(plan);

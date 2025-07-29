@@ -9,11 +9,22 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
     public IntrospectionExecutionNode(int id, Selection[] selections)
     {
+        ArgumentNullException.ThrowIfNull(selections);
+
+        if (selections.Length == 0)
+        {
+            throw new ArgumentException(
+                "There must be at least one introspection selection.",
+                nameof(selections));
+        }
+
         Id = id;
         _selections = selections;
     }
 
     public override int Id { get; }
+
+    public ReadOnlySpan<Selection> Selections => _selections;
 
     public override ReadOnlySpan<ExecutionNode> Dependencies => default;
 
@@ -43,7 +54,12 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         ExecuteSelections(context, backlog);
         context.AddPartialResults(root, _selections);
 
-        return Task.FromResult(new ExecutionNodeResult(Id, ExecutionStatus.Success, Stopwatch.GetElapsedTime(start)));
+        return Task.FromResult(
+            new ExecutionNodeResult(
+                Id,
+                Activity.Current,
+                ExecutionStatus.Success,
+                Stopwatch.GetElapsedTime(start)));
     }
 
     private static void ExecuteSelections(

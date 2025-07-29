@@ -1,6 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
-using System.Security.Cryptography;
+using System.IO.Hashing;
 using System.Text;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Types;
@@ -36,9 +36,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         // We compute the hash of the operation definition when it is set.
         // This hash can be used within the GraphQL client to identify the operation
         // and optimize request serialization.
-        Span<byte> hash = stackalloc byte[16];
-        var length = MD5.HashData(Encoding.UTF8.GetBytes(operation.ToString()), hash);
-        OperationId = Convert.ToHexString(hash[..length]);
+        OperationId = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(operation.ToString())).ToString();
 
         var variables = new List<string>();
 
@@ -114,7 +112,11 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         if (variables.Length == 0 && (Requirements.Length > 0 || Variables.Length > 0))
         {
-            return new ExecutionNodeResult(Id, ExecutionStatus.Skipped, Stopwatch.GetElapsedTime(start));
+            return new ExecutionNodeResult(
+                Id,
+                Activity.Current,
+                ExecutionStatus.Skipped,
+                Stopwatch.GetElapsedTime(start));
         }
 
         var request = new SourceSchemaClientRequest
@@ -127,40 +129,51 @@ public sealed class OperationExecutionNode : ExecutionNode
         var client = context.GetClient(SchemaName, Operation.Operation);
         var response = await client.ExecuteAsync(context, request, cancellationToken);
 
-        if (response.IsSuccessful)
+        if (!response.IsSuccessful)
         {
-            var index = 0;
-            var bufferLength = variables.Length > 1 ? variables.Length : 1;
-            var buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
-
-            try
-            {
-                await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
-                {
-                    buffer[index++] = result;
-                }
-
-                context.AddPartialResults(Source, buffer.AsSpan(0, index));
-            }
-            catch
-            {
-                // if there is an error, we need to make sure that the pooled buffers for the JsonDocuments
-                // are returned to the pool.
-                foreach (var result in buffer.AsSpan(0, index))
-                {
-                    result?.Dispose();
-                }
-
-                throw;
-            }
-            finally
-            {
-                buffer.AsSpan(0, index).Clear();
-                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
-            }
+            return new ExecutionNodeResult(
+                Id,
+                Activity.Current,
+                ExecutionStatus.Failed,
+                Stopwatch.GetElapsedTime(start));
         }
 
-        return new ExecutionNodeResult(Id, ExecutionStatus.Success, Stopwatch.GetElapsedTime(start));
+        var index = 0;
+        var bufferLength = Math.Max(variables.Length, 1);
+        var buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
+
+        try
+        {
+            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
+            {
+                buffer[index++] = result;
+            }
+
+            context.AddPartialResults(Source, buffer.AsSpan(0, index));
+        }
+        catch
+        {
+            // if there is an error, we need to make sure that the pooled buffers for the JsonDocuments
+            // are returned to the pool.
+            foreach (var result in buffer.AsSpan(0, index))
+            {
+                // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
+                result?.Dispose();
+            }
+
+            throw;
+        }
+        finally
+        {
+            buffer.AsSpan(0, index).Clear();
+            ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
+        }
+
+        return new ExecutionNodeResult(
+            Id,
+            Activity.Current,
+            ExecutionStatus.Success,
+            Stopwatch.GetElapsedTime(start));
     }
 
     internal void AddDependency(ExecutionNode node)
@@ -172,7 +185,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         ArgumentNullException.ThrowIfNull(node);
 
-        if (node == this)
+        if (node.Equals(this))
         {
             throw new InvalidOperationException("An operation cannot depend on itself.");
         }

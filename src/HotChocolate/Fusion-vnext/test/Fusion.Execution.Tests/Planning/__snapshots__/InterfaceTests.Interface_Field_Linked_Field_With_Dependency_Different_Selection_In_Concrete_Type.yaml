@@ -1,19 +1,22 @@
-operation: >-
-  query testQuery {
-    authorable {
-      author {
-        id
-        displayName
-        id @fusion_internal
-      }
-      ... on Discussion {
+operation:
+  - document: >-
+    query testQuery {
+      authorable {
         author {
-          email
-          id @fusion_internal
+          id
+          displayName
+          id @fusion__requirement
+        }
+        ... on Discussion {
+          author {
+            email
+            id @fusion__requirement
+          }
         }
       }
     }
-  }
+    name: testQuery
+    hash: 123
 nodes:
   - id: 1
     schema: SUBGRAPH_1
@@ -40,9 +43,10 @@ nodes:
           email
         }
       }
+    source: $.authorById
+    target: $.authorable.<Discussion>.author
     requirements:
       - name: __fusion_1_id
-        selectionSet: $.authorable.<Discussion>.author
         selectionMap: id
     dependencies:
       - id: 1
@@ -56,9 +60,10 @@ nodes:
           displayName
         }
       }
+    source: $.authorById
+    target: $.authorable.author
     requirements:
       - name: __fusion_2_id
-        selectionSet: $.authorable.author
         selectionMap: id
     dependencies:
       - id: 1
