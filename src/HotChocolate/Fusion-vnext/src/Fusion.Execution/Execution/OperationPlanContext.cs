@@ -17,6 +17,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 {
     private static readonly JsonOperationPlanFormatter s_planFormatter = new();
     private readonly FetchResultStore _resultStore;
+    private readonly bool _collectTelemetry;
     private string? _traceId;
     private long _start;
     private bool _disposed;
@@ -38,6 +39,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             resultPoolSession,
             operationPlan.Operation,
             IncludeFlags);
+
+        _collectTelemetry = RequestContext.Schema.GetRequestOptions().CollectOperationPlanTelemetry;
 
         // create a client scope for the current request context.
         var clientScopeFactory = requestContext.RequestServices.GetRequiredService<ISourceSchemaClientScopeFactory>();
@@ -98,18 +101,23 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     public void Begin()
     {
-        _traceId = Activity.Current?.TraceId.ToHexString();
-        _start = Stopwatch.GetTimestamp();
+        if (_collectTelemetry)
+        {
+            _traceId = Activity.Current?.TraceId.ToHexString();
+            _start = Stopwatch.GetTimestamp();
+        }
     }
 
     internal IExecutionResult Complete()
     {
-        var trace = new OperationPlanTrace
-        {
-            TraceId = _traceId,
-            Duration = Stopwatch.GetElapsedTime(_start),
-            Nodes = Traces.ToImmutableDictionary(t => t.Id)
-        };
+        var trace = _collectTelemetry
+            ? new OperationPlanTrace
+            {
+                TraceId = _traceId,
+                Duration = Stopwatch.GetElapsedTime(_start),
+                Nodes = Traces.ToImmutableDictionary(t => t.Id)
+            }
+            : null;
 
         var resultBuilder = OperationResultBuilder.New();
 

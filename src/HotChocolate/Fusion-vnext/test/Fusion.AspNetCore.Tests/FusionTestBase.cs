@@ -68,6 +68,7 @@ public abstract class FusionTestBase : IDisposable
 
         gatewayBuilder.AddInMemoryConfiguration(result.Value.ToSyntaxNode());
         gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
+        gatewayBuilder.ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = false);
 
         configureApplication ??=
             app =>

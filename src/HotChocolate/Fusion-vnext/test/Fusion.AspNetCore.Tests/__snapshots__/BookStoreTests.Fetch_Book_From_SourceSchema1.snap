@@ -10,16 +10,13 @@
       "operationPlan": {
         "operation": {
           "document": "{\n  bookById(id: 1) {\n    id\n    title\n  }\n}",
-          "hash": "da31ef9bfb0a7c42de9b1578b454d0af",
-          "duration": 0.8936
+          "hash": "da31ef9bfb0a7c42de9b1578b454d0af"
         },
         "nodes": [
           {
             "id": 1,
             "schema": "A",
-            "operation": "{\n  bookById(id: 1) {\n    id\n    title\n  }\n}",
-            "duration": 0.8793,
-            "status": "Success"
+            "operation": "{\n  bookById(id: 1) {\n    id\n    title\n  }\n}"
           }
         ]
       }

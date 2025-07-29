@@ -6,4 +6,5 @@ public record ExecutionNodeResult(
     int Id,
     Activity? Activity,
     ExecutionStatus Status,
-    TimeSpan Duration);
+    TimeSpan Duration,
+    Exception? Exception = null);

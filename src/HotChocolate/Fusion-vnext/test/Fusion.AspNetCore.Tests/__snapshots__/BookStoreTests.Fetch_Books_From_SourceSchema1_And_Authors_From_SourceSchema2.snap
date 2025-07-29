@@ -32,5 +32,38 @@
         }
       ]
     }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "{\n  books {\n    nodes {\n      id\n      title\n      author {\n        name\n        id @fusion__requirement\n      }\n    }\n  }\n}",
+          "hash": "e1aceb9e9e35ff2ae28cd57aff448023"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "schema": "A",
+            "operation": "{\n  books {\n    nodes {\n      id\n      title\n      author {\n        id\n      }\n    }\n  }\n}"
+          },
+          {
+            "id": 2,
+            "schema": "B",
+            "operation": "query(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}",
+            "source": "$.authorById",
+            "target": "$.books.nodes.author",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "selectionMap": "id"
+              }
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
   }
 }

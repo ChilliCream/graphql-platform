@@ -147,7 +147,7 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
 
             foreach (var dependency in node.Dependencies)
             {
-                jsonWriter.WriteNumber("id", dependency.Id);
+                jsonWriter.WriteNumberValue(dependency.Id);
             }
 
             jsonWriter.WriteEndArray();

@@ -6,5 +6,38 @@
         "name": "Jon Skeet"
       }
     }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "{\n  bookById(id: 1) {\n    title\n    author {\n      name\n      id @fusion__requirement\n    }\n  }\n}",
+          "hash": "b15d3abcfc052f2e05a146d4d7097160"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "schema": "A",
+            "operation": "{\n  bookById(id: 1) {\n    title\n    author {\n      id\n    }\n  }\n}"
+          },
+          {
+            "id": 2,
+            "schema": "B",
+            "operation": "query(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}",
+            "source": "$.authorById",
+            "target": "$.bookById.author",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "selectionMap": "id"
+              }
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
   }
 }

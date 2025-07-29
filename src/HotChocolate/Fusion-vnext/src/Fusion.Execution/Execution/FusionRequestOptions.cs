@@ -10,6 +10,7 @@ public sealed class FusionRequestOptions : ICloneable
     private CacheDiagnostics? _operationExecutionPlanCacheDiagnostics;
     private int _operationDocumentCacheSize = 256;
     private int _sourceSchemaOperationCacheSize = 256;
+    private bool _collectOperationPlanTelemetry;
     private bool _isReadOnly;
 
     /// <summary>
@@ -99,6 +100,20 @@ public sealed class FusionRequestOptions : ICloneable
         }
     }
 
+    public bool CollectOperationPlanTelemetry
+    {
+        get => _collectOperationPlanTelemetry;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new InvalidOperationException("The request options are read-only.");
+            }
+
+            _collectOperationPlanTelemetry = value;
+        }
+    }
+
     /// <summary>
     /// Clones the request options into a new mutable instance.
     /// </summary>
@@ -111,6 +126,9 @@ public sealed class FusionRequestOptions : ICloneable
         clone._executionTimeout = _executionTimeout;
         clone._operationExecutionPlanCacheSize = _operationExecutionPlanCacheSize;
         clone._operationExecutionPlanCacheDiagnostics = _operationExecutionPlanCacheDiagnostics;
+        clone._operationDocumentCacheSize = _operationDocumentCacheSize;
+        clone._sourceSchemaOperationCacheSize = _sourceSchemaOperationCacheSize;
+        clone._collectOperationPlanTelemetry = _collectOperationPlanTelemetry;
         return clone;
     }
 
