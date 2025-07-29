@@ -16,10 +16,10 @@ public sealed class CacheControlDirectiveType : DirectiveType<CacheControlDirect
             .Name(Names.DirectiveName)
             .Description(CacheControlDirectiveType_Description)
             .Location(
-                DirectiveLocation.Object |
-                DirectiveLocation.FieldDefinition |
-                DirectiveLocation.Interface |
-                DirectiveLocation.Union);
+                DirectiveLocation.Object
+                | DirectiveLocation.FieldDefinition
+                | DirectiveLocation.Interface
+                | DirectiveLocation.Union);
 
         descriptor
             .Argument(a => a.MaxAge)

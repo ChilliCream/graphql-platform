@@ -123,8 +123,8 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     {
         // last in the initialization we need to intercept the query type and ensure that
         // authorization configuration is applied to the special introspection and node fields.
-        if (ReferenceEquals(_queryContext, completionContext) &&
-            configuration is ObjectTypeConfiguration typeDef)
+        if (ReferenceEquals(_queryContext, completionContext)
+            && configuration is ObjectTypeConfiguration typeDef)
         {
             var state = _state ?? throw ThrowHelper.StateNotInitialized();
             HandleSpecialQueryFields(new ObjectTypeInfo(completionContext, typeDef), state);
@@ -175,9 +175,9 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
             var mainTypeRef = registration.TypeReference;
 
             // if this type is a root type, we will copy type level auth down to the field.
-            if (registration.IsQueryType == true ||
-                registration.IsMutationType == true ||
-                registration.IsSubscriptionType == true)
+            if (registration.IsQueryType == true
+                || registration.IsMutationType == true
+                || registration.IsSubscriptionType == true)
             {
                 foreach (var fieldDef in type.TypeDef.Fields)
                 {
@@ -256,8 +256,8 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                         state.NeedsAuth.Add(typeRef);
                     }
 
-                    if (authTypeRefs is null &&
-                        !state.AbstractToConcrete.TryGetValue(unionTypeRef, out authTypeRefs))
+                    if (authTypeRefs is null
+                        && !state.AbstractToConcrete.TryGetValue(unionTypeRef, out authTypeRefs))
                     {
                         authTypeRefs = [];
                         state.AbstractToConcrete.Add(unionTypeRef, authTypeRefs);
@@ -371,9 +371,9 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
         var isNodeField = fieldDef.IsNodeField();
 
-        if (fieldDef.Type is not null &&
-            _typeLookup.TryNormalizeReference(fieldDef.Type, out var typeRef) &&
-            state.NeedsAuth.Contains(typeRef))
+        if (fieldDef.Type is not null
+            && _typeLookup.TryNormalizeReference(fieldDef.Type, out var typeRef)
+            && state.NeedsAuth.Contains(typeRef))
         {
             var typeReg = GetTypeRegistration(typeRef);
 
@@ -581,8 +581,8 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
     private RegisteredType GetTypeRegistration(TypeReference typeReference)
     {
-        if (_typeLookup.TryNormalizeReference(typeReference, out var normalizedTypeRef) &&
-            _typeRegistry.TryGetType(normalizedTypeRef, out var registration))
+        if (_typeLookup.TryNormalizeReference(typeReference, out var normalizedTypeRef)
+            && _typeRegistry.TryGetType(normalizedTypeRef, out var registration))
         {
             return registration;
         }

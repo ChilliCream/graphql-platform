@@ -1,3 +1,6 @@
+#if NET8_0_OR_GREATER
+using System.Buffers.Text;
+#endif
 using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;

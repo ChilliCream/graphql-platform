@@ -25,8 +25,8 @@ namespace HotChocolate.ApolloFederation.Types;
 [Package(Federation20)]
 [DirectiveType(
     KeyDirective_Name,
-    DirectiveLocation.Object |
-    DirectiveLocation.Interface,
+    DirectiveLocation.Object
+    | DirectiveLocation.Interface,
     IsRepeatable = true)]
 [GraphQLDescription(KeyDirective_Description)]
 [KeyLegacySupport]

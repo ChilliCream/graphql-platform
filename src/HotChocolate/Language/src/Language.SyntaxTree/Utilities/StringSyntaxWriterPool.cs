@@ -2,17 +2,11 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Language.Utilities;
 
-internal sealed class StringSyntaxWriterPool
-    : DefaultObjectPool<StringSyntaxWriter>
+internal sealed class StringSyntaxWriterPool() : DefaultObjectPool<StringSyntaxWriter>(new Policy(), 8)
 {
-    public StringSyntaxWriterPool()
-        : base(new Policy(), 8)
-    {
-    }
-
     private sealed class Policy : IPooledObjectPolicy<StringSyntaxWriter>
     {
-        public StringSyntaxWriter Create() => new StringSyntaxWriter();
+        public StringSyntaxWriter Create() => new();
 
         public bool Return(StringSyntaxWriter obj)
         {

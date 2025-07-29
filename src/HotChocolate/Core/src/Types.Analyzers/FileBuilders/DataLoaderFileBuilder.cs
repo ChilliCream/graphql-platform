@@ -328,8 +328,8 @@ public sealed class DataLoaderFileBuilder : IDisposable
                     _writer.WriteIndentedLine("{");
                     _writer.IncreaseIndent();
                     _writer.WriteIndentedLine(
-                        "{0} = new global::{1}<{2}>({0}_selector, " +
-                        "{0}_predicate, {0}_sortDefinition);",
+                        "{0} = new global::{1}<{2}>({0}_selector, "
+                        + "{0}_predicate, {0}_sortDefinition);",
                         parameter.VariableName,
                         WellKnownTypes.QueryContext,
                         ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified());

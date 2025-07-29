@@ -61,8 +61,8 @@ internal sealed class DefaultQueryRequestFactory : IOpaQueryRequestFactory
             connection.LocalPort);
 
         object? extensions = null;
-        if (directive.Policy is not null &&
-            _options.GetOpaQueryRequestExtensionsHandler(directive.Policy) is { } extensionsHandler)
+        if (directive.Policy is not null
+            && _options.GetOpaQueryRequestExtensionsHandler(directive.Policy) is { } extensionsHandler)
         {
             extensions = extensionsHandler(context);
         }

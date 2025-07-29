@@ -68,8 +68,8 @@ internal sealed class TypeReferenceResolver
             return true;
         }
 
-        if (!_typeRegistry.TryGetType(namedTypeRef, out var registeredType) ||
-            registeredType.Type is not ITypeDefinition typeDefinition)
+        if (!_typeRegistry.TryGetType(namedTypeRef, out var registeredType)
+            || registeredType.Type is not ITypeDefinition typeDefinition)
         {
             type = null;
             return false;
@@ -108,8 +108,8 @@ internal sealed class TypeReferenceResolver
             return false;
         }
 
-        if (_typeRegistry.TryGetType(namedTypeRef, out var registeredType) &&
-            registeredType.Type is DirectiveType d)
+        if (_typeRegistry.TryGetType(namedTypeRef, out var registeredType)
+            && registeredType.Type is DirectiveType d)
         {
             directiveType = d;
             return true;
@@ -227,8 +227,8 @@ internal sealed class TypeReferenceResolver
         {
             unchecked
             {
-                return TypeRef.GetHashCode() * 397 ^
-                       Flags.GetHashCode() * 397;
+                return TypeRef.GetHashCode() * 397
+                    ^ Flags.GetHashCode() * 397;
             }
         }
 

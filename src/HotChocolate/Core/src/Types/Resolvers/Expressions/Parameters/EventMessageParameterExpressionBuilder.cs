@@ -29,8 +29,8 @@ internal sealed class EventMessageParameterExpressionBuilder()
 
     private static object GetEventMessage(IImmutableDictionary<string, object?> contextData)
     {
-        if (!contextData.TryGetValue(WellKnownContextData.EventMessage, out var message) ||
-            message is null)
+        if (!contextData.TryGetValue(WellKnownContextData.EventMessage, out var message)
+            || message is null)
         {
             throw new InvalidOperationException(EventMessageParameterExpressionBuilder_MessageNotFound);
         }

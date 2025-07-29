@@ -59,7 +59,7 @@
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.Reactive" Version="6.0.0" />
     <PackageVersion Include="Testcontainers" Version="4.6.0" />
-    <PackageVersion Include="TUnit" Version="0.13.20" />
+    <PackageVersion Include="TUnit" Version="0.25.21" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.extensibility.core" Version="2.9.3" />

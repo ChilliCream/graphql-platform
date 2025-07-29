@@ -32,11 +32,11 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
         if (_options.SkipExecuteRequest)
         {
-            if (!_options.SkipExecuteHttpRequest &&
-                context.ContextData.TryGetValue(nameof(HttpContext), out var value) &&
-                value is HttpContext httpContext &&
-                httpContext.Items.TryGetValue(HttpRequestActivity, out value) &&
-                value is not null)
+            if (!_options.SkipExecuteHttpRequest
+                && context.ContextData.TryGetValue(nameof(HttpContext), out var value)
+                && value is HttpContext httpContext
+                && httpContext.Items.TryGetValue(HttpRequestActivity, out value)
+                && value is not null)
             {
                 activity = (Activity)value;
             }

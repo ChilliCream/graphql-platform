@@ -370,8 +370,8 @@ public sealed class InputParser
                     var literal = fieldValue.Value;
                     var fieldPath = path.Append(field.Name);
 
-                    if (literal.Kind is SyntaxKind.NullValue &&
-                        field.Type.Kind is TypeKind.NonNull)
+                    if (literal.Kind is SyntaxKind.NullValue
+                        && field.Type.Kind is TypeKind.NonNull)
                     {
                         throw NonNullInputViolation(type, fieldPath, field);
                     }
@@ -579,8 +579,8 @@ public sealed class InputParser
             return type.CreateInstance(fieldValues);
         }
 
-        if (type.RuntimeType != typeof(object) &&
-            type.RuntimeType.IsInstanceOfType(resultValue))
+        if (type.RuntimeType != typeof(object)
+            && type.RuntimeType.IsInstanceOfType(resultValue))
         {
             return resultValue;
         }

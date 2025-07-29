@@ -27,8 +27,8 @@ public class ExecutableDefinitionsRuleTests
             }
             """,
             t => Assert.Equal(
-                "A document containing TypeSystemDefinition " +
-                "is invalid for execution.", t.Message));
+                "A document containing TypeSystemDefinition "
+                + "is invalid for execution.", t.Message));
     }
 
     [Fact]

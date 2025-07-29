@@ -96,7 +96,7 @@ public readonly struct ReadOnlyMemorySegment
             throw new ArgumentOutOfRangeException(nameof(length));
         }
 #endif
-        _owner =  new ArrayMemoryOwner(buffer, start, length);
+        _owner = new ArrayMemoryOwner(buffer, start, length);
         _start = start;
         _length = length;
     }
@@ -133,7 +133,7 @@ public readonly struct ReadOnlyMemorySegment
         {
             return _owner is not null
                 ? _owner.Memory.Span.Slice(_start, _length)
-                :  [];
+                : [];
         }
     }
 }

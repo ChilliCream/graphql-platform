@@ -22,8 +22,8 @@ public class NodeTypeTests : TypeTestBase
             nodeInterface.Name);
 
         Assert.Equal(
-            "The node interface is implemented by entities that have " +
-            "a global unique identifier.",
+            "The node interface is implemented by entities that have "
+            + "a global unique identifier.",
             nodeInterface.Description);
 
         Assert.Collection(

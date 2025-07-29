@@ -1,6 +1,4 @@
 using System.Buffers;
-#if NET8_0_OR_GREATER
-#endif
 
 namespace HotChocolate.Buffers;
 

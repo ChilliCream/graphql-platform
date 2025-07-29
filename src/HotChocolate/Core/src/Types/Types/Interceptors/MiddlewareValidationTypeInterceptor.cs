@@ -19,8 +19,8 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if (completionContext.DescriptorContext.Options.ValidatePipelineOrder &&
-            configuration is ObjectTypeConfiguration objectTypeDef)
+        if (completionContext.DescriptorContext.Options.ValidatePipelineOrder
+            && configuration is ObjectTypeConfiguration objectTypeDef)
         {
             foreach (var field in objectTypeDef.Fields)
             {

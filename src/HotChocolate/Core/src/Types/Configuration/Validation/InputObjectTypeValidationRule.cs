@@ -105,13 +105,10 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
             switch (type.Kind)
             {
                 case TypeKind.List:
-                {
                     return null;
-                }
+
                 default:
-                {
                     return type;
-                }
             }
         }
     }

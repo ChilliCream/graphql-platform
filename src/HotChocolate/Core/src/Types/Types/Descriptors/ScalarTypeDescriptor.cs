@@ -19,8 +19,8 @@ public class ScalarTypeDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (!Configuration.AttributesAreApplied &&
-            Configuration.RuntimeType != typeof(object))
+        if (!Configuration.AttributesAreApplied
+            && Configuration.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,

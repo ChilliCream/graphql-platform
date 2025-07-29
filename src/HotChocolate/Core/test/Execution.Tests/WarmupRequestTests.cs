@@ -60,15 +60,12 @@ public class WarmupRequestTests
         // arrange
         var executor = await new ServiceCollection()
             .AddGraphQL()
-            .ConfigureSchemaServices(services =>
-            {
-                services.AddSingleton(_ => new Mock<IOperationDocumentStorage>().Object);
-            })
+            .ConfigureSchemaServices(
+                services =>
+                    services.AddSingleton(_ => new Mock<IOperationDocumentStorage>().Object))
             .AddQueryType<Query>()
-            .ModifyRequestOptions(options =>
-            {
-                options.PersistedOperations.OnlyAllowPersistedDocuments = true;
-            })
+            .ModifyRequestOptions(
+                options => options.PersistedOperations.OnlyAllowPersistedDocuments = true)
             .UsePersistedOperationPipeline()
             .BuildRequestExecutorAsync();
 

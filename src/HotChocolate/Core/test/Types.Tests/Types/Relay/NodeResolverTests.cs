@@ -24,8 +24,8 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
-            "{ ... on Entity { id name } } }");
+            "{ node(id: \"RW50aXR5OmZvbw==\")  "
+            + "{ ... on Entity { id name } } }");
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -51,8 +51,8 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
-            "{ ... on Entity { id name } } }");
+            "{ node(id: \"RW50aXR5OmZvbw==\")  "
+            + "{ ... on Entity { id name } } }");
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -78,8 +78,8 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
-            "{ ... on Entity { id name } } }");
+            "{ node(id: \"RW50aXR5OmZvbw==\")  "
+            + "{ ... on Entity { id name } } }");
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -115,8 +115,8 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
-            "{ ... on Entity { id name } } }");
+            "{ node(id: \"RW50aXR5OmZvbw==\")  "
+            + "{ ... on Entity { id name } } }");
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -152,8 +152,8 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
-            "{ ... on Entity { id name } } }");
+            "{ node(id: \"RW50aXR5OmZvbw==\")  "
+            + "{ ... on Entity { id name } } }");
 
         // assert
         result.ToJson().MatchSnapshot();

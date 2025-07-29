@@ -56,13 +56,13 @@ public class DefaultNamingConventions
 
         var name = type.GetGraphQLName();
 
-        if (_formatInterfaceName &&
-            kind == TypeKind.Interface &&
-            type.IsInterface &&
-            name.Length > 1 &&
-            char.IsUpper(name[0]) &&
-            char.IsUpper(name[1]) &&
-            name[0] == 'I')
+        if (_formatInterfaceName
+            && kind == TypeKind.Interface
+            && type.IsInterface
+            && name.Length > 1
+            && char.IsUpper(name[0])
+            && char.IsUpper(name[1])
+            && name[0] == 'I')
         {
             return name[1..];
         }
@@ -91,13 +91,13 @@ public class DefaultNamingConventions
 
         if (kind is TypeKind.Directive)
         {
-            if (name.Length > DirectivePostfix.Length &&
-                name.EndsWith(DirectivePostfix, StringComparison.Ordinal))
+            if (name.Length > DirectivePostfix.Length
+                && name.EndsWith(DirectivePostfix, StringComparison.Ordinal))
             {
                 name = name[..^DirectivePostfix.Length];
             }
-            else if (name.Length > DirectiveTypePostfix.Length &&
-                name.EndsWith(DirectiveTypePostfix, StringComparison.Ordinal))
+            else if (name.Length > DirectiveTypePostfix.Length
+                && name.EndsWith(DirectiveTypePostfix, StringComparison.Ordinal))
             {
                 name = name[..^DirectiveTypePostfix.Length];
             }
@@ -113,12 +113,12 @@ public class DefaultNamingConventions
         var name = NameUtils.MakeValidGraphQLName(originalTypeName);
         ArgumentException.ThrowIfNullOrEmpty(name, nameof(originalTypeName));
 
-        if (_formatInterfaceName &&
-            kind == TypeKind.Interface &&
-            name.Length > 1 &&
-            char.IsUpper(name[0]) &&
-            char.IsUpper(name[1]) &&
-            name[0] == 'I')
+        if (_formatInterfaceName
+            && kind == TypeKind.Interface
+            && name.Length > 1
+            && char.IsUpper(name[0])
+            && char.IsUpper(name[1])
+            && name[0] == 'I')
         {
             return name[1..];
         }
@@ -135,13 +135,13 @@ public class DefaultNamingConventions
 
         if (kind is TypeKind.Directive)
         {
-            if (name.Length > DirectivePostfix.Length &&
-                name.EndsWith(DirectivePostfix, StringComparison.Ordinal))
+            if (name.Length > DirectivePostfix.Length
+                && name.EndsWith(DirectivePostfix, StringComparison.Ordinal))
             {
                 name = name[..^DirectivePostfix.Length];
             }
-            else if (name.Length > DirectiveTypePostfix.Length &&
-                name.EndsWith(DirectiveTypePostfix, StringComparison.Ordinal))
+            else if (name.Length > DirectiveTypePostfix.Length
+                && name.EndsWith(DirectiveTypePostfix, StringComparison.Ordinal))
             {
                 name = name[..^DirectiveTypePostfix.Length];
             }
@@ -158,8 +158,8 @@ public class DefaultNamingConventions
         ArgumentNullException.ThrowIfNull(type);
 
         // we do not want the description of our internal schema types.
-        if (ExtendedType.Tools.IsNonGenericBaseType(type) ||
-            ExtendedType.Tools.IsGenericBaseType(type))
+        if (ExtendedType.Tools.IsNonGenericBaseType(type)
+            || ExtendedType.Tools.IsGenericBaseType(type))
         {
             return null;
         }
@@ -244,8 +244,7 @@ public class DefaultNamingConventions
                 .GetMember(value.ToString()!)
                 .FirstOrDefault();
 
-            if (enumMember is not null &&
-                enumMember.IsDefined(typeof(GraphQLNameAttribute)))
+            if (enumMember?.IsDefined(typeof(GraphQLNameAttribute)) == true)
             {
                 return enumMember.GetCustomAttribute<GraphQLNameAttribute>()!.Name;
             }
@@ -266,10 +265,10 @@ public class DefaultNamingConventions
         {
             var c = name[i];
 
-            if (i > 0 &&
-                char.IsUpper(c) &&
-                (!char.IsUpper(name[i - 1]) ||
-                    (i < lengthMinusOne && char.IsLower(name[i + 1]))))
+            if (i > 0
+                && char.IsUpper(c)
+                && (!char.IsUpper(name[i - 1])
+                || (i < lengthMinusOne && char.IsLower(name[i + 1]))))
             {
                 underscores++;
             }
@@ -308,10 +307,10 @@ public class DefaultNamingConventions
 
             for (var i = 1; i < name.Length; i++)
             {
-                if (!lastWasUnderline &&
-                    char.IsUpper(name[i]) &&
-                    (!char.IsUpper(name[i - 1]) ||
-                        (i < lengthMinusOne && char.IsLower(name[i + 1]))))
+                if (!lastWasUnderline
+                    && char.IsUpper(name[i])
+                    && (!char.IsUpper(name[i - 1])
+                    || (i < lengthMinusOne && char.IsLower(name[i + 1]))))
                 {
                     buffer[p++] = '_';
                 }

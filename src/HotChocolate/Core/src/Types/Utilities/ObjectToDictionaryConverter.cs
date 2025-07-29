@@ -58,14 +58,14 @@ internal class ObjectToDictionaryConverter
 
         var type = obj.GetType();
 
-        if (type.IsValueType &&
-            _converter.TryConvert(type, typeof(string), obj, out var converted) &&
-            converted is string s)
+        if (type.IsValueType
+            && _converter.TryConvert(type, typeof(string), obj, out var converted)
+            && converted is string s)
         {
             setValue(s);
         }
-        else if (!typeof(IReadOnlyDictionary<string, object>).IsAssignableFrom(type) &&
-            obj is ICollection list)
+        else if (!typeof(IReadOnlyDictionary<string, object>).IsAssignableFrom(type)
+            && obj is ICollection list)
         {
             VisitList(list, setValue, processed);
         }

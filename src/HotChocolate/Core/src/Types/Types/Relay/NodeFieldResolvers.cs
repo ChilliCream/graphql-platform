@@ -72,7 +72,7 @@ internal static class NodeFieldResolvers
             }
 
             var tasks = ArrayPool<Task<object?>>.Shared.Rent(list.Items.Count);
-            var result = new object?[list.Items.Count];
+            var results = new object?[list.Items.Count];
             var ct = context.RequestAborted;
 
             for (var i = 0; i < list.Items.Count; i++)
@@ -114,11 +114,19 @@ internal static class NodeFieldResolvers
                 {
                     if (task.Exception is null)
                     {
-                        result[i] = task.Result;
+                        if (task.Result is IError error)
+                        {
+                            results[i] = null;
+                            context.ReportError(error.WithPath(context.Path.Append(i)));
+                        }
+                        else
+                        {
+                            results[i] = task.Result;
+                        }
                     }
                     else
                     {
-                        result[i] = null;
+                        results[i] = null;
                         ReportError(context, i, task.Exception);
                     }
                 }
@@ -126,22 +134,22 @@ internal static class NodeFieldResolvers
                 {
                     try
                     {
-                        result[i] = await task;
+                        results[i] = await task;
                     }
                     catch (Exception ex)
                     {
-                        result[i] = null;
+                        results[i] = null;
                         ReportError(context, i, ex);
                     }
                 }
             }
 
-            context.Result = result;
+            context.Result = results;
             ArrayPool<Task<object?>>.Shared.Return(tasks, true);
         }
         else
         {
-            var result = new object?[1];
+            var results = new object?[1];
             var nodeId = context.ArgumentLiteral<StringValueNode>(Ids);
             var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(context.Schema));
             var typeName = deserializedId.TypeName;
@@ -155,11 +163,21 @@ internal static class NodeFieldResolvers
                 SetLocalContext(nodeContext, nodeId, deserializedId, type);
                 TryReplaceArguments(nodeContext, feature.NodeResolver, Ids, nodeId);
 
-                result[0] = await ExecutePipelineAsync(nodeContext, feature.NodeResolver);
+                var result = await ExecutePipelineAsync(nodeContext, feature.NodeResolver);
+
+                if (result is IError error)
+                {
+                    results[0] = null;
+                    context.ReportError(error.WithPath(context.Path.Append(0)));
+                }
+                else
+                {
+                    results[0] = result;
+                }
             }
             else
             {
-                result[0] = null;
+                results[0] = null;
 
                 context.ReportError(
                     ErrorHelper.Relay_NoNodeResolver(
@@ -168,7 +186,7 @@ internal static class NodeFieldResolvers
                         context.Selection.SyntaxNodes));
             }
 
-            context.Result = result;
+            context.Result = results;
         }
         return;
 

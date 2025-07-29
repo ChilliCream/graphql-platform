@@ -188,8 +188,8 @@ public static class FieldInitHelper
     {
         runtimeType ??= (type as IHasRuntimeType)?.RuntimeType ?? typeof(object);
 
-        if (runtimeType.IsGenericType &&
-            runtimeType.GetGenericTypeDefinition() == typeof(Optional<>))
+        if (runtimeType.IsGenericType
+            && runtimeType.GetGenericTypeDefinition() == typeof(Optional<>))
         {
             isOptional = true;
             return runtimeType.GetGenericArguments()[0];

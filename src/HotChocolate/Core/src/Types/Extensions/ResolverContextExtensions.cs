@@ -31,8 +31,8 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.ContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.ContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -65,8 +65,8 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.ContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.ContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -127,8 +127,8 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.ScopedContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.ScopedContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -161,8 +161,8 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.ScopedContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.ScopedContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -191,8 +191,8 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.ScopedContextData.TryGetValue(name, out var value) &&
-            value is T typedValue)
+        if (context.ScopedContextData.TryGetValue(name, out var value)
+            && value is T typedValue)
         {
             return typedValue;
         }
@@ -224,8 +224,8 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.LocalContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.LocalContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -258,8 +258,8 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.LocalContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.LocalContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -288,8 +288,8 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.LocalContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.LocalContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -401,8 +401,8 @@ public static class ResolverContextExtensions
 
         ArgumentNullException.ThrowIfNull(createValue);
 
-        if (context.ContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.ContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -440,8 +440,8 @@ public static class ResolverContextExtensions
 
         ArgumentNullException.ThrowIfNull(createValue);
 
-        if (context.ScopedContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.ScopedContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -479,8 +479,8 @@ public static class ResolverContextExtensions
 
         ArgumentNullException.ThrowIfNull(createValue);
 
-        if (context.LocalContextData.TryGetValue(name, out var value) &&
-            value is T casted)
+        if (context.LocalContextData.TryGetValue(name, out var value)
+            && value is T casted)
         {
             return casted;
         }
@@ -782,9 +782,9 @@ public static class ResolverContextExtensions
                 {
                     var selection = selections[i];
 
-                    if (selection.Field.Name.Equals(fieldName1) ||
-                        selection.Field.Name.Equals(fieldName2) ||
-                        selection.Field.Name.Equals(fieldName3))
+                    if (selection.Field.Name.Equals(fieldName1)
+                        || selection.Field.Name.Equals(fieldName2)
+                        || selection.Field.Name.Equals(fieldName3))
                     {
                         return true;
                     }
@@ -799,9 +799,9 @@ public static class ResolverContextExtensions
             {
                 var selection = selections[i];
 
-                if (selection.Field.Name.Equals(fieldName1) ||
-                    selection.Field.Name.Equals(fieldName2) ||
-                    selection.Field.Name.Equals(fieldName3))
+                if (selection.Field.Name.Equals(fieldName1)
+                    || selection.Field.Name.Equals(fieldName2)
+                    || selection.Field.Name.Equals(fieldName3))
                 {
                     return true;
                 }

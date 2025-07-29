@@ -10,9 +10,9 @@ namespace CookieCrumble;
 public class SnapshotTests
 {
     private const string StrictModeExceptionMessage =
-        "Strict mode is enabled and no snapshot has been found " +
-        "for the current test. Create a new snapshot locally and " +
-        "rerun your tests.";
+        "Strict mode is enabled and no snapshot has been found "
+        + "for the current test. Create a new snapshot locally and "
+        + "rerun your tests.";
 
     static SnapshotTests()
     {

@@ -29,10 +29,8 @@ internal class GlobalIdInputValueFormatter(
         switch (originalValue)
         {
             case NodeId nodeId:
-            {
                 ValidateTypeName(nodeId.TypeName);
                 return nodeId.InternalId;
-            }
 
             case string formattedId:
             {

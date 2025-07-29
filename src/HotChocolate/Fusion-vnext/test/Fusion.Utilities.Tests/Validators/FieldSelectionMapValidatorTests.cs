@@ -298,8 +298,8 @@ public sealed class FieldSelectionMapValidatorTests
                 "Book",
                 "title.something",
                 [
-                    "The field 'title' does not return a composite type and cannot have " +
-                    "subselections."
+                    "The field 'title' does not return a composite type and cannot have "
+                    + "subselections."
                 ]
             },
             // Invalid Path where non-leaf fields do not have further selections.
@@ -334,8 +334,8 @@ public sealed class FieldSelectionMapValidatorTests
                 "Media",
                 "<MissingType>.movieId",
                 [
-                    "The type condition in path '<MissingType>.movieId' is invalid. Type " +
-                    "'MissingType' does not exist."
+                    "The type condition in path '<MissingType>.movieId' is invalid. Type "
+                    + "'MissingType' does not exist."
                 ]
             },
             {
@@ -343,8 +343,8 @@ public sealed class FieldSelectionMapValidatorTests
                 "Query",
                 "mediaById<MissingType>.movieId",
                 [
-                    "The type condition in path 'mediaById<MissingType>.movieId' is invalid. " +
-                    "Type 'MissingType' does not exist."
+                    "The type condition in path 'mediaById<MissingType>.movieId' is invalid. "
+                    + "Type 'MissingType' does not exist."
                 ]
             },
             {

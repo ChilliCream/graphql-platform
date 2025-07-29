@@ -11,9 +11,11 @@ using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Execution.Introspection;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
@@ -35,12 +37,13 @@ internal sealed class FusionRequestExecutorManager
     private readonly IOptionsMonitor<FusionGatewaySetup> _optionsMonitor;
     private readonly IServiceProvider _applicationServices;
     private readonly Channel<RequestExecutorEvent> _executorEvents =
-        Channel.CreateBounded<RequestExecutorEvent>(new BoundedChannelOptions(1)
-        {
-            FullMode = BoundedChannelFullMode.Wait,
-            SingleReader = true,
-            SingleWriter = false
-        });
+        Channel.CreateBounded<RequestExecutorEvent>(
+            new BoundedChannelOptions(1)
+            {
+                FullMode = BoundedChannelFullMode.Wait,
+                SingleReader = true,
+                SingleWriter = false
+            });
     private ImmutableArray<ObserverSession> _observers = [];
 
     private bool _disposed;
@@ -55,8 +58,14 @@ internal sealed class FusionRequestExecutorManager
         _optionsMonitor = optionsMonitor;
         _applicationServices = applicationServices;
 
+        var schemaNames = _applicationServices.GetService<IEnumerable<SchemaName>>()?
+            .Select(x => x.Value).Distinct().Order().ToImmutableArray();
+        SchemaNames = schemaNames ?? [];
+
         NotifyObserversAsync().FireAndForget();
     }
+
+    public ImmutableArray<string> SchemaNames { get; }
 
     public ValueTask<IRequestExecutor> GetExecutorAsync(
         string? schemaName = null,
@@ -215,6 +224,7 @@ internal sealed class FusionRequestExecutorManager
         features.Set(requestOptions);
         features.Set(parserOptions);
         features.Set(clientConfigurations);
+        features.Set(CreateTypeResolverInterceptors());
 
         foreach (var configure in setup.SchemaFeaturesModifiers)
         {
@@ -223,6 +233,18 @@ internal sealed class FusionRequestExecutorManager
 
         return features;
     }
+
+    private static Dictionary<string, ITypeResolverInterceptor> CreateTypeResolverInterceptors()
+        => new()
+        {
+            { nameof(Query), new Query() },
+            { nameof(__Directive), new __Directive() },
+            { nameof(__EnumValue), new __EnumValue() },
+            { nameof(__Field), new __Field() },
+            { nameof(__InputValue), new __InputValue() },
+            { nameof(__Schema), new __Schema() },
+            { nameof(__Type), new __Type() }
+        };
 
     private ServiceProvider CreateSchemaServices(
         FusionGatewaySetup setup)
@@ -262,6 +284,8 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton<ObjectPool<PooledRequestContext>>(
             static _ => new DefaultObjectPool<PooledRequestContext>(
                 new RequestContextPooledObjectPolicy()));
+
+        services.AddTransient<CompositeTypeInterceptor>(static _ => new IntrospectionFieldInterceptor());
     }
 
     private static void AddOperationPlanner(IServiceCollection services)

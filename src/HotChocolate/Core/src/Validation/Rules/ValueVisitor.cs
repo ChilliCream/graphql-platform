@@ -73,9 +73,9 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is IComplexTypeDefinition ot &&
-            ot.Fields.TryGetField(node.Name.Value, out var of))
+        if (context.Types.TryPeek(out var type)
+            && type.NamedType() is IComplexTypeDefinition ot
+            && ot.Fields.TryGetField(node.Name.Value, out var of))
         {
             context.OutputFields.Push(of);
             context.Types.Push(of.Type);
@@ -231,8 +231,8 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
                                     node,
                                     inputObjectType));
                         }
-                        else if (value.Value.Kind is SyntaxKind.Variable &&
-                            !TryIsInstanceOfType(context, new NonNullType(field.Type), value.Value))
+                        else if (value.Value.Kind is SyntaxKind.Variable
+                            && !TryIsInstanceOfType(context, new NonNullType(field.Type), value.Value))
                         {
                             context.ReportError(
                                 context.OneOfVariablesMustBeNonNull(
@@ -252,9 +252,9 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             for (var i = 0; i < inputObjectType.Fields.Count; i++)
             {
                 var field = inputObjectType.Fields[i];
-                if (field.Type.IsNonNullType() &&
-                    field.DefaultValue.IsNull() &&
-                    inputFieldNames.Add(field.Name))
+                if (field.Type.IsNonNullType()
+                    && field.DefaultValue.IsNull()
+                    && inputFieldNames.Add(field.Name))
                 {
                     context.ReportError(
                         context.FieldIsRequiredButNull(node, field.Name));
@@ -273,12 +273,12 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         ObjectFieldNode node,
         DocumentValidatorContext context)
     {
-        if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is IInputObjectTypeDefinition it &&
-            it.Fields.TryGetField(node.Name.Value, out var field))
+        if (context.Types.TryPeek(out var type)
+            && type.NamedType() is IInputObjectTypeDefinition it
+            && it.Fields.TryGetField(node.Name.Value, out var field))
         {
-            if (field.Type.IsNonNullType() &&
-                node.Value.IsNull())
+            if (field.Type.IsNonNullType()
+                && node.Value.IsNull())
             {
                 context.ReportError(
                     context.FieldIsRequiredButNull(node, field.Name));
@@ -336,16 +336,16 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         IValueNode valueNode,
         DocumentValidatorContext context)
     {
-        if (context.Types.TryPeek(out var currentType) &&
-            currentType is IInputType locationType)
+        if (context.Types.TryPeek(out var currentType)
+            && currentType is IInputType locationType)
         {
             if (valueNode.IsNull() || TryIsInstanceOfType(context, locationType, valueNode))
             {
                 return Skip;
             }
 
-            if (TryPeekLastDefiningSyntaxNode(context, out var node) &&
-                TryCreateValueError(context, locationType, valueNode, node, out var error))
+            if (TryPeekLastDefiningSyntaxNode(context, out var node)
+                && TryCreateValueError(context, locationType, valueNode, node, out var error))
             {
                 context.ReportError(error);
                 return Skip;
@@ -385,9 +385,9 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
     {
         for (var i = context.Path.Count - 1; i > 0; i--)
         {
-            if (context.Path[i].Kind == SyntaxKind.Argument ||
-                context.Path[i].Kind == SyntaxKind.ObjectField ||
-                context.Path[i].Kind == SyntaxKind.VariableDefinition)
+            if (context.Path[i].Kind == SyntaxKind.Argument
+                || context.Path[i].Kind == SyntaxKind.ObjectField
+                || context.Path[i].Kind == SyntaxKind.VariableDefinition)
             {
                 node = context.Path[i];
                 return true;

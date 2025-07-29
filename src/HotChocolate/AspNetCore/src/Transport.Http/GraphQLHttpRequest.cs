@@ -45,10 +45,10 @@ public sealed class GraphQLHttpRequest
     /// </exception>
     public GraphQLHttpRequest(OperationRequest body, Uri? requestUri = null)
     {
-        if (string.IsNullOrEmpty(body.Id) &&
-            string.IsNullOrEmpty(body.Query) &&
-            body.Extensions is null &&
-            body.ExtensionsNode is null)
+        if (string.IsNullOrEmpty(body.Id)
+            && string.IsNullOrEmpty(body.Query)
+            && body.Extensions is null
+            && body.ExtensionsNode is null)
         {
             throw new ArgumentException(
                 HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,
@@ -74,10 +74,10 @@ public sealed class GraphQLHttpRequest
     /// </exception>
     public GraphQLHttpRequest(VariableBatchRequest body, Uri? requestUri = null)
     {
-        if (string.IsNullOrEmpty(body.Id) &&
-            string.IsNullOrEmpty(body.Query) &&
-            body.Extensions is null &&
-            body.ExtensionsNode is null)
+        if (string.IsNullOrEmpty(body.Id)
+            && string.IsNullOrEmpty(body.Query)
+            && body.Extensions is null
+            && body.ExtensionsNode is null)
         {
             throw new ArgumentException(
                 HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,
@@ -111,10 +111,10 @@ public sealed class GraphQLHttpRequest
 
         foreach (var request in body.Requests)
         {
-            if (string.IsNullOrEmpty(request.Id) &&
-                string.IsNullOrEmpty(request.Query) &&
-                request.Extensions is null &&
-                request.ExtensionsNode is null)
+            if (string.IsNullOrEmpty(request.Id)
+                && string.IsNullOrEmpty(request.Query)
+                && request.Extensions is null
+                && request.ExtensionsNode is null)
             {
                 throw new ArgumentException(
                     HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,

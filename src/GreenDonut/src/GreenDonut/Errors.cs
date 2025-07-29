@@ -6,9 +6,9 @@ internal static class Errors
         int keysCount,
         int valuesCount)
     {
-        var error = new InvalidOperationException("Fetch should have " +
-            $"returned exactly \"{keysCount}\" value(s), but instead " +
-            $"returned \"{valuesCount}\" value(s).");
+        var error = new InvalidOperationException("Fetch should have "
+            + $"returned exactly \"{keysCount}\" value(s), but instead "
+            + $"returned \"{valuesCount}\" value(s).");
 
         return error;
     }

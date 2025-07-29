@@ -14,10 +14,10 @@ internal sealed class ExtractOrderPropertiesVisitor : ExpressionVisitor
 
     protected override Expression VisitMethodCall(MethodCallExpression node)
     {
-        if (node.Method.Name == OrderByMethod ||
-            node.Method.Name == ThenByMethod ||
-            node.Method.Name == OrderByDescendingMethod ||
-            node.Method.Name == ThenByDescendingMethod)
+        if (node.Method.Name == OrderByMethod
+            || node.Method.Name == ThenByMethod
+            || node.Method.Name == OrderByDescendingMethod
+            || node.Method.Name == ThenByDescendingMethod)
         {
             _isOrderScope = true;
 
