@@ -221,9 +221,9 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         {
             var unionTypes =
                 schema.Types.OfType<MutableUnionTypeDefinition>().Where(u => u.Types.Contains(possibleType));
-            var byIdLookups = possibleType.GetFusionLookupDirectivesById(unionTypes);
+            var byIdLookups = possibleType.GetFusionLookupDirectivesById(unionTypes).ToList();
 
-            if (!byIdLookups.Any())
+            if (byIdLookups.Count == 0)
             {
                 var error = new SatisfiabilityError(
                     string.Format(SatisfiabilityValidator_NodeTypeHasNoLookupById, possibleType.Name));

@@ -2009,11 +2009,9 @@ public sealed class SatisfiabilityValidatorTests
                     """
                 ],
                 false,
-                """
-                Type 'Cat' implements the 'Node' interface, but does not have a lookup by id.
-                """
+                "Type 'Cat' implements the 'Node' interface, but does not have a lookup by ID."
             },
-            // A source schema has a lookup but not per id for a type implementing Node
+            // A source schema has a lookup but not by ID for a type implementing Node
             {
                 [
                     """
@@ -2033,9 +2031,7 @@ public sealed class SatisfiabilityValidatorTests
                     """
                 ],
                 false,
-                """
-                Type 'Cat' implements the 'Node' interface, but does not have a lookup by id.
-                """
+                "Type 'Cat' implements the 'Node' interface, but does not have a lookup by ID."
             },
             // A source schema is missing a lookup for an exclusive field
             {

@@ -364,7 +364,7 @@
     <value>Cycle detected: {0} -&gt; {1}.</value>
   </data>
   <data name="SatisfiabilityValidator_NodeTypeHasNoLookupById" xml:space="preserve">
-    <value>Type '{0}' implements the 'Node' interface, but does not have a lookup by id.</value>
+    <value>Type '{0}' implements the 'Node' interface, but does not have a lookup by ID.</value>
   </data>
   <data name="SatisfiabilityValidator_NoLookupsFoundForType" xml:space="preserve">
     <value>No lookups found for type '{0}' in schema '{1}'.</value>

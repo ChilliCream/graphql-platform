@@ -62,7 +62,7 @@ internal static class MutableObjectTypeDefinitionExtensions
         return lookupDirectives;
     }
 
-    public static List<IDirective> GetFusionLookupDirectivesById(
+    public static IEnumerable<IDirective> GetFusionLookupDirectivesById(
         this MutableObjectTypeDefinition type,
         IEnumerable<MutableUnionTypeDefinition> unionTypes)
     {
@@ -70,13 +70,14 @@ internal static class MutableObjectTypeDefinitionExtensions
         var sourceSchemaNames = type.Directives.AsEnumerable()
             .Where(d => d.Name == FusionType)
             .Select(d => (string)d.Arguments[Schema].Value!);
+        unionTypes = unionTypes.ToList();
 
         foreach (var sourceSchemaName in sourceSchemaNames)
         {
             foreach (var lookupDirective in type.GetFusionLookupDirectives(sourceSchemaName, unionTypes))
             {
-                if (lookupDirective?.Arguments[Map] is ListValueNode mapArg
-                    && mapArg.Items.Count == 1 && mapArg.Items[0].Value?.Equals("id") == true)
+                if (lookupDirective.Arguments[Map] is ListValueNode { Items.Count: 1 } mapArg
+                    && mapArg.Items[0].Value?.Equals(Id) == true)
                 {
                     lookups.Add(lookupDirective);
                 }
