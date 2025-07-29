@@ -10,8 +10,10 @@ public class UploadScalarInMemoryTest : ServerTestBase
     {
     }
 
-    [Fact]
-    public async Task Execute_UploadScalar_Argument()
+    [Theory]
+    [InlineData(null, "test-file:a")]
+    [InlineData("application/pdf", "[test-file:a|test-file|application/pdf]")]
+    public async Task Execute_UploadScalar_Argument(string? contentType, string expectedResponse)
     {
         // arrange
         var client = CreateClient();
@@ -20,19 +22,22 @@ public class UploadScalarInMemoryTest : ServerTestBase
         // act
         var result = await client.TestUpload.ExecuteAsync(
             "foo",
-            new Upload(data, "test-file"),
+            new Upload(data, "test-file", contentType),
             null,
             null,
             null,
             null,
-            null);
+            null,
+            contentType != null);
 
         // assert
-        Assert.Equal("test-file:a", result.Data!.Upload);
+        Assert.Equal(expectedResponse, result.Data!.Upload);
     }
 
-    [Fact]
-    public async Task Execute_UploadScalarList_Argument()
+    [Theory]
+    [InlineData(null, "A:a,B:b")]
+    [InlineData("application/pdf", "[A:a|A|application/pdf],[B:b|B|application/pdf]")]
+    public async Task Execute_UploadScalarList_Argument(string? contentType, string expectedResponse)
     {
         // arrange
         var client = CreateClient();
@@ -43,18 +48,21 @@ public class UploadScalarInMemoryTest : ServerTestBase
         var result = await client.TestUpload.ExecuteAsync(
             "foo",
             null,
-            new Upload?[] { new Upload(dataA, "A"), new Upload(dataB, "B") },
+            new Upload?[] { new Upload(dataA, "A", contentType), new Upload(dataB, "B", contentType) },
             null,
             null,
             null,
-            null);
+            null,
+            contentType != null);
 
         // assert
-        Assert.Equal("A:a,B:b", result.Data!.Upload);
+        Assert.Equal(expectedResponse, result.Data!.Upload);
     }
 
-    [Fact]
-    public async Task Execute_UploadScalarNested_Argument()
+    [Theory]
+    [InlineData(null, "A:a,B:b")]
+    [InlineData("application/pdf", "[A:a|A|application/pdf],[B:b|B|application/pdf]")]
+    public async Task Execute_UploadScalarNested_Argument(string? contentType, string expectedResponse)
     {
         // arrange
         var client = CreateClient();
@@ -66,17 +74,20 @@ public class UploadScalarInMemoryTest : ServerTestBase
             "foo",
             null,
             null,
-            new[] { new Upload?[] { new Upload(dataA, "A"), new Upload(dataB, "B") } },
+            new[] { new Upload?[] { new Upload(dataA, "A", contentType), new Upload(dataB, "B", contentType) } },
             null,
             null,
-            null);
+            null,
+            contentType != null);
 
         // assert
-        Assert.Equal("A:a,B:b", result.Data!.Upload);
+        Assert.Equal(expectedResponse, result.Data!.Upload);
     }
 
-    [Fact]
-    public async Task Execute_Input_Argument()
+    [Theory]
+    [InlineData(null, "test-file:a")]
+    [InlineData("application/pdf", "[test-file:a|test-file|application/pdf]")]
+    public async Task Execute_Input_Argument(string? contentType, string expectedResponse)
     {
         // arrange
         var client = CreateClient();
@@ -92,18 +103,21 @@ public class UploadScalarInMemoryTest : ServerTestBase
             {
                 Bar = new BarInput()
                 {
-                    Baz = new BazInput() { File = new Upload(data, "test-file") }
+                    Baz = new BazInput() { File = new Upload(data, "test-file", contentType) }
                 }
             },
             null,
-            null);
+            null,
+            contentType != null);
 
         // assert
-        Assert.Equal("test-file:a", result.Data!.Upload);
+        Assert.Equal(expectedResponse, result.Data!.Upload);
     }
 
-    [Fact]
-    public async Task Execute_InputList_Argument()
+    [Theory]
+    [InlineData(null, "A:a,B:b")]
+    [InlineData("application/pdf", "[A:a|A|application/pdf],[B:b|B|application/pdf]")]
+    public async Task Execute_InputList_Argument(string? contentType, string expectedResponse)
     {
         // arrange
         var client = CreateClient();
@@ -122,25 +136,28 @@ public class UploadScalarInMemoryTest : ServerTestBase
                 {
                     Bar = new BarInput()
                     {
-                        Baz = new BazInput() { File = new Upload(dataA, "A") }
+                        Baz = new BazInput() { File = new Upload(dataA, "A", contentType) }
                     }
                 },
                 new TestInput()
                 {
                     Bar = new BarInput()
                     {
-                        Baz = new BazInput() { File = new Upload(dataB, "B") }
+                        Baz = new BazInput() { File = new Upload(dataB, "B", contentType) }
                     }
                 }
             },
-            null);
+            null,
+            contentType != null);
 
         // assert
-        Assert.Equal("A:a,B:b", result.Data!.Upload);
+        Assert.Equal(expectedResponse, result.Data!.Upload);
     }
 
-    [Fact]
-    public async Task Execute_InputNested_Argument()
+    [Theory]
+    [InlineData(null, "A:a,B:b")]
+    [InlineData("application/pdf", "[A:a|A|application/pdf],[B:b|B|application/pdf]")]
+    public async Task Execute_InputNested_Argument(string? contentType, string expectedResponse)
     {
         // arrange
         var client = CreateClient();
@@ -163,21 +180,22 @@ public class UploadScalarInMemoryTest : ServerTestBase
                     {
                         Bar = new BarInput()
                         {
-                            Baz = new BazInput() { File = new Upload(dataA, "A") }
+                            Baz = new BazInput() { File = new Upload(dataA, "A", contentType) }
                         }
                     },
                     new TestInput()
                     {
                         Bar = new BarInput()
                         {
-                            Baz = new BazInput() { File = new Upload(dataB, "B") }
+                            Baz = new BazInput() { File = new Upload(dataB, "B", contentType) }
                         }
                     }
                 }
-            });
+            },
+            contentType != null);
 
         // assert
-        Assert.Equal("A:a,B:b", result.Data!.Upload);
+        Assert.Equal(expectedResponse, result.Data!.Upload);
     }
 
     public static UploadScalar_InMemoryClient CreateClient()

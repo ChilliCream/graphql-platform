@@ -38,44 +38,48 @@ public static class UploadSchemaHelpers
             IFile?[]?[]? nested,
             [GraphQLName("object")] Test? objectSingle,
             Test?[]? objectList,
-            Test?[]?[]? objectNested)
+            Test?[]?[]? objectNested,
+            bool detailedOutput = false)
         {
             if (single is not null)
             {
-                return single.ReadContents();
+                return Format(single, detailedOutput)!;
             }
 
             if (list is not null)
             {
-                return string.Join(",", list.Select(x => x?.ReadContents() ?? "null"));
+                return string.Join(",", list.Select(x => Format(x, detailedOutput) ?? "null"));
             }
 
             if (nested is not null)
             {
                 return string.Join(",",
-                    nested.SelectMany(y => y!.Select(x => x?.ReadContents() ?? "null")));
+                    nested.SelectMany(y => y!.Select(x => Format(x, detailedOutput) ?? "null")));
             }
 
             if (objectSingle is not null)
             {
-                return objectSingle.Bar!.Baz!.File!.ReadContents();
+                return Format(objectSingle.Bar!.Baz!.File, detailedOutput)!;
             }
 
             if (objectList is not null)
             {
                 return string.Join(",",
-                    objectList.Select(x => x?.Bar!.Baz!.File!.ReadContents() ?? "null"));
+                    objectList.Select(x => Format(x?.Bar!.Baz!.File, detailedOutput) ?? "null"));
             }
 
             if (objectNested is not null)
             {
                 return string.Join(",",
                     objectNested.SelectMany(y
-                        => y!.Select(x => x?.Bar!.Baz!.File!.ReadContents() ?? "null")));
+                        => y!.Select(x => Format(x?.Bar!.Baz!.File, detailedOutput) ?? "null")));
             }
 
             return "error";
         }
+
+        private static string? Format(IFile? file, bool detailed) =>
+            detailed ? $"[{file?.ReadContents()}|{file?.Name}|{file?.ContentType}]" : file?.ReadContents();
     }
 
     public record Test(Bar? Bar);
