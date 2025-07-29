@@ -49,7 +49,7 @@ public class SchemaExportCommandTests
     }
 
     [Fact]
-    public async Task App_Should_WriteSchemaToFile_When_OutputOptionIsSpecfied()
+    public async Task App_Should_WriteSchemaToFile_When_OutputOptionIsSpecified()
     {
         // arrange
         var services = new ServiceCollection();

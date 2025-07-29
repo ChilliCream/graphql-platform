@@ -2,7 +2,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
-using static HotChocolate.DirectiveLocationUtils;
+using static HotChocolate.Types.DirectiveLocationUtils;
 
 namespace HotChocolate.Types.Factories;
 

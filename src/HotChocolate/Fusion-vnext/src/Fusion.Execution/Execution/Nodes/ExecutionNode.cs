@@ -6,7 +6,7 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
 
     public abstract ReadOnlySpan<ExecutionNode> Dependencies { get; }
 
-    public abstract Task<ExecutionStatus> ExecuteAsync(
+    public abstract Task<ExecutionNodeResult> ExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default);
 
