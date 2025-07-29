@@ -1,5 +1,3 @@
-using System.Collections.Immutable;
-
 namespace HotChocolate.Fusion.Language;
 
 /// <summary>

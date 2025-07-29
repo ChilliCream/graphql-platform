@@ -31,7 +31,7 @@ internal sealed class ListCommand : Command
     {
         var schemaNames = host.Services.GetRequiredService<IRequestExecutorProvider>().SchemaNames;
 
-        if(schemaNames.IsEmpty)
+        if (schemaNames.IsEmpty)
         {
             console.WriteLine("No schemas registered.");
             return Task.CompletedTask;

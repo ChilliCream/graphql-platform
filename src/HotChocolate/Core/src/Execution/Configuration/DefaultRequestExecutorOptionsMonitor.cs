@@ -41,7 +41,7 @@ internal sealed class DefaultRequestExecutorOptionsMonitor(
         CancellationToken cancellationToken)
     {
         await TryInitializeAsync(cancellationToken).ConfigureAwait(false);
-        return [.._configs.Keys.Order()];
+        return [.. _configs.Keys.Order()];
     }
 
     private async ValueTask TryInitializeAsync(CancellationToken cancellationToken)
