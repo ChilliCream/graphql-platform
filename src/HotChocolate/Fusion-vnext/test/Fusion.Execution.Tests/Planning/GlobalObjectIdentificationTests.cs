@@ -1,6 +1,7 @@
 namespace HotChocolate.Fusion.Planning;
 
-// TODO once execution is implemented:
+// TODO:
+// - conditional selections (on and below node field, also with conditional fragment)
 // - Invalid Id
 // - Valid Id, with unknown type
 // - Valid Id, with known type, but not type of concrete type selection
@@ -8,8 +9,8 @@ public class GlobalObjectIdentificationTests : FusionTestBase
 {
     #region selections on node field
 
-    [Fact(Skip = "Not yet supported")]
-    public void Node_Field_Id_And_Typename_Selection()
+    [Fact]
+    public void Node_Field_Just_Typename_Selected()
     {
         // arrange
         var subgraphA = new TestSubgraph(
@@ -24,12 +25,61 @@ public class GlobalObjectIdentificationTests : FusionTestBase
 
             type Discussion implements Node @key(fields: "id") {
               id: ID!
-              viewerRating: Float!
+              title: Float!
+            }
+            """);
+
+        var subgraphB = new TestSubgraph(
+            """
+            type Query {
+              authorById(id: ID!): Author @lookup
             }
 
-            type Comment implements Node @key(fields: "id") {
+            interface Node {
               id: ID!
-              viewerCanVote: Boolean!
+            }
+
+            type Author implements Node @key(fields: "id") {
+              id: ID!
+              username: String!
+            }
+            """);
+
+        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
+        var schema = subgraphs.BuildFusionSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query testQuery($id: ID!) {
+              node(id: $id) {
+                __typename
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Node_Field_Just_Id_And_Typename_Selected()
+    {
+        // arrange
+        var subgraphA = new TestSubgraph(
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node @key(fields: "id") {
+              id: ID!
+              title: Float!
             }
             """);
 
@@ -52,7 +102,56 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
+    public void Node_Field_Alongside_Regular_Root_Selections()
+    {
+        // arrange
+        var subgraphA = new TestSubgraph(
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              viewer: Viewer
+            }
+
+            type Viewer {
+              username: String
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node @key(fields: "id") {
+              id: ID!
+              title: Float!
+            }
+            """);
+
+        var subgraphs = new TestSubgraphCollection(subgraphA);
+        var schema = subgraphs.BuildFusionSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query testQuery($id: ID!) {
+              viewer {
+                username
+              }
+              node(id: $id) {
+                __typename
+                ... on Discussion {
+                  title
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Node_Field_Concrete_Type_Has_Dependency()
     {
         // arrange
@@ -109,14 +208,77 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
-    [Fact(Skip = "Not yet supported")]
-    public void Node_Field_Concrete_Type_Selection_Has_Dependency()
+    [Fact]
+    public void Node_Field_Concrete_Type_Has_Dependency_Node_Field_Is_Aliased()
     {
         // arrange
         var subgraphA = new TestSubgraph(
             """
             type Query {
               node(id: ID!): Node @lookup
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node @key(fields: "id") {
+              id: ID!
+              name: String
+            }
+            """);
+
+        var subgraphB = new TestSubgraph(
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node @key(fields: "id") {
+              id: ID!
+              commentCount: Int
+            }
+            """);
+
+        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
+        var schema = subgraphs.BuildFusionSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query testQuery($id1: ID!, $id2: ID!) {
+              a: node(id: $id1) {
+                ... on Discussion {
+                  name
+                  commentCount
+                }
+              }
+              b: node(id: $id2) {
+                id
+                ... on Discussion {
+                  name
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Node_Field_Concrete_Type_Selection_Has_Dependency()
+    {
+        // arrange
+        var subgraphA = new TestSubgraph(
+            """
+            type Query {
+              discussionById(id: ID!): Discussion @lookup
             }
 
             interface Node {
@@ -174,7 +336,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
     public void Node_Field_Two_Concrete_Types_Selections_Have_Same_Dependency()
     {
         // arrange
@@ -261,7 +423,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
     public void Node_Field_Two_Concrete_Types_Selections_Have_Different_Dependencies()
     {
         // arrange
@@ -353,7 +515,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
 
     #region interface selections on node field
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
     public void Node_Field_Selections_On_Interface()
     {
         // arrange
@@ -403,7 +565,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
     public void Node_Field_Selections_On_Interface_And_Concrete_Type()
     {
         // arrange
@@ -456,7 +618,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
     public void Node_FIeld_Selections_On_Interface_And_Concrete_Type_Both_Have_Different_Dependencies()
     {
         // arrange
@@ -536,7 +698,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
-    [Fact(Skip = "Not yet supported")]
+    [Fact]
     public void Node_Field_Selections_On_Interface_Selection_Has_Dependency()
     {
         // arrange
