@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -128,9 +127,6 @@ public sealed class OperationPlanExecutor
             return false;
         }
 
-        private ReadOnlySpan<ExecutionNode> WaitingToRun
-            => CollectionsMarshal.AsSpan(_backlog);
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool IsProcessing() => _backlog.Count > 0 || _activeTasks.Count > 0;
 
@@ -143,7 +139,7 @@ public sealed class OperationPlanExecutor
             {
                 _backlog.Remove(current);
 
-                foreach (var enqueuedNode in WaitingToRun)
+                foreach (var enqueuedNode in _backlog)
                 {
                     if (enqueuedNode.Dependencies.Contains(current))
                     {
@@ -205,8 +201,9 @@ public sealed class OperationPlanExecutor
         private bool EnqueueNextNodes()
         {
             var enqueued = false;
+            _stack.Clear();
 
-            foreach (var node in WaitingToRun)
+            foreach (var node in _backlog)
             {
                 var dependenciesFulfilled = true;
 
@@ -222,9 +219,14 @@ public sealed class OperationPlanExecutor
 
                 if (dependenciesFulfilled)
                 {
-                    StartNode(node);
+                    _stack.Push(node);
                     enqueued = true;
                 }
+            }
+
+            foreach (var node in _stack)
+            {
+                StartNode(node);
             }
 
             return enqueued;
