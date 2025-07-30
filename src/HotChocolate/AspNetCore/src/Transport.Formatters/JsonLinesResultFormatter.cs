@@ -1,5 +1,9 @@
 using System.Buffers;
 using System.Diagnostics;
+<<<<<<< Updated upstream
+=======
+using System.IO.Pipelines;
+>>>>>>> Stashed changes
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Utilities;
@@ -10,6 +14,10 @@ namespace HotChocolate.Transport.Formatters;
 public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options) : IExecutionResultFormatter
 {
     private const int MaxBacklogSize = 64;
+<<<<<<< Updated upstream
+=======
+    private static readonly StreamPipeWriterOptions s_pipeWriterOptions = new(leaveOpen: true);
+>>>>>>> Stashed changes
     private readonly JsonResultFormatter _payloadFormatter = new(options with { Indented = false });
 
     public ValueTask FormatAsync(
@@ -37,7 +45,11 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         Stream outputStream,
         CancellationToken ct)
     {
+<<<<<<< Updated upstream
         var buffer = new PooledArrayWriter();
+=======
+        var buffer = PipeWriter.Create(outputStream, s_pipeWriterOptions);
+>>>>>>> Stashed changes
         var scope = Log.FormatOperationResultStart();
 
         try
@@ -46,8 +58,12 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
 
             if (!ct.IsCancellationRequested)
             {
+<<<<<<< Updated upstream
                 await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
                 await outputStream.FlushAsync(ct).ConfigureAwait(false);
+=======
+                await buffer.CompleteAsync().ConfigureAwait(false);
+>>>>>>> Stashed changes
             }
         }
         catch (Exception ex)
@@ -58,7 +74,10 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         finally
         {
             scope?.Dispose();
+<<<<<<< Updated upstream
             buffer.Dispose();
+=======
+>>>>>>> Stashed changes
         }
     }
 
@@ -269,7 +288,11 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         public static void FormatNextMessage(
             JsonResultFormatter payloadFormatter,
             IOperationResult result,
+<<<<<<< Updated upstream
             PooledArrayWriter writer)
+=======
+            IBufferWriter<byte> writer)
+>>>>>>> Stashed changes
         {
             // write the result data
             payloadFormatter.Format(result, writer);

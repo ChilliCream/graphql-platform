@@ -1,6 +1,16 @@
 using System.Buffers;
+<<<<<<< Updated upstream:src/HotChocolate/AspNetCore/src/Transport.Formatters/MultiPartResultFormatter.cs
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
+=======
+<<<<<<< Updated upstream:src/HotChocolate/Core/src/Execution/Serialization/MultiPartResultFormatter.cs
+using HotChocolate.Utilities;
+=======
+using System.IO.Pipelines;
+using HotChocolate.Buffers;
+using HotChocolate.Execution;
+>>>>>>> Stashed changes:src/HotChocolate/AspNetCore/src/Transport.Formatters/MultiPartResultFormatter.cs
+>>>>>>> Stashed changes:src/HotChocolate/Core/src/Execution/Serialization/MultiPartResultFormatter.cs
 using static HotChocolate.Execution.ExecutionResultKind;
 
 namespace HotChocolate.Transport.Formatters;
@@ -11,6 +21,7 @@ namespace HotChocolate.Transport.Formatters;
 /// </summary>
 public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 {
+    private static readonly StreamPipeWriterOptions s_pipeWriterOptions = new(leaveOpen: true);
     private readonly IOperationResultFormatter _payloadFormatter;
 
     /// <summary>
@@ -77,7 +88,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         return result switch
         {
             IOperationResult operationResult
-                => FormatOperationResultAsync(operationResult, outputStream, cancellationToken),
+                => FormatOperationResultAsync(operationResult, outputStream),
             OperationResultBatch resultBatch
                 => FormatResultBatchAsync(resultBatch, outputStream, cancellationToken),
             IResponseStream responseStream
@@ -88,10 +99,18 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 
     private async ValueTask FormatOperationResultAsync(
         IOperationResult result,
-        Stream outputStream,
-        CancellationToken ct = default)
+        Stream outputStream)
     {
+<<<<<<< Updated upstream:src/HotChocolate/AspNetCore/src/Transport.Formatters/MultiPartResultFormatter.cs
         using var buffer = new PooledArrayWriter();
+=======
+<<<<<<< Updated upstream:src/HotChocolate/Core/src/Execution/Serialization/MultiPartResultFormatter.cs
+        using var buffer = new ArrayWriter();
+=======
+        var buffer = PipeWriter.Create(outputStream, s_pipeWriterOptions);
+
+>>>>>>> Stashed changes:src/HotChocolate/AspNetCore/src/Transport.Formatters/MultiPartResultFormatter.cs
+>>>>>>> Stashed changes:src/HotChocolate/Core/src/Execution/Serialization/MultiPartResultFormatter.cs
         MessageHelper.WriteNext(buffer);
 
         // First, we write the header of the part.
@@ -103,8 +122,16 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         // Last we write the end of the part.
         MessageHelper.WriteEnd(buffer);
 
+<<<<<<< Updated upstream:src/HotChocolate/AspNetCore/src/Transport.Formatters/MultiPartResultFormatter.cs
         await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
+=======
+<<<<<<< Updated upstream:src/HotChocolate/Core/src/Execution/Serialization/MultiPartResultFormatter.cs
+        await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
+>>>>>>> Stashed changes:src/HotChocolate/Core/src/Execution/Serialization/MultiPartResultFormatter.cs
         await outputStream.FlushAsync(ct).ConfigureAwait(false);
+=======
+        await buffer.CompleteAsync().ConfigureAwait(false);
+>>>>>>> Stashed changes:src/HotChocolate/AspNetCore/src/Transport.Formatters/MultiPartResultFormatter.cs
     }
 
     private async ValueTask FormatResultBatchAsync(

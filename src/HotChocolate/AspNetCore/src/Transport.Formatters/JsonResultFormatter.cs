@@ -1,4 +1,8 @@
 using System.Buffers;
+<<<<<<< Updated upstream
+=======
+using System.IO.Pipelines;
+>>>>>>> Stashed changes
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -12,6 +16,10 @@ namespace HotChocolate.Transport.Formatters;
 /// </summary>
 public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionResultFormatter
 {
+<<<<<<< Updated upstream
+=======
+    private static readonly StreamPipeWriterOptions _pipeWriterOptions = new(leaveOpen: true);
+>>>>>>> Stashed changes
     private readonly JsonWriterOptions _options;
     private readonly JsonSerializerOptions _serializerOptions;
     private readonly JsonNullIgnoreCondition _nullIgnoreCondition;
@@ -51,7 +59,11 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     public static JsonResultFormatter Default { get; } = new();
 
     /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync"/>
+<<<<<<< Updated upstream
     public async ValueTask FormatAsync(
+=======
+    public ValueTask FormatAsync(
+>>>>>>> Stashed changes
         IExecutionResult result,
         Stream outputStream,
         CancellationToken cancellationToken = default)
@@ -59,6 +71,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         switch (result)
         {
             case IOperationResult singleResult:
+<<<<<<< Updated upstream
                 await FormatInternalAsync(singleResult, outputStream, cancellationToken).ConfigureAwait(false);
                 break;
 
@@ -69,6 +82,15 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
             case IResponseStream responseStream:
                 await FormatInternalAsync(responseStream, outputStream, cancellationToken).ConfigureAwait(false);
                 break;
+=======
+                return FormatInternalAsync(singleResult, outputStream);
+
+            case OperationResultBatch resultBatch:
+                return FormatInternalAsync(resultBatch, outputStream, cancellationToken);
+
+            case IResponseStream responseStream:
+                return FormatInternalAsync(responseStream, outputStream, cancellationToken);
+>>>>>>> Stashed changes
 
             default:
                 throw new NotSupportedException(
@@ -177,11 +199,16 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(outputStream);
 
+<<<<<<< Updated upstream
         return FormatInternalAsync(result, outputStream, cancellationToken);
+=======
+        return FormatInternalAsync(result, outputStream);
+>>>>>>> Stashed changes
     }
 
     private async ValueTask FormatInternalAsync(
         IOperationResult result,
+<<<<<<< Updated upstream
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
@@ -193,6 +220,13 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
             .ConfigureAwait(false);
 
         await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+=======
+        Stream outputStream)
+    {
+        var writer = PipeWriter.Create(outputStream, _pipeWriterOptions);
+        FormatInternal(result, writer);
+        await writer.CompleteAsync().ConfigureAwait(false);
+>>>>>>> Stashed changes
     }
 
     private async ValueTask FormatInternalAsync(
@@ -200,14 +234,22 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
+<<<<<<< Updated upstream
         using var buffer = new PooledArrayWriter();
+=======
+        var writer = PipeWriter.Create(outputStream, _pipeWriterOptions);
+>>>>>>> Stashed changes
 
         foreach (var result in resultBatch.Results)
         {
             switch (result)
             {
                 case IOperationResult singleResult:
+<<<<<<< Updated upstream
                     FormatInternal(singleResult, buffer);
+=======
+                    FormatInternal(singleResult, writer);
+>>>>>>> Stashed changes
                     break;
 
                 case IResponseStream batchResult:
@@ -217,7 +259,11 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
                     {
                         try
                         {
+<<<<<<< Updated upstream
                             FormatInternal(partialResult, buffer);
+=======
+                            FormatInternal(partialResult, writer);
+>>>>>>> Stashed changes
                         }
                         finally
                         {
@@ -228,11 +274,15 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
             }
         }
 
+<<<<<<< Updated upstream
         await outputStream
             .WriteAsync(buffer.WrittenMemory, cancellationToken)
             .ConfigureAwait(false);
 
         await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+=======
+        await writer.CompleteAsync().ConfigureAwait(false);
+>>>>>>> Stashed changes
     }
 
     private async ValueTask FormatInternalAsync(
@@ -240,7 +290,11 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
+<<<<<<< Updated upstream
         using var buffer = new PooledArrayWriter();
+=======
+        var writer = PipeWriter.Create(outputStream, _pipeWriterOptions);
+>>>>>>> Stashed changes
 
         await foreach (var partialResult in batchResult.ReadResultsAsync()
             .WithCancellation(cancellationToken)
@@ -248,7 +302,11 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         {
             try
             {
+<<<<<<< Updated upstream
                 FormatInternal(partialResult, buffer);
+=======
+                FormatInternal(partialResult, writer);
+>>>>>>> Stashed changes
             }
             finally
             {
@@ -256,11 +314,15 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
             }
         }
 
+<<<<<<< Updated upstream
         await outputStream
             .WriteAsync(buffer.WrittenMemory, cancellationToken)
             .ConfigureAwait(false);
 
         await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+=======
+        await writer.CompleteAsync().ConfigureAwait(false);
+>>>>>>> Stashed changes
     }
 
     private void WriteResult(Utf8JsonWriter writer, IOperationResult result)
