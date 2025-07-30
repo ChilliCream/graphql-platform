@@ -62,18 +62,29 @@ public sealed partial class OperationPlanner
         var internalOperationDefinition = plan.HasValue ? plan.Value.InternalOperationDefinition : operationDefinition;
         var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
         var isIntrospectionOnly = operation.IsIntrospectionOnly();
+        var nodeFieldSelections = operation.GetNodeFieldSelections();
 
-        if (!plan.HasValue && !isIntrospectionOnly)
+        if (!plan.HasValue && !isIntrospectionOnly && nodeFieldSelections.Length == 0)
         {
             throw new InvalidOperationException("No possible plan was found for.");
+        }
+
+        // this is not ideal and are we going to rework this once we figured out
+        // introspection and defer and stream.
+        var steps = plan.HasValue ? plan.Value.Steps.OfType<OperationPlanStep>().ToList() : [];
+
+        if (nodeFieldSelections.Length > 0)
+        {
+            foreach (var nodeFieldSelection in nodeFieldSelections)
+            {
+                PlanNodeField(nodeFieldSelection);
+            }
         }
 
         return BuildExecutionPlan(
             operation,
             operationDefinition,
-            // this is not ideal and are we going to rework this once we figured out
-            // introspection and defer and stream.
-            plan.HasValue ? plan.Value.Steps.OfType<OperationPlanStep>().ToImmutableList() : [],
+            steps.ToImmutableList(),
             isIntrospectionOnly);
     }
 
@@ -210,6 +221,10 @@ public sealed partial class OperationPlanner
         }
 
         return null;
+    }
+
+    private void PlanNodeField(Selection nodeFieldSelection)
+    {
     }
 
     private void PlanRootSelections(
@@ -1232,6 +1247,28 @@ file static class Extensions
         }
 
         return true;
+    }
+
+    public static Selection[] GetNodeFieldSelections(this Operation operation)
+    {
+        if (operation.RootType != operation.Schema.QueryType)
+        {
+            return [];
+        }
+
+        var selections = new List<Selection>(operation.RootSelectionSet.Selections.Length);
+
+        foreach (var selection in operation.RootSelectionSet.Selections)
+        {
+            if (selection.Field.Name == "node"
+                && selection.Field.Type.NamedType() is IInterfaceTypeDefinition interfaceType
+                && interfaceType.Name == "Node")
+            {
+                selections.Add(selection);
+            }
+        }
+
+        return selections.ToArray();
     }
 
     public static int NextId(this ImmutableList<PlanStep> steps)
