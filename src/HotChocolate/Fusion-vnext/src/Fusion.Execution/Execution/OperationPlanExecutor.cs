@@ -52,6 +52,11 @@ public sealed class OperationPlanExecutor
                 await WaitForNextCompletionAsync();
                 EnqueueNextNodes();
             }
+
+            if (_traces is { Count: > 0 })
+            {
+                _context.Traces = [.. _traces];
+            }
         }
 
         private ReadOnlySpan<ExecutionNode> WaitingToRun
@@ -109,7 +114,7 @@ public sealed class OperationPlanExecutor
                     _traces?.Add(new ExecutionNodeTrace
                     {
                         Id = task.Result.Id,
-                        SpanId = task.Result.Activity?.Id,
+                        SpanId = task.Result.Activity?.SpanId.ToHexString(),
                         Status = task.Result.Status,
                         Duration = task.Result.Duration
                     });
@@ -122,7 +127,7 @@ public sealed class OperationPlanExecutor
                 else if (task.IsFaulted || task.IsCanceled)
                 {
                     // execution nodes are not expected to throw as exception should be handled within.
-                    // if they do its a fatal error for the execution, so we await failed task here
+                    // if they do it's a fatal error for the execution, so we await failed task here
                     // so that they can throw and terminate the execution.
                     await task;
                 }
@@ -134,11 +139,6 @@ public sealed class OperationPlanExecutor
             }
 
             _completedTasks.Clear();
-
-            if (_backlog.Count == 0 && _traces is { Count: > 0 })
-            {
-                _context.Traces = [.. _traces];
-            }
         }
 
         private void EnqueueNextNodes()
