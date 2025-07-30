@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections;
+using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -226,14 +227,9 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        using var buffer = new ArrayWriter();
-        FormatInternal(result, buffer);
-
-        await outputStream
-            .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
-            .ConfigureAwait(false);
-
-        await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+        var writer = PipeWriter.Create(outputStream, new StreamPipeWriterOptions(leaveOpen: true));
+        FormatInternal(result, writer);
+        await writer.CompleteAsync().ConfigureAwait(false);
     }
 
     private async ValueTask FormatInternalAsync(
@@ -241,14 +237,14 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        using var buffer = new ArrayWriter();
+        var writer = PipeWriter.Create(outputStream, new StreamPipeWriterOptions(leaveOpen: true));
 
         foreach (var result in resultBatch.Results)
         {
             switch (result)
             {
                 case IOperationResult singleResult:
-                    FormatInternal(singleResult, buffer);
+                    FormatInternal(singleResult, writer);
                     break;
 
                 case IResponseStream batchResult:
@@ -259,7 +255,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
                     {
                         try
                         {
-                            FormatInternal(partialResult, buffer);
+                            FormatInternal(partialResult, writer);
                         }
                         finally
                         {
@@ -271,11 +267,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
             }
         }
 
-        await outputStream
-            .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
-            .ConfigureAwait(false);
-
-        await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+        await writer.CompleteAsync().ConfigureAwait(false);
     }
 
     private async ValueTask FormatInternalAsync(
@@ -283,7 +275,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        using var buffer = new ArrayWriter();
+        var writer = PipeWriter.Create(outputStream, new StreamPipeWriterOptions(leaveOpen: true));
 
         await foreach (var partialResult in batchResult.ReadResultsAsync()
             .WithCancellation(cancellationToken)
@@ -291,7 +283,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         {
             try
             {
-                FormatInternal(partialResult, buffer);
+                FormatInternal(partialResult, writer);
             }
             finally
             {
@@ -299,11 +291,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
             }
         }
 
-        await outputStream
-            .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
-            .ConfigureAwait(false);
-
-        await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+        await writer.CompleteAsync().ConfigureAwait(false);
     }
 
     private void WriteResult(Utf8JsonWriter writer, IOperationResult result)
