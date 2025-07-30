@@ -32,6 +32,11 @@ public class IntrospectionTests : FusionTestBase
         using var result = await client.PostAsync(
             """
             {
+              books {
+                nodes {
+                  __typename
+                }
+              }
               __schema {
                 types {
                   name
