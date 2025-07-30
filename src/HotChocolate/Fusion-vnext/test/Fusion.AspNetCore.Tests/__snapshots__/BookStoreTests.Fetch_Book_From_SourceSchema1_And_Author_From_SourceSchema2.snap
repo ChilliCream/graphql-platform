@@ -17,13 +17,15 @@
         "nodes": [
           {
             "id": 1,
+            "type": "Operation",
             "schema": "A",
-            "operation": "{\n  bookById(id: 1) {\n    title\n    author {\n      id\n    }\n  }\n}"
+            "operation": "query Op_b15d3abc_1 {\n  bookById(id: 1) {\n    title\n    author {\n      id\n    }\n  }\n}"
           },
           {
             "id": 2,
+            "type": "Operation",
             "schema": "B",
-            "operation": "query(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}",
+            "operation": "query Op_b15d3abc_2(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}",
             "source": "$.authorById",
             "target": "$.bookById.author",
             "requirements": [

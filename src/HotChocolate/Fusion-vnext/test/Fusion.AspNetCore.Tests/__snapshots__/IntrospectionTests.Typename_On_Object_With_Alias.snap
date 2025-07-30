@@ -27,8 +27,9 @@
         "nodes": [
           {
             "id": 1,
+            "type": "Operation",
             "schema": "A",
-            "operation": "{\n  books {\n    nodes {\n      a: __typename\n    }\n  }\n}"
+            "operation": "query Op_01be2e0f_1 {\n  books {\n    nodes {\n      a: __typename\n    }\n  }\n}"
           }
         ]
       }

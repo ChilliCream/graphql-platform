@@ -15,7 +15,7 @@ nodes:
   - id: 1
     schema: A
     operation: >-
-      query GetTopProducts_1 {
+      query GetTopProducts_123_1 {
         topProducts {
           id
           region
@@ -24,7 +24,7 @@ nodes:
   - id: 2
     schema: C
     operation: >-
-      query GetTopProducts_2(
+      query GetTopProducts_123_2(
         $__fusion_1_sku: String!
       ) {
         productBySku(sku: $__fusion_1_sku) {
@@ -41,7 +41,7 @@ nodes:
   - id: 3
     schema: B
     operation: >-
-      query GetTopProducts_3(
+      query GetTopProducts_123_3(
         $__fusion_2_id: ID!
         $__fusion_3_region: String!
       ) {

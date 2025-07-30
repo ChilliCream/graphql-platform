@@ -22,7 +22,7 @@ nodes:
   - id: 1
     schema: SUBGRAPH_1
     operation: >-
-      query testQuery_1 {
+      query testQuery_123_1 {
         authorables {
           author {
             id
@@ -37,7 +37,7 @@ nodes:
   - id: 2
     schema: SUBGRAPH_2
     operation: >-
-      query testQuery_2(
+      query testQuery_123_2(
         $__fusion_1_id: ID!
       ) {
         authorById(id: $__fusion_1_id) {
@@ -54,7 +54,7 @@ nodes:
   - id: 3
     schema: SUBGRAPH_2
     operation: >-
-      query testQuery_3(
+      query testQuery_123_3(
         $__fusion_2_id: ID!
       ) {
         authorById(id: $__fusion_2_id) {

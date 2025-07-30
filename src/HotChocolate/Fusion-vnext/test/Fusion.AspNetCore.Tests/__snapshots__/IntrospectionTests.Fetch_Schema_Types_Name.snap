@@ -78,6 +78,7 @@
             "selections": [
               {
                 "id": 1,
+                "type": "Introspection",
                 "responseName": "__schema",
                 "fieldName": "__schema"
               }

@@ -26,9 +26,15 @@ public sealed partial class OperationPlanner
         _partitioner = new SelectionSetPartitioner(schema);
     }
 
-    public OperationPlan CreatePlan(string id, OperationDefinitionNode operationDefinition)
+    public OperationPlan CreatePlan(
+        string id,
+        string hash,
+        string shortHash,
+        OperationDefinitionNode operationDefinition)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
+        ArgumentException.ThrowIfNullOrEmpty(hash);
+        ArgumentException.ThrowIfNullOrEmpty(shortHash);
         ArgumentNullException.ThrowIfNull(operationDefinition);
 
         // We first need to create an index to keep track of the logical selections
@@ -39,8 +45,8 @@ public sealed partial class OperationPlanner
 
         var (node, selectionSet) =
             operationDefinition.Operation is OperationType.Mutation
-                ? CreateMutationPlanBase(operationDefinition, ref index)
-                : CreateDefaultPlanBase(operationDefinition, index);
+                ? CreateMutationPlanBase(operationDefinition, shortHash, ref index)
+                : CreateDefaultPlanBase(operationDefinition, shortHash, index);
 
         foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
         {
@@ -54,7 +60,7 @@ public sealed partial class OperationPlanner
 
         var plan = Plan(possiblePlans);
         var internalOperationDefinition = plan.HasValue ? plan.Value.InternalOperationDefinition : operationDefinition;
-        var operation = _operationCompiler.Compile(id, internalOperationDefinition);
+        var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
         var isIntrospectionOnly = operation.IsIntrospectionOnly();
 
         if (!plan.HasValue && !isIntrospectionOnly)
@@ -73,6 +79,7 @@ public sealed partial class OperationPlanner
 
     private (PlanNode Node, SelectionSet First) CreateDefaultPlanBase(
         OperationDefinitionNode operationDefinition,
+        string shortHash,
         ISelectionSetIndex index)
     {
         var selectionSet = new SelectionSet(
@@ -87,6 +94,7 @@ public sealed partial class OperationPlanner
         {
             OperationDefinition = operationDefinition,
             InternalOperationDefinition = operationDefinition,
+            ShortHash = shortHash,
             SchemaName = "None",
             SelectionSetIndex = index.ToImmutable(),
             Backlog = ImmutableStack<WorkItem>.Empty.Push(workItem),
@@ -99,6 +107,7 @@ public sealed partial class OperationPlanner
 
     private (PlanNode Node, SelectionSet First) CreateMutationPlanBase(
         OperationDefinitionNode operationDefinition,
+        string shortHash,
         ref ISelectionSetIndex index)
     {
         // todo: we need to do this with a rewriter as in this case we are not
@@ -140,18 +149,20 @@ public sealed partial class OperationPlanner
             backlog = backlog.Push(OperationWorkItem.CreateRoot(selectionSet));
         }
 
+        index = indexBuilder.ToImmutable();
+
         var node = new PlanNode
         {
             OperationDefinition = operationDefinition,
             InternalOperationDefinition = operationDefinition,
+            ShortHash = shortHash,
             SchemaName = ISchemaDefinition.DefaultName,
-            SelectionSetIndex = index.ToImmutable(),
+            SelectionSetIndex = index,
             Backlog = backlog,
             PathCost = 1,
             BacklogCost = 1
         };
 
-        index = indexBuilder.ToImmutable();
         return (node, firstSelectionSet);
     }
 
@@ -248,10 +259,16 @@ public sealed partial class OperationPlanner
         backlog = backlog.Push(unresolvable);
         backlog = backlog.Push(fieldsWithRequirements, stepId);
 
+        // lookups are always queries.
+        var operationType =
+            lookup is null
+                ? current.OperationDefinition.Operation
+                : OperationType.Query;
+
         var operationBuilder =
             OperationDefinitionBuilder
                 .New()
-                .SetType(OperationType.Query)
+                .SetType(operationType)
                 .SetName(current.CreateOperationName(stepId))
                 .SetSelectionSet(resolvable);
 
@@ -302,6 +319,7 @@ public sealed partial class OperationPlanner
             Previous = current,
             OperationDefinition = current.OperationDefinition,
             InternalOperationDefinition = current.InternalOperationDefinition,
+            ShortHash = current.ShortHash,
             SchemaName = current.SchemaName,
             SelectionSetIndex = index.ToImmutable(),
             Backlog = backlog,
@@ -504,6 +522,7 @@ public sealed partial class OperationPlanner
             Previous = current,
             OperationDefinition = current.OperationDefinition,
             InternalOperationDefinition = current.InternalOperationDefinition,
+            ShortHash = current.ShortHash,
             SchemaName = current.SchemaName,
             SelectionSetIndex = index.ToImmutable(),
             Backlog = backlog,
@@ -665,6 +684,7 @@ public sealed partial class OperationPlanner
             Previous = current,
             OperationDefinition = current.OperationDefinition,
             InternalOperationDefinition = current.InternalOperationDefinition,
+            ShortHash = current.ShortHash,
             SchemaName = current.SchemaName,
             SelectionSetIndex = index.ToImmutable(),
             Backlog = backlog,

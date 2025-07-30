@@ -109,7 +109,7 @@ public abstract class FusionTestBase : IDisposable
 
         var compiler = new OperationCompiler(schema, pool);
         var planner = new OperationPlanner(schema, compiler);
-        return planner.CreatePlan("123", operation);
+        return planner.CreatePlan("123", "123", "123", operation);
     }
 
     protected static void MatchInline(

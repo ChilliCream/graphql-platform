@@ -11,7 +11,7 @@ nodes:
   - id: 1
     schema: PRODUCTS
     operation: >-
-      {
+      query Op_123_1 {
         productBySlug(slug: "1") {
           id
           name

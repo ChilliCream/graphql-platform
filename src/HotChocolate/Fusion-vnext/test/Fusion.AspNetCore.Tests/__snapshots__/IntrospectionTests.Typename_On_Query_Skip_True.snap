@@ -13,6 +13,7 @@
             "selections": [
               {
                 "id": 1,
+                "type": "Introspection",
                 "responseName": "__typename",
                 "fieldName": "__typename"
               }

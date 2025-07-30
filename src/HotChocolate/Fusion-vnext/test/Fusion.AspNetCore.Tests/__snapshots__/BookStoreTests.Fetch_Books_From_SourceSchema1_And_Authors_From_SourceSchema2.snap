@@ -43,13 +43,15 @@
         "nodes": [
           {
             "id": 1,
+            "type": "Operation",
             "schema": "A",
-            "operation": "{\n  books {\n    nodes {\n      id\n      title\n      author {\n        id\n      }\n    }\n  }\n}"
+            "operation": "query Op_e1aceb9e_1 {\n  books {\n    nodes {\n      id\n      title\n      author {\n        id\n      }\n    }\n  }\n}"
           },
           {
             "id": 2,
+            "type": "Operation",
             "schema": "B",
-            "operation": "query(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}",
+            "operation": "query Op_e1aceb9e_2(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}",
             "source": "$.authorById",
             "target": "$.books.nodes.author",
             "requirements": [

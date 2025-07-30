@@ -14,9 +14,17 @@ public sealed class OperationPlanExecutor
         CancellationToken cancellationToken = default)
     {
         context.Begin();
-        await ExecutorSession.ExecuteAsync(context, cancellationToken);
+        var strategy = DetermineExecutionStrategy(context);
+        await ExecutorSession.ExecuteAsync(context, strategy, cancellationToken);
         return context.Complete();
     }
+
+    private static ExecutionStrategy DetermineExecutionStrategy(OperationPlanContext context)
+        => context.OperationPlan.Operation.Definition.Operation switch
+        {
+            OperationType.Mutation => ExecutionStrategy.SequentialRoots,
+            _ => ExecutionStrategy.Parallel
+        };
 
     private sealed class ExecutorSession
     {
@@ -29,34 +37,95 @@ public sealed class OperationPlanExecutor
         private readonly OperationPlan _plan;
         private readonly ImmutableArray<ExecutionNodeTrace>.Builder? _traces;
         private readonly CancellationToken _cancellationToken;
+        private readonly ExecutionStrategy _strategy;
+        private int _nextRootNode;
 
-        private ExecutorSession(OperationPlanContext context, CancellationToken cancellationToken)
+        private ExecutorSession(OperationPlanContext context, ExecutionStrategy strategy, CancellationToken cancellationToken)
         {
             _context = context;
+            _strategy = strategy;
             _cancellationToken = cancellationToken;
             _plan = context.OperationPlan;
             _backlog = [.. context.OperationPlan.AllNodes];
+
+            // For sequential execution (mutations), remove root nodes from backlog initially
+            if (_strategy == ExecutionStrategy.SequentialRoots)
+            {
+                foreach (var root in context.OperationPlan.RootNodes)
+                {
+                    _backlog.Remove(root);
+                }
+            }
+
             var collectTracing = context.Schema.GetRequestOptions().CollectOperationPlanTelemetry;
             _traces = collectTracing ? ImmutableArray.CreateBuilder<ExecutionNodeTrace>() : null;
         }
 
-        public static Task ExecuteAsync(OperationPlanContext context, CancellationToken cancellationToken)
-            => new ExecutorSession(context, cancellationToken).ExecuteInternalAsync();
+        public static Task ExecuteAsync(OperationPlanContext context, ExecutionStrategy strategy, CancellationToken cancellationToken)
+            => new ExecutorSession(context, strategy, cancellationToken).ExecuteInternalAsync();
 
         private async Task ExecuteInternalAsync()
         {
-            Start();
-
-            while (IsProcessing())
+            if (_strategy == ExecutionStrategy.Parallel)
             {
-                await WaitForNextCompletionAsync();
-                EnqueueNextNodes();
+                await ExecuteQueryAsync();
+            }
+            else
+            {
+                await ExecuteMutationAsync();
             }
 
             if (_traces is { Count: > 0 })
             {
                 _context.Traces = [.. _traces];
             }
+        }
+
+        private async Task ExecuteQueryAsync()
+        {
+            // Start all root nodes immediately for parallel execution
+            StartAllRootNodes();
+
+            // Process until all nodes complete
+            while (IsProcessing())
+            {
+                await WaitForNextCompletionAsync();
+                EnqueueNextNodes();
+            }
+        }
+
+        private async Task ExecuteMutationAsync()
+        {
+            // Sequential root processing - one root at a time
+            while (StartNextRootNode())
+            {
+                // Complete the entire subtree of current root before starting next
+                var enqueued = true;
+                while (enqueued)
+                {
+                    await WaitForNextCompletionAsync();
+                    enqueued = EnqueueNextNodes();
+                }
+            }
+        }
+
+        private void StartAllRootNodes()
+        {
+            foreach (var node in _context.OperationPlan.RootNodes)
+            {
+                StartNode(node);
+            }
+        }
+
+        private bool StartNextRootNode()
+        {
+            var roots = _context.OperationPlan.RootNodes;
+            if (_nextRootNode < roots.Length)
+            {
+                StartNode(roots[_nextRootNode++]);
+                return true;
+            }
+            return false;
         }
 
         private ReadOnlySpan<ExecutionNode> WaitingToRun
@@ -81,14 +150,6 @@ public sealed class OperationPlanExecutor
                         _stack.Push(enqueuedNode);
                     }
                 }
-            }
-        }
-
-        private void Start()
-        {
-            foreach (var node in _context.OperationPlan.RootNodes)
-            {
-                StartNode(node);
             }
         }
 
@@ -141,8 +202,10 @@ public sealed class OperationPlanExecutor
             _completedTasks.Clear();
         }
 
-        private void EnqueueNextNodes()
+        private bool EnqueueNextNodes()
         {
+            var enqueued = false;
+
             foreach (var node in WaitingToRun)
             {
                 var dependenciesFulfilled = true;
@@ -160,8 +223,11 @@ public sealed class OperationPlanExecutor
                 if (dependenciesFulfilled)
                 {
                     StartNode(node);
+                    enqueued = true;
                 }
             }
+
+            return enqueued;
         }
     }
 }

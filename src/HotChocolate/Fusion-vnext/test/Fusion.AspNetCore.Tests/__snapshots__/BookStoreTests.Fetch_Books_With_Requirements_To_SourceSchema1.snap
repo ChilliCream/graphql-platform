@@ -27,13 +27,15 @@
         "nodes": [
           {
             "id": 1,
+            "type": "Operation",
             "schema": "A",
-            "operation": "{\n  books {\n    nodes {\n      id\n      title\n    }\n  }\n}"
+            "operation": "query Op_6721fc4f_1 {\n  books {\n    nodes {\n      id\n      title\n    }\n  }\n}"
           },
           {
             "id": 2,
+            "type": "Operation",
             "schema": "B",
-            "operation": "query(\n  $__fusion_1_id: Int!\n  $__fusion_2_title: String!\n) {\n  bookById(id: $__fusion_1_id) {\n    idAndTitle(title: $__fusion_2_title)\n  }\n}",
+            "operation": "query Op_6721fc4f_2(\n  $__fusion_1_id: Int!\n  $__fusion_2_title: String!\n) {\n  bookById(id: $__fusion_1_id) {\n    idAndTitle(title: $__fusion_2_title)\n  }\n}",
             "source": "$.bookById",
             "target": "$.books.nodes",
             "requirements": [
