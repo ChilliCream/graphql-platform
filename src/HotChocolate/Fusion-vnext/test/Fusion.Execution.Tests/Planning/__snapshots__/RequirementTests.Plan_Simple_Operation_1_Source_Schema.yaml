@@ -12,7 +12,7 @@ nodes:
   - id: 1
     schema: A
     operation: >-
-      {
+      query Op_123_1 {
         books {
           id
           title
@@ -21,7 +21,7 @@ nodes:
   - id: 2
     schema: B
     operation: >-
-      query(
+      query Op_123_2(
         $__fusion_1_id: String!
         $__fusion_2_title: String
       ) {

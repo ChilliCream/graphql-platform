@@ -43,7 +43,7 @@ public class ResultDataMapperTests : FusionTestBase
                 """)
                 .Definitions.OfType<OperationDefinitionNode>().First();
         var operationCompiler = new OperationCompiler(schema, _fieldMapPool);
-        var operation = operationCompiler.Compile("1", operationDefinition);
+        var operation = operationCompiler.Compile("1", "1", operationDefinition);
 
         var jsonDocument = JsonDocument.Parse(
             """
@@ -107,7 +107,7 @@ public class ResultDataMapperTests : FusionTestBase
                 """)
                 .Definitions.OfType<OperationDefinitionNode>().First();
         var operationCompiler = new OperationCompiler(schema, _fieldMapPool);
-        var operation = operationCompiler.Compile("1", operationDefinition);
+        var operation = operationCompiler.Compile("1", "1", operationDefinition);
 
         var jsonDocument = JsonDocument.Parse(
             """

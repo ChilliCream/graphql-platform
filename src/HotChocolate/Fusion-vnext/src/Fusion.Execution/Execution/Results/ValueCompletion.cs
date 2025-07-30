@@ -273,6 +273,7 @@ internal sealed class ValueCompletion
             depth,
             parent);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IObjectTypeDefinition GetType(IType type, JsonElement data)
     {
         var namedType = type.NamedType();
@@ -286,6 +287,7 @@ internal sealed class ValueCompletion
         return _schema.Types.GetType<IObjectTypeDefinition>(typeName);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void AssertDepthAllowed(ref int depth)
     {
         depth++;
@@ -299,6 +301,7 @@ internal sealed class ValueCompletion
 
 file static class ValueCompletionExtensions
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsNullOrUndefined(this JsonElement element)
         => element.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
 }

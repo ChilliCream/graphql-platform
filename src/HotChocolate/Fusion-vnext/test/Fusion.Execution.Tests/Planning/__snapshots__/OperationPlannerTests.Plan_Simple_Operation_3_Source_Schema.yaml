@@ -21,7 +21,7 @@ nodes:
   - id: 1
     schema: PRODUCTS
     operation: >-
-      {
+      query Op_123_1 {
         productBySlug(slug: "1") {
           name
           id
@@ -30,7 +30,7 @@ nodes:
   - id: 2
     schema: REVIEWS
     operation: >-
-      query(
+      query Op_123_2(
         $__fusion_1_id: ID!
       ) {
         productById(id: $__fusion_1_id) {
@@ -55,7 +55,7 @@ nodes:
   - id: 3
     schema: ACCOUNTS
     operation: >-
-      query(
+      query Op_123_3(
         $__fusion_2_id: ID!
       ) {
         userById(id: $__fusion_2_id) {

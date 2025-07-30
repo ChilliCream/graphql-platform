@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -14,9 +13,17 @@ public sealed class OperationPlanExecutor
         CancellationToken cancellationToken = default)
     {
         context.Begin();
-        await ExecutorSession.ExecuteAsync(context, cancellationToken);
+        var strategy = DetermineExecutionStrategy(context);
+        await ExecutorSession.ExecuteAsync(context, strategy, cancellationToken);
         return context.Complete();
     }
+
+    private static ExecutionStrategy DetermineExecutionStrategy(OperationPlanContext context)
+        => context.OperationPlan.Operation.Definition.Operation switch
+        {
+            OperationType.Mutation => ExecutionStrategy.SequentialRoots,
+            _ => ExecutionStrategy.Parallel
+        };
 
     private sealed class ExecutorSession
     {
@@ -29,24 +36,56 @@ public sealed class OperationPlanExecutor
         private readonly OperationPlan _plan;
         private readonly ImmutableArray<ExecutionNodeTrace>.Builder? _traces;
         private readonly CancellationToken _cancellationToken;
+        private readonly ExecutionStrategy _strategy;
+        private int _nextRootNode;
 
-        private ExecutorSession(OperationPlanContext context, CancellationToken cancellationToken)
+        private ExecutorSession(OperationPlanContext context, ExecutionStrategy strategy, CancellationToken cancellationToken)
         {
             _context = context;
+            _strategy = strategy;
             _cancellationToken = cancellationToken;
             _plan = context.OperationPlan;
             _backlog = [.. context.OperationPlan.AllNodes];
+
+            // For sequential execution (mutations), remove root nodes from backlog initially
+            if (_strategy == ExecutionStrategy.SequentialRoots)
+            {
+                foreach (var root in context.OperationPlan.RootNodes)
+                {
+                    _backlog.Remove(root);
+                }
+            }
+
             var collectTracing = context.Schema.GetRequestOptions().CollectOperationPlanTelemetry;
             _traces = collectTracing ? ImmutableArray.CreateBuilder<ExecutionNodeTrace>() : null;
         }
 
-        public static Task ExecuteAsync(OperationPlanContext context, CancellationToken cancellationToken)
-            => new ExecutorSession(context, cancellationToken).ExecuteInternalAsync();
+        public static Task ExecuteAsync(OperationPlanContext context, ExecutionStrategy strategy, CancellationToken cancellationToken)
+            => new ExecutorSession(context, strategy, cancellationToken).ExecuteInternalAsync();
 
         private async Task ExecuteInternalAsync()
         {
-            Start();
+            if (_strategy == ExecutionStrategy.Parallel)
+            {
+                await ExecuteQueryAsync();
+            }
+            else
+            {
+                await ExecuteMutationAsync();
+            }
 
+            if (_traces is { Count: > 0 })
+            {
+                _context.Traces = [.. _traces];
+            }
+        }
+
+        private async Task ExecuteQueryAsync()
+        {
+            // Start all root nodes immediately for parallel execution
+            StartAllRootNodes();
+
+            // Process until all nodes complete
             while (IsProcessing())
             {
                 await WaitForNextCompletionAsync();
@@ -54,8 +93,39 @@ public sealed class OperationPlanExecutor
             }
         }
 
-        private ReadOnlySpan<ExecutionNode> WaitingToRun
-            => CollectionsMarshal.AsSpan(_backlog);
+        private async Task ExecuteMutationAsync()
+        {
+            // Sequential root processing - one root at a time
+            while (StartNextRootNode())
+            {
+                // Complete the entire subtree of current root before starting next
+                var enqueued = true;
+                while (enqueued)
+                {
+                    await WaitForNextCompletionAsync();
+                    enqueued = EnqueueNextNodes();
+                }
+            }
+        }
+
+        private void StartAllRootNodes()
+        {
+            foreach (var node in _context.OperationPlan.RootNodes)
+            {
+                StartNode(node);
+            }
+        }
+
+        private bool StartNextRootNode()
+        {
+            var roots = _context.OperationPlan.RootNodes;
+            if (_nextRootNode < roots.Length)
+            {
+                StartNode(roots[_nextRootNode++]);
+                return true;
+            }
+            return false;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool IsProcessing() => _backlog.Count > 0 || _activeTasks.Count > 0;
@@ -69,21 +139,13 @@ public sealed class OperationPlanExecutor
             {
                 _backlog.Remove(current);
 
-                foreach (var enqueuedNode in WaitingToRun)
+                foreach (var enqueuedNode in _backlog)
                 {
                     if (enqueuedNode.Dependencies.Contains(current))
                     {
                         _stack.Push(enqueuedNode);
                     }
                 }
-            }
-        }
-
-        private void Start()
-        {
-            foreach (var node in _context.OperationPlan.RootNodes)
-            {
-                StartNode(node);
             }
         }
 
@@ -109,7 +171,7 @@ public sealed class OperationPlanExecutor
                     _traces?.Add(new ExecutionNodeTrace
                     {
                         Id = task.Result.Id,
-                        SpanId = task.Result.Activity?.Id,
+                        SpanId = task.Result.Activity?.SpanId.ToHexString(),
                         Status = task.Result.Status,
                         Duration = task.Result.Duration
                     });
@@ -122,7 +184,7 @@ public sealed class OperationPlanExecutor
                 else if (task.IsFaulted || task.IsCanceled)
                 {
                     // execution nodes are not expected to throw as exception should be handled within.
-                    // if they do its a fatal error for the execution, so we await failed task here
+                    // if they do it's a fatal error for the execution, so we await failed task here
                     // so that they can throw and terminate the execution.
                     await task;
                 }
@@ -134,16 +196,14 @@ public sealed class OperationPlanExecutor
             }
 
             _completedTasks.Clear();
-
-            if (_backlog.Count == 0 && _traces is { Count: > 0 })
-            {
-                _context.Traces = [.. _traces];
-            }
         }
 
-        private void EnqueueNextNodes()
+        private bool EnqueueNextNodes()
         {
-            foreach (var node in WaitingToRun)
+            var enqueued = false;
+            _stack.Clear();
+
+            foreach (var node in _backlog)
             {
                 var dependenciesFulfilled = true;
 
@@ -159,9 +219,17 @@ public sealed class OperationPlanExecutor
 
                 if (dependenciesFulfilled)
                 {
-                    StartNode(node);
+                    _stack.Push(node);
+                    enqueued = true;
                 }
             }
+
+            foreach (var node in _stack)
+            {
+                StartNode(node);
+            }
+
+            return enqueued;
         }
     }
 }

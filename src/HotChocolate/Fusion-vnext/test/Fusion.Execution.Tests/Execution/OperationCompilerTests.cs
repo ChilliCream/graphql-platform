@@ -31,7 +31,7 @@ public class OperationCompilerTests
 
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
-        var operation = compiler.Compile("1", operationDefinition);
+        var operation = compiler.Compile("1", "1", operationDefinition);
 
         // assert
         Assert.Equal("1", operation.Id);
@@ -85,7 +85,7 @@ public class OperationCompilerTests
 
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
-        var operation = compiler.Compile("1", operationDefinition);
+        var operation = compiler.Compile("1", "1", operationDefinition);
         var flags = operation.CreateIncludeFlags(variableValues);
 
         // assert
@@ -134,7 +134,7 @@ public class OperationCompilerTests
 
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
-        var operation = compiler.Compile("1", operationDefinition);
+        var operation = compiler.Compile("1", "1", operationDefinition);
         var flags = operation.CreateIncludeFlags(variableValues);
 
         // assert

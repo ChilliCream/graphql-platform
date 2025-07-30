@@ -17,7 +17,7 @@ nodes:
   - id: 1
     schema: PRODUCTS
     operation: >-
-      {
+      query Op_123_1 {
         productBySlug(slug: "1") {
           id
           name
@@ -30,7 +30,7 @@ nodes:
   - id: 2
     schema: SHIPPING
     operation: >-
-      query(
+      query Op_123_2(
         $__fusion_1_id: ID!
         $__fusion_2_height: Int!
         $__fusion_2_width: Int!

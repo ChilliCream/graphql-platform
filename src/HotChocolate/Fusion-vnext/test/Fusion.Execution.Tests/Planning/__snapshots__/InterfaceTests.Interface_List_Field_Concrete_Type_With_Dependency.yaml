@@ -15,7 +15,7 @@ nodes:
   - id: 1
     schema: SUBGRAPH_1
     operation: >-
-      query testQuery_1 {
+      query testQuery_123_1 {
         votables {
           viewerCanVote
           ... on Discussion {
@@ -26,7 +26,7 @@ nodes:
   - id: 2
     schema: SUBGRAPH_2
     operation: >-
-      query testQuery_2(
+      query testQuery_123_2(
         $__fusion_1_id: ID!
       ) {
         discussionById(id: $__fusion_1_id) {

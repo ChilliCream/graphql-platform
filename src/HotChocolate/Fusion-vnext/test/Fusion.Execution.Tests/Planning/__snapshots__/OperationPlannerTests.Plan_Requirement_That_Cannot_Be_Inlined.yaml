@@ -15,7 +15,7 @@ nodes:
   - id: 1
     schema: A
     operation: >-
-      query GetTopProducts_1 {
+      query GetTopProducts_123_1 {
         topProducts {
           id
           name
@@ -25,7 +25,7 @@ nodes:
   - id: 2
     schema: B
     operation: >-
-      query GetTopProducts_2(
+      query GetTopProducts_123_2(
         $__fusion_1_id: ID!
         $__fusion_2_region: String!
       ) {

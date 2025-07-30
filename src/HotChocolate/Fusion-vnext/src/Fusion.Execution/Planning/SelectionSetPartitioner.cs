@@ -314,7 +314,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 switch (node)
                 {
                     case FieldNode fieldNode:
-                        path = path.AppendField(fieldNode.Name.Value);
+                        path = path.AppendField(fieldNode.Alias?.Value ?? fieldNode.Name.Value);
                         break;
 
                     case InlineFragmentNode { TypeCondition: not null } inlineFragmentNode:

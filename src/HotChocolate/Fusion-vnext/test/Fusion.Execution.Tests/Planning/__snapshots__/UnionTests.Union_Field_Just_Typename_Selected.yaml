@@ -11,7 +11,7 @@ nodes:
   - id: 1
     schema: SUBGRAPH_1
     operation: >-
-      query testQuery_1 {
+      query testQuery_123_1 {
         post {
           __typename
         }
