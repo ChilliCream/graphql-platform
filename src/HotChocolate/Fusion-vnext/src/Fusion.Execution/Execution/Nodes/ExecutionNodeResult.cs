@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public record ExecutionNodeResult(
+public sealed record ExecutionNodeResult(
     int Id,
     Activity? Activity,
     ExecutionStatus Status,

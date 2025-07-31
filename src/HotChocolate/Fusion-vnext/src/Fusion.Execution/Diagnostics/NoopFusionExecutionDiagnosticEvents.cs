@@ -1,5 +1,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Diagnostics;
@@ -29,6 +31,15 @@ internal sealed class NoopFusionExecutionDiagnosticEvents : IFusionExecutionDiag
     public void RetrievedDocumentFromStorage(RequestContext context) { }
 
     public void DocumentNotFoundInStorage(RequestContext context, OperationDocumentId documentId) { }
+
+    public IDisposable ExecuteOperation(OperationPlanContext context, OperationExecutionNode node)
+        => this;
+
+    public IDisposable ExecuteSubscriptionEvent(OperationPlanContext context, OperationExecutionNode node)
+        => this;
+
+    public IDisposable ExecuteIntrospection(OperationPlanContext context, IntrospectionExecutionNode node)
+        => this;
 
     public void ExecutorCreated(string name, IRequestExecutor executor) { }
 

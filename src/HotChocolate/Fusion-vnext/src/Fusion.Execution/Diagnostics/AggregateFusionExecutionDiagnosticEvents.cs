@@ -1,5 +1,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Diagnostics;
@@ -135,6 +137,44 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents : IFusionExecutio
         {
             _listeners[i].DocumentNotFoundInStorage(context, documentId);
         }
+    }
+
+    public IDisposable ExecuteOperation(OperationPlanContext context, OperationExecutionNode node)
+    {
+        var scopes = new IDisposable[_listeners.Length];
+
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            scopes[i] = _listeners[i].ExecuteOperation(context, node);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public IDisposable ExecuteSubscriptionEvent(
+        OperationPlanContext context,
+        OperationExecutionNode node)
+    {
+        var scopes = new IDisposable[_listeners.Length];
+
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            scopes[i] = _listeners[i].ExecuteSubscriptionEvent(context, node);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public IDisposable ExecuteIntrospection(OperationPlanContext context, IntrospectionExecutionNode node)
+    {
+        var scopes = new IDisposable[_listeners.Length];
+
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            scopes[i] = _listeners[i].ExecuteIntrospection(context, node);
+        }
+
+        return new AggregateActivityScope(scopes);
     }
 
     public void ExecutorCreated(string name, IRequestExecutor executor)

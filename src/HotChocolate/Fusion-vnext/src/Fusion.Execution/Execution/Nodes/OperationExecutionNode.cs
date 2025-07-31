@@ -2,7 +2,9 @@ using System.Buffers;
 using System.Diagnostics;
 using System.IO.Hashing;
 using System.Text;
+using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Execution.Extensions;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -106,8 +108,16 @@ public sealed class OperationExecutionNode : ExecutionNode
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var start = Stopwatch.GetTimestamp();
+        var diagnosticEvents = context.GetDiagnosticEvents();
+        using var scope = diagnosticEvents.ExecuteOperation(context, this);
+        return await ExecuteInternalAsync(context, cancellationToken);
+    }
 
+    private async Task<ExecutionNodeResult> ExecuteInternalAsync(
+        OperationPlanContext context,
+        CancellationToken cancellationToken)
+    {
+        var start = Stopwatch.GetTimestamp();
         var variables = context.CreateVariableValueSets(Target, Variables, Requirements);
 
         if (variables.Length == 0 && (Requirements.Length > 0 || Variables.Length > 0))
@@ -174,6 +184,36 @@ public sealed class OperationExecutionNode : ExecutionNode
             Activity.Current,
             ExecutionStatus.Success,
             Stopwatch.GetElapsedTime(start));
+    }
+
+    internal async Task<SubscriptionResult> SubscribeAsync(
+        OperationPlanContext context,
+        CancellationToken cancellationToken = default)
+    {
+        var variables = context.CreateVariableValueSets(Target, Variables, Requirements);
+
+        var request = new SourceSchemaClientRequest
+        {
+            OperationId = OperationId,
+            Operation = Operation,
+            Variables = variables
+        };
+
+        var client = context.GetClient(SchemaName, Operation.Operation);
+        var response = await client.ExecuteAsync(context, request, cancellationToken);
+
+        if (!response.IsSuccessful)
+        {
+            return SubscriptionResult.Failed();
+        }
+
+        var stream = new SubscriptionEnumerable(
+            context,
+            this,
+            response,
+            response.ReadAsResultStreamAsync(cancellationToken),
+            context.GetDiagnosticEvents());
+        return SubscriptionResult.Success(stream);
     }
 
     internal void AddDependency(ExecutionNode node)
@@ -248,5 +288,135 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
 
         _isSealed = true;
+    }
+
+    private sealed class SubscriptionEnumerable : IAsyncEnumerable<EventMessageResult>
+    {
+        private readonly OperationPlanContext _context;
+        private readonly OperationExecutionNode _node;
+        private readonly SourceSchemaClientResponse _response;
+        private readonly IAsyncEnumerable<SourceSchemaResult> _resultEnumerable;
+        private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
+
+        public SubscriptionEnumerable(
+            OperationPlanContext context,
+            OperationExecutionNode node,
+            SourceSchemaClientResponse response,
+            IAsyncEnumerable<SourceSchemaResult> resultEnumerable,
+            IFusionExecutionDiagnosticEvents diagnosticEvents)
+        {
+            _context = context;
+            _node = node;
+            _response = response;
+            _resultEnumerable = resultEnumerable;
+            _diagnosticEvents = diagnosticEvents;
+        }
+
+        public IAsyncEnumerator<EventMessageResult> GetAsyncEnumerator(
+            CancellationToken cancellationToken = default)
+            => new SubscriptionEnumerator(
+                _context,
+                _node,
+                _response,
+                _resultEnumerable.GetAsyncEnumerator(cancellationToken),
+                _diagnosticEvents,
+                cancellationToken);
+    }
+
+    private sealed class SubscriptionEnumerator : IAsyncEnumerator<EventMessageResult>
+    {
+        private readonly OperationPlanContext _context;
+        private readonly OperationExecutionNode _node;
+        private readonly SourceSchemaClientResponse _response;
+        private readonly IAsyncEnumerator<SourceSchemaResult> _resultEnumerator;
+        private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
+        private readonly CancellationToken _cancellationToken;
+        private readonly SourceSchemaResult[] _resultBuffer = new SourceSchemaResult[1];
+        private bool _completed;
+        private bool _disposed;
+
+        public SubscriptionEnumerator(
+            OperationPlanContext context,
+            OperationExecutionNode node,
+            SourceSchemaClientResponse response,
+            IAsyncEnumerator<SourceSchemaResult> resultEnumerator,
+            IFusionExecutionDiagnosticEvents diagnosticEvents,
+            CancellationToken cancellationToken)
+        {
+            _context = context;
+            _node = node;
+            _response = response;
+            _resultEnumerator = resultEnumerator;
+            _diagnosticEvents = diagnosticEvents;
+            _cancellationToken = cancellationToken;
+        }
+
+        public EventMessageResult Current { get; private set; } = null!;
+
+        public async ValueTask<bool> MoveNextAsync()
+        {
+            if (_completed || _cancellationToken.IsCancellationRequested)
+            {
+                Current = null!;
+                return false;
+            }
+
+            bool hasResult;
+            var scope = _diagnosticEvents.ExecuteSubscriptionEvent(_context, _node);
+            var start = Stopwatch.GetTimestamp();
+
+            try
+            {
+                hasResult = await _resultEnumerator.MoveNextAsync();
+
+                if (hasResult)
+                {
+                    _resultBuffer[0] = _resultEnumerator.Current;
+                    _context.AddPartialResults(_node.Source, _resultBuffer);
+                }
+            }
+            catch (Exception ex)
+            {
+                // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
+                _resultBuffer[0]?.Dispose();
+                Current = new EventMessageResult(
+                    _node.Id,
+                    Activity.Current,
+                    ExecutionStatus.Failed,
+                    scope,
+                    start,
+                    Stopwatch.GetTimestamp(),
+                    Exception: ex);
+                return true;
+            }
+
+            if (hasResult)
+            {
+                Current = new EventMessageResult(
+                    _node.Id,
+                    Activity.Current,
+                    ExecutionStatus.Failed,
+                    scope,
+                    start,
+                    Stopwatch.GetTimestamp());
+                return true;
+            }
+
+            _completed = true;
+            Current = null!;
+            return false;
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (!_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _response.Dispose();
+            await _resultEnumerator.DisposeAsync();
+        }
     }
 }

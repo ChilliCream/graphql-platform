@@ -52,7 +52,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         };
 
         var httpResponse = await _client.SendAsync(httpRequest, cancellationToken);
-        return new Response(httpResponse, request.Variables);
+        return new Response(request.Operation.Operation, httpResponse, request.Variables);
     }
 
     private GraphQLHttpRequest CreateHttpRequest(
@@ -129,6 +129,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     }
 
     private sealed class Response(
+        OperationType operation,
         GraphQLHttpResponse response,
         ImmutableArray<VariableValues> variables)
         : SourceSchemaClientResponse
@@ -136,47 +137,63 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         public override async IAsyncEnumerable<SourceSchemaResult> ReadAsResultStreamAsync(
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            switch (variables.Length)
+            if (operation == OperationType.Subscription)
             {
-                case 0:
+                await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cancellationToken))
                 {
-                    var result = await response.ReadAsResultAsync(cancellationToken);
                     yield return new SourceSchemaResult(
                         Path.Root,
                         result,
                         result.Data,
                         result.Errors,
                         result.Extensions);
-                    break;
                 }
-
-                case 1:
+            }
+            else
+            {
+                switch (variables.Length)
                 {
-                    var result = await response.ReadAsResultAsync(cancellationToken);
-                    yield return new SourceSchemaResult(
-                        variables[0].Path,
-                        result,
-                        result.Data,
-                        result.Errors,
-                        result.Extensions);
-                    break;
-                }
-
-                default:
-                {
-                    await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cancellationToken))
+                    case 0:
                     {
-                        var index = result.VariableIndex!.Value;
-                        var (path, _) = variables[index];
+                        var result = await response.ReadAsResultAsync(cancellationToken);
                         yield return new SourceSchemaResult(
-                            path,
+                            Path.Root,
                             result,
                             result.Data,
                             result.Errors,
                             result.Extensions);
+                        break;
                     }
 
-                    break;
+                    case 1:
+                    {
+                        var result = await response.ReadAsResultAsync(cancellationToken);
+                        yield return new SourceSchemaResult(
+                            variables[0].Path,
+                            result,
+                            result.Data,
+                            result.Errors,
+                            result.Extensions);
+                        break;
+                    }
+
+                    default:
+                    {
+                        await foreach (var result in response.ReadAsResultStreamAsync()
+                            .WithCancellation(cancellationToken))
+                        {
+                            var index = result.VariableIndex!.Value;
+                            var (path, _) = variables[index];
+                            yield return new SourceSchemaResult(
+                                path,
+                                result,
+                                result.Data,
+                                result.Errors,
+                                result.Extensions);
+                        }
+
+                        break;
+                    }
                 }
             }
         }

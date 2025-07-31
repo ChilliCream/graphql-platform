@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed record OperationPlan
 {
-    private FrozenDictionary<int, ExecutionNode> _nodes = FrozenDictionary<int, ExecutionNode>.Empty;
+    private readonly FrozenDictionary<int, ExecutionNode> _nodes = FrozenDictionary<int, ExecutionNode>.Empty;
 
     public required Operation Operation { get; init; }
 
