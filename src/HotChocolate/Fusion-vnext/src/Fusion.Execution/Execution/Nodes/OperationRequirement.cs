@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -7,4 +8,4 @@ public record OperationRequirement(
     string Key,
     ITypeNode Type,
     SelectionPath Path,
-    FieldPath Map);
+    IValueSelectionNode Map);

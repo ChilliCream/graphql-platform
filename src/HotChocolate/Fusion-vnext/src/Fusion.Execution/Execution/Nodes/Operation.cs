@@ -19,6 +19,7 @@ public sealed class Operation
 
     internal Operation(
         string id,
+        string hash,
         OperationDefinitionNode definition,
         IObjectTypeDefinition rootType,
         ISchemaDefinition schema,
@@ -35,6 +36,7 @@ public sealed class Operation
         ArgumentNullException.ThrowIfNull(includeConditions);
 
         Id = id;
+        Hash = hash;
         Definition = definition;
         RootType = rootType;
         Schema = schema;
@@ -50,6 +52,11 @@ public sealed class Operation
     /// Gets the internal unique identifier for this operation.
     /// </summary>
     public string Id { get; }
+
+    /// <summary>
+    /// Gets the hash of the original operation document.
+    /// </summary>
+    public string Hash { get; }
 
     /// <summary>
     /// Gets the name of the operation.

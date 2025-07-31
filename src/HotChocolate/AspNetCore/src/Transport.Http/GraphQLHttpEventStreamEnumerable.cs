@@ -19,7 +19,7 @@ internal sealed class GraphQLHttpEventStreamEnumerable : IAsyncEnumerable<Operat
         => new GraphQLHttpEventStreamEnumerator(_message, cancellationToken);
 }
 
-internal class GraphQLHttpEventStreamEnumerator : IAsyncEnumerator<OperationResult>
+internal sealed class GraphQLHttpEventStreamEnumerator : IAsyncEnumerator<OperationResult>
 {
     private static ReadOnlySpan<byte> Event => "event:"u8;
     private static ReadOnlySpan<byte> Next => "next\n"u8;

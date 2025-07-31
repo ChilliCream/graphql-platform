@@ -7,6 +7,7 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -17,15 +18,14 @@ namespace HotChocolate.Fusion.Execution;
 internal sealed class FetchResultStore : IDisposable
 {
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
-    private readonly ValueCompletion _valueCompletion;
+    private readonly ISchemaDefinition _schema;
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
-    private readonly ObjectResult _root;
-
     private readonly ImmutableArray<IError> _errors = [];
-
-    // TODO : attach resources to result object.
     private readonly ConcurrentStack<IDisposable> _memory = [];
+    private ObjectResult _root = null!;
+    private ValueCompletion _valueCompletion = null!;
+    private bool _disposed;
 
     public FetchResultStore(
         ISchemaDefinition schema,
@@ -37,11 +37,20 @@ internal sealed class FetchResultStore : IDisposable
         ArgumentNullException.ThrowIfNull(resultPoolSession);
         ArgumentNullException.ThrowIfNull(operation);
 
+        _schema = schema;
         _operation = operation;
         _includeFlags = includeFlags;
-        _valueCompletion = new ValueCompletion(schema, resultPoolSession, ErrorHandling.Propagate, 32, includeFlags);
+
+        Reset(resultPoolSession);
+    }
+
+    public void Reset(ResultPoolSession resultPoolSession)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        _valueCompletion = new ValueCompletion(_schema, resultPoolSession, ErrorHandling.Propagate, 32, _includeFlags);
         _root = resultPoolSession.RentObjectResult();
-        _root.Initialize(resultPoolSession, operation.RootSelectionSet, includeFlags);
+        _root.Initialize(resultPoolSession, _operation.RootSelectionSet, _includeFlags);
     }
 
     public ObjectResult Data => _root;
@@ -54,6 +63,7 @@ internal sealed class FetchResultStore : IDisposable
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(sourcePath);
 
         if (results.Length == 0)
@@ -69,7 +79,7 @@ internal sealed class FetchResultStore : IDisposable
         try
         {
             ref var result = ref MemoryMarshal.GetReference(results);
-            ref var startElement = ref MemoryMarshal.GetReference(startElements);
+            ref var startElement = ref MemoryMarshal.GetReference(startElementsSpan);
             ref var end = ref Unsafe.Add(ref result, results.Length);
 
             while (Unsafe.IsAddressLessThan(ref result, ref end))
@@ -92,6 +102,16 @@ internal sealed class FetchResultStore : IDisposable
 
     public void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(result);
+
+        if (selections.Length == 0)
+        {
+            throw new ArgumentException(
+                "The selections span must contain at least one selection.",
+                nameof(selections));
+        }
+
         _lock.EnterWriteLock();
 
         try
@@ -160,6 +180,17 @@ internal sealed class FetchResultStore : IDisposable
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(selectionSet);
+        ArgumentNullException.ThrowIfNull(requestVariables);
+
+        if (requiredData.Length == 0)
+        {
+            throw new ArgumentException(
+                "The required data span must contain at least one requirement.",
+                nameof(requiredData));
+        }
+
         _lock.EnterReadLock();
 
         try
@@ -233,6 +264,11 @@ internal sealed class FetchResultStore : IDisposable
                 Array.Resize(ref variableValueSets, nextIndex);
             }
 
+            if (buffer is not null)
+            {
+                _memory.Push(buffer);
+            }
+
             return variableValueSets is not null
                 ? ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets)
                 : [];
@@ -256,6 +292,11 @@ internal sealed class FetchResultStore : IDisposable
         {
             var field = MapRequirement(result, requirement.Key, requirement.Map, ref buffer);
 
+            if (field is null)
+            {
+                return null;
+            }
+
             if (field.Value.Kind == SyntaxKind.NullValue && requirement.Type.Kind == SyntaxKind.NonNullType)
             {
                 return null;
@@ -267,43 +308,14 @@ internal sealed class FetchResultStore : IDisposable
         return new ObjectValueNode(fields);
     }
 
-    private static ObjectFieldNode MapRequirement(
+    private ObjectFieldNode? MapRequirement(
         ObjectResult result,
         string key,
-        FieldPath path,
+        IValueSelectionNode path,
         ref PooledArrayWriter? buffer)
     {
-        var current = result;
-
-        foreach (var segment in path.Reverse())
-        {
-            if (!current.TryGetValue(segment.Name, out var value))
-            {
-                continue;
-            }
-
-            if (value.HasNullValue)
-            {
-                return new ObjectFieldNode(key, NullValueNode.Default);
-            }
-
-            if (value is ObjectFieldResult objectField)
-            {
-                current = objectField.Value!;
-                continue;
-            }
-
-            if (value is LeafFieldResult leafField)
-            {
-                buffer ??= new PooledArrayWriter();
-                var parser = new JsonValueParser(buffer: buffer);
-                return new ObjectFieldNode(key, parser.Parse(leafField.Value));
-            }
-
-            throw new NotSupportedException("Must be list or object.");
-        }
-
-        throw new InvalidOperationException("The path segment does not exist in the data.");
+        var value = ResultDataMapper.Map(result, path, _schema, ref buffer);
+        return value is null ? null : new ObjectFieldNode(key, value);
     }
 
     private static IEnumerable<ObjectResult> UnrollLists(ListResult list)
@@ -344,6 +356,8 @@ internal sealed class FetchResultStore : IDisposable
 
     public PooledArrayWriter CreateRentedBuffer()
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         var buffer = new PooledArrayWriter();
         _memory.Push(buffer);
         return buffer;
@@ -361,8 +375,7 @@ internal sealed class FetchResultStore : IDisposable
         for (var i = sourcePath.Segments.Length - 1; i >= 0; i--)
         {
             var segment = sourcePath.Segments[i];
-            if (current.ValueKind != JsonValueKind.Object
-                || !current.TryGetProperty(segment.Name, out current))
+            if (current.ValueKind != JsonValueKind.Object || !current.TryGetProperty(segment.Name, out current))
             {
                 throw new InvalidOperationException(
                     $"The path segment '{segment.Name}' does not exist in the data.");
@@ -421,6 +434,7 @@ internal sealed class FetchResultStore : IDisposable
                         throw new InvalidOperationException(
                             $"The path segment '{indexSegment}' does not exist in the data.");
                     }
+
                     return listResult.Items[indexSegment.Index];
 
                 case ObjectListResult listResult:
@@ -429,6 +443,7 @@ internal sealed class FetchResultStore : IDisposable
                         throw new InvalidOperationException(
                             $"The path segment '{indexSegment}' does not exist in the data.");
                     }
+
                     return listResult.Items[indexSegment.Index];
             }
         }
@@ -439,7 +454,18 @@ internal sealed class FetchResultStore : IDisposable
 
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
         _lock.Dispose();
-        _memory.Clear();
+
+        while (_memory.TryPop(out var memory))
+        {
+            memory.Dispose();
+        }
     }
 }

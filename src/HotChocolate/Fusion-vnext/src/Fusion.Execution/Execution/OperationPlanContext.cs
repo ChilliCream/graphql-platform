@@ -1,46 +1,61 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
 public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 {
+    private static readonly JsonOperationPlanFormatter s_planFormatter = new();
     private readonly FetchResultStore _resultStore;
+    private readonly bool _collectTelemetry;
+    private ResultPoolSessionHolder _resultPoolSessionHolder;
+    private ISourceSchemaClientScope _clientScope;
+    private string? _traceId;
+    private long _start;
     private bool _disposed;
 
     public OperationPlanContext(
-        OperationExecutionPlan operationPlan,
-        IVariableValueCollection variables,
         RequestContext requestContext,
-        ResultPoolSession resultPoolSession)
+        OperationPlan operationPlan)
+        : this(requestContext, requestContext.VariableValues[0], operationPlan)
     {
-        OperationPlan = operationPlan;
-        RequestContext = requestContext;
-        Variables = variables;
-        IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
-
-        // TODO : fully implement and inject ResultPoolSession
-        _resultStore = new FetchResultStore(
-            RequestContext.Schema,
-            resultPoolSession,
-            operationPlan.Operation,
-            IncludeFlags);
-
-        // create a client scope for the current request context.
-        var clientScopeFactory = requestContext.RequestServices.GetRequiredService<ISourceSchemaClientScopeFactory>();
-        ClientScope = clientScopeFactory.CreateScope(requestContext.Schema);
-        ResultPool = resultPoolSession;
     }
 
-    public OperationExecutionPlan OperationPlan { get; }
+    public OperationPlanContext(
+        RequestContext requestContext,
+        IVariableValueCollection variables,
+        OperationPlan operationPlan)
+    {
+        ArgumentNullException.ThrowIfNull(requestContext);
+        ArgumentNullException.ThrowIfNull(variables);
+        ArgumentNullException.ThrowIfNull(operationPlan);
+
+        RequestContext = requestContext;
+        Variables = variables;
+        OperationPlan = operationPlan;
+        IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
+
+        _resultPoolSessionHolder = requestContext.CreateResultPoolSession();
+        _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
+        _clientScope = requestContext.CreateClientScope();
+
+        _resultStore = new FetchResultStore(
+            requestContext.Schema,
+            _resultPoolSessionHolder,
+            operationPlan.Operation,
+            IncludeFlags);
+    }
+
+    public OperationPlan OperationPlan { get; }
 
     public IVariableValueCollection Variables { get; }
 
@@ -48,15 +63,19 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     public RequestContext RequestContext { get; }
 
-    public ISourceSchemaClientScope ClientScope { get; }
+    public ISourceSchemaClientScope ClientScope => _clientScope;
 
-    public ResultPoolSession ResultPool { get; }
+    public ResultPoolSession ResultPool => _resultPoolSessionHolder;
 
     public ulong IncludeFlags { get; }
 
+    public bool CollectTelemetry => _collectTelemetry;
+
     public IFeatureCollection Features => RequestContext.Features;
 
-    public ImmutableArray<VariableValues> CreateVariableValueSets(
+    public ImmutableArray<ExecutionNodeTrace> Traces { get; internal set; } = [];
+
+    internal ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
         ReadOnlySpan<string> requiredVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
@@ -80,22 +99,65 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    public void AddPartialResults(SelectionPath sourcePath, ReadOnlySpan<SourceSchemaResult> results)
+    internal void AddPartialResults(SelectionPath sourcePath, ReadOnlySpan<SourceSchemaResult> results)
         => _resultStore.AddPartialResults(sourcePath, results);
 
-    public void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
+    internal void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
         => _resultStore.AddPartialResults(result, selections);
 
-    public PooledArrayWriter CreateRentedBuffer()
+    internal PooledArrayWriter CreateRentedBuffer()
         => _resultStore.CreateRentedBuffer();
 
-    internal IExecutionResult CreateFinalResult()
+    internal void Begin(long? start = null, string? traceId = null)
     {
-        return OperationResultBuilder.New()
+        if (_collectTelemetry)
+        {
+            _start = start ?? Stopwatch.GetTimestamp();
+            _traceId = traceId ?? Activity.Current?.TraceId.ToHexString();
+        }
+    }
+
+    internal IOperationResult Complete()
+    {
+        var trace = _collectTelemetry
+            ? new OperationPlanTrace
+            {
+                TraceId = _traceId,
+                Duration = Stopwatch.GetElapsedTime(_start),
+                Nodes = Traces.ToImmutableDictionary(t => t.Id)
+            }
+            : null;
+
+        var resultBuilder = OperationResultBuilder.New();
+
+        if (RequestContext.ContextData.ContainsKey(ExecutionContextData.IncludeQueryPlan))
+        {
+            var writer = new PooledArrayWriter();
+            s_planFormatter.Format(writer, OperationPlan, trace);
+            var value = new RawJsonValue(writer.WrittenMemory);
+            resultBuilder.SetExtension("fusion", new Dictionary<string, object?> { { "operationPlan", value } });
+            resultBuilder.RegisterForCleanup(writer);
+        }
+
+        var result = resultBuilder
             .AddErrors(_resultStore.Errors)
             .SetData(_resultStore.Data)
             .RegisterForCleanup(_resultStore.MemoryOwners)
+            .RegisterForCleanup(_resultPoolSessionHolder)
             .Build();
+
+        result.Features.Set(OperationPlan);
+
+        if (trace is not null)
+        {
+            result.Features.Set(trace);
+        }
+
+        _clientScope = RequestContext.CreateClientScope();
+        _resultPoolSessionHolder = RequestContext.CreateResultPoolSession();
+        _resultStore.Reset(_resultPoolSessionHolder);
+
+        return result;
     }
 
     private List<ObjectFieldNode> GetPathThroughVariables(
@@ -136,7 +198,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         if (!_disposed)
         {
             _disposed = true;
-            await ClientScope.DisposeAsync().ConfigureAwait(false);
+            _resultPoolSessionHolder.Dispose();
+            _resultStore.Dispose();
+            await _clientScope.DisposeAsync();
         }
     }
 }
@@ -149,13 +213,17 @@ file static class OperationPlanContextExtensions
     {
         while (disposables.TryPop(out var disposable))
         {
-            builder.RegisterForCleanup(() =>
-            {
-                disposable.Dispose();
-                return ValueTask.CompletedTask;
-            });
+            RegisterForCleanup(builder, disposable);
         }
 
+        return builder;
+    }
+
+    public static OperationResultBuilder RegisterForCleanup(
+        this OperationResultBuilder builder,
+        IDisposable disposable)
+    {
+        builder.RegisterForCleanup(disposable.Dispose);
         return builder;
     }
 }

@@ -5,5 +5,3 @@ schema @schemaName(value: "Schema2") {
 type Query {
   schema2Field: Int!
 }
-
-directive @schemaName(value: String!) on SCHEMA

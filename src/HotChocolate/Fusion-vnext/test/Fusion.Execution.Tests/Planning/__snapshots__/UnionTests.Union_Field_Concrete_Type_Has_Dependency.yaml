@@ -1,20 +1,23 @@
-operation: >-
-  query testQuery {
-    post {
-      ... on Photo {
-        subgraph2
-        id @fusion_internal
-      }
-      ... on Discussion {
-        subgraph1
+operation:
+  - document: >-
+    query testQuery {
+      post {
+        ... on Photo {
+          subgraph2
+          id @fusion__requirement
+        }
+        ... on Discussion {
+          subgraph1
+        }
       }
     }
-  }
+    name: testQuery
+    hash: 123
 nodes:
   - id: 1
     schema: SUBGRAPH_1
     operation: >-
-      query testQuery_1 {
+      query testQuery_123_1 {
         post {
           ... on Photo {
             id
@@ -27,16 +30,17 @@ nodes:
   - id: 2
     schema: SUBGRAPH_2
     operation: >-
-      query testQuery_2(
+      query testQuery_123_2(
         $__fusion_1_id: ID!
       ) {
         photoById(id: $__fusion_1_id) {
           subgraph2
         }
       }
+    source: $.photoById
+    target: $.post.<Photo>
     requirements:
       - name: __fusion_1_id
-        selectionSet: $.post.<Photo>
         selectionMap: id
     dependencies:
       - id: 1

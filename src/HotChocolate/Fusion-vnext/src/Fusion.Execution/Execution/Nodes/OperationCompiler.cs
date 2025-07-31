@@ -24,7 +24,7 @@ public sealed class OperationCompiler
         _typeNameField = new TypeNameField(nonNullStringType);
     }
 
-    public Operation Compile(string id, OperationDefinitionNode operationDefinition)
+    public Operation Compile(string id, string hash, OperationDefinitionNode operationDefinition)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(operationDefinition);
@@ -53,6 +53,7 @@ public sealed class OperationCompiler
 
             return new Operation(
                 id,
+                hash,
                 operationDefinition,
                 rootType,
                 _schema,
@@ -177,12 +178,7 @@ public sealed class OperationCompiler
             includeFlags.Clear();
 
             var first = nodes[0];
-            var isInternal = true;
-
-            if (!IsInternal(first.Node))
-            {
-                isInternal = false;
-            }
+            var isInternal = IsInternal(first.Node);
 
             if (first.PathIncludeFlags > 0)
             {
@@ -236,7 +232,7 @@ public sealed class OperationCompiler
             }
         }
 
-        return new SelectionSet(++lastId, selections, isConditional);
+        return new SelectionSet(++lastId, typeContext, selections, isConditional);
     }
 
     private static void CollapseIncludeFlags(List<ulong> includeFlags)
@@ -313,7 +309,7 @@ public sealed class OperationCompiler
 
     private bool IsInternal(FieldNode fieldNode)
     {
-        const string isInternal = "fusion_internal";
+        const string isInternal = "fusion__requirement";
         var directives = fieldNode.Directives;
 
         if (directives.Count == 0)

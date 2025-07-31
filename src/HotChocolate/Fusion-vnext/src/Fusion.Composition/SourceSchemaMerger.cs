@@ -17,6 +17,7 @@ using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.StringUtilities;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
 using TypeNames = HotChocolate.Fusion.WellKnownTypeNames;
+using FieldNames = HotChocolate.Fusion.WellKnownFieldNames;
 
 namespace HotChocolate.Fusion;
 
@@ -29,7 +30,7 @@ internal sealed class SourceSchemaMerger
     private readonly FrozenDictionary<string, ITypeDefinition> _fusionTypeDefinitions;
     private readonly FrozenDictionary<string, MutableDirectiveDefinition>
         _fusionDirectiveDefinitions;
-    private readonly Dictionary<string, SelectedValueToSelectionSetRewriter>
+    private readonly Dictionary<string, ValueSelectionToSelectionSetRewriter>
         _selectedValueToSelectionSetRewriters = [];
     private readonly Dictionary<string, MergeSelectionSetRewriter> _mergeSelectionSetRewriters = [];
 
@@ -87,6 +88,33 @@ internal sealed class SourceSchemaMerger
                 {
                     AddFusionLookupDirectives(mergedType, [.. lookupFieldGroup]);
                 }
+            }
+        }
+
+        if (mergedSchema.Types.TryGetType<IInterfaceTypeDefinition>(TypeNames.Node, out var nodeType)
+            && mergedSchema.QueryType is { } queryType)
+        {
+            if (queryType.Fields.TryGetField(FieldNames.Node, out var nodeField)
+                && nodeField.Type == nodeType)
+            {
+                queryType.Fields.Remove(nodeField);
+            }
+
+            // Until gateway support is implemented, we never expose the nodes field in the merged schema.
+            if (queryType.Fields.TryGetField(FieldNames.Nodes, out var nodesField)
+                && nodesField.Type.NamedType() == nodeType)
+            {
+                queryType.Fields.Remove(nodesField);
+            }
+
+            if (_options.EnableGlobalObjectIdentification
+                && mergedSchema.Types.TryGetType<IScalarTypeDefinition>(TypeNames.ID, out var idType))
+            {
+                var canonicalNodeField = new MutableOutputFieldDefinition(FieldNames.Node, nodeType);
+                canonicalNodeField.Arguments.Add(
+                    new MutableInputFieldDefinition(ArgumentNames.Id, new NonNullType(idType)));
+
+                queryType.Fields.Add(canonicalNodeField);
             }
         }
 
@@ -978,7 +1006,7 @@ internal sealed class SourceSchemaMerger
                 GetSelectedValueToSelectionSetRewriter(sourceSchema);
             var selectionSets = selectedValues
                 .Select(
-                    s => selectedValueToSelectionSetRewriter.SelectedValueToSelectionSet(s, type))
+                    s => selectedValueToSelectionSetRewriter.Rewrite(s, type))
                 .ToImmutableArray();
             var mergedSelectionSet = selectionSets.Length == 1
                 ? selectionSets[0]
@@ -1060,7 +1088,7 @@ internal sealed class SourceSchemaMerger
                     .Select(
                         s =>
                             selectedValueToSelectionSetRewriter
-                                .SelectedValueToSelectionSet(s, complexType))
+                                .Rewrite(s, complexType))
                     .ToImmutableArray();
                 var mergedSelectionSet = selectionSets.Length == 1
                     ? selectionSets[0]
@@ -1226,7 +1254,7 @@ internal sealed class SourceSchemaMerger
         }
     }
 
-    private SelectedValueToSelectionSetRewriter GetSelectedValueToSelectionSetRewriter(
+    private ValueSelectionToSelectionSetRewriter GetSelectedValueToSelectionSetRewriter(
         MutableSchemaDefinition schema)
     {
         if (_selectedValueToSelectionSetRewriters.TryGetValue(schema.Name, out var rewriter))
@@ -1234,7 +1262,7 @@ internal sealed class SourceSchemaMerger
             return rewriter;
         }
 
-        rewriter = new SelectedValueToSelectionSetRewriter(schema);
+        rewriter = new ValueSelectionToSelectionSetRewriter(schema);
         _selectedValueToSelectionSetRewriters.Add(schema.Name, rewriter);
 
         return rewriter;

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using HotChocolate.Fusion.Execution.Extensions;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -8,18 +10,38 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
     public IntrospectionExecutionNode(int id, Selection[] selections)
     {
+        ArgumentNullException.ThrowIfNull(selections);
+
+        if (selections.Length == 0)
+        {
+            throw new ArgumentException(
+                "There must be at least one introspection selection.",
+                nameof(selections));
+        }
+
         Id = id;
         _selections = selections;
     }
 
     public override int Id { get; }
 
+    public ReadOnlySpan<Selection> Selections => _selections;
+
     public override ReadOnlySpan<ExecutionNode> Dependencies => default;
 
-    public override Task<ExecutionStatus> ExecuteAsync(
+    public override Task<ExecutionNodeResult> ExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
+        var diagnosticEvents = context.GetDiagnosticEvents();
+        using var scope = diagnosticEvents.ExecuteIntrospection(context, this);
+        return Task.FromResult(ExecuteInternalAsync(context));
+    }
+
+    private ExecutionNodeResult ExecuteInternalAsync(
+        OperationPlanContext context)
+    {
+        var start = Stopwatch.GetTimestamp();
         var resultPool = context.ResultPool;
         var backlog = new Stack<(object? Parent, Selection Selection, FieldResult Result)>();
         var root = context.ResultPool.RentObjectResult();
@@ -41,7 +63,11 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         ExecuteSelections(context, backlog);
         context.AddPartialResults(root, _selections);
 
-        return Task.FromResult(new ExecutionStatus(Id, IsSkipped: false));
+        return new ExecutionNodeResult(
+            Id,
+            Activity.Current,
+            ExecutionStatus.Success,
+            Stopwatch.GetElapsedTime(start));
     }
 
     private static void ExecuteSelections(

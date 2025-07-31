@@ -1,10 +1,10 @@
-using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Definitions;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
@@ -42,7 +42,7 @@ public abstract class FusionTestBase : IDisposable
         [StringSyntax("graphql")] params string[] schemas)
     {
         var compositionLog = new CompositionLog();
-        var composer = new SchemaComposer(schemas, compositionLog);
+        var composer = new SchemaComposer(schemas, new SchemaComposerOptions(), compositionLog);
         var result = composer.Compose();
 
         if (!result.IsSuccess)
@@ -58,7 +58,7 @@ public abstract class FusionTestBase : IDisposable
         [StringSyntax("graphql")] params string[] schemas)
     {
         var compositionLog = new CompositionLog();
-        var composer = new SchemaComposer(schemas, compositionLog);
+        var composer = new SchemaComposer(schemas, new SchemaComposerOptions(), compositionLog);
         var result = composer.Compose();
 
         if (!result.IsSuccess)
@@ -94,7 +94,7 @@ public abstract class FusionTestBase : IDisposable
             configureApplication);
     }
 
-    protected static OperationExecutionPlan PlanOperation(
+    protected static OperationPlan PlanOperation(
         FusionSchemaDefinition schema,
         [StringSyntax("graphql")] string operationText)
     {
@@ -109,22 +109,22 @@ public abstract class FusionTestBase : IDisposable
 
         var compiler = new OperationCompiler(schema, pool);
         var planner = new OperationPlanner(schema, compiler);
-        return planner.CreatePlan("123", operation);
+        return planner.CreatePlan("123", "123", "123", operation);
     }
 
     protected static void MatchInline(
-        OperationExecutionPlan plan,
+        OperationPlan plan,
         [StringSyntax("yaml")] string expected)
     {
-        var formatter = new YamlExecutionPlanFormatter();
+        var formatter = new YamlOperationPlanFormatter();
         var actual = formatter.Format(plan);
         actual.MatchInlineSnapshot(expected + Environment.NewLine);
     }
 
     protected static void MatchSnapshot(
-        OperationExecutionPlan plan)
+        OperationPlan plan)
     {
-        var formatter = new YamlExecutionPlanFormatter();
+        var formatter = new YamlOperationPlanFormatter();
         var actual = formatter.Format(plan);
         actual.MatchSnapshot(extension: ".yaml");
     }

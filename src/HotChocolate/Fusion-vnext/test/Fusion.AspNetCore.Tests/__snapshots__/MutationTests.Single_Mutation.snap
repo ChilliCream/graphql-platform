@@ -1,0 +1,45 @@
+{
+  "data": {
+    "a": {
+      "book": {
+        "id": 1,
+        "author": "Abc"
+      }
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "mutation {\n  a: createBook(input: { title: \"Book1\" }) {\n    book {\n      id\n      author\n      id @fusion__requirement\n    }\n  }\n}",
+          "hash": "8adeedac0c987644c3244bc6ad459a3d"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": "mutation Op_8adeedac_1 {\n  a: createBook(input: { title: \"Book1\" }) {\n    book {\n      id\n    }\n  }\n}"
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": "query Op_8adeedac_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    author\n  }\n}",
+            "source": "$.bookById",
+            "target": "$.a.book",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "selectionMap": "id"
+              }
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

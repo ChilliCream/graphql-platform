@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Types.Completion;
 
 internal sealed class AggregateCompositeTypeInterceptor : CompositeTypeInterceptor
 {
-    private readonly CompositeTypeInterceptor[]  _interceptors;
+    private readonly CompositeTypeInterceptor[] _interceptors;
 
     public AggregateCompositeTypeInterceptor(CompositeTypeInterceptor[] interceptors)
     {
@@ -14,13 +14,13 @@ internal sealed class AggregateCompositeTypeInterceptor : CompositeTypeIntercept
         _interceptors = interceptors;
     }
 
-    public override void OnCompleteSchema(
+    public override void OnBeforeCompleteSchema(
         ICompositeSchemaBuilderContext context,
         ref IFeatureCollection features)
     {
         foreach (var interceptor in _interceptors)
         {
-            interceptor.OnCompleteSchema(context, ref features);
+            interceptor.OnBeforeCompleteSchema(context, ref features);
         }
     }
 

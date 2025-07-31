@@ -5,7 +5,6 @@
     <Project Path="CookieCrumble/src/CookieCrumble.Fusion/CookieCrumble.Fusion.csproj" />
     <Project Path="CookieCrumble/src/CookieCrumble.HotChocolate.Language/CookieCrumble.HotChocolate.Language.csproj" />
     <Project Path="CookieCrumble/src/CookieCrumble.HotChocolate/CookieCrumble.HotChocolate.csproj" />
-    <Project Path="CookieCrumble/src/CookieCrumble.TUnit/CookieCrumble.TUnit.csproj" />
     <Project Path="CookieCrumble/src/CookieCrumble.Xunit/CookieCrumble.Xunit.csproj" />
     <Project Path="CookieCrumble/src/CookieCrumble.Xunit3/CookieCrumble.Xunit3.csproj" />
     <Project Path="CookieCrumble/src/CookieCrumble/CookieCrumble.csproj" />
