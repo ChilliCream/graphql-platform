@@ -233,6 +233,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
+            .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsLast)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -345,6 +346,7 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddPagingArguments()
+            .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsLast)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -1201,6 +1203,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             PagingArguments arguments,
             CancellationToken ct)
         {
+            // FIXME: Should be coming from PagingOptions.
+            arguments = arguments with { NullOrdering = NullOrdering.NativeNullsLast };
+
             return await context.Brands
                 .OrderBy(t => t.Name)
                 .ThenBy(x => x.AlwaysNull)
@@ -1215,6 +1220,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
             PagingArguments arguments,
             CancellationToken ct)
         {
+            // FIXME: Should be coming from PagingOptions.
+            arguments = arguments with { NullOrdering = NullOrdering.NativeNullsLast };
+
             return await context.Brands
                 .OrderBy(t => t.DisplayName ?? t.Name)
                 .ThenBy(t => t.Id)
