@@ -536,6 +536,11 @@ namespace Foo.Bar
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
+        public global::Foo.Bar.IGetBarsQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
+        }
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetBarsResult>> ExecuteAsync(global::System.String a, global::System.String? b, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(a, b);
@@ -619,6 +624,7 @@ namespace Foo.Bar
         global::Foo.Bar.IGetBarsQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::Foo.Bar.IGetBarsQuery WithRequestUri(global::System.Uri requestUri);
         global::Foo.Bar.IGetBarsQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
+        global::Foo.Bar.IGetBarsQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetBarsResult>> ExecuteAsync(global::System.String a, global::System.String? b, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetBarsResult>> Watch(global::System.String a, global::System.String? b, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -830,6 +836,11 @@ namespace Foo.Bar
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
+        public global::Foo.Bar.ISaveBarsMutation WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
+        }
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISaveBarsResult>> ExecuteAsync(global::System.String a, global::System.String? b, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(a, b);
@@ -913,6 +924,7 @@ namespace Foo.Bar
         global::Foo.Bar.ISaveBarsMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::Foo.Bar.ISaveBarsMutation WithRequestUri(global::System.Uri requestUri);
         global::Foo.Bar.ISaveBarsMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
+        global::Foo.Bar.ISaveBarsMutation WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISaveBarsResult>> ExecuteAsync(global::System.String a, global::System.String? b, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ISaveBarsResult>> Watch(global::System.String a, global::System.String? b, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

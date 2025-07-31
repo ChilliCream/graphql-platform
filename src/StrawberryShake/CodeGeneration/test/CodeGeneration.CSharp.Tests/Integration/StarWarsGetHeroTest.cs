@@ -1,9 +1,11 @@
+using System.Net;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State;
 using StrawberryShake.Transport.WebSockets;
 using StrawberryShake.Persistence.SQLite;
+using StrawberryShake.Transport.Http;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero;
 
@@ -38,6 +40,41 @@ public class StarWarsGetHeroTest : ServerTestBase
 
         // assert
         Assert.Equal("R2-D2", result.Data!.Hero!.Name);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.OK)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    public async Task Execute_StarWarsGetHero_ShouldCaptureExpectedStatusCode(HttpStatusCode expectedStatusCode)
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        using var host = TestServerHelper.CreateServer(_ => { }, out var port);
+
+        var services = new ServiceCollection();
+
+        services
+            .AddStarWarsGetHeroClient()
+            .ConfigureHttpClient(client =>
+            {
+                if (expectedStatusCode == HttpStatusCode.Forbidden)
+                {
+                    client.DefaultRequestHeaders.Add("sendErrorStatusCode", "1");
+                }
+            });
+
+        var serviceProvider = services.BuildServiceProvider();
+        var client = serviceProvider.GetRequiredService<StarWarsGetHeroClient>();
+
+        // Act
+        var result = await client.GetHero
+            .WithRequestUri(new Uri($"http://localhost:{port}/graphql"))
+            .WithHttpStatusCodeCapture(key: "foo")
+            .ExecuteAsync(cts.Token);
+
+        // Assert
+        Assert.Equal("R2-D2", result.Data!.Hero!.Name);
+        Assert.Equal(expectedStatusCode, result.ContextData["foo"]);
     }
 
     [Fact]

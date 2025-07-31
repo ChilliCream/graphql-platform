@@ -149,5 +149,18 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
             .SetType("global::System.Net.Http.HttpClient");
 
         yield return withHttpClientMethod;
+
+        var withHttpStatusCodeCaptureUriMethod = MethodBuilder
+            .New()
+            .SetOnlyDeclaration()
+            .SetReturnType(operationDescriptor.InterfaceType.ToString())
+            .SetName("WithHttpStatusCodeCapture");
+
+        withHttpStatusCodeCaptureUriMethod
+            .AddParameter("key")
+            .SetDefault("\"HttpStatusCode\"")
+            .SetType(TypeNames.String);
+
+        yield return withHttpStatusCodeCaptureUriMethod;
     }
 }

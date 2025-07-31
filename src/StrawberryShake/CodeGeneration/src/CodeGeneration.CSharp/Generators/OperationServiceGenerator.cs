@@ -439,6 +439,23 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                 string.Format(
                     "return With(r => r.ContextData[\"{0}\"] = httpClient);" + Environment.NewLine,
                     "StrawberryShake.Transport.Http.HttpConnection.HttpClient")));
+
+        var withHttpStatusCodeCaptureUriMethod = MethodBuilder
+            .New()
+            .SetPublic()
+            .SetReturnType(operationDescriptor.InterfaceType.ToString())
+            .SetName("WithHttpStatusCodeCapture");
+
+        withHttpStatusCodeCaptureUriMethod
+            .AddParameter("key")
+            .SetDefault("\"HttpStatusCode\"")
+            .SetType(TypeNames.String);
+
+        yield return withHttpStatusCodeCaptureUriMethod
+            .AddCode(CodeInlineBuilder.From(
+                string.Format(
+                    "return With(r => r.ContextData[\"{0}\"] = key);" + Environment.NewLine,
+                    "StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey")));
     }
 
     private static MethodBuilder CreateRequestVariablesMethod(

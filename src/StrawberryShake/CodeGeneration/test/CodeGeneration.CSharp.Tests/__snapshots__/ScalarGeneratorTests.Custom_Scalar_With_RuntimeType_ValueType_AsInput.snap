@@ -335,6 +335,11 @@ namespace Foo.Bar
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
+        public global::Foo.Bar.ISetPersonQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
+        }
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISetPersonResult>> ExecuteAsync(global::System.Index email, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(email);
@@ -395,6 +400,7 @@ namespace Foo.Bar
         global::Foo.Bar.ISetPersonQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::Foo.Bar.ISetPersonQuery WithRequestUri(global::System.Uri requestUri);
         global::Foo.Bar.ISetPersonQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
+        global::Foo.Bar.ISetPersonQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISetPersonResult>> ExecuteAsync(global::System.Index email, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ISetPersonResult>> Watch(global::System.Index email, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

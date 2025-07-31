@@ -393,6 +393,11 @@ namespace Foo.Bar
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
+        public global::Foo.Bar.IGetListingsCountQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
+        }
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetListingsCountResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
@@ -448,6 +453,7 @@ namespace Foo.Bar
         global::Foo.Bar.IGetListingsCountQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::Foo.Bar.IGetListingsCountQuery WithRequestUri(global::System.Uri requestUri);
         global::Foo.Bar.IGetListingsCountQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
+        global::Foo.Bar.IGetListingsCountQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetListingsCountResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetListingsCountResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

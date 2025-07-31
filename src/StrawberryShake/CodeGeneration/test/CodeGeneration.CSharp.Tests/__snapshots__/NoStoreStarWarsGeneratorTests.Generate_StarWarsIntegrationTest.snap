@@ -531,6 +531,11 @@ namespace Foo.Bar
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
+        public global::Foo.Bar.ICreateReviewMutation WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
+        }
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReviewResult>> ExecuteAsync(global::System.Int32 stars, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(stars);
@@ -591,6 +596,7 @@ namespace Foo.Bar
         global::Foo.Bar.ICreateReviewMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::Foo.Bar.ICreateReviewMutation WithRequestUri(global::System.Uri requestUri);
         global::Foo.Bar.ICreateReviewMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
+        global::Foo.Bar.ICreateReviewMutation WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReviewResult>> ExecuteAsync(global::System.Int32 stars, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ICreateReviewResult>> Watch(global::System.Int32 stars, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

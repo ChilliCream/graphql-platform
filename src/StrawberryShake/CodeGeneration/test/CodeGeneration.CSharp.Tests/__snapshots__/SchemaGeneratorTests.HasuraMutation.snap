@@ -3748,6 +3748,11 @@ namespace Foo.Bar
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
+        public global::Foo.Bar.IInsertPeopleMutation WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
+        }
+
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> ExecuteAsync(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(people);
@@ -3824,6 +3829,7 @@ namespace Foo.Bar
         global::Foo.Bar.IInsertPeopleMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::Foo.Bar.IInsertPeopleMutation WithRequestUri(global::System.Uri requestUri);
         global::Foo.Bar.IInsertPeopleMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
+        global::Foo.Bar.IInsertPeopleMutation WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> ExecuteAsync(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> Watch(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
