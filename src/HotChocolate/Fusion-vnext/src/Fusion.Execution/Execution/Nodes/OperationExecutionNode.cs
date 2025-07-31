@@ -113,36 +113,6 @@ public sealed class OperationExecutionNode : ExecutionNode
         return await ExecuteInternalAsync(context, cancellationToken);
     }
 
-    internal async Task<SubscriptionResult> SubscribeAsync(
-        OperationPlanContext context,
-        CancellationToken cancellationToken = default)
-    {
-        var variables = context.CreateVariableValueSets(Target, Variables, Requirements);
-
-        var request = new SourceSchemaClientRequest
-        {
-            OperationId = OperationId,
-            Operation = Operation,
-            Variables = variables
-        };
-
-        var client = context.GetClient(SchemaName, Operation.Operation);
-        var response = await client.ExecuteAsync(context, request, cancellationToken);
-
-        if (!response.IsSuccessful)
-        {
-            return SubscriptionResult.Failed();
-        }
-
-        var stream = new SubscriptionEnumerable(
-            context,
-            this,
-            response,
-            response.ReadAsResultStreamAsync(cancellationToken),
-            context.GetDiagnosticEvents());
-        return SubscriptionResult.Success(stream);
-    }
-
     private async Task<ExecutionNodeResult> ExecuteInternalAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken)
@@ -214,6 +184,36 @@ public sealed class OperationExecutionNode : ExecutionNode
             Activity.Current,
             ExecutionStatus.Success,
             Stopwatch.GetElapsedTime(start));
+    }
+
+    internal async Task<SubscriptionResult> SubscribeAsync(
+        OperationPlanContext context,
+        CancellationToken cancellationToken = default)
+    {
+        var variables = context.CreateVariableValueSets(Target, Variables, Requirements);
+
+        var request = new SourceSchemaClientRequest
+        {
+            OperationId = OperationId,
+            Operation = Operation,
+            Variables = variables
+        };
+
+        var client = context.GetClient(SchemaName, Operation.Operation);
+        var response = await client.ExecuteAsync(context, request, cancellationToken);
+
+        if (!response.IsSuccessful)
+        {
+            return SubscriptionResult.Failed();
+        }
+
+        var stream = new SubscriptionEnumerable(
+            context,
+            this,
+            response,
+            response.ReadAsResultStreamAsync(cancellationToken),
+            context.GetDiagnosticEvents());
+        return SubscriptionResult.Success(stream);
     }
 
     internal void AddDependency(ExecutionNode node)
@@ -375,7 +375,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                     _context.AddPartialResults(_node.Source, _resultBuffer);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
                 _resultBuffer[0]?.Dispose();
@@ -409,7 +409,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         public async ValueTask DisposeAsync()
         {
-            if(!_disposed)
+            if (!_disposed)
             {
                 return;
             }

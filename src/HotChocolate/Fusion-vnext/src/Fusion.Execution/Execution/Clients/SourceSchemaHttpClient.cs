@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using HotChocolate.Caching.Memory;
@@ -142,10 +141,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             {
                 await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(cancellationToken))
                 {
-                    var index = result.VariableIndex!.Value;
-                    var (path, _) = variables[index];
                     yield return new SourceSchemaResult(
-                        path,
+                        Path.Root,
                         result,
                         result.Data,
                         result.Errors,
