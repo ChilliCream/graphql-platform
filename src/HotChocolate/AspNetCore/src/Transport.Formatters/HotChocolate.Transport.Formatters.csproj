@@ -17,4 +17,11 @@
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.Tasks\HotChocolate.Utilities.Tasks.csproj" />
   </ItemGroup>
 
+<<<<<<< Updated upstream
+=======
+  <ItemGroup>
+    <PackageReference Include="System.IO.Pipelines" />
+  </ItemGroup>
+
+>>>>>>> Stashed changes
 </Project>

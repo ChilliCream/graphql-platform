@@ -1,7 +1,16 @@
 using System.Buffers;
 using System.Diagnostics;
+<<<<<<< Updated upstream:src/HotChocolate/AspNetCore/src/Transport.Formatters/EventStreamResultFormatter.cs
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
+=======
+using System.IO.Pipelines;
+<<<<<<< Updated upstream:src/HotChocolate/Core/src/Execution/Serialization/EventStreamResultFormatter.cs
+=======
+using HotChocolate.Buffers;
+using HotChocolate.Execution;
+>>>>>>> Stashed changes:src/HotChocolate/AspNetCore/src/Transport.Formatters/EventStreamResultFormatter.cs
+>>>>>>> Stashed changes:src/HotChocolate/Core/src/Execution/Serialization/EventStreamResultFormatter.cs
 using HotChocolate.Utilities;
 using static HotChocolate.Transport.Formatters.EventStreamResultFormatterEventSource;
 
@@ -19,8 +28,29 @@ namespace HotChocolate.Transport.Formatters;
 /// </param>
 public sealed class EventStreamResultFormatter(JsonResultFormatterOptions options) : IExecutionResultFormatter
 {
+<<<<<<< Updated upstream:src/HotChocolate/AspNetCore/src/Transport.Formatters/EventStreamResultFormatter.cs
     private const int MaxBacklogSize = 64;
     private readonly JsonResultFormatter _payloadFormatter = new(options);
+=======
+<<<<<<< Updated upstream:src/HotChocolate/Core/src/Execution/Serialization/EventStreamResultFormatter.cs
+    private readonly JsonResultFormatter _payloadFormatter;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="EventStreamResultFormatter"/>.
+    /// </summary>
+    /// <param name="options">
+    /// The options to configure the JSON writer.
+    /// </param>
+    public EventStreamResultFormatter(JsonResultFormatterOptions options)
+    {
+        _payloadFormatter = new JsonResultFormatter(options);
+    }
+=======
+    private const int MaxBacklogSize = 64;
+    private static readonly StreamPipeWriterOptions s_pipeWriterOptions = new(leaveOpen: true);
+    private readonly JsonResultFormatter _payloadFormatter = new(options);
+>>>>>>> Stashed changes:src/HotChocolate/AspNetCore/src/Transport.Formatters/EventStreamResultFormatter.cs
+>>>>>>> Stashed changes:src/HotChocolate/Core/src/Execution/Serialization/EventStreamResultFormatter.cs
 
     /// <summary>
     /// Formats an <see cref="IExecutionResult"/> into an SSE stream.
@@ -56,18 +86,40 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
         Stream outputStream,
         CancellationToken ct)
     {
+<<<<<<< Updated upstream:src/HotChocolate/AspNetCore/src/Transport.Formatters/EventStreamResultFormatter.cs
         var buffer = new PooledArrayWriter();
+=======
+<<<<<<< Updated upstream:src/HotChocolate/Core/src/Execution/Serialization/EventStreamResultFormatter.cs
+        var buffer = new ArrayWriter();
+=======
+        var writer = PipeWriter.Create(outputStream, s_pipeWriterOptions);
+>>>>>>> Stashed changes:src/HotChocolate/AspNetCore/src/Transport.Formatters/EventStreamResultFormatter.cs
+>>>>>>> Stashed changes:src/HotChocolate/Core/src/Execution/Serialization/EventStreamResultFormatter.cs
 
         var scope = Log.FormatOperationResultStart();
         try
         {
+<<<<<<< Updated upstream:src/HotChocolate/AspNetCore/src/Transport.Formatters/EventStreamResultFormatter.cs
             MessageHelper.FormatNextMessage(_payloadFormatter, operationResult, buffer);
             MessageHelper.FormatCompleteMessage(buffer);
+=======
+<<<<<<< Updated upstream:src/HotChocolate/Core/src/Execution/Serialization/EventStreamResultFormatter.cs
+            MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
+            MessageHelper.WriteCompleteMessage(buffer);
+>>>>>>> Stashed changes:src/HotChocolate/Core/src/Execution/Serialization/EventStreamResultFormatter.cs
 
             if (!ct.IsCancellationRequested)
             {
                 await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
                 await outputStream.FlushAsync(ct).ConfigureAwait(false);
+=======
+            MessageHelper.FormatNextMessage(_payloadFormatter, operationResult, writer);
+            MessageHelper.FormatCompleteMessage(writer);
+
+            if (!ct.IsCancellationRequested)
+            {
+                await writer.CompleteAsync().ConfigureAwait(false);
+>>>>>>> Stashed changes:src/HotChocolate/AspNetCore/src/Transport.Formatters/EventStreamResultFormatter.cs
             }
         }
         catch (Exception ex)
@@ -78,7 +130,6 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
         finally
         {
             scope?.Dispose();
-            buffer.Dispose();
         }
     }
 
@@ -313,7 +364,15 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
         public static void FormatNextMessage(
             JsonResultFormatter payloadFormatter,
             IOperationResult result,
+<<<<<<< Updated upstream:src/HotChocolate/AspNetCore/src/Transport.Formatters/EventStreamResultFormatter.cs
             PooledArrayWriter writer)
+=======
+<<<<<<< Updated upstream:src/HotChocolate/Core/src/Execution/Serialization/EventStreamResultFormatter.cs
+            ArrayWriter writer)
+=======
+            IBufferWriter<byte> writer)
+>>>>>>> Stashed changes:src/HotChocolate/AspNetCore/src/Transport.Formatters/EventStreamResultFormatter.cs
+>>>>>>> Stashed changes:src/HotChocolate/Core/src/Execution/Serialization/EventStreamResultFormatter.cs
         {
             // write the SSE event field
             var span = writer.GetSpan(s_nextEvent.Length);
