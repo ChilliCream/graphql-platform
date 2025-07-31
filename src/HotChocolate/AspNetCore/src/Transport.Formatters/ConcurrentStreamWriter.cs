@@ -162,3 +162,4 @@ internal sealed class ConcurrentStreamWriter : IAsyncDisposable
         }
     }
 }
+

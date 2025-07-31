@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.IO.Pipelines;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Utilities;
@@ -32,47 +33,46 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         };
     }
 
+    /// <summary>
+    /// Writes a single GraphQL response and then completes.
+    /// </summary>
     private async ValueTask FormatOperationResultAsync(
         IOperationResult operationResult,
         Stream outputStream,
         CancellationToken ct)
     {
-        var buffer = new PooledArrayWriter();
+        Exception? exception = null;
+        var writer = outputStream.CreatePipeWriter();
         var scope = Log.FormatOperationResultStart();
 
         try
         {
-            MessageHelper.FormatNextMessage(_payloadFormatter, operationResult, buffer);
-
-            if (!ct.IsCancellationRequested)
-            {
-                await outputStream.WriteAsync(buffer.WrittenMemory, ct).ConfigureAwait(false);
-                await outputStream.FlushAsync(ct).ConfigureAwait(false);
-            }
+            MessageHelper.FormatNextMessage(_payloadFormatter, operationResult, writer);
+            await writer.FlushAsync(ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             scope?.AddError(ex);
-            Debug.WriteLine(ex);
+            exception = ex;
+            throw;
         }
         finally
         {
             scope?.Dispose();
-            buffer.Dispose();
+            await writer.CompleteAsync(exception).ConfigureAwait(false);
         }
     }
 
+    /// <summary>
+    /// Writes all results from a variable batch request into the output stream and co
+    /// </summary>
     private async ValueTask FormatResultBatchAsync(
         OperationResultBatch resultBatch,
         Stream outputStream,
         CancellationToken ct)
     {
-        await using var writer = new ConcurrentStreamWriter(outputStream, MaxBacklogSize);
-
-        await using var tokenRegistration = ct.Register(
-            static w => ((ConcurrentStreamWriter)w!).DisposeAsync().FireAndForget(),
-            writer,
-            useSynchronizationContext: false);
+        using var semaphore = new SemaphoreSlim(1, 1);
+        var writer = outputStream.CreatePipeWriter();
 
         KeepAliveJob? keepAlive = null;
         List<Task>? streams = null;
@@ -136,27 +136,38 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         Stream outputStream,
         CancellationToken ct)
     {
-        await using var writer = new ConcurrentStreamWriter(outputStream, MaxBacklogSize);
+        Exception? exception = null;
+        using var semaphore = new SemaphoreSlim(1, 1);
+        var writer = outputStream.CreatePipeWriter();
 
-        await using var tokenRegistration = ct.Register(
-            static w => ((ConcurrentStreamWriter)w!).DisposeAsync().FireAndForget(),
-            writer,
-            useSynchronizationContext: false);
-
-        using (var keepAlive = new KeepAliveJob(writer))
+        try
         {
-            var formatter = new StreamFormatter(_payloadFormatter, keepAlive, responseStream, writer);
-            await formatter.ProcessAsync(ct).ConfigureAwait(false);
+            using (var keepAlive = new KeepAliveJob(semaphore, writer))
+            {
+                var formatter = new StreamFormatter(_payloadFormatter, keepAlive, responseStream, semaphore, writer);
+                await formatter.ProcessAsync(ct).ConfigureAwait(false);
+            }
+
+            await writer.FlushAsync(ct).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            exception = ex;
+            throw;
+        }
+        finally
+        {
+            await writer.CompleteAsync(exception).ConfigureAwait(false);
         }
 
-        await writer.WaitForCompletionAsync().ConfigureAwait(false);
     }
 
     private sealed class StreamFormatter(
         JsonResultFormatter payloadFormatter,
         KeepAliveJob keepAliveJob,
         IResponseStream responseStream,
-        ConcurrentStreamWriter writer)
+        SemaphoreSlim semaphore,
+        PipeWriter writer)
     {
         public async Task ProcessAsync(CancellationToken ct)
         {
@@ -167,13 +178,13 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
                     .ConfigureAwait(false))
                 {
                     var scope = Log.FormatOperationResultStart();
+                    await semaphore.WaitAsync(ct).ConfigureAwait(false);
 
                     try
                     {
-                        var buffer = writer.Begin();
-                        MessageHelper.FormatNextMessage(payloadFormatter, result, buffer);
-                        await writer.CommitAsync(buffer, ct).ConfigureAwait(false);
+                        MessageHelper.FormatNextMessage(payloadFormatter, result, writer);
                         keepAliveJob.Reset();
+                        await writer.FlushAsync(ct).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
@@ -206,13 +217,15 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         private static readonly TimeSpan s_keepAlivePeriod = TimeSpan.FromSeconds(8);
         private readonly CancellationTokenSource _cancellationTokenSource = new();
         private readonly CancellationToken _ct;
-        private readonly ConcurrentStreamWriter _writer;
+        private readonly SemaphoreSlim _semaphore;
+        private readonly IBufferWriter<byte> _writer;
         private readonly Timer _keepAliveTimer;
         private DateTime _lastWriteTime = DateTime.UtcNow;
         private bool _disposed;
 
-        public KeepAliveJob(ConcurrentStreamWriter writer)
+        public KeepAliveJob(SemaphoreSlim semaphore, IBufferWriter<byte> writer)
         {
+            _semaphore = semaphore;
             _writer = writer;
             _keepAliveTimer = new Timer(_ => EnsureKeepAlive(), null, s_timerPeriod, s_timerPeriod);
             _ct = _cancellationTokenSource.Token;
@@ -234,16 +247,20 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
 
             async Task WriteKeepAliveAsync()
             {
+                await _semaphore.WaitAsync(_ct).ConfigureAwait(false);
+
                 try
                 {
-                    var buffer = _writer.Begin();
-                    buffer.Write(MessageHelper.KeepAlive);
-                    await _writer.CommitAsync(buffer, _ct).ConfigureAwait(false);
+                    _writer.Write(MessageHelper.KeepAlive);
                     _lastWriteTime = DateTime.UtcNow;
                 }
                 catch
                 {
                     // ignore
+                }
+                finally
+                {
+                    _semaphore.Release();
                 }
             }
         }
@@ -269,7 +286,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         public static void FormatNextMessage(
             JsonResultFormatter payloadFormatter,
             IOperationResult result,
-            PooledArrayWriter writer)
+            IBufferWriter<byte> writer)
         {
             // write the result data
             payloadFormatter.Format(result, writer);
