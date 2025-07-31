@@ -25,8 +25,17 @@ internal sealed class OperationExecutionMiddleware
 
         if (operationPlan.Operation.Definition.Operation is OperationType.Subscription)
         {
-            // todo : implement
-            throw new NotSupportedException("Not yet supported.");
+            if (context.VariableValues.Length > 1)
+            {
+                context.Result =
+                    OperationResultBuilder.CreateError(
+                        ErrorBuilder.New()
+                            .SetMessage("Variable batching is not supported for subscriptions.")
+                            .Build());
+                return;
+            }
+
+            context.Result = await _planExecutor.SubscribeAsync(context, operationPlan, cancellationToken);
         }
         else
         {
@@ -37,27 +46,15 @@ internal sealed class OperationExecutionMiddleware
 
                 for (var i = 0; i < variableValues.Length; i++)
                 {
-                    var planContext = new OperationPlanContext(
-                        operationPlan,
-                        variableValues[i],
-                        context,
-                        resultPoolSession);
-
-                    tasks[i] = _planExecutor.ExecuteAsync(planContext, cancellationToken);
+                    tasks[i] = _planExecutor.ExecuteAsync(context, variableValues[i], operationPlan, cancellationToken);
                 }
 
-                var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+                var results = await Task.WhenAll(tasks);
                 context.Result = new OperationResultBatch(results);
             }
             else
             {
-                var planContext = new OperationPlanContext(
-                    operationPlan,
-                    context.VariableValues[0],
-                    context,
-                    resultPoolSession);
-
-                context.Result = await _planExecutor.ExecuteAsync(planContext, cancellationToken);
+                context.Result = await _planExecutor.ExecuteAsync(context, context.VariableValues[0], operationPlan, cancellationToken);
             }
         }
 

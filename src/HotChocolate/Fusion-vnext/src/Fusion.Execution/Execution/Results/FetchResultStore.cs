@@ -18,16 +18,14 @@ namespace HotChocolate.Fusion.Execution;
 internal sealed class FetchResultStore : IDisposable
 {
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
-    private readonly ValueCompletion _valueCompletion;
     private readonly ISchemaDefinition _schema;
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
-    private readonly ObjectResult _root;
-
     private readonly ImmutableArray<IError> _errors = [];
-
-    // TODO : attach resources to result object.
     private readonly ConcurrentStack<IDisposable> _memory = [];
+    private ObjectResult _root = null!;
+    private ValueCompletion _valueCompletion = null!;
+    private bool _disposed;
 
     public FetchResultStore(
         ISchemaDefinition schema,
@@ -42,9 +40,17 @@ internal sealed class FetchResultStore : IDisposable
         _schema = schema;
         _operation = operation;
         _includeFlags = includeFlags;
-        _valueCompletion = new ValueCompletion(schema, resultPoolSession, ErrorHandling.Propagate, 32, includeFlags);
+
+        Reset(resultPoolSession);
+    }
+
+    public void Reset(ResultPoolSession resultPoolSession)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        _valueCompletion = new ValueCompletion(_schema, resultPoolSession, ErrorHandling.Propagate, 32, _includeFlags);
         _root = resultPoolSession.RentObjectResult();
-        _root.Initialize(resultPoolSession, operation.RootSelectionSet, includeFlags);
+        _root.Initialize(resultPoolSession, _operation.RootSelectionSet, _includeFlags);
     }
 
     public ObjectResult Data => _root;
@@ -57,6 +63,7 @@ internal sealed class FetchResultStore : IDisposable
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(sourcePath);
 
         if (results.Length == 0)
@@ -72,7 +79,7 @@ internal sealed class FetchResultStore : IDisposable
         try
         {
             ref var result = ref MemoryMarshal.GetReference(results);
-            ref var startElement = ref MemoryMarshal.GetReference(startElements);
+            ref var startElement = ref MemoryMarshal.GetReference(startElementsSpan);
             ref var end = ref Unsafe.Add(ref result, results.Length);
 
             while (Unsafe.IsAddressLessThan(ref result, ref end))
@@ -95,6 +102,16 @@ internal sealed class FetchResultStore : IDisposable
 
     public void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(result);
+
+        if (selections.Length == 0)
+        {
+            throw new ArgumentException(
+                "The selections span must contain at least one selection.",
+                nameof(selections));
+        }
+
         _lock.EnterWriteLock();
 
         try
@@ -163,6 +180,17 @@ internal sealed class FetchResultStore : IDisposable
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(selectionSet);
+        ArgumentNullException.ThrowIfNull(requestVariables);
+
+        if (requiredData.Length == 0)
+        {
+            throw new ArgumentException(
+                "The required data span must contain at least one requirement.",
+                nameof(requiredData));
+        }
+
         _lock.EnterReadLock();
 
         try
@@ -328,6 +356,8 @@ internal sealed class FetchResultStore : IDisposable
 
     public PooledArrayWriter CreateRentedBuffer()
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         var buffer = new PooledArrayWriter();
         _memory.Push(buffer);
         return buffer;
@@ -345,8 +375,7 @@ internal sealed class FetchResultStore : IDisposable
         for (var i = sourcePath.Segments.Length - 1; i >= 0; i--)
         {
             var segment = sourcePath.Segments[i];
-            if (current.ValueKind != JsonValueKind.Object
-                || !current.TryGetProperty(segment.Name, out current))
+            if (current.ValueKind != JsonValueKind.Object || !current.TryGetProperty(segment.Name, out current))
             {
                 throw new InvalidOperationException(
                     $"The path segment '{segment.Name}' does not exist in the data.");
@@ -405,6 +434,7 @@ internal sealed class FetchResultStore : IDisposable
                         throw new InvalidOperationException(
                             $"The path segment '{indexSegment}' does not exist in the data.");
                     }
+
                     return listResult.Items[indexSegment.Index];
 
                 case ObjectListResult listResult:
@@ -413,6 +443,7 @@ internal sealed class FetchResultStore : IDisposable
                         throw new InvalidOperationException(
                             $"The path segment '{indexSegment}' does not exist in the data.");
                     }
+
                     return listResult.Items[indexSegment.Index];
             }
         }
@@ -423,7 +454,18 @@ internal sealed class FetchResultStore : IDisposable
 
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
         _lock.Dispose();
-        _memory.Clear();
+
+        while (_memory.TryPop(out var memory))
+        {
+            memory.Dispose();
+        }
     }
 }

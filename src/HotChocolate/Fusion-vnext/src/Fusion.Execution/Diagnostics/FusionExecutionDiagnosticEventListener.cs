@@ -1,5 +1,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Diagnostics;
@@ -57,6 +59,15 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
 
     /// <inheritdoc />
     public virtual void DocumentNotFoundInStorage(RequestContext context, OperationDocumentId documentId) { }
+
+    public virtual IDisposable ExecuteOperation(OperationPlanContext context, OperationExecutionNode node)
+        => EmptyScope;
+
+    public virtual IDisposable ExecuteSubscriptionEvent(OperationPlanContext context, OperationExecutionNode node)
+        => EmptyScope;
+
+    public virtual IDisposable ExecuteIntrospection(OperationPlanContext context, IntrospectionExecutionNode node)
+        => EmptyScope;
 
     /// <inheritdoc />
     public virtual void ExecutorCreated(string name, IRequestExecutor executor) { }

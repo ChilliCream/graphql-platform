@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using HotChocolate.Fusion.Execution.Extensions;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -32,6 +33,14 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
+        var diagnosticEvents = context.GetDiagnosticEvents();
+        using var scope = diagnosticEvents.ExecuteIntrospection(context, this);
+        return Task.FromResult(ExecuteInternalAsync(context));
+    }
+
+    private ExecutionNodeResult ExecuteInternalAsync(
+        OperationPlanContext context)
+    {
         var start = Stopwatch.GetTimestamp();
         var resultPool = context.ResultPool;
         var backlog = new Stack<(object? Parent, Selection Selection, FieldResult Result)>();
@@ -54,12 +63,11 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         ExecuteSelections(context, backlog);
         context.AddPartialResults(root, _selections);
 
-        return Task.FromResult(
-            new ExecutionNodeResult(
-                Id,
-                Activity.Current,
-                ExecutionStatus.Success,
-                Stopwatch.GetElapsedTime(start)));
+        return new ExecutionNodeResult(
+            Id,
+            Activity.Current,
+            ExecutionStatus.Success,
+            Stopwatch.GetElapsedTime(start));
     }
 
     private static void ExecuteSelections(
