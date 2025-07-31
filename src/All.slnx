@@ -212,6 +212,13 @@
     <Project Path="HotChocolate/Marten/test/Data.Marten.Filters.Tests/Data.Marten.Filters.Tests.csproj" />
     <Project Path="HotChocolate/Marten/test/Data.Marten.Sorting.Tests/Data.Marten.Sorting.Tests.csproj" />
   </Folder>
+  <Folder Name="/HotChocolate/ModelContextProtocol/" />
+  <Folder Name="/HotChocolate/ModelContextProtocol/src/">
+    <Project Path="HotChocolate/ModelContextProtocol/src/HotChocolate.ModelContextProtocol/HotChocolate.ModelContextProtocol.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/ModelContextProtocol/test/">
+    <Project Path="HotChocolate/ModelContextProtocol/test/HotChocolate.ModelContextProtocol.Tests/HotChocolate.ModelContextProtocol.Tests.csproj" />
+  </Folder>
   <Folder Name="/HotChocolate/MongoDb/" />
   <Folder Name="/HotChocolate/MongoDb/src/">
     <Project Path="HotChocolate/MongoDb/src/Data/HotChocolate.Data.MongoDb.csproj" />

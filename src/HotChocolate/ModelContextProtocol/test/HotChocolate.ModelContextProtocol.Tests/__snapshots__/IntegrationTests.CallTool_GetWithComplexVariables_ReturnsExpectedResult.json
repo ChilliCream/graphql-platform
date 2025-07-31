@@ -1,0 +1,59 @@
+{
+  "data": {
+    "withComplexVariables": {
+      "list": [
+        {
+          "field1A": {
+            "field1B": [
+              {
+                "field1C": "12:00:00"
+              }
+            ]
+          }
+        }
+      ],
+      "object": {
+        "field1A": {
+          "field1B": [
+            {
+              "field1C": "12:00:00"
+            }
+          ]
+        }
+      },
+      "nullDefault": null,
+      "listWithNullDefault": [
+        null
+      ],
+      "objectWithNullDefault": {
+        "field1A": {
+          "field1B": [
+            {
+              "field1C": null
+            }
+          ]
+        }
+      },
+      "oneOf": {
+        "field1": 1,
+        "field2": null
+      },
+      "oneOfList": [
+        {
+          "field1": 1,
+          "field2": null
+        },
+        {
+          "field1": null,
+          "field2": "test"
+        }
+      ],
+      "objectWithOneOfField": {
+        "field": {
+          "field1": 1,
+          "field2": null
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,238 @@
+{
+  "type": "object",
+  "properties": {
+    "any": {
+      "type": [
+        "object",
+        "array",
+        "boolean",
+        "string",
+        "number",
+        "integer",
+        "null"
+      ],
+      "description": "Any description"
+    },
+    "boolean": {
+      "type": [
+        "boolean",
+        "null"
+      ],
+      "description": "Boolean description"
+    },
+    "byte": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "Byte description"
+    },
+    "byteArray": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=)?$",
+      "description": "ByteArray description"
+    },
+    "date": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "description": "Date description"
+    },
+    "dateTime": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,7})?(?:[Zz]|[+-]\\d{2}:\\d{2})$",
+      "description": "DateTime description"
+    },
+    "decimal": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Decimal description"
+    },
+    "enum": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "VALUE1",
+        "VALUE2"
+      ],
+      "description": "Enum description"
+    },
+    "float": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Float description"
+    },
+    "id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "ID description"
+    },
+    "int": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "Int description"
+    },
+    "json": {
+      "type": [
+        "object",
+        "array",
+        "boolean",
+        "string",
+        "number",
+        "integer",
+        "null"
+      ],
+      "description": "JSON description"
+    },
+    "list": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "description": "List description"
+    },
+    "localDate": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "description": "LocalDate description"
+    },
+    "localDateTime": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$",
+      "description": "LocalDateTime description"
+    },
+    "localTime": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "time",
+      "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+      "description": "LocalTime description"
+    },
+    "long": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "Long description"
+    },
+    "object": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "field1A": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "field1B": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "field1C": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "time",
+                  "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                  "description": "field1C description"
+                }
+              },
+              "required": [],
+              "description": "field1B description"
+            }
+          },
+          "required": [],
+          "description": "field1A description"
+        }
+      },
+      "required": [],
+      "description": "Object description"
+    },
+    "short": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "Short description"
+    },
+    "string": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "String description"
+    },
+    "timeSpan": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
+      "description": "TimeSpan description"
+    },
+    "unknown": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Unknown description"
+    },
+    "url": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri-reference",
+      "description": "URL description"
+    },
+    "uuid": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "UUID description"
+    }
+  },
+  "required": []
+}

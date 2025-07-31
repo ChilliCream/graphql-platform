@@ -1,0 +1,109 @@
+"GetWithDefaultedVariables description"
+query GetWithDefaultedVariables(
+  "Any description"
+  $any: Any! = { key: "value" }
+  "Boolean description"
+  $boolean: Boolean! = true
+  "Byte description"
+  $byte: Byte! = 1
+  "ByteArray description"
+  $byteArray: ByteArray! = "ZGVmYXVsdA=="
+  "Date description"
+  $date: Date! = "2000-01-01"
+  "DateTime description"
+  $dateTime: DateTime! = "2000-01-01T12:00:00Z"
+  "Decimal description"
+  $decimal: Decimal! = 79228162514264337593543950335
+  "Enum description"
+  $enum: TestEnum! = VALUE1
+  "Float description"
+  $float: Float! = 1.5
+  "ID description"
+  $id: ID! = "default"
+  "Int description"
+  $int: Int! = 1
+  "JSON description"
+  $json: JSON! = { key: "value" }
+  "List description"
+  $list: [String!]! # = ["default"] FIXME: The validation might be broken.
+  "LocalDate description"
+  $localDate: LocalDate! = "2000-01-01"
+  "LocalDateTime description"
+  $localDateTime: LocalDateTime! = "2000-01-01T12:00:00"
+  "LocalTime description"
+  $localTime: LocalTime! = "12:00:00"
+  "Long description"
+  $long: Long! = 9223372036854775807
+  "Object description"
+  $object: Object1DefaultedInput! = { field1A: { field1B: { field1C: "12:00:00" } } }
+  "Short description"
+  $short: Short! = 1
+  "String description"
+  $string: String! = "default"
+  "TimeSpan description"
+  $timeSpan: TimeSpan! = "PT5M"
+  "Unknown description"
+  $unknown: Unknown! = "default"
+  "URL description"
+  $url: URL! = "https://example.com"
+  "UUID description"
+  $uuid: UUID! = "00000000-0000-0000-0000-000000000000"
+) {
+  withDefaultedVariables(
+    any: $any
+    boolean: $boolean
+    byte: $byte
+    byteArray: $byteArray
+    date: $date
+    dateTime: $dateTime
+    decimal: $decimal
+    enum: $enum
+    float: $float
+    id: $id
+    int: $int
+    json: $json
+    list: $list
+    localDate: $localDate
+    localDateTime: $localDateTime
+    localTime: $localTime
+    long: $long
+    object: $object
+    short: $short
+    string: $string
+    timeSpan: $timeSpan
+    unknown: $unknown
+    url: $url
+    uuid: $uuid
+  ) {
+    any
+    boolean
+    byte
+    byteArray
+    date
+    dateTime
+    decimal
+    enum
+    float
+    id
+    int
+    json
+    list
+    localDate
+    localDateTime
+    localTime
+    long
+    object {
+      field1A {
+        field1B {
+          field1C
+        }
+      }
+    }
+    short
+    string
+    timeSpan
+    unknown
+    url
+    uuid
+  }
+}

@@ -1,0 +1,4 @@
+mutation ImplicitNonIdempotentTool {
+  explicitIdempotentMutation
+  implicitNonIdempotentMutation
+}

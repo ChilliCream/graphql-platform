@@ -1,0 +1,206 @@
+using System.Text.Json;
+using CaseConverter;
+using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
+using HotChocolate.ModelContextProtocol.Extensions;
+using HotChocolate.ModelContextProtocol.JsonSerializerContexts;
+using HotChocolate.Types;
+using Json.Schema;
+using ModelContextProtocol.Protocol;
+using static HotChocolate.ModelContextProtocol.WellKnownArgumentNames;
+using static HotChocolate.ModelContextProtocol.WellKnownDirectiveNames;
+
+namespace HotChocolate.ModelContextProtocol.Factories;
+
+internal sealed class ToolFactory(ISchemaDefinition graphQLSchema)
+{
+    public Tool CreateTool(string name, DocumentNode document)
+    {
+        var operationNode = document.Definitions.OfType<OperationDefinitionNode>().Single();
+        var mcpToolDirective = operationNode.GetMcpToolDirective();
+        var operationCompiler = new OperationCompiler(new InputParser());
+        var operation =
+            operationCompiler.Compile(
+                new OperationCompilerRequest(
+                    operationNode.Name!.Value,
+                    document,
+                    operationNode,
+                    (ObjectType)graphQLSchema.GetOperationType(operationNode.Operation),
+                    graphQLSchema));
+
+        return new Tool
+        {
+            Name = name,
+            Title = mcpToolDirective?.Title ?? operation.Name!.InsertSpaceBeforeUpperCase(),
+            Description = operationNode.Description?.Value,
+            InputSchema = CreateInputSchema(operationNode),
+            // TODO: Output schema.
+            Annotations = new ToolAnnotations
+            {
+                DestructiveHint = GetDestructiveHint(operation),
+                IdempotentHint = GetIdempotentHint(operation),
+                OpenWorldHint = GetOpenWorldHint(operation),
+                ReadOnlyHint = operationNode.Operation is not OperationType.Mutation
+            }
+        };
+    }
+
+    private JsonElement CreateInputSchema(OperationDefinitionNode operation)
+    {
+        var schemaBuilder = new JsonSchemaBuilder();
+        schemaBuilder.Type(SchemaValueType.Object);
+
+        var properties = new Dictionary<string, JsonSchema>();
+        var requiredProperties = new List<string>();
+
+        foreach (var variableNode in operation.VariableDefinitions)
+        {
+            var graphQLType = variableNode.Type.GetGraphQLType(graphQLSchema);
+            var propertyBuilder = graphQLType.ToJsonSchemaBuilder();
+            var variableName = variableNode.Variable.Name.Value;
+
+            // Description.
+            if (variableNode.Description is not null)
+            {
+                propertyBuilder.Description(variableNode.Description.Value);
+            }
+
+            // Default value.
+            if (variableNode.DefaultValue is not null)
+            {
+                propertyBuilder.Default(variableNode.DefaultValue.ToJsonNode(graphQLType));
+            }
+
+            // Required.
+            if (graphQLType.IsNonNullType() && variableNode.DefaultValue is null)
+            {
+                requiredProperties.Add(variableName);
+            }
+
+            properties.Add(variableName, propertyBuilder);
+        }
+
+        schemaBuilder.Properties(properties);
+        schemaBuilder.Required(requiredProperties);
+
+        var json =
+            JsonSerializer.Serialize(
+                schemaBuilder.Build(),
+                JsonSchemaJsonSerializerContext.Default.JsonSchema);
+
+        return JsonDocument.Parse(json).RootElement;
+    }
+
+    private static bool GetDestructiveHint(IOperation operation)
+    {
+        // @mcpTool operation directive.
+        if (operation.Definition.TryGetMcpToolDirective(out var mcpToolDirective)
+            && mcpToolDirective.DestructiveHint is { } destructiveHint)
+        {
+            return destructiveHint;
+        }
+
+        // @mcpToolAnnotations field directive.
+        var destructiveHints =
+            operation.RootSelectionSet.Selections
+                .Select(
+                    s => s
+                        .Field.Directives[McpToolAnnotations]
+                        .SingleOrDefault()?
+                        .GetArgumentValue<bool?>(DestructiveHint)
+                            // Default to `true` for mutations.
+                            ?? operation.Type is OperationType.Mutation)
+                .ToList();
+
+        // Return `true` if any of the destructive hints are `true`.
+        return destructiveHints.Any(d => d);
+    }
+
+    private static bool GetIdempotentHint(IOperation operation)
+    {
+        // @mcpTool operation directive.
+        if (operation.Definition.TryGetMcpToolDirective(out var mcpToolDirective)
+            && mcpToolDirective.IdempotentHint is { } idempotentHint)
+        {
+            return idempotentHint;
+        }
+
+        // @mcpToolAnnotations field directive.
+        var idempotentHints =
+            operation.RootSelectionSet.Selections
+                .Select(
+                    s => s
+                        .Field.Directives[McpToolAnnotations]
+                        .SingleOrDefault()?
+                        .GetArgumentValue<bool?>(IdempotentHint)
+                            // Default to `true` for queries and subscriptions.
+                            ?? operation.Type is not OperationType.Mutation)
+                .ToList();
+
+        // Return `true` if all the idempotent hints are `true`.
+        return idempotentHints.All(i => i);
+    }
+
+    private static bool GetOpenWorldHint(IOperation operation)
+    {
+        // @mcpTool operation directive.
+        if (operation.Definition.TryGetMcpToolDirective(out var mcpToolDirective)
+            && mcpToolDirective.OpenWorldHint is { } openWorldHint)
+        {
+            return openWorldHint;
+        }
+
+        // @mcpToolAnnotations field directive.
+        List<bool> openWorldHints = [];
+        foreach (var rootSelection in operation.RootSelectionSet.Selections)
+        {
+            var rootOpenWorldHint = GetOpenWorldHint(rootSelection, operation);
+
+            // Default to `true`.
+            openWorldHints.Add(rootOpenWorldHint ?? true);
+        }
+
+        // Return `true` if any of the open world hints are `true`.
+        return openWorldHints.Any(i => i);
+    }
+
+    private static bool? GetOpenWorldHint(
+        ISelection selection,
+        IOperation operation,
+        bool? parentOpenWorldHint = null)
+    {
+        var openWorldHint =
+            selection.Field.Directives[McpToolAnnotations]
+                .SingleOrDefault()?
+                .GetArgumentValue<bool?>(OpenWorldHint) ?? parentOpenWorldHint;
+
+        // Return early if the open world hint is explicitly set to `true`.
+        if (openWorldHint == true)
+        {
+            return openWorldHint;
+        }
+
+        List<bool?> openWorldHints = [openWorldHint];
+
+        if (selection.SelectionSet is not null)
+        {
+            foreach (var type in operation.GetPossibleTypes(selection))
+            {
+                var selectionSet = operation.GetSelectionSet(selection, type);
+
+                foreach (var subSelection in selectionSet.Selections)
+                {
+                    openWorldHints.Add(
+                        GetOpenWorldHint(
+                            subSelection,
+                            operation,
+                            parentOpenWorldHint: openWorldHint));
+                }
+            }
+        }
+
+        return openWorldHints.All(o => o is null)
+            ? null
+            : openWorldHints.Any(o => o == true);
+    }
+}

@@ -1,0 +1,71 @@
+"GetWithComplexVariables description"
+query GetWithComplexVariables(
+  "Complex list"
+  $list: [Object1ComplexInput!]! = [{ field1A: { field1B: [{ field1C: "12:00:00" }] } }]
+  "Complex object"
+  $object: Object1ComplexInput! = { field1A: { field1B: [{ field1C: "12:00:00" }] } }
+  "Null default"
+  $nullDefault: String = null
+  "List with null default"
+  $listWithNullDefault: [String] = [null]
+  "Object with null default"
+  $objectWithNullDefault: Object1ComplexInput = { field1A: { field1B: [{ field1C: null }] } }
+  "OneOf"
+  $oneOf: OneOfInput! = { field1: 1 }
+  "OneOf list"
+  $oneOfList: [OneOfInput!]! = [{ field1: 1 }, { field2: "default" }]
+  "Object with OneOf field"
+  $objectWithOneOfField: ObjectWithOneOfFieldInput! = { field: { field1: 1 } }
+  "TimeSpan with DotNet format"
+  $timeSpanDotNet: TimeSpan! = "00:05:00"
+) {
+  withComplexVariables(
+    list: $list
+    object: $object
+    nullDefault: $nullDefault
+    listWithNullDefault: $listWithNullDefault
+    objectWithNullDefault: $objectWithNullDefault
+    oneOf: $oneOf
+    oneOfList: $oneOfList
+    objectWithOneOfField: $objectWithOneOfField
+    timeSpanDotNet: $timeSpanDotNet
+  ) {
+    list {
+      field1A {
+        field1B {
+          field1C
+        }
+      }
+    }
+    object {
+      field1A {
+        field1B {
+          field1C
+        }
+      }
+    }
+    nullDefault
+    listWithNullDefault
+    objectWithNullDefault {
+      field1A {
+        field1B {
+          field1C
+        }
+      }
+    }
+    oneOf {
+      field1
+      field2
+    }
+    oneOfList {
+      field1
+      field2
+    }
+    objectWithOneOfField {
+      field {
+        field1
+        field2
+      }
+    }
+  }
+}
