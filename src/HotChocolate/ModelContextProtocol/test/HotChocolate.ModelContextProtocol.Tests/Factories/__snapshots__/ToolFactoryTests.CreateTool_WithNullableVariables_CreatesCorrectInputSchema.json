@@ -66,7 +66,8 @@
       ],
       "enum": [
         "VALUE1",
-        "VALUE2"
+        "VALUE2",
+        null
       ],
       "description": "Enum description"
     },

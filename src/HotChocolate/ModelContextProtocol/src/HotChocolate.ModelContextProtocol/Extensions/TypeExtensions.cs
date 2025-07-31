@@ -53,11 +53,16 @@ internal static class TypeExtensions
         {
             case EnumType enumType:
                 // Enum values.
-                List<JsonValue> enumValues = [];
+                List<JsonValue?> enumValues = [];
 
                 foreach (var enumValue in enumType.Values)
                 {
                     enumValues.Add(JsonValue.Create(enumValue.Name));
+                }
+
+                if (graphQLType.IsNullableType())
+                {
+                    enumValues.Add(null);
                 }
 
                 schemaBuilder.Enum(enumValues);
