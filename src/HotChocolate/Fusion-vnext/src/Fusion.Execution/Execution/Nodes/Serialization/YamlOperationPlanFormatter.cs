@@ -112,6 +112,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("- document: >-");
         writer.Indent();
+        writer.Indent();
         var reader = new StringReader(plan.Operation.Definition.ToString(indented: true));
         var line = reader.ReadLine();
         while (line != null)
@@ -119,6 +120,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine(line);
             line = reader.ReadLine();
         }
+        writer.Unindent();
 
         if (!string.IsNullOrEmpty(plan.Operation.Name))
         {

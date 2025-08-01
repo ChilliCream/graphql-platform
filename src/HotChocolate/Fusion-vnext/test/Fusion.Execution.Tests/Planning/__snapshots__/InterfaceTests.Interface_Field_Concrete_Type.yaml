@@ -1,13 +1,13 @@
 operation:
   - document: >-
-    query testQuery {
-      votable {
-        viewerCanVote
-        ... on Discussion {
-          title
+      query testQuery {
+        votable {
+          viewerCanVote
+          ... on Discussion {
+            title
+          }
         }
       }
-    }
     name: testQuery
     hash: 123
 nodes:

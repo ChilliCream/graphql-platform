@@ -1,10 +1,10 @@
 operation:
   - document: >-
-    query testQuery {
-      votables {
-        viewerCanVote
+      query testQuery {
+        votables {
+          viewerCanVote
+        }
       }
-    }
     name: testQuery
     hash: 123
 nodes:

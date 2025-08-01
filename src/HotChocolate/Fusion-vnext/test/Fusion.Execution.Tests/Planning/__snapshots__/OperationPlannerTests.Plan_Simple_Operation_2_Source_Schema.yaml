@@ -1,17 +1,17 @@
 operation:
   - document: >-
-    {
-      productBySlug(slug: "1") {
-        id
-        name
-        estimatedDelivery(postCode: "12345")
-        id @fusion__requirement
-        dimension @fusion__requirement {
-          height
-          width
+      {
+        productBySlug(slug: "1") {
+          id
+          name
+          estimatedDelivery(postCode: "12345")
+          id @fusion__requirement
+          dimension @fusion__requirement {
+            height
+            width
+          }
         }
       }
-    }
     hash: 123
 nodes:
   - id: 1

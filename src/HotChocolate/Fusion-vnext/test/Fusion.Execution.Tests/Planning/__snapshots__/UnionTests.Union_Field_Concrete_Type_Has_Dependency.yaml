@@ -1,16 +1,16 @@
 operation:
   - document: >-
-    query testQuery {
-      post {
-        ... on Photo {
-          subgraph2
-          id @fusion__requirement
-        }
-        ... on Discussion {
-          subgraph1
+      query testQuery {
+        post {
+          ... on Photo {
+            subgraph2
+            id @fusion__requirement
+          }
+          ... on Discussion {
+            subgraph1
+          }
         }
       }
-    }
     name: testQuery
     hash: 123
 nodes:

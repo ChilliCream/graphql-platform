@@ -1,21 +1,21 @@
 operation:
   - document: >-
-    {
-      productBySlug(slug: "1") {
-        name
-        reviews(first: 10) {
-          nodes {
-            body
-            stars
-            author {
-              displayName
-              id @fusion__requirement
+      {
+        productBySlug(slug: "1") {
+          name
+          reviews(first: 10) {
+            nodes {
+              body
+              stars
+              author {
+                displayName
+                id @fusion__requirement
+              }
             }
           }
+          id @fusion__requirement
         }
-        id @fusion__requirement
       }
-    }
     hash: 123
 nodes:
   - id: 1
