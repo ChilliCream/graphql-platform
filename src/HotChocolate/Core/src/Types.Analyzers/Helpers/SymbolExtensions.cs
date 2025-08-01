@@ -39,6 +39,18 @@ public static class SymbolExtensions
         return typeSymbol.ToDisplayString(format);
     }
 
+    public static string ToNullableFullyQualifiedWithNullRefQualifier(this ITypeSymbol typeSymbol)
+    {
+        var value = typeSymbol.ToFullyQualifiedWithNullRefQualifier();
+        return value[value.Length - 1] != '?' ? value + "?" : value;
+    }
+
+    public static string ToClassNonNullableFullyQualifiedWithNullRefQualifier(this ITypeSymbol typeSymbol)
+    {
+        var value = typeSymbol.ToFullyQualifiedWithNullRefQualifier();
+        return !typeSymbol.IsValueType && value[value.Length - 1] == '?' ? value.Substring(0, value.Length - 1) : value;
+    }
+
     public static bool IsParent(this IParameterSymbol parameter)
         => parameter.IsThis
             || parameter
