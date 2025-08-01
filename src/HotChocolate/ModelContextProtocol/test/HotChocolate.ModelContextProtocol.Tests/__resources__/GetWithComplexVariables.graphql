@@ -67,5 +67,6 @@ query GetWithComplexVariables(
         field2
       }
     }
+    timeSpanDotNet
   }
 }

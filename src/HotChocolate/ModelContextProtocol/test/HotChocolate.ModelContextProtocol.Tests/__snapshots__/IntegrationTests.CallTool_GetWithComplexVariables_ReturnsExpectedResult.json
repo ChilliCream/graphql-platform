@@ -53,7 +53,8 @@
           "field1": 1,
           "field2": null
         }
-      }
+      },
+      "timeSpanDotNet": "00:05:00"
     }
   }
 }
