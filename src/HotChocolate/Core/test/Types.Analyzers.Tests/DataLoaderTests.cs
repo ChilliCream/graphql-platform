@@ -705,17 +705,18 @@ public class DataLoaderTests
         await TestHelper.GetGeneratedSourceSnapshot(
             """
             using System.Collections.Generic;
+            using System.Linq;
             using System.Threading;
             using System.Threading.Tasks;
             using HotChocolate;
             using GreenDonut;
 
             namespace TestNamespace;
-            
+
             public record Id1();
             public record Id2();
             public record Stuff();
-            
+
             public class Dataloaders
             {
                 [DataLoader]

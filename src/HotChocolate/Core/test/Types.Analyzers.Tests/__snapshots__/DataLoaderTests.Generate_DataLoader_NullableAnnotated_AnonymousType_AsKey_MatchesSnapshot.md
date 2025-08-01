@@ -16,42 +16,52 @@ using GreenDonut;
 namespace TestNamespace
 {
     public interface IStuffDataLoader
-        : global::GreenDonut.IDataLoader<global::System.Collections.Generic.IReadOnlyList<(global::TestNamespace.Id1, global::TestNamespace.Id2?)>, ILookup<(global::TestNamespace.Id1, global::TestNamespace.Id2?), global::TestNamespace.Stuff>>
+        : global::GreenDonut.IDataLoader<(global::TestNamespace.Id1, global::TestNamespace.Id2?), global::TestNamespace.Stuff[]>
     {
     }
 
     public sealed partial class StuffDataLoader
-        : global::GreenDonut.DataLoaderBase<global::System.Collections.Generic.IReadOnlyList<(global::TestNamespace.Id1, global::TestNamespace.Id2?)>, ILookup<(global::TestNamespace.Id1, global::TestNamespace.Id2?), global::TestNamespace.Stuff>>
+        : global::GreenDonut.DataLoaderBase<(global::TestNamespace.Id1, global::TestNamespace.Id2?), global::TestNamespace.Stuff[]>
         , IStuffDataLoader
     {
         private readonly global::System.IServiceProvider _services;
 
         public StuffDataLoader(
             global::System.IServiceProvider services,
+            global::GreenDonut.IBatchScheduler batchScheduler,
             global::GreenDonut.DataLoaderOptions options)
-            : base(AutoBatchScheduler.Default, options)
+            : base(batchScheduler, options)
         {
             _services = services ??
                 throw new global::System.ArgumentNullException(nameof(services));
         }
 
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
-            global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<(global::TestNamespace.Id1, global::TestNamespace.Id2?)>> keys,
-            global::System.Memory<GreenDonut.Result<ILookup<(global::TestNamespace.Id1, global::TestNamespace.Id2?), global::TestNamespace.Stuff>?>> results,
-            global::GreenDonut.DataLoaderFetchContext<ILookup<(global::TestNamespace.Id1, global::TestNamespace.Id2?), global::TestNamespace.Stuff>> context,
+            global::System.Collections.Generic.IReadOnlyList<(global::TestNamespace.Id1, global::TestNamespace.Id2?)> keys,
+            global::System.Memory<GreenDonut.Result<global::TestNamespace.Stuff[]?>> results,
+            global::GreenDonut.DataLoaderFetchContext<global::TestNamespace.Stuff[]> context,
             global::System.Threading.CancellationToken ct)
+        {
+            var temp = await global::TestNamespace.Dataloaders.GetStuff(keys, ct).ConfigureAwait(false);
+            CopyResults(keys, results.Span, temp);
+        }
+
+        private void CopyResults(
+            global::System.Collections.Generic.IReadOnlyList<(global::TestNamespace.Id1, global::TestNamespace.Id2?)> keys,
+            global::System.Span<GreenDonut.Result<global::TestNamespace.Stuff[]?>> results,
+            global::System.Linq.ILookup<(global::TestNamespace.Id1, global::TestNamespace.Id2?), global::TestNamespace.Stuff> resultMap)
         {
             for (var i = 0; i < keys.Count; i++)
             {
-                try
+                var key = keys[i];
+                if (resultMap.Contains(key))
                 {
-                    var key = keys[i];
-                    var value = await global::TestNamespace.Dataloaders.GetStuff(key, ct).ConfigureAwait(false);
-                    results.Span[i] = Result<ILookup<(global::TestNamespace.Id1, global::TestNamespace.Id2?), global::TestNamespace.Stuff>?>.Resolve(value);
+                    var items = resultMap[key];
+                    results[i] = global::GreenDonut.Result<global::TestNamespace.Stuff[]?>.Resolve(global::System.Linq.Enumerable.ToArray(items));
                 }
-                catch (global::System.Exception ex)
+                else
                 {
-                    results.Span[i] = Result<ILookup<(global::TestNamespace.Id1, global::TestNamespace.Id2?), global::TestNamespace.Stuff>?>.Reject(ex);
+                    results[i] = global::GreenDonut.Result<global::TestNamespace.Stuff[]?>.Resolve(global::System.Array.Empty<global::TestNamespace.Stuff>());
                 }
             }
         }
@@ -87,28 +97,5 @@ namespace Microsoft.Extensions.DependencyInjection
     }
 }
 
-```
-
-## Compilation Diagnostics
-
-```json
-[
-  {
-    "Id": "CS0246",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (15,29)-(15,56)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0246)",
-    "MessageFormat": "Der Typ- oder Namespacename \"{0}\" wurde nicht gefunden (möglicherweise fehlt eine using-Direktive oder ein Assemblyverweis).",
-    "Message": "Der Typ- oder Namespacename \"ILookup<,>\" wurde nicht gefunden (möglicherweise fehlt eine using-Direktive oder ein Assemblyverweis).",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  }
-]
 ```
 
