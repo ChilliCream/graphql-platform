@@ -76,7 +76,7 @@ internal sealed class OperationDefinitionBuilder
             }
 
             var lookupField = new FieldNode(
-                new NameNode(_lookup.Name),
+                new NameNode(_lookup.FieldName),
                 null,
                 [],
                 arguments,
@@ -87,7 +87,7 @@ internal sealed class OperationDefinitionBuilder
             var indexBuilder = index.ToBuilder();
             indexBuilder.Register(selectionSet);
             index = indexBuilder;
-            selectionPath = selectionPath.AppendField(_lookup.Name);
+            selectionPath = selectionPath.AppendField(_lookup.FieldName);
         }
 
         var definition = new OperationDefinitionNode(

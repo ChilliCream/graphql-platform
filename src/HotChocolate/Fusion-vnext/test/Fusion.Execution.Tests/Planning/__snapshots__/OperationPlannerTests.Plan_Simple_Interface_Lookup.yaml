@@ -1,13 +1,13 @@
 operation:
   - document: >-
-      query GetTopProducts {
-        topProduct {
-          id
-          name
-          price
-          id @fusion__requirement
-        }
+    query GetTopProducts {
+      topProduct {
+        id
+        name
+        price
+        id @fusion__requirement
       }
+    }
     name: GetTopProducts
     hash: 123
 nodes:
@@ -27,7 +27,9 @@ nodes:
         $__fusion_1_id: ID!
       ) {
         node(id: $__fusion_1_id) {
-          price
+          ... on Product {
+            price
+          }
         }
       }
     source: $.node
