@@ -295,6 +295,28 @@ public sealed partial class OperationPlanner
                 requirements = requirements.Add(argumentRequirementKey, operationRequirement);
             }
 
+            // If the lookup returns an abstract type, we might need to insert a type refinement
+            // around our selection set.
+            if (_schema.Types.TryGetType(lookup.FieldType, out var lookupFieldType)
+                && lookupFieldType != workItem.SelectionSet.Type)
+            {
+                var typeRefinement =
+                    new InlineFragmentNode(
+                        null,
+                        new NamedTypeNode(workItem.SelectionSet.Type.Name),
+                        [],
+                        resolvable);
+                var selectionSetWithTypeRefinement = new SelectionSetNode(null, [typeRefinement]);
+
+                var indexBuilder = index.ToBuilder();
+
+                indexBuilder.Register(resolvable, selectionSetWithTypeRefinement);
+
+                index = indexBuilder;
+
+                operationBuilder.SetSelectionSet(selectionSetWithTypeRefinement);
+            }
+
             operationBuilder.SetLookup(lookup, requirementKey);
         }
 
