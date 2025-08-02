@@ -276,7 +276,7 @@ public class DataLoaderTests
                     CancellationToken cancellationToken)
                     => default!;
 
-                public static KeyValuePair<int, Entity2> CreateLookupKey(Entity1 key)
+                public static KeyValuePair<int, Entity2>? CreateLookupKey(Entity1 key)
                     => default!;
             }
 
