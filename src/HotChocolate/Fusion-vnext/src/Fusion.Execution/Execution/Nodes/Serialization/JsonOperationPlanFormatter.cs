@@ -99,6 +99,10 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
                 case IntrospectionExecutionNode introspectionNode:
                     WriteIntrospectionNode(jsonWriter, introspectionNode, nodeTrace);
                     break;
+
+                case NodeExecutionNode nodeNode:
+                    WriteNodeNode(jsonWriter, nodeNode, trace);
+                    break;
             }
         }
 
@@ -203,5 +207,26 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         }
 
         jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteNodeNode(Utf8JsonWriter jsonWriter, NodeExecutionNode node, OperationPlanTrace? trace)
+    {
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteNumber("id", node.Id);
+
+        // TODO: Write branches
+
+        if (trace?.Nodes.TryGetValue(node.Id, out var nodeTrace) == true)
+        {
+            if (!string.IsNullOrEmpty(nodeTrace.SpanId))
+            {
+                jsonWriter.WriteString("spanId", nodeTrace.SpanId);
+            }
+
+            jsonWriter.WriteNumber("duration", nodeTrace.Duration.TotalMilliseconds);
+            jsonWriter.WriteString("status", nodeTrace.Status.ToString());
+        }
+
+        jsonWriter.WriteEndObject();;
     }
 }

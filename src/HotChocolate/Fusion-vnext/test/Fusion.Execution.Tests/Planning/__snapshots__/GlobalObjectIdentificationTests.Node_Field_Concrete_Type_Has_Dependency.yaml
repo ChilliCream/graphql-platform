@@ -1,0 +1,52 @@
+operation:
+  - document: >-
+    query testQuery(
+      $id: ID!
+    ) {
+      node(id: $id) {
+        ... on Discussion {
+          name
+          commentCount
+        }
+      }
+    }
+    name: testQuery
+    hash: 123
+nodes:
+  - id: 1
+    schema: SUBGRAPH_1
+    operation: >-
+      query testQuery_123_1(
+        $__fusion_1_id: ID!
+      ) {
+        node(id: $__fusion_1_id) {
+          ... on Discussion {
+            ... on Discussion {
+              name
+              id
+            }
+          }
+        }
+      }
+    source: $.node
+    target: $.node
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: id
+  - id: 2
+    schema: SUBGRAPH_2
+    operation: >-
+      query testQuery_123_2(
+        $__fusion_2_discussionId: ID!
+      ) {
+        discussionById(discussionId: $__fusion_2_discussionId) {
+          commentCount
+        }
+      }
+    source: $.discussionById
+    target: $.<Discussion>.node
+    requirements:
+      - name: __fusion_2_discussionId
+        selectionMap: id
+    dependencies:
+      - id: 1

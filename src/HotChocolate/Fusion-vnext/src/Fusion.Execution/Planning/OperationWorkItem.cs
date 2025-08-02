@@ -6,7 +6,7 @@ public sealed record OperationWorkItem(
     OperationWorkItemKind Kind,
     SelectionSet SelectionSet,
     Lookup? Lookup = null,
-    string? RequirementKey = null)
+    bool InlineLookupRequirements = true)
     : WorkItem
 {
     public static OperationWorkItem CreateRoot(SelectionSet selectionSet)
