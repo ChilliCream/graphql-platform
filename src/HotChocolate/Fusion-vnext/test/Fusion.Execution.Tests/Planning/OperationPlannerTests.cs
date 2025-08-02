@@ -149,6 +149,116 @@ public class OperationPlannerTests : FusionTestBase
     }
 
     [Fact]
+    public void Plan_Simple_Interface_Lookup()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            schema @schemaName(value: "A") {
+              query: Query
+            }
+
+            type Query {
+              topProduct: Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+            """,
+            """
+            schema @schemaName(value: "B") {
+              query: Query
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @internal
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node {
+              id: ID!
+              price: Float!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query GetTopProducts {
+              topProduct {
+                id
+                name
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Simple_Union_Lookup()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            schema @schemaName(value: "A") {
+              query: Query
+            }
+
+            type Query {
+              topProduct: Product
+              # Just here to satisfy satisfiability as I can't make the union lookup internal...
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+            """,
+            """
+            schema @schemaName(value: "B") {
+              query: Query
+            }
+
+            type Query {
+              lookupUnionById(id: ID!): SomeUnion @lookup
+            }
+
+            union SomeUnion = Product
+
+            type Product {
+              id: ID!
+              price: Float!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query GetTopProducts {
+              topProduct {
+                id
+                name
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Plan_Simple_Requirement()
     {
         // arrange
