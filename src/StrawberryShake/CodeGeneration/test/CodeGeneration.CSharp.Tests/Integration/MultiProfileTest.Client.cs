@@ -1489,11 +1489,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
-        {
-            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
-        }
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
@@ -1564,7 +1559,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery WithRequestUri(global::System.Uri requestUri);
         global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
-        global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHeroResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -2006,11 +2000,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
-        {
-            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
-        }
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReviewMutResult>> ExecuteAsync(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.Episode episode, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ReviewInput review, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(episode, review);
@@ -2084,7 +2073,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation WithRequestUri(global::System.Uri requestUri);
         global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
-        global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReviewMutResult>> ExecuteAsync(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.Episode episode, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ReviewInput review, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ICreateReviewMutResult>> Watch(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.Episode episode, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ReviewInput review, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

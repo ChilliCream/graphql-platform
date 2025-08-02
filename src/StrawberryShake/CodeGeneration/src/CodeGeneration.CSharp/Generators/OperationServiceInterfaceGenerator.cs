@@ -41,7 +41,7 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
 
         if (descriptor is not SubscriptionOperationDescriptor)
         {
-            foreach (var method in CreateWitherMethods(descriptor))
+            foreach (var method in CreateWitherMethods(descriptor, settings))
             {
                 interfaceBuilder.AddMethod(method);
             }
@@ -111,8 +111,8 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
         return executeMethod;
     }
 
-    private static IEnumerable<MethodBuilder> CreateWitherMethods(
-        OperationDescriptor operationDescriptor)
+    private static IEnumerable<MethodBuilder> CreateWitherMethods(OperationDescriptor operationDescriptor,
+        CSharpSyntaxGeneratorSettings settings)
     {
         var withMethod = MethodBuilder
             .New()
@@ -150,17 +150,20 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
 
         yield return withHttpClientMethod;
 
-        var withHttpStatusCodeCaptureUriMethod = MethodBuilder
-            .New()
-            .SetOnlyDeclaration()
-            .SetReturnType(operationDescriptor.InterfaceType.ToString())
-            .SetName("WithHttpStatusCodeCapture");
+        if (settings.GenerateWithHttpStatusCodeCaptureMethod)
+        {
+            var withHttpStatusCodeCaptureUriMethod = MethodBuilder
+                .New()
+                .SetOnlyDeclaration()
+                .SetReturnType(operationDescriptor.InterfaceType.ToString())
+                .SetName("WithHttpStatusCodeCapture");
 
-        withHttpStatusCodeCaptureUriMethod
-            .AddParameter("key")
-            .SetDefault("\"HttpStatusCode\"")
-            .SetType(TypeNames.String);
+            withHttpStatusCodeCaptureUriMethod
+                .AddParameter("key")
+                .SetDefault("\"HttpStatusCode\"")
+                .SetType(TypeNames.String);
 
-        yield return withHttpStatusCodeCaptureUriMethod;
+            yield return withHttpStatusCodeCaptureUriMethod;
+        }
     }
 }

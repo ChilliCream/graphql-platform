@@ -1379,11 +1379,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirectiveQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
-        {
-            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
-        }
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroWithFragmentIncludeAndSkipDirectiveResult>> ExecuteAsync(global::System.Boolean? includePageInfo, global::System.Boolean? skipPageInfo, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(includePageInfo, skipPageInfo);
@@ -1494,7 +1489,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
         global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirectiveQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirectiveQuery WithRequestUri(global::System.Uri requestUri);
         global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirectiveQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
-        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirectiveQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroWithFragmentIncludeAndSkipDirectiveResult>> ExecuteAsync(global::System.Boolean? includePageInfo, global::System.Boolean? skipPageInfo, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHeroWithFragmentIncludeAndSkipDirectiveResult>> Watch(global::System.Boolean? includePageInfo, global::System.Boolean? skipPageInfo, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

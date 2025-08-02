@@ -984,11 +984,6 @@ namespace Foo.Bar
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
-        public global::Foo.Bar.IDecodeVINQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
-        {
-            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
-        }
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IDecodeVINResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
@@ -1074,7 +1069,6 @@ namespace Foo.Bar
         global::Foo.Bar.IDecodeVINQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::Foo.Bar.IDecodeVINQuery WithRequestUri(global::System.Uri requestUri);
         global::Foo.Bar.IDecodeVINQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
-        global::Foo.Bar.IDecodeVINQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IDecodeVINResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IDecodeVINResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

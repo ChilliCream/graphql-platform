@@ -509,11 +509,6 @@ namespace Foo.Bar
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
-        public global::Foo.Bar.ITestQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
-        {
-            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
-        }
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestResult>> ExecuteAsync(global::StrawberryShake.Upload upload, global::StrawberryShake.Upload? uploadNullable, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload> list, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>? listNullable, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>> nestedList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>?>? nestedListNullable, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(upload, uploadNullable, list, listNullable, nestedList, nestedListNullable);
@@ -755,7 +750,6 @@ namespace Foo.Bar
         global::Foo.Bar.ITestQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::Foo.Bar.ITestQuery WithRequestUri(global::System.Uri requestUri);
         global::Foo.Bar.ITestQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
-        global::Foo.Bar.ITestQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestResult>> ExecuteAsync(global::StrawberryShake.Upload upload, global::StrawberryShake.Upload? uploadNullable, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload> list, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>? listNullable, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>> nestedList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>?>? nestedListNullable, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ITestResult>> Watch(global::StrawberryShake.Upload upload, global::StrawberryShake.Upload? uploadNullable, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload> list, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>? listNullable, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>> nestedList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.Upload>?>? nestedListNullable, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

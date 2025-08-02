@@ -105,7 +105,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
 
             var serializerAssignments = UseInjectedSerializers(descriptor, privateConstructorBuilder);
 
-            foreach (var method in CreateWitherMethods(descriptor, serializerAssignments))
+            foreach (var method in CreateWitherMethods(descriptor, serializerAssignments, settings))
             {
                 classBuilder.AddMethod(method);
             }
@@ -387,9 +387,9 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                         .AddArgument("false")));
     }
 
-    private static IEnumerable<MethodBuilder> CreateWitherMethods(
-       OperationDescriptor operationDescriptor,
-       string serializerAssignments)
+    private static IEnumerable<MethodBuilder> CreateWitherMethods(OperationDescriptor operationDescriptor,
+        string serializerAssignments,
+        CSharpSyntaxGeneratorSettings settings)
     {
         var withMethod = MethodBuilder
             .New()
@@ -440,22 +440,25 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                     "return With(r => r.ContextData[\"{0}\"] = httpClient);" + Environment.NewLine,
                     "StrawberryShake.Transport.Http.HttpConnection.HttpClient")));
 
-        var withHttpStatusCodeCaptureUriMethod = MethodBuilder
-            .New()
-            .SetPublic()
-            .SetReturnType(operationDescriptor.InterfaceType.ToString())
-            .SetName("WithHttpStatusCodeCapture");
+        if (settings.GenerateWithHttpStatusCodeCaptureMethod)
+        {
+            var withHttpStatusCodeCaptureUriMethod = MethodBuilder
+                .New()
+                .SetPublic()
+                .SetReturnType(operationDescriptor.InterfaceType.ToString())
+                .SetName("WithHttpStatusCodeCapture");
 
-        withHttpStatusCodeCaptureUriMethod
-            .AddParameter("key")
-            .SetDefault("\"HttpStatusCode\"")
-            .SetType(TypeNames.String);
+            withHttpStatusCodeCaptureUriMethod
+                .AddParameter("key")
+                .SetDefault("\"HttpStatusCode\"")
+                .SetType(TypeNames.String);
 
-        yield return withHttpStatusCodeCaptureUriMethod
-            .AddCode(CodeInlineBuilder.From(
-                string.Format(
-                    "return With(r => r.ContextData[\"{0}\"] = key);" + Environment.NewLine,
-                    "StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey")));
+            yield return withHttpStatusCodeCaptureUriMethod
+                .AddCode(CodeInlineBuilder.From(
+                    string.Format(
+                        "return With(r => r.ContextData[\"{0}\"] = key);" + Environment.NewLine,
+                        "StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey")));
+        }
     }
 
     private static MethodBuilder CreateRequestVariablesMethod(

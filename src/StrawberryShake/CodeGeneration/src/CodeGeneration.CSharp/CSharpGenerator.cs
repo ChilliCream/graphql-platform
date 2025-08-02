@@ -306,7 +306,8 @@ public static class CSharpGenerator
             settings.NoStore,
             settings.InputRecords,
             settings.EntityRecords,
-            settings.RazorComponents);
+            settings.RazorComponents,
+            settings.GenerateWithHttpStatusCodeCaptureMethod);
 
         var results = new List<GeneratorResult>();
 

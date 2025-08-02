@@ -64,6 +64,11 @@ public static class GenerateCommand
             "Console output as JSON.",
             CommandOptionType.NoValue);
 
+        var generateWithHttpStatusCodeCaptureMethodArg = generate.Option(
+            "--generateWithHttpStatusCodeCaptureMethod",
+            "Generate the 'WithHttpStatusCodeCapture'-method.",
+            CommandOptionType.NoValue);
+
         generate.OnExecuteAsync(
             ct =>
             {
@@ -86,7 +91,8 @@ public static class GenerateCommand
                     outputDirArg.Value(),
                     strategy,
                     operationOutputDir,
-                    relayFormatArg.HasValue());
+                    relayFormatArg.HasValue(),
+                    generateWithHttpStatusCodeCaptureMethodArg.HasValue());
                 var handler = CommandTools.CreateHandler<GenerateCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, ct);
             });
@@ -321,7 +327,8 @@ public static class GenerateCommand
             string? outputDir,
             RequestStrategy strategy,
             string? operationOutputDir,
-            bool relayFormat)
+            bool relayFormat,
+            bool generateWithHttpStatusCodeCaptureMethod)
         {
             Path = path;
             RootNamespace = rootNamespace;
@@ -334,6 +341,7 @@ public static class GenerateCommand
             Strategy = strategy;
             RelayFormat = relayFormat;
             OperationOutputDir = operationOutputDir;
+            GenerateWithHttpStatusCodeCaptureMethod = generateWithHttpStatusCodeCaptureMethod;
 
             if (operationOutputDir is null && outputDir is not null)
             {
@@ -362,5 +370,7 @@ public static class GenerateCommand
         public string? OperationOutputDir { get; }
 
         public bool RelayFormat { get; }
+
+        public bool GenerateWithHttpStatusCodeCaptureMethod { get; }
     }
 }

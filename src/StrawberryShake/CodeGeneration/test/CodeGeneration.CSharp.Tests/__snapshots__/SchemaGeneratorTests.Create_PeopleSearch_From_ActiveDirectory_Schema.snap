@@ -1337,11 +1337,6 @@ namespace Foo.Bar
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
-        public global::Foo.Bar.IPeopleSearchQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
-        {
-            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
-        }
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IPeopleSearchQueryResult>> ExecuteAsync(global::System.String term, global::System.Int32? skip, global::System.Int32? take, global::System.Boolean? inactive, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(term, skip, take, inactive);
@@ -1487,7 +1482,6 @@ namespace Foo.Bar
         global::Foo.Bar.IPeopleSearchQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::Foo.Bar.IPeopleSearchQuery WithRequestUri(global::System.Uri requestUri);
         global::Foo.Bar.IPeopleSearchQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
-        global::Foo.Bar.IPeopleSearchQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IPeopleSearchQueryResult>> ExecuteAsync(global::System.String term, global::System.Int32? skip, global::System.Int32? take, global::System.Boolean? inactive, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IPeopleSearchQueryResult>> Watch(global::System.String term, global::System.Int32? skip, global::System.Int32? take, global::System.Boolean? inactive, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

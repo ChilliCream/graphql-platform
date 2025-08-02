@@ -2853,11 +2853,6 @@ namespace Foo.Bar
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
-        public global::Foo.Bar.IGetFeatsPageQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
-        {
-            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
-        }
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatsPageResult>> ExecuteAsync(global::System.Int32 skip, global::System.Int32 take, global::System.String searchTerm, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.FeatSortInput>? order, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(skip, take, searchTerm, order);
@@ -2983,7 +2978,6 @@ namespace Foo.Bar
         global::Foo.Bar.IGetFeatsPageQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::Foo.Bar.IGetFeatsPageQuery WithRequestUri(global::System.Uri requestUri);
         global::Foo.Bar.IGetFeatsPageQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
-        global::Foo.Bar.IGetFeatsPageQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatsPageResult>> ExecuteAsync(global::System.Int32 skip, global::System.Int32 take, global::System.String searchTerm, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.FeatSortInput>? order, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetFeatsPageResult>> Watch(global::System.Int32 skip, global::System.Int32 take, global::System.String searchTerm, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.FeatSortInput>? order, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -3442,11 +3436,6 @@ namespace Foo.Bar
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
-        public global::Foo.Bar.IGetFeatByIdQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
-        {
-            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
-        }
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> ExecuteAsync(global::System.Guid id, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(id);
@@ -3535,7 +3524,6 @@ namespace Foo.Bar
         global::Foo.Bar.IGetFeatByIdQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::Foo.Bar.IGetFeatByIdQuery WithRequestUri(global::System.Uri requestUri);
         global::Foo.Bar.IGetFeatByIdQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
-        global::Foo.Bar.IGetFeatByIdQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> ExecuteAsync(global::System.Guid id, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> Watch(global::System.Guid id, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

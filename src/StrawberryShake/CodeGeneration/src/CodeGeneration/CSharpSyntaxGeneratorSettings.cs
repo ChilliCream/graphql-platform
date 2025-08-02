@@ -13,13 +13,15 @@ public class CSharpSyntaxGeneratorSettings
         bool noStore,
         bool inputRecords,
         bool entityRecords,
-        bool razorComponents)
+        bool razorComponents,
+        bool generateWithHttpStatusCodeCaptureMethod)
     {
         AccessModifier = accessModifier;
         NoStore = noStore;
         InputRecords = inputRecords;
         EntityRecords = entityRecords;
         RazorComponents = razorComponents;
+        GenerateWithHttpStatusCodeCaptureMethod = generateWithHttpStatusCodeCaptureMethod;
     }
 
     /// <summary>
@@ -46,4 +48,10 @@ public class CSharpSyntaxGeneratorSettings
     /// Generate Razor components.
     /// </summary>
     public bool RazorComponents { get; }
+
+    /// <summary>
+    /// A value indicating whether to generate the
+    /// <c>WithHttpStatusCodeCapture(string key = "HttpStatusCode")</c>-method.
+    /// </summary>
+    public bool GenerateWithHttpStatusCodeCaptureMethod { get; set; }
 }

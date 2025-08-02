@@ -84,6 +84,40 @@ public class GraphQLConfigTests
     }
 
     [Fact]
+    public void Load_Json_With_GenerateWithHttpStatusCodeCaptureMethod()
+    {
+        GraphQLConfig.FromJson(@"{
+                ""schema"": ""schema.graphql"",
+                ""documents"": ""**/*.graphql"",
+                ""extensions"": {
+                        ""strawberryShake"": {
+                        ""name"": ""Client"",
+                        ""accessModifier"": ""public"",
+                        ""dependencyInjection"": true,
+                        ""strictSchemaValidation"": true,
+                        ""hashAlgorithm"": ""md5"",
+                        ""useSingleFile"": true,
+                        ""requestStrategy"": ""Default"",
+                        ""outputDirectoryName"": ""Generated"",
+                        ""noStore"": false,
+                        ""emitGeneratedCode"": true,
+                        ""records"": {
+                            ""inputs"": false,
+                            ""entities"": false
+                        },
+                        ""transportProfiles"": [
+                            {
+                            ""default"": ""Http"",
+                            ""subscription"": ""WebSocket""
+                            }],
+                        ""GenerateWithHttpStatusCodeCaptureMethod"": true
+                        }
+                    }
+                }
+                ").MatchSnapshot();
+    }
+
+    [Fact]
     public void Load_Json_With_Records()
     {
         GraphQLConfig.FromJson(@"{

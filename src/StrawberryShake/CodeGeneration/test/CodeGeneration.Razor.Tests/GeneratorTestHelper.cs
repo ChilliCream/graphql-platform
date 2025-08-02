@@ -92,7 +92,8 @@ public static class GeneratorTestHelper
                 NoStore = settings.NoStore,
                 InputRecords = settings.InputRecords,
                 EntityRecords = settings.EntityRecords,
-                RazorComponents = settings.RazorComponents
+                RazorComponents = settings.RazorComponents,
+                GenerateWithHttpStatusCodeCaptureMethod = settings.GenerateWithHttpStatusCodeCaptureMethod
             });
 
         Assert.False(
@@ -276,5 +277,7 @@ public static class GeneratorTestHelper
 
         public RequestStrategyGen RequestStrategy { get; set; } =
             RequestStrategyGen.Default;
+
+        public bool GenerateWithHttpStatusCodeCaptureMethod { get; set; }
     }
 }

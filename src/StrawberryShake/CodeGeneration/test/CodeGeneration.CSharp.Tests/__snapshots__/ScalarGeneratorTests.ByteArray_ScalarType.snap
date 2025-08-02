@@ -195,11 +195,6 @@ namespace Foo.Bar
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
-        public global::Foo.Bar.IGetAttachmentQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
-        {
-            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
-        }
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetAttachmentResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
@@ -248,7 +243,6 @@ namespace Foo.Bar
         global::Foo.Bar.IGetAttachmentQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::Foo.Bar.IGetAttachmentQuery WithRequestUri(global::System.Uri requestUri);
         global::Foo.Bar.IGetAttachmentQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
-        global::Foo.Bar.IGetAttachmentQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetAttachmentResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetAttachmentResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

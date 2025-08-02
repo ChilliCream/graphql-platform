@@ -477,11 +477,6 @@ namespace Foo.Bar
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
-        public global::Foo.Bar.IGetHeroQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
-        {
-            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
-        }
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::Foo.Bar.Episode? episode, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(episode);
@@ -550,7 +545,6 @@ namespace Foo.Bar
         global::Foo.Bar.IGetHeroQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::Foo.Bar.IGetHeroQuery WithRequestUri(global::System.Uri requestUri);
         global::Foo.Bar.IGetHeroQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
-        global::Foo.Bar.IGetHeroQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::Foo.Bar.Episode? episode, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHeroResult>> Watch(global::Foo.Bar.Episode? episode, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

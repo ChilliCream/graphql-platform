@@ -386,11 +386,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes
             return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
         }
 
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode")
-        {
-            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpStatusCodeCaptureKey"] = key);
-        }
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ILocalTypesResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
@@ -441,7 +436,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes
         global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
         global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery WithRequestUri(global::System.Uri requestUri);
         global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
-        global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery WithHttpStatusCodeCapture(global::System.String key = "HttpStatusCode");
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ILocalTypesResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ILocalTypesResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
