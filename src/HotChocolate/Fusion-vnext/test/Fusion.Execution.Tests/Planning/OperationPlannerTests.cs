@@ -149,6 +149,61 @@ public class OperationPlannerTests : FusionTestBase
     }
 
     [Fact]
+    public void Plan_Simple_Abstract_Lookup()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            schema @schemaName(value: "A") {
+              query: Query
+            }
+
+            type Query {
+              topProducts: [Product!]
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+            """,
+            """
+            schema @schemaName(value: "B") {
+              query: Query
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @internal
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node {
+              id: ID!
+              price: Float!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query GetTopProducts {
+              topProducts {
+                id
+                name
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Plan_Simple_Requirement()
     {
         // arrange
