@@ -32,6 +32,7 @@ public sealed class OperationCompiler
         var includeConditions = new IncludeConditionCollection();
         IncludeConditionVisitor.Instance.Visit(operationDefinition, includeConditions);
         var fields = _fieldsPool.Get();
+        fields.Clear();
 
         try
         {
@@ -75,6 +76,7 @@ public sealed class OperationCompiler
         ref uint lastId)
     {
         var fields = _fieldsPool.Get();
+        fields.Clear();
 
         try
         {

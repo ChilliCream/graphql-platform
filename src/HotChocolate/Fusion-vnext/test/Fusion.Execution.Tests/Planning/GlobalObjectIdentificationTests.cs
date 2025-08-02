@@ -1,10 +1,12 @@
 namespace HotChocolate.Fusion.Planning;
 
 // TODO:
-// - conditional selections (on and below node field, also with conditional fragment)
+// - Conditional selections (on and below node field, also with conditional fragment)
+// - Raw id argument value
 // - Invalid Id
 // - Valid Id, with unknown type
 // - Valid Id, with known type, but not type of concrete type selection
+// - Valid id, but subgraph returns other type for id
 public class GlobalObjectIdentificationTests : FusionTestBase
 {
     #region selections on node field
@@ -174,7 +176,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         var subgraphB = new TestSubgraph(
             """
             type Query {
-              node(id: ID!): Node @lookup
+              discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
             }
 
             interface Node {

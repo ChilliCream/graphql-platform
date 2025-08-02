@@ -28,6 +28,10 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
                 case IntrospectionExecutionNode introspectionNode:
                     WriteIntrospectionNode(introspectionNode, nodeTrace, writer);
                     break;
+
+                case NodeExecutionNode nodeNode:
+                    WriteNodeNode(nodeNode, trace, writer);
+                    break;
             }
         }
 
@@ -151,7 +155,8 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.Unindent();
     }
 
-    private static void WriteIntrospectionNode(IntrospectionExecutionNode node, ExecutionNodeTrace? trace, CodeWriter writer)
+    private static void WriteIntrospectionNode(IntrospectionExecutionNode node, ExecutionNodeTrace? trace,
+        CodeWriter writer)
     {
         writer.WriteLine("- id: {0}", node.Id);
         writer.Indent();
@@ -166,6 +171,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("fieldName: {0}", selection.Field.Name);
             writer.Unindent();
         }
+
         writer.Unindent();
 
         if (trace is not null)
@@ -177,6 +183,27 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
             writer.WriteLine("duration: {0}", trace.Duration.TotalMilliseconds);
             writer.WriteLine("status: {0}", trace.Status.ToString());
+        }
+
+        writer.Unindent();
+    }
+
+    private static void WriteNodeNode(NodeExecutionNode node, OperationPlanTrace? trace, CodeWriter writer)
+    {
+        writer.WriteLine("- id: {0}", node.Id);
+        writer.Indent();
+
+        // TODO: Write branches
+
+        if (trace?.Nodes.TryGetValue(node.Id, out var nodeTrace) == true)
+        {
+            if (nodeTrace.SpanId is not null)
+            {
+                writer.WriteLine("spanId: {0}", nodeTrace.SpanId);
+            }
+
+            writer.WriteLine("duration: {0}", nodeTrace.Duration.TotalMilliseconds);
+            writer.WriteLine("status: {0}", nodeTrace.Status.ToString());
         }
 
         writer.Unindent();
