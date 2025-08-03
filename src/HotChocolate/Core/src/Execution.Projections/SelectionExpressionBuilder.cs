@@ -163,7 +163,7 @@ internal sealed class SelectionExpressionBuilder
         return BuildSelectionSetExpression(context, parent.Nodes[0]);
     }
 
-    private static MemberInitExpression? BuildSelectionSetExpression(
+    private static Expression? BuildSelectionSetExpression(
         Context context,
         TypeNode parent)
     {
@@ -183,9 +183,63 @@ internal sealed class SelectionExpressionBuilder
             return null;
         }
 
-        return Expression.MemberInit(
-            Expression.New(context.ParentType),
-            assignments.ToImmutable());
+        var assignmentList = assignments.ToImmutable();
+
+        // Quick path: parameterless constructor + MemberInit
+        var parameterlessCtor = context.ParentType.GetConstructor(Type.EmptyTypes);
+        if (parameterlessCtor != null)
+        {
+            var allWritable = assignmentList.All(a =>
+                a.Member is PropertyInfo { CanWrite: true, SetMethod.IsPublic: true });
+
+            if (allWritable)
+            {
+                return Expression.MemberInit(
+                    Expression.New(parameterlessCtor),
+                    assignmentList);
+            }
+        }
+
+        // Fallback: Use the best matching constructor.
+        // Argument names must match parameter names (case-insensitive),
+        // and argument types must be assignable to the parameter types.
+        ConstructorInfo? bestMatchingCtor = null;
+        ParameterInfo[]? ctorParams = null;
+        foreach (var ctor in context.ParentType.GetConstructors())
+        {
+            var parameters = ctor.GetParameters();
+            if (parameters.Length == assignmentList.Length)
+            {
+                var argumentsMatchParameters = parameters.All(p =>
+                    assignmentList.Any(a =>
+                        string.Equals(a.Member.Name, p.Name, StringComparison.OrdinalIgnoreCase)
+                        && a.Expression.Type.IsAssignableTo(p.ParameterType)));
+
+                if (argumentsMatchParameters)
+                {
+                    bestMatchingCtor = ctor;
+                    ctorParams = parameters;
+                    break;
+                }
+            }
+        }
+
+        if (bestMatchingCtor != null && ctorParams != null)
+        {
+            // args and params might not match order -> align them
+            var args = ctorParams.Select(p =>
+            {
+                var member = assignmentList.First(a =>
+                    string.Equals(a.Member.Name, p.Name, StringComparison.OrdinalIgnoreCase));
+
+                return Expression.Convert(member.Expression, p.ParameterType);
+            }).ToArray();
+
+            return Expression.New(bestMatchingCtor, args);
+        }
+
+        throw new InvalidOperationException(
+            $"No writable properties or suitable constructor found for type '{context.ParentType.Name}'.");
     }
 
     private void CollectSelection(

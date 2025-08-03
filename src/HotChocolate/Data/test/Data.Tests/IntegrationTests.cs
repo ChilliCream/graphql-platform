@@ -9,6 +9,7 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data;
@@ -960,6 +961,37 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task UsingQueryContext_ShouldNotBreak_Pagination_ForRecordReturnType()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<RecordQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query f {
+              users {
+                edges {
+                  node {
+                    firstName
+                    id
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
     [QueryType]
     public static class StaticQuery
     {
@@ -1213,5 +1245,24 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }.AsQueryable()
                 .With(context, t => t with { Operations = t.Operations.Add(SortBy<Author>.Ascending(t => t.Id)) });
+    }
+
+#pragma warning disable RCS1102
+    public class RecordQuery
+#pragma warning restore RCS1102
+    {
+        [UsePaging]
+        [UseFiltering]
+        public Connection<User> GetUsers(
+            QueryContext<User> query
+        )
+        {
+            return Connection.Empty<User>();
+        }
+
+        public record User(
+            string Id,
+            string FirstName
+        );
     }
 }
