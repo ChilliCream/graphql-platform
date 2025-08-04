@@ -1,4 +1,4 @@
-﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
 // ReSharper disable InconsistentNaming
@@ -1302,7 +1302,7 @@ namespace Foo.Bar
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _intFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _booleanFormatter;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public PeopleSearchQuery(global::StrawberryShake.IOperationExecutor<IPeopleSearchQueryResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
@@ -1311,7 +1311,7 @@ namespace Foo.Bar
             _booleanFormatter = serializerResolver.GetInputValueFormatter("Boolean");
         }
 
-        private PeopleSearchQuery(global::StrawberryShake.IOperationExecutor<IPeopleSearchQueryResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter booleanFormatter, global::StrawberryShake.Serialization.IInputValueFormatter @intFormatter, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter)
+        private PeopleSearchQuery(global::StrawberryShake.IOperationExecutor<IPeopleSearchQueryResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter booleanFormatter, global::StrawberryShake.Serialization.IInputValueFormatter @intFormatter, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;
