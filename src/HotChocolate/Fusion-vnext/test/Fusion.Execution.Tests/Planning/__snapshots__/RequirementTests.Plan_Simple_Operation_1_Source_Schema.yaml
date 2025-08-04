@@ -1,12 +1,12 @@
 operation:
   - document: >-
-    {
-      books {
-        titleAndId
-        id @fusion__requirement
-        title @fusion__requirement
+      {
+        books {
+          titleAndId
+          id @fusion__requirement
+          title @fusion__requirement
+        }
       }
-    }
     hash: 123
 nodes:
   - id: 1

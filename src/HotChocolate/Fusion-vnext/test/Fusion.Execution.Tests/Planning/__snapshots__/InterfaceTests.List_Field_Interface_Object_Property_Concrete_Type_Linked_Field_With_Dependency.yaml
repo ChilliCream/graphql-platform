@@ -1,18 +1,18 @@
 operation:
   - document: >-
-    query testQuery {
-      wrappers {
-        votable {
-          viewerCanVote
-          ... on Discussion {
-            author {
-              displayName
-              id @fusion__requirement
+      query testQuery {
+        wrappers {
+          votable {
+            viewerCanVote
+            ... on Discussion {
+              author {
+                displayName
+                id @fusion__requirement
+              }
             }
           }
         }
       }
-    }
     name: testQuery
     hash: 123
 nodes:
