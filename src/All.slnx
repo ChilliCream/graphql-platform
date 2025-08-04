@@ -182,6 +182,9 @@
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Language/HotChocolate.Fusion.Language.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Utilities/HotChocolate.Fusion.Utilities.csproj" />
   </Folder>
+  <Folder Name="/HotChocolate/Fusion-vnext/src/Fusion.Packaging/">
+    <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Packaging/HotChocolate.Fusion.Packaging.csproj" />
+  </Folder>
   <Folder Name="/HotChocolate/Fusion-vnext/test/">
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.AspNetCore.Tests/HotChocolate.Fusion.AspNetCore.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.CommandLine.Tests/HotChocolate.Fusion.CommandLine.Tests.csproj" />
