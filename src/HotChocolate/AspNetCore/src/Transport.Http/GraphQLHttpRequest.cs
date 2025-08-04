@@ -1,3 +1,6 @@
+using System.Collections.Immutable;
+using System.Net.Http.Headers;
+
 namespace HotChocolate.Transport.Http;
 
 /// <summary>
@@ -142,6 +145,11 @@ public sealed class GraphQLHttpRequest
     public Uri? Uri { get; set; }
 
     /// <summary>
+    /// Gets or sets the accepted content types.
+    /// </summary>
+    public ImmutableArray<MediaTypeWithQualityHeaderValue> Accept { get; set; } = DefaultAcceptContentTypes;
+
+    /// <summary>
     /// Gets or sets a hook that can alter the <see cref="HttpRequestMessage"/> before it is sent.
     /// </summary>
     public OnHttpRequestMessageCreated? OnMessageCreated { get; set; }
@@ -171,4 +179,37 @@ public sealed class GraphQLHttpRequest
     public static implicit operator GraphQLHttpRequest(VariableBatchRequest body) => new(body);
 
     public static implicit operator GraphQLHttpRequest(OperationBatchRequest body) => new(body);
+
+    /// <summary>
+    /// application/graphql-response+json
+    /// application/json
+    /// text/event-stream
+    /// application/graphql-response+jsonl
+    /// </summary>
+    public static ImmutableArray<MediaTypeWithQualityHeaderValue> DefaultAcceptContentTypes { get; } =
+    [
+        new(ContentType.GraphQL),
+        new(ContentType.Json),
+        new(ContentType.EventStream),
+        new(ContentType.GraphQLJsonLine)
+    ];
+
+    /// <summary>
+    /// text/event-stream
+    /// see also: https://github.com/graphql/graphql-over-http/blob/main/rfcs/GraphQLOverSSE.md
+    /// </summary>
+    public static ImmutableArray<MediaTypeWithQualityHeaderValue> GraphQLOverSse { get; } =
+    [
+        new(ContentType.EventStream),
+    ];
+
+    /// <summary>
+    /// application/graphql-response+json
+    /// application/graphql-response+jsonl
+    /// </summary>
+    public static ImmutableArray<MediaTypeWithQualityHeaderValue> GraphQLOverHttp { get; } =
+    [
+        new(ContentType.GraphQL),
+        new(ContentType.GraphQLJsonLine)
+    ];
 }

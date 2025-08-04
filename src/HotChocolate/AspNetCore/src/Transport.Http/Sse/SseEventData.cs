@@ -2,10 +2,10 @@ using HotChocolate.Buffers;
 
 namespace HotChocolate.Transport.Http;
 
-internal ref struct SseEventData(
+internal readonly ref struct SseEventData(
     SseEventType type,
     PooledArrayWriter? data)
 {
-    public SseEventType Type = type;
-    public PooledArrayWriter? Data = data;
+    public readonly SseEventType Type = type;
+    public readonly PooledArrayWriter? Data = data;
 }

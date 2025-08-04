@@ -160,6 +160,11 @@ public sealed class GraphQLHttpResponse : IDisposable
             return new SseReader(_message);
         }
 
+        if (contentType?.MediaType?.Equals(ContentType.GraphQLJsonLine, StringComparison.Ordinal) ?? false)
+        {
+            return new JsonLinesReader(_message);
+        }
+
         // The server supports the newer graphql-response+json media type, and users are free
         // to use status codes.
         if (contentType?.MediaType?.Equals(ContentType.GraphQL, StringComparison.Ordinal) ?? false)
