@@ -11,16 +11,14 @@
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="System.IO.Pipelines" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.Buffers\HotChocolate.Utilities.Buffers.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.Tasks\HotChocolate.Utilities.Tasks.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="System.IO.Pipelines">
-      <HintPath>..\..\..\..\..\..\..\..\..\usr\local\share\dotnet\shared\Microsoft.AspNetCore.App\8.0.11\System.IO.Pipelines.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>
