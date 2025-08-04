@@ -17,4 +17,10 @@
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.Tasks\HotChocolate.Utilities.Tasks.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="System.IO.Pipelines">
+      <HintPath>..\..\..\..\..\..\..\..\..\usr\local\share\dotnet\shared\Microsoft.AspNetCore.App\8.0.11\System.IO.Pipelines.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
