@@ -1,21 +1,21 @@
 operation:
   - document: >-
-    query testQuery {
-      authorables {
-        author {
-          id
-          displayName
-          id @fusion__requirement
-        }
-        ... on Discussion {
+      query testQuery {
+        authorables {
           author {
             id
             displayName
             id @fusion__requirement
           }
+          ... on Discussion {
+            author {
+              id
+              displayName
+              id @fusion__requirement
+            }
+          }
         }
       }
-    }
     name: testQuery
     hash: 123
 nodes:

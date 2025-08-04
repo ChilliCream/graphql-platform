@@ -1,23 +1,23 @@
 operation:
   - document: >-
-    query testQuery {
-      postEdges {
-        node {
-          ... on Photo {
-            product {
-              subgraph2
-              id @fusion__requirement
+      query testQuery {
+        postEdges {
+          node {
+            ... on Photo {
+              product {
+                subgraph2
+                id @fusion__requirement
+              }
             }
-          }
-          ... on Discussion {
-            author {
-              subgraph2
-              id @fusion__requirement
+            ... on Discussion {
+              author {
+                subgraph2
+                id @fusion__requirement
+              }
             }
           }
         }
       }
-    }
     name: testQuery
     hash: 123
 nodes:

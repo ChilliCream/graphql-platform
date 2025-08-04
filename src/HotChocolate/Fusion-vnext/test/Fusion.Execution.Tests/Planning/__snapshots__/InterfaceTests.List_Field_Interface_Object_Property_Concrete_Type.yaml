@@ -1,15 +1,15 @@
 operation:
   - document: >-
-    query testQuery {
-      wrappers {
-        votable {
-          viewerCanVote
-          ... on Discussion {
-            title
+      query testQuery {
+        wrappers {
+          votable {
+            viewerCanVote
+            ... on Discussion {
+              title
+            }
           }
         }
       }
-    }
     name: testQuery
     hash: 123
 nodes:
