@@ -1,7 +1,5 @@
 using System.Buffers;
-using System.Diagnostics;
 using System.IO.Pipelines;
-using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Utilities;
 using static HotChocolate.Transport.Formatters.JsonLinesResultFormatterEventSource;
@@ -10,7 +8,6 @@ namespace HotChocolate.Transport.Formatters;
 
 public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options) : IExecutionResultFormatter
 {
-    private const int MaxBacklogSize = 64;
     private readonly JsonResultFormatter _payloadFormatter = new(options with { Indented = false });
 
     public ValueTask FormatAsync(
@@ -71,11 +68,11 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         Stream outputStream,
         CancellationToken ct)
     {
+        Exception? exception = null;
         using var semaphore = new SemaphoreSlim(1, 1);
         var writer = outputStream.CreatePipeWriter();
-
-        KeepAliveJob? keepAlive = null;
         List<Task>? streams = null;
+        KeepAliveJob? keepAlive = null;
 
         try
         {
@@ -84,32 +81,39 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
                 switch (result)
                 {
                     case IOperationResult operationResult:
-                        var scope = Log.FormatOperationResultStart();
+                    {
+                        using var scope = Log.FormatOperationResultStart();
+                        await semaphore.WaitAsync(ct).ConfigureAwait(false);
+
                         try
                         {
-                            var buffer = writer.Begin();
-                            MessageHelper.FormatNextMessage(_payloadFormatter, operationResult, buffer);
-                            await writer.CommitAsync(buffer, ct).ConfigureAwait(false);
+                            MessageHelper.FormatNextMessage(_payloadFormatter, operationResult, writer);
+                            await writer.FlushAsync(ct).ConfigureAwait(false);
                             keepAlive?.Reset();
                         }
                         catch (Exception ex)
                         {
                             scope?.AddError(ex);
-                            Debug.WriteLine(ex);
+                            throw;
                         }
                         finally
                         {
+                            semaphore.Release();
                             await operationResult.DisposeAsync().ConfigureAwait(false);
-                            scope?.Dispose();
                         }
 
                         break;
+                    }
 
                     case IResponseStream responseStream:
-                        keepAlive ??= new KeepAliveJob(writer);
-                        streams ??= [];
-                        var formatter = new StreamFormatter(_payloadFormatter, keepAlive, responseStream, writer);
-                        streams.Add(formatter.ProcessAsync(ct));
+                        keepAlive ??= new KeepAliveJob(semaphore, writer);
+                        var formatter = new StreamFormatter(
+                            _payloadFormatter,
+                            keepAlive,
+                            responseStream,
+                            semaphore,
+                            writer);
+                        (streams ??= []).Add(formatter.ProcessAsync(ct));
                         break;
 
                     default:
@@ -118,17 +122,30 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
                 }
             }
         }
+        catch (OperationCanceledException ex)
+        {
+            // if the operation was canceled, we do not need to log this
+            // and will stop gracefully.
+            exception = ex;
+        }
+        catch (Exception ex)
+        {
+            exception = ex;
+            throw;
+        }
         finally
         {
-            if (streams?.Count > 0)
-            {
-                await Task.WhenAll(streams).ConfigureAwait(false);
-            }
-
+            var streamError = await TryCompleteStreamsAsync(streams).ConfigureAwait(false);
+            exception ??= streamError;
             keepAlive?.Dispose();
+            await writer.CompleteAsync(exception).ConfigureAwait(false);
         }
 
-        await writer.WaitForCompletionAsync().ConfigureAwait(false);
+        // we rethrow any stream exception that happened.
+        if (exception is not null)
+        {
+            throw exception;
+        }
     }
 
     private async ValueTask FormatResponseStreamAsync(
@@ -150,6 +167,12 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
 
             await writer.FlushAsync(ct).ConfigureAwait(false);
         }
+        catch (OperationCanceledException ex)
+        {
+            // if the operation was canceled, we do not need to log this
+            // and will stop gracefully.
+            exception = ex;
+        }
         catch (Exception ex)
         {
             exception = ex;
@@ -159,7 +182,29 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         {
             await writer.CompleteAsync(exception).ConfigureAwait(false);
         }
+    }
 
+    private static ValueTask<Exception?> TryCompleteStreamsAsync(List<Task>? streams = null)
+    {
+        if (streams is null || streams.Count == 0)
+        {
+            return default;
+        }
+
+        return CompleteStreamsAsync(streams);
+    }
+
+    private static async ValueTask<Exception?> CompleteStreamsAsync(List<Task> streams)
+    {
+        try
+        {
+            await Task.WhenAll(streams).ConfigureAwait(false);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            return ex;
+        }
     }
 
     private sealed class StreamFormatter(
@@ -183,17 +228,17 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
                     try
                     {
                         MessageHelper.FormatNextMessage(payloadFormatter, result, writer);
-                        keepAliveJob.Reset();
                         await writer.FlushAsync(ct).ConfigureAwait(false);
+                        keepAliveJob.Reset();
                     }
                     catch (Exception ex)
                     {
                         scope?.AddError(ex);
-                        Debug.WriteLine(ex);
-                        return;
+                        throw;
                     }
                     finally
                     {
+                        semaphore.Release();
                         await result.DisposeAsync().ConfigureAwait(false);
                         scope?.Dispose();
                     }
@@ -218,12 +263,12 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
         private readonly CancellationTokenSource _cancellationTokenSource = new();
         private readonly CancellationToken _ct;
         private readonly SemaphoreSlim _semaphore;
-        private readonly IBufferWriter<byte> _writer;
+        private readonly PipeWriter _writer;
         private readonly Timer _keepAliveTimer;
         private DateTime _lastWriteTime = DateTime.UtcNow;
         private bool _disposed;
 
-        public KeepAliveJob(SemaphoreSlim semaphore, IBufferWriter<byte> writer)
+        public KeepAliveJob(SemaphoreSlim semaphore, PipeWriter writer)
         {
             _semaphore = semaphore;
             _writer = writer;
@@ -252,6 +297,7 @@ public sealed class JsonLinesResultFormatter(JsonResultFormatterOptions options)
                 try
                 {
                     _writer.Write(MessageHelper.KeepAlive);
+                    await _writer.FlushAsync(_ct).ConfigureAwait(false);
                     _lastWriteTime = DateTime.UtcNow;
                 }
                 catch

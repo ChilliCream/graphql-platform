@@ -14,6 +14,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     private readonly JsonWriterOptions _options;
     private readonly JsonSerializerOptions _serializerOptions;
     private readonly JsonNullIgnoreCondition _nullIgnoreCondition;
+    private readonly ThreadLocal<Utf8JsonWriter?> _writer = new(valueFactory: () => null, trackAllValues: false);
 
     /// <summary>
     /// Initializes a new instance of <see cref="JsonResultFormatter"/> with default options.
@@ -155,7 +156,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
     private void FormatInternal(IOperationResult result, IBufferWriter<byte> writer)
     {
-        using var jsonWriter = new Utf8JsonWriter(writer, _options);
+        var jsonWriter = CreateWriter(writer);
         WriteResult(jsonWriter, result);
         jsonWriter.Flush();
     }
@@ -399,5 +400,18 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
             writer.WriteEndArray();
         }
+    }
+
+    private Utf8JsonWriter CreateWriter(IBufferWriter<byte> buffer)
+    {
+        if (_writer.Value is not { } jsonWriter)
+        {
+            jsonWriter = new Utf8JsonWriter(buffer, _options);
+            _writer.Value = jsonWriter;
+            return jsonWriter;
+        }
+
+        jsonWriter.Reset(buffer);
+        return jsonWriter;
     }
 }
