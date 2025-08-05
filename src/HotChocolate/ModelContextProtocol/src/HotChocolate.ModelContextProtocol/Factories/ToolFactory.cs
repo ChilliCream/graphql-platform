@@ -47,9 +47,6 @@ internal sealed class ToolFactory(ISchemaDefinition graphQLSchema)
 
     private JsonElement CreateInputSchema(OperationDefinitionNode operation)
     {
-        var schemaBuilder = new JsonSchemaBuilder();
-        schemaBuilder.Type(SchemaValueType.Object);
-
         var properties = new Dictionary<string, JsonSchema>();
         var requiredProperties = new List<string>();
 
@@ -80,31 +77,32 @@ internal sealed class ToolFactory(ISchemaDefinition graphQLSchema)
             properties.Add(variableName, propertyBuilder);
         }
 
-        schemaBuilder.Properties(properties);
-        schemaBuilder.Required(requiredProperties);
+        var schema =
+            new JsonSchemaBuilder()
+                .Type(SchemaValueType.Object)
+                .Properties(properties)
+                .Required(requiredProperties)
+                .Build();
 
         var json =
-            JsonSerializer.Serialize(
-                schemaBuilder.Build(),
-                JsonSchemaJsonSerializerContext.Default.JsonSchema);
+            JsonSerializer.Serialize(schema, JsonSchemaJsonSerializerContext.Default.JsonSchema);
 
         return JsonDocument.Parse(json).RootElement;
     }
 
     private static JsonElement? CreateOutputSchema(IOperation operation)
     {
-        var schemaBuilder =
+        var schema =
             new JsonSchemaBuilder()
                 .Type(SchemaValueType.Object)
                 .Properties(
                     (WellKnownFieldNames.Data, CreateDataSchema(operation)),
                     (WellKnownFieldNames.Errors, s_errorSchema))
-                .AdditionalProperties(false);
+                .AdditionalProperties(false)
+                .Build();
 
         var json =
-            JsonSerializer.Serialize(
-                schemaBuilder.Build(),
-                JsonSchemaJsonSerializerContext.Default.JsonSchema);
+            JsonSerializer.Serialize(schema, JsonSchemaJsonSerializerContext.Default.JsonSchema);
 
         return JsonDocument.Parse(json).RootElement;
     }
