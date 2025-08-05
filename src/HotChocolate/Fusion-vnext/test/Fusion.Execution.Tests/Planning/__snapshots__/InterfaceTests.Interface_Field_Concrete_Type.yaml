@@ -1,17 +1,20 @@
-operation: >-
-  query testQuery {
-    votable {
-      viewerCanVote
-      ... on Discussion {
-        title
+operation:
+  - document: >-
+      query testQuery {
+        votable {
+          viewerCanVote
+          ... on Discussion {
+            title
+          }
+        }
       }
-    }
-  }
+    name: testQuery
+    hash: 123
 nodes:
   - id: 1
     schema: SUBGRAPH_1
     operation: >-
-      query testQuery_1 {
+      query testQuery_123_1 {
         votable {
           viewerCanVote
           ... on Discussion {

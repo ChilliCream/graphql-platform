@@ -14,7 +14,7 @@ public sealed class InlineFragmentOperationRewriter(
             null,
             new NameNode(IntrospectionFieldNames.TypeName),
             null,
-            [new DirectiveNode("fusion_internal")],
+            [new DirectiveNode("fusion__requirement")],
             ImmutableArray<ArgumentNode>.Empty,
             null);
 

@@ -27,6 +27,11 @@ public sealed record PlanNode
     public required OperationDefinitionNode InternalOperationDefinition { get; init; }
 
     /// <summary>
+    /// Gets the first 8 characters of the hash of the original operation document.
+    /// </summary>
+    public required string ShortHash { get; init; }
+
+    /// <summary>
     /// The source schema against which the next <see cref="WorkItem"/> is planned.
     /// </summary>
     public required string SchemaName { get; init; }
@@ -48,13 +53,13 @@ public sealed record PlanNode
 
     public double TotalCost => PathCost + BacklogCost;
 
-    public string? CreateOperationName(int stepId)
+    public string CreateOperationName(int stepId)
     {
         if (OperationDefinition.Name is null)
         {
-            return null;
+            return $"Op_{ShortHash}_{stepId}";
         }
 
-        return $"{OperationDefinition.Name.Value}_{stepId}";
+        return $"{OperationDefinition.Name.Value}_{ShortHash}_{stepId}";
     }
 }

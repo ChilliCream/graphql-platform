@@ -1,0 +1,137 @@
+---------------
+{
+  "data": {
+    "onBookCreated": {
+      "id": 1,
+      "title": "Foo"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "subscription {\n  onBookCreated {\n    id\n    title\n    id @fusion__requirement\n  }\n}",
+          "hash": "a6fc02fcd58c513d69d75983869b251f"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": "subscription Op_a6fc02fc_1 {\n  onBookCreated {\n    id\n  }\n}"
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": "query Op_a6fc02fc_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    title\n  }\n}",
+            "source": "$.bookById",
+            "target": "$.onBookCreated",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "selectionMap": "id"
+              }
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
+---------------
+
+---------------
+{
+  "data": {
+    "onBookCreated": {
+      "id": 2,
+      "title": "Bar"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "subscription {\n  onBookCreated {\n    id\n    title\n    id @fusion__requirement\n  }\n}",
+          "hash": "a6fc02fcd58c513d69d75983869b251f"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": "subscription Op_a6fc02fc_1 {\n  onBookCreated {\n    id\n  }\n}"
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": "query Op_a6fc02fc_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    title\n  }\n}",
+            "source": "$.bookById",
+            "target": "$.onBookCreated",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "selectionMap": "id"
+              }
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
+---------------
+
+---------------
+{
+  "data": {
+    "onBookCreated": {
+      "id": 3,
+      "title": "Baz"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "subscription {\n  onBookCreated {\n    id\n    title\n    id @fusion__requirement\n  }\n}",
+          "hash": "a6fc02fcd58c513d69d75983869b251f"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": "subscription Op_a6fc02fc_1 {\n  onBookCreated {\n    id\n  }\n}"
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": "query Op_a6fc02fc_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    title\n  }\n}",
+            "source": "$.bookById",
+            "target": "$.onBookCreated",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "selectionMap": "id"
+              }
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
+---------------

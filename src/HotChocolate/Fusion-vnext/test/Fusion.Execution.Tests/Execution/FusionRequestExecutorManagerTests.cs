@@ -108,7 +108,7 @@ public class FusionRequestExecutorManagerTests
         Assert.NotNull(result.ContextData);
         Assert.True(result.ContextData.TryGetValue("operationPlan", out var operationPlan));
         Assert.NotNull(operationPlan);
-        Assert.Equal("Test", Assert.IsType<OperationExecutionPlan>(operationPlan).OperationName);
+        Assert.Equal("Test", Assert.IsType<OperationPlan>(operationPlan).OperationName);
     }
 
     protected static DocumentNode ComposeSchema(

@@ -135,17 +135,14 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 
         var message = new HttpRequestMessage
         {
-            Method = method,
-            Headers =
-            {
-                Accept =
-                {
-                    new MediaTypeWithQualityHeaderValue(ContentType.GraphQL),
-                    new MediaTypeWithQualityHeaderValue(ContentType.Json),
-                    new MediaTypeWithQualityHeaderValue(ContentType.EventStream)
-                }
-            }
+            Method = method
         };
+
+        message.Headers.Accept.Clear();
+        foreach (var contentType in request.Accept)
+        {
+            message.Headers.Accept.Add(contentType);
+        }
 
         if (method == GraphQLHttpMethod.Post)
         {

@@ -36,9 +36,11 @@ internal sealed class OperationPlanMiddleware
 
         // Before we can plan an operation, we must defragmentize it and remove statical include conditions.
         var operationId = context.GetOperationId();
+        var operationHash = context.OperationDocumentInfo.Hash.Value;
+        var operationShortHash = operationHash[..8];
         var rewritten = _rewriter.RewriteDocument(operationDocumentInfo.Document, context.Request.OperationName);
         var operation = GetOperation(rewritten);
-        var executionPlan = _planner.CreatePlan(operationId, operation);
+        var executionPlan = _planner.CreatePlan(operationId, operationHash, operationShortHash, operation);
         context.SetOperationPlan(executionPlan);
 
         return next(context);
