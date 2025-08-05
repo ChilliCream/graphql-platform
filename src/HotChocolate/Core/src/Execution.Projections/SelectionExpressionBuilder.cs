@@ -190,8 +190,9 @@ internal sealed class SelectionExpressionBuilder
         if (parameterlessCtor != null)
         {
             var allWritable = assignmentList.All(a =>
-                a.Member is PropertyInfo { CanWrite: true, SetMethod.IsPublic: true });
-
+                a.Member is PropertyInfo { CanWrite: true } prop
+                && prop.SetMethod != null
+                && (prop.SetMethod.IsPublic || prop.SetMethod.IsAssembly));
             if (allWritable)
             {
                 return Expression.MemberInit(
@@ -203,39 +204,61 @@ internal sealed class SelectionExpressionBuilder
         // Fallback: Use the best matching constructor.
         // Argument names must match parameter names (case-insensitive),
         // and argument types must be assignable to the parameter types.
-        ConstructorInfo? bestMatchingCtor = null;
-        ParameterInfo[]? ctorParams = null;
-        foreach (var ctor in context.ParentType.GetConstructors())
-        {
-            var parameters = ctor.GetParameters();
-            if (parameters.Length == assignmentList.Length)
-            {
-                var argumentsMatchParameters = parameters.All(p =>
-                    assignmentList.Any(a =>
+        var bestMatchingCtor = context.ParentType.GetConstructors()
+            .Select(c => (Constructor: c, Parameters: c.GetParameters()))
+            .OrderBy(cp => cp.Parameters.Length)
+            .FirstOrDefault(cp =>
+                cp.Parameters.Length >= assignmentList.Length
+                && assignmentList.All(a =>
+                    cp.Parameters.Any(p =>
                         string.Equals(a.Member.Name, p.Name, StringComparison.OrdinalIgnoreCase)
-                        && a.Expression.Type.IsAssignableTo(p.ParameterType)));
+                        && a.Expression.Type.IsAssignableTo(p.ParameterType))));
 
-                if (argumentsMatchParameters)
-                {
-                    bestMatchingCtor = ctor;
-                    ctorParams = parameters;
-                    break;
-                }
-            }
-        }
-
-        if (bestMatchingCtor != null && ctorParams != null)
+        if (bestMatchingCtor.Constructor != null)
         {
-            // args and params might not match order -> align them
+            var ctorParams = bestMatchingCtor.Parameters;
             var args = ctorParams.Select(p =>
             {
-                var member = assignmentList.First(a =>
-                    string.Equals(a.Member.Name, p.Name, StringComparison.OrdinalIgnoreCase));
+                var match = assignmentList.FirstOrDefault(a =>
+                    string.Equals(a.Member.Name, p.Name, StringComparison.OrdinalIgnoreCase)
+                    && a.Expression.Type.IsAssignableTo(p.ParameterType));
 
-                return Expression.Convert(member.Expression, p.ParameterType);
+                if (match != null)
+                {
+                    return match.Expression.Type == p.ParameterType
+                        ? match.Expression
+                        : Expression.Convert(match.Expression, p.ParameterType);
+                }
+
+                if (p.HasDefaultValue)
+                {
+                    return Expression.Convert(Expression.Constant(p.DefaultValue), p.ParameterType);
+                }
+
+                if (!p.ParameterType.IsValueType && IsMarkedAsExplicitlyNonNullable(p))
+                {
+                    /*
+                     * The constructor includes a non-nullable reference type (e.g.,
+                     * public record Foo(string Prop1, string Prop2);),
+                     * but we cannot provide a value for 'Prop2' based on the current selection set,
+                     * as 'Prop2' is not included in it.
+                     *
+                     * To fix this, consider updating the constructor to:
+                     *   - Make the parameter nullable: Foo(string Prop1, string? Prop2);
+                     *   - Provide a default value: Foo(string Prop1, string Prop2 = "");
+                     *     - That may also be a null-forgiving one: Foo(string Prop1, string Prop2 = default!)
+                     *
+                     * Lets hope that this error is descriptive for the user.
+                     */
+                    throw new InvalidOperationException(
+                        $"Cannot construct '{context.ParentType.Name}': missing required argument '{p.Name}' "
+                        + "(non-nullable reference type with no default value).");
+                }
+
+                return Expression.Default(p.ParameterType);
             }).ToArray();
 
-            return Expression.New(bestMatchingCtor, args);
+            return Expression.New(bestMatchingCtor.Constructor, args);
         }
 
         throw new InvalidOperationException(
@@ -403,5 +426,10 @@ internal sealed class SelectionExpressionBuilder
                 ? Requirements.GetRequirements(selection.Field)
                 : null;
         }
+    }
+
+    static bool IsMarkedAsExplicitlyNonNullable(ParameterInfo p)
+    {
+        return new NullabilityInfoContext().Create(p).WriteState is NullabilityState.NotNull;
     }
 }

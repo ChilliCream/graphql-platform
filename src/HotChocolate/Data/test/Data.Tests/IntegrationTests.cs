@@ -967,6 +967,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
         // arrange
         var executor = await new ServiceCollection()
             .AddGraphQL()
+            .AddErrorFilter(x => new Error {Message = x.Exception!.Message})
             .AddFiltering()
             .AddSorting()
             .AddProjections()
@@ -977,11 +978,61 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
         var result = await executor.ExecuteAsync(
             """
             query f {
-              users {
+              # Selection set matches record-ctor params
+              u1: nonNullUsers {
                 edges {
                   node {
                     firstName
                     id
+                  }
+                }
+              }
+
+              # Selection set is subset of record-ctor params (incompatible, since we can`t provide a valid value)
+              u2: nonNullUsers {
+                edges {
+                  node {
+                    firstName
+                  }
+                }
+              }
+
+             # Selection set matches record-ctor params
+              u3: nonNullDefaultValuesUsers {
+                edges {
+                  node {
+                    id
+                    firstName
+                    zipCode
+                    address
+                  }
+                }
+              }
+
+              # Selection set is subset of record-ctor params (compatible, since we can provide the default value)
+              u4: nonNullDefaultValuesUsers {
+                edges {
+                  node {
+                    firstName
+                  }
+                }
+              }
+
+             # Selection set matches record-ctor params
+              u5: nullableUsers {
+                edges {
+                  node {
+                    id
+                    firstName
+                  }
+                }
+              }
+
+              # Selection set is subset of record-ctor params
+              u6: nullableUsers {
+                edges {
+                  node {
+                    firstName
                   }
                 }
               }
@@ -1253,16 +1304,35 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     {
         [UsePaging]
         [UseFiltering]
-        public Connection<User> GetUsers(
-            QueryContext<User> query
-        )
-        {
-            return Connection.Empty<User>();
-        }
+        public Connection<NonNullUser> GetNonNullUsers(QueryContext<NonNullUser> query)
+            => Connection.Empty<NonNullUser>();
 
-        public record User(
+        [UsePaging]
+        [UseFiltering]
+        public Connection<NonNullDefaultValuesUser> GetNonNullDefaultValuesUsers(QueryContext<NonNullDefaultValuesUser> query)
+            => Connection.Empty<NonNullDefaultValuesUser>();
+
+        [UsePaging]
+        [UseFiltering]
+        public Connection<NullableUser> GetNullableUsers(QueryContext<NullableUser> query)
+            => Connection.Empty<NullableUser>();
+
+        public record NonNullUser(
             string Id,
             string FirstName
+        );
+
+        public record NonNullDefaultValuesUser(
+            string Id = "",
+            string FirstName = "",
+            string ZipCode = null!,
+            // ReSharper disable once PreferConcreteValueOverDefault
+            string Address = default!
+        );
+
+        public record NullableUser(
+            string? Id,
+            string? FirstName
         );
     }
 }

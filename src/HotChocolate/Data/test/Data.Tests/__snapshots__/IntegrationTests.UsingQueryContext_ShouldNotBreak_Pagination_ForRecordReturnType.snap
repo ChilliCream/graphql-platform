@@ -1,6 +1,33 @@
 {
+  "errors": [
+    {
+      "message": "Cannot construct 'NonNullUser': missing required argument 'Id' (non-nullable reference type with no default value).",
+      "locations": [
+        {
+          "line": 13,
+          "column": 3
+        }
+      ],
+      "path": [
+        "u2"
+      ]
+    }
+  ],
   "data": {
-    "users": {
+    "u1": {
+      "edges": []
+    },
+    "u2": null,
+    "u3": {
+      "edges": []
+    },
+    "u4": {
+      "edges": []
+    },
+    "u5": {
+      "edges": []
+    },
+    "u6": {
       "edges": []
     }
   }
