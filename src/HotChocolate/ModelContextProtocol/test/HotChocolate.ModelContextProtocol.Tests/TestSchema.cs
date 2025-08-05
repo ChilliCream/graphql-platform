@@ -193,6 +193,11 @@ public sealed class TestSchema
 
         public int GetWithVariableMinMaxValues() => 1;
 
+        public IPet GetWithInterfaceType() => new Cat(Name: "Whiskers", IsPurring: true);
+
+        [GraphQLType("PetUnion!")]
+        public IPet GetWithUnionType() => new Cat(Name: "Whiskers", IsPurring: true);
+
         // Implicitly open-world by default, unless annotated otherwise.
         public int ImplicitOpenWorldQuery() => 1;
 
@@ -213,6 +218,23 @@ public sealed class TestSchema
         // The query field is closed-world, and the subfield is also (explicitly) closed-world.
         [McpToolAnnotations(OpenWorldHint = false)]
         public ExplicitClosedWorld ExplicitClosedWorldSubfieldQuery() => new();
+
+        public int GetWithErrors()
+        {
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Error 1")
+                    .SetCode("Code 1")
+                    .SetException(new Exception("Exception 1"))
+                    .Build(),
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Error 2")
+                    .SetCode("Code 2")
+                    .SetException(new Exception("Exception 2"))
+                    .Build());
+        }
     }
 
     public sealed class Mutation
@@ -395,6 +417,15 @@ public sealed class TestSchema
         OneOf[] OneOfList,
         ObjectWithOneOfField ObjectWithOneOfField,
         TimeSpan TimeSpanDotNet);
+
+    [UnionType(name: "PetUnion")]
+    public interface IPet
+    {
+        string Name { get; }
+    }
+
+    public sealed record Cat(string Name, bool IsPurring) : IPet;
+    public sealed record Dog(string Name, bool IsBarking) : IPet;
 
     private sealed class UnknownType() : ScalarType<string, StringValueNode>("Unknown")
     {

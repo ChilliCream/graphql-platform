@@ -31,8 +31,17 @@ public sealed class ListToolsHandlerTests
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql")));
         var services = new ServiceCollection().AddSingleton<IMcpOperationDocumentStorage>(storage);
-        services.AddGraphQL().AddMcp().AddQueryType<TestSchema.Query>();
-        services.AddMcpServer().WithGraphQLTools();
+        services
+            .AddGraphQL()
+            .AddMcp()
+            .AddQueryType<TestSchema.Query>()
+            .AddInterfaceType<TestSchema.IPet>()
+            .AddUnionType<TestSchema.IPet>()
+            .AddObjectType<TestSchema.Cat>()
+            .AddObjectType<TestSchema.Dog>();
+        services
+            .AddMcpServer()
+            .WithGraphQLTools();
         var serviceProvider = services.BuildServiceProvider();
         Mock<IMcpServer> mockServer = new();
         mockServer.SetupGet(s => s.Services).Returns(serviceProvider);

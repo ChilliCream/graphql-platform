@@ -183,7 +183,7 @@ public sealed class ToolFactoryTests
     }
 
     [Fact]
-    public void CreateTool_WithNullableVariables_CreatesCorrectInputSchema()
+    public void CreateTool_WithNullableVariables_CreatesCorrectSchema()
     {
         // arrange
         var schema = CreateSchema();
@@ -194,11 +194,12 @@ public sealed class ToolFactoryTests
         var tool = new ToolFactory(schema).CreateTool("get_with_nullable_variables", document);
 
         // assert
-        tool.InputSchema.MatchSnapshot(extension: ".json");
+        tool.InputSchema.MatchSnapshot(postFix: "Input", extension: ".json");
+        tool.OutputSchema.MatchSnapshot(postFix: "Output", extension: ".json");
     }
 
     [Fact]
-    public void CreateTool_WithNonNullableVariables_CreatesCorrectInputSchema()
+    public void CreateTool_WithNonNullableVariables_CreatesCorrectSchema()
     {
         // arrange
         var schema = CreateSchema();
@@ -209,11 +210,12 @@ public sealed class ToolFactoryTests
         var tool = new ToolFactory(schema).CreateTool("get_with_non_nullable_variables", document);
 
         // assert
-        tool.InputSchema.MatchSnapshot(extension: ".json");
+        tool.InputSchema.MatchSnapshot(postFix: "Input", extension: ".json");
+        tool.OutputSchema.MatchSnapshot(postFix: "Output", extension: ".json");
     }
 
     [Fact]
-    public void CreateTool_WithDefaultedVariables_CreatesCorrectInputSchema()
+    public void CreateTool_WithDefaultedVariables_CreatesCorrectSchema()
     {
         // arrange
         var schema = CreateSchema();
@@ -224,11 +226,12 @@ public sealed class ToolFactoryTests
         var tool = new ToolFactory(schema).CreateTool("get_with_defaulted_variables", document);
 
         // assert
-        tool.InputSchema.MatchSnapshot(extension: ".json");
+        tool.InputSchema.MatchSnapshot(postFix: "Input", extension: ".json");
+        tool.OutputSchema.MatchSnapshot(postFix: "Output", extension: ".json");
     }
 
     [Fact]
-    public void CreateTool_WithComplexVariables_CreatesCorrectInputSchema()
+    public void CreateTool_WithComplexVariables_CreatesCorrectSchema()
     {
         // arrange
         var schema = CreateSchema(s => s.AddType(new TimeSpanType(TimeSpanFormat.DotNet)));
@@ -239,7 +242,8 @@ public sealed class ToolFactoryTests
         var tool = new ToolFactory(schema).CreateTool("get_with_complex_variables", document);
 
         // assert
-        tool.InputSchema.MatchSnapshot(extension: ".json");
+        tool.InputSchema.MatchSnapshot(postFix: "Input", extension: ".json");
+        tool.OutputSchema.MatchSnapshot(postFix: "Output", extension: ".json");
     }
 
     [Fact]
@@ -263,6 +267,116 @@ public sealed class ToolFactoryTests
 
         // assert
         tool.InputSchema.MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public void CreateTool_WithInterfaceType_CreatesCorrectOutputSchema()
+    {
+        // arrange
+        var schema = CreateSchema();
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query GetWithInterfaceType {
+                withInterfaceType {
+                    __typename
+                    name
+                    ... on Cat {
+                        isPurring
+                    }
+                    ... on Dog {
+                        isBarking
+                    }
+                }
+            }
+            """);
+
+        // act
+        var tool = new ToolFactory(schema).CreateTool("get_with_interface_type", document);
+
+        // assert
+        tool.OutputSchema.MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public void CreateTool_WithUnionType_CreatesCorrectOutputSchema()
+    {
+        // arrange
+        var schema = CreateSchema();
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query GetWithUnionType {
+                withUnionType {
+                    __typename
+                    ... on Cat {
+                        isPurring
+                    }
+                    ... on Dog {
+                        isBarking
+                    }
+                }
+            }
+            """);
+
+        // act
+        var tool = new ToolFactory(schema).CreateTool("get_with_union_type", document);
+
+        // assert
+        tool.OutputSchema.MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public void CreateTool_WithSkipAndInclude_CreatesCorrectOutputSchema()
+    {
+        // arrange
+        var schema = CreateSchema();
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query GetWithSkipAndInclude($skip: Boolean!, $include: Boolean!) {
+                withDefaultedVariables {
+                    # Skip
+                    skipped: int @skip(if: true)
+                    notSkipped: int @skip(if: false)
+                    possiblySkipped: int @skip(if: $skip)
+                    # Include
+                    included: int @include(if: true)
+                    notIncluded: int @include(if: false)
+                    possiblyIncluded: int @include(if: $include)
+                    # Skip and Include (excluded)
+                    skippedAndIncluded: int @skip(if: true) @include(if: true)
+                    skippedAndNotIncluded: int @skip(if: true) @include(if: false)
+                    skippedAndPossiblyIncluded: int @skip(if: true) @include(if: $include)
+                    notSkippedAndNotIncluded: int @skip(if: false) @include(if: false)
+                    possiblySkippedAndNotIncluded: int @skip(if: $skip) @include(if: false)
+                    # Skip and Include (included)
+                    notSkippedAndIncluded: int @skip(if: false) @include(if: true)
+                    notSkippedAndPossiblyIncluded: int @skip(if: false) @include(if: $include)
+                    possiblySkippedAndIncluded: int @skip(if: $skip) @include(if: true)
+                    possiblySkippedAndPossiblyIncluded: int
+                        @skip(if: $skip)
+                        @include(if: $include)
+                    # Object field (nested fields are still required)
+                    objectFieldPossiblySkipped: object @skip(if: $skip) {
+                        field1A { field1B { field1C } }
+                    }
+                    # Fragment spread
+                    ...Fragment @skip(if: $skip)
+                    # Inline fragment
+                    ... @skip(if: $skip) {
+                        inlineFragmentFieldPossiblySkipped: int
+                    }
+                }
+            }
+
+            fragment Fragment on Object1Defaulted {
+                field1A { field1B { field1C } }
+            }
+            """);
+
+        // act
+        var tool = new ToolFactory(schema).CreateTool("get_with_skip_and_include", document);
+
+        // assert
+        tool.OutputSchema.MatchSnapshot(extension: ".json");
     }
 
     [Theory]
@@ -622,10 +736,15 @@ public sealed class ToolFactoryTests
         var schemaBuilder =
             SchemaBuilder
                 .New()
+                .ModifyOptions(o => o.StripLeadingIFromInterface = true)
                 .AddMcp()
                 .AddQueryType<TestSchema.Query>()
                 .AddMutationType<TestSchema.Mutation>()
-                .AddSubscriptionType<TestSchema.Subscription>();
+                .AddSubscriptionType<TestSchema.Subscription>()
+                .AddInterfaceType<TestSchema.IPet>()
+                .AddUnionType<TestSchema.IPet>()
+                .AddObjectType<TestSchema.Cat>()
+                .AddObjectType<TestSchema.Dog>();
 
         configure?.Invoke(schemaBuilder);
 

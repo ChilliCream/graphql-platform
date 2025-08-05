@@ -127,6 +127,7 @@ internal static class TypeExtensions
         {
             EnumType => SchemaValueType.String,
             InputObjectType => SchemaValueType.Object,
+            InterfaceType => SchemaValueType.Object,
             ListType => SchemaValueType.Array,
             NonNullType => GetJsonSchemaValueType(graphQLType.NullableType()),
             ObjectType => SchemaValueType.Object,
@@ -154,6 +155,7 @@ internal static class TypeExtensions
                 // FIXME: Treating all unknown scalar types as strings is a temporary solution.
                 _ => SchemaValueType.String
             },
+            UnionType => SchemaValueType.Object,
             _ =>
                 throw new NotSupportedException(
                     string.Format(

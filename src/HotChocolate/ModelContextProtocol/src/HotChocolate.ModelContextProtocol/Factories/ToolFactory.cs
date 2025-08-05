@@ -34,7 +34,7 @@ internal sealed class ToolFactory(ISchemaDefinition graphQLSchema)
             Title = mcpToolDirective?.Title ?? operation.Name!.InsertSpaceBeforeUpperCase(),
             Description = operationNode.Description?.Value,
             InputSchema = CreateInputSchema(operationNode),
-            // TODO: Output schema.
+            OutputSchema = CreateOutputSchema(operation),
             Annotations = new ToolAnnotations
             {
                 DestructiveHint = GetDestructiveHint(operation),
@@ -89,6 +89,127 @@ internal sealed class ToolFactory(ISchemaDefinition graphQLSchema)
                 JsonSchemaJsonSerializerContext.Default.JsonSchema);
 
         return JsonDocument.Parse(json).RootElement;
+    }
+
+    private static JsonElement? CreateOutputSchema(IOperation operation)
+    {
+        var schemaBuilder =
+            new JsonSchemaBuilder()
+                .Type(SchemaValueType.Object)
+                .Properties(
+                    (WellKnownFieldNames.Data, CreateDataSchema(operation)),
+                    (WellKnownFieldNames.Errors, s_errorSchema))
+                .AdditionalProperties(false);
+
+        var json =
+            JsonSerializer.Serialize(
+                schemaBuilder.Build(),
+                JsonSchemaJsonSerializerContext.Default.JsonSchema);
+
+        return JsonDocument.Parse(json).RootElement;
+    }
+
+    private static JsonSchema CreateDataSchema(IOperation operation)
+    {
+        var properties = new Dictionary<string, JsonSchema>();
+        var requiredProperties = new List<string>();
+
+        foreach (var rootSelection in operation.RootSelectionSet.Selections)
+        {
+            var selectionState = rootSelection.GetSelectionState();
+
+            if (selectionState is SelectionState.Excluded)
+            {
+                continue;
+            }
+
+            properties.Add(
+                rootSelection.ResponseName,
+                CreateOutputSchema(rootSelection, operation));
+
+            if (selectionState is SelectionState.Included)
+            {
+                requiredProperties.Add(rootSelection.ResponseName);
+            }
+        }
+
+        return
+            new JsonSchemaBuilder()
+                .Type(SchemaValueType.Object | SchemaValueType.Null)
+                .Properties(properties)
+                .AdditionalProperties(false)
+                .Required(requiredProperties)
+                .Build();
+    }
+
+    private static JsonSchema CreateOutputSchema(ISelection selection, IOperation operation)
+    {
+        var schemaBuilder = selection.Field.Type.ToJsonSchemaBuilder();
+
+        if (selection.SelectionSet is not null)
+        {
+            var properties = new Dictionary<string, JsonSchema>();
+            var requiredProperties = new List<string>();
+
+            foreach (var type in operation.GetPossibleTypes(selection))
+            {
+                var selectionSet = operation.GetSelectionSet(selection, type);
+
+                foreach (var subSelection in selectionSet.Selections)
+                {
+                    var selectionState = subSelection.GetSelectionState();
+
+                    if (selectionState is SelectionState.Excluded)
+                    {
+                        continue;
+                    }
+
+                    var propertyAdded =
+                        properties.TryAdd(
+                            subSelection.ResponseName,
+                            CreateOutputSchema(subSelection, operation));
+
+                    if (propertyAdded && selectionState is SelectionState.Included)
+                    {
+                        requiredProperties.Add(subSelection.ResponseName);
+                    }
+                }
+            }
+
+            if (selection.Field.Type.NullableType() is ListType listType)
+            {
+                var itemType = SchemaValueType.Object;
+
+                if (listType.ElementType.IsNullableType())
+                {
+                    itemType |= SchemaValueType.Null;
+                }
+
+                var arrayItemSchemaBuilder
+                    = new JsonSchemaBuilder()
+                        .Type(itemType)
+                        .Properties(properties)
+                        .Required(requiredProperties)
+                        .AdditionalProperties(false);
+
+                schemaBuilder.Items(arrayItemSchemaBuilder);
+            }
+            else
+            {
+                schemaBuilder
+                    .Properties(properties)
+                    .Required(requiredProperties)
+                    .AdditionalProperties(false);
+            }
+        }
+
+        // Description.
+        if (selection.Field.Description is not null)
+        {
+            schemaBuilder.Description(selection.Field.Description);
+        }
+
+        return schemaBuilder.Build();
     }
 
     private static bool GetDestructiveHint(IOperation operation)
@@ -203,4 +324,51 @@ internal sealed class ToolFactory(ISchemaDefinition graphQLSchema)
             ? null
             : openWorldHints.Any(o => o == true);
     }
+
+    private static readonly JsonSchema s_integerSchema =
+        new JsonSchemaBuilder()
+            .Type(SchemaValueType.Integer)
+            .Build();
+
+    private static readonly JsonSchema s_errorSchema =
+        new JsonSchemaBuilder()
+            .Type(SchemaValueType.Array)
+            .Items(
+                new JsonSchemaBuilder()
+                    .Type(SchemaValueType.Object)
+                    .Properties(
+                        (
+                            WellKnownFieldNames.Message,
+                            new JsonSchemaBuilder().Type(SchemaValueType.String)
+                        ),
+                        (
+                            WellKnownFieldNames.Locations,
+                            new JsonSchemaBuilder()
+                                .Type(SchemaValueType.Array | SchemaValueType.Null)
+                                .Items(
+                                    new JsonSchemaBuilder()
+                                        .Type(SchemaValueType.Object)
+                                        .Properties(
+                                            (WellKnownFieldNames.Line, s_integerSchema),
+                                            (WellKnownFieldNames.Column, s_integerSchema))
+                                        .AdditionalProperties(false))
+                        ),
+                        (
+                            WellKnownFieldNames.Path,
+                            new JsonSchemaBuilder()
+                                .Type(SchemaValueType.Array | SchemaValueType.Null)
+                                .Items(
+                                    new JsonSchemaBuilder()
+                                        .Type(SchemaValueType.String | SchemaValueType.Integer))
+                        ),
+                        (
+                            WellKnownFieldNames.Extensions,
+                            new JsonSchemaBuilder()
+                                .Type(SchemaValueType.Object | SchemaValueType.Null)
+                                .AdditionalProperties(true)
+                        ))
+                    .Required(WellKnownFieldNames.Message)
+                    .AdditionalProperties(false)
+                    .Build())
+            .Build();
 }

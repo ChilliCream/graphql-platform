@@ -235,6 +235,28 @@ public sealed class IntegrationTests
             .MatchSnapshot(extension: ".json");
     }
 
+    [Fact]
+    public async Task CallTool_GetWithErrors_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new InMemoryMcpOperationDocumentStorage();
+        await storage.SaveToolDocumentAsync(
+            Utf8GraphQLParser.Parse("query GetWithErrors { withErrors }"));
+        var server =
+            CreateTestServer(
+                services => services.AddSingleton<IMcpOperationDocumentStorage>(storage));
+        var mcpClient = await CreateMcpClient(server.CreateClient());
+
+        // act
+        var result = await mcpClient.CallToolAsync("get_with_errors");
+
+        // assert
+        result.StructuredContent!
+            .ToString()
+            .ReplaceLineEndings("\n")
+            .MatchSnapshot(extension: ".json");
+    }
+
     private static readonly JsonSerializerOptions s_jsonSerializerOptions =
         new()
         {
@@ -259,7 +281,11 @@ public sealed class IntegrationTests
                             .AddRouting()
                             .AddGraphQL()
                             .AddMcp()
-                            .AddQueryType<TestSchema.Query>();
+                            .AddQueryType<TestSchema.Query>()
+                            .AddInterfaceType<TestSchema.IPet>()
+                            .AddUnionType<TestSchema.IPet>()
+                            .AddObjectType<TestSchema.Cat>()
+                            .AddObjectType<TestSchema.Dog>();
 
                     configureRequestExecutor?.Invoke(executor);
 
