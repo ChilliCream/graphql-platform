@@ -484,7 +484,7 @@ internal sealed class ComposeCommand : Command
         {
             sourceSchemaFilePaths =
                 new DirectoryInfo(workingDirectory)
-                    .GetFiles("*.graphql*")
+                    .GetFiles("*.graphql*", SearchOption.AllDirectories)
                     .Where(f => IsGraphQLSchemaFile(f.Name))
                     .Select(i => i.FullName)
                     .ToImmutableSortedSet();

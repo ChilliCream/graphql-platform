@@ -8,10 +8,10 @@ namespace HotChocolate.Fusion;
 public sealed class ComposeCommandTests
 {
     private static readonly string s_validExample1CompositeSchema =
-        File.ReadAllText("__resources__/valid-example-1/result/composite-schema.graphqls");
+        File.ReadAllText("__resources__/valid-example-1-result/composite-schema.graphqls");
 
     private static readonly string s_invalidExample1CompositeSchema =
-        File.ReadAllText("__resources__/invalid-example-1/result/composite-schema.graphqls");
+        File.ReadAllText("__resources__/invalid-example-1-result/composite-schema.graphqls");
 
     [Fact]
     public async Task Compose_ValidExample1_FromSpecified_ToStdOut()
