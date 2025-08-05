@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Reflection.Metadata;
 using System.Text.Json;
 
@@ -19,9 +20,10 @@ internal static class SignatureManifestSerializer
         jsonWriter.WriteString("version", signatureManifest.Version);
         jsonWriter.WriteString("algorithm", signatureManifest.Algorithm);
         jsonWriter.WriteString("timestamp", signatureManifest.Timestamp.ToString("O"));
+
         jsonWriter.WriteStartObject("files");
 
-        foreach (var file in signatureManifest.Files)
+        foreach (var file in signatureManifest.Files.OrderBy(t => t.Key))
         {
             jsonWriter.WriteString(file.Key, file.Value);
         }
@@ -33,6 +35,7 @@ internal static class SignatureManifestSerializer
             jsonWriter.WriteString("manifestHash", signatureManifest.ManifestHash);
         }
 
+        jsonWriter.WriteEndObject();
         jsonWriter.Flush();
     }
 
@@ -79,14 +82,19 @@ internal static class SignatureManifestSerializer
             files.Add(file.Name, fileName);
         }
 
+        var timestamp = DateTime.ParseExact(
+            timestampProp.GetString() ?? throw new JsonException("Invalid timestamp."),
+            "O",
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.RoundtripKind);
+
         return new SignatureManifest
         {
             Version = versionProp.GetString()
                 ?? throw new JsonException("Invalid version."),
             Algorithm = algorithmProp.GetString()
                 ?? throw new JsonException("Invalid algorithm."),
-            Timestamp = DateTime.Parse(timestampProp.GetString()
-                ?? throw new JsonException("Invalid timestamp.")),
+            Timestamp = timestamp,
             ManifestHash = root.GetProperty("manifestHash").GetString()
                 ?? throw new JsonException("Invalid manifest hash."),
             Files = files.ToImmutable()

@@ -22,16 +22,21 @@ public class FusionArchiveTests : IDisposable
     public void Open_WithNullStream_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => FusionArchive.Open(null!));
+        Assert.Throws<ArgumentNullException>(() => FusionArchive.Open(default(Stream)!));
+    }
+
+    [Fact]
+    public void Open_WithNullString_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => FusionArchive.Open(default(string)!));
     }
 
     [Fact]
     public async Task SetArchiveMetadata_WithValidData_StoresCorrectly()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
-
+        await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
             FormatVersion = new Version("1.0.0"),
@@ -39,10 +44,11 @@ public class FusionArchiveTests : IDisposable
             SourceSchemas = ["user-service", "product-service"]
         };
 
-        // Act
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
 
-        // Assert
+        // Can read immediately within the same session
         var retrieved = await archive.GetArchiveMetadataAsync();
         Assert.NotNull(retrieved);
         Assert.Equal(metadata.FormatVersion, retrieved.FormatVersion);
@@ -54,13 +60,11 @@ public class FusionArchiveTests : IDisposable
     public async Task GetArchiveMetadata_WhenNotSet_ReturnsNull()
     {
         // Arrange
-        using var stream = CreateStream();
+        await using var stream = CreateStream();
+
+        // Act & Assert
         using var archive = FusionArchive.Create(stream);
-
-        // Act
         var result = await archive.GetArchiveMetadataAsync();
-
-        // Assert
         Assert.Null(result);
     }
 
@@ -68,33 +72,29 @@ public class FusionArchiveTests : IDisposable
     public async Task SetArchiveMetadata_WithNullMetadata_ThrowsArgumentNullException()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
+        await using var stream = CreateStream();
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            archive.SetArchiveMetadataAsync(null!));
+        using var archive = FusionArchive.Create(stream);
+        await Assert.ThrowsAsync<ArgumentNullException>(
+            () => archive.SetArchiveMetadataAsync(null!));
     }
 
     [Fact]
     public async Task GetLatestSupportedGatewayFormat_WithValidMetadata_ReturnsHighestVersion()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
-
+        await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
             SupportedGatewayFormats = [new Version("1.0.0"), new Version("2.1.0"), new Version("2.0.0")],
             SourceSchemas = ["test-service"]
         };
 
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
-
-        // Act
         var latest = await archive.GetLatestSupportedGatewayFormatAsync();
-
-        // Assert
         Assert.Equal(new Version("2.1.0"), latest);
     }
 
@@ -102,28 +102,27 @@ public class FusionArchiveTests : IDisposable
     public async Task GetLatestSupportedGatewayFormat_WithoutMetadata_ThrowsInvalidOperationException()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
+        await using var stream = CreateStream();
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            archive.GetLatestSupportedGatewayFormatAsync());
+        using var archive = FusionArchive.Create(stream);
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => archive.GetLatestSupportedGatewayFormatAsync());
     }
 
     [Fact]
     public async Task SetCompositionSettings_WithValidJsonDocument_StoresCorrectly()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
-
-        var settingsJson = """{"enableNodeSpec": true, "maxDepth": 10}""";
+        await using var stream = CreateStream();
+        const string settingsJson = """{"enableNodeSpec": true, "maxDepth": 10}""";
         using var settings = JsonDocument.Parse(settingsJson);
 
-        // Act
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
         await archive.SetCompositionSettingsAsync(settings);
 
-        // Assert
+        // Can read immediately within the same session
         using var retrieved = await archive.GetCompositionSettingsAsync();
         Assert.NotNull(retrieved);
         Assert.True(retrieved.RootElement.GetProperty("enableNodeSpec").GetBoolean());
@@ -134,13 +133,11 @@ public class FusionArchiveTests : IDisposable
     public async Task GetCompositionSettings_WhenNotSet_ReturnsNull()
     {
         // Arrange
-        using var stream = CreateStream();
+        await using var stream = CreateStream();
+
+        // Act & Assert
         using var archive = FusionArchive.Create(stream);
-
-        // Act
         var result = await archive.GetCompositionSettingsAsync();
-
-        // Assert
         Assert.Null(result);
     }
 
@@ -148,19 +145,17 @@ public class FusionArchiveTests : IDisposable
     public async Task SetGatewaySchema_WithStringContent_StoresCorrectly()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
-
-        var metadata = CreateTestMetadata();
-        await archive.SetArchiveMetadataAsync(metadata);
-
-        var schema = "type Query { hello: String }";
+        await using var stream = CreateStream();
+        const string schema = "type Query { hello: String }";
         var version = new Version("2.0.0");
 
-        // Act
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var metadata = CreateTestMetadata();
+        await archive.SetArchiveMetadataAsync(metadata);
         await archive.SetGatewaySchemaAsync(schema, version);
 
-        // Assert
+        // Can read immediately within the same session
         var buffer = new ArrayBufferWriter<byte>();
         var result = await archive.TryGetGatewaySchemaAsync(version, buffer);
 
@@ -175,19 +170,17 @@ public class FusionArchiveTests : IDisposable
     public async Task SetGatewaySchema_WithByteContent_StoresCorrectly()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
-
-        var metadata = CreateTestMetadata();
-        await archive.SetArchiveMetadataAsync(metadata);
-
+        await using var stream = CreateStream();
         var schema = "type Query { hello: String }"u8.ToArray();
         var version = new Version("2.0.0");
 
-        // Act
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var metadata = CreateTestMetadata();
+        await archive.SetArchiveMetadataAsync(metadata);
         await archive.SetGatewaySchemaAsync(schema, version);
 
-        // Assert
+        // Can read immediately within the same session
         var buffer = new ArrayBufferWriter<byte>();
         var result = await archive.TryGetGatewaySchemaAsync(version, buffer);
 
@@ -200,25 +193,25 @@ public class FusionArchiveTests : IDisposable
     public async Task SetGatewaySchema_WithoutMetadata_ThrowsInvalidOperationException()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
+        await using var stream = CreateStream();
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            archive.SetGatewaySchemaAsync("schema", new Version("1.0.0")));
+        using var archive = FusionArchive.Create(stream);
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => archive.SetGatewaySchemaAsync("schema", new Version("1.0.0")));
     }
 
     [Fact]
     public async Task SetGatewaySchema_WithUnsupportedVersion_ThrowsInvalidOperationException()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
+        await using var stream = CreateStream();
 
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
         var metadata = CreateTestMetadata();
         await archive.SetArchiveMetadataAsync(metadata);
 
-        // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             archive.SetGatewaySchemaAsync("schema", new Version("3.0.0")));
     }
@@ -227,25 +220,24 @@ public class FusionArchiveTests : IDisposable
     public async Task TryGetGatewaySchema_WithCompatibleVersion_ReturnsCorrectVersion()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
-
+        await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
             SupportedGatewayFormats = [new Version("1.0.0"), new Version("2.0.0"), new Version("2.1.0")],
             SourceSchemas = ["test-service"]
         };
-        await archive.SetArchiveMetadataAsync(metadata);
 
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata);
         await archive.SetGatewaySchemaAsync("schema v1.0", new Version("1.0.0"));
         await archive.SetGatewaySchemaAsync("schema v2.0", new Version("2.0.0"));
         await archive.SetGatewaySchemaAsync("schema v2.1", new Version("2.1.0"));
 
-        // Act - Request max version 2.0.0, should get 2.0.0
+        // Request max version 2.0.0, should get 2.0.0
         var buffer = new ArrayBufferWriter<byte>();
         var result = await archive.TryGetGatewaySchemaAsync(new Version("2.0.0"), buffer);
 
-        // Assert
         Assert.True(result.IsResolved);
         Assert.Equal(new Version("2.0.0"), result.ActualVersion);
 
@@ -257,21 +249,20 @@ public class FusionArchiveTests : IDisposable
     public async Task TryGetGatewaySchema_WithIncompatibleVersion_ReturnsFalse()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
-
+        await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
             SupportedGatewayFormats = [new Version("2.0.0")],
             SourceSchemas = ["test-service"]
         };
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
 
-        // Act
         var buffer = new ArrayBufferWriter<byte>();
         var result = await archive.TryGetGatewaySchemaAsync(new Version("1.0.0"), buffer);
 
-        // Assert
         Assert.False(result.IsResolved);
         Assert.Null(result.ActualVersion);
     }
@@ -280,28 +271,27 @@ public class FusionArchiveTests : IDisposable
     public async Task SetGatewaySettings_WithValidSettings_StoresCorrectly()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
-
-        var metadata = CreateTestMetadata();
-        await archive.SetArchiveMetadataAsync(metadata);
-
-        var settingsJson = """
-        {
-            "transportProfiles": {
-                "http-profile": {
-                    "type": "graphql-over-http"
+        await using var stream = CreateStream();
+        const string settingsJson =
+            """
+            {
+                "transportProfiles": {
+                    "http-profile": {
+                        "type": "graphql-over-http"
+                    }
                 }
             }
-        }
-        """;
+            """;
         using var settings = JsonDocument.Parse(settingsJson);
         var version = new Version("2.0.0");
 
-        // Act
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        var metadata = CreateTestMetadata();
+        await archive.SetArchiveMetadataAsync(metadata);
         await archive.SetGatewaySettingsAsync(settings, version);
 
-        // Assert
+        // Can read immediately within the same session
         var result = await archive.TryGetGatewaySettingsAsync(version);
         Assert.True(result.IsResolved);
         Assert.Equal(version, result.ActualVersion);
@@ -313,22 +303,20 @@ public class FusionArchiveTests : IDisposable
     }
 
     [Fact]
-    public async Task AddSourceSchema_WithValidSchema_StoresCorrectly()
+    public async Task SetSourceSchema_WithValidSchema_StoresCorrectly()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
+        await using var stream = CreateStream();
+        var schemaContent = "type User { id: ID! name: String! }"u8.ToArray();
+        const string schemaName = "user-service";
 
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
         var metadata = CreateTestMetadata();
         await archive.SetArchiveMetadataAsync(metadata);
+        await archive.SetSourceSchemaAsync(schemaName, schemaContent);
 
-        var schemaContent = "type User { id: ID! name: String! }"u8.ToArray();
-        var schemaName = "user-service";
-
-        // Act
-        await archive.AddSourceSchemaAsync(schemaName, schemaContent);
-
-        // Assert
+        // Can read immediately within the same session
         var buffer = new ArrayBufferWriter<byte>();
         var found = await archive.TryGetSourceSchemaAsync(schemaName, buffer);
 
@@ -337,51 +325,49 @@ public class FusionArchiveTests : IDisposable
     }
 
     [Fact]
-    public async Task AddSourceSchema_WithInvalidSchemaName_ThrowsArgumentException()
+    public async Task SetSourceSchema_WithInvalidSchemaName_ThrowsArgumentException()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
+        await using var stream = CreateStream();
 
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
         var metadata = CreateTestMetadata();
         await archive.SetArchiveMetadataAsync(metadata);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            archive.AddSourceSchemaAsync("invalid name!", "schema"u8.ToArray()));
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => archive.SetSourceSchemaAsync("invalid name!", "schema"u8.ToArray()));
     }
 
     [Fact]
-    public async Task AddSourceSchema_WithUndeclaredSchemaName_ThrowsInvalidOperationException()
+    public async Task SetSourceSchema_WithUndeclaredSchemaName_ThrowsInvalidOperationException()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
-
+        await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
             SupportedGatewayFormats = [new Version("2.0.0")],
             SourceSchemas = ["declared-schema"]
         };
-        await archive.SetArchiveMetadataAsync(metadata);
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            archive.AddSourceSchemaAsync("undeclared-schema", "schema"u8.ToArray()));
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => archive.SetSourceSchemaAsync("undeclared-schema", "schema"u8.ToArray()));
     }
 
     [Fact]
     public async Task TryGetSourceSchema_WithNonExistentSchema_ReturnsFalse()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
+        await using var stream = CreateStream();
 
-        // Act
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
         var buffer = new ArrayBufferWriter<byte>();
         var found = await archive.TryGetSourceSchemaAsync("non-existent", buffer);
-
-        // Assert
         Assert.False(found);
     }
 
@@ -389,19 +375,17 @@ public class FusionArchiveTests : IDisposable
     public async Task SignArchive_WithValidCertificate_CreatesSignature()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
+        await using var stream = CreateStream();
+        using var cert = CreateTestCertificate();
 
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
         var metadata = CreateTestMetadata();
         await archive.SetArchiveMetadataAsync(metadata);
         await archive.SetGatewaySchemaAsync("schema", new Version("2.0.0"));
-
-        using var cert = CreateTestCertificate();
-
-        // Act
         await archive.SignArchiveAsync(cert);
 
-        // Assert
+        // Can verify immediately within the same session
         Assert.True(archive.IsSigned);
 
         var signatureInfo = await archive.GetSignatureInfoAsync();
@@ -414,135 +398,158 @@ public class FusionArchiveTests : IDisposable
     public async Task SignArchive_WithCertificateWithoutPrivateKey_ThrowsArgumentException()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
-
+        await using var stream = CreateStream();
         using var cert = CreateTestCertificate();
+#if NET9_0_OR_GREATER
+        using var publicOnlyCert = X509CertificateLoader.LoadCertificate(cert.Export(X509ContentType.Cert));
+#else
         using var publicOnlyCert = new X509Certificate2(cert.Export(X509ContentType.Cert));
+#endif
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            archive.SignArchiveAsync(publicOnlyCert));
+        using var archive = FusionArchive.Create(stream);
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => archive.SignArchiveAsync(publicOnlyCert));
     }
 
     [Fact]
     public async Task VerifySignature_WithValidSignature_ReturnsValid()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
+        await using var stream = CreateStream();
+        using var cert = CreateTestCertificate(); // Has private key
 
-        var metadata = CreateTestMetadata();
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.SetGatewaySchemaAsync("schema", new Version("2.0.0"));
+        // Extract public key only for verification
+#if NET9_0_OR_GREATER
+        using var publicOnlyCert = X509CertificateLoader.LoadCertificate(cert.Export(X509ContentType.Cert));
+#else
+        using var publicOnlyCert = new X509Certificate2(cert.Export(X509ContentType.Cert));
+#endif
 
-        using var cert = CreateTestCertificate();
-        await archive.SignArchiveAsync(cert);
+        // Act & Assert
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            var metadata = CreateTestMetadata();
+            await archive.SetArchiveMetadataAsync(metadata);
+            await archive.SetGatewaySchemaAsync("schema", new Version("2.0.0"));
 
-        // Act
-        var result = await archive.VerifySignatureAsync(cert);
+            // Sign with private key
+            await archive.SignArchiveAsync(cert);
 
-        // Assert
-        Assert.Equal(SignatureVerificationResult.Valid, result);
+            // Verify with public key only
+            var result = await archive.VerifySignatureAsync(publicOnlyCert);
+            Assert.Equal(SignatureVerificationResult.Valid, result);
+        }
     }
 
     [Fact]
     public async Task VerifySignature_WithUnsignedArchive_ReturnsNotSigned()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
-
+        await using var stream = CreateStream();
         using var cert = CreateTestCertificate();
 
-        // Act
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream);
         var result = await archive.VerifySignatureAsync(cert);
-
-        // Assert
         Assert.Equal(SignatureVerificationResult.NotSigned, result);
     }
 
     [Fact]
-    public async Task VerifySignature_WithModifiedFile_ReturnsFilesModified()
+    public async Task CommitAndReopen_PersistsChanges()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
-
-        var metadata = CreateTestMetadata();
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.SetGatewaySchemaAsync("original schema", new Version("2.0.0"));
-
-        using var cert = CreateTestCertificate();
-        await archive.SignArchiveAsync(cert);
-
-        // Modify the file after signing
-        await archive.SetGatewaySchemaAsync("modified schema", new Version("2.0.0"));
-
-        // Act
-        var result = await archive.VerifySignatureAsync(cert);
-
-        // Assert
-        Assert.Equal(SignatureVerificationResult.FilesModified, result);
-    }
-
-    [Fact]
-    public async Task GetSourceSchemaNames_WithMetadata_ReturnsOrderedNames()
-    {
-        // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
-
+        await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
             SupportedGatewayFormats = [new Version("2.0.0")],
-            SourceSchemas = ["zebra-service", "alpha-service", "beta-service"]
-        };
-        await archive.SetArchiveMetadataAsync(metadata);
-
-        // Act
-        var names = await archive.GetSourceSchemaNamesAsync();
-
-        // Assert
-        Assert.Equal(["alpha-service", "beta-service", "zebra-service"], names);
-    }
-
-    [Fact]
-    public async Task GetSupportedGatewayFormats_WithMetadata_ReturnsDescendingOrder()
-    {
-        // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
-
-        var metadata = new ArchiveMetadata
-        {
-            SupportedGatewayFormats = [new Version("1.0.0"), new Version("2.1.0"), new Version("2.0.0")],
             SourceSchemas = ["test-service"]
         };
-        await archive.SetArchiveMetadataAsync(metadata);
+        const string schema = "type Query { hello: String }";
 
-        // Act
-        var versions = await archive.GetSupportedGatewayFormatsAsync();
+        // Act - Create and commit
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetArchiveMetadataAsync(metadata);
+            await archive.SetGatewaySchemaAsync(schema, new Version("2.0.0"));
+            await archive.CommitAsync();
+        }
 
-        // Assert
-        Assert.Equal([new Version("2.1.0"), new Version("2.0.0"), new Version("1.0.0")], versions);
+        // Assert - Reopen and verify persistence
+        stream.Position = 0;
+        using (var readArchive = FusionArchive.Open(stream, leaveOpen: true))
+        {
+            var retrievedMetadata = await readArchive.GetArchiveMetadataAsync();
+            Assert.NotNull(retrievedMetadata);
+            Assert.Equal(
+                metadata.SupportedGatewayFormats.ToArray(),
+                retrievedMetadata.SupportedGatewayFormats.ToArray());
+
+            var buffer = new ArrayBufferWriter<byte>();
+            var result = await readArchive.TryGetGatewaySchemaAsync(new Version("2.0.0"), buffer);
+            Assert.True(result.IsResolved);
+
+            var retrievedSchema = Encoding.UTF8.GetString(buffer.WrittenSpan);
+            Assert.Equal(schema, retrievedSchema);
+        }
     }
 
     [Fact]
-    public async Task OverwriteEntry_WhenSettingSameFileTwice_OverwritesCorrectly()
+    public async Task UpdateMode_CanModifyExistingArchive()
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("2.0.0")],
+            SourceSchemas = ["test-service"]
+        };
 
+        // Act - Create initial archive
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetArchiveMetadataAsync(metadata);
+            await archive.SetGatewaySchemaAsync("original schema", new Version("2.0.0"));
+            await archive.CommitAsync();
+        }
+
+        // Act - Update existing archive
+        stream.Position = 0;
+        using (var updateArchive = FusionArchive.Open(stream, FusionArchiveMode.Update, leaveOpen: true))
+        {
+            await updateArchive.SetGatewaySchemaAsync("modified schema", new Version("2.0.0"));
+            await updateArchive.CommitAsync();
+        }
+
+        // Assert - Verify modification
+        stream.Position = 0;
+        using (var readArchive = FusionArchive.Open(stream, leaveOpen: true))
+        {
+            var buffer = new ArrayBufferWriter<byte>();
+            var result = await readArchive.TryGetGatewaySchemaAsync(new Version("2.0.0"), buffer);
+            Assert.True(result.IsResolved);
+
+            var schema = Encoding.UTF8.GetString(buffer.WrittenSpan);
+            Assert.Equal("modified schema", schema);
+        }
+    }
+
+    [Fact]
+    public async Task OverwriteFile_WithinSession_ReplacesContent()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
         var metadata = CreateTestMetadata();
         await archive.SetArchiveMetadataAsync(metadata);
 
-        // Act - Set schema twice
+        // Set schema twice within the same session
         await archive.SetGatewaySchemaAsync("first schema", new Version("2.0.0"));
         await archive.SetGatewaySchemaAsync("second schema", new Version("2.0.0"));
 
-        // Assert
+        // Should get the last value
         var buffer = new ArrayBufferWriter<byte>();
         var result = await archive.TryGetGatewaySchemaAsync(new Version("2.0.0"), buffer);
 
@@ -551,26 +558,61 @@ public class FusionArchiveTests : IDisposable
         Assert.Equal("second schema", schema);
     }
 
+    [Fact]
+    public async Task GetSourceSchemaNames_WithMetadata_ReturnsOrderedNames()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("2.0.0")],
+            SourceSchemas = ["zebra-service", "alpha-service", "beta-service"]
+        };
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata);
+        var names = await archive.GetSourceSchemaNamesAsync();
+        Assert.Equal(["alpha-service", "beta-service", "zebra-service"], names);
+    }
+
+    [Fact]
+    public async Task GetSupportedGatewayFormats_WithMetadata_ReturnsDescendingOrder()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version("1.0.0"), new Version("2.1.0"), new Version("2.0.0")],
+            SourceSchemas = ["test-service"]
+        };
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata);
+        var versions = await archive.GetSupportedGatewayFormatsAsync();
+        Assert.Equal([new Version("2.1.0"), new Version("2.0.0"), new Version("1.0.0")], versions);
+    }
+
     [Theory]
     [InlineData("valid-schema")]
     [InlineData("Valid_Schema")]
     [InlineData("schema123")]
     [InlineData("_schema")]
-    public async Task AddSourceSchema_WithValidSchemaNames_Succeeds(string schemaName)
+    public async Task SetSourceSchema_WithValidSchemaNames_Succeeds(string schemaName)
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
-
+        await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
             SupportedGatewayFormats = [new Version("2.0.0")],
             SourceSchemas = [schemaName]
         };
-        await archive.SetArchiveMetadataAsync(metadata);
 
         // Act & Assert - Should not throw
-        await archive.AddSourceSchemaAsync(schemaName, "schema"u8.ToArray());
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata);
+        await archive.SetSourceSchemaAsync(schemaName, "schema"u8.ToArray());
     }
 
     [Theory]
@@ -578,22 +620,46 @@ public class FusionArchiveTests : IDisposable
     [InlineData("123invalid")]
     [InlineData("")]
     [InlineData("schema/name")]
-    public async Task AddSourceSchema_WithInvalidSchemaNames_ThrowsException(string schemaName)
+    public async Task SetSourceSchema_WithInvalidSchemaNames_ThrowsException(string schemaName)
     {
         // Arrange
-        using var stream = CreateStream();
-        using var archive = FusionArchive.Create(stream);
-
+        await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
             SupportedGatewayFormats = [new Version("2.0.0")],
             SourceSchemas = [schemaName]
         };
-        await archive.SetArchiveMetadataAsync(metadata);
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            archive.AddSourceSchemaAsync(schemaName, "schema"u8.ToArray()));
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        await archive.SetArchiveMetadataAsync(metadata);
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => archive.SetSourceSchemaAsync(schemaName, "schema"u8.ToArray()));
+    }
+
+    [Fact]
+    public async Task GetSupportedGatewayFormats_WithoutMetadata_ReturnsEmpty()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream);
+        var formats = await archive.GetSupportedGatewayFormatsAsync();
+        Assert.Empty(formats);
+    }
+
+    [Fact]
+    public async Task GetSourceSchemaNames_WithoutMetadata_ReturnsEmpty()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+
+        // Act & Assert
+        using var archive = FusionArchive.Create(stream);
+        var names = await archive.GetSourceSchemaNamesAsync();
+        Assert.Empty(names);
     }
 
     private Stream CreateStream()
