@@ -1,4 +1,4 @@
-﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
 // ReSharper disable InconsistentNaming
@@ -505,14 +505,14 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetBarsResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetBarsQuery(global::StrawberryShake.IOperationExecutor<IGetBarsResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
         }
 
-        private GetBarsQuery(global::StrawberryShake.IOperationExecutor<IGetBarsResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter)
+        private GetBarsQuery(global::StrawberryShake.IOperationExecutor<IGetBarsResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;
@@ -799,14 +799,14 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<ISaveBarsResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public SaveBarsMutation(global::StrawberryShake.IOperationExecutor<ISaveBarsResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
         }
 
-        private SaveBarsMutation(global::StrawberryShake.IOperationExecutor<ISaveBarsResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter)
+        private SaveBarsMutation(global::StrawberryShake.IOperationExecutor<ISaveBarsResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;
