@@ -357,13 +357,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes
     public partial class LocalTypesQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.LocalTypes.ILocalTypesQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<ILocalTypesResult> _operationExecutor;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public LocalTypesQuery(global::StrawberryShake.IOperationExecutor<ILocalTypesResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        private LocalTypesQuery(global::StrawberryShake.IOperationExecutor<ILocalTypesResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        private LocalTypesQuery(global::StrawberryShake.IOperationExecutor<ILocalTypesResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;
