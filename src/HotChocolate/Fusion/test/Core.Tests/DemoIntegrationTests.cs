@@ -2895,6 +2895,81 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         Assert.Null(result.ExpectOperationResult().Errors);
     }
 
+    [Fact]
+    public async Task Unresolvable_Subgraph_Is_Not_Chosen_If_Data_Is_Available_In_Resolvable_Subgraph()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              product: Product!
+            }
+
+            type Product implements Node {
+              id: ID!
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              test: Test!
+            }
+
+            type Test {
+              id: ID!
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        var subgraphC = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              node(id: ID!): Node
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB, subgraphC]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        viewer {
+                          product {
+                            id
+                            name
+                          }
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
     public sealed class HotReloadConfiguration : IObservable<GatewayConfiguration>
     {
         private GatewayConfiguration _configuration;

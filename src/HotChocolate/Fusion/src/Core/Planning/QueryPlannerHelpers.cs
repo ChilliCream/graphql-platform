@@ -5,15 +5,16 @@ namespace HotChocolate.Fusion.Planning;
 
 internal static class QueryPlannerHelpers
 {
-    public static string GetBestMatchingSubgraph(
+    public static string? GetBestMatchingSubgraph(
         this FusionGraphConfiguration configuration,
         IOperation operation,
+        SelectionPath? parentSelectionPath,
         IReadOnlyList<ISelection> selections,
         ObjectTypeMetadata typeMetadataContext,
         IReadOnlyList<string>? availableSubgraphs = null)
     {
         var bestScore = 0;
-        var bestSubgraph = configuration.SubgraphNames[0];
+        var bestSubgraph = default(string?);
 
         foreach (var subgraphName in availableSubgraphs ?? configuration.SubgraphNames)
         {
@@ -21,6 +22,7 @@ internal static class QueryPlannerHelpers
                 EvaluateSubgraphCompatibilityScore(
                     configuration,
                     operation,
+                    parentSelectionPath,
                     selections,
                     typeMetadataContext,
                     subgraphName);
@@ -38,10 +40,13 @@ internal static class QueryPlannerHelpers
     private static int EvaluateSubgraphCompatibilityScore(
         FusionGraphConfiguration configuration,
         IOperation operation,
+        SelectionPath? parentSelectionPath,
         IReadOnlyList<ISelection> selections,
         ObjectTypeMetadata typeMetadataContext,
         string schemaName)
     {
+        var pathCanBeResolvedFromRoot = configuration.EnsurePathCanBeResolvedFromRoot(schemaName, parentSelectionPath);
+
         var score = 0;
         var stack = new Stack<(IReadOnlyList<ISelection> selections, ObjectTypeMetadata typeContext)>();
         stack.Push((selections, typeMetadataContext));
@@ -50,11 +55,24 @@ internal static class QueryPlannerHelpers
         {
             var (currentSelections, currentTypeContext) = stack.Pop();
 
+            if (currentSelections.Count == 0)
+            {
+                score++;
+            }
+
             foreach (var selection in currentSelections)
             {
                 if (!selection.Field.IsIntrospectionField &&
-                    currentTypeContext.Fields[selection.Field.Name].Bindings
-                        .ContainsSubgraph(schemaName))
+                    currentTypeContext
+                        .Fields[selection.Field.Name]
+                        .Bindings
+                        .ContainsSubgraph(schemaName) &&
+                    (pathCanBeResolvedFromRoot ||
+                        currentTypeContext
+                            .Fields[selection.Field.Name]
+                            .Resolvers
+                            .ContainsResolvers(schemaName) ||
+                        typeMetadataContext.Resolvers.ContainsResolvers(schemaName)))
                 {
                     score++;
 
@@ -72,5 +90,27 @@ internal static class QueryPlannerHelpers
         }
 
         return score;
+    }
+
+    public static bool EnsurePathCanBeResolvedFromRoot(
+        this FusionGraphConfiguration configuration,
+        string subgraphName,
+        SelectionPath? path)
+    {
+        var current = path;
+
+        while (current is not null)
+        {
+            var typeMetadata = configuration.GetType<ObjectTypeMetadata>(current.Selection.DeclaringType.Name);
+
+            if (!typeMetadata.Fields[current.Selection.Field.Name].Bindings.ContainsSubgraph(subgraphName))
+            {
+                return false;
+            }
+
+            current = current.Parent;
+        }
+
+        return true;
     }
 }

@@ -29,7 +29,7 @@ query ProductReviews($id: ID!, $first: Int!) {
 ## QueryPlan Hash
 
 ```text
-3EB74A019DB95A4FA68CF9569951EA91659E7186
+90288E30B42792662254D8D4CF683A745331D191
 ```
 
 ## QueryPlan
@@ -50,7 +50,7 @@ query ProductReviews($id: ID!, $first: Int!) {
             "type": "User",
             "node": {
               "type": "Resolve",
-              "subgraph": "Accounts",
+              "subgraph": "Reviews2",
               "document": "query ProductReviews_1($id: ID!) { node(id: $id) { ... on User { __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
