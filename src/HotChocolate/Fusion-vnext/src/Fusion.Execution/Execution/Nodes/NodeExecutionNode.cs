@@ -18,46 +18,43 @@ public sealed class NodeExecutionNode(int id) : ExecutionNode
     {
         var start = Stopwatch.GetTimestamp();
 
-        // var variables = context.OperationContext.Variables;
-        // var coercedArguments = new Dictionary<string, ArgumentValue>();
-        //
-        // _selection.Arguments.CoerceArguments(variables, coercedArguments);
-        //
-        // var idArgument = coercedArguments["id"];
-        //
-        // if (idArgument.ValueLiteral is not StringValueNode formattedId)
-        // {
-        //     context.Result.AddError(InvalidNodeFormat(_selection), _selection);
-        //     return;
-        // }
-        //
-        // string typeName;
-        //
-        // try
-        // {
-        //     typeName = context.ParseTypeNameFromId(formattedId.Value);
-        // }
-        // catch (Exception exception)
-        // {
-        //     context.Result.AddError(InvalidNodeFormat(_selection, exception), _selection);
-        //     return;
-        // }
-        //
-        // if(!_fetchNodes.TryGetValue(typeName, out var fetchNode))
-        // {
-        //     context.Result.AddError(InvalidNodeFormat(_selection), _selection);
-        //     return;
-        // }
-        //
-        // await fetchNode.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+        const string idValue = "string";
 
-        var result = new ExecutionNodeResult(
-            Id,
-            Activity.Current,
-            ExecutionStatus.Success,
-            Stopwatch.GetElapsedTime(start));
+        if (!context.TryParseTypeNameFromId(idValue, out var typeName))
+        {
+            // TODO: Create GraphQL error
 
-        return Task.FromResult(result);
+            return Task.FromResult(new ExecutionNodeResult(
+                Id,
+                Activity.Current,
+                ExecutionStatus.Failed,
+                Stopwatch.GetElapsedTime(start)));
+        }
+
+        if (_branches.TryGetValue(typeName, out var operation))
+        {
+            // TODO: Skip all other branch nodes that aren't the selected one
+
+            return Task.FromResult(new ExecutionNodeResult(
+                Id,
+                Activity.Current,
+                ExecutionStatus.Success,
+                Stopwatch.GetElapsedTime(start)));
+        }
+
+        if (context.Schema.Features.TryGet<object>(out var obj))
+        {
+
+        }
+
+
+         // TODO: Create GraphQL error
+
+         return Task.FromResult(new ExecutionNodeResult(
+             Id,
+             Activity.Current,
+             ExecutionStatus.Failed,
+             Stopwatch.GetElapsedTime(start)));
     }
 
     protected internal override void Seal()

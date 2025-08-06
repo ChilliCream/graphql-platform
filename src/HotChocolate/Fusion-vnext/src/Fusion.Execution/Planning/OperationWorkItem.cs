@@ -5,8 +5,7 @@ namespace HotChocolate.Fusion.Planning;
 public sealed record OperationWorkItem(
     OperationWorkItemKind Kind,
     SelectionSet SelectionSet,
-    Lookup? Lookup = null,
-    bool InlineLookupRequirements = true)
+    Lookup? Lookup = null)
     : WorkItem
 {
     public static OperationWorkItem CreateRoot(SelectionSet selectionSet)

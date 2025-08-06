@@ -345,3 +345,63 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
         }
     }
 }
+
+// internal sealed class NodeFieldSelectionSetPartitioner(FusionSchemaDefinition schema)
+// {
+//     public sealed class Input
+//     {
+//        public required SelectionSetNode SelectionSet { get; init; }
+//
+//        public required IOutputTypeDefinition DeclaringType { get; init; }
+//     }
+//
+//     public sealed class Result
+//     {
+//         public Dictionary<string, List<ISelectionNode>> SelectionsByTypename { get; } = new();
+//
+//         public List<ISelectionNode> SelectionsOnNode { get; } = new();
+//     }
+//
+//     public Result Partition(Input input)
+//     {
+//         var result = new Result();
+//         var context = new Context(result, input.DeclaringType);
+//
+//         VisitSelectionSet(context, input.SelectionSet);
+//
+//         return result;
+//     }
+//
+//     private void VisitSelectionSet(Context context, SelectionSetNode selectionSet)
+//     {
+//         foreach (var selection in selectionSet.Selections)
+//         {
+//             switch (selection)
+//             {
+//                 case FieldNode fieldNode:
+//                     VisitFieldNode(context, fieldNode);
+//                     break;
+//                 case InlineFragmentNode inlineFragmentNode:
+//                     VisitInlineFragmentNoode(context, inlineFragmentNode);
+//                     break;
+//             }
+//         }
+//     }
+//
+//     private void VisitFieldNode(Context context, FieldNode fieldNode)
+//     {
+//         throw new NotImplementedException();
+//     }
+//
+//     private void VisitInlineFragmentNoode(Context context, InlineFragmentNode inlineFragmentNode)
+//     {
+//
+//     }
+//
+//     private sealed class Context(Result result, IOutputTypeDefinition declaringType)
+//     {
+//         public IOutputTypeDefinition DeclaringType { get; } = declaringType;
+//
+//
+//     }
+// }

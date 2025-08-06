@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Features;
@@ -107,6 +108,13 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     internal PooledArrayWriter CreateRentedBuffer()
         => _resultStore.CreateRentedBuffer();
+
+    internal bool TryParseTypeNameFromId(string id, [NotNullWhen(true)] out string? typename)
+    {
+        typename = null;
+
+        return false;
+    }
 
     internal void Begin(long? start = null, string? traceId = null)
     {
