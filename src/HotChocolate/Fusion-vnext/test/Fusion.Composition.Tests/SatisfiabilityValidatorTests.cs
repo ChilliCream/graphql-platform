@@ -1968,27 +1968,6 @@ public sealed class SatisfiabilityValidatorTests
     {
         return new TheoryData<string[], bool, string?>
         {
-            // A source schema doesn't have the node field - okay as long as there's another lookup
-            {
-                [
-                    """
-                    # Schema A
-                    type Query {
-                        catById(id: ID!): Cat @lookup
-                    }
-
-                    interface Node {
-                        id: ID!
-                    }
-
-                    type Cat implements Node {
-                        id: ID!
-                    }
-                    """
-                ],
-                true,
-                null
-            },
             // A source schema doesn't have any lookup for a type implementing Node
             {
                 [
@@ -2009,7 +1988,7 @@ public sealed class SatisfiabilityValidatorTests
                     """
                 ],
                 false,
-                "Type 'Cat' implements the 'Node' interface, but does not have a lookup by ID."
+                "Type 'Cat' implements the 'Node' interface, but no source schema provides a 'Query.node<Node>' lookup field for this type."
             },
             // A source schema has a lookup but not by ID for a type implementing Node
             {
@@ -2031,7 +2010,44 @@ public sealed class SatisfiabilityValidatorTests
                     """
                 ],
                 false,
-                "Type 'Cat' implements the 'Node' interface, but does not have a lookup by ID."
+                "Type 'Cat' implements the 'Node' interface, but no source schema provides a 'Query.node<Node>' lookup field for this type."
+            },
+            // A source schema has a lookup by ID but not the Query.node field for a type implementing Node
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        catById(id: ID!): Cat @lookup
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                        name: String!
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Query {
+                      node(id: ID!): Node @lookup
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Dog implements Node {
+                        id: ID!
+                        age: Int!
+                    }
+                    """
+                ],
+                false,
+                "Type 'Cat' implements the 'Node' interface, but no source schema provides a 'Query.node<Node>' lookup field for this type."
             },
             // A source schema is missing a lookup for an exclusive field
             {
@@ -2039,7 +2055,7 @@ public sealed class SatisfiabilityValidatorTests
                     """
                     # Schema A
                     type Query {
-                        catById(id: ID!): Cat @lookup @inaccessible
+                        node(id: ID!): Node @lookup @inaccessible
                     }
 
                     interface Node {
@@ -2059,7 +2075,7 @@ public sealed class SatisfiabilityValidatorTests
                 ],
                 false,
                 """
-                Unable to access the field 'Cat.name' on path '*:Query.node<Node> -> A:Query.catById<Cat>'.
+                Unable to access the field 'Cat.name' on path '*:Query.node<Node> -> A:Query.node<Node>'.
                   Unable to transition between schemas 'A' and 'B' for access to field 'B:Cat.name<String>'.
                     No lookups found for type 'Cat' in schema 'B'.
                 """
@@ -2085,7 +2101,7 @@ public sealed class SatisfiabilityValidatorTests
                     """
                     # Schema B
                     type Query {
-                        catById(id: ID!): Cat @lookup
+                        node(id: ID!): Node @lookup
                     }
 
                     interface Node {
@@ -2100,11 +2116,11 @@ public sealed class SatisfiabilityValidatorTests
                 ],
                 false,
                 """
-                Unable to access the field 'Cat.name' on path 'B:Query.catById<Cat>'.
+                Unable to access the field 'Cat.name' on path '*:Query.node<Node> -> B:Query.node<Node>'.
                   Unable to transition between schemas 'B' and 'A' for access to field 'A:Cat.name<String>'.
                     Unable to satisfy the requirement '{ name }' for lookup 'catByName' in schema 'A'.
                       Unable to satisfy the requirement 'name'.
-                        Unable to access the required field 'Cat.name' on path 'B:Query.catById<Cat>'.
+                        Unable to access the required field 'Cat.name' on path 'B:Query.node<Node>'.
                           No other schemas contain the field 'Cat.name'.
                 """
             },
@@ -2114,7 +2130,7 @@ public sealed class SatisfiabilityValidatorTests
                     """
                     # Schema A
                     type Query {
-                        catById(id: ID!): Cat @lookup @inaccessible
+                        node(id: ID!): Node @lookup @inaccessible
                     }
 
                     interface Node {
@@ -2148,7 +2164,7 @@ public sealed class SatisfiabilityValidatorTests
                     """
                     # Schema B
                     type Query {
-                        catById(id: ID!): Cat @lookup @inaccessible
+                        node(id: ID!): Node @lookup @inaccessible
                     }
 
                     interface Node {
@@ -2160,28 +2176,6 @@ public sealed class SatisfiabilityValidatorTests
                         name: String!
                     }
                     """,
-                ],
-                true,
-                null
-            },
-            // Abstract type lookup works for type implementing Node interface
-            {
-                [
-                    """
-                    # Schema A
-                    type Query {
-                        node(id: ID!): Node @lookup
-                    }
-
-                    interface Node {
-                        id: ID!
-                    }
-
-                    type Cat implements Node {
-                        id: ID!
-                        name: String!
-                    }
-                    """
                 ],
                 true,
                 null
