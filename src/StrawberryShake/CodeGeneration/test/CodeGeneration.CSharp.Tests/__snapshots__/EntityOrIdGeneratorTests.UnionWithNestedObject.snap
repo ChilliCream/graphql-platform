@@ -917,7 +917,7 @@ namespace Foo.Bar
         private readonly global::StrawberryShake.IOperationExecutor<IStoreUserSettingForResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _intFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _storeUserSettingForInputFormatter;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public StoreUserSettingForMutation(global::StrawberryShake.IOperationExecutor<IStoreUserSettingForResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
@@ -925,7 +925,7 @@ namespace Foo.Bar
             _storeUserSettingForInputFormatter = serializerResolver.GetInputValueFormatter("StoreUserSettingForInput");
         }
 
-        private StoreUserSettingForMutation(global::StrawberryShake.IOperationExecutor<IStoreUserSettingForResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter storeUserSettingForInputFormatter, global::StrawberryShake.Serialization.IInputValueFormatter @intFormatter)
+        private StoreUserSettingForMutation(global::StrawberryShake.IOperationExecutor<IStoreUserSettingForResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter storeUserSettingForInputFormatter, global::StrawberryShake.Serialization.IInputValueFormatter @intFormatter)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;
