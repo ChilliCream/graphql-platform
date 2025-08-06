@@ -123,6 +123,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             var current = leftovers ?? selections;
             var subgraph = _config.GetBestMatchingSubgraph(
                 operation,
+                parentSelectionPath,
                 current,
                 selectionSetTypeMetadata);
             var executionStep = new SelectionExecutionStep(
@@ -232,14 +233,14 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 path.RemoveAt(pathIndex);
             }
 
-            // if the current execution step has now way to resolve the data
+            // if the current execution step has no way to resolve the data
             // we will try to resolve it from the root.
             if (executionStep.ParentSelection is not null
                 && executionStep.ParentSelectionPath is not null
                 && executionStep.Resolver is null
                 && executionStep.SelectionResolvers.Count == 0)
             {
-                if (!EnsureStepCanBeResolvedFromRoot(
+                if (!_config.EnsureStepCanBeResolvedFromRoot(
                     executionStep.SubgraphName,
                     executionStep.ParentSelectionPath))
                 {
@@ -628,6 +629,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 ? availableSubgraphs[0]
                 : _config.GetBestMatchingSubgraph(
                     operation,
+                    null,
                     entityTypeSelectionSet.Selections,
                     entityTypeMetadata,
                     availableSubgraphs);
@@ -913,27 +915,6 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         => operation.Type is OperationType.Query
             && field.DeclaringType.Equals(operation.RootType)
             && (field.Name.EqualsOrdinal("node") || field.Name.EqualsOrdinal("nodes"));
-
-    private bool EnsureStepCanBeResolvedFromRoot(
-        string subgraphName,
-        SelectionPath path)
-    {
-        var current = path;
-
-        while (current is not null)
-        {
-            var typeMetadata = _config.GetType<ObjectTypeMetadata>(current.Selection.DeclaringType.Name);
-
-            if (!typeMetadata.Fields[current.Selection.Field.Name].Bindings.ContainsSubgraph(subgraphName))
-            {
-                return false;
-            }
-
-            current = current.Parent;
-        }
-
-        return true;
-    }
 
     private readonly struct BacklogItem(
         ISelection parentSelection,

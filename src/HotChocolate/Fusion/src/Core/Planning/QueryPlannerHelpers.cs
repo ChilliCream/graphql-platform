@@ -8,6 +8,7 @@ internal static class QueryPlannerHelpers
     public static string GetBestMatchingSubgraph(
         this FusionGraphConfiguration configuration,
         IOperation operation,
+        SelectionPath? parentSelectionPath,
         IReadOnlyList<ISelection> selections,
         ObjectTypeMetadata typeMetadataContext,
         IReadOnlyList<string>? availableSubgraphs = null)
@@ -21,6 +22,7 @@ internal static class QueryPlannerHelpers
                 EvaluateSubgraphCompatibilityScore(
                     configuration,
                     operation,
+                    parentSelectionPath,
                     selections,
                     typeMetadataContext,
                     subgraphName);
@@ -38,6 +40,7 @@ internal static class QueryPlannerHelpers
     private static int EvaluateSubgraphCompatibilityScore(
         FusionGraphConfiguration configuration,
         IOperation operation,
+        SelectionPath? parentSelectionPath,
         IReadOnlyList<ISelection> selections,
         ObjectTypeMetadata typeMetadataContext,
         string schemaName)
@@ -54,10 +57,16 @@ internal static class QueryPlannerHelpers
             {
                 if (!selection.Field.IsIntrospectionField &&
                     currentTypeContext.Fields[selection.Field.Name].Bindings
-                        .ContainsSubgraph(schemaName) &&
-                    typeMetadataContext.Resolvers.ContainsResolvers(schemaName))
+                        .ContainsSubgraph(schemaName))
                 {
                     score++;
+
+                    if (parentSelectionPath is null ||
+                        typeMetadataContext.Resolvers.ContainsResolvers(schemaName) ||
+                        configuration.EnsureStepCanBeResolvedFromRoot(schemaName, parentSelectionPath))
+                    {
+                        score++;
+                    }
 
                     if (selection.SelectionSet is not null)
                     {
@@ -73,5 +82,27 @@ internal static class QueryPlannerHelpers
         }
 
         return score;
+    }
+
+    public static bool EnsureStepCanBeResolvedFromRoot(
+        this FusionGraphConfiguration configuration,
+        string subgraphName,
+        SelectionPath path)
+    {
+        var current = path;
+
+        while (current is not null)
+        {
+            var typeMetadata = configuration.GetType<ObjectTypeMetadata>(current.Selection.DeclaringType.Name);
+
+            if (!typeMetadata.Fields[current.Selection.Field.Name].Bindings.ContainsSubgraph(subgraphName))
+            {
+                return false;
+            }
+
+            current = current.Parent;
+        }
+
+        return true;
     }
 }
