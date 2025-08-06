@@ -1,0 +1,48 @@
+{
+  "data": {
+    "node": null
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    ... on Discussion {\n      title\n      commentCount\n    }\n  }\n}",
+          "hash": "e567807ec1ad5128cfb566fad1645abc"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": "query Op_e567807e_1(\n  $__fusion_1_discussionId: ID!\n) {\n  discussionById(discussionId: $__fusion_1_discussionId) {\n    ... on Discussion {\n      title\n      id\n    }\n  }\n}",
+            "source": "$.discussionById",
+            "target": "$.node",
+            "requirements": [
+              {
+                "name": "__fusion_1_discussionId",
+                "selectionMap": "id"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": "query Op_e567807e_2(\n  $__fusion_2_id: ID!\n) {\n  discussionById(id: $__fusion_2_id) {\n    commentCount\n  }\n}",
+            "source": "$.discussionById",
+            "target": "$.node.<Discussion>",
+            "requirements": [
+              {
+                "name": "__fusion_2_id",
+                "selectionMap": "id"
+              }
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

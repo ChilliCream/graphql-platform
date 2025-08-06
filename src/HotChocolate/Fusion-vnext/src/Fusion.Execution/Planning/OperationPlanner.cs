@@ -10,6 +10,9 @@ using NameNode = HotChocolate.Language.NameNode;
 
 namespace HotChocolate.Fusion.Planning;
 
+// operation steps have dependency on node step. node step skips other nodes
+// fallback query executed inline
+
 public sealed partial class OperationPlanner
 {
     private readonly FusionSchemaDefinition _schema;
@@ -61,98 +64,150 @@ public sealed partial class OperationPlanner
         }
 
         var plan = Plan(possiblePlans);
-        var internalOperationDefinition = plan.HasValue ? plan.Value.InternalOperationDefinition : operationDefinition;
-        var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
-        var isIntrospectionOnly = operation.IsIntrospectionOnly();
-        var isNodeFieldOnly = operation.IsNodeFieldOnly();
 
-        if (!plan.HasValue && !isIntrospectionOnly && !isNodeFieldOnly)
+        if (operationDefinition.Operation is OperationType.Query)
         {
-            throw new InvalidOperationException("No possible plan was found for.");
+            var planTemplate = plan is not null ?
+                plan with { SchemaName = "None"  } :
+                new PlanNode
+                {
+                    OperationDefinition = operationDefinition,
+                    InternalOperationDefinition = operationDefinition,
+                    ShortHash = shortHash,
+                    SchemaName = "None",
+                    SelectionSetIndex = index.ToImmutable(),
+                    Backlog = [],
+                    PathCost = 1,
+                    BacklogCost = 1
+                };
+
+
+            var planWithNodeFields = PlanNodeFields(plan);
         }
+
+        // var internalOperationDefinition = planWithNodeFields?.InternalOperationDefinition ?? operationDefinition;
+        // var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
+        // var isIntrospectionOnly = operation.IsIntrospectionOnly();
+        // var isNodeFieldOnly = operation.IsNodeFieldOnly();
+        //
+        // if (plan is null && !isIntrospectionOnly && !isNodeFieldOnly)
+        // {
+        //     throw new InvalidOperationException("No possible plan was found.");
+        // }
+
+
+
 
         // this is not ideal and are we going to rework this once we figured out
         // introspection and defer and stream.
-        var steps = plan.HasValue ? plan.Value.Steps.OfType<OperationPlanStep>().ToList() : [];
-
-        foreach (var selection in operation.RootSelectionSet.Selections)
-        {
-            if (selection.Field is { Name: "node" } nodeField
-                && nodeField.Type.NamedType() is IInterfaceTypeDefinition { Name: "Node" } nodeType)
-            {
-                // Create a node plan step with responseName
-
-                // Pull out the selections by typename
-                var nodeFieldNode = selection.SyntaxNodes[0].Node;
-
-                foreach (var possibleType in _schema.GetPossibleTypes(nodeType))
-                {
-                    var possibleNodePlans = new PriorityQueue<PlanNode, double>();
-
-                    var nodePlanNodeTemplate = new PlanNode
-                    {
-                        OperationDefinition = operationDefinition,
-                        InternalOperationDefinition = operationDefinition,
-                        ShortHash = shortHash,
-                        SchemaName = "None",
-                        SelectionSetIndex = index.ToImmutable(),
-                        Backlog = ImmutableStack<WorkItem>.Empty,
-                        PathCost = 1,
-                        BacklogCost = 1
-                    };
-
-                    // Create a selection set just for the type specific selections
-                    var nodeSelectionSet = new SelectionSet(
-                        index.GetId(nodeFieldNode.SelectionSet!),
-                        nodeFieldNode.SelectionSet!,
-                        _schema.Types["Discussion"],
-                        SelectionPath.Root.AppendField(nodeFieldNode.Alias?.Value ?? nodeFieldNode.Name.Value));
-
-                    foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(nodeSelectionSet))
-                    {
-                        var byIdLookups = possibleType.GetPossibleLookups(schemaName, _schema)
-                            .Where(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }])
-                            .ToArray();
-
-                        foreach (var lookup in byIdLookups)
-                        {
-                            var workItem =
-                                new OperationWorkItem(OperationWorkItemKind.Lookup, nodeSelectionSet, lookup, InlineLookupRequirements: false);
-
-                            possibleNodePlans.Enqueue(
-                                nodePlanNodeTemplate with
-                                {
-                                    SchemaName = schemaName,
-                                    BacklogCost = 1 + resolutionCost,
-                                    Backlog = ImmutableStack<WorkItem>.Empty.Push(workItem),
-                                });
-                        }
-
-                        break; // TODO: Remove
-                    }
-
-                    var nodePlan = Plan(possibleNodePlans);
-
-                    if (!nodePlan.HasValue)
-                    {
-                        throw new InvalidOperationException("Could not find plan for node field");
-                    }
-
-                    steps.AddRange(nodePlan.Value.Steps.OfType<OperationPlanStep>());
-
-                    // Take the root operation plan step and add it as branch with
-                    // typename to node step
-                }
-
-                // Add node step to steps
-            }
-        }
+        // var steps = plan?.Steps.OfType<OperationPlanStep>().ToList() ?? [];
+        //
+        // foreach (var selection in operation.RootSelectionSet.Selections)
+        // {
+        //     if (selection.Field is { Name: "node" } nodeField
+        //         && nodeField.Type.NamedType() is IInterfaceTypeDefinition { Name: "Node" } nodeType)
+        //     {
+        //         // Create a node plan step with responseName
+        //
+        //         // Pull out the selections by typename
+        //         // var nodeFieldNode = selection.SyntaxNodes[0].Node;
+        //         // var partitioner = new NodeFieldSelectionSetPartitioner(_schema);
+        //         // var input = new NodeFieldSelectionSetPartitioner.Input
+        //         // {
+        //         //     SelectionSet = nodeFieldNode.SelectionSet!,
+        //         //     DeclaringType = nodeType
+        //         // };
+        //         //
+        //         // var result = partitioner.Partition(input);
+        //
+        //         var nodePlanNodeTemplate = new PlanNode
+        //         {
+        //             OperationDefinition = operationDefinition,
+        //             InternalOperationDefinition = operationDefinition,
+        //             ShortHash = shortHash,
+        //             SchemaName = "None",
+        //             SelectionSetIndex = index.ToImmutable(),
+        //             Backlog = ImmutableStack<WorkItem>.Empty,
+        //             PathCost = 1,
+        //             BacklogCost = 1
+        //         };
+        //
+        //         foreach (var possibleType in _schema.GetPossibleTypes(nodeType))
+        //         {
+        //             var selectionSetByType = operation.GetSelectionSet(selection, possibleType);
+        //
+        //             if (selectionSetByType.Selections.Length < 1)
+        //             {
+        //                 continue;
+        //             }
+        //
+        //             var possibleNodePlans = new PriorityQueue<PlanNode, double>();
+        //
+        //             var selections = selectionSetByType.Selections.ToArray().SelectMany(s => s.SyntaxNodes.ToArray()).Select(s => s.Node).ToArray(); // eww
+        //
+        //             var nodeSelectionSet = new SelectionSet(
+        //                 index.GetId(selection.SyntaxNodes[0].Node.SelectionSet!),
+        //                 new SelectionSetNode(selections),
+        //                 possibleType,
+        //                 SelectionPath.Root.AppendField(selection.ResponseName)); // TODO: Maybe we need to append the type here?
+        //
+        //             foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(nodeSelectionSet))
+        //             {
+        //                 var byIdLookups = possibleType.GetPossibleLookups(schemaName, _schema)
+        //                     .Where(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }])
+        //                     .ToArray();
+        //
+        //                 foreach (var lookup in byIdLookups)
+        //                 {
+        //                     var workItem =
+        //                         new OperationWorkItem(OperationWorkItemKind.LookupById, nodeSelectionSet, lookup);
+        //
+        //                     possibleNodePlans.Enqueue(
+        //                         nodePlanNodeTemplate with
+        //                         {
+        //                             SchemaName = schemaName,
+        //                             BacklogCost = 1 + resolutionCost,
+        //                             Backlog = ImmutableStack<WorkItem>.Empty.Push(workItem),
+        //                         });
+        //                 }
+        //             }
+        //
+        //             var nodePlan = Plan(possibleNodePlans);
+        //
+        //             if (nodePlan is null)
+        //             {
+        //                 throw new InvalidOperationException("Could not find plan for node field");
+        //             }
+        //
+        //             var operationPlanStepsForType = nodePlan.Steps
+        //                 .OfType<OperationPlanStep>()
+        //                 .ToArray();
+        //
+        //             // Take the root operation plan step and add it as branch with
+        //             // typename to node step
+        //
+        //             steps.AddRange(operationPlanStepsForType);
+        //         }
+        //
+        //         // Add node step to steps
+        //         // var nodePlanStep = new NodePlanStep
+        //         // {
+        //         //     Id =
+        //         // }
+        //         // steps.Add();
+        //     }
+        // }
 
         return BuildExecutionPlan(
             operation,
             operationDefinition,
             steps.ToImmutableList(),
             isIntrospectionOnly);
+    }
+
+    private PlanNode? PlanNodeFields(PlanNode? existingPlan)
+    {
+
     }
 
     private (PlanNode Node, SelectionSet First) CreateDefaultPlanBase(
@@ -242,7 +297,7 @@ public sealed partial class OperationPlanner
         return (node, firstSelectionSet);
     }
 
-    private (OperationDefinitionNode InternalOperationDefinition, ImmutableList<PlanStep> Steps)? Plan(
+    private PlanNode? Plan(
         PriorityQueue<PlanNode, double> possiblePlans)
     {
         while (possiblePlans.TryDequeue(out var current, out _))
@@ -253,7 +308,7 @@ public sealed partial class OperationPlanner
             {
                 // If the backlog is empty, the planning process is complete, and we can return the
                 // steps to build the actual execution plan.
-                return (current.InternalOperationDefinition, current.Steps);
+                return current;
             }
 
             // The backlog represents the tasks we have to complete to build out
@@ -269,6 +324,10 @@ public sealed partial class OperationPlanner
 
                 case OperationWorkItem { Kind: OperationWorkItemKind.Lookup, Lookup: { } lookup } wi:
                     PlanLookupSelections(wi, lookup, current, backlog, possiblePlans);
+                    break;
+
+                case OperationWorkItem { Kind: OperationWorkItemKind.LookupById, Lookup: { } lookup } wi:
+                    PlanSelections(wi, current, lookup, backlog, possiblePlans);
                     break;
 
                 case FieldRequirementWorkItem { Lookup: null } wi:
@@ -302,14 +361,8 @@ public sealed partial class OperationPlanner
         ImmutableStack<WorkItem> backlog,
         PriorityQueue<PlanNode, double> possiblePlans)
     {
-        if (workItem.InlineLookupRequirements)
-        {
-            current = InlineLookupRequirements(workItem.SelectionSet, current, lookup, backlog);
-        }
-
-        // TODO: Not passing current.Backlog (with the current work item still in it) here
-        //       might be an issue
-        PlanSelections(workItem, current, lookup, backlog, possiblePlans);
+        current = InlineLookupRequirements(workItem.SelectionSet, current, lookup, backlog);
+        PlanSelections(workItem, current, lookup, current.Backlog, possiblePlans);
     }
 
     private void PlanSelections(
@@ -1414,8 +1467,7 @@ file static class Extensions
     {
         foreach (var selection in operation.RootSelectionSet.Selections)
         {
-            if (selection.Field is { Name: "node" } nodeField
-                && nodeField.Type.NamedType() is IInterfaceTypeDefinition { Name: "Node" })
+            if (IsNodeField(selection))
             {
                 continue;
             }
@@ -1425,6 +1477,23 @@ file static class Extensions
 
         return true;
     }
+
+    public static bool HasNodeFields(this Operation operation)
+    {
+        foreach (var selection in operation.RootSelectionSet.Selections)
+        {
+            if (IsNodeField(selection))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsNodeField(Selection selection)
+        => selection.Field is { Name: "node" } nodeField &&
+            nodeField.Type.NamedType() is IInterfaceTypeDefinition { Name: "Node" };
 
     public static int NextId(this ImmutableList<PlanStep> steps)
         => steps.LastOrDefault()?.Id + 1 ?? 1;

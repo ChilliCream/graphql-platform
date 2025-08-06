@@ -11,11 +11,6 @@ public sealed class SelectionSet
     {
         ArgumentNullException.ThrowIfNull(selections);
 
-        if (selections.Length == 0)
-        {
-            throw new ArgumentException("Selections cannot be empty.", nameof(selections));
-        }
-
         Id = id;
         Type = type;
         IsConditional = isConditional;

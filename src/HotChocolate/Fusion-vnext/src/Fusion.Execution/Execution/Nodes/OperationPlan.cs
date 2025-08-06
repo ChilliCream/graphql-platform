@@ -14,7 +14,7 @@ public sealed record OperationPlan
 
     public IReadOnlyList<VariableDefinitionNode> VariableDefinitions => OperationDefinition.VariableDefinitions;
 
-    public string? OperationName => OperationDefinition.Name?.Value;
+    public string? OperationName => Operation.Name;
 
     public required ImmutableArray<ExecutionNode> RootNodes { get; init; }
 

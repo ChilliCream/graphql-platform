@@ -58,9 +58,8 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
 
         sb.Append('$');
 
-        for (var i = _segments.Length - 1; i >= 0; i--)
+        foreach (var seg in _segments)
         {
-            var seg = _segments[i];
             sb.Append('.');
 
             if (seg.Kind == SelectionPathSegmentKind.InlineFragment)
