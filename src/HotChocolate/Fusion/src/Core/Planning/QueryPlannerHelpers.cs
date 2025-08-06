@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Planning;
 
 internal static class QueryPlannerHelpers
 {
-    public static string GetBestMatchingSubgraph(
+    public static string? GetBestMatchingSubgraph(
         this FusionGraphConfiguration configuration,
         IOperation operation,
         SelectionPath? parentSelectionPath,
@@ -14,7 +14,7 @@ internal static class QueryPlannerHelpers
         IReadOnlyList<string>? availableSubgraphs = null)
     {
         var bestScore = 0;
-        var bestSubgraph = configuration.SubgraphNames[0];
+        var bestSubgraph = default(string?);
 
         foreach (var subgraphName in availableSubgraphs ?? configuration.SubgraphNames)
         {
@@ -52,6 +52,11 @@ internal static class QueryPlannerHelpers
         while (stack.Count > 0)
         {
             var (currentSelections, currentTypeContext) = stack.Pop();
+
+            if (currentSelections.Count == 0)
+            {
+                score++;
+            }
 
             foreach (var selection in currentSelections)
             {

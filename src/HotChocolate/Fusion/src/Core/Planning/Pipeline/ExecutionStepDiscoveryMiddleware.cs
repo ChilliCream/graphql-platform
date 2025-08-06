@@ -126,6 +126,12 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 parentSelectionPath,
                 current,
                 selectionSetTypeMetadata);
+
+            if (subgraph is null)
+            {
+                throw ThrowHelper.NoResolverInContext();
+            }
+
             var executionStep = new SelectionExecutionStep(
                 context.NextStepId(),
                 subgraph,
@@ -155,7 +161,8 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 var field = selection.Field;
                 var fieldInfo = selectionSetTypeMetadata.Fields[field.Name];
 
-                if (!fieldInfo.Bindings.ContainsSubgraph(subgraph))
+                if (!fieldInfo.Bindings.ContainsSubgraph(subgraph)
+                && !fieldInfo.Resolvers.ContainsResolvers(subgraph))
                 {
                     path.RemoveAt(pathIndex);
                     (leftovers ??= []).Add(selection);
@@ -633,6 +640,11 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                     entityTypeSelectionSet.Selections,
                     entityTypeMetadata,
                     availableSubgraphs);
+
+        if (subgraph is null)
+        {
+            throw ThrowHelper.NoResolverInContext();
+        }
 
         var field = nodeSelection.Field;
         var fieldInfo = queryTypeMetadata.Fields[field.Name];
