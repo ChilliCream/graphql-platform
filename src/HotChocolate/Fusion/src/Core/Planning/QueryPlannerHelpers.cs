@@ -57,25 +57,20 @@ internal static class QueryPlannerHelpers
             {
                 if (!selection.Field.IsIntrospectionField &&
                     currentTypeContext.Fields[selection.Field.Name].Bindings
-                        .ContainsSubgraph(schemaName))
+                        .ContainsSubgraph(schemaName) &&
+                    (typeMetadataContext.Resolvers.ContainsResolvers(schemaName) ||
+                        (parentSelectionPath is not null && configuration.EnsureStepCanBeResolvedFromRoot(schemaName, parentSelectionPath))))
                 {
                     score++;
+                }
 
-                    if (parentSelectionPath is null ||
-                        typeMetadataContext.Resolvers.ContainsResolvers(schemaName) ||
-                        configuration.EnsureStepCanBeResolvedFromRoot(schemaName, parentSelectionPath))
+                if (selection.SelectionSet is not null)
+                {
+                    foreach (var possibleType in operation.GetPossibleTypes(selection))
                     {
-                        score++;
-                    }
-
-                    if (selection.SelectionSet is not null)
-                    {
-                        foreach (var possibleType in operation.GetPossibleTypes(selection))
-                        {
-                            var type = configuration.GetType<ObjectTypeMetadata>(possibleType.Name);
-                            var selectionSet = operation.GetSelectionSet(selection, possibleType);
-                            stack.Push((selectionSet.Selections, type));
-                        }
+                        var type = configuration.GetType<ObjectTypeMetadata>(possibleType.Name);
+                        var selectionSet = operation.GetSelectionSet(selection, possibleType);
+                        stack.Push((selectionSet.Selections, type));
                     }
                 }
             }
