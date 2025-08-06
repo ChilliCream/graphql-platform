@@ -45,6 +45,8 @@ internal static class QueryPlannerHelpers
         ObjectTypeMetadata typeMetadataContext,
         string schemaName)
     {
+        var pathCanBeResolvedFromRoot = configuration.EnsurePathCanBeResolvedFromRoot(schemaName, parentSelectionPath);
+
         var score = 0;
         var stack = new Stack<(IReadOnlyList<ISelection> selections, ObjectTypeMetadata typeContext)>();
         stack.Push((selections, typeMetadataContext));
@@ -65,13 +67,12 @@ internal static class QueryPlannerHelpers
                         .Fields[selection.Field.Name]
                         .Bindings
                         .ContainsSubgraph(schemaName) &&
-                    (parentSelectionPath is null ||
+                    (pathCanBeResolvedFromRoot ||
                         currentTypeContext
                             .Fields[selection.Field.Name]
                             .Resolvers
                             .ContainsResolvers(schemaName) ||
-                        typeMetadataContext.Resolvers.ContainsResolvers(schemaName) ||
-                        configuration.EnsureStepCanBeResolvedFromRoot(schemaName, parentSelectionPath)))
+                        typeMetadataContext.Resolvers.ContainsResolvers(schemaName)))
                 {
                     score++;
 
@@ -91,10 +92,10 @@ internal static class QueryPlannerHelpers
         return score;
     }
 
-    public static bool EnsureStepCanBeResolvedFromRoot(
+    public static bool EnsurePathCanBeResolvedFromRoot(
         this FusionGraphConfiguration configuration,
         string subgraphName,
-        SelectionPath path)
+        SelectionPath? path)
     {
         var current = path;
 

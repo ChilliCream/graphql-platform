@@ -246,7 +246,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 && executionStep.Resolver is null
                 && executionStep.SelectionResolvers.Count == 0)
             {
-                if (!_config.EnsureStepCanBeResolvedFromRoot(
+                if (!_config.EnsurePathCanBeResolvedFromRoot(
                     executionStep.SubgraphName,
                     executionStep.ParentSelectionPath))
                 {
