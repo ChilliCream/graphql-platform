@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -92,6 +93,37 @@ public class RequestExecutorTests
 
         // the cancellation token was correctly passed to the resolver.
         Assert.True(tokenWasCorrectlyPassedToResolver);
+    }
+
+    [Fact]
+    public async Task StringInput_WithControlCharacters_IsHandledCorrectly()
+    {
+        var schema = SchemaBuilder.New()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("echo")
+                .Argument("arg", arg => arg.Type<StringType>())
+                .Resolve(x => x.ArgumentValue<string>("arg")))
+            .Create();
+
+        var escapedControlChars = JsonSerializer.Serialize(new string(
+            Enumerable.Range(0, char.MaxValue)
+                .Select(i => (char)i)
+                .Where(char.IsControl)
+                .ToArray()));
+
+        // act
+        var executor = schema.MakeExecutable();
+        var result = await executor.ExecuteAsync(
+            $$"""
+            {
+                delChar: echo(arg: "Hello\u007FWorld")
+                allControlChars: echo(arg:{{escapedControlChars}})
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]
