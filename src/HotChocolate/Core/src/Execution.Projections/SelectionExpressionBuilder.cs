@@ -190,9 +190,7 @@ internal sealed class SelectionExpressionBuilder
         if (parameterlessCtor != null)
         {
             var allWritable = assignmentList.All(a =>
-                a.Member is PropertyInfo { CanWrite: true } prop
-                && prop.SetMethod != null
-                && (prop.SetMethod.IsPublic || prop.SetMethod.IsAssembly));
+                a.Member is PropertyInfo { CanWrite: true, SetMethod.IsPublic: true });
             if (allWritable)
             {
                 return Expression.MemberInit(
