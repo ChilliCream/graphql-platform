@@ -1,14 +1,14 @@
 operation:
   - document: >-
-    query testQuery {
-      votable {
-        viewerCanVote
-        ... on Discussion {
-          viewerRating
-          id @fusion__requirement
+      query testQuery {
+        votable {
+          viewerCanVote
+          ... on Discussion {
+            viewerRating
+            id @fusion__requirement
+          }
         }
       }
-    }
     name: testQuery
     hash: 123
 nodes:

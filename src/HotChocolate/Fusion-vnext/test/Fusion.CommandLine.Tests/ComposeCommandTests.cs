@@ -8,10 +8,10 @@ namespace HotChocolate.Fusion;
 public sealed class ComposeCommandTests
 {
     private static readonly string s_validExample1CompositeSchema =
-        File.ReadAllText("__resources__/valid-example-1/result/composite-schema.graphqls");
+        File.ReadAllText("__resources__/valid-example-1-result/composite-schema.graphqls");
 
     private static readonly string s_invalidExample1CompositeSchema =
-        File.ReadAllText("__resources__/invalid-example-1/result/composite-schema.graphqls");
+        File.ReadAllText("__resources__/invalid-example-1-result/composite-schema.graphqls");
 
     [Fact]
     public async Task Compose_ValidExample1_FromSpecified_ToStdOut()
@@ -33,9 +33,8 @@ public sealed class ComposeCommandTests
 
         // assert
         Assert.Equal(0, exitCode);
-        Assert.Equal(
-            s_validExample1CompositeSchema,
-            testConsole.Out.ToString()!.ReplaceLineEndings("\n"));
+        testConsole.Out.ToString()!.ReplaceLineEndings("\n")
+            .MatchInlineSnapshot(s_validExample1CompositeSchema);
     }
 
     [Fact]
@@ -56,9 +55,8 @@ public sealed class ComposeCommandTests
 
         // assert
         Assert.Equal(0, exitCode);
-        Assert.Equal(
-            s_validExample1CompositeSchema,
-            testConsole.Out.ToString()!.ReplaceLineEndings("\n"));
+        testConsole.Out.ToString()!.ReplaceLineEndings("\n")
+            .MatchInlineSnapshot(s_validExample1CompositeSchema);
     }
 
     [Fact]
@@ -86,9 +84,8 @@ public sealed class ComposeCommandTests
         // assert
         Assert.Equal(0, exitCode);
         Assert.True(File.Exists(filePath));
-        Assert.Equal(
-            s_validExample1CompositeSchema,
-            (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n"));
+        (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n")
+            .MatchInlineSnapshot(s_validExample1CompositeSchema);
 
         // cleanup
         File.Delete(filePath);
@@ -119,9 +116,8 @@ public sealed class ComposeCommandTests
         // assert
         Assert.Equal(0, exitCode);
         Assert.True(File.Exists(filePath));
-        Assert.Equal(
-            s_validExample1CompositeSchema,
-            (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n"));
+        (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n")
+            .MatchInlineSnapshot(s_validExample1CompositeSchema);
 
         // cleanup
         File.Delete(filePath);
@@ -150,9 +146,8 @@ public sealed class ComposeCommandTests
         // assert
         Assert.Equal(0, exitCode);
         Assert.True(File.Exists(filePath));
-        Assert.Equal(
-            s_validExample1CompositeSchema,
-            (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n"));
+        (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n")
+            .MatchInlineSnapshot(s_validExample1CompositeSchema);
 
         // cleanup
         File.Delete(filePath);
@@ -181,9 +176,8 @@ public sealed class ComposeCommandTests
         // assert
         Assert.Equal(0, exitCode);
         Assert.True(File.Exists(filePath));
-        Assert.Equal(
-            s_validExample1CompositeSchema,
-            (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n"));
+        (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n")
+            .MatchInlineSnapshot(s_validExample1CompositeSchema);
 
         // cleanup
         File.Delete(filePath);
@@ -211,9 +205,8 @@ public sealed class ComposeCommandTests
         // assert
         Assert.Equal(0, exitCode);
         Assert.True(File.Exists(filePath));
-        Assert.Equal(
-            s_validExample1CompositeSchema,
-            (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n"));
+        (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n")
+            .MatchInlineSnapshot(s_validExample1CompositeSchema);
 
         // cleanup
         File.Delete(filePath);
@@ -322,9 +315,8 @@ public sealed class ComposeCommandTests
 
         // assert
         Assert.Equal(0, exitCode);
-        Assert.Equal(
-            s_invalidExample1CompositeSchema,
-            testConsole.Out.ToString()!.ReplaceLineEndings("\n"));
+        testConsole.Out.ToString()!.ReplaceLineEndings("\n")
+            .MatchInlineSnapshot(s_invalidExample1CompositeSchema);
     }
 
     [Fact]

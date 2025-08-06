@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.IO.Hashing;
+using System.Reactive.Disposables;
 using System.Text;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
@@ -362,12 +363,15 @@ public sealed class OperationExecutionNode : ExecutionNode
             }
 
             bool hasResult;
-            var scope = _diagnosticEvents.ExecuteSubscriptionEvent(_context, _node);
-            var start = Stopwatch.GetTimestamp();
+            IDisposable? scope = null;
+            long? start = null;
 
             try
             {
                 hasResult = await _resultEnumerator.MoveNextAsync();
+
+                scope = _diagnosticEvents.ExecuteSubscriptionEvent(_context, _node);
+                start = Stopwatch.GetTimestamp();
 
                 if (hasResult)
                 {
@@ -383,8 +387,8 @@ public sealed class OperationExecutionNode : ExecutionNode
                     _node.Id,
                     Activity.Current,
                     ExecutionStatus.Failed,
-                    scope,
-                    start,
+                    scope ?? Disposable.Empty,
+                    start ?? Stopwatch.GetTimestamp(),
                     Stopwatch.GetTimestamp(),
                     Exception: ex);
                 return true;
@@ -397,7 +401,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                     Activity.Current,
                     ExecutionStatus.Failed,
                     scope,
-                    start,
+                    start.Value,
                     Stopwatch.GetTimestamp());
                 return true;
             }
