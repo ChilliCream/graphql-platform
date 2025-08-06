@@ -54,7 +54,8 @@ internal static class QueryPlannerHelpers
             {
                 if (!selection.Field.IsIntrospectionField &&
                     currentTypeContext.Fields[selection.Field.Name].Bindings
-                        .ContainsSubgraph(schemaName))
+                        .ContainsSubgraph(schemaName) &&
+                    typeMetadataContext.Resolvers.ContainsResolvers(schemaName))
                 {
                     score++;
 
