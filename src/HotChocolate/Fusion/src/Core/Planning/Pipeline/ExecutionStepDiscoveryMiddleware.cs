@@ -161,8 +161,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 var field = selection.Field;
                 var fieldInfo = selectionSetTypeMetadata.Fields[field.Name];
 
-                if (!fieldInfo.Bindings.ContainsSubgraph(subgraph)
-                && !fieldInfo.Resolvers.ContainsResolvers(subgraph))
+                if (!fieldInfo.Bindings.ContainsSubgraph(subgraph))
                 {
                     path.RemoveAt(pathIndex);
                     (leftovers ??= []).Add(selection);

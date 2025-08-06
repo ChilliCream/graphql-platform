@@ -66,6 +66,10 @@ internal static class QueryPlannerHelpers
                         .Bindings
                         .ContainsSubgraph(schemaName) &&
                     (parentSelectionPath is null ||
+                        currentTypeContext
+                            .Fields[selection.Field.Name]
+                            .Resolvers
+                            .ContainsResolvers(schemaName) ||
                         typeMetadataContext.Resolvers.ContainsResolvers(schemaName) ||
                         configuration.EnsureStepCanBeResolvedFromRoot(schemaName, parentSelectionPath)))
                 {
