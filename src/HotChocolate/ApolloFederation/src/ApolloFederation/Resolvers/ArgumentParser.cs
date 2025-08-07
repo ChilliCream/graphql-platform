@@ -87,8 +87,26 @@ internal static class ArgumentParser
 
                 value = (T)enumType.ParseLiteral(valueNode)!;
                 return true;
+            case SyntaxKind.ListValue:
+                {
+                    // Support for list/array traversal: expect current path segment to be an integer index
+                    if (int.TryParse(path[i], out int index))
+                    {
+                        var list = ((ListValueNode)valueNode).Items;
+                        if (index >= 0 && index < list.Count)
+                        {
+                            // ListType exposes ElementType property
+                            var elementType = type is ListType lt ? lt.ElementType : type;
+                            if (path.Length < ++i && elementType.IsCompositeType())
+                            {
+                                break;
+                            }
+                            return TryGetValue(list[index], elementType, path, i, out value);
+                        }
+                    }
+                    break;
+                }
         }
-
         value = default;
         return false;
     }
