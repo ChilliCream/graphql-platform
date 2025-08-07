@@ -94,8 +94,101 @@ public class IdDescriptorTests
     }
 
     [Fact]
-    public async Task Id_Honors_CustomGraphQLName()
+    public async Task Id_Honors_CustomTypeNaming_OutputFields()
     {
+        // arrange
+        var services = new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithRenamedIds>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .AddGlobalObjectIdentification();
+
+        // act
+        var result = await services.ExecuteRequestAsync(
+            """
+            mutation {
+                out: doSomethingElse {
+                    renamedUser {
+                        userId
+                        explicitUserId
+                        fooId
+                        fluentFooId
+                        singleTypeFluentFooId
+                        userIdMethod
+                        explicitUserIdMethod
+                        fooIdMethod
+                        fluentFooIdMethod
+                        singleTypeFluentFooIdMethod
+                    }
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            $$"""
+            {
+              "data": {
+                "out": {
+                  "renamedUser": {
+                    "userId": "{{Convert.ToBase64String("RenamedUser:1"u8)}}",
+                    "explicitUserId": "{{Convert.ToBase64String("RenamedUser:1"u8)}}",
+                    "fooId": "{{Convert.ToBase64String("FooFoo:1"u8)}}",
+                    "fluentFooId": "{{Convert.ToBase64String("FooFooFluent:1"u8)}}",
+                    "singleTypeFluentFooId": "{{Convert.ToBase64String("FooFooFluentSingle:1"u8)}}",
+                    "userIdMethod": "{{Convert.ToBase64String("RenamedUser:1"u8)}}",
+                    "explicitUserIdMethod": "{{Convert.ToBase64String("RenamedUser:1"u8)}}",
+                    "fooIdMethod": "{{Convert.ToBase64String("FooFoo:1"u8)}}",
+                    "fluentFooIdMethod": "{{Convert.ToBase64String("FooFooFluent:1"u8)}}",
+                    "singleTypeFluentFooIdMethod": "{{Convert.ToBase64String("FooFooFluentSingle:1"u8)}}"
+                  }
+                }
+              }
+            }
+            """
+            );
+    }
+    [Fact]
+    public async Task Id_Honors_CustomTypeNaming_ValidInputs()
+    {
+        // arrange
+        var services = new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithRenamedIds>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .AddGlobalObjectIdentification();
+
+        var userId = Convert.ToBase64String("RenamedUser:100"u8);
+        var fooId = Convert.ToBase64String("FooFoo:300"u8);
+        var fluentFooId = Convert.ToBase64String("FooFooFluent:500"u8);
+        var singleTypeFluentFooId = Convert.ToBase64String("FooFooFluentSingle:600"u8);
+
+        // act
+        var result =
+            await services.ExecuteRequestAsync($$"""
+                                                 mutation {
+                                                     validAnyIdInput1: acceptsAnyId(input: { id:"{{userId}}"}) { int }
+                                                     validAnyIdInput2: acceptsAnyId(input: { id:"{{fooId}}"}) { int }
+                                                     validAnyIdInput3: acceptsAnyId(input: { id:"{{fluentFooId}}"}) { int }
+                                                     validAnyIdInput4: acceptsAnyId(input: { id:"{{singleTypeFluentFooId}}"}) { int }
+
+                                                     validUserIdInput: acceptsUserId(input: { id:"{{userId}}"}) { int }
+                                                     validFooIdInput: acceptsFooId(input: { id:"{{fooId}}"}) { int }
+                                                     validFluentFooIdInput: acceptsFluentFooId(input: { id:"{{fluentFooId}}"}) { int }
+                                                     validSingleTypeFluentFooIdInput: acceptsSingleTypeFluentFooId(input: { id:"{{singleTypeFluentFooId}}"}) { int }
+                                                 }
+                                                 """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Id_Honors_CustomTypeNaming_Throws_On_InvalidInputs()
+    {
+        // arrange
         var services = new ServiceCollection()
             .AddGraphQL()
             .AddMutationType<MutationWithRenamedIds>()
@@ -105,55 +198,22 @@ public class IdDescriptorTests
             .AddErrorFilter(x => new Error { Message = x.Message })
             .AddGlobalObjectIdentification();
 
-        const string userId = "UmVuYW1lZFVzZXI6MQ=="; // "RenamedUser:1"
-        const string fooId = "Rm9vRm9vOjM="; // "FooFoo:3"
-        const string fluentFooId = "Rm9vRm9vRmx1ZW50OjQ="; // "FooFooFluent:4"
-        const string singleTypeFluentFooId = "Rm9vRm9vRmx1ZW50U2luZ2xlOjQ="; // "FooFooFluentSingle:4"
-        var result = await services
-            .ExecuteRequestAsync(
-                $$"""
-                  mutation {
-                      out: doSomethingElse {
-                         renamedUser { 
-                            userId 
-                            explicitUserId 
-                            fooId
-                            fluentFooId 
-                            singleTypeFluentFooId
-                            userIdMethod 
-                            explicitUserIdMethod 
-                            fooIdMethod 
-                            fluentFooIdMethod 
-                            singleTypeFluentFooIdMethod 
-                          }
-                      }
-                      
-                      validAnyIdInput1: acceptsAnyId(input: { id:"{{userId}}"}) { int }
-                      validAnyIdInput2: acceptsAnyId(input: { id:"{{fooId}}"}) { int }
-                      validAnyIdInput3: acceptsAnyId(input: { id:"{{fluentFooId}}"}) { int }
-                      validAnyIdInput4: acceptsAnyId(input: { id:"{{singleTypeFluentFooId}}"}) { int }
+        var userId = Convert.ToBase64String("RenamedUser:100"u8);
+        var fooId = Convert.ToBase64String("FooFoo:300"u8);
+        var fluentFooId = Convert.ToBase64String("FooFooFluent:500"u8);
+        var singleTypeFluentFooId = Convert.ToBase64String("FooFooFluentSingle:600"u8);
 
-                      validUserIdInput: acceptsUserId(input: { id:"{{userId}}"}) { int }
-                      validFooIdInput: acceptsFooId(input: { id:"{{fooId}}"}) { int }
-                      validFluentFooIdInput: acceptsFluentFooId(input: { id:"{{fluentFooId}}"}) { int }
-                      validSingleTypeFluentFooIdInput: acceptsSingleTypeFluentFooId(input: { id:"{{singleTypeFluentFooId}}"}) { int }
-                  }
-                  """);
+        // act
+        var result = await services.ExecuteRequestAsync($$"""
+                                                          mutation {
+                                                              validUserIdInput: acceptsUserId(input: { id:"{{fooId}}"}) { int }
+                                                              validFooIdInput: acceptsFooId(input: { id:"{{fluentFooId}}"}) { int }
+                                                              validFluentFooIdInput: acceptsFluentFooId(input: { id:"{{singleTypeFluentFooId}}"}) { int }
+                                                              validSingleTypeFluentFooIdInput: acceptsSingleTypeFluentFooId(input: { id:"{{userId}}"}) { int }
+                                                          }
+                                                          """);
 
-        result.MatchSnapshot();
-
-        // verify throw for incorrect id
-        result = await services
-            .ExecuteRequestAsync(
-                $$"""
-                  mutation {
-                      validUserIdInput: acceptsUserId(input: { id:"{{fooId}}"}) { int }
-                      validFooIdInput: acceptsFooId(input: { id:"{{fluentFooId}}"}) { int }
-                      validFluentFooIdInput: acceptsFluentFooId(input: { id:"{{singleTypeFluentFooId}}"}) { int }
-                      validSingleTypeFluentFooIdInput: acceptsSingleTypeFluentFooId(input: { id:"{{userId}}"}) { int }
-                  }
-                  """);
-
+        // assert
         result.MatchSnapshot(postFix: "InvalidArgs");
     }
 
@@ -286,31 +346,31 @@ public class IdDescriptorTests
         public int UserId { get; set; } = 1;
 
         [ID<IdContainer>]
-        public int ExplicitUserId { get; set; } = 2;
+        public int ExplicitUserId { get; set; } = 1;
 
         [ID<RenamedFoo>]
-        public int FooId { get; set; } = 3;
+        public int FooId { get; set; } = 1;
 
         [ID<FluentRenamedFooType>]
-        public int FluentFooId { get; set; } = 4;
+        public int FluentFooId { get; set; } = 1;
 
         [ID<SingleTypeFluentRenamedFooType>]
-        public int SingleTypeFluentFooId { get; set; } = 4;
+        public int SingleTypeFluentFooId { get; set; } = 1;
 
         [ID]
         public int UserIdMethod() => 1;
 
         [ID<IdContainer>]
-        public int ExplicitUserIdMethod() => 2;
+        public int ExplicitUserIdMethod() => 1;
 
         [ID<RenamedFoo>]
-        public int FooIdMethod() => 3;
+        public int FooIdMethod() => 1;
 
         [ID<FluentRenamedFooType>]
-        public int FluentFooIdMethod() => 4;
+        public int FluentFooIdMethod() => 1;
 
         [ID<SingleTypeFluentRenamedFooType>]
-        public int SingleTypeFluentFooIdMethod() => 4;
+        public int SingleTypeFluentFooIdMethod() => 1;
     }
 
     [GraphQLName("FooFoo")]
@@ -323,7 +383,7 @@ public class IdDescriptorTests
         protected override void Configure(IObjectTypeDescriptor<FluentRenamedFoo> descriptor) =>
             descriptor.Name("FooFooFluent");
     }
-    
+
     public class SingleTypeFluentRenamedFooType : ObjectType<SingleTypeFluentRenamedFooType>
     {
         protected override void Configure(IObjectTypeDescriptor<SingleTypeFluentRenamedFooType> descriptor) =>
