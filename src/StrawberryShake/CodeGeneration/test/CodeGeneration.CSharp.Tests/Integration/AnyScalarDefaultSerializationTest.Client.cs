@@ -243,13 +243,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
     public partial class GetJsonQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSerialization.IGetJsonQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetJsonResult> _operationExecutor;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetJsonQuery(global::StrawberryShake.IOperationExecutor<IGetJsonResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        private GetJsonQuery(global::StrawberryShake.IOperationExecutor<IGetJsonResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        private GetJsonQuery(global::StrawberryShake.IOperationExecutor<IGetJsonResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;
