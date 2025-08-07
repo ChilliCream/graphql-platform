@@ -223,15 +223,7 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
                 schema.Types.OfType<MutableUnionTypeDefinition>().Where(u => u.Types.Contains(possibleType));
             var byIdLookups = possibleType.GetFusionLookupDirectivesById(unionTypes).ToList();
 
-            if (byIdLookups.Count == 0)
-            {
-                var error = new SatisfiabilityError(
-                    string.Format(SatisfiabilityValidator_NodeTypeHasNoLookupById, possibleType.Name));
-
-                log.Write(new LogEntry(error.ToString(), LogEntryCodes.Unsatisfiable, extension: error));
-
-                continue;
-            }
+            var hasNodeLookup = false;
 
             var nodePathItem = new SatisfiabilityPathItem(nodeField, queryType, "*");
             context.Path.Push(nodePathItem);
@@ -241,13 +233,20 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
                 var schemaName = (string)lookup.Arguments[WellKnownArgumentNames.Schema].Value!;
                 var fieldDirectiveArgument = (string)lookup.Arguments[WellKnownArgumentNames.Field].Value!;
                 var lookupFieldDefinition = ParseFieldDefinition(fieldDirectiveArgument);
+                var lookupFieldTypeName = lookupFieldDefinition.Type.NamedType().Name.Value;
 
-                if (!schema.Types.TryGetType(lookupFieldDefinition.Type.NamedType().Name.Value, out var namedType))
+                if (!schema.Types.TryGetType(lookupFieldTypeName, out var lookupFieldNamedType))
                 {
                     continue;
                 }
 
-                var lookupFieldType = CreateType(lookupFieldDefinition.Type, namedType).ExpectOutputType();
+                var lookupFieldType = CreateType(lookupFieldDefinition.Type, lookupFieldNamedType).ExpectOutputType();
+
+                if (lookupFieldType is IInterfaceTypeDefinition { Name: "Node" })
+                {
+                    hasNodeLookup = true;
+                }
+
                 var lookupField = new MutableOutputFieldDefinition(lookupFieldDefinition.Name.Value, lookupFieldType);
 
                 var lookupPathItem = new SatisfiabilityPathItem(lookupField, queryType, schemaName);
@@ -256,6 +255,14 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
                 VisitObjectType(possibleType, context);
 
                 context.Path.Pop();
+            }
+
+            if (!hasNodeLookup)
+            {
+                var error = new SatisfiabilityError(
+                    string.Format(SatisfiabilityValidator_NodeTypeHasNoNodeLookup, possibleType.Name));
+
+                log.Write(new LogEntry(error.ToString(), LogEntryCodes.Unsatisfiable, extension: error));
             }
 
             context.Path.Pop();
