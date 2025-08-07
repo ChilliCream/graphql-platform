@@ -25,21 +25,16 @@ internal static class RelayIdFieldHelpers
     /// </remarks>
     public static void ApplyIdToField(
         IDescriptor<ArgumentConfiguration> descriptor,
-        string? typeName = null)
-    {
-        ArgumentNullException.ThrowIfNull(descriptor);
+        string? typeName = null) =>
+        ApplyIdToFieldCore(descriptor, NodeIdNameDefinitionUnion.Create(typeName));
 
-        var extend = descriptor.Extend();
-
-        // rewrite type
-        extend.OnBeforeCreate(RewriteConfiguration);
-
-        // add serializer if globalID support is enabled.
-        if (extend.Context.Features.Get<NodeSchemaFeature>()?.IsEnabled == true)
-        {
-            extend.OnBeforeCompletion((c, d) => AddSerializerToInputField(c, d, typeName));
-        }
-    }
+    /// <inheritdoc cref="ApplyIdToField(IDescriptor{ArgumentConfiguration},string?)"/>
+    /// <typeparam name="T">
+    /// the type from which the <see cref="IDAttribute.TypeName">type name</see> is derived
+    /// </typeparam>
+    public static void ApplyIdToField<T>(
+        IDescriptor<ArgumentConfiguration> descriptor) =>
+    ApplyIdToFieldCore(descriptor, NodeIdNameDefinitionUnion.Create<T>());
 
     /// <summary>
     /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to an argument
@@ -50,7 +45,50 @@ internal static class RelayIdFieldHelpers
     /// </remarks>
     public static void ApplyIdToField(
         IDescriptor<OutputFieldConfiguration> descriptor,
-        string? typeName = null)
+        string? typeName = null) =>
+        ApplyIdToFieldCore(descriptor, NodeIdNameDefinitionUnion.Create(typeName));
+
+    /// <inheritdoc cref="ApplyIdToField(IDescriptor{OutputFieldConfiguration},string?)"/>
+    /// <typeparam name="T">
+    /// the type from which the <see cref="IDAttribute.TypeName">type name</see> is derived
+    /// </typeparam>
+    public static void ApplyIdToField<T>(
+        IDescriptor<OutputFieldConfiguration> descriptor) =>
+        ApplyIdToFieldCore(descriptor, NodeIdNameDefinitionUnion.Create<T>());
+
+    /// <summary>
+    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to an argument
+    /// descriptor
+    /// </summary>
+    /// <remarks>
+    /// You most likely want to call `<c>.ID()</c>` directly and do not use this helper
+    /// </remarks>
+    internal static void ApplyIdToField(
+        ObjectFieldConfiguration configuration,
+        NodeIdNameDefinitionUnion? nameDefinition = null,
+        TypeReference? dependsOn = null)
+    {
+        var placeholder = new ResultFormatterConfiguration(
+            (_, r) => r,
+            isRepeatable: false,
+            key: WellKnownMiddleware.GlobalId);
+        configuration.FormatterConfigurations.Add(placeholder);
+
+        var configurationTask = new OnCompleteTypeSystemConfigurationTask(
+            (ctx, def) => AddSerializerToObjectField(
+                ctx,
+                (ObjectFieldConfiguration)def,
+                placeholder,
+                nameDefinition),
+            configuration,
+            ApplyConfigurationOn.BeforeCompletion,
+            typeReference: dependsOn);
+
+        configuration.Tasks.Add(configurationTask);
+    }
+    internal static void ApplyIdToFieldCore(
+        IDescriptor<OutputFieldConfiguration> descriptor,
+        NodeIdNameDefinitionUnion? nameDefinition)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 
@@ -64,38 +102,51 @@ internal static class RelayIdFieldHelpers
             // add serializer if globalID support is enabled.
             if (extend.Context.Features.Get<NodeSchemaFeature>()?.IsEnabled == true)
             {
-                ApplyIdToField(extend.Configuration, typeName);
+                if (nameDefinition?.Type != null)
+                {
+                    var dependsOn = extend.Context.TypeInspector.GetTypeRef(nameDefinition.Type);
+                    ApplyIdToField(extend.Configuration, nameDefinition, dependsOn);
+                }
+                else
+                {
+                    ApplyIdToField(extend.Configuration, nameDefinition);
+                }
             }
         }
     }
 
-    /// <summary>
-    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to an argument
-    /// descriptor
-    /// </summary>
-    /// <remarks>
-    /// You most likely want to call `<c>.ID()</c>` directly and do not use this helper
-    /// </remarks>
-    internal static void ApplyIdToField(
-        ObjectFieldConfiguration configuration,
-        string? typeName = null)
+    public static void ApplyIdToFieldCore(
+        IDescriptor<ArgumentConfiguration> descriptor,
+        NodeIdNameDefinitionUnion? nameDefinition)
     {
-        var placeholder = new ResultFormatterConfiguration(
-            (_, r) => r,
-            isRepeatable: false,
-            key: WellKnownMiddleware.GlobalId);
-        configuration.FormatterConfigurations.Add(placeholder);
+        ArgumentNullException.ThrowIfNull(descriptor);
 
-        var configurationTask = new OnCompleteTypeSystemConfigurationTask(
-            (ctx, def) => AddSerializerToObjectField(
-                ctx,
-                (ObjectFieldConfiguration)def,
-                placeholder,
-                typeName),
-            configuration,
-            ApplyConfigurationOn.BeforeCompletion);
+        var extend = descriptor.Extend();
 
-        configuration.Tasks.Add(configurationTask);
+        // rewrite type
+        extend.OnBeforeCreate(RewriteConfiguration);
+
+        // add serializer if globalID support is enabled.
+        if (extend.Context.Features.Get<NodeSchemaFeature>()?.IsEnabled == true)
+        {
+            if (nameDefinition?.Type == null)
+            {
+                extend.OnBeforeCompletion((c, d) =>
+                    AddSerializerToInputField(c, d, nameDefinition));
+            }
+            else
+            {
+                var dependsOn = extend.Context.TypeInspector.GetTypeRef(nameDefinition.Type);
+
+                var configurationTask = new OnCompleteTypeSystemConfigurationTask(
+                    (ctx, def) => AddSerializerToInputField(ctx, (ArgumentConfiguration)def, nameDefinition),
+                    extend.Configuration,
+                    ApplyConfigurationOn.BeforeCompletion,
+                    typeReference: dependsOn);
+
+                extend.Configuration.Tasks.Add(configurationTask);
+            }
+        }
     }
 
     private static void RewriteConfiguration(
@@ -139,7 +190,7 @@ internal static class RelayIdFieldHelpers
     internal static void AddSerializerToInputField(
         ITypeCompletionContext completionContext,
         ArgumentConfiguration configuration,
-        string? typeName)
+        NodeIdNameDefinitionUnion? nameDefinition)
     {
         var typeInspector = completionContext.TypeInspector;
         IExtendedType? resultType;
@@ -167,6 +218,8 @@ internal static class RelayIdFieldHelpers
                 completionContext.Type);
         }
 
+        var typeName = GetIdTypeName(completionContext, nameDefinition, typeInspector);
+
         var validateType = typeName is not null;
         typeName ??= completionContext.Type.Name;
         SetSerializerInfos(completionContext.DescriptorContext, typeName, resultType);
@@ -178,7 +231,7 @@ internal static class RelayIdFieldHelpers
         ITypeCompletionContext completionContext,
         ObjectFieldConfiguration configuration,
         ResultFormatterConfiguration placeholder,
-        string? typeName)
+        NodeIdNameDefinitionUnion? nameDefinition)
     {
         var typeInspector = completionContext.TypeInspector;
         IExtendedType? resultType;
@@ -200,6 +253,8 @@ internal static class RelayIdFieldHelpers
 
         var serializerAccessor = completionContext.DescriptorContext.NodeIdSerializerAccessor;
         var index = configuration.FormatterConfigurations.IndexOf(placeholder);
+
+        var typeName = GetIdTypeName(completionContext, nameDefinition, typeInspector);
 
         typeName ??= completionContext.Type.Name;
         SetSerializerInfos(completionContext.DescriptorContext, typeName, resultType);
@@ -281,4 +336,32 @@ internal static class RelayIdFieldHelpers
         var feature = context.Features.GetOrSet<NodeSchemaFeature>();
         feature.NodeIdTypes.TryAdd(typeName, runtimeTypeInfo.NamedType);
     }
+
+    private static string? GetIdTypeName(ITypeCompletionContext completionContext,
+        NodeIdNameDefinitionUnion? nameDefinition,
+        ITypeInspector typeInspector)
+    {
+        var typeName = nameDefinition?.Literal;
+        if (nameDefinition?.Type is { } t)
+        {
+            var referencedType = typeInspector.GetType(t);
+            var foo = completionContext.GetType<IType>(TypeReference.Create(referencedType));
+            typeName = foo.NamedType().Name;
+        }
+
+        return typeName;
+    }
+}
+
+/// <summary>
+/// A discriminated union, containing either a literal or a type that defines
+/// the name of the node identifier.
+/// </summary>
+internal class NodeIdNameDefinitionUnion(string? Literal, Type? Type)
+{
+    public static NodeIdNameDefinitionUnion? Create(string? literal) =>
+        literal == null ? null : new NodeIdNameDefinitionUnion(literal, null);
+
+    public static NodeIdNameDefinitionUnion Create<T>() =>
+        new NodeIdNameDefinitionUnion(null, typeof(T));
 }

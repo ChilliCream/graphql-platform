@@ -76,8 +76,7 @@ public static class RelayIdFieldExtensions
         return descriptor;
     }
 
-    /// <inheritdoc cref="RelayIdFieldExtensions"/>
-    /// <param name="descriptor">the descriptor</param>
+    /// <inheritdoc cref="ID(IInputFieldDescriptor,string?)"/>
     /// <typeparam name="T">
     /// the type from which the <see cref="IDAttribute.TypeName">type name</see> is derived
     /// </typeparam>
@@ -85,7 +84,7 @@ public static class RelayIdFieldExtensions
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 
-        RelayIdFieldHelpers.ApplyIdToField(descriptor, typeof(T).Name);
+        RelayIdFieldHelpers.ApplyIdToField<T>(descriptor);
 
         return descriptor;
     }
@@ -106,8 +105,7 @@ public static class RelayIdFieldExtensions
         return descriptor;
     }
 
-    /// <inheritdoc cref="RelayIdFieldExtensions"/>
-    /// <param name="descriptor">the descriptor</param>
+    /// <inheritdoc cref="ID(IInputFieldDescriptor,string?)"/>
     /// <typeparam name="T">
     /// the type from which the <see cref="IDAttribute.TypeName">type name</see> is derived
     /// </typeparam>
@@ -115,7 +113,7 @@ public static class RelayIdFieldExtensions
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 
-        RelayIdFieldHelpers.ApplyIdToField(descriptor, typeof(T).Name);
+        RelayIdFieldHelpers.ApplyIdToField<T>(descriptor);
 
         return descriptor;
     }
@@ -136,16 +134,15 @@ public static class RelayIdFieldExtensions
         return descriptor;
     }
 
-    /// <inheritdoc cref="RelayIdFieldExtensions"/>
-    /// <param name="descriptor">the descriptor</param>
+    /// <inheritdoc cref="ID(IInputFieldDescriptor,string?)"/>
     /// <typeparam name="T">
     /// the type from which the <see cref="IDAttribute.TypeName">type name</see> is derived
     /// </typeparam>
     public static IObjectFieldDescriptor ID<T>(this IObjectFieldDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-
-        RelayIdFieldHelpers.ApplyIdToField(descriptor, typeof(T).Name);
+        
+        RelayIdFieldHelpers.ApplyIdToField<T>(descriptor);
 
         return descriptor;
     }

@@ -1,0 +1,42 @@
+{
+  "data": {
+    "out": {
+      "renamedUser": {
+        "userId": "UmVuYW1lZFVzZXI6MQ==",
+        "explicitUserId": "UmVuYW1lZFVzZXI6Mg==",
+        "fooId": "Rm9vRm9vOjM=",
+        "fluentFooId": "Rm9vRm9vRmx1ZW50OjQ=",
+        "singleTypeFluentFooId": "Rm9vRm9vRmx1ZW50U2luZ2xlOjQ=",
+        "userIdMethod": "UmVuYW1lZFVzZXI6MQ==",
+        "explicitUserIdMethod": "UmVuYW1lZFVzZXI6Mg==",
+        "fooIdMethod": "Rm9vRm9vOjM=",
+        "fluentFooIdMethod": "Rm9vRm9vRmx1ZW50OjQ=",
+        "singleTypeFluentFooIdMethod": "Rm9vRm9vRmx1ZW50U2luZ2xlOjQ="
+      }
+    },
+    "validAnyIdInput1": {
+      "int": 1
+    },
+    "validAnyIdInput2": {
+      "int": 3
+    },
+    "validAnyIdInput3": {
+      "int": 4
+    },
+    "validAnyIdInput4": {
+      "int": 4
+    },
+    "validUserIdInput": {
+      "int": 1
+    },
+    "validFooIdInput": {
+      "int": 3
+    },
+    "validFluentFooIdInput": {
+      "int": 4
+    },
+    "validSingleTypeFluentFooIdInput": {
+      "int": 4
+    }
+  }
+}

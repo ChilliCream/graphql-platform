@@ -2,6 +2,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Reflection.Metadata;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Language;
@@ -157,7 +158,7 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
                 RelayIdFieldHelpers.AddSerializerToInputField(
                     CompletionContext,
                     argument,
-                    fieldTypeDef.Name);
+                    NodeIdNameDefinitionUnion.Create(fieldTypeDef.Name));
 
                 // As with the id argument, we also want to make sure that the ID field of
                 // the field result type is a non-null ID type.
