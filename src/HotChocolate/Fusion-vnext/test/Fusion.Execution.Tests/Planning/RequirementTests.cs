@@ -50,4 +50,60 @@ public class RequirementTests : FusionTestBase
         // assert
         MatchSnapshot(plan);
     }
+
+    [Fact]
+    public void Requirement_Merged_Into_SelectionSet_With_Non_Lead_Field()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """"
+            schema @schemaName(value: "catalog") {
+              query: Query
+            }
+
+            type Brand {
+              id: Int!
+              name: String!
+            }
+
+            type Product {
+              id: Int!
+              name: String!
+              brand: Brand
+            }
+
+            type Query {
+              products: [Product]
+            }
+            """",
+            """"
+            schema @schemaName(value: "reviews") {
+              query: Query
+            }
+
+            type Product {
+              nameAndId(name: String! @require(field: "name")): String!
+              id: Int!
+            }
+
+            type Query {
+              productById(id: Int!): Product! @lookup @internal
+            }
+            """");
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                brand { name }
+                nameAndId
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
 }
