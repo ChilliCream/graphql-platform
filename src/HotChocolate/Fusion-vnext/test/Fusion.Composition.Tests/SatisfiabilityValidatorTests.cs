@@ -2033,7 +2033,7 @@ public sealed class SatisfiabilityValidatorTests
                     """
                     # Schema B
                     type Query {
-                      node(id: ID!): Node @lookup
+                        node(id: ID!): Node @lookup
                     }
 
                     interface Node {
