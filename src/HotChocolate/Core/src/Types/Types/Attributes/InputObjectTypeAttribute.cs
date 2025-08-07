@@ -6,8 +6,8 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Types;
 
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Struct)]
+    AttributeTargets.Class
+    | AttributeTargets.Struct)]
 public sealed class InputObjectTypeAttribute
     : InputObjectTypeDescriptorAttribute
     , ITypeAttribute

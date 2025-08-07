@@ -46,7 +46,7 @@ public static class SyntaxParserHelperTests
     public static void ParseTypeReference()
     {
         // arrange
-        var sourceText = "[[String!]]";
+        const string sourceText = "[[String!]]";
 
         // act
         var type = Utf8GraphQLParser.Syntax.ParseTypeReference(sourceText);

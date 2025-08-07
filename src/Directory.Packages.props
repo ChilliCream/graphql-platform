@@ -15,8 +15,8 @@
     <PackageVersion Include="Basic.Reference.Assemblies.Net100" Version="1.8.2" />
     <PackageVersion Include="ChilliCream.Nitro.App" Version="$(NitroVersion)" />
     <PackageVersion Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
-    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
-    <PackageVersion Include="DiffPlex" Version="1.7.2" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="DiffPlex" Version="1.8.0" />
     <PackageVersion Include="Glob" Version="1.1.9" />
     <PackageVersion Include="IdentityModel" Version="4.1.1" />
     <PackageVersion Include="JsonPointer.Net" Version="5.0.0" />
@@ -30,11 +30,12 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.13.0" />
     <PackageVersion Include="Microsoft.Extensions.Identity.Core" Version="7.0.3" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="Microsoft.OpenApi" Version="1.6.14" />
     <PackageVersion Include="Microsoft.OpenApi.Readers" Version="1.6.14" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
     <PackageVersion Include="MongoDB.Driver" Version="3.0.0" />
-    <PackageVersion Include="Moq" Version="4.20.70" />
+    <PackageVersion Include="Moq" Version="4.20.72" />
     <PackageVersion Include="NetTopologySuite" Version="2.0.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageVersion Include="NodaTime" Version="3.2.1" />
@@ -57,40 +58,40 @@
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.Reactive" Version="6.0.0" />
-    <PackageVersion Include="Testcontainers" Version="4.3.0" />
+    <PackageVersion Include="Testcontainers" Version="4.6.0" />
+    <PackageVersion Include="TUnit" Version="0.25.21" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.extensibility.core" Version="2.9.3" />
     <PackageVersion Include="xunit.extensibility.execution" Version="2.9.3" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.1" />
     <PackageVersion Include="xunit.v3" Version="1.1.0" />
     <PackageVersion Include="xunit.v3.assert" Version="1.1.0" />
     <PackageVersion Include="xunit.v3.extensibility.core" Version="1.1.0" />
-    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.1" />
-    <PackageVersion Include="TUnit" Version="0.13.20" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
-    <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0-preview.3.25172.1" />
-    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.0-preview.3.25172.1" />
-    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.0-preview.3.25172.1" />
-    <PackageVersion Include="Microsoft.Data.Sqlite.Core" Version="10.0.0-preview.3.25171.6" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.0-preview.3.25171.6" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0-preview.3.25171.6" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.0-preview.3.25171.6" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0-preview.3.25171.6" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.0-preview.3.25171.5" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-preview.3.25171.5" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0-preview.3.25171.5" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0-preview.3.25171.5" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.0-preview.3.25171.5" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.0-preview.3.25171.5" />
-    <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="10.0.0-preview.3.25172.1" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.0-preview.3.25171.5" />
-    <PackageVersion Include="Microsoft.Net.Http.Headers" Version="10.0.0-preview.3.25172.1" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0-preview.3" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0-preview.3" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="10.0.0-preview.3" />
-    <PackageVersion Include="System.IO.Hashing" Version="10.0.0-preview.3.25171.5" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Microsoft.Data.Sqlite.Core" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Microsoft.Net.Http.Headers" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0-preview.5" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0-preview.5" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="10.0.0-preview.5" />
+    <PackageVersion Include="System.IO.Hashing" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.0-preview.6.25358.103" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
     <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="9.0.2" />
@@ -114,6 +115,7 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="9.0.3" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="9.0.3" />
     <PackageVersion Include="System.IO.Hashing" Version="9.0.6" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="9.0.8" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
     <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="8.0.0" />
@@ -138,11 +140,13 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="8.0.10" />
     <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
     <PackageVersion Include="System.IO.Hashing" Version="8.0.0" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="6.0.0" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'debug'">
     <PackageVersion Include="Roslynator.Analyzers" Version="4.13.1" />

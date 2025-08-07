@@ -101,7 +101,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        if(after is not null && before is not null)
+        if (after is not null && before is not null)
         {
             throw new ArgumentException(
                 "You cannot specify both 'after' and 'before' parameters.");
@@ -131,7 +131,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        if(after is not null && before is not null)
+        if (after is not null && before is not null)
         {
             throw new ArgumentException(
                 "You cannot specify both 'after' and 'before' parameters.");
@@ -161,7 +161,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        if(after is not null && before is not null)
+        if (after is not null && before is not null)
         {
             throw new ArgumentException(
                 "You cannot specify both 'after' and 'before' parameters.");
@@ -191,7 +191,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        if(after is not null && before is not null)
+        if (after is not null && before is not null)
         {
             throw new ArgumentException(
                 "You cannot specify both 'after' and 'before' parameters.");
@@ -221,7 +221,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        if(after is not null && before is not null)
+        if (after is not null && before is not null)
         {
             throw new ArgumentException(
                 "You cannot specify both 'after' and 'before' parameters.");

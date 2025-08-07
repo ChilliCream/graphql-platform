@@ -7,8 +7,8 @@ internal static class GlobalStateHelpers
 {
     public static HttpContext GetHttpContext(IResolverContext context)
     {
-        if (context.ContextData.TryGetValue(nameof(HttpContext), out var value) &&
-            value is HttpContext httpContext)
+        if (context.ContextData.TryGetValue(nameof(HttpContext), out var value)
+            && value is HttpContext httpContext)
         {
             return httpContext;
         }

@@ -27,7 +27,7 @@ public abstract class ProjectionProvider
         _configure = Configure;
     }
 
-    public ProjectionProvider(Action<IProjectionProviderDescriptor> configure)
+    protected ProjectionProvider(Action<IProjectionProviderDescriptor> configure)
     {
         _configure = configure ??
             throw new ArgumentNullException(nameof(configure));

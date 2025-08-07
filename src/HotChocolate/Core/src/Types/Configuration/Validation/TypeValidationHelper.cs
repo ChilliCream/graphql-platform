@@ -11,8 +11,8 @@ internal static class TypeValidationHelper
         IComplexTypeDefinition type,
         ICollection<ISchemaError> errors)
     {
-        if (type.Fields.Count == 0 ||
-            type.Fields.All(t => t.IsIntrospectionField))
+        if (type.Fields.Count == 0
+            || type.Fields.All(t => t.IsIntrospectionField))
         {
             errors.Add(NeedsOneAtLeastField(type));
         }

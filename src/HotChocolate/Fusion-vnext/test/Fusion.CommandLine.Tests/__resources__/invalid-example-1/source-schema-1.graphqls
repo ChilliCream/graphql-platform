@@ -9,6 +9,3 @@ type Query {
 type User {
   id: ID!
 }
-
-directive @schemaName(value: String!) on SCHEMA
-directive @lookup on FIELD_DEFINITION

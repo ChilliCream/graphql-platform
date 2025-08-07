@@ -174,7 +174,7 @@ public class QueryableCursorPagingProviderTests
         pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
-        pagingDetails = new CursorPagingArguments(after: connection.Info.StartCursor, first: 2);
+        pagingDetails = new CursorPagingArguments(first: 2, after: connection.Info.StartCursor);
         context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
@@ -229,7 +229,7 @@ public class QueryableCursorPagingProviderTests
         pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
-        pagingDetails = new CursorPagingArguments(before: connection.Info.EndCursor, last: 2);
+        pagingDetails = new CursorPagingArguments(last: 2, before: connection.Info.EndCursor);
         context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act
@@ -349,7 +349,7 @@ public class QueryableCursorPagingProviderTests
         pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
-        pagingDetails = new CursorPagingArguments(after: connection.Info.EndCursor, first: 2);
+        pagingDetails = new CursorPagingArguments(first: 2, after: connection.Info.EndCursor);
         context = await MockContext.CreateContextAsync(pagingDetails);
 
         // act

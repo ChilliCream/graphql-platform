@@ -18,6 +18,8 @@ internal sealed class VariableValueCollection : IVariableValueCollection
 
     public static VariableValueCollection Empty { get; } = new([]);
 
+    public bool IsEmpty => _coercedValues.Count == 0;
+
     public T GetValue<T>(string name) where T : IValueNode
     {
         if (TryGetValue(name, out T? value))

@@ -8,9 +8,9 @@ public class SchemaParserTests
     public void ParserSimpleObjectType()
     {
         // arrange
-        var sourceText = "type a @foo(a: \"123\") " +
-            "{ b: String @foo(a: \"123\") " +
-            "c(d: F = ENUMVALUE @foo(a: \"123\")): Int }";
+        const string sourceText = "type a @foo(a: \"123\") "
+            + "{ b: String @foo(a: \"123\") "
+            + "c(d: F = ENUMVALUE @foo(a: \"123\")): Int }";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
@@ -25,8 +25,8 @@ public class SchemaParserTests
     public void ParserInputObjectType()
     {
         // arrange
-        var sourceText = "input a @foo(a: \"123\") " +
-            "{ b: String @foo(a: \"123\") c: Int = 123 }";
+        const string sourceText = "input a @foo(a: \"123\") "
+            + "{ b: String @foo(a: \"123\") c: Int = 123 }";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
@@ -41,7 +41,7 @@ public class SchemaParserTests
     public void ParserScalarType()
     {
         // arrange
-        var sourceText = "scalar FOO @foo(a: \"123\")";
+        const string sourceText = "scalar FOO @foo(a: \"123\")";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
@@ -56,9 +56,9 @@ public class SchemaParserTests
     public void ParserSimpleInterfaceType()
     {
         // arrange
-        var sourceText = "interface a implements e @foo(a: \"123\") " +
-            "{ b: String @foo(a: \"123\") " +
-            "c(d: F = ENUMVALUE @foo(a: \"123\")): Int }";
+        const string sourceText = "interface a implements e @foo(a: \"123\") "
+            + "{ b: String @foo(a: \"123\") "
+            + "c(d: F = ENUMVALUE @foo(a: \"123\")): Int }";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 
@@ -73,7 +73,7 @@ public class SchemaParserTests
     public void ParseEnum()
     {
         // arrange
-        var sourceText = "enum Foo @foo(a: \"123\") "
+        const string sourceText = "enum Foo @foo(a: \"123\") "
             + "{ BAR @foo(a: 123) , BAZ }";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
@@ -89,7 +89,7 @@ public class SchemaParserTests
     public void ParseUnion()
     {
         // arrange
-        var sourceText = "union Foo @foo(a: \"123\") = "
+        const string sourceText = "union Foo @foo(a: \"123\") = "
             + "BAR | BAZ ";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
@@ -105,7 +105,7 @@ public class SchemaParserTests
     public void ParseUnion_LeadingPipe()
     {
         // arrange
-        var sourceText = "union Foo @foo(a: \"123\") = "
+        const string sourceText = "union Foo @foo(a: \"123\") = "
             + "| BAR | BAZ ";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
@@ -121,9 +121,9 @@ public class SchemaParserTests
     public void ParseSchemaDefinition()
     {
         // arrange
-        var sourceText = "\"\"\"\nDescription\n\"\"\"" +
-            "schema @foo(a: \"123\") " +
-            "{ query: Foo mutation: Bar subscription: Baz }";
+        const string sourceText = "\"\"\"\nDescription\n\"\"\""
+            + "schema @foo(a: \"123\") "
+            + "{ query: Foo mutation: Bar subscription: Baz }";
         var parser = new Utf8GraphQLParser(
             Encoding.UTF8.GetBytes(sourceText));
 

@@ -2426,7 +2426,7 @@ public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, 
         IsError = !IsSuccess;
     }
 
-        /// <summary>
+    /// <summary>
     /// Initializes a mutation error result.
     /// </summary>
     /// <param name="error">

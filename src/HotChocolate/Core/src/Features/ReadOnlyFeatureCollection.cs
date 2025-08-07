@@ -58,10 +58,10 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
             if (feature is null && Nullable.GetUnderlyingType(typeof(TFeature)) is null)
             {
                 throw new InvalidOperationException(
-                    $"{typeof(TFeature).FullName} does not exist in the feature collection " +
-                    $"and because it is a struct the method can't return null. " +
-                    $"Use 'featureCollection[typeof({typeof(TFeature).FullName})] is not null' " +
-                    $"to check if the feature exists.");
+                    $"{typeof(TFeature).FullName} does not exist in the feature collection "
+                    + $"and because it is a struct the method can't return null. "
+                    + $"Use 'featureCollection[typeof({typeof(TFeature).FullName})] is not null' "
+                    + $"to check if the feature exists.");
             }
             return (TFeature?)feature;
         }
@@ -71,9 +71,9 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     /// <inheritdoc />
     public bool TryGet<TFeature>([NotNullWhen(true)] out TFeature? feature)
     {
-        if(_features.TryGetValue(typeof(TFeature), out var result))
+        if (_features.TryGetValue(typeof(TFeature), out var result))
         {
-            if(result is TFeature f)
+            if (result is TFeature f)
             {
                 feature = f;
                 return true;

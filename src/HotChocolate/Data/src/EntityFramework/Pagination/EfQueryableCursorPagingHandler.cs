@@ -79,7 +79,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
 
         if (!edgesRequired)
         {
-            if(countRequired)
+            if (countRequired)
             {
                 totalCount ??= await executable.CountAsync(context.RequestAborted);
             }

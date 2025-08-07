@@ -1,0 +1,24 @@
+operation:
+  - document: >-
+      query testQuery {
+        votables {
+          viewerCanVote
+          ... on Discussion {
+            title
+          }
+        }
+      }
+    name: testQuery
+    hash: 123
+nodes:
+  - id: 1
+    schema: SUBGRAPH_1
+    operation: >-
+      query testQuery_123_1 {
+        votables {
+          viewerCanVote
+          ... on Discussion {
+            title
+          }
+        }
+      }

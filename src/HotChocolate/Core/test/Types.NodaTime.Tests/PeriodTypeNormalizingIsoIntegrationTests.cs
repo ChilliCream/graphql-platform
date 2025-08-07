@@ -26,7 +26,7 @@ public class PeriodTypeNormalizingIsoIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Period!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "P-17DT-23H-59M-59.9999861S" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "P-17DT-23H-59M-59.9999861S" } })
                 .Build());
         Assert.Equal("P-18DT-9M-59.9999861S", result.ExpectOperationResult().Data!["test"]);
     }
@@ -37,7 +37,7 @@ public class PeriodTypeNormalizingIsoIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: Period!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "-P-17DT-23H-59M-59.9999861S" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "-P-17DT-23H-59M-59.9999861S" } })
                 .Build());
         Assert.Null(result.ExpectOperationResult().Data);
         Assert.Single(result.ExpectOperationResult().Errors!);

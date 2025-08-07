@@ -9,5 +9,5 @@ public class AuthorFixture : IDisposable
         new() { Id = 3, Name = "Baz", Books = { new Book { Id = 3, Title = "Baz1" } } }
     ];
 
-    public void Dispose() {  }
+    public void Dispose() { }
 }

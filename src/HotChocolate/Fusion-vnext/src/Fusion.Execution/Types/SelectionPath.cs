@@ -51,17 +51,17 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     {
         if (_segments.IsEmpty)
         {
-            return string.Empty;
+            return "$";
         }
 
         var sb = new StringBuilder();
 
-        foreach (var seg in _segments)
+        sb.Append('$');
+
+        for (var i = _segments.Length - 1; i >= 0; i--)
         {
-            if (sb.Length > 0)
-            {
-                sb.Append('.');
-            }
+            var seg = _segments[i];
+            sb.Append('.');
 
             if (seg.Kind == SelectionPathSegmentKind.InlineFragment)
             {
@@ -85,7 +85,7 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     /// </param>
     /// <returns>
     /// A new <see cref="SelectionPath"/> representing the relative path,
-    /// or <see cref="SelectionPath.Root"/> if both paths are identical.
+    /// or <see cref="Root"/> if both paths are identical.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// Thrown if <paramref name="basePath"/> is <c>null</c>.
@@ -117,8 +117,8 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
 
         for (var i = 0; i < _segments.Length; i++)
         {
-            if (_segments[i].Kind != other._segments[i].Kind ||
-                !string.Equals(_segments[i].Name, other._segments[i].Name, StringComparison.Ordinal))
+            if (_segments[i].Kind != other._segments[i].Kind
+                || !string.Equals(_segments[i].Name, other._segments[i].Name, StringComparison.Ordinal))
             {
                 return false;
             }

@@ -1,4 +1,4 @@
-﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
 // ReSharper disable InconsistentNaming
@@ -568,7 +568,7 @@ namespace Foo.Bar
         private readonly global::StrawberryShake.IOperationExecutor<ICreateReviewMutResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _episodeFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _reviewInputFormatter;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public CreateReviewMutMutation(global::StrawberryShake.IOperationExecutor<ICreateReviewMutResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
@@ -576,7 +576,7 @@ namespace Foo.Bar
             _reviewInputFormatter = serializerResolver.GetInputValueFormatter("ReviewInput");
         }
 
-        private CreateReviewMutMutation(global::StrawberryShake.IOperationExecutor<ICreateReviewMutResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter episodeFormatter, global::StrawberryShake.Serialization.IInputValueFormatter reviewInputFormatter)
+        private CreateReviewMutMutation(global::StrawberryShake.IOperationExecutor<ICreateReviewMutResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter episodeFormatter, global::StrawberryShake.Serialization.IInputValueFormatter reviewInputFormatter)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;

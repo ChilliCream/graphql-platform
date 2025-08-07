@@ -1,4 +1,3 @@
-using System.Text;
 using GreenDonut;
 using HotChocolate;
 using HotChocolate.Execution;
@@ -32,14 +31,13 @@ public static class RequestExecutorServiceCollectionExtensions
 
         services.AddOptions();
 
-        services.TryAddSingleton<ITimeProvider, DefaultTimeProvider>();
         services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
         services.TryAddSingleton<DefaultRequestContextAccessor>();
         services.TryAddSingleton<IRequestContextAccessor>(sp => sp.GetRequiredService<DefaultRequestContextAccessor>());
         services.TryAddSingleton<AggregateServiceScopeInitializer>();
         services.TryAddSingleton<IParameterBindingResolver, DefaultParameterBindingResolver>();
 
-        services.TryAddSingleton<ObjectPool<StringBuilder>>(sp =>
+        services.TryAddSingleton(sp =>
         {
             var provider = sp.GetRequiredService<ObjectPoolProvider>();
             var policy = new StringBuilderPooledObjectPolicy();
@@ -158,6 +156,21 @@ public static class RequestExecutorServiceCollectionExtensions
         builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();
         builder.TryAddTypeInterceptor<RequirementsTypeInterceptor>();
 
+        if (!services.Any(t =>
+            t.ServiceType == typeof(SchemaName)
+            && t.ImplementationInstance is SchemaName s
+            && s.Value.Equals(schemaName, StringComparison.Ordinal)))
+        {
+            services.AddSingleton(new SchemaName(schemaName));
+        }
+
+        if (!ISchemaDefinition.DefaultName.Equals(schemaName, StringComparison.OrdinalIgnoreCase))
+        {
+            builder.TryAddTypeInterceptor(_ => new SchemaNameTypeInterceptor(schemaName));
+        }
+
+        builder.ConfigureSchemaServices(static s => s.TryAddSingleton<ITimeProvider, DefaultTimeProvider>());
+
         return builder;
     }
 
@@ -176,8 +189,7 @@ public static class RequestExecutorServiceCollectionExtensions
         int capacity = 256)
     {
         services.RemoveAll<PreparedOperationCacheOptions>();
-        services.AddSingleton<PreparedOperationCacheOptions>(
-            _ => new PreparedOperationCacheOptions{ Capacity = capacity });
+        services.AddSingleton(_ => new PreparedOperationCacheOptions { Capacity = capacity });
         return services;
     }
 

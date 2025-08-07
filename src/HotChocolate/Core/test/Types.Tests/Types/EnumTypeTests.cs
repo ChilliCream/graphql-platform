@@ -226,10 +226,7 @@ public class EnumTypeTests : TypeTestBase
     {
         // act
         var schema = SchemaBuilder.New()
-            .AddEnumType<Foo>(d =>
-            {
-                d.Value(Foo.Bar1).Name("FOOBAR");
-            })
+            .AddEnumType<Foo>(d => d.Value(Foo.Bar1).Name("FOOBAR"))
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
@@ -594,7 +591,7 @@ public class EnumTypeTests : TypeTestBase
     public void Generic_Ignore_Descriptor_Is_Null()
     {
         void Fail()
-            => EnumTypeDescriptorExtensions.Ignore<int>(default(IEnumTypeDescriptor<int>)!, 1);
+            => EnumTypeDescriptorExtensions.Ignore(default(IEnumTypeDescriptor<int>)!, 1);
 
         Assert.Throws<ArgumentNullException>(Fail);
     }
@@ -605,7 +602,7 @@ public class EnumTypeTests : TypeTestBase
         var descriptor = new Mock<IEnumTypeDescriptor<int?>>();
 
         void Fail()
-            => EnumTypeDescriptorExtensions.Ignore<int?>(descriptor.Object, null);
+            => EnumTypeDescriptorExtensions.Ignore(descriptor.Object, null);
 
         Assert.Throws<ArgumentNullException>(Fail);
     }
@@ -614,7 +611,7 @@ public class EnumTypeTests : TypeTestBase
     public void Ignore_Descriptor_Is_Null()
     {
         void Fail()
-            => EnumTypeDescriptorExtensions.Ignore<int>(default(IEnumTypeDescriptor)!, 1);
+            => EnumTypeDescriptorExtensions.Ignore(default(IEnumTypeDescriptor)!, 1);
 
         Assert.Throws<ArgumentNullException>(Fail);
     }

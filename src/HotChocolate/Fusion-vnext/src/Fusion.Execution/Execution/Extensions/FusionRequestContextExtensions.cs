@@ -1,4 +1,9 @@
+using HotChocolate.Features;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 
 // ReSharper disable once CheckNamespace
 #pragma warning disable IDE0130 // Namespace does not match folder structure
@@ -11,20 +16,67 @@ namespace HotChocolate.Execution;
 public static class FusionRequestContextExtensions
 {
     /// <summary>
-    /// Gets the <see cref="OperationExecutionPlan"/> from the request context.
+    /// Gets the operation id.
     /// </summary>
     /// <param name="context">
     /// The request context.
     /// </param>
     /// <returns>
-    /// The <see cref="OperationExecutionPlan"/> if it exists, otherwise <c>null</c>.
+    /// The <see cref="OperationPlan"/> if it exists, otherwise <c>null</c>.
     /// </returns>
-    public static OperationExecutionPlan? GetOperationExecutionPlan(
+    public static string GetOperationId(
         this RequestContext context)
-        => context.Features.Get<OperationExecutionPlan>();
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        var operationId = context.Features.Get<FusionOperationInfo>()?.OperationId;
+
+        if (string.IsNullOrEmpty(operationId))
+        {
+            throw new InvalidOperationException("The operation identifier was not set.");
+        }
+
+        return operationId;
+    }
 
     /// <summary>
-    /// Sets the <see cref="OperationExecutionPlan"/> on the request context.
+    /// Gets the <see cref="OperationPlan"/> from the request context.
+    /// </summary>
+    /// <param name="context">
+    /// The request context.
+    /// </param>
+    /// <returns>
+    /// The <see cref="OperationPlan"/> if it exists, otherwise <c>null</c>.
+    /// </returns>
+    public static OperationPlan? GetOperationPlan(
+        this RequestContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        return context.Features.Get<FusionOperationInfo>()?.OperationPlan;
+    }
+
+    /// <summary>
+    /// Sets the operation identifier.
+    /// </summary>
+    /// <param name="context">
+    /// The request context.
+    /// </param>
+    /// <param name="id">
+    /// The operation id.
+    /// </param>
+    public static void SetOperationId(
+        this RequestContext context,
+        string id)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentException.ThrowIfNullOrEmpty(id);
+
+        context.Features.GetOrSet<FusionOperationInfo>().OperationId = id;
+    }
+
+    /// <summary>
+    /// Sets the <see cref="OperationPlan"/> on the request context.
     /// </summary>
     /// <param name="context">
     /// The request context.
@@ -32,8 +84,38 @@ public static class FusionRequestContextExtensions
     /// <param name="plan">
     /// The operation execution plan.
     /// </param>
-    public static void SetOperationExecutionPlan(
+    public static void SetOperationPlan(
         this RequestContext context,
-        OperationExecutionPlan plan)
-        => context.Features.Set(plan);
+        OperationPlan plan)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(plan);
+
+        context.Features.GetOrSet<FusionOperationInfo>().OperationPlan = plan;
+    }
+
+    internal static ResultPoolSessionHolder CreateResultPoolSession(
+        this RequestContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        var objectPool = context.RequestServices.GetRequiredService<ObjectPool<ResultPoolSession>>();
+        return new ResultPoolSessionHolder(objectPool);
+    }
+
+    internal static bool CollectOperationPlanTelemetry(
+        this RequestContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        return context.Schema.GetRequestOptions().CollectOperationPlanTelemetry;
+    }
+
+    internal static ISourceSchemaClientScope CreateClientScope(
+        this RequestContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        var clientScopeFactory = context.RequestServices.GetRequiredService<ISourceSchemaClientScopeFactory>();
+        return clientScopeFactory.CreateScope(context.Schema);
+    }
 }

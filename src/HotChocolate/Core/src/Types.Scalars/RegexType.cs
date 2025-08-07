@@ -63,8 +63,8 @@ public class RegexType : StringType
             return true;
         }
 
-        if (runtimeValue is string s &&
-            _validationRegex.IsMatch(s))
+        if (runtimeValue is string s
+            && _validationRegex.IsMatch(s))
         {
             resultValue = s;
             return true;
@@ -83,8 +83,8 @@ public class RegexType : StringType
             return true;
         }
 
-        if (resultValue is string s &&
-            _validationRegex.IsMatch(s))
+        if (resultValue is string s
+            && _validationRegex.IsMatch(s))
         {
             runtimeValue = s;
             return true;

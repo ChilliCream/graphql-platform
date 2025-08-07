@@ -9,13 +9,12 @@ namespace HotChocolate.Data.MongoDb.Filters;
 /// <see cref="IComparableOperationFilterInputType "/>
 /// If the <see cref="FilterTypeInterceptor"/> encounters an operation field that implements
 /// <see cref="IComparableOperationFilterInputType "/> and matches the operation identifier
-/// defined in <see cref="MongoDbComparableOperationHandler.Operation"/> the handler is bound to
-/// the field
+/// defined in <see cref="Operation"/> the handler is bound to the field
 /// </summary>
 public abstract class MongoDbComparableOperationHandler
     : MongoDbOperationHandlerBase
 {
-    public MongoDbComparableOperationHandler(InputParser inputParser) : base(inputParser)
+    protected MongoDbComparableOperationHandler(InputParser inputParser) : base(inputParser)
     {
     }
 
@@ -27,7 +26,7 @@ public abstract class MongoDbComparableOperationHandler
     /// <summary>
     /// Checks if the <see cref="FilterField"/> implements
     /// <see cref="IComparableOperationFilterInputType "/> and has the operation identifier
-    /// defined in <see cref="MongoDbComparableOperationHandler.Operation"/>
+    /// defined in <see cref="Operation"/>
     /// </summary>
     /// <param name="context">The discovery context of the schema</param>
     /// <param name="typeConfiguration">The configuration of the declaring type of the field</param>
@@ -38,8 +37,8 @@ public abstract class MongoDbComparableOperationHandler
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration)
     {
-        return context.Type is IComparableOperationFilterInputType &&
-            fieldConfiguration is FilterOperationFieldConfiguration operationField &&
-            operationField.Id == Operation;
+        return context.Type is IComparableOperationFilterInputType
+            && fieldConfiguration is FilterOperationFieldConfiguration operationField
+            && operationField.Id == Operation;
     }
 }

@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Text;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -17,8 +18,8 @@ internal sealed class ExportCommand : Command
     public ExportCommand() : base("export")
     {
         Description =
-            "Export the graphql schema. If no output (--output) is specified the schema will be " +
-            "printed to the console.";
+            "Export the graphql schema. If no output (--output) is specified the schema will be "
+            + "printed to the console.";
 
         AddOption(Opt<OutputOption>.Instance);
         AddOption(Opt<SchemaNameOption>.Instance);
@@ -39,13 +40,26 @@ internal sealed class ExportCommand : Command
         string? schemaName,
         CancellationToken cancellationToken)
     {
-        schemaName ??= ISchemaDefinition.DefaultName;
+        var provider = host.Services.GetRequiredService<IRequestExecutorProvider>();
 
-        var schema = await host.Services
-            .GetRequiredService<IRequestExecutorProvider>()
-            .GetExecutorAsync(schemaName, cancellationToken);
+        if (schemaName is null)
+        {
+            var schemaNames = provider.SchemaNames;
 
-        var sdl = schema.Schema.ToString();
+            if(schemaNames.IsEmpty)
+            {
+                console.WriteLine("No schemas registered.");
+                return;
+            }
+
+            schemaName = schemaNames.Contains(ISchemaDefinition.DefaultName)
+                ? ISchemaDefinition.DefaultName
+                : schemaNames[1];
+        }
+
+        var executor = await provider.GetExecutorAsync(schemaName, cancellationToken);
+
+        var sdl = executor.Schema.ToString();
 
         if (output is not null)
         {

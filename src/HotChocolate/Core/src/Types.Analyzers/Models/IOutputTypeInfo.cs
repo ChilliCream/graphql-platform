@@ -1,4 +1,7 @@
 using System.Collections.Immutable;
+#if NET8_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -70,7 +73,7 @@ public interface IOutputTypeInfo
 
     void AddDiagnosticRange(ImmutableArray<Diagnostic> diagnostics);
 
-     void ReplaceResolver(
+    void ReplaceResolver(
         Resolver current,
         Resolver replacement);
 }

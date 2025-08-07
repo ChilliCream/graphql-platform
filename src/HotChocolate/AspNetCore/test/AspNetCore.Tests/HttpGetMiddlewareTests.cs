@@ -232,11 +232,16 @@ public class HttpGetMiddlewareTests : ServerTestBase
             await server.GetAsync(
                 new ClientQueryRequest
                 {
-                    Query = @"
+                    Query =
+                        """
                         query ($d: Decimal) {
                              decimal_arg(d: $d)
-                        }",
-                    Variables = new Dictionary<string, object?> { { "d", decimal.MinValue } }
+                        }
+                        """,
+                    Variables = new Dictionary<string, object?>
+                    {
+                        { "d", decimal.MinValue }
+                    }
                 },
                 "/arguments");
 

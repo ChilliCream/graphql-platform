@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.IO.Hashing;
 using System.Text;
 using System.Threading.Channels;
@@ -9,13 +10,17 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Execution.Introspection;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 
@@ -26,10 +31,21 @@ internal sealed class FusionRequestExecutorManager
     , IRequestExecutorEvents
     , IAsyncDisposable
 {
+    private readonly object _lock = new();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly ConcurrentDictionary<string, RequestExecutorRegistration> _registry = [];
     private readonly IOptionsMonitor<FusionGatewaySetup> _optionsMonitor;
     private readonly IServiceProvider _applicationServices;
+    private readonly Channel<RequestExecutorEvent> _executorEvents =
+        Channel.CreateBounded<RequestExecutorEvent>(
+            new BoundedChannelOptions(1)
+            {
+                FullMode = BoundedChannelFullMode.Wait,
+                SingleReader = true,
+                SingleWriter = false
+            });
+    private ImmutableArray<ObserverSession> _observers = [];
+
     private bool _disposed;
 
     public FusionRequestExecutorManager(
@@ -41,25 +57,30 @@ internal sealed class FusionRequestExecutorManager
 
         _optionsMonitor = optionsMonitor;
         _applicationServices = applicationServices;
+
+        var schemaNames = _applicationServices.GetService<IEnumerable<SchemaName>>()?
+            .Select(x => x.Value).Distinct().Order().ToImmutableArray();
+        SchemaNames = schemaNames ?? [];
+
+        NotifyObserversAsync().FireAndForget();
     }
+
+    public ImmutableArray<string> SchemaNames { get; }
 
     public ValueTask<IRequestExecutor> GetExecutorAsync(
         string? schemaName = null,
         CancellationToken cancellationToken = default)
     {
         schemaName ??= ISchemaDefinition.DefaultName;
-
-        if (_registry.TryGetValue(schemaName, out var registration))
-        {
-            return new ValueTask<IRequestExecutor>(registration.Executor);
-        }
-
-        return GetOrCreateRequestExecutorAsync(schemaName, cancellationToken);
+        return _registry.TryGetValue(schemaName, out var registration)
+            ? new ValueTask<IRequestExecutor>(registration.Executor)
+            : GetOrCreateRequestExecutorAsync(schemaName, cancellationToken);
     }
 
     public IDisposable Subscribe(IObserver<RequestExecutorEvent> observer)
     {
-        throw new NotImplementedException();
+        ArgumentNullException.ThrowIfNull(observer);
+        return new ObserverSession(this, observer);
     }
 
     private async ValueTask<IRequestExecutor> GetOrCreateRequestExecutorAsync(
@@ -77,6 +98,7 @@ internal sealed class FusionRequestExecutorManager
 
             registration = await CreateInitialRegistrationAsync(schemaName, cancellationToken).ConfigureAwait(false);
             _registry.TryAdd(schemaName, registration);
+            await _executorEvents.WriteCreatedAsync(registration.Executor, cancellationToken).ConfigureAwait(false);
             return registration.Executor;
         }
         finally
@@ -109,7 +131,8 @@ internal sealed class FusionRequestExecutorManager
 
         var requestOptions = CreateRequestOptions(setup);
         var parserOptions = CreateParserOptions(setup);
-        var features = CreateSchemaFeatures(setup, requestOptions, parserOptions);
+        var clientConfigurations = CreateClientConfigurations(setup);
+        var features = CreateSchemaFeatures(setup, requestOptions, parserOptions, clientConfigurations);
         var schemaServices = CreateSchemaServices(setup);
 
         var schema = CreateSchema(schemaName, document, schemaServices, features);
@@ -178,15 +201,30 @@ internal sealed class FusionRequestExecutorManager
             maxAllowedFields: options.MaxAllowedFields);
     }
 
+    private SourceSchemaClientConfigurations CreateClientConfigurations(FusionGatewaySetup setup)
+    {
+        var configurations = new List<ISourceSchemaClientConfiguration>();
+
+        foreach (var configure in setup.ClientConfigurationModifiers)
+        {
+            configurations.Add(configure.Invoke(_applicationServices));
+        }
+
+        return new SourceSchemaClientConfigurations(configurations);
+    }
+
     private FeatureCollection CreateSchemaFeatures(
         FusionGatewaySetup setup,
         FusionRequestOptions requestOptions,
-        ParserOptions parserOptions)
+        ParserOptions parserOptions,
+        SourceSchemaClientConfigurations clientConfigurations)
     {
         var features = new FeatureCollection();
 
         features.Set(requestOptions);
         features.Set(parserOptions);
+        features.Set(clientConfigurations);
+        features.Set(CreateTypeResolverInterceptors());
 
         foreach (var configure in setup.SchemaFeaturesModifiers)
         {
@@ -195,6 +233,18 @@ internal sealed class FusionRequestExecutorManager
 
         return features;
     }
+
+    private static Dictionary<string, ITypeResolverInterceptor> CreateTypeResolverInterceptors()
+        => new()
+        {
+            { nameof(Query), new Query() },
+            { nameof(__Directive), new __Directive() },
+            { nameof(__EnumValue), new __EnumValue() },
+            { nameof(__Field), new __Field() },
+            { nameof(__InputValue), new __InputValue() },
+            { nameof(__Schema), new __Schema() },
+            { nameof(__Type), new __Type() }
+        };
 
     private ServiceProvider CreateSchemaServices(
         FusionGatewaySetup setup)
@@ -206,6 +256,7 @@ internal sealed class FusionRequestExecutorManager
         AddParserServices(schemaServices);
         AddDocumentValidator(setup, schemaServices);
         AddDiagnosticEvents(schemaServices);
+        AddSourceSchemaClients(schemaServices);
 
         foreach (var configure in setup.SchemaServiceModifiers)
         {
@@ -233,20 +284,36 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton<ObjectPool<PooledRequestContext>>(
             static _ => new DefaultObjectPool<PooledRequestContext>(
                 new RequestContextPooledObjectPolicy()));
+
+        services.AddTransient<CompositeTypeInterceptor>(static _ => new IntrospectionFieldInterceptor());
     }
 
     private static void AddOperationPlanner(IServiceCollection services)
     {
+        services.TryAddSingleton<ObjectPoolProvider>(
+            static _ => new DefaultObjectPoolProvider());
+
+        services.AddSingleton(
+            static sp => sp.GetRequiredService<ObjectPoolProvider>().CreateFieldMapPool());
+
         services.AddSingleton(
             static sp =>
             {
                 var options = sp.GetRequiredService<ISchemaDefinition>().GetRequestOptions();
-                return new Cache<OperationExecutionPlan>(
+                return new Cache<OperationPlan>(
                     options.OperationExecutionPlanCacheSize,
                     options.OperationExecutionPlanCacheDiagnostics);
             });
 
-        services.AddSingleton(static sp => new OperationPlanner(sp.GetRequiredService<FusionSchemaDefinition>()));
+        services.AddSingleton(
+            static sp => new OperationCompiler(
+                sp.GetRequiredService<FusionSchemaDefinition>(),
+                sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>()));
+
+        services.AddSingleton(
+            static sp => new OperationPlanner(
+                sp.GetRequiredService<FusionSchemaDefinition>(),
+                sp.GetRequiredService<OperationCompiler>()));
     }
 
     private static void AddParserServices(IServiceCollection services)
@@ -296,6 +363,17 @@ internal sealed class FusionRequestExecutorManager
 
         services.AddSingleton<ICoreExecutionDiagnosticEvents>(
             static sp => sp.GetRequiredService<IFusionExecutionDiagnosticEvents>());
+    }
+
+    private static void AddSourceSchemaClients(
+        IServiceCollection services)
+    {
+        services.AddSingleton(
+            static sp =>
+            {
+                var options = sp.GetRequiredService<ISchemaDefinition>().GetRequestOptions();
+                return new Cache<string>(options.SourceSchemaOperationCacheSize);
+            });
     }
 
     private static FusionSchemaDefinition CreateSchema(
@@ -348,6 +426,17 @@ internal sealed class FusionRequestExecutorManager
         return next;
     }
 
+    private async Task NotifyObserversAsync()
+    {
+        await foreach (var eventArgs in _executorEvents.Reader.ReadAllAsync().ConfigureAwait(false))
+        {
+            foreach (var observer in _observers)
+            {
+                observer.OnNext(eventArgs);
+            }
+        }
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_disposed)
@@ -357,10 +446,23 @@ internal sealed class FusionRequestExecutorManager
 
         _disposed = true;
 
+        _executorEvents.Writer.TryComplete(new Exception("Completed"));
+
         foreach (var registration in _registry.Values)
         {
             await registration.DisposeAsync().ConfigureAwait(false);
         }
+
+        while (_executorEvents.Reader.TryRead(out _))
+        {
+        }
+
+        foreach (var session in _observers)
+        {
+            session.OnCompleted();
+        }
+
+        _observers = [];
     }
 
     private sealed class RequestExecutorAccessor
@@ -449,8 +551,75 @@ internal sealed class FusionRequestExecutorManager
             await DocumentProvider.DisposeAsync().ConfigureAwait(false);
 
             _channel.Writer.TryComplete();
-            _cancellationTokenSource.Cancel();
+            await _cancellationTokenSource.CancelAsync().ConfigureAwait(false);
             _cancellationTokenSource.Dispose();
         }
+    }
+
+    private sealed class ObserverSession : IDisposable
+    {
+        private readonly FusionRequestExecutorManager _manager;
+        private readonly IObserver<RequestExecutorEvent> _observer;
+        private bool _disposed;
+
+        public ObserverSession(
+            FusionRequestExecutorManager manager,
+            IObserver<RequestExecutorEvent> observer)
+        {
+            _manager = manager;
+            _observer = observer;
+
+            lock (_manager._lock)
+            {
+                _manager._observers = _manager._observers.Add(this);
+            }
+        }
+
+        public void OnNext(RequestExecutorEvent value)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _observer.OnNext(value);
+        }
+
+        public void OnCompleted()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _observer.OnCompleted();
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            lock (_manager._lock)
+            {
+                _manager._observers = _manager._observers.Remove(this);
+            }
+
+            _disposed = true;
+        }
+    }
+}
+
+file static class Extensions
+{
+    public static async ValueTask WriteCreatedAsync(
+        this Channel<RequestExecutorEvent> executorEvents,
+        FusionRequestExecutor executor,
+        CancellationToken cancellationToken)
+    {
+        var eventArgs = RequestExecutorEvent.Created(executor);
+        await executorEvents.Writer.WriteAsync(eventArgs, cancellationToken).ConfigureAwait(false);
     }
 }

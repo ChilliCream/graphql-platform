@@ -1,4 +1,4 @@
-﻿using HotChocolate.Features;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
 using HotChocolate.Serialization;

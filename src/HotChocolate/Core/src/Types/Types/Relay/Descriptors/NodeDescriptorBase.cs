@@ -119,8 +119,8 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
 
             // after that all middleware should be available on the field definition, and we can
             // start compiling the resolver and the resolver pipeline.
-            if (Configuration.ResolverField.Resolver is null &&
-                Configuration.ResolverField.Member is not null)
+            if (Configuration.ResolverField.Resolver is null
+                && Configuration.ResolverField.Member is not null)
             {
                 Configuration.ResolverField.Resolvers =
                     Context.ResolverCompiler.CompileResolve(
@@ -187,7 +187,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
                     => result is not null
                         ? serializerAccessor.Serializer.Format(context.ObjectType.Name, result)
                         : null,
-                key: WellKnownMiddleware.GlobalId,
-                isRepeatable: false);
+                isRepeatable: false,
+                key: WellKnownMiddleware.GlobalId);
     }
 }

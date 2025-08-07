@@ -1,0 +1,38 @@
+{
+  "data": {
+    "books": {
+      "nodes": [
+        {
+          "a": "Book"
+        },
+        {
+          "a": "Book"
+        },
+        {
+          "a": "Book"
+        },
+        {
+          "a": "Book"
+        }
+      ]
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "{\n  books {\n    nodes {\n      a: __typename\n    }\n  }\n}",
+          "hash": "01be2e0ffad76cbb91821c8ed1419f71"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": "query Op_01be2e0f_1 {\n  books {\n    nodes {\n      a: __typename\n    }\n  }\n}"
+          }
+        ]
+      }
+    }
+  }
+}

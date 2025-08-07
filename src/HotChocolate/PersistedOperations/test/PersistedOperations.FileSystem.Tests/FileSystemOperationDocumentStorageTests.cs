@@ -111,7 +111,7 @@ public class FileSystemOperationDocumentStorageTests
 
             var storage = new FileSystemOperationDocumentStorage(new DefaultOperationDocumentFileMap(path));
 
-            var documentId = "1234";
+            const string documentId = "1234";
             await File.WriteAllTextAsync(IOPath.Combine(path, documentId + ".graphql"), "{ foo }");
 
             // act

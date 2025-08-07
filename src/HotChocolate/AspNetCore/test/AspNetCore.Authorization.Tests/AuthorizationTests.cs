@@ -118,10 +118,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
     {
         // arrange
         var server = CreateTestServer(
-            builder =>
-            {
-                configure(builder);
-            },
+            configure,
             context =>
             {
                 context.User = new ClaimsPrincipal(
@@ -316,10 +313,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
                                 c.Type == ClaimTypes.DateOfBirth)));
                 });
             },
-            context =>
-            {
-                context.User = new ClaimsPrincipal(new ClaimsIdentity("testauth"));
-            });
+            context => context.User = new ClaimsPrincipal(new ClaimsIdentity("testauth")));
 
         // act
         var result =
@@ -874,14 +868,16 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
         {
             var effectiveRequirements = requirements.ToList();
 
-            if (!effectiveRequirements.OfType<RolesAuthorizationRequirement>().Any()) {
+            if (!effectiveRequirements.OfType<RolesAuthorizationRequirement>().Any())
+            {
                 effectiveRequirements.Add(new RolesAuthorizationRequirement(allowedRoles: ["b"]));
             }
 
             return await defaultAuthorizationService.AuthorizeAsync(user, resource, effectiveRequirements);
         }
 
-        public Task<AuthorizationResult> AuthorizeAsync(ClaimsPrincipal user, object? resource, string policyName) {
+        public Task<AuthorizationResult> AuthorizeAsync(ClaimsPrincipal user, object? resource, string policyName)
+        {
             throw new NotImplementedException();
         }
     }

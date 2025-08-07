@@ -15,10 +15,7 @@ public class TestServerFactory : IDisposable
     {
         var builder = new WebHostBuilder()
             .Configure(configureApplication)
-            .ConfigureServices(services =>
-            {
-                configureServices(services);
-            });
+            .ConfigureServices(configureServices);
 
         var server = new TestServer(builder);
         _instances.Add(server);

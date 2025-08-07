@@ -1,6 +1,6 @@
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
-public interface ICodeContainer<out T>: ICode
+public interface ICodeContainer<out T> : ICode
 {
     public T AddCode(string code, bool addIf = true);
 

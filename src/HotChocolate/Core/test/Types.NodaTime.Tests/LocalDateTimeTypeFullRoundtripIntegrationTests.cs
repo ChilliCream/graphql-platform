@@ -30,7 +30,7 @@ public class LocalDateTimeTypeFullRoundtripIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-21T17:42:59.000001234 (Julian)" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-21T17:42:59.000001234 (Julian)" } })
                 .Build());
 
         Assert.Equal(
@@ -44,7 +44,7 @@ public class LocalDateTimeTypeFullRoundtripIntegrationTests
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-20T17:42:59Z" } })
+                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-20T17:42:59Z" } })
                 .Build());
 
         Assert.Null(result.ExpectOperationResult().Data);

@@ -53,7 +53,7 @@ public abstract class BatchDataLoader<TKey, TValue>
         {
             if (resultMap.TryGetValue(keys[i], out var value))
             {
-                results[i] = value;
+                results[i] = value!;
             }
             else
             {

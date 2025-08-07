@@ -144,7 +144,7 @@ public partial class DirectiveType
             return definition.CreateInstance;
         }
 
-        if (RuntimeType == typeof(object) || Arguments .Any(t => t.Property is null))
+        if (RuntimeType == typeof(object) || Arguments.Any(t => t.Property is null))
         {
             return CreateDictionaryInstance;
         }

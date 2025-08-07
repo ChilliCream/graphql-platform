@@ -8,26 +8,33 @@ namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 
 internal static class MessageHelper
 {
-    public static async ValueTask SendConnectionInitMessage<T>(
+    public static async ValueTask SendConnectionInitMessage(
         this WebSocket socket,
-        T payload,
+        JsonElement payload,
         CancellationToken ct)
     {
+        if (payload.ValueKind is not JsonValueKind.Object and not JsonValueKind.Null and not JsonValueKind.Undefined)
+        {
+            throw new ArgumentException(
+                "The payload must be an object, null, or undefined.",
+                nameof(payload));
+        }
+
         using var arrayWriter = new PooledArrayWriter();
         await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         jsonWriter.WriteStartObject();
         jsonWriter.WriteString(Utf8MessageProperties.TypeProp, Utf8Messages.ConnectionInitialize);
 
-        if (payload is not null)
+        if (payload.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined)
         {
             jsonWriter.WritePropertyName(Utf8MessageProperties.PayloadProp);
-            JsonSerializer.Serialize(jsonWriter, payload, JsonOptionDefaults.SerializerOptions);
+            payload.WriteTo(jsonWriter);
         }
 
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
-        await socket.SendAsync(arrayWriter.GetWrittenMemory(), Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.WrittenMemory, Text, true, ct).ConfigureAwait(false);
     }
 
     public static async ValueTask SendSubscribeMessageAsync(
@@ -49,7 +56,7 @@ internal static class MessageHelper
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
-        await socket.SendAsync(arrayWriter.GetWrittenMemory(), Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.WrittenMemory, Text, true, ct).ConfigureAwait(false);
     }
 
     public static async ValueTask SendCompleteMessageAsync(
@@ -65,7 +72,7 @@ internal static class MessageHelper
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
-        await socket.SendAsync(arrayWriter.GetWrittenMemory(), Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.WrittenMemory, Text, true, ct).ConfigureAwait(false);
     }
 
     public static async ValueTask SendPongMessageAsync(
@@ -79,6 +86,6 @@ internal static class MessageHelper
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
-        await socket.SendAsync(arrayWriter.GetWrittenMemory(), Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.WrittenMemory, Text, true, ct).ConfigureAwait(false);
     }
 }

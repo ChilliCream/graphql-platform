@@ -11,7 +11,6 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.PersistedOperations;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -62,7 +61,12 @@ internal sealed partial class RequestExecutorManager
         ConsumeExecutorEvictionsAsync(executorEvictionChannel.Reader, _cts.Token).FireAndForget();
 
         _optionsMonitor.OnChange(EvictRequestExecutor);
+        var schemaNames = _applicationServices.GetService<IEnumerable<SchemaName>>()?
+            .Select(x => x.Value).Distinct().Order().ToImmutableArray();
+        SchemaNames = schemaNames ?? [];
     }
+
+    public ImmutableArray<string> SchemaNames { get; }
 
     public async ValueTask<IRequestExecutor> GetExecutorAsync(
         string? schemaName = null,
@@ -157,7 +161,7 @@ internal sealed partial class RequestExecutorManager
 
         var context = new ConfigurationContext(
             schemaName,
-            setup.SchemaBuilder ?? new SchemaBuilder(),
+            setup.SchemaBuilder ?? SchemaBuilder.New(),
             _applicationServices);
 
         var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, context.SchemaName);
@@ -294,7 +298,7 @@ internal sealed partial class RequestExecutorManager
             static s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IPersistedOperationOptionsAccessor>(
             static s => s.GetRequiredService<RequestExecutorOptions>());
-        serviceCollection.AddSingleton<PersistedOperationOptions>(
+        serviceCollection.AddSingleton(
             static s => s.GetRequiredService<RequestExecutorOptions>().PersistedOperations);
 
         serviceCollection.AddSingleton<IPreparedOperationCache>(static sp => new DefaultPreparedOperationCache(
@@ -768,12 +772,10 @@ internal sealed partial class RequestExecutorManager
                     }
 
                     case { } d when !d.ContainsKey("exception"):
-                    {
                         var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
                         builder.AddRange(d);
                         builder.Add(ExceptionProperty, CreateExceptionInfo(error.Exception));
                         return error.WithExtensions(builder.ToImmutable());
-                    }
 
                     default:
                     {

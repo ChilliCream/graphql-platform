@@ -40,7 +40,7 @@ public class GeoJsonMultiPolygonSerializerTests
                     new IntValueNode(15),
                     new IntValueNode(5)))));
 
-    private Geometry _geometry = new MultiPolygon(
+    private readonly Geometry _geometry = new MultiPolygon(
     [
         new Polygon(
                     new LinearRing(

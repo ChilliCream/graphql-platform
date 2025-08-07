@@ -185,17 +185,17 @@ public class ObjectTypeConfiguration
 
         if (_knownClrTypes is { Count: > 0 })
         {
-            target._knownClrTypes = [.._knownClrTypes];
+            target._knownClrTypes = [.. _knownClrTypes];
         }
 
         if (_interfaces is { Count: > 0 })
         {
-            target._interfaces = [.._interfaces];
+            target._interfaces = [.. _interfaces];
         }
 
         if (_fieldIgnores is { Count: > 0 })
         {
-            target._fieldIgnores = [.._fieldIgnores];
+            target._fieldIgnores = [.. _fieldIgnores];
         }
 
         if (Fields is { Count: > 0 })
@@ -208,7 +208,7 @@ public class ObjectTypeConfiguration
             }
         }
 
-        if(AttributeBindingTypes.Length > 0)
+        if (AttributeBindingTypes.Length > 0)
         {
             target.AttributeBindingTypes = AttributeBindingTypes;
         }
@@ -240,7 +240,7 @@ public class ObjectTypeConfiguration
             target._fieldIgnores.AddRange(_fieldIgnores);
         }
 
-        if(AttributeBindingTypes.Length > 0)
+        if (AttributeBindingTypes.Length > 0)
         {
             target.AttributeBindingTypes = target.AttributeBindingTypes.AddRange(AttributeBindingTypes);
         }
@@ -260,14 +260,13 @@ public class ObjectTypeConfiguration
             var removeField = field.Ignore;
 
             // we skip fields that have an incompatible parent.
-            if (field.Member is MethodInfo p &&
-                p.GetParameters() is { Length: > 0 } parameters)
+            if (field.Member is MethodInfo p
+                && p.GetParameters() is { Length: > 0 } parameters)
             {
                 var parent = parameters.FirstOrDefault(
                     t => t.IsDefined(typeof(ParentAttribute), true));
-                if (parent is not null &&
-                    !parent.ParameterType.IsAssignableFrom(target.RuntimeType) &&
-                    !target.RuntimeType.IsAssignableFrom(parent.ParameterType))
+                if (parent?.ParameterType.IsAssignableFrom(target.RuntimeType) == false
+                    && !target.RuntimeType.IsAssignableFrom(parent.ParameterType))
                 {
                     continue;
                 }

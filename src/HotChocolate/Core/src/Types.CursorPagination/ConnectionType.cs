@@ -107,10 +107,7 @@ internal sealed class ConnectionType
                 TypeDependencyFulfilled.Named));
         Configuration.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask(
-                (c, _) =>
-                {
-                    EdgeType = c.GetType<IEdgeType>(edgeType);
-                },
+                (c, _) => EdgeType = c.GetType<IEdgeType>(edgeType),
                 Configuration,
                 ApplyConfigurationOn.BeforeCompletion));
     }
@@ -177,7 +174,7 @@ internal sealed class ConnectionType
                 Names.Nodes,
                 ConnectionType_Nodes_Description,
                 pureResolver: GetNodes)
-                { Flags = CoreFieldFlags.ConnectionNodesField });
+            { Flags = CoreFieldFlags.ConnectionNodesField });
         }
 
         if (includeTotalCount)

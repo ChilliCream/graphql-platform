@@ -94,8 +94,8 @@ public static class OperationResult
         typeof(OperationResult)
             .GetMethods(BindingFlags.Public | BindingFlags.Static)
             .First(m =>
-                m.IsGenericMethodDefinition &&
-                m.Name.Equals(nameof(Create), StringComparison.Ordinal));
+                m.IsGenericMethodDefinition
+                && m.Name.Equals(nameof(Create), StringComparison.Ordinal));
 
     public static IOperationResult Create(
         object? data,

@@ -1,0 +1,91 @@
+{
+  "data": {
+    "__schema": {
+      "types": [
+        {
+          "name": "__Schema"
+        },
+        {
+          "name": "__Type"
+        },
+        {
+          "name": "__TypeKind"
+        },
+        {
+          "name": "__Field"
+        },
+        {
+          "name": "__InputValue"
+        },
+        {
+          "name": "__EnumValue"
+        },
+        {
+          "name": "__Directive"
+        },
+        {
+          "name": "__DirectiveLocation"
+        },
+        {
+          "name": "Query"
+        },
+        {
+          "name": "Author"
+        },
+        {
+          "name": "AuthorsConnection"
+        },
+        {
+          "name": "AuthorsEdge"
+        },
+        {
+          "name": "Book"
+        },
+        {
+          "name": "BooksConnection"
+        },
+        {
+          "name": "BooksEdge"
+        },
+        {
+          "name": "PageInfo"
+        },
+        {
+          "name": "fusion__Schema"
+        },
+        {
+          "name": "String"
+        },
+        {
+          "name": "Boolean"
+        },
+        {
+          "name": "Int"
+        }
+      ]
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "{\n  __schema {\n    types {\n      name\n    }\n  }\n}",
+          "hash": "e4e78f6ce44f74870f424cc260b232a6"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "selections": [
+              {
+                "id": 1,
+                "type": "Introspection",
+                "responseName": "__schema",
+                "fieldName": "__schema"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

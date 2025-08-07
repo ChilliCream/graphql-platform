@@ -14,7 +14,7 @@ public class LocalDateTimeTypeTests
         // arrange
         var localDateTimeType = new LocalDateTimeType();
         var dateTime = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-        var expectedValue = "2018-06-11T08:46:14";
+        const string expectedValue = "2018-06-11T08:46:14";
 
         // act
         var serializedValue = (string)localDateTimeType.Serialize(dateTime);
@@ -31,7 +31,7 @@ public class LocalDateTimeTypeTests
         var dateTime = new DateTimeOffset(
             new DateTime(2018, 6, 11, 2, 46, 14),
             new TimeSpan(4, 0, 0));
-        var expectedValue = "2018-06-11T02:46:14";
+        const string expectedValue = "2018-06-11T02:46:14";
 
         // act
         var serializedValue = (string)localDateTimeType.Serialize(dateTime);
@@ -241,7 +241,7 @@ public class LocalDateTimeTypeTests
         // arrange
         var localDateTimeType = new LocalDateTimeType();
         var dateTime = new DateTime(2018, 6, 11, 8, 46, 14);
-        var expectedLiteralValue = "2018-06-11T08:46:14";
+        const string expectedLiteralValue = "2018-06-11T08:46:14";
 
         // act
         var stringLiteral =
@@ -270,7 +270,7 @@ public class LocalDateTimeTypeTests
         // arrange
         var localDateTimeType = new LocalDateTimeType();
         var resultValue = new DateTime(2023, 6, 19, 11, 24, 0, DateTimeKind.Utc);
-        var expectedLiteralValue = "2023-06-19T11:24:00";
+        const string expectedLiteralValue = "2023-06-19T11:24:00";
 
         // act
         var literal = localDateTimeType.ParseResult(resultValue);
@@ -286,7 +286,7 @@ public class LocalDateTimeTypeTests
         // arrange
         var localDateTimeType = new LocalDateTimeType();
         var resultValue = new DateTimeOffset(2023, 6, 19, 11, 24, 0, new TimeSpan(6, 0, 0));
-        var expectedLiteralValue = "2023-06-19T11:24:00";
+        const string expectedLiteralValue = "2023-06-19T11:24:00";
 
         // act
         var literal = localDateTimeType.ParseResult(resultValue);
@@ -301,8 +301,8 @@ public class LocalDateTimeTypeTests
     {
         // arrange
         var localDateTimeType = new LocalDateTimeType();
-        var resultValue = "2023-06-19T11:24:00";
-        var expectedLiteralValue = "2023-06-19T11:24:00";
+        const string resultValue = "2023-06-19T11:24:00";
+        const string expectedLiteralValue = "2023-06-19T11:24:00";
 
         // act
         var literal = localDateTimeType.ParseResult(resultValue);
@@ -330,7 +330,7 @@ public class LocalDateTimeTypeTests
     {
         // arrange
         var localDateTimeType = new LocalDateTimeType();
-        var resultValue = 1;
+        const int resultValue = 1;
 
         // act
         var exception = Record.Exception(() => localDateTimeType.ParseResult(resultValue));

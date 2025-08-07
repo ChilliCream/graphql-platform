@@ -605,7 +605,7 @@ public class TypeInfoTests
 
         public Optional<string?> OptionalNullableString() => default;
 
-        public Nullable<Optional<string?>> NullableOptionalNullableString() => null;
+        public Optional<string?>? NullableOptionalNullableString() => null;
     }
 
     public class Foo;

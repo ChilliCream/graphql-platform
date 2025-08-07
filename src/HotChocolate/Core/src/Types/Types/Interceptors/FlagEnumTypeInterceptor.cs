@@ -224,7 +224,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
                 return $"[{Rewrite(reference.ElementType, typeName)}]{nullability}";
             }
 
-            return $"{typeName}{nullability}";
+            return typeName + nullability;
         }
     }
 

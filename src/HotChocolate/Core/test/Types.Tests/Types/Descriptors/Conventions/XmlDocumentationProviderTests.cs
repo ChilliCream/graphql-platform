@@ -54,8 +54,8 @@ public class XmlDocumentationProviderTests
 
         // asssert
         Assert.Equal(
-            "null for the default Record.\nSee this and\nthis" +
-            " at\nhttps://foo.com/bar/baz.",
+            "null for the default Record.\nSee this and\nthis"
+            + " at\nhttps://foo.com/bar/baz.",
             description);
     }
 

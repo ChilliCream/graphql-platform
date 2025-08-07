@@ -1,0 +1,44 @@
+operation:
+  - document: >-
+      query testQuery {
+        wrappers {
+          authorable {
+            author {
+              displayName
+              id @fusion__requirement
+            }
+          }
+        }
+      }
+    name: testQuery
+    hash: 123
+nodes:
+  - id: 1
+    schema: SUBGRAPH_1
+    operation: >-
+      query testQuery_123_1 {
+        wrappers {
+          authorable {
+            author {
+              id
+            }
+          }
+        }
+      }
+  - id: 2
+    schema: SUBGRAPH_2
+    operation: >-
+      query testQuery_123_2(
+        $__fusion_1_id: ID!
+      ) {
+        authorById(id: $__fusion_1_id) {
+          displayName
+        }
+      }
+    source: $.authorById
+    target: $.wrappers.authorable.author
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: id
+    dependencies:
+      - id: 1

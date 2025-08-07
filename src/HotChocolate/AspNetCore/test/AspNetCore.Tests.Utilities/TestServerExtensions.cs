@@ -275,9 +275,9 @@ public static class TestServerExtensions
         var response =
             await SendGetRequestAsync(
                 testServer,
-                $"query={query}&" +
-                "extensions={\"persistedQuery\":{\"version\":1," +
-                $"\"{hashName}\":\"{hash}\"}}}}",
+                $"query={query}&"
+                + "extensions={\"persistedQuery\":{\"version\":1,"
+                + $"\"{hashName}\":\"{hash}\"}}}}",
                 path);
 
         if (response.StatusCode == HttpStatusCode.NotFound)

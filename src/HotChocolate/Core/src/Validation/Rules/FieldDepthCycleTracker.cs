@@ -28,7 +28,7 @@ internal sealed class FieldDepthCycleTracker : ValidatorFeature
             return limit.Add();
         }
 
-        if(_defaultMaxAllowed.HasValue)
+        if (_defaultMaxAllowed.HasValue)
         {
             _limits.TryPop(out limit);
             limit ??= new CoordinateLimit();

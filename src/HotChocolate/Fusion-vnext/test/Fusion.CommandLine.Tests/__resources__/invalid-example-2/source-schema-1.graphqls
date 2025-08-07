@@ -9,7 +9,3 @@ type Query @inaccessible {         # Error:   QUERY_ROOT_TYPE_INACCESSIBLE
 type User {
   id: ID!
 }
-
-directive @schemaName(value: String!) on SCHEMA
-directive @inaccessible on OBJECT # | etc.
-directive @lookup on FIELD_DEFINITION

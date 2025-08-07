@@ -44,7 +44,7 @@ public sealed class ErrorBuilder
 
         _extensions ??= ImmutableOrderedDictionary.CreateBuilder<string, object?>();
 
-        if(code is null)
+        if (code is null)
         {
             _extensions.Remove(nameof(code));
             return this;

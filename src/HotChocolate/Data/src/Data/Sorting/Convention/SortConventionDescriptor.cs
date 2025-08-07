@@ -61,8 +61,8 @@ public class SortConventionDescriptor : ISortConventionDescriptor
         ArgumentNullException.ThrowIfNull(runtimeType);
         ArgumentNullException.ThrowIfNull(sortType);
 
-        if (!typeof(SortInputType).IsAssignableFrom(sortType) &&
-            !typeof(SortEnumType).IsAssignableFrom(sortType))
+        if (!typeof(SortInputType).IsAssignableFrom(sortType)
+            && !typeof(SortEnumType).IsAssignableFrom(sortType))
         {
             throw new ArgumentException(
                 SortConventionDescriptor_MustInheritFromSortInputOrEnumType,
