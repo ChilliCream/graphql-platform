@@ -26,6 +26,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// </exception>
     public static IRequestExecutorBuilder InitializeOnStartup(
         this IRequestExecutorBuilder builder,
+
         Func<IRequestExecutor, CancellationToken, Task>? warmup = null,
         bool keepWarm = false)
     {
