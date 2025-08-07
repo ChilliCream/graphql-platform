@@ -2,30 +2,26 @@ operation:
   - document: >-
       {
         products {
-          nodes {
-            brand {
-              name
-            }
-            nameAndId
-            id @fusion__requirement
-            name @fusion__requirement
+          brand {
+            name
           }
+          nameAndId
+          id @fusion__requirement
+          name @fusion__requirement
         }
       }
     hash: 123
 nodes:
   - id: 1
-    schema: DEFAULT
+    schema: CATALOG
     operation: >-
       query Op_123_1 {
         products {
-          nodes {
-            brand {
-              name
-            }
-            id
+          brand {
             name
           }
+          id
+          name
         }
       }
   - id: 2
@@ -40,7 +36,7 @@ nodes:
         }
       }
     source: $.productById
-    target: $.products.nodes
+    target: $.products
     requirements:
       - name: __fusion_1_id
         selectionMap: id
