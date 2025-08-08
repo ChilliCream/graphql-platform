@@ -39,7 +39,21 @@ public sealed record PlanNode
     /// <summary>
     /// The index of the selection set.
     /// </summary>
-    public required ISelectionSetIndex SelectionSetIndex { get; init; }
+    public required ISelectionSetIndex SelectionSetIndex
+    {
+        get;
+        init
+        {
+            if (value is SelectionSetIndexBuilder builder)
+            {
+                field = builder.Build();
+            }
+            else
+            {
+                field = value;
+            }
+        }
+    }
 
     public required ImmutableStack<WorkItem> Backlog { get; init; }
 

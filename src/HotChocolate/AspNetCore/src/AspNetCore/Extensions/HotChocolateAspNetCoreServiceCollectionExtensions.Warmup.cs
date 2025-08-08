@@ -1,5 +1,6 @@
 using HotChocolate.AspNetCore.Warmup;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Internal;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -34,5 +35,41 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         builder.Services.AddHostedService<RequestExecutorWarmupService>();
         builder.Services.AddSingleton(new WarmupSchemaTask(builder.Name, keepWarm, warmup));
         return builder;
+    }
+
+    public static IRequestExecutorBuilder InitializeOnStartup(
+        this IRequestExecutorBuilder builder,
+        RequestExecutorInitializationOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        Func<IRequestExecutor, CancellationToken, Task>? warmup;
+
+        if (options.WriteSchemaFile.Enable)
+        {
+            var schemaFileName =
+                options.WriteSchemaFile.FileName
+                    ?? System.IO.Path.Combine(Environment.CurrentDirectory, "schema.graphqls");
+
+            if (options.Warmup is null)
+            {
+                warmup = async (executor, cancellationToken)
+                    => await SchemaFileExporter.Export(schemaFileName, executor, cancellationToken);
+            }
+            else
+            {
+                warmup = async (executor, cancellationToken) =>
+                {
+                    await SchemaFileExporter.Export(schemaFileName, executor, cancellationToken);
+                    await options.Warmup(executor, cancellationToken);
+                };
+            }
+        }
+        else
+        {
+            warmup = options.Warmup;
+        }
+
+        return InitializeOnStartup(builder, warmup, options.KeepWarm);
     }
 }

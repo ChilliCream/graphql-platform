@@ -7,8 +7,10 @@ using Moq;
 
 namespace HotChocolate.AspNetCore.CommandLine;
 
-public class SchemaExportCommandTests
+public class SchemaExportCommandTests : IDisposable
 {
+    private readonly List<string> _files = [];
+
     [Fact]
     public async Task App_Should_OutputCorrectHelpTest_When_HelpIsRequested()
     {
@@ -52,6 +54,7 @@ public class SchemaExportCommandTests
     public async Task App_Should_WriteSchemaToFile_When_OutputOptionIsSpecified()
     {
         // arrange
+        var snapshot = new Snapshot();
         var services = new ServiceCollection();
         services.AddGraphQL()
             .AddQueryType(x => x.Name("Query").Field("foo").Resolve("bar"));
@@ -64,13 +67,15 @@ public class SchemaExportCommandTests
         var host = hostMock.Object;
         var console = new TestConsole();
         var app = new App(host).Build();
-        var tempFile = System.IO.Path.GetTempFileName();
+        var tempFile = CreateSchemaFileName();
 
         // act
         await app.InvokeAsync($"schema export --output {tempFile}", console);
 
         // assert
-        (await File.ReadAllTextAsync(tempFile)).MatchSnapshot();
+        snapshot.Add(await File.ReadAllTextAsync(tempFile + ".graphqls"), "Schema", markdownLanguage: "graphql");
+        snapshot.Add(await File.ReadAllTextAsync(tempFile + "-settings.json"), "Settings", markdownLanguage: "json");
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -95,5 +100,36 @@ public class SchemaExportCommandTests
 
         // assert
         console.Out.ToString().MatchSnapshot();
+    }
+
+    public string CreateSchemaFileName()
+    {
+        var tempFile = System.IO.Path.GetTempFileName();
+        var schemaFile = tempFile + ".graphqls";
+        var settingsFile = tempFile + "-settings.json";
+        _files.Add(tempFile);
+        _files.Add(schemaFile);
+        _files.Add(settingsFile);
+        return tempFile;
+    }
+
+    public void Dispose()
+    {
+        foreach (var file in _files)
+        {
+            if (File.Exists(file))
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+        }
+
+        _files.Clear();
     }
 }

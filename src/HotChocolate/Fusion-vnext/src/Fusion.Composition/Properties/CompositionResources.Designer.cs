@@ -132,6 +132,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec..
+        /// </summary>
+        internal static string FusionFieldDefinitionMutableScalarTypeDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionFieldDefinitionMutableScalarTypeDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Indicates that this field is only partially provided and must be combined with `provides`..
         /// </summary>
         internal static string FusionFieldMutableDirectiveDefinition_Argument_Partial_Description {
@@ -177,6 +186,33 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The fusion__FieldSelectionMap scalar is used to represent the FieldSelectionMap type specified in the GraphQL Composite Schemas Spec..
+        /// </summary>
+        internal static string FusionFieldSelectionMapMutableScalarTypeDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionFieldSelectionMapMutableScalarTypeDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The fusion__FieldSelectionPath scalar is used to represent a path of field names relative to the Query type..
+        /// </summary>
+        internal static string FusionFieldSelectionPathMutableScalarTypeDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionFieldSelectionPathMutableScalarTypeDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The fusion__FieldSelectionSet scalar is used to represent a GraphQL selection set. To simplify the syntax, the outermost selection set is not wrapped in curly braces..
+        /// </summary>
+        internal static string FusionFieldSelectionSetMutableScalarTypeDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionFieldSelectionSetMutableScalarTypeDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The name of the interface type..
         /// </summary>
         internal static string FusionImplementsMutableDirectiveDefinition_Argument_Interface_Description {
@@ -200,6 +236,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string FusionImplementsMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("FusionImplementsMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas..
+        /// </summary>
+        internal static string FusionInaccessibleMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionInaccessibleMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
         
@@ -326,6 +371,33 @@ namespace HotChocolate.Fusion.Properties {
         internal static string FusionRequiresMutableDirectiveDefinition_Schema_Description {
             get {
                 return ResourceManager.GetString("FusionRequiresMutableDirectiveDefinition_Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema..
+        /// </summary>
+        internal static string FusionSchemaMetadataMutableDirectiveDefinition_Argument_Name_Description {
+            get {
+                return ResourceManager.GetString("FusionSchemaMetadataMutableDirectiveDefinition_Argument_Name_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__schema_metadata directive is used to provide additional metadata for a source schema..
+        /// </summary>
+        internal static string FusionSchemaMetadataMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionSchemaMetadataMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner..
+        /// </summary>
+        internal static string FusionSchemaMutableEnumTypeDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionSchemaMutableEnumTypeDefinition_Description", resourceCulture);
             }
         }
         
@@ -1095,11 +1167,11 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type &apos;{0}&apos; implements the &apos;Node&apos; interface, but does not have a lookup by ID..
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; implements the &apos;Node&apos; interface, but no source schema provides a &apos;Query.node&lt;Node&gt;&apos; lookup field for this type..
         /// </summary>
-        internal static string SatisfiabilityValidator_NodeTypeHasNoLookupById {
+        internal static string SatisfiabilityValidator_NodeTypeHasNoNodeLookup {
             get {
-                return ResourceManager.GetString("SatisfiabilityValidator_NodeTypeHasNoLookupById", resourceCulture);
+                return ResourceManager.GetString("SatisfiabilityValidator_NodeTypeHasNoNodeLookup", resourceCulture);
             }
         }
         

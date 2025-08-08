@@ -1460,13 +1460,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     public partial class GetHeroQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        private GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        private GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;
@@ -1967,7 +1967,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         private readonly global::StrawberryShake.IOperationExecutor<ICreateReviewMutResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _episodeFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _reviewInputFormatter;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public CreateReviewMutMutation(global::StrawberryShake.IOperationExecutor<ICreateReviewMutResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
@@ -1975,7 +1975,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             _reviewInputFormatter = serializerResolver.GetInputValueFormatter("ReviewInput");
         }
 
-        private CreateReviewMutMutation(global::StrawberryShake.IOperationExecutor<ICreateReviewMutResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter episodeFormatter, global::StrawberryShake.Serialization.IInputValueFormatter reviewInputFormatter)
+        private CreateReviewMutMutation(global::StrawberryShake.IOperationExecutor<ICreateReviewMutResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter episodeFormatter, global::StrawberryShake.Serialization.IInputValueFormatter reviewInputFormatter)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;

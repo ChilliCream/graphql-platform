@@ -1,10 +1,10 @@
 operation:
   - document: >-
-    query testQuery {
-      post {
-        __typename
+      query testQuery {
+        post {
+          __typename
+        }
       }
-    }
     name: testQuery
     hash: 123
 nodes:

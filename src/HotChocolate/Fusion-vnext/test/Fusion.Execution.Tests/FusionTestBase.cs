@@ -184,8 +184,8 @@ public abstract class FusionTestBase : IDisposable
 
         private static void AddFusionDirectives(MutableSchemaDefinition schema)
         {
-            var fieldSelectionMapType = MutableScalarTypeDefinition.Create(WellKnownTypeNames.FieldSelectionMap);
-            var fieldSelectionSetType = MutableScalarTypeDefinition.Create(WellKnownTypeNames.FieldSelectionSet);
+            var fieldSelectionMapType = new FusionFieldSelectionMapMutableScalarTypeDefinition();
+            var fieldSelectionSetType = new FusionFieldSelectionSetMutableScalarTypeDefinition();
             var stringType = BuiltIns.String.Create();
 
             var fusionDirectives = new Dictionary<string, MutableDirectiveDefinition>()

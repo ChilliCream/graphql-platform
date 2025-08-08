@@ -1,7 +1,9 @@
 using System.CommandLine;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -46,7 +48,7 @@ internal sealed class ExportCommand : Command
         {
             var schemaNames = provider.SchemaNames;
 
-            if(schemaNames.IsEmpty)
+            if (schemaNames.IsEmpty)
             {
                 console.WriteLine("No schemas registered.");
                 return;
@@ -54,23 +56,23 @@ internal sealed class ExportCommand : Command
 
             schemaName = schemaNames.Contains(ISchemaDefinition.DefaultName)
                 ? ISchemaDefinition.DefaultName
-                : schemaNames[1];
+                : schemaNames[0];
         }
 
         var executor = await provider.GetExecutorAsync(schemaName, cancellationToken);
 
-        var sdl = executor.Schema.ToString();
-
         if (output is not null)
         {
-            await File.WriteAllTextAsync(
-                output.FullName,
-                sdl,
-                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
-                cancellationToken);
+            var result = await SchemaFileExporter.Export(output.FullName, executor, cancellationToken);
+            // ReSharper disable LocalizableElement
+            console.WriteLine("Exported Files:");
+            console.WriteLine($"- {result.SchemaFileName}");
+            console.WriteLine($"- {result.SettingsFileName}");
+            // ReSharper restore LocalizableElement
         }
         else
         {
+            var sdl = executor.Schema.ToString();
             console.WriteLine(sdl);
         }
     }
