@@ -56,7 +56,6 @@ public interface IResultBuilder
 
     public void SetVariableIndex(int variableIndex);
 
-    // ReSharper disable InconsistentlySynchronizedField
     public IOperationResult BuildResult();
 
     public void DiscardResult();
