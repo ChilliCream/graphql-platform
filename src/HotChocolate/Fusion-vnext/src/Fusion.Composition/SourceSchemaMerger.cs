@@ -1155,19 +1155,19 @@ internal sealed class SourceSchemaMerger
             // Scalar type definitions.
             {
                 TypeNames.FusionFieldDefinition,
-                MutableScalarTypeDefinition.Create(TypeNames.FusionFieldDefinition)
+                new FusionFieldDefinitionMutableScalarTypeDefinition()
             },
             {
                 TypeNames.FusionFieldSelectionMap,
-                MutableScalarTypeDefinition.Create(TypeNames.FusionFieldSelectionMap)
+                new FusionFieldSelectionMapMutableScalarTypeDefinition()
             },
             {
                 TypeNames.FusionFieldSelectionPath,
-                MutableScalarTypeDefinition.Create(TypeNames.FusionFieldSelectionPath)
+                new FusionFieldSelectionPathMutableScalarTypeDefinition()
             },
             {
                 TypeNames.FusionFieldSelectionSet,
-                MutableScalarTypeDefinition.Create(TypeNames.FusionFieldSelectionSet)
+                new FusionFieldSelectionSetMutableScalarTypeDefinition()
             },
             // Enum type definitions.
             {
