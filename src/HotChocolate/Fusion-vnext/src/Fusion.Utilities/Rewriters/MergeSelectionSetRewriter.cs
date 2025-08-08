@@ -11,7 +11,7 @@ public sealed class MergeSelectionSetRewriter(ISchemaDefinition schema)
         SelectionSetNode selectionSet1,
         SelectionSetNode selectionSet2,
         ITypeDefinition type,
-        ISelectionSetMergeObserver mergeObserver)
+        ISelectionSetMergeObserver? mergeObserver)
     {
         mergeObserver ??= NoopSelectionSetMergeObserver.Instance;
 
