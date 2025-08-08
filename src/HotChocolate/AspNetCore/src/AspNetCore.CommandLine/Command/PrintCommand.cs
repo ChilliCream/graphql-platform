@@ -10,25 +10,23 @@ using Microsoft.Extensions.Hosting;
 namespace HotChocolate.AspNetCore.CommandLine;
 
 /// <summary>
-/// The export command can be used to export the schema to a file.
+/// The print command can be used to print the schema to the console output
 /// </summary>
-internal sealed class ExportCommand : Command
+internal sealed class PrintCommand : Command
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ExportCommand"/> class.
     /// </summary>
-    public ExportCommand() : base("export")
+    public PrintCommand() : base("print")
     {
-        Description = "Export the graphql schema to a schema file";
+        Description = "Prints the graphql schema to the console output";
 
-        AddOption(Opt<OutputOption>.Instance);
         AddOption(Opt<SchemaNameOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<IConsole>(),
             Bind.FromServiceProvider<IHost>(),
-            Opt<OutputOption>.Instance,
             Opt<SchemaNameOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
@@ -36,7 +34,6 @@ internal sealed class ExportCommand : Command
     private static async Task ExecuteAsync(
         IConsole console,
         IHost host,
-        FileInfo? output,
         string? schemaName,
         CancellationToken cancellationToken)
     {
@@ -58,13 +55,6 @@ internal sealed class ExportCommand : Command
         }
 
         var executor = await provider.GetExecutorAsync(schemaName, cancellationToken);
-        output ??= new FileInfo(System.IO.Path.Combine(Environment.CurrentDirectory, "schema.graphqls"));
-        var result = await SchemaFileExporter.Export(output.FullName, executor, cancellationToken);
-
-        // ReSharper disable LocalizableElement
-        console.WriteLine("Exported Files:");
-        console.WriteLine($"- {result.SchemaFileName}");
-        console.WriteLine($"- {result.SettingsFileName}");
-        // ReSharper restore LocalizableElement
+        console.WriteLine(executor.Schema.ToString());
     }
 }

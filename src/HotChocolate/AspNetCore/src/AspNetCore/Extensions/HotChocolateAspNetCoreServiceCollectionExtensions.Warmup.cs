@@ -37,6 +37,21 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         return builder;
     }
 
+    /// <summary>
+    /// Adds the current GraphQL configuration to the warmup background service.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="options">
+    /// The <see cref="RequestExecutorInitializationOptions"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <see cref="IRequestExecutorBuilder"/> is <c>null</c>.
+    /// </exception>
     public static IRequestExecutorBuilder InitializeOnStartup(
         this IRequestExecutorBuilder builder,
         RequestExecutorInitializationOptions options)
@@ -71,5 +86,37 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         }
 
         return InitializeOnStartup(builder, warmup, options.KeepWarm);
+    }
+
+    /// <summary>
+    /// Exports the GraphQL schema to a file on startup or when the schema changes.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="schemaFileName">
+    /// The file name of the schema file.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <see cref="IRequestExecutorBuilder"/> is <c>null</c>.
+    /// </exception>
+    public static IRequestExecutorBuilder ExportSchemaOnStartup(
+        this IRequestExecutorBuilder builder,
+        string? schemaFileName = null)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return InitializeOnStartup(builder, new RequestExecutorInitializationOptions
+        {
+            KeepWarm = true,
+            WriteSchemaFile = new SchemaFileInitializationOptions
+            {
+                Enable = true,
+                FileName = schemaFileName
+            }
+        });
     }
 }
