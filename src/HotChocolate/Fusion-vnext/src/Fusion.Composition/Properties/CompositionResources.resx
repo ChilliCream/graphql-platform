@@ -42,6 +42,9 @@
   <data name="FusionEnumValueMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @fusion__enumValue directive specifies which source schema provides an enum value.</value>
   </data>
+  <data name="FusionFieldDefinitionMutableScalarTypeDefinition_Description" xml:space="preserve">
+    <value>The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec.</value>
+  </data>
   <data name="FusionFieldMutableDirectiveDefinition_Argument_Partial_Description" xml:space="preserve">
     <value>Indicates that this field is only partially provided and must be combined with `provides`.</value>
   </data>
@@ -57,6 +60,15 @@
   <data name="FusionFieldMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has.</value>
   </data>
+  <data name="FusionFieldSelectionMapMutableScalarTypeDefinition_Description" xml:space="preserve">
+    <value>The fusion__FieldSelectionMap scalar is used to represent the FieldSelectionMap type specified in the GraphQL Composite Schemas Spec.</value>
+  </data>
+  <data name="FusionFieldSelectionPathMutableScalarTypeDefinition_Description" xml:space="preserve">
+    <value>The fusion__FieldSelectionPath scalar is used to represent a path of field names relative to the Query type.</value>
+  </data>
+  <data name="FusionFieldSelectionSetMutableScalarTypeDefinition_Description" xml:space="preserve">
+    <value>The fusion__FieldSelectionSet scalar is used to represent a GraphQL selection set. To simplify the syntax, the outermost selection set is not wrapped in curly braces.</value>
+  </data>
   <data name="FusionImplementsMutableDirectiveDefinition_Argument_Interface_Description" xml:space="preserve">
     <value>The name of the interface type.</value>
   </data>
@@ -65,6 +77,9 @@
   </data>
   <data name="FusionImplementsMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type.</value>
+  </data>
+  <data name="FusionInaccessibleMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas.</value>
   </data>
   <data name="FusionInputFieldMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
     <value>The name of the source schema that originally provided this input field.</value>
@@ -107,6 +122,9 @@
   </data>
   <data name="FusionRequiresMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @fusion__requires directive specifies if a field has requirements on a source schema.</value>
+  </data>
+  <data name="FusionSchemaMutableEnumTypeDefinition_Description" xml:space="preserve">
+    <value>The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner.</value>
   </data>
   <data name="FusionTypeMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
     <value>The name of the source schema that originally provided part of the annotated type.</value>
