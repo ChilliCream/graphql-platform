@@ -156,7 +156,7 @@ internal static partial class ValueCompletion
         return list.IsNullable;
     }
 
-    internal static void PropagateNullValues(ResultData result)
+    internal static void PropagateNullValues(IResultData result)
     {
         if (result.IsInvalidated)
         {

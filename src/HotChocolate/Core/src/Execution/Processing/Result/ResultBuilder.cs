@@ -2,9 +2,10 @@ using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Resolvers;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution.Processing;
 
-internal sealed partial class ResultBuilder
+internal sealed partial class ResultBuilder : IResultBuilder
 {
     private static readonly Func<ValueTask>[] s_emptyCleanupTasks = [];
     private readonly List<IError> _errors = [];
@@ -191,7 +192,7 @@ internal sealed partial class ResultBuilder
         }
     }
 
-    public void AddRemovedResult(ResultData result)
+    public void AddRemovedResult(IResultData result)
     {
         if (result.PatchId <= 0)
         {

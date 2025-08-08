@@ -33,7 +33,7 @@ internal sealed partial class OperationContext
     /// <summary>
     /// The result helper which provides utilities to build up the result.
     /// </summary>
-    public ResultBuilder Result
+    public IResultBuilder Result
     {
         get
         {

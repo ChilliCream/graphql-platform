@@ -15,7 +15,7 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     private RequestContext _requestContext = null!;
     private IBatchDispatcher _batchDispatcher = null!;
     private IErrorHandler _errorHandler = null!;
-    private ResultBuilder _result = null!;
+    private IResultBuilder _result = null!;
     private IExecutionDiagnosticEvents _diagnosticEvents = null!;
     private CancellationToken _ct;
 

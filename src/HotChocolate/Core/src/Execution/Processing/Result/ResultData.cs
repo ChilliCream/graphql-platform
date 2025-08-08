@@ -1,16 +1,28 @@
 using System.Text.Json;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>
 /// Represents a result data object like an object or list.
 /// </summary>
-public abstract class ResultData : IResultDataJsonFormatter
+public abstract class ResultData : IResultData
 {
     /// <summary>
     /// Gets the parent result data object.
     /// </summary>
-    protected internal ResultData? Parent { get; protected set; }
+    protected internal IResultData? Parent { get; protected set; }
+
+    /// <summary>
+    /// Gets the parent result data object.
+    /// </summary>
+    IResultData? IResultData.Parent
+    {
+        get => Parent;
+        set
+        {
+        }
+    }
 
     /// <summary>
     /// Gets the index under which this data is stored in the parent result.
@@ -18,9 +30,20 @@ public abstract class ResultData : IResultDataJsonFormatter
     protected internal int ParentIndex { get; protected set; }
 
     /// <summary>
+    /// Gets the index under which this data is stored in the parent result.
+    /// </summary>
+    int IResultData.ParentIndex
+    {
+        get => ParentIndex;
+        set
+        {
+        }
+    }
+
+    /// <summary>
     /// Defines that this result was invalidated by one task and can be discarded.
     /// </summary>
-    protected internal bool IsInvalidated { get; set; }
+    public bool IsInvalidated { get; set; }
 
     /// <summary>
     /// Gets an internal ID that tracks result objects.
@@ -34,7 +57,7 @@ public abstract class ResultData : IResultDataJsonFormatter
     /// <summary>
     /// Gets an internal patch path that specifies from where this result was branched of.
     /// </summary>
-    protected internal Path? PatchPath { get; set; }
+    public Path? PatchPath { get; set; }
 
     /// <summary>
     /// Connects this result to the parent result.
@@ -45,7 +68,7 @@ public abstract class ResultData : IResultDataJsonFormatter
     /// <param name="index">
     /// The index under which this result is stored in the parent result.
     /// </param>
-    public void SetParent(ResultData parent, int index)
+    public void SetParent(IResultData parent, int index)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index);
 

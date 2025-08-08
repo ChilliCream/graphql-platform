@@ -1,5 +1,6 @@
 ﻿using HotChocolate.Execution.Processing;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution.DependencyInjection;
 
 /// <summary>
@@ -9,9 +10,9 @@ namespace HotChocolate.Execution.DependencyInjection;
 /// </para>
 /// <para>The <see cref="ResultBuilderFactory"/> MUST be a singleton.</para>
 /// </summary>
-internal class ResultBuilderFactory : IFactory<ResultBuilder, ResultPool>
+internal class ResultBuilderFactory : IFactory<IResultBuilder, ResultPool>
 {
-    public ResultBuilder Create(ResultPool input)
+    public IResultBuilder Create(ResultPool input)
     {
         return new ResultBuilder(input);
     }

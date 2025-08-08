@@ -16,7 +16,7 @@ internal sealed partial class OperationContext
     private readonly IFactory<ResolverTask> _resolverTaskFactory;
     private readonly WorkScheduler _workScheduler;
     private readonly DeferredWorkScheduler _deferredWorkScheduler;
-    private readonly ResultBuilder _resultBuilder;
+    private readonly IResultBuilder _resultBuilder;
     private readonly AggregateServiceScopeInitializer _serviceScopeInitializer;
     private RequestContext _requestContext = null!;
     private Schema _schema = null!;
@@ -37,7 +37,7 @@ internal sealed partial class OperationContext
 
     public OperationContext(
         IFactory<ResolverTask> resolverTaskFactory,
-        ResultBuilder resultBuilder,
+        IResultBuilder resultBuilder,
         ITypeConverter typeConverter,
         AggregateServiceScopeInitializer serviceScopeInitializer)
     {

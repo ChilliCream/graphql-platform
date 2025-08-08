@@ -4,6 +4,7 @@ using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
