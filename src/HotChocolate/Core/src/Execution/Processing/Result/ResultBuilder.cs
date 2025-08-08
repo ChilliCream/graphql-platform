@@ -192,7 +192,7 @@ internal sealed partial class ResultBuilder : IResultBuilder
         }
     }
 
-    public void AddRemovedResult(IResultData result)
+    public void AddRemovedResult(ResultData result)
     {
         if (result.PatchId <= 0)
         {

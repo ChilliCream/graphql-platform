@@ -1,3 +1,4 @@
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class ResultBuilder

@@ -3,6 +3,7 @@ using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.ErrorHelper;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class ResultBuilder

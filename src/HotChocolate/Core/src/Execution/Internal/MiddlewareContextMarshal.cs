@@ -44,7 +44,7 @@ public static class MiddlewareContextMarshal
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="resultData"/> is <c>null</c>.
     /// </exception>
-    public static IResultData? GetParent<T>(T resultData) where T : IResultData
+    public static ResultData? GetParent<T>(T resultData) where T : ResultData
     {
         ArgumentNullException.ThrowIfNull(resultData);
 
@@ -66,7 +66,7 @@ public static class MiddlewareContextMarshal
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="resultData"/> is <c>null</c>.
     /// </exception>
-    public static int GetParentIndex<T>(T resultData) where T : IResultData
+    public static int GetParentIndex<T>(T resultData) where T : ResultData
     {
         ArgumentNullException.ThrowIfNull(resultData);
 

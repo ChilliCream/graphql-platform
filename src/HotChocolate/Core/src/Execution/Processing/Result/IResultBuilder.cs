@@ -48,7 +48,7 @@ public interface IResultBuilder
 
     public void AddNonNullViolation(ISelection selection, Path path);
 
-    public void AddRemovedResult(IResultData result);
+    public void AddRemovedResult(ResultData result);
 
     public void AddPatchId(uint patchId);
 
