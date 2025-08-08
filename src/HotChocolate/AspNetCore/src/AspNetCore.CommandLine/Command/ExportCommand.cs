@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -60,14 +61,18 @@ internal sealed class ExportCommand : Command
 
         var executor = await provider.GetExecutorAsync(schemaName, cancellationToken);
 
-        var sdl = executor.Schema.ToString();
-
         if (output is not null)
         {
-            await SchemaExporter.ExportSchema(output.FullName, executor, cancellationToken);
+            var result = await SchemaFileExporter.Export(output.FullName, executor, cancellationToken);
+            // ReSharper disable LocalizableElement
+            console.WriteLine("Exported Files:");
+            console.WriteLine($"- {result.SchemaFileName}");
+            console.WriteLine($"- {result.SettingsFileName}");
+            // ReSharper restore LocalizableElement
         }
         else
         {
+            var sdl = executor.Schema.ToString();
             console.WriteLine(sdl);
         }
     }

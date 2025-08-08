@@ -6,7 +6,7 @@ namespace HotChocolate.Execution.Internal;
 
 internal static class SchemaFileExporter
 {
-    public static async Task Export(
+    public static async Task<SchemaFileInfo> Export(
         string schemaFileName,
         IRequestExecutor executor,
         CancellationToken cancellationToken)
@@ -32,24 +32,25 @@ internal static class SchemaFileExporter
             Directory.CreateDirectory(directory);
         }
 
+        var baseName = System.IO.Path.GetFileNameWithoutExtension(schemaFileName);
+        var settingsFileName = System.IO.Path.Combine(directory, $"{baseName}-settings.json");
+
         await File.WriteAllTextAsync(
             schemaFileName,
             sdl,
             new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
             cancellationToken);
 
-        await WriteSettingsFile(schemaFileName, executor.Schema.Name, cancellationToken);
+        await WriteSettingsFile(settingsFileName, executor.Schema.Name, cancellationToken);
+
+        return new SchemaFileInfo(schemaFileName, settingsFileName);
     }
 
     private static async Task WriteSettingsFile(
-        string schemaFileName,
+        string fileName,
         string schemaName,
         CancellationToken cancellationToken)
     {
-        var dir = System.IO.Path.GetDirectoryName(schemaFileName)!;
-        var baseName = System.IO.Path.GetFileNameWithoutExtension(schemaFileName);
-        var fileName = System.IO.Path.Combine(dir, $"{baseName}-settings.json");
-
         if (!await TryUpdateSettingsFile(fileName, schemaName, cancellationToken))
         {
             await CreateNewSettingsFile(fileName, schemaName, cancellationToken);
@@ -120,3 +121,5 @@ internal static class SchemaFileExporter
         await jsonWriter.FlushAsync(cancellationToken);
     }
 }
+
+internal readonly record struct SchemaFileInfo(string SchemaFileName, string SettingsFileName);
