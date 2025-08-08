@@ -96,6 +96,7 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddOperationContextPool(
         this IServiceCollection services)
     {
+        services.TryAddSingleton<IFactory<ResultBuilder, ResultPool>, ResultBuilderFactory>();
         services.TryAddSingleton<IFactory<OperationContext>, OperationContextFactory>();
         services.TryAddSingleton<IFactory<OperationContextOwner>, OperationContextOwnerFactory>();
 
