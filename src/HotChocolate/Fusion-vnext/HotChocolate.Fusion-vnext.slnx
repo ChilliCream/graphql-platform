@@ -8,9 +8,7 @@
     <Project Path="src/Fusion.Language/HotChocolate.Fusion.Language.csproj" />
     <Project Path="src/Fusion.Utilities/HotChocolate.Fusion.Utilities.csproj" />
     <Project Path="src/Fusion.Packaging/HotChocolate.Fusion.Packaging.csproj" />
-  </Folder>
-  <Folder Name="/src/Fusion.Packaging.Settings/">
-    <Project Path="src/Fusion.Packaging.Settings/HotChocolate.Fusion.Packaging.csproj" />
+    <Project Path="src/Fusion.Packaging.Settings/HotChocolate.Fusion.Packaging.Settings.csproj" />
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/Fusion.CommandLine.Tests/HotChocolate.Fusion.CommandLine.Tests.csproj" />
