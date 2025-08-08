@@ -123,6 +123,12 @@
   <data name="FusionRequiresMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @fusion__requires directive specifies if a field has requirements on a source schema.</value>
   </data>
+  <data name="FusionSchemaMetadataMutableDirectiveDefinition_Argument_Name_Description" xml:space="preserve">
+    <value>The name of the source schema.</value>
+  </data>
+  <data name="FusionSchemaMetadataMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__schema_metadata directive is used to provide additional metadata for a source schema.</value>
+  </data>
   <data name="FusionSchemaMutableEnumTypeDefinition_Description" xml:space="preserve">
     <value>The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner.</value>
   </data>

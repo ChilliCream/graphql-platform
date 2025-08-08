@@ -375,6 +375,24 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema..
+        /// </summary>
+        internal static string FusionSchemaMetadataMutableDirectiveDefinition_Argument_Name_Description {
+            get {
+                return ResourceManager.GetString("FusionSchemaMetadataMutableDirectiveDefinition_Argument_Name_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__schema_metadata directive is used to provide additional metadata for a source schema..
+        /// </summary>
+        internal static string FusionSchemaMetadataMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionSchemaMetadataMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner..
         /// </summary>
         internal static string FusionSchemaMutableEnumTypeDefinition_Description {

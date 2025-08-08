@@ -10,6 +10,7 @@ internal static class WellKnownArgumentNames
     public const string Key = "key";
     public const string Map = "map";
     public const string Member = "member";
+    public const string Name = "name";
     public const string Partial = "partial";
     public const string Path = "path";
     public const string Provides = "provides";

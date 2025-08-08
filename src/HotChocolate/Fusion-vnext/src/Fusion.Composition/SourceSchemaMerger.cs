@@ -1236,6 +1236,10 @@ internal sealed class SourceSchemaMerger
                     fieldSelectionMapType)
             },
             {
+                DirectiveNames.FusionSchemaMetadata,
+                new FusionSchemaMetadataMutableDirectiveDefinition(stringType)
+            },
+            {
                 DirectiveNames.FusionType,
                 new FusionTypeMutableDirectiveDefinition(schemaEnumType)
             },
