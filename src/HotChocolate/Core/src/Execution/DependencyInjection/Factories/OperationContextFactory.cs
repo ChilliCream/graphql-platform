@@ -1,6 +1,7 @@
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Tasks;
+using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -21,12 +22,14 @@ internal sealed class OperationContextFactory(
     IFactory<ResolverTask> resolverTaskFactory,
     IFactory<ResultBuilder, ResultPool> resultBuilderFactory,
     ResultPool resultPool,
-    ITypeConverter typeConverter)
+    ITypeConverter typeConverter,
+    AggregateServiceScopeInitializer serviceScopeInitializer)
     : IFactory<OperationContext>
 {
     public OperationContext Create()
-        => new(
+        => new OperationContext(
             resolverTaskFactory,
             resultBuilderFactory.Create(resultPool),
-            typeConverter);
+            typeConverter,
+            serviceScopeInitializer);
 }
