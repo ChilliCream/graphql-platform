@@ -71,8 +71,13 @@ type PageInfo {
 "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
 enum fusion__Schema {
   A
+    @fusion__schema_metadata(name: "A")
   B
+    @fusion__schema_metadata(name: "B")
 }
 
 "The @fusion__inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas."
 directive @fusion__inaccessible on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
+"The @fusion__schema_metadata directive is used to provide additional metadata for a source schema."
+directive @fusion__schema_metadata("The name of the source schema." name: String!) on ENUM_VALUE

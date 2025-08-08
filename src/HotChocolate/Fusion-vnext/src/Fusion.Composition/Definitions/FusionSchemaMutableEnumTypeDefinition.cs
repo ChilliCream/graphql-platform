@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CompositionResources;
 using static HotChocolate.Fusion.StringUtilities;
@@ -19,7 +20,18 @@ internal sealed class FusionSchemaMutableEnumTypeDefinition : MutableEnumTypeDef
 
         foreach (var schemaName in schemaNames)
         {
-            Values.Add(new MutableEnumValue(ToConstantCase(schemaName)));
+            var enumValue = new MutableEnumValue(ToConstantCase(schemaName))
+            {
+                Directives =
+                {
+                    new Directive(
+                        new FusionSchemaMetadataMutableDirectiveDefinition(
+                            BuiltIns.String.Create()),
+                        new ArgumentAssignment(WellKnownArgumentNames.Name, schemaName))
+                }
+            };
+
+            Values.Add(enumValue);
         }
     }
 }
