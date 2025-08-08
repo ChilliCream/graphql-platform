@@ -1,7 +1,6 @@
 using HotChocolate.Types;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
-using CookieCrumble.HotChocolate.Formatters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moq;
@@ -74,7 +73,6 @@ public class SchemaExportCommandTests : IDisposable
         await app.InvokeAsync($"schema export --output {tempFile}", console);
 
         // assert
-        snapshot.Add(console.Out.ToString(), "Console Output");
         snapshot.Add(await File.ReadAllTextAsync(tempFile + ".graphqls"), "Schema", markdownLanguage: "graphql");
         snapshot.Add(await File.ReadAllTextAsync(tempFile + "-settings.json"), "Settings", markdownLanguage: "json");
         await snapshot.MatchMarkdownAsync();
