@@ -1150,6 +1150,7 @@ file static class Extensions
         SelectionSet selectionSet)
     {
         var possibleSchemas = new Dictionary<string, int>();
+
         CollectSchemaWeights(
             compositeSchema,
             possibleSchemas,

@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
-internal readonly ref struct CompositeObjectFieldCompletionContext(
+internal readonly ref struct CompositeOutputFieldCompletionContext(
     FusionComplexTypeDefinition declaringType,
     FusionDirectiveCollection directives,
     IOutputType type,

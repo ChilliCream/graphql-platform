@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Packaging.Settings</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Packaging</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Pipelines" Condition="'$(TargetFramework)' == 'net8.0'" />
+  </ItemGroup>
+
+</Project>

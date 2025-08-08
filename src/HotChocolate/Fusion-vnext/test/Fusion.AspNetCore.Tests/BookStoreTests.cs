@@ -12,18 +12,18 @@ public class BookStoreTests : FusionTestBase
     {
         // arrange
         using var server1 = CreateSourceSchema(
-            "A",
+            "a",
             b => b.AddQueryType<SourceSchema1.Query>());
 
         using var server2 = CreateSourceSchema(
-            "B",
+            "b",
             b => b.AddQueryType<SourceSchema2.Query>());
 
         // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
-            ("B", server2),
+            ("a", server1),
+            ("b", server2),
         ]);
 
         // assert
