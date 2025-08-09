@@ -293,6 +293,28 @@ public sealed partial class OperationPlanner
                 requirements = requirements.Add(argumentRequirementKey, operationRequirement);
             }
 
+            // If the lookup returns an abstract type, we might need to insert a type refinement
+            // around our selection set.
+            if (_schema.Types.TryGetType(lookup.FieldType, out var lookupFieldType)
+                && lookupFieldType != workItem.SelectionSet.Type)
+            {
+                var typeRefinement =
+                    new InlineFragmentNode(
+                        null,
+                        new NamedTypeNode(workItem.SelectionSet.Type.Name),
+                        [],
+                        resolvable);
+                var selectionSetWithTypeRefinement = new SelectionSetNode(null, [typeRefinement]);
+
+                var indexBuilder = index.ToBuilder();
+
+                indexBuilder.Register(resolvable, selectionSetWithTypeRefinement);
+
+                index = indexBuilder;
+
+                operationBuilder.SetSelectionSet(selectionSetWithTypeRefinement);
+            }
+
             operationBuilder.SetLookup(lookup, requirementKey);
         }
 
@@ -1046,7 +1068,7 @@ file static class Extensions
                 break;
 
             case FieldRequirementWorkItem wi:
-                possiblePlans.EnqueueRequirePlanNodes(planNodeTemplate, wi);
+                possiblePlans.EnqueueRequirePlanNodes(planNodeTemplate, wi, compositeSchema);
                 break;
 
             default:
@@ -1083,7 +1105,7 @@ file static class Extensions
 
         foreach (var (schemaName, resolutionCost) in compositeSchema.GetPossibleSchemas(workItem.SelectionSet))
         {
-            foreach (var lookup in workItem.SelectionSet.Type.GetPossibleLookups(schemaName))
+            foreach (var lookup in workItem.SelectionSet.Type.GetPossibleLookups(schemaName, compositeSchema))
             {
                 possiblePlans.Enqueue(
                     planNodeTemplate with
@@ -1100,7 +1122,8 @@ file static class Extensions
     private static void EnqueueRequirePlanNodes(
         this PriorityQueue<PlanNode, double> possiblePlans,
         PlanNode planNodeTemplate,
-        FieldRequirementWorkItem workItem)
+        FieldRequirementWorkItem workItem,
+        FusionSchemaDefinition compositeSchema)
     {
         var backlog = planNodeTemplate.Backlog.Pop();
 
@@ -1116,7 +1139,7 @@ file static class Extensions
                         Backlog = backlog.Push(workItem)
                     });
 
-                foreach (var lookup in workItem.Selection.Field.DeclaringType.GetPossibleLookups(schemaName))
+                foreach (var lookup in workItem.Selection.Field.DeclaringType.GetPossibleLookups(schemaName, compositeSchema))
                 {
                     possiblePlans.Enqueue(
                         planNodeTemplate with
@@ -1130,7 +1153,7 @@ file static class Extensions
             }
             else
             {
-                foreach (var lookup in workItem.Selection.Field.DeclaringType.GetPossibleLookups(schemaName))
+                foreach (var lookup in workItem.Selection.Field.DeclaringType.GetPossibleLookups(schemaName, compositeSchema))
                 {
                     possiblePlans.Enqueue(
                         planNodeTemplate with
@@ -1215,12 +1238,42 @@ file static class Extensions
         }
     }
 
-    private static IEnumerable<Lookup> GetPossibleLookups(this ITypeDefinition type, string schemaName)
+    private static IEnumerable<Lookup> GetPossibleLookups(
+        this ITypeDefinition type,
+        string schemaName,
+        FusionSchemaDefinition compositeSchema)
     {
-        if (type is FusionComplexTypeDefinition complexType
-            && complexType.Sources.TryGetType(schemaName, out var source))
+        if (type is FusionComplexTypeDefinition complexType)
         {
-            return source.Lookups;
+            var lookups = new List<Lookup>();
+
+            if (complexType.Sources.TryGetMember(schemaName, out var source))
+            {
+                lookups.AddRange(source.Lookups);
+            }
+
+            foreach (var interfaceType in complexType.Implements)
+            {
+                if (interfaceType.Sources.TryGetMember(schemaName, out var interfaceSource))
+                {
+                    lookups.AddRange(interfaceSource.Lookups);
+                }
+            }
+
+            var unionTypes = compositeSchema.Types
+                .OfType<FusionUnionTypeDefinition>()
+                .Where(u => u.Types.Contains(type))
+                .ToArray();
+
+            foreach (var unionType in unionTypes)
+            {
+                if (unionType.Sources.TryGetMember(schemaName, out var unionSource))
+                {
+                    lookups.AddRange(unionSource.Lookups);
+                }
+            }
+
+            return lookups;
         }
 
         return [];
