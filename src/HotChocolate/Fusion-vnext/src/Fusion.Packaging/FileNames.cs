@@ -5,6 +5,7 @@ internal static class FileNames
     private const string GatewaySchemaFormat = "gateway/{0}/gateway.graphqls";
     private const string GatewaySettingsFormat = "gateway/{0}/gateway-settings.json";
     private const string SourceSchemaFormat = "source-schemas/{0}/schema.graphqls";
+    private const string SourceSchemaSettingsFormat = "source-schemas/{0}/schema-settings.json";
 
     public const string ArchiveMetadata = "archive-metadata.json";
     public const string CompositionSettings = "composition-settings.json";
@@ -19,4 +20,7 @@ internal static class FileNames
 
     public static string GetSourceSchemaPath(string schemaName)
         => string.Format(SourceSchemaFormat, schemaName);
+
+    public static string GetSourceSchemaSettingsPath(string schemaName)
+        => string.Format(SourceSchemaSettingsFormat, schemaName);
 }

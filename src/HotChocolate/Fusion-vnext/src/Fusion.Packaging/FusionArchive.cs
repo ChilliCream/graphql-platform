@@ -302,126 +302,55 @@ public sealed class FusionArchive : IDisposable
     }
 
     /// <summary>
-    /// Sets the gateway schema for a specific format version.
+    /// Sets the gateway configuration for a specific format version using raw bytes.
     /// The version must be declared in the archive metadata before calling this method.
     /// </summary>
     /// <param name="schema">The gateway schema as a GraphQL schema string.</param>
+    /// <param name="settings">The gateway settings as a JSON document.</param>
     /// <param name="version">The gateway format version.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <exception cref="ArgumentException">Thrown when schema is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when version is null.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the archive is read-only, metadata is missing, or version is not declared.</exception>
-    public async Task SetGatewaySchemaAsync(
+    public async Task SetGatewayConfigurationAsync(
         string schema,
-        Version version,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(schema);
-        ArgumentNullException.ThrowIfNull(version);
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        EnsureMutable();
-
-        await SetGatewaySchemaAsync(Encoding.UTF8.GetBytes(schema), version, cancellationToken);
-    }
-
-    /// <summary>
-    /// Sets the gateway schema for a specific format version using raw bytes.
-    /// The version must be declared in the archive metadata before calling this method.
-    /// </summary>
-    /// <param name="schema">The gateway schema as UTF-8 encoded bytes.</param>
-    /// <param name="version">The gateway format version.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <exception cref="ArgumentNullException">Thrown when version is null.</exception>
-    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only, metadata is missing, or version is not declared.</exception>
-    public async Task SetGatewaySchemaAsync(
-        ReadOnlyMemory<byte> schema,
-        Version version,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(version);
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        EnsureMutable();
-
-        var metadata = await GetArchiveMetadataAsync(cancellationToken);
-
-        if (metadata is null)
-        {
-            throw new InvalidOperationException(
-                "You need to first define the archive metadata.");
-        }
-
-        if (!metadata.SupportedGatewayFormats.Contains(version))
-        {
-            throw new InvalidOperationException(
-                "You need to first declare the gateway schema version in the archive metadata.");
-        }
-
-        await using var stream = _session.OpenWrite(FileNames.GetGatewaySchemaPath(version));
-        await stream.WriteAsync(schema, cancellationToken);
-    }
-
-    /// <summary>
-    /// Attempts to get a gateway schema with the highest version that is less than or equal to the specified maximum version.
-    /// The schema data is written to the provided buffer.
-    /// </summary>
-    /// <param name="maxVersion">The maximum version to consider.</param>
-    /// <param name="buffer">The buffer to write the schema data to.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>A result indicating whether resolution was successful and the actual version used.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when maxVersion or buffer is null.</exception>
-    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when no supported gateway formats are found.</exception>
-    public async Task<ResolvedGatewaySchemaResult> TryGetGatewaySchemaAsync(
-        Version maxVersion,
-        IBufferWriter<byte> buffer,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(maxVersion);
-        ArgumentNullException.ThrowIfNull(buffer);
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        var metadata = await GetArchiveMetadataAsync(cancellationToken);
-        if (metadata?.SupportedGatewayFormats == null || !metadata.SupportedGatewayFormats.Any())
-        {
-            throw new InvalidOperationException("No supported gateway formats found in archive metadata.");
-        }
-
-        // we need to find the version that is less than or equal to the maxVersion
-        var version = metadata.SupportedGatewayFormats.OrderByDescending(v => v).FirstOrDefault(v => v <= maxVersion);
-        if (version == null)
-        {
-            return new ResolvedGatewaySchemaResult { IsResolved = false, ActualVersion = null };
-        }
-
-        await using var stream = await _session.OpenReadAsync(
-            FileNames.GetGatewaySchemaPath(version),
-            cancellationToken);
-        await stream.CopyToAsync(buffer, cancellationToken);
-        return new ResolvedGatewaySchemaResult { IsResolved = true, ActualVersion = version };
-    }
-
-    /// <summary>
-    /// Sets the gateway settings for a specific format version.
-    /// The version must be declared in the archive metadata before calling this method.
-    /// </summary>
-    /// <param name="settings">The gateway settings as a JSON document.</param>
-    /// <param name="version">The gateway format version.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <exception cref="ArgumentNullException">Thrown when settings or version is null.</exception>
-    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only, metadata is missing, or version is not declared.</exception>
-    public async Task SetGatewaySettingsAsync(
         JsonDocument settings,
         Version version,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrEmpty(schema);
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(version);
         ObjectDisposedException.ThrowIf(_disposed, this);
         EnsureMutable();
 
+        await SetGatewayConfigurationAsync(Encoding.UTF8.GetBytes(schema), settings, version, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sets the gateway configuration for a specific format version using raw bytes.
+    /// The version must be declared in the archive metadata before calling this method.
+    /// </summary>
+    /// <param name="schema">The gateway schema as UTF-8 encoded bytes.</param>
+    /// <param name="settings">The gateway settings as a JSON document.</param>
+    /// <param name="version">The gateway format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <exception cref="ArgumentNullException">Thrown when version is null.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the archive is read-only, metadata is missing, or version is not declared.
+    /// </exception>
+    public async Task SetGatewayConfigurationAsync(
+        ReadOnlyMemory<byte> schema,
+        JsonDocument settings,
+        Version version,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(version);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable();
+
         var metadata = await GetArchiveMetadataAsync(cancellationToken);
 
         if (metadata is null)
@@ -436,38 +365,30 @@ public sealed class FusionArchive : IDisposable
                 "You need to first declare the gateway schema version in the archive metadata.");
         }
 
-        Exception? exception = null;
-        await using var stream = _session.OpenWrite(FileNames.GetGatewaySettingsPath(version));
-        var writer = PipeWriter.Create(stream);
-
-        try
+        await using (var stream = _session.OpenWrite(FileNames.GetGatewaySchemaPath(version)))
         {
-            await using var jsonWriter = new Utf8JsonWriter(writer, new JsonWriterOptions { Indented = true });
+            await stream.WriteAsync(schema, cancellationToken);
+        }
+
+        await using (var stream = _session.OpenWrite(FileNames.GetGatewaySettingsPath(version)))
+        {
+            await using var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
             settings.WriteTo(jsonWriter);
             await jsonWriter.FlushAsync(cancellationToken);
-            await writer.FlushAsync(cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            exception = ex;
-            throw;
-        }
-        finally
-        {
-            await writer.CompleteAsync(exception);
         }
     }
 
     /// <summary>
-    /// Attempts to get gateway settings with the highest version that is less than or equal to the specified maximum version.
+    /// Attempts to get a gateway schema with the highest version that is less
+    /// than or equal to the specified maximum version.
     /// </summary>
     /// <param name="maxVersion">The maximum version to consider.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>A result indicating whether resolution was successful, the actual version used, and the settings.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when maxVersion is null.</exception>
+    /// <returns>A gateway configuration.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when maxVersion or buffer is null.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     /// <exception cref="InvalidOperationException">Thrown when no supported gateway formats are found.</exception>
-    public async Task<ResolvedGatewaySettingsResult> TryGetGatewaySettingsAsync(
+    public async Task<GatewayConfiguration?> TryGetGatewayConfigurationAsync(
         Version maxVersion,
         CancellationToken cancellationToken = default)
     {
@@ -484,19 +405,40 @@ public sealed class FusionArchive : IDisposable
         var version = metadata.SupportedGatewayFormats.OrderByDescending(v => v).FirstOrDefault(v => v <= maxVersion);
         if (version == null)
         {
-            return new ResolvedGatewaySettingsResult { IsResolved = false, ActualVersion = null, Settings = null };
+            return null;
         }
 
-        if (!await _session.ExistsAsync(FileNames.GetGatewaySettingsPath(version), cancellationToken))
+        var buffer = TryRentBuffer();
+
+        try
         {
-            return new ResolvedGatewaySettingsResult { IsResolved = false, ActualVersion = null, Settings = null };
-        }
+            byte[] schema;
+            int schemaLength;
+            JsonDocument settings;
 
-        await using var stream = await _session.OpenReadAsync(
-            FileNames.GetGatewaySettingsPath(version),
-            cancellationToken);
-        var settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
-        return new ResolvedGatewaySettingsResult { IsResolved = true, ActualVersion = version, Settings = settings };
+            await using (var stream = await _session.OpenReadAsync(
+                FileNames.GetGatewaySchemaPath(version),
+                cancellationToken))
+            {
+                await stream.CopyToAsync(buffer, cancellationToken);
+                schema = ArrayPool<byte>.Shared.Rent(buffer.WrittenCount);
+                buffer.WrittenSpan.CopyTo(schema);
+                schemaLength  = buffer.WrittenCount;
+            }
+
+            await using (var stream = await _session.OpenReadAsync(
+                FileNames.GetGatewaySettingsPath(version),
+                cancellationToken))
+            {
+                settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
+            }
+
+            return new GatewayConfiguration(schema, schemaLength, settings, version);
+        }
+        finally
+        {
+            TryReturnBuffer(buffer);
+        }
     }
 
     /// <summary>
@@ -505,17 +447,20 @@ public sealed class FusionArchive : IDisposable
     /// </summary>
     /// <param name="schemaName">The name of the source schema.</param>
     /// <param name="schema">The source schema as UTF-8 encoded bytes.</param>
+    /// <param name="settings">The source schema configuration.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <exception cref="ArgumentException">Thrown when schemaName is null, empty, or invalid.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when schema is empty.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the archive is read-only, metadata is missing, or schema name is not declared.</exception>
-    public async Task SetSourceSchemaAsync(
+    public async Task SetSourceSchemaConfigurationAsync(
         string schemaName,
         ReadOnlyMemory<byte> schema,
+        JsonDocument settings,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
+        ArgumentNullException.ThrowIfNull(settings);
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(schema.Length, 0);
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -540,39 +485,70 @@ public sealed class FusionArchive : IDisposable
                 "You need to first declare the source schema in the archive metadata.");
         }
 
-        await using var stream = _session.OpenWrite(FileNames.GetSourceSchemaPath(schemaName));
-        await stream.WriteAsync(schema, cancellationToken);
+        await using (var stream = _session.OpenWrite(FileNames.GetSourceSchemaPath(schemaName)))
+        {
+            await stream.WriteAsync(schema, cancellationToken);
+        }
+
+        await using (var stream = _session.OpenWrite(FileNames.GetSourceSchemaSettingsPath(schemaName)))
+        {
+            await using var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
+            settings.WriteTo(jsonWriter);
+            await jsonWriter.FlushAsync(cancellationToken);
+        }
     }
 
     /// <summary>
-    /// Attempts to get a source schema from the archive.
-    /// The schema data is written to the provided buffer if found.
+    /// Attempts to get a source schema configuration from the archive.
     /// </summary>
     /// <param name="schemaName">The name of the source schema to retrieve.</param>
-    /// <param name="buffer">The buffer to write the schema data to.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>True if the schema was found and retrieved; otherwise, false.</returns>
+    /// <returns>A source schema configuration.</returns>
     /// <exception cref="ArgumentNullException">Thrown when schemaName or buffer is null.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
-    public async Task<bool> TryGetSourceSchemaAsync(
+    public async Task<SourceSchemaConfiguration?> TryGetSourceSchemaConfigurationAsync(
         string schemaName,
-        IBufferWriter<byte> buffer,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(schemaName);
-        ArgumentNullException.ThrowIfNull(buffer);
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (!await _session.ExistsAsync(FileNames.GetSourceSchemaPath(schemaName), cancellationToken))
         {
-            return false;
+            return null;
         }
 
-        await using var stream = await _session.OpenReadAsync(
-            FileNames.GetSourceSchemaPath(schemaName),
-            cancellationToken);
-        await stream.CopyToAsync(buffer, cancellationToken);
-        return true;
+        var buffer = TryRentBuffer();
+
+        try
+        {
+            byte[] schema;
+            int schemaLength;
+            JsonDocument settings;
+
+            await using (var stream = await _session.OpenReadAsync(
+                FileNames.GetSourceSchemaPath(schemaName),
+                cancellationToken))
+            {
+                await stream.CopyToAsync(buffer, cancellationToken);
+                schema = ArrayPool<byte>.Shared.Rent(buffer.WrittenCount);
+                buffer.WrittenSpan.CopyTo(schema);
+                schemaLength = buffer.WrittenCount;
+            }
+
+            await using (var stream = await _session.OpenReadAsync(
+                FileNames.GetSourceSchemaSettingsPath(schemaName),
+                cancellationToken))
+            {
+                settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
+            }
+
+            return new SourceSchemaConfiguration(schema, schemaLength, settings);
+        }
+        finally
+        {
+            TryReturnBuffer(buffer);
+        }
     }
 
     /// <summary>
@@ -965,5 +941,73 @@ file static class Extensions
                 buffer.Advance(bytesRead);
             }
         } while (bytesRead > 0);
+    }
+}
+
+public sealed class GatewayConfiguration : IDisposable
+{
+    private byte[] _schema;
+    private int _schemaLength;
+    private bool _disposed;
+
+    internal GatewayConfiguration(byte[] schema, int schemaLength, JsonDocument settings, Version version)
+    {
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(settings);
+
+        _schema = schema;
+        _schemaLength = schemaLength;
+        Settings = settings;
+        Version = version;
+    }
+
+    public Version Version { get; }
+
+    public ReadOnlySpan<byte> Schema => _schema.AsSpan(0, _schemaLength);
+
+    public JsonDocument Settings { get; }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _disposed = true;
+            Settings.Dispose();
+            ArrayPool<byte>.Shared.Return(_schema);
+            _schema = null!;
+        }
+    }
+}
+
+public sealed class SourceSchemaConfiguration : IDisposable
+{
+    private byte[] _schema;
+    private int _schemaLength;
+    private bool _disposed;
+
+    internal SourceSchemaConfiguration(byte[] schema, int schemaLength, JsonDocument settings)
+    {
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(settings);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(schemaLength);
+
+        _schema = schema;
+        _schemaLength = schemaLength;
+        Settings = settings;
+    }
+
+    public ReadOnlySpan<byte> Schema => _schema.AsSpan(0, _schemaLength);
+
+    public JsonDocument Settings { get; }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _disposed = true;
+            Settings.Dispose();
+            ArrayPool<byte>.Shared.Return(_schema);
+            _schema = null!;
+        }
     }
 }
