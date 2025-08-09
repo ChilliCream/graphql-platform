@@ -4,8 +4,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.FieldBindingFlags;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
