@@ -91,21 +91,6 @@ public static class FieldInitHelper
             maxFieldCount);
     }
 
-    public static TField[] CompleteFields<TField>(
-        ITypeCompletionContext context,
-        ITypeSystemMember declaringMember,
-        TField[] fields)
-        where TField : class, IFieldDefinition
-    {
-        ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(declaringMember);
-        ArgumentNullException.ThrowIfNull(fields);
-
-        CompleteFieldsInternal(context, declaringMember, fields);
-
-        return fields;
-    }
-
     public static TField[] CompleteFieldsInternal<TFieldDefinition, TField>(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
