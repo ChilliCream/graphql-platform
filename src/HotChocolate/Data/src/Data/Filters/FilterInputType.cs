@@ -79,44 +79,41 @@ public class FilterInputType
         ITypeCompletionContext context,
         InputObjectTypeConfiguration definition)
     {
-        var fields = new InputField[definition.Fields.Count + 2];
-        var index = 0;
-
+        var fieldConfigurations = new List<FieldConfiguration>(definition.Fields.Count + 2);
         if (definition is FilterInputTypeConfiguration { UseAnd: true } def)
         {
-            fields[index] = new AndField(context.DescriptorContext, index, def.Scope);
-            index++;
+            fieldConfigurations.Add(AndField.CreateConfiguration(context.DescriptorContext, def.Scope));
         }
 
         if (definition is FilterInputTypeConfiguration { UseOr: true } defOr)
         {
-            fields[index] = new OrField(context.DescriptorContext, index, defOr.Scope);
-            index++;
+            fieldConfigurations.Add(OrField.CreateConfiguration(context.DescriptorContext, defOr.Scope));
         }
 
-        foreach (var fieldDefinition in
-            definition.Fields.Where(t => !t.Ignore))
+        foreach (var fieldDefinition in definition.Fields.Where(t => !t.Ignore))
         {
             switch (fieldDefinition)
             {
                 case FilterOperationFieldConfiguration operation:
-                    fields[index] = new FilterOperationField(operation, index);
-                    index++;
+                    fieldConfigurations.Add(operation);
                     break;
 
                 case FilterFieldConfiguration field:
-                    fields[index] = new FilterField(field, index);
-                    index++;
+                    fieldConfigurations.Add(field);
                     break;
             }
         }
 
-        if (fields.Length > index)
-        {
-            Array.Resize(ref fields, index);
-        }
-
-        return new InputFieldCollection(CompleteFields(context, this, fields));
+        return new InputFieldCollection(CompleteFields(context, this, fieldConfigurations, CreateField));
+        static InputField CreateField(FieldConfiguration fieldDef, int index) =>
+            fieldDef switch
+            {
+                FilterOperationFieldConfiguration { Id: DefaultFilterOperations.And } op => new AndField(op, index),
+                FilterOperationFieldConfiguration { Id: DefaultFilterOperations.Or } op => new OrField(op, index),
+                FilterOperationFieldConfiguration op => new FilterField(op, index),
+                FilterFieldConfiguration field => new FilterField(field, index),
+                _ => throw new ArgumentException("Unsupported field type", nameof(fieldDef))
+            };
     }
 
     // we are disabling the default configure method so

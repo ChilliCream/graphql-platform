@@ -1,0 +1,32 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input FilterWithNonAlphabeticallyMembersFilterInput {
+  a: IntOperationFilterInput
+  and: [FilterWithNonAlphabeticallyMembersFilterInput!]
+  b: IntOperationFilterInput
+  or: [FilterWithNonAlphabeticallyMembersFilterInput!]
+  x: IntOperationFilterInput
+  y: IntOperationFilterInput
+  z: IntOperationFilterInput
+}
+
+input IntOperationFilterInput {
+  eq: Int
+  gt: Int
+  gte: Int
+  in: [Int]
+  lt: Int
+  lte: Int
+  neq: Int
+  ngt: Int
+  ngte: Int
+  nin: [Int]
+  nlt: Int
+  nlte: Int
+}
