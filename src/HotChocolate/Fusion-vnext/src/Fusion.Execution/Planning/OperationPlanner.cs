@@ -96,7 +96,7 @@ public sealed partial class OperationPlanner
             InternalOperationDefinition = operationDefinition,
             ShortHash = shortHash,
             SchemaName = "None",
-            SelectionSetIndex = index.ToImmutable(),
+            SelectionSetIndex = index,
             Backlog = ImmutableStack<WorkItem>.Empty.Push(workItem),
             PathCost = 1,
             BacklogCost = 1
@@ -149,15 +149,13 @@ public sealed partial class OperationPlanner
             backlog = backlog.Push(OperationWorkItem.CreateRoot(selectionSet));
         }
 
-        index = indexBuilder.ToImmutable();
-
         var node = new PlanNode
         {
             OperationDefinition = operationDefinition,
             InternalOperationDefinition = operationDefinition,
             ShortHash = shortHash,
             SchemaName = ISchemaDefinition.DefaultName,
-            SelectionSetIndex = index,
+            SelectionSetIndex = indexBuilder,
             Backlog = backlog,
             PathCost = 1,
             BacklogCost = 1
@@ -321,7 +319,7 @@ public sealed partial class OperationPlanner
             InternalOperationDefinition = current.InternalOperationDefinition,
             ShortHash = current.ShortHash,
             SchemaName = current.SchemaName,
-            SelectionSetIndex = index.ToImmutable(),
+            SelectionSetIndex = index,
             Backlog = backlog,
             Steps = current.Steps.Add(step),
             PathCost = current.PathCost,
@@ -375,13 +373,17 @@ public sealed partial class OperationPlanner
                     InlineSelections(
                         step.Definition,
                         index,
-                        step.Type,
+                        workItemSelectionSet.Type,
                         index.GetId(resolvable),
                         resolvable);
 
                 var updatedStep = step with
                 {
                     Definition = operation,
+
+                    // we need to update the selection sets that this plan step
+                    // has as the requirement could have introduced new ones.
+                    SelectionSets = SelectionSetIndexer.CreateIdSet(operation.SelectionSet, index),
 
                     // we add the new lookup node to the dependents of the current step.
                     // the new lookup node will be the next index added which is the last index aka Count.
@@ -524,7 +526,7 @@ public sealed partial class OperationPlanner
             InternalOperationDefinition = current.InternalOperationDefinition,
             ShortHash = current.ShortHash,
             SchemaName = current.SchemaName,
-            SelectionSetIndex = index.ToImmutable(),
+            SelectionSetIndex = index,
             Backlog = backlog,
             Steps = steps,
             PathCost = current.PathCost,
@@ -686,7 +688,7 @@ public sealed partial class OperationPlanner
             InternalOperationDefinition = current.InternalOperationDefinition,
             ShortHash = current.ShortHash,
             SchemaName = current.SchemaName,
-            SelectionSetIndex = index.ToImmutable(),
+            SelectionSetIndex = index,
             Backlog = backlog,
             Steps = steps.Add(step),
             PathCost = current.PathCost,
@@ -794,6 +796,15 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
+            // the resolvable part of the requirement could be different from the requirement
+            // if we are unable to inline the complete requirement into a single plan step.
+            // in this case we will register the resolvable part as part of the requirements selection set
+            // so that they logically belong together.
+            if (resolvable != requirements)
+            {
+                index.Register(workItem.Selection.SelectionSetId, resolvable);
+            }
+
             var operation =
                 InlineSelections(
                     step.Definition,
@@ -858,55 +869,61 @@ public sealed partial class OperationPlanner
         var rewriter = SyntaxRewriter.Create<Stack<ISyntaxNode>>(
             (node, path) =>
             {
-                if (node is SelectionSetNode selectionSet)
+                if (node is not SelectionSetNode selectionSet)
                 {
-                    var originalSelectionSet = (SelectionSetNode)path.Peek();
-                    var id = index.GetId(originalSelectionSet);
-
-                    if (!ReferenceEquals(originalSelectionSet, selectionSet))
-                    {
-                        index.Register(originalSelectionSet, selectionSet);
-                    }
-
-                    if (targetSelectionSetId == id)
-                    {
-                        SelectionSetNode newSelectionSet;
-
-                        if (inlineInternal)
-                        {
-                            var size = selectionSet.Selections.Count + selectionsToInline.Selections.Count;
-                            var selections = new List<ISelectionNode>(size);
-                            selections.AddRange(originalSelectionSet.Selections);
-
-                            foreach (var selection in selectionsToInline.Selections)
-                            {
-                                var directives = AddInternalDirective(selection);
-
-                                switch (selection)
-                                {
-                                    case FieldNode field:
-                                        selections.Add(field.WithDirectives(directives));
-                                        break;
-
-                                    case InlineFragmentNode inlineFragment:
-                                        selections.Add(inlineFragment.WithDirectives(directives));
-                                        break;
-                                }
-                            }
-
-                            newSelectionSet = new SelectionSetNode(selections);
-                        }
-                        else
-                        {
-                            newSelectionSet = _mergeRewriter.Merge(selectionSet, selectionsToInline, selectionSetType);
-                        }
-
-                        index.Register(originalSelectionSet, newSelectionSet);
-                        return newSelectionSet;
-                    }
+                    return node;
                 }
 
-                return node;
+                var originalSelectionSet = (SelectionSetNode)path.Peek();
+                var id = index.GetId(originalSelectionSet);
+
+                if (!ReferenceEquals(originalSelectionSet, selectionSet))
+                {
+                    index.Register(originalSelectionSet, selectionSet);
+                }
+
+                if (targetSelectionSetId != id)
+                {
+                    return node;
+                }
+
+                SelectionSetNode newSelectionSet;
+
+                if (inlineInternal)
+                {
+                    var size = selectionSet.Selections.Count + selectionsToInline.Selections.Count;
+                    var selections = new List<ISelectionNode>(size);
+                    selections.AddRange(originalSelectionSet.Selections);
+
+                    foreach (var selection in selectionsToInline.Selections)
+                    {
+                        var directives = AddInternalDirective(selection);
+
+                        switch (selection)
+                        {
+                            case FieldNode field:
+                                selections.Add(field.WithDirectives(directives));
+                                break;
+
+                            case InlineFragmentNode inlineFragment:
+                                selections.Add(inlineFragment.WithDirectives(directives));
+                                break;
+                        }
+                    }
+
+                    newSelectionSet = new SelectionSetNode(selections);
+                }
+                else
+                {
+                    newSelectionSet = _mergeRewriter.Merge(
+                        selectionSet,
+                        selectionsToInline,
+                        selectionSetType,
+                        index);
+                }
+
+                index.Register(originalSelectionSet, newSelectionSet);
+                return newSelectionSet;
             },
             (node, path) =>
             {
@@ -1002,16 +1019,6 @@ file static class Extensions
         }
 
         return backlog;
-    }
-
-    public static ISelectionSetIndex ToImmutable(this ISelectionSetIndex index)
-    {
-        if (index is SelectionSetIndexBuilder builder)
-        {
-            return builder.Build();
-        }
-
-        return index;
     }
 
     public static void Enqueue(

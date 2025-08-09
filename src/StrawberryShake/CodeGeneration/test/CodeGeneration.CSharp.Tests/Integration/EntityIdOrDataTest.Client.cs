@@ -721,13 +721,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
     public partial class GetFooQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetFooResult> _operationExecutor;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetFooQuery(global::StrawberryShake.IOperationExecutor<IGetFooResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        private GetFooQuery(global::StrawberryShake.IOperationExecutor<IGetFooResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        private GetFooQuery(global::StrawberryShake.IOperationExecutor<IGetFooResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;
