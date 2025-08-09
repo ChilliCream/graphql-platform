@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Linq.Expressions;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
