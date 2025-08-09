@@ -1,0 +1,328 @@
+{
+  "type": "object",
+  "properties": {
+    "list": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field1A": {
+            "type": "object",
+            "properties": {
+              "field1B": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field1C": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "time",
+                      "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                      "description": "field1C description",
+                      "default": "12:00:00"
+                    }
+                  },
+                  "required": []
+                },
+                "description": "field1B description",
+                "default": [
+                  {
+                    "field1C": "12:00:00"
+                  }
+                ]
+              }
+            },
+            "required": [],
+            "description": "field1A description",
+            "default": {
+              "field1B": [
+                {
+                  "field1C": "12:00:00"
+                }
+              ]
+            }
+          }
+        },
+        "required": []
+      },
+      "description": "Complex list",
+      "default": [
+        {
+          "field1A": {
+            "field1B": [
+              {
+                "field1C": "12:00:00"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "object": {
+      "type": "object",
+      "properties": {
+        "field1A": {
+          "type": "object",
+          "properties": {
+            "field1B": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field1C": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "time",
+                    "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                    "description": "field1C description",
+                    "default": "12:00:00"
+                  }
+                },
+                "required": []
+              },
+              "description": "field1B description",
+              "default": [
+                {
+                  "field1C": "12:00:00"
+                }
+              ]
+            }
+          },
+          "required": [],
+          "description": "field1A description",
+          "default": {
+            "field1B": [
+              {
+                "field1C": "12:00:00"
+              }
+            ]
+          }
+        }
+      },
+      "required": [],
+      "description": "Complex object",
+      "default": {
+        "field1A": {
+          "field1B": [
+            {
+              "field1C": "12:00:00"
+            }
+          ]
+        }
+      }
+    },
+    "nullDefault": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Null default",
+      "default": null
+    },
+    "listWithNullDefault": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "description": "List with null default",
+      "default": [
+        null
+      ]
+    },
+    "objectWithNullDefault": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "field1A": {
+          "type": "object",
+          "properties": {
+            "field1B": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field1C": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "time",
+                    "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                    "description": "field1C description",
+                    "default": "12:00:00"
+                  }
+                },
+                "required": []
+              },
+              "description": "field1B description",
+              "default": [
+                {
+                  "field1C": "12:00:00"
+                }
+              ]
+            }
+          },
+          "required": [],
+          "description": "field1A description",
+          "default": {
+            "field1B": [
+              {
+                "field1C": "12:00:00"
+              }
+            ]
+          }
+        }
+      },
+      "required": [],
+      "description": "Object with null default",
+      "default": {
+        "field1A": {
+          "field1B": [
+            {
+              "field1C": null
+            }
+          ]
+        }
+      }
+    },
+    "oneOf": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "field1": {
+              "type": "integer",
+              "description": "field1 description"
+            }
+          },
+          "required": [
+            "field1"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "field2": {
+              "type": "string",
+              "description": "field2 description"
+            }
+          },
+          "required": [
+            "field2"
+          ]
+        }
+      ],
+      "description": "OneOf",
+      "default": {
+        "field1": 1
+      }
+    },
+    "oneOfList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "field1": {
+                "type": "integer",
+                "description": "field1 description"
+              }
+            },
+            "required": [
+              "field1"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field2": {
+                "type": "string",
+                "description": "field2 description"
+              }
+            },
+            "required": [
+              "field2"
+            ]
+          }
+        ]
+      },
+      "description": "OneOf list",
+      "default": [
+        {
+          "field1": 1
+        },
+        {
+          "field2": "default"
+        }
+      ]
+    },
+    "objectWithOneOfField": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "object",
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "field1": {
+                  "type": "integer",
+                  "description": "field1 description"
+                }
+              },
+              "required": [
+                "field1"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "field2": {
+                  "type": "string",
+                  "description": "field2 description"
+                }
+              },
+              "required": [
+                "field2"
+              ]
+            }
+          ],
+          "description": "field description",
+          "default": {
+            "field1": 1
+          }
+        }
+      },
+      "required": [],
+      "description": "Object with OneOf field",
+      "default": {
+        "field": {
+          "field1": 1
+        }
+      }
+    },
+    "timeSpanDotNet": {
+      "type": "string",
+      "pattern": "^-?(?:(?:\\d{1,8})\\.)?(?:[0-1]?\\d|2[0-3]):(?:[0-5]?\\d):(?:[0-5]?\\d)(?:\\.(?:\\d{1,7}))?$",
+      "description": "TimeSpan with DotNet format",
+      "default": "00:05:00"
+    }
+  },
+  "required": []
+}

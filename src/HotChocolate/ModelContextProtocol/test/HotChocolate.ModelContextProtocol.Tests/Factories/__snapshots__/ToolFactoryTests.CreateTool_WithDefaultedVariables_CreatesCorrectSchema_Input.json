@@ -1,0 +1,202 @@
+{
+  "type": "object",
+  "properties": {
+    "any": {
+      "type": [
+        "object",
+        "array",
+        "boolean",
+        "string",
+        "number",
+        "integer"
+      ],
+      "description": "Any description",
+      "default": {
+        "key": "value"
+      }
+    },
+    "boolean": {
+      "type": "boolean",
+      "description": "Boolean description",
+      "default": true
+    },
+    "byte": {
+      "type": "integer",
+      "description": "Byte description",
+      "default": 1
+    },
+    "byteArray": {
+      "type": "string",
+      "pattern": "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=)?$",
+      "description": "ByteArray description",
+      "default": "ZGVmYXVsdA=="
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date description",
+      "default": "2000-01-01"
+    },
+    "dateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,7})?(?:[Zz]|[+-]\\d{2}:\\d{2})$",
+      "description": "DateTime description",
+      "default": "2000-01-01T12:00:00Z"
+    },
+    "decimal": {
+      "type": "number",
+      "description": "Decimal description",
+      "default": 79228162514264337593543950335
+    },
+    "enum": {
+      "type": "string",
+      "enum": [
+        "VALUE1",
+        "VALUE2"
+      ],
+      "description": "Enum description",
+      "default": "VALUE1"
+    },
+    "float": {
+      "type": "number",
+      "description": "Float description",
+      "default": 1.5
+    },
+    "id": {
+      "type": "string",
+      "description": "ID description",
+      "default": "default"
+    },
+    "int": {
+      "type": "integer",
+      "description": "Int description",
+      "default": 1
+    },
+    "json": {
+      "type": [
+        "object",
+        "array",
+        "boolean",
+        "string",
+        "number",
+        "integer"
+      ],
+      "description": "JSON description",
+      "default": {
+        "key": "value"
+      }
+    },
+    "list": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List description"
+    },
+    "localDate": {
+      "type": "string",
+      "format": "date",
+      "description": "LocalDate description",
+      "default": "2000-01-01"
+    },
+    "localDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$",
+      "description": "LocalDateTime description",
+      "default": "2000-01-01T12:00:00"
+    },
+    "localTime": {
+      "type": "string",
+      "format": "time",
+      "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+      "description": "LocalTime description",
+      "default": "12:00:00"
+    },
+    "long": {
+      "type": "integer",
+      "description": "Long description",
+      "default": 9223372036854775807
+    },
+    "object": {
+      "type": "object",
+      "properties": {
+        "field1A": {
+          "type": "object",
+          "properties": {
+            "field1B": {
+              "type": "object",
+              "properties": {
+                "field1C": {
+                  "type": "string",
+                  "format": "time",
+                  "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                  "description": "field1C description",
+                  "default": "12:00:00"
+                }
+              },
+              "required": [],
+              "description": "field1B description",
+              "default": {
+                "field1C": "12:00:00"
+              }
+            }
+          },
+          "required": [],
+          "description": "field1A description",
+          "default": {
+            "field1B": {
+              "field1C": "12:00:00"
+            }
+          }
+        }
+      },
+      "required": [],
+      "description": "Object description",
+      "default": {
+        "field1A": {
+          "field1B": {
+            "field1C": "12:00:00"
+          }
+        }
+      }
+    },
+    "short": {
+      "type": "integer",
+      "description": "Short description",
+      "default": 1
+    },
+    "string": {
+      "type": "string",
+      "description": "String description",
+      "default": "default"
+    },
+    "timeSpan": {
+      "type": "string",
+      "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
+      "description": "TimeSpan description",
+      "default": "PT5M"
+    },
+    "unknown": {
+      "type": "string",
+      "description": "Unknown description",
+      "default": "default"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri-reference",
+      "description": "URL description",
+      "default": "https://example.com"
+    },
+    "uuid": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID description",
+      "default": "00000000-0000-0000-0000-000000000000"
+    }
+  },
+  "required": [
+    "list"
+  ]
+}

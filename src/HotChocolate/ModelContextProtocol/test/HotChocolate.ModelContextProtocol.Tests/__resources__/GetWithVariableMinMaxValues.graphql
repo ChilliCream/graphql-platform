@@ -1,0 +1,11 @@
+"GetWithVariableMinMaxValues description"
+query GetWithVariableMinMaxValues(
+  $byte: Byte!
+  $decimal: Decimal!
+  $float: Float!
+  $int: Int!
+  $long: Long!
+  $short: Short!
+) {
+  withVariableMinMaxValues
+}
