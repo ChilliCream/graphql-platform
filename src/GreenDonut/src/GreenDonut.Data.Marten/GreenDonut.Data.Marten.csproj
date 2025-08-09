@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>GreenDonut.Data.Marten</PackageId>
+    <AssemblyName>GreenDonut.Data.Marten</AssemblyName>
+    <RootNamespace>GreenDonut.Data</RootNamespace>
+    <Description>This package provides data integrations like pagination, projections, filtering and sorting.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Data.Marten" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GreenDonut.Data\GreenDonut.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Marten" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Expressions\" />
+  </ItemGroup>
+
+</Project>
