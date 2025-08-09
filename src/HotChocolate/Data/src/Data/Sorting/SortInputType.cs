@@ -84,7 +84,12 @@ public class SortInputType
             }
         }
 
-        return new InputFieldCollection(CompleteFields(context, this, fieldConfigurations, CreateField));
+        return new InputFieldCollection(
+            CompleteFields(
+                context,
+                this,
+                fieldConfigurations,
+                CreateField));
         static InputField CreateField(SortFieldConfiguration fieldDef, int index) => new SortField(fieldDef, index);
     }
 

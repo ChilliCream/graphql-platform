@@ -104,13 +104,18 @@ public class FilterInputType
             }
         }
 
-        return new InputFieldCollection(CompleteFields(context, this, fieldConfigurations, CreateField));
+        return new InputFieldCollection(
+            CompleteFields(
+                context,
+                this,
+                fieldConfigurations,
+                CreateField));
         static InputField CreateField(FieldConfiguration fieldDef, int index) =>
             fieldDef switch
             {
                 FilterOperationFieldConfiguration { Id: DefaultFilterOperations.And } op => new AndField(op, index),
                 FilterOperationFieldConfiguration { Id: DefaultFilterOperations.Or } op => new OrField(op, index),
-                FilterOperationFieldConfiguration op => new FilterField(op, index),
+                FilterOperationFieldConfiguration op => new FilterOperationField(op, index),
                 FilterFieldConfiguration field => new FilterField(field, index),
                 _ => throw new ArgumentException("Unsupported field type", nameof(fieldDef))
             };
