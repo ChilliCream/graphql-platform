@@ -38,13 +38,22 @@ internal sealed class ValueCompletion
 
     public bool BuildResult(
         SelectionSet selectionSet,
-        JsonElement data,
+        JsonElement? data,
         ErrorTrie? errorTrie,
         ObjectResult objectResult)
     {
-        if (data.ValueKind != JsonValueKind.Object)
+        if (data is not { ValueKind: JsonValueKind.Object })
         {
-            throw new GraphQLException("Expected an object");
+            if (errorTrie?.GetFirstError() is { } jsonError)
+            {
+                var error = ErrorUtils.CreateErrorBuilder(jsonError)?.Build();
+                if (error is not null)
+                {
+                    _errors.Add(error);
+                }
+            }
+
+            return false;
         }
 
         foreach (var selection in selectionSet.Selections)
@@ -56,7 +65,7 @@ internal sealed class ValueCompletion
 
             var fieldResult = objectResult[selection.ResponseName];
 
-            if (data.TryGetProperty(selection.ResponseName, out var element))
+            if (data.Value.TryGetProperty(selection.ResponseName, out var element))
             {
                 ErrorTrie? errorTrieForResponseName = null;
                 errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
@@ -260,6 +269,7 @@ internal sealed class ValueCompletion
         var objectResult = _resultPoolSession.RentObjectResult();
 
         objectResult.Initialize(_resultPoolSession, selectionSet, _includeFlags);
+        objectResult.SetParent(parent, parent.ParentIndex);
 
         foreach (var field in objectResult.Fields)
         {
@@ -302,41 +312,19 @@ internal sealed class ValueCompletion
             depth,
             parent);
 
-    private static IError? CreateErrorFromJson(JsonElement error, Path path, ISyntaxNode syntaxNode)
+    private static IError? CreateErrorFromJson(JsonElement jsonError, Path path, ISyntaxNode syntaxNode)
     {
-        if (error.ValueKind is not JsonValueKind.Object)
+        var errorBuilder = ErrorUtils.CreateErrorBuilder(jsonError);
+
+        if (errorBuilder is null)
         {
             return null;
         }
 
-        if (error.TryGetProperty("message", out var message)
-            && message.ValueKind is JsonValueKind.String)
-        {
-            var errorBuilder = ErrorBuilder.New()
-                .SetMessage(message.GetString()!);
+        errorBuilder.SetPath(path);
+        errorBuilder.AddLocation(syntaxNode);
 
-            if (error.TryGetProperty("code", out var code)
-                && code.ValueKind is JsonValueKind.String)
-            {
-                errorBuilder.SetCode(code.GetString());
-            }
-
-            if (error.TryGetProperty("extensions", out var extensions)
-                && extensions.ValueKind is JsonValueKind.Object)
-            {
-                foreach (var property in extensions.EnumerateObject())
-                {
-                    errorBuilder.SetExtension(property.Name, property.Value);
-                }
-            }
-
-            errorBuilder.SetPath(path);
-            errorBuilder.AddLocation(syntaxNode);
-
-            return errorBuilder.Build();
-        }
-
-        return null;
+        return errorBuilder.Build();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

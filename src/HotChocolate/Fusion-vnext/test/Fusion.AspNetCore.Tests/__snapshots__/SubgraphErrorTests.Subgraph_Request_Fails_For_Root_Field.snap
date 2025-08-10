@@ -1,0 +1,23 @@
+{
+  "data": {
+    "topProduct": null
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "{\n  topProduct {\n    price\n  }\n}",
+          "hash": "1c1cf0244bcda9f7f91e7e0becca0616"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": "query Op_1c1cf024_1 {\n  topProduct {\n    price\n  }\n}"
+          }
+        ]
+      }
+    }
+  }
+}

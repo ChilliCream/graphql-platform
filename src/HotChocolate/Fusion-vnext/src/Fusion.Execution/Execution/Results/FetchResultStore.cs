@@ -80,7 +80,7 @@ internal sealed class FetchResultStore : IDisposable
                 nameof(results));
         }
 
-        var dataElements = ArrayPool<JsonElement>.Shared.Rent(results.Length);
+        var dataElements = ArrayPool<JsonElement?>.Shared.Rent(results.Length);
         var errorTries = ArrayPool<ErrorTrie?>.Shared.Rent(results.Length);
         var dataElementsSpan = dataElements.AsSpan()[..results.Length];
         var errorTriesSpan = errorTries.AsSpan()[..results.Length];
@@ -97,9 +97,13 @@ internal sealed class FetchResultStore : IDisposable
                 // we need to track the result objects as they used rented memory.
                 _memory.Push(result);
 
-                // TODO: This throws for no subgraph data
+                if (result.Errors?.RootErrors is { } rootErrors)
+                {
+                    RegisterErrors(_errors, rootErrors);
+                }
+
                 dataElement = GetDataElement(sourcePath, result.Data);
-                errorTrie = GetErrorTrie(sourcePath, result.Errors);
+                errorTrie = GetErrorTrie(sourcePath, result.Errors?.Trie);
 
                 result = ref Unsafe.Add(ref result, 1)!;
                 dataElement = ref Unsafe.Add(ref dataElement, 1);
@@ -110,8 +114,28 @@ internal sealed class FetchResultStore : IDisposable
         }
         finally
         {
-            ArrayPool<JsonElement>.Shared.Return(dataElements);
+            ArrayPool<JsonElement?>.Shared.Return(dataElements);
             ArrayPool<ErrorTrie?>.Shared.Return(errorTries);
+        }
+    }
+
+    private static void RegisterErrors(List<IError> errors, List<JsonElement> jsonErrors)
+    {
+        var jsonErrorsSpan = CollectionsMarshal.AsSpan(jsonErrors);
+        ref var jsonError = ref MemoryMarshal.GetReference(jsonErrorsSpan);
+        ref var end = ref Unsafe.Add(ref jsonError, jsonErrorsSpan.Length);
+
+        while (Unsafe.IsAddressLessThan(ref jsonError, ref end))
+        {
+            var errorBuilder = ErrorUtils.CreateErrorBuilder(jsonError);
+
+            if (errorBuilder is not null)
+            {
+                var error = errorBuilder.Build();
+                errors.Add(error);
+            }
+
+            jsonError = ref Unsafe.Add(ref jsonError, 1)!;
         }
     }
 
@@ -149,7 +173,7 @@ internal sealed class FetchResultStore : IDisposable
 
     private bool SaveSafe(
         ReadOnlySpan<SourceSchemaResult> results,
-        ReadOnlySpan<JsonElement> dataElements,
+        ReadOnlySpan<JsonElement?> dataElements,
         ReadOnlySpan<ErrorTrie?> errorTries)
     {
         _lock.EnterWriteLock();
@@ -386,7 +410,7 @@ internal sealed class FetchResultStore : IDisposable
         return buffer;
     }
 
-    private static JsonElement GetDataElement(SelectionPath sourcePath, JsonElement data)
+    private static JsonElement? GetDataElement(SelectionPath sourcePath, JsonElement data)
     {
         if (sourcePath.IsRoot)
         {
@@ -400,8 +424,7 @@ internal sealed class FetchResultStore : IDisposable
             var segment = sourcePath.Segments[i];
             if (current.ValueKind != JsonValueKind.Object || !current.TryGetProperty(segment.Name, out current))
             {
-                throw new InvalidOperationException(
-                    $"The path segment '{segment.Name}' does not exist in the data.");
+                return null;
             }
         }
 

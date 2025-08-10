@@ -144,17 +144,6 @@ public sealed class OperationExecutionNode : ExecutionNode
         try
         {
             response = await client.ExecuteAsync(context, request, cancellationToken);
-
-            if (!response.IsSuccessful)
-            {
-                context.AddException();
-
-                return new ExecutionNodeResult(
-                    Id,
-                    Activity.Current,
-                    ExecutionStatus.Failed,
-                    Stopwatch.GetElapsedTime(start));
-            }
         }
         catch (Exception exception)
         {
