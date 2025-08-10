@@ -59,6 +59,13 @@ internal static class QueryPlannerHelpers
         {
             var (currentSelections, currentTypeContext) = stack.Pop();
 
+            // If there are no selections at the current node, it means the subgraph
+            // can resolve the path up to this point without requiring any further fields, so we increase the score.
+            if (currentSelections.Count == 0)
+            {
+                score++;
+            }
+
             foreach (var selection in currentSelections)
             {
                 if (!selection.Field.IsIntrospectionField &&
@@ -89,15 +96,14 @@ internal static class QueryPlannerHelpers
         ObjectTypeMetadata typeMetadataContext,
         string schemaName)
     {
-        return parentSelectionPath is null ||
-            typeMetadataContext.Resolvers.ContainsResolvers(schemaName) ||
+        return typeMetadataContext.Resolvers.ContainsResolvers(schemaName) ||
             configuration.EnsurePathCanBeResolvedFromRoot(schemaName, parentSelectionPath);
     }
 
     public static bool EnsurePathCanBeResolvedFromRoot(
         this FusionGraphConfiguration configuration,
         string subgraphName,
-        SelectionPath path)
+        SelectionPath? path)
     {
         var current = path;
 
