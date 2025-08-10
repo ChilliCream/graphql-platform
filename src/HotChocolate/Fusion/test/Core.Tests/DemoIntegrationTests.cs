@@ -2970,6 +2970,75 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
+    [Fact]
+    public async Task Subgraph_Containing_More_Selections_Is_Chosen()
+    {
+        // arrange
+        var subgraphA = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              productBySlug: Product
+            }
+
+            type Product {
+              id: ID!
+            }
+            """);
+
+        var subgraphB = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              productById(id: ID!): Product
+            }
+
+            type Product {
+              id: ID!
+              author: Author
+            }
+
+            type Author {
+              name: String!
+            }
+            """);
+
+        var subgraphC = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              productById(id: ID!): Product
+            }
+
+            type Product {
+              id: ID!
+              author: Author
+            }
+
+            type Author {
+              name: String!
+              rating: Int!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [subgraphA, subgraphB, subgraphC]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = """
+                      query {
+                        productBySlug {
+                          author {
+                            name
+                            rating
+                          }
+                        }
+                      }
+                      """;
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        MatchMarkdownSnapshot(request, result);
+    }
+
+
     public sealed class HotReloadConfiguration : IObservable<GatewayConfiguration>
     {
         private GatewayConfiguration _configuration;

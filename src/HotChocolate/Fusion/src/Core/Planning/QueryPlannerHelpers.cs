@@ -45,9 +45,13 @@ internal static class QueryPlannerHelpers
         ObjectTypeMetadata typeMetadataContext,
         string schemaName)
     {
-        var pathCanBeResolvedFromRoot = configuration.EnsurePathCanBeResolvedFromRoot(schemaName, parentSelectionPath);
-
         var score = 0;
+
+        if (!PathCanBeResolved(configuration, parentSelectionPath, typeMetadataContext, schemaName))
+        {
+            return score;
+        }
+
         var stack = new Stack<(IReadOnlyList<ISelection> selections, ObjectTypeMetadata typeContext)>();
         stack.Push((selections, typeMetadataContext));
 
@@ -55,24 +59,11 @@ internal static class QueryPlannerHelpers
         {
             var (currentSelections, currentTypeContext) = stack.Pop();
 
-            if (currentSelections.Count == 0)
-            {
-                score++;
-            }
-
             foreach (var selection in currentSelections)
             {
                 if (!selection.Field.IsIntrospectionField &&
-                    currentTypeContext
-                        .Fields[selection.Field.Name]
-                        .Bindings
-                        .ContainsSubgraph(schemaName) &&
-                    (pathCanBeResolvedFromRoot ||
-                        currentTypeContext
-                            .Fields[selection.Field.Name]
-                            .Resolvers
-                            .ContainsResolvers(schemaName) ||
-                        typeMetadataContext.Resolvers.ContainsResolvers(schemaName)))
+                    currentTypeContext.Fields[selection.Field.Name].Bindings
+                        .ContainsSubgraph(schemaName))
                 {
                     score++;
 
@@ -92,10 +83,21 @@ internal static class QueryPlannerHelpers
         return score;
     }
 
+    private static bool PathCanBeResolved(
+        FusionGraphConfiguration configuration,
+        SelectionPath? parentSelectionPath,
+        ObjectTypeMetadata typeMetadataContext,
+        string schemaName)
+    {
+        return parentSelectionPath is null ||
+            typeMetadataContext.Resolvers.ContainsResolvers(schemaName) ||
+            configuration.EnsurePathCanBeResolvedFromRoot(schemaName, parentSelectionPath);
+    }
+
     public static bool EnsurePathCanBeResolvedFromRoot(
         this FusionGraphConfiguration configuration,
         string subgraphName,
-        SelectionPath? path)
+        SelectionPath path)
     {
         var current = path;
 
