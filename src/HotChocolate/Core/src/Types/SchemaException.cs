@@ -63,7 +63,7 @@ public sealed partial class SchemaException : Exception
 
     private static partial class StackTraceHelper
     {
-        [GeneratedRegex(@" in ([^:]+):line (\d+)", RegexOptions.Compiled)]
+        [GeneratedRegex(@" in ([A-Za-z]:[^:]+|[^:]+):line (\d+)", RegexOptions.Compiled)]
         private static partial Regex StackTracePathRegex();
 
         public static string? Normalize(string stackTrace)
