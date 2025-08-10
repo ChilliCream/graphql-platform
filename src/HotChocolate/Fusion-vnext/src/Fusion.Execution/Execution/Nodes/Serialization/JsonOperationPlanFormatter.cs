@@ -176,6 +176,7 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
     {
         jsonWriter.WriteStartObject();
         jsonWriter.WriteNumber("id", node.Id);
+        jsonWriter.WriteString("type", "Introspection");
 
         jsonWriter.WriteStartArray("selections");
 
@@ -183,7 +184,6 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         {
             jsonWriter.WriteStartObject();
             jsonWriter.WriteNumber("id", selection.Id);
-            jsonWriter.WriteString("type", "Introspection");
             jsonWriter.WriteString("responseName", selection.ResponseName);
             jsonWriter.WriteString("fieldName", selection.Field.Name);
             jsonWriter.WriteEndObject();
