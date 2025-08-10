@@ -139,15 +139,33 @@ public sealed class OperationExecutionNode : ExecutionNode
         };
 
         var client = context.GetClient(SchemaName, Operation.Operation);
-        var response = await client.ExecuteAsync(context, request, cancellationToken);
+        SourceSchemaClientResponse response;
 
-        if (!response.IsSuccessful)
+        try
         {
+            response = await client.ExecuteAsync(context, request, cancellationToken);
+
+            if (!response.IsSuccessful)
+            {
+                context.AddException();
+
+                return new ExecutionNodeResult(
+                    Id,
+                    Activity.Current,
+                    ExecutionStatus.Failed,
+                    Stopwatch.GetElapsedTime(start));
+            }
+        }
+        catch (Exception exception)
+        {
+            context.AddException(exception);
+
             return new ExecutionNodeResult(
                 Id,
                 Activity.Current,
                 ExecutionStatus.Failed,
-                Stopwatch.GetElapsedTime(start));
+                Stopwatch.GetElapsedTime(start),
+                exception);
         }
 
         var index = 0;
@@ -163,7 +181,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 
             context.AddPartialResults(Source, buffer.AsSpan(0, index));
         }
-        catch
+        catch (Exception exception)
         {
             // if there is an error, we need to make sure that the pooled buffers for the JsonDocuments
             // are returned to the pool.
@@ -173,7 +191,14 @@ public sealed class OperationExecutionNode : ExecutionNode
                 result?.Dispose();
             }
 
-            throw;
+            context.AddException(exception);
+
+            return new ExecutionNodeResult(
+                Id,
+                Activity.Current,
+                ExecutionStatus.Failed,
+                Stopwatch.GetElapsedTime(start),
+                exception);
         }
         finally
         {

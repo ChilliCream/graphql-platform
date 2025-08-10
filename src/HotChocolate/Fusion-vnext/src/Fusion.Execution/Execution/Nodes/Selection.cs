@@ -100,6 +100,11 @@ public sealed class Selection
         return false;
     }
 
+    public override string ToString()
+    {
+        return Field.Name;
+    }
+
     internal void Seal(SelectionSet selectionSet)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)
