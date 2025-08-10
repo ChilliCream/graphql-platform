@@ -47,10 +47,7 @@ internal static class QueryPlannerHelpers
     {
         var score = 0;
 
-        if (!PathCanBeResolved(configuration, parentSelectionPath, typeMetadataContext, schemaName))
-        {
-            return score;
-        }
+        var pathOrTypeCanBeResolvedFromRoot = EnsurePathOrTypeCanBeResolvedFromRoot(configuration, parentSelectionPath, typeMetadataContext, schemaName);
 
         var stack = new Stack<(IReadOnlyList<ISelection> selections, ObjectTypeMetadata typeContext)>();
         stack.Push((selections, typeMetadataContext));
@@ -70,7 +67,10 @@ internal static class QueryPlannerHelpers
             {
                 if (!selection.Field.IsIntrospectionField &&
                     currentTypeContext.Fields[selection.Field.Name].Bindings
-                        .ContainsSubgraph(schemaName))
+                        .ContainsSubgraph(schemaName) &&
+                    (pathOrTypeCanBeResolvedFromRoot ||
+                        currentTypeContext.Fields[selection.Field.Name].Resolvers
+                        .ContainsResolvers(schemaName)))
                 {
                     score++;
 
@@ -90,7 +90,7 @@ internal static class QueryPlannerHelpers
         return score;
     }
 
-    private static bool PathCanBeResolved(
+    private static bool EnsurePathOrTypeCanBeResolvedFromRoot(
         FusionGraphConfiguration configuration,
         SelectionPath? parentSelectionPath,
         ObjectTypeMetadata typeMetadataContext,
