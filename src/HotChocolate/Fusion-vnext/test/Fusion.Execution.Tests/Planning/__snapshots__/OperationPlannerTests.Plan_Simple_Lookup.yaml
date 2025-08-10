@@ -12,6 +12,7 @@ operation:
     hash: 123
 nodes:
   - id: 1
+    type: Operation
     schema: A
     operation: >-
       query GetTopProducts_123_1 {
@@ -21,6 +22,7 @@ nodes:
         }
       }
   - id: 2
+    type: Operation
     schema: B
     operation: >-
       query GetTopProducts_123_2(

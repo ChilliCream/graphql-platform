@@ -20,6 +20,7 @@ operation:
     hash: 123
 nodes:
   - id: 1
+    type: Operation
     schema: SUBGRAPH_1
     operation: >-
       query testQuery_123_1 {
@@ -37,6 +38,7 @@ nodes:
         }
       }
   - id: 2
+    type: Operation
     schema: SUBGRAPH_3
     operation: >-
       query testQuery_123_2(
@@ -54,6 +56,7 @@ nodes:
     dependencies:
       - id: 1
   - id: 3
+    type: Operation
     schema: SUBGRAPH_2
     operation: >-
       query testQuery_123_3(
