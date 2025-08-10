@@ -7,7 +7,7 @@ public sealed class SourceSchemaErrors
     /// <summary>
     /// Errors without a path.
     /// </summary>
-    public required List<JsonElement>? RootErrors { get; init; }
+    public required List<IError>? RootErrors { get; init; }
 
     public required ErrorTrie Trie { get; init; }
 
@@ -18,47 +18,46 @@ public sealed class SourceSchemaErrors
             return null;
         }
 
-        List<JsonElement>? rootErrors = null;
+        List<IError>? rootErrors = null;
         ErrorTrie root = new ErrorTrie();
 
-        foreach (var error in json.EnumerateArray())
+        foreach (var jsonError in json.EnumerateArray())
         {
             var currentTrie = root;
 
-            if (!error.TryGetProperty("path", out var path) || path.ValueKind != JsonValueKind.Array)
+            var error = CreateError(jsonError);
+
+            if (error is null)
+            {
+                continue;
+            }
+
+            if (error.Path is null)
             {
                 rootErrors ??= [];
                 rootErrors.Add(error);
                 continue;
             }
 
-            for (int i = 0, len = path.GetArrayLength(); i < len; ++i)
+            var pathSegments = error.Path.ToList();
+            var lastPathIndex = pathSegments.Count - 1;
+
+            for (var i = 0; i < pathSegments.Count; i++)
             {
-                var pathSegment = path[i];
-                object? pathSegmentValue = pathSegment.ValueKind switch
-                {
-                    JsonValueKind.String => pathSegment.GetString(),
-                    JsonValueKind.Number => pathSegment.GetInt32(),
-                    _ => null
-                };
+                var pathSegment = pathSegments[i];
 
-                if (pathSegmentValue is null)
-                {
-                    break;
-                }
-
-                if (currentTrie.TryGetValue(pathSegmentValue, out var trieAtPath))
+                if (currentTrie.TryGetValue(pathSegment, out var trieAtPath))
                 {
                     currentTrie = trieAtPath;
                 }
                 else
                 {
                     var newTrie = new ErrorTrie();
-                    currentTrie[pathSegmentValue] = newTrie;
+                    currentTrie[pathSegment] = newTrie;
                     currentTrie = newTrie;
                 }
 
-                if (i == len - 1)
+                if (i == lastPathIndex)
                 {
                     currentTrie.Error = error;
                 }
@@ -66,5 +65,61 @@ public sealed class SourceSchemaErrors
         }
 
         return new SourceSchemaErrors { RootErrors = rootErrors, Trie = root };
+    }
+
+    private static IError? CreateError(JsonElement jsonError)
+    {
+        if (jsonError.ValueKind is not JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        if (jsonError.TryGetProperty("message", out var message)
+            && message.ValueKind is JsonValueKind.String)
+        {
+            var errorBuilder = ErrorBuilder.New()
+                .SetMessage(message.GetString()!);
+
+            if (jsonError.TryGetProperty("path", out var path) && path.ValueKind == JsonValueKind.Array)
+            {
+                errorBuilder.SetPath(CreatePathFromJson(path));
+            }
+
+            if (jsonError.TryGetProperty("code", out var code)
+                && code.ValueKind is JsonValueKind.String)
+            {
+                errorBuilder.SetCode(code.GetString());
+            }
+
+            if (jsonError.TryGetProperty("extensions", out var extensions)
+                && extensions.ValueKind is JsonValueKind.Object)
+            {
+                foreach (var property in extensions.EnumerateObject())
+                {
+                    errorBuilder.SetExtension(property.Name, property.Value);
+                }
+            }
+
+            return errorBuilder.Build();
+        }
+
+        return null;
+    }
+
+    private static Path CreatePathFromJson(JsonElement errorSubPath)
+    {
+        var path = Path.Root;
+
+        for (var i = 0; i < errorSubPath.GetArrayLength(); i++)
+        {
+            path = errorSubPath[i] switch
+            {
+                { ValueKind: JsonValueKind.String } nameElement => path.Append(nameElement.GetString()!),
+                { ValueKind: JsonValueKind.Number } indexElement => path.Append(indexElement.GetInt32()),
+                _ => throw new InvalidOperationException("The error path contains an unsupported element."),
+            };
+        }
+
+        return path;
     }
 }

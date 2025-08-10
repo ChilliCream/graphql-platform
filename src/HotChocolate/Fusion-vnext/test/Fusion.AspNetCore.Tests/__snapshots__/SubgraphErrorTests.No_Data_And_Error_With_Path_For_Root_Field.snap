@@ -2,6 +2,14 @@
   "data": {
     "productById": null
   },
+  "errors": [
+    {
+      "message": "Could not resolve Product",
+      "path": [
+        "productById"
+      ]
+    }
+  ],
   "extensions": {
     "fusion": {
       "operationPlan": {

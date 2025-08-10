@@ -68,6 +68,62 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
     }
 
     /// <summary>
+    /// Appends another path to this path.
+    /// </summary>
+    /// <param name="path">
+    /// The other path.
+    /// </param>
+    /// <returns>
+    /// the combined path.
+    /// </returns>
+    public Path Append(Path path)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+
+        if (path.IsRoot)
+        {
+            return this;
+        }
+
+        var stack = new Stack<object>();
+        var current = path;
+
+        while (!current.IsRoot)
+        {
+            switch (current)
+            {
+                case IndexerPathSegment indexer:
+                    stack.Push(indexer.Index);
+                    break;
+
+                case NamePathSegment name:
+                    stack.Push(name.Name);
+                    break;
+
+                default:
+                    throw new NotSupportedException("Unsupported path segment type.");
+            }
+
+            current = current.Parent;
+        }
+
+        var newPath = this;
+
+        while (stack.Count > 0)
+        {
+            var segment = stack.Pop();
+            newPath = segment switch
+            {
+                string name => newPath.Append(name),
+                int index => newPath.Append(index),
+                _ => throw new NotSupportedException("Unsupported path segment type.")
+            };
+        }
+
+        return newPath;
+    }
+
+    /// <summary>
     /// Generates a string that represents the current path.
     /// </summary>
     /// <returns>

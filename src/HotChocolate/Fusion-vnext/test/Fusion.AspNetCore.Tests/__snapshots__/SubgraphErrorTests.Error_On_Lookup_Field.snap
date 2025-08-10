@@ -5,6 +5,14 @@
       "name": null
     }
   },
+  "errors": [
+    {
+      "message": "Could not resolve Product",
+      "path": [
+        "topProduct"
+      ]
+    }
+  ],
   "extensions": {
     "fusion": {
       "operationPlan": {

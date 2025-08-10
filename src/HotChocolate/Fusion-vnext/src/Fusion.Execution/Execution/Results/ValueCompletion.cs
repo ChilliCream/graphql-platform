@@ -38,19 +38,27 @@ internal sealed class ValueCompletion
 
     public bool BuildResult(
         SelectionSet selectionSet,
-        JsonElement? data,
+        JsonElement data,
         ErrorTrie? errorTrie,
         ObjectResult objectResult)
     {
         if (data is not { ValueKind: JsonValueKind.Object })
         {
-            if (errorTrie?.GetFirstError() is { } jsonError)
+            // If we encounter a null, we check if there's an error on this field
+            // or somewhere below. If there is, we add the error, since it likely
+            // propagated and erased the current field result.
+            if (errorTrie?.FindPathToFirstError() is { } pathToFirstError)
             {
-                var error = ErrorUtils.CreateErrorBuilder(jsonError)?.Build();
-                if (error is not null)
-                {
-                    _errors.Add(error);
-                }
+                var path = Path.FromList(pathToFirstError.Path);
+
+                var errorWithPath = ErrorBuilder.FromError(pathToFirstError.Error)
+                    .SetPath(objectResult.Path.Append(path))
+
+                    // We should add the location here, but not sure if it's worth it to iterate the
+                    // selections for it.
+                    .Build();
+
+                _errors.Add(errorWithPath);
             }
 
             return false;
@@ -65,7 +73,7 @@ internal sealed class ValueCompletion
 
             var fieldResult = objectResult[selection.ResponseName];
 
-            if (data.Value.TryGetProperty(selection.ResponseName, out var element))
+            if (data.TryGetProperty(selection.ResponseName, out var element))
             {
                 ErrorTrie? errorTrieForResponseName = null;
                 errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
@@ -119,10 +127,13 @@ internal sealed class ValueCompletion
             if (data.IsNullOrUndefined() && _errorHandling is ErrorHandling.Propagate)
             {
                 parent.SetNextValueNull();
-                if (errorTrie?.Error is { } jsonError
-                    && CreateErrorFromJson(jsonError, parent.Path, selection.SyntaxNodes[0].Node) is { } error)
+                if (errorTrie?.Error is { } error)
                 {
-                    _errors.Add(error);
+                    var errorWithPath = ErrorBuilder.FromError(error)
+                        .SetPath(parent.Path)
+                        .AddLocation(selection.SyntaxNodes[0].Node)
+                        .Build();
+                    _errors.Add(errorWithPath);
                 }
                 return false;
             }
@@ -133,10 +144,13 @@ internal sealed class ValueCompletion
         if (data.IsNullOrUndefined())
         {
             parent.SetNextValueNull();
-            if (errorTrie?.Error is { } jsonError
-                && CreateErrorFromJson(jsonError, parent.Path, selection.SyntaxNodes[0].Node) is { } error)
+            if (errorTrie?.Error is { } error)
             {
-                _errors.Add(error);
+                var errorWithPath = ErrorBuilder.FromError(error)
+                    .SetPath(parent.Path)
+                    .AddLocation(selection.SyntaxNodes[0].Node)
+                    .Build();
+                _errors.Add(errorWithPath);
             }
             return true;
         }
@@ -311,21 +325,6 @@ internal sealed class ValueCompletion
             errorTrie,
             depth,
             parent);
-
-    private static IError? CreateErrorFromJson(JsonElement jsonError, Path path, ISyntaxNode syntaxNode)
-    {
-        var errorBuilder = ErrorUtils.CreateErrorBuilder(jsonError);
-
-        if (errorBuilder is null)
-        {
-            return null;
-        }
-
-        errorBuilder.SetPath(path);
-        errorBuilder.AddLocation(syntaxNode);
-
-        return errorBuilder.Build();
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IObjectTypeDefinition GetType(IType type, JsonElement data)
