@@ -9,8 +9,6 @@ using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Resolvers.ResolveResultHelper;
 using static HotChocolate.Resolvers.SubscribeResultHelper;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers;
 
 /// <summary>

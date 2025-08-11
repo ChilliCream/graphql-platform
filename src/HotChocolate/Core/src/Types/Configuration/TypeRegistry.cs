@@ -4,8 +4,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
 
-#nullable  enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class TypeRegistry

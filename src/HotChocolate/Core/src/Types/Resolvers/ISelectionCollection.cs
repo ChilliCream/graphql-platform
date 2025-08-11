@@ -1,4 +1,3 @@
-#nullable enable
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 
