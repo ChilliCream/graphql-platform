@@ -47,6 +47,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="System.Reactive" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
@@ -102,9 +103,6 @@
       <DependentUpon>WorkScheduler.cs</DependentUpon>
     </Compile>
     <Compile Update="Processing\WorkScheduler.Execute.cs">
-      <DependentUpon>WorkScheduler.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Processing\WorkScheduler.Pause.cs">
       <DependentUpon>WorkScheduler.cs</DependentUpon>
     </Compile>
     <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.Convention.cs">

@@ -10,10 +10,11 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     private readonly object _sync = new();
     private readonly WorkQueue _work = new();
     private readonly WorkQueue _serial = new();
-    private readonly ProcessingPause _pause = new();
+    private readonly AsyncManualResetEvent _pause = new();
 
     private RequestContext _requestContext = null!;
     private IBatchDispatcher _batchDispatcher = null!;
+    private IDisposable _batchDispatcherSession = null!;
     private IErrorHandler _errorHandler = null!;
     private ResultBuilder _result = null!;
     private IExecutionDiagnosticEvents _diagnosticEvents = null!;
@@ -26,7 +27,7 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     public void Initialize(IBatchDispatcher batchDispatcher)
     {
         _batchDispatcher = batchDispatcher;
-        _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
+        _batchDispatcherSession = _batchDispatcher.Subscribe(this);
 
         _errorHandler = operationContext.ErrorHandler;
         _result = operationContext.Result;
@@ -51,7 +52,8 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
         _serial.Clear();
         _pause.Reset();
 
-        _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
+        _batchDispatcherSession.Dispose();
+        _batchDispatcherSession = null!;
         _batchDispatcher = null!;
 
         _requestContext = null!;

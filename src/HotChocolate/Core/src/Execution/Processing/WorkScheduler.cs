@@ -34,7 +34,7 @@ internal sealed partial class WorkScheduler
             work.Push(task);
         }
 
-        _pause.TryContinue();
+        _pause.Set();
     }
 
     /// <summary>
@@ -62,7 +62,7 @@ internal sealed partial class WorkScheduler
             }
         }
 
-        _pause.TryContinue();
+        _pause.Set();
     }
 
     /// <summary>
@@ -81,7 +81,7 @@ internal sealed partial class WorkScheduler
             {
                 lock (_sync)
                 {
-                    _pause.TryContinue();
+                    _pause.Set();
                 }
             }
         }

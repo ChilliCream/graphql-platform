@@ -1,12 +1,12 @@
 namespace HotChocolate.Subscriptions.Postgres;
 
-public class AsyncAutoResetEventTests
+public class AsyncManualResetEventTests
 {
     [Fact]
     public async Task Set_Should_SetResult_When_Called()
     {
         // Arrange
-        var autoResetEvent = new AsyncAutoResetEvent();
+        var autoResetEvent = new AsyncResetEvent();
 
         // Act
         var waitTask = autoResetEvent.WaitAsync(CancellationToken.None);
@@ -21,7 +21,7 @@ public class AsyncAutoResetEventTests
     public void Set_Should_Throw_When_Disposed()
     {
         // Arrange
-        var autoResetEvent = new AsyncAutoResetEvent();
+        var autoResetEvent = new AsyncResetEvent();
         autoResetEvent.Dispose();
 
         // Act & Assert
@@ -32,7 +32,7 @@ public class AsyncAutoResetEventTests
     public async Task WaitAsync_Should_Throw_When_Disposed()
     {
         // Arrange
-        var autoResetEvent = new AsyncAutoResetEvent();
+        var autoResetEvent = new AsyncResetEvent();
         autoResetEvent.Dispose();
 
         // Act & Assert
@@ -44,7 +44,7 @@ public class AsyncAutoResetEventTests
     public void WaitAsync_Should_ReturnCompletedTask_When_PreviouslySet()
     {
         // Arrange
-        var autoResetEvent = new AsyncAutoResetEvent();
+        var autoResetEvent = new AsyncResetEvent();
         autoResetEvent.Set();
 
         // Act
@@ -58,7 +58,7 @@ public class AsyncAutoResetEventTests
     public void Set_Should_NotThrow_When_MultipleSetsCalled()
     {
         // Arrange
-        var autoResetEvent = new AsyncAutoResetEvent();
+        var autoResetEvent = new AsyncResetEvent();
 
         // Act & Assert
         autoResetEvent.Set();
@@ -69,7 +69,7 @@ public class AsyncAutoResetEventTests
     public async Task Set_Should_OnlyAllowOneTaskToComplete_When_MultipleWaitsAndSingleSet()
     {
         // Arrange
-        var autoResetEvent = new AsyncAutoResetEvent();
+        var autoResetEvent = new AsyncResetEvent();
 
         // Act
         var task1 = autoResetEvent.WaitAsync(CancellationToken.None);
@@ -85,7 +85,7 @@ public class AsyncAutoResetEventTests
     public async Task Set_Should_AllowMultipleTasksToComplete_When_MultipleWaitsAndMultipleSets()
     {
         // Arrange
-        var autoResetEvent = new AsyncAutoResetEvent();
+        var autoResetEvent = new AsyncResetEvent();
 
         // Act
         var task1 = autoResetEvent.WaitAsync(CancellationToken.None);
@@ -102,7 +102,7 @@ public class AsyncAutoResetEventTests
     public async Task Dispose_Should_CancelTask_When_DisposedDuringWait()
     {
         // Arrange
-        var autoResetEvent = new AsyncAutoResetEvent();
+        var autoResetEvent = new AsyncResetEvent();
 
         // Act
         var task = autoResetEvent.WaitAsync(CancellationToken.None);
@@ -117,7 +117,7 @@ public class AsyncAutoResetEventTests
     public async Task WaitAsync_Should_ReturnFalse_When_CancellationTokenCancelledBeforeSet()
     {
         // Arrange
-        var autoResetEvent = new AsyncAutoResetEvent();
+        var autoResetEvent = new AsyncResetEvent();
         var cancellationTokenSource = new CancellationTokenSource();
         cancellationTokenSource.Cancel();
 

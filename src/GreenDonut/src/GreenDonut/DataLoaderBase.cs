@@ -335,7 +335,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         }
     }
 
-    private ValueTask DispatchBatchAsync(
+    internal ValueTask DispatchBatchAsync(
         Batch<TKey> batch,
         CancellationToken cancellationToken)
     {
@@ -405,7 +405,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             }
         }
 
-        var newBatch = _currentBatch = BatchPool<TKey>.Shared.Get();
+        var newBatch = _currentBatch = RentBatch(ct);
         var newPromise = newBatch.GetOrCreatePromise<TValue?>(key, allowCachePropagation);
 
         if (scheduleOnNewBatch)
@@ -419,7 +419,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     private void ScheduleBatchUnsafe(Batch<TKey> batch, CancellationToken ct)
     {
         batch.IsScheduled = true;
-        _batchScheduler.Schedule(() => DispatchBatchAsync(batch, ct));
+        _batchScheduler.Schedule(batch);
     }
 
     private void SetSingleResult(
@@ -518,4 +518,11 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// </returns>
     protected static string GetCacheKeyType(Type type)
         => type.FullName ?? type.Name;
+
+    private Batch<TKey> RentBatch(CancellationToken ct)
+    {
+        var batch = BatchPool<TKey>.Shared.Get();
+        batch.Initialize(DispatchBatchAsync, ct);
+        return batch;
+    }
 }

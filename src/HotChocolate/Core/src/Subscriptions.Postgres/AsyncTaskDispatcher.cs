@@ -3,7 +3,7 @@ namespace HotChocolate.Subscriptions.Postgres;
 internal sealed class AsyncTaskDispatcher : IAsyncDisposable
 {
     private readonly TaskCompletionSource<bool> _initialize = new();
-    private readonly AsyncAutoResetEvent _event = new();
+    private readonly AsyncResetEvent _event = new();
     private readonly SemaphoreSlim _sync = new(1, 1);
     private readonly Func<CancellationToken, Task> _handler;
     private readonly ContinuousTask _eventProcessorTask;

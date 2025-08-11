@@ -4,18 +4,18 @@ namespace GreenDonut;
 
 public class ManualBatchScheduler : IBatchScheduler
 {
-    private readonly ConcurrentQueue<Func<ValueTask>> _queue = new();
+    private readonly ConcurrentQueue<Batch> _queue = new();
+
+    public void Schedule(Batch batch)
+    {
+        _queue.Enqueue(batch);
+    }
 
     public void Dispatch()
     {
-        while (_queue.TryDequeue(out var dispatch))
+        while (_queue.TryDequeue(out var batch))
         {
-            Task.Run(async () => await dispatch());
+            Task.Run(async () => await batch.DispatchAsync());
         }
-    }
-
-    public void Schedule(Func<ValueTask> dispatch)
-    {
-        _queue.Enqueue(dispatch);
     }
 }

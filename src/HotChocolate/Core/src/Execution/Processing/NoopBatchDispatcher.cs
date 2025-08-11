@@ -1,3 +1,5 @@
+using System.Reactive.Disposables;
+using GreenDonut;
 using HotChocolate.Fetching;
 
 namespace HotChocolate.Execution.Processing;
@@ -5,11 +7,20 @@ namespace HotChocolate.Execution.Processing;
 #pragma warning disable CS0067
 internal sealed class NoopBatchDispatcher : IBatchDispatcher
 {
-    public event EventHandler? TaskEnqueued;
+    public void Schedule(Batch batch)
+    {
+    }
 
-    public bool DispatchOnSchedule { get; set; }
+    public IDisposable Subscribe(IObserver<BatchDispatchEventArgs> observer)
+        => Disposable.Empty;
 
-    public void BeginDispatch(CancellationToken cancellationToken) { }
+    public void BeginDispatch(CancellationToken cancellationToken = default)
+    {
+    }
 
-    public static NoopBatchDispatcher Default { get; } = new();
+    public void Dispose()
+    {
+    }
+
+    public static NoopBatchDispatcher Instance { get; } = new();
 }

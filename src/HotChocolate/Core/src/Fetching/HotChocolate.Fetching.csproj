@@ -29,6 +29,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>FetchingResources.resx</DependentUpon>
     </Compile>
+    <Compile Update="BatchSchedulercs.cs">
+      <DependentUpon>BatchDispatcher.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

@@ -6,20 +6,20 @@ namespace GreenDonut;
 public class AutoBatchScheduler : IBatchScheduler
 {
     /// <summary>
-    /// Schedules a new job to the dispatcher that is immediately executed.
+    /// Schedules a new batch that is immediately executed.
     /// </summary>
-    /// <param name="dispatch">
-    /// The job that is being scheduled.
+    /// <param name="batch">
+    /// The batch.
     /// </param>
-    public void Schedule(Func<ValueTask> dispatch)
-        => BeginDispatch(dispatch);
+    public void Schedule(Batch batch)
+        => BeginDispatch(batch);
 
-    private static void BeginDispatch(Func<ValueTask> dispatch)
+    private static void BeginDispatch(Batch batch)
         => Task.Run(async () =>
         {
             try
             {
-                await dispatch().ConfigureAwait(false);
+                await batch.DispatchAsync().ConfigureAwait(false);
             }
             catch
             {

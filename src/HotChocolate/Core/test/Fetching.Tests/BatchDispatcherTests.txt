@@ -3,7 +3,7 @@ using Moq;
 
 namespace HotChocolate.Fetching;
 
-public class BatchSchedulerTests
+public class BatchDispatcherTests
 {
     [Fact]
     public void Dispatch_OneAction_ShouldDispatchOneAction()
@@ -13,8 +13,8 @@ public class BatchSchedulerTests
         context.Setup(t => t.Register(It.IsAny<IExecutionTask>()));
         var hasTask = false;
 
-        var scheduler = new BatchScheduler();
-        scheduler.TaskEnqueued += (_, _) => hasTask = true;
+        var scheduler = new BatchDispatcher();
+        scheduler.Enqueued += (_, _) => hasTask = true;
 
         ValueTask Dispatch() => default;
 
@@ -33,7 +33,7 @@ public class BatchSchedulerTests
     public void Initialize_Nothing_ShouldMatchSnapshot()
     {
         // act
-        var scheduler = new BatchScheduler();
+        var scheduler = new BatchDispatcher();
 
         // assert
         scheduler.MatchSnapshot();
@@ -44,8 +44,8 @@ public class BatchSchedulerTests
     {
         // arrange
         var hasTask = false;
-        var scheduler = new BatchScheduler();
-        scheduler.TaskEnqueued += (_, _) => hasTask = true;
+        var scheduler = new BatchDispatcher();
+        scheduler.Enqueued += (_, _) => hasTask = true;
         ValueTask Dispatch() => default;
 
         // act
@@ -60,10 +60,10 @@ public class BatchSchedulerTests
     {
         // arrange
         var hasBeenRaised = false;
-        var scheduler = new BatchScheduler();
+        var scheduler = new BatchDispatcher();
         ValueTask Dispatch() => default;
 
-        scheduler.TaskEnqueued += (_, _) => hasBeenRaised = true;
+        scheduler.Enqueued += (_, _) => hasBeenRaised = true;
 
         // act
         scheduler.Schedule(Dispatch);

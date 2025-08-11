@@ -7,10 +7,10 @@ namespace GreenDonut;
 public interface IBatchScheduler
 {
     /// <summary>
-    /// Schedules work.
+    /// Schedules a batch.
     /// </summary>
-    /// <param name="dispatch">
-    /// A delegate that represents the work.
+    /// <param name="batch">
+    /// The batch that was scheduled for execution.
     /// </param>
-    void Schedule(Func<ValueTask> dispatch);
+    void Schedule(Batch batch);
 }
