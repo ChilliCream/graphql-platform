@@ -23,4 +23,31 @@ internal static class FileNames
 
     public static string GetSourceSchemaSettingsPath(string schemaName)
         => string.Format(SourceSchemaSettingsFormat, schemaName);
+
+    public static FileKind GetFileKind(string fileName)
+    {
+        switch (Path.GetFileName(fileName))
+        {
+            case "gateway.graphqls":
+            case "schema.graphqls":
+                return FileKind.Schema;
+
+            case "schema-settings.json":
+            case "gateway-settings.json":
+            case "composition-settings.json":
+                return FileKind.Settings;
+
+            case "archive-metadata.json":
+                return FileKind.Metadata;
+
+            case "manifest.json":
+                return FileKind.Manifest;
+
+            case "signature.json":
+                return FileKind.Signature;
+
+            default:
+                return FileKind.Settings;
+        }
+    }
 }

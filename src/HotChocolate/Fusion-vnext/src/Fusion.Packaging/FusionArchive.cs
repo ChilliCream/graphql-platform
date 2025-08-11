@@ -26,13 +26,17 @@ public sealed class FusionArchive : IDisposable
     private ArchiveMetadata? _metadata;
     private bool _disposed;
 
-    private FusionArchive(Stream stream, FusionArchiveMode mode, bool leaveOpen = false)
+    private FusionArchive(
+        Stream stream,
+        FusionArchiveMode mode,
+        bool leaveOpen,
+        FusionArchiveReadOptions  options)
     {
         _stream = stream;
         _mode = mode;
         _leaveOpen = leaveOpen;
         _archive = new ZipArchive(stream, (ZipArchiveMode)mode, leaveOpen);
-        _session = new ArchiveSession(_archive, mode);
+        _session = new ArchiveSession(_archive, mode, options);
     }
 
     /// <summary>
@@ -57,7 +61,7 @@ public sealed class FusionArchive : IDisposable
     public static FusionArchive Create(Stream stream, bool leaveOpen = false)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        return new FusionArchive(stream, FusionArchiveMode.Create, leaveOpen);
+        return new FusionArchive(stream, FusionArchiveMode.Create, leaveOpen, FusionArchiveReadOptions.Default);
     }
 
     /// <summary>
@@ -89,15 +93,20 @@ public sealed class FusionArchive : IDisposable
     /// <param name="stream">The stream containing the archive data.</param>
     /// <param name="mode">The mode to open the archive in.</param>
     /// <param name="leaveOpen">True to leave the stream open after disposal; otherwise, false.</param>
+    /// <param name="options">The options to use when reading from the archive.</param>
     /// <returns>A FusionArchive instance opened in the specified mode.</returns>
     /// <exception cref="ArgumentNullException">Thrown when stream is null.</exception>
     public static FusionArchive Open(
         Stream stream,
         FusionArchiveMode mode = FusionArchiveMode.Read,
-        bool leaveOpen = false)
+        bool leaveOpen = false,
+        FusionArchiveOptions options = default)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        return new FusionArchive(stream, mode, leaveOpen);
+        var readOptions = new FusionArchiveReadOptions(
+            options.MaxAllowedSchemaSize ?? FusionArchiveReadOptions.Default.MaxAllowedSchemaSize,
+            options.MaxAllowedSettingsSize ?? FusionArchiveReadOptions.Default.MaxAllowedSettingsSize);
+        return new FusionArchive(stream, mode, leaveOpen, readOptions);
     }
 
     /// <summary>
@@ -156,7 +165,7 @@ public sealed class FusionArchive : IDisposable
             return _metadata;
         }
 
-        if (!await _session.ExistsAsync(FileNames.ArchiveMetadata, cancellationToken))
+        if (!await _session.ExistsAsync(FileNames.ArchiveMetadata, FileKind.Metadata, cancellationToken))
         {
             return null;
         }
@@ -165,7 +174,10 @@ public sealed class FusionArchive : IDisposable
 
         try
         {
-            await using var stream = await _session.OpenReadAsync(FileNames.ArchiveMetadata, cancellationToken);
+            await using var stream = await _session.OpenReadAsync(
+                FileNames.ArchiveMetadata,
+                FileKind.Metadata,
+                cancellationToken);
             await stream.CopyToAsync(buffer, cancellationToken);
             var metadata = ArchiveMetadataSerializer.Parse(buffer.WrittenMemory);
             _metadata = metadata;
@@ -292,12 +304,15 @@ public sealed class FusionArchive : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (!await _session.ExistsAsync(FileNames.CompositionSettings, cancellationToken))
+        if (!await _session.ExistsAsync(FileNames.CompositionSettings, FileKind.Settings, cancellationToken))
         {
             return null;
         }
 
-        await using var stream = await _session.OpenReadAsync(FileNames.CompositionSettings, cancellationToken);
+        await using var stream = await _session.OpenReadAsync(
+            FileNames.CompositionSettings,
+            FileKind.Settings,
+            cancellationToken);
         return await JsonDocument.ParseAsync(stream, default, cancellationToken);
     }
 
@@ -408,37 +423,19 @@ public sealed class FusionArchive : IDisposable
             return null;
         }
 
-        var buffer = TryRentBuffer();
-
-        try
+        JsonDocument settings;
+        await using (var stream = await _session.OpenReadAsync(
+            FileNames.GetGatewaySettingsPath(version),
+            FileKind.Settings,
+            cancellationToken))
         {
-            byte[] schema;
-            int schemaLength;
-            JsonDocument settings;
-
-            await using (var stream = await _session.OpenReadAsync(
-                FileNames.GetGatewaySchemaPath(version),
-                cancellationToken))
-            {
-                await stream.CopyToAsync(buffer, cancellationToken);
-                schema = ArrayPool<byte>.Shared.Rent(buffer.WrittenCount);
-                buffer.WrittenSpan.CopyTo(schema);
-                schemaLength  = buffer.WrittenCount;
-            }
-
-            await using (var stream = await _session.OpenReadAsync(
-                FileNames.GetGatewaySettingsPath(version),
-                cancellationToken))
-            {
-                settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
-            }
-
-            return new GatewayConfiguration(schema, schemaLength, settings, version);
+            settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
         }
-        finally
-        {
-            TryReturnBuffer(buffer);
-        }
+
+        return new GatewayConfiguration(OpenReadSchemaAsync,  settings, version);
+
+        Task<Stream> OpenReadSchemaAsync(CancellationToken ct)
+            => _session.OpenReadAsync(FileNames.GetGatewaySchemaPath(version), FileKind.Schema, ct);
     }
 
     /// <summary>
@@ -513,42 +510,27 @@ public sealed class FusionArchive : IDisposable
         ArgumentNullException.ThrowIfNull(schemaName);
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (!await _session.ExistsAsync(FileNames.GetSourceSchemaPath(schemaName), cancellationToken))
+        if (!await _session.ExistsAsync(
+            FileNames.GetSourceSchemaPath(schemaName),
+            FileKind.Schema,
+            cancellationToken))
         {
             return null;
         }
 
-        var buffer = TryRentBuffer();
-
-        try
+        JsonDocument settings;
+        await using (var stream = await _session.OpenReadAsync(
+            FileNames.GetSourceSchemaSettingsPath(schemaName),
+            FileKind.Settings,
+            cancellationToken))
         {
-            byte[] schema;
-            int schemaLength;
-            JsonDocument settings;
-
-            await using (var stream = await _session.OpenReadAsync(
-                FileNames.GetSourceSchemaPath(schemaName),
-                cancellationToken))
-            {
-                await stream.CopyToAsync(buffer, cancellationToken);
-                schema = ArrayPool<byte>.Shared.Rent(buffer.WrittenCount);
-                buffer.WrittenSpan.CopyTo(schema);
-                schemaLength = buffer.WrittenCount;
-            }
-
-            await using (var stream = await _session.OpenReadAsync(
-                FileNames.GetSourceSchemaSettingsPath(schemaName),
-                cancellationToken))
-            {
-                settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
-            }
-
-            return new SourceSchemaConfiguration(schema, schemaLength, settings);
+            settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
         }
-        finally
-        {
-            TryReturnBuffer(buffer);
-        }
+
+        return new SourceSchemaConfiguration(OpenReadSchemaAsync, settings);
+
+        Task<Stream> OpenReadSchemaAsync(CancellationToken ct)
+            => _session.OpenReadAsync(FileNames.GetSourceSchemaPath(schemaName), FileKind.Schema, ct);
     }
 
     /// <summary>
@@ -618,8 +600,14 @@ public sealed class FusionArchive : IDisposable
         X509Certificate2 publicKey,
         CancellationToken cancellationToken = default)
     {
-        var manifestExists = await _session.ExistsAsync(FileNames.SignatureManifest, cancellationToken);
-        var signatureExists = await _session.ExistsAsync(FileNames.Signature, cancellationToken);
+        var manifestExists = await _session.ExistsAsync(
+            FileNames.SignatureManifest,
+            FileKind.Manifest,
+            cancellationToken);
+        var signatureExists = await _session.ExistsAsync(
+            FileNames.Signature,
+            FileKind.Signature,
+            cancellationToken);
 
         if (!manifestExists || !signatureExists)
         {
@@ -633,9 +621,11 @@ public sealed class FusionArchive : IDisposable
             // 1. Load manifest and signature
             await using var manifestStream = await _session.OpenReadAsync(
                 FileNames.SignatureManifest,
+                FileKind.Manifest,
                 cancellationToken);
             await using var signatureStream = await _session.OpenReadAsync(
                 FileNames.Signature,
+                FileKind.Signature,
                 cancellationToken);
             await manifestStream.CopyToAsync(buffer, cancellationToken);
             var manifest = SignatureManifestSerializer.Parse(buffer.WrittenMemory);
@@ -648,12 +638,14 @@ public sealed class FusionArchive : IDisposable
             // 2. Verify file integrity
             foreach (var file in manifest.Files.OrderBy(t => t.Key))
             {
-                if (!await _session.ExistsAsync(file.Key, cancellationToken))
+                var kind = FileNames.GetFileKind(file.Key);
+
+                if (!await _session.ExistsAsync(file.Key, kind, cancellationToken))
                 {
                     return SignatureVerificationResult.FilesMissing;
                 }
 
-                var actualHash = await ComputeFileHashAsync(file.Key, cancellationToken);
+                var actualHash = await ComputeFileHashAsync(file.Key, kind, cancellationToken);
                 if (!actualHash.Equals(file.Value, StringComparison.OrdinalIgnoreCase))
                 {
                     return SignatureVerificationResult.FilesModified;
@@ -702,8 +694,14 @@ public sealed class FusionArchive : IDisposable
     public async Task<SignatureInfo?> GetSignatureInfoAsync(
         CancellationToken cancellationToken = default)
     {
-        var manifestExists = await _session.ExistsAsync(FileNames.SignatureManifest, cancellationToken);
-        var signatureExists = await _session.ExistsAsync(FileNames.Signature, cancellationToken);
+        var manifestExists = await _session.ExistsAsync(
+            FileNames.SignatureManifest,
+            FileKind.Manifest,
+            cancellationToken);
+        var signatureExists = await _session.ExistsAsync(
+            FileNames.Signature,
+            FileKind.Signature,
+            cancellationToken);
 
         if (!manifestExists || !signatureExists)
         {
@@ -716,9 +714,11 @@ public sealed class FusionArchive : IDisposable
         {
             await using var manifestStream = await _session.OpenReadAsync(
                 FileNames.SignatureManifest,
+                FileKind.Manifest,
                 cancellationToken);
             await using var signatureStream = await _session.OpenReadAsync(
                 FileNames.Signature,
+                FileKind.Signature,
                 cancellationToken);
 
             await manifestStream.CopyToAsync(buffer, 1024, cancellationToken);
@@ -799,7 +799,8 @@ public sealed class FusionArchive : IDisposable
                 continue;
             }
 
-            files[path] = await ComputeFileHashAsync(path, cancellationToken);
+            var kind = FileNames.GetFileKind(path);
+            files[path] = await ComputeFileHashAsync(path, kind, cancellationToken);
         }
 
         var manifest = new SignatureManifest
@@ -822,9 +823,9 @@ public sealed class FusionArchive : IDisposable
         }
     }
 
-    private async Task<string> ComputeFileHashAsync(string path, CancellationToken cancellationToken)
+    private async Task<string> ComputeFileHashAsync(string path, FileKind kind, CancellationToken cancellationToken)
     {
-        await using var stream = await _session.OpenReadAsync(path, cancellationToken);
+        await using var stream = await _session.OpenReadAsync(path, kind, cancellationToken);
         using var sha256 = SHA256.Create();
         var hashBytes = await sha256.ComputeHashAsync(stream, cancellationToken);
 #if NET9_0_OR_GREATER
@@ -941,73 +942,5 @@ file static class Extensions
                 buffer.Advance(bytesRead);
             }
         } while (bytesRead > 0);
-    }
-}
-
-public sealed class GatewayConfiguration : IDisposable
-{
-    private byte[] _schema;
-    private int _schemaLength;
-    private bool _disposed;
-
-    internal GatewayConfiguration(byte[] schema, int schemaLength, JsonDocument settings, Version version)
-    {
-        ArgumentNullException.ThrowIfNull(schema);
-        ArgumentNullException.ThrowIfNull(settings);
-
-        _schema = schema;
-        _schemaLength = schemaLength;
-        Settings = settings;
-        Version = version;
-    }
-
-    public Version Version { get; }
-
-    public ReadOnlySpan<byte> Schema => _schema.AsSpan(0, _schemaLength);
-
-    public JsonDocument Settings { get; }
-
-    public void Dispose()
-    {
-        if (!_disposed)
-        {
-            _disposed = true;
-            Settings.Dispose();
-            ArrayPool<byte>.Shared.Return(_schema);
-            _schema = null!;
-        }
-    }
-}
-
-public sealed class SourceSchemaConfiguration : IDisposable
-{
-    private byte[] _schema;
-    private int _schemaLength;
-    private bool _disposed;
-
-    internal SourceSchemaConfiguration(byte[] schema, int schemaLength, JsonDocument settings)
-    {
-        ArgumentNullException.ThrowIfNull(schema);
-        ArgumentNullException.ThrowIfNull(settings);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(schemaLength);
-
-        _schema = schema;
-        _schemaLength = schemaLength;
-        Settings = settings;
-    }
-
-    public ReadOnlySpan<byte> Schema => _schema.AsSpan(0, _schemaLength);
-
-    public JsonDocument Settings { get; }
-
-    public void Dispose()
-    {
-        if (!_disposed)
-        {
-            _disposed = true;
-            Settings.Dispose();
-            ArrayPool<byte>.Shared.Return(_schema);
-            _schema = null!;
-        }
     }
 }

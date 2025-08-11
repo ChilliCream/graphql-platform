@@ -161,8 +161,11 @@ public class FusionArchiveTests : IDisposable
         Assert.NotNull(result);
         Assert.Equal(version, result.Version);
 
-        var retrievedSchema = Encoding.UTF8.GetString(result.Schema);
-        Assert.Equal(schema, retrievedSchema);
+        using (var streamReader = new StreamReader(await result.OpenReadSchemaAsync()))
+        {
+            var retrievedSchema = await streamReader.ReadToEndAsync();
+            Assert.Equal(schema, retrievedSchema);
+        }
 
         result.Dispose();
     }
@@ -187,7 +190,12 @@ public class FusionArchiveTests : IDisposable
 
         Assert.NotNull(result);
         Assert.Equal(version, result.Version);
-        Assert.Equal(schema, result.Schema.ToArray());
+
+        using (var streamReader = new StreamReader(await result.OpenReadSchemaAsync()))
+        {
+            var retrievedSchema = await streamReader.ReadToEndAsync();
+            Assert.Equal(Encoding.UTF8.GetString(schema), retrievedSchema);
+        }
 
         result.Dispose();
     }
@@ -243,8 +251,11 @@ public class FusionArchiveTests : IDisposable
         Assert.NotNull(result);
         Assert.Equal(new Version("2.0.0"), result.Version);
 
-        var schema = Encoding.UTF8.GetString(result.Schema);
-        Assert.Equal("schema v2.0", schema);
+        using (var streamReader = new StreamReader(await result.OpenReadSchemaAsync()))
+        {
+            var retrievedSchema = await streamReader.ReadToEndAsync();
+            Assert.Equal("schema v2.0", retrievedSchema);
+        }
 
         result.Dispose();
     }
@@ -288,7 +299,10 @@ public class FusionArchiveTests : IDisposable
         var found = await archive.TryGetSourceSchemaConfigurationAsync(schemaName);
 
         Assert.NotNull(found);
-        Assert.True(schemaContent.AsSpan().SequenceEqual(found.Schema));
+
+        using var streamReader = new StreamReader(await found.OpenReadSchemaAsync());
+        var retrievedSchema = await streamReader.ReadToEndAsync();
+        Assert.Equal(Encoding.UTF8.GetString(schemaContent), retrievedSchema);
     }
 
     [Fact]
@@ -460,7 +474,8 @@ public class FusionArchiveTests : IDisposable
             var result = await readArchive.TryGetGatewayConfigurationAsync(new Version("2.0.0"));
             Assert.NotNull(result);
 
-            var retrievedSchema = Encoding.UTF8.GetString(result.Schema);
+            using var streamReader = new StreamReader(await result.OpenReadSchemaAsync());
+            var retrievedSchema = await streamReader.ReadToEndAsync();
             Assert.Equal(schema, retrievedSchema);
 
             result.Dispose();
@@ -504,8 +519,9 @@ public class FusionArchiveTests : IDisposable
             var result = await readArchive.TryGetGatewayConfigurationAsync(new Version("2.0.0"));
             Assert.NotNull(result);
 
-            var schema = Encoding.UTF8.GetString(result.Schema);
-            Assert.Equal("modified schema", schema);
+            using var streamReader = new StreamReader(await result.OpenReadSchemaAsync());
+            var retrievedSchema = await streamReader.ReadToEndAsync();
+            Assert.Equal("modified schema", retrievedSchema);
 
             result.Dispose();
         }
@@ -530,8 +546,10 @@ public class FusionArchiveTests : IDisposable
         var result = await archive.TryGetGatewayConfigurationAsync(new Version("2.0.0"));
 
         Assert.NotNull(result);
-        var schema = Encoding.UTF8.GetString(result.Schema);
-        Assert.Equal("second schema", schema);
+
+        using var streamReader = new StreamReader(await result.OpenReadSchemaAsync());
+        var retrievedSchema = await streamReader.ReadToEndAsync();
+        Assert.Equal("second schema", retrievedSchema);
 
         result.Dispose();
     }
