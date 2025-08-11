@@ -1,6 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution;
