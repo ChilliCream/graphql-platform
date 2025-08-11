@@ -27,9 +27,7 @@ public sealed class IntegrationTests
         await storage.SaveToolDocumentAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNonNullableVariables.graphql")));
-        var server =
-            CreateTestServer(
-                services => services.AddSingleton<IMcpOperationDocumentStorage>(storage));
+        var server = CreateTestServer(b => b.AddMcpOperationDocumentStorage(storage));
         var mcpClient = await CreateMcpClient(server.CreateClient());
 
         // act
@@ -58,9 +56,7 @@ public sealed class IntegrationTests
         await storage.SaveToolDocumentAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql")));
-        var server =
-            CreateTestServer(
-                services => services.AddSingleton<IMcpOperationDocumentStorage>(storage));
+        var server = CreateTestServer(b => b.AddMcpOperationDocumentStorage(storage));
         var mcpClient = await CreateMcpClient(server.CreateClient());
 
         // act
@@ -110,9 +106,7 @@ public sealed class IntegrationTests
         await storage.SaveToolDocumentAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNonNullableVariables.graphql")));
-        var server =
-            CreateTestServer(
-                services => services.AddSingleton<IMcpOperationDocumentStorage>(storage));
+        var server = CreateTestServer(b => b.AddMcpOperationDocumentStorage(storage));
         var mcpClient = await CreateMcpClient(server.CreateClient());
 
         // act
@@ -163,9 +157,7 @@ public sealed class IntegrationTests
         await storage.SaveToolDocumentAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithDefaultedVariables.graphql")));
-        var server =
-            CreateTestServer(
-                services => services.AddSingleton<IMcpOperationDocumentStorage>(storage));
+        var server = CreateTestServer(b => b.AddMcpOperationDocumentStorage(storage));
         var mcpClient = await CreateMcpClient(server.CreateClient());
 
         // act
@@ -194,8 +186,9 @@ public sealed class IntegrationTests
                 await File.ReadAllTextAsync("__resources__/GetWithComplexVariables.graphql")));
         var server =
             CreateTestServer(
-                configureServices: s => s.AddSingleton<IMcpOperationDocumentStorage>(storage),
-                configureRequestExecutor: e => e.AddType(new TimeSpanType(TimeSpanFormat.DotNet)));
+                b => b
+                    .AddMcpOperationDocumentStorage(storage)
+                    .AddType(new TimeSpanType(TimeSpanFormat.DotNet)));
         var mcpClient = await CreateMcpClient(server.CreateClient());
 
         // act
@@ -242,9 +235,7 @@ public sealed class IntegrationTests
         var storage = new InMemoryMcpOperationDocumentStorage();
         await storage.SaveToolDocumentAsync(
             Utf8GraphQLParser.Parse("query GetWithErrors { withErrors }"));
-        var server =
-            CreateTestServer(
-                services => services.AddSingleton<IMcpOperationDocumentStorage>(storage));
+        var server = CreateTestServer(b => b.AddMcpOperationDocumentStorage(storage));
         var mcpClient = await CreateMcpClient(server.CreateClient());
 
         // act
@@ -267,15 +258,12 @@ public sealed class IntegrationTests
     private static readonly string[] s_list = ["test"];
 
     private static TestServer CreateTestServer(
-        Action<IServiceCollection>? configureServices = null,
         Action<IRequestExecutorBuilder>? configureRequestExecutor = null)
     {
         var builder = new WebHostBuilder()
             .ConfigureServices(
                 services =>
                 {
-                    configureServices?.Invoke(services);
-
                     var executor =
                         services
                             .AddRouting()

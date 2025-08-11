@@ -1,9 +1,7 @@
-using System.Text.Json;
 using CaseConverter;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.ModelContextProtocol.Extensions;
-using HotChocolate.ModelContextProtocol.JsonSerializerContexts;
 using HotChocolate.Types;
 using Json.Schema;
 using ModelContextProtocol.Protocol;
@@ -12,9 +10,9 @@ using static HotChocolate.ModelContextProtocol.WellKnownDirectiveNames;
 
 namespace HotChocolate.ModelContextProtocol.Factories;
 
-internal sealed class ToolFactory(ISchemaDefinition graphQLSchema)
+internal sealed class GraphQLMcpToolFactory(ISchemaDefinition graphQLSchema)
 {
-    public Tool CreateTool(string name, DocumentNode document)
+    public GraphQLMcpTool CreateTool(string name, DocumentNode document)
     {
         var operationNode = document.Definitions.OfType<OperationDefinitionNode>().Single();
         var mcpToolDirective = operationNode.GetMcpToolDirective();
@@ -27,14 +25,16 @@ internal sealed class ToolFactory(ISchemaDefinition graphQLSchema)
                     operationNode,
                     (ObjectType)graphQLSchema.GetOperationType(operationNode.Operation),
                     graphQLSchema));
+        var inputSchema = CreateInputSchema(operationNode);
+        var outputSchema = CreateOutputSchema(operation);
 
-        return new Tool
+        var tool = new Tool
         {
             Name = name,
             Title = mcpToolDirective?.Title ?? operation.Name!.InsertSpaceBeforeUpperCase(),
             Description = operationNode.Description?.Value,
-            InputSchema = CreateInputSchema(operationNode),
-            OutputSchema = CreateOutputSchema(operation),
+            InputSchema = inputSchema.ToJsonElement(),
+            OutputSchema = outputSchema.ToJsonElement(),
             Annotations = new ToolAnnotations
             {
                 DestructiveHint = GetDestructiveHint(operation),
@@ -43,9 +43,11 @@ internal sealed class ToolFactory(ISchemaDefinition graphQLSchema)
                 ReadOnlyHint = operationNode.Operation is not OperationType.Mutation
             }
         };
+
+        return new GraphQLMcpTool(operation, tool);
     }
 
-    private JsonElement CreateInputSchema(OperationDefinitionNode operation)
+    private JsonSchema CreateInputSchema(OperationDefinitionNode operation)
     {
         var properties = new Dictionary<string, JsonSchema>();
         var requiredProperties = new List<string>();
@@ -77,22 +79,17 @@ internal sealed class ToolFactory(ISchemaDefinition graphQLSchema)
             properties.Add(variableName, propertyBuilder);
         }
 
-        var schema =
+        return
             new JsonSchemaBuilder()
                 .Type(SchemaValueType.Object)
                 .Properties(properties)
                 .Required(requiredProperties)
                 .Build();
-
-        var json =
-            JsonSerializer.Serialize(schema, JsonSchemaJsonSerializerContext.Default.JsonSchema);
-
-        return JsonDocument.Parse(json).RootElement;
     }
 
-    private static JsonElement? CreateOutputSchema(IOperation operation)
+    private static JsonSchema CreateOutputSchema(IOperation operation)
     {
-        var schema =
+        return
             new JsonSchemaBuilder()
                 .Type(SchemaValueType.Object)
                 .Properties(
@@ -100,11 +97,6 @@ internal sealed class ToolFactory(ISchemaDefinition graphQLSchema)
                     (WellKnownFieldNames.Errors, s_errorSchema))
                 .AdditionalProperties(false)
                 .Build();
-
-        var json =
-            JsonSerializer.Serialize(schema, JsonSchemaJsonSerializerContext.Default.JsonSchema);
-
-        return JsonDocument.Parse(json).RootElement;
     }
 
     private static JsonSchema CreateDataSchema(IOperation operation)

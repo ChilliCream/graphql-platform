@@ -3,7 +3,7 @@ using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.ModelContextProtocol.Storage;
+using HotChocolate.ModelContextProtocol.Registries;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -18,10 +18,15 @@ internal static class CallToolHandler
         string? schemaName,
         CancellationToken cancellationToken)
     {
-        var storage = context.Services!.GetRequiredService<IMcpOperationDocumentStorage>();
-        var toolDocuments = await storage.GetToolDocumentsAsync(cancellationToken);
+        var requestExecutor =
+            await context.Services!
+                .GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync(schemaName, cancellationToken)
+                .ConfigureAwait(false);
 
-        if (!toolDocuments.TryGetValue(context.Params!.Name, out var document))
+        var registry = requestExecutor.Schema.Services.GetRequiredService<GraphQLMcpToolRegistry>();
+
+        if (!registry.TryGetTool(context.Params!.Name, out var graphQLMcpTool))
         {
             return new CallToolResult
             {
@@ -36,11 +41,6 @@ internal static class CallToolHandler
             };
         }
 
-        var requestExecutor =
-            await context.Services!
-                .GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync(schemaName, cancellationToken);
-
         var arguments =
             context.Params?.Arguments ?? Enumerable.Empty<KeyValuePair<string, JsonElement>>();
 
@@ -53,11 +53,13 @@ internal static class CallToolHandler
             variableValues.Add(name, jsonValueParser.Parse(value));
         }
 
-        var result = await requestExecutor.ExecuteAsync(
-            b => b
-                .SetDocument(document)
-                .SetVariableValues(variableValues),
-            cancellationToken);
+        var result =
+            await requestExecutor.ExecuteAsync(
+                b => b
+                    .SetDocument(graphQLMcpTool.Operation.Document)
+                    .SetVariableValues(variableValues),
+                cancellationToken)
+                .ConfigureAwait(false);
 
         var operationResult = result.ExpectOperationResult();
 

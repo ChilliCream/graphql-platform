@@ -1,7 +1,5 @@
 using HotChocolate.Execution;
-using HotChocolate.ModelContextProtocol.Caching;
-using HotChocolate.ModelContextProtocol.Factories;
-using HotChocolate.ModelContextProtocol.Storage;
+using HotChocolate.ModelContextProtocol.Registries;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -15,34 +13,16 @@ internal static class ListToolsHandler
         string? schemaName,
         CancellationToken cancellationToken)
     {
-        var cache = context.Services!.GetRequiredService<IListToolsCache>();
-
-        if (cache.TryGetValue(out var cachedResult))
-        {
-            return cachedResult;
-        }
-
-        var storage = context.Services!.GetRequiredService<IMcpOperationDocumentStorage>();
-        var toolDocuments = await storage.GetToolDocumentsAsync(cancellationToken);
+        var executorProvider = context.Services!.GetRequiredService<IRequestExecutorProvider>();
         var requestExecutor =
-            await context.Services!
-                .GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync(schemaName, cancellationToken);
-        var toolFactory = new ToolFactory(requestExecutor.Schema);
-        List<Tool> tools = [];
+            await executorProvider
+                .GetExecutorAsync(schemaName, cancellationToken)
+                .ConfigureAwait(false);
+        var registry = requestExecutor.Schema.Services.GetRequiredService<GraphQLMcpToolRegistry>();
 
-        foreach (var (name, document) in toolDocuments)
+        return new ListToolsResult
         {
-            tools.Add(toolFactory.CreateTool(name, document));
-        }
-
-        var listToolsResult = new ListToolsResult
-        {
-            Tools = tools
+            Tools = registry.GetTools().Values.Select(t => t.McpTool).ToList()
         };
-
-        cache.Set(listToolsResult);
-
-        return listToolsResult;
     }
 }
