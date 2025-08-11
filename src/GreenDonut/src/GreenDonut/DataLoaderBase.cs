@@ -182,7 +182,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             // we dispatch after everything is enqueued.
             if (_currentBatch is { IsScheduled: false })
             {
-                ScheduleBatchUnsafe(_currentBatch, ct);
+                ScheduleBatchUnsafe(_currentBatch);
             }
         }
 
@@ -401,7 +401,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             // we will schedule it before issuing a new batch.
             if (!current.IsScheduled)
             {
-                ScheduleBatchUnsafe(current, ct);
+                ScheduleBatchUnsafe(current);
             }
         }
 
@@ -410,13 +410,13 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         if (scheduleOnNewBatch)
         {
-            ScheduleBatchUnsafe(newBatch, ct);
+            ScheduleBatchUnsafe(newBatch);
         }
 
         return newPromise;
     }
 
-    private void ScheduleBatchUnsafe(Batch<TKey> batch, CancellationToken ct)
+    private void ScheduleBatchUnsafe(Batch<TKey> batch)
     {
         batch.IsScheduled = true;
         _batchScheduler.Schedule(batch);
