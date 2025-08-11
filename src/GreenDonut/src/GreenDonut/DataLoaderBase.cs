@@ -335,7 +335,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         }
     }
 
-    internal ValueTask DispatchBatchAsync(
+    private ValueTask DispatchBatchAsync(
         Batch<TKey> batch,
         CancellationToken cancellationToken)
     {
