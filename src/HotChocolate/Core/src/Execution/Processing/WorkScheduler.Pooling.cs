@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Fetching;
@@ -18,6 +19,8 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     private IErrorHandler _errorHandler = null!;
     private ResultBuilder _result = null!;
     private IExecutionDiagnosticEvents _diagnosticEvents = null!;
+    private ConcurrentDictionary<uint, bool> _completed = new();
+    private uint _nextId = 1;
     private CancellationToken _ct;
 
     private bool _hasBatches;
@@ -50,12 +53,14 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     {
         _work.Clear();
         _serial.Clear();
+        _completed.Clear();
         _pause.Reset();
 
         _batchDispatcherSession.Dispose();
         _batchDispatcherSession = null!;
         _batchDispatcher = null!;
 
+        _nextId = 1;
         _requestContext = null!;
         _errorHandler = null!;
         _result = null!;

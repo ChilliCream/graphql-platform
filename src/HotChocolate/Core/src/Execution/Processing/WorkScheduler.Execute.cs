@@ -26,7 +26,7 @@ internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
 
     private async Task ExecuteInternalAsync(IExecutionTask?[] buffer)
     {
-        RESTART:
+RESTART:
         _diagnosticEvents.StartProcessing(_requestContext);
 
         try
@@ -54,7 +54,7 @@ internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
                     else
                     {
                         first.BeginExecute(_ct);
-                        await WaitForTask(first).ConfigureAwait(false);
+                        await WaitForTask(first.Id).ConfigureAwait(false);
                         buffer[0] = null;
                     }
                 }
@@ -82,12 +82,11 @@ internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
         _ct.ThrowIfCancellationRequested();
     }
 
-    private async Task WaitForTask(IExecutionTask task)
+    private async Task WaitForTask(uint taskId)
     {
-        while (!task.IsCompleted())
+        while (!_completed.ContainsKey(taskId))
         {
-            TryDispatchOrComplete();
-
+            TryDispatchOrComplete(isWaitingForTaskCompletion: true);
             await TryPauseAsync().ConfigureAwait(false);
         }
     }
@@ -156,34 +155,42 @@ internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
         }
     }
 
-    private void TryDispatchOrComplete()
+    private void TryDispatchOrComplete(bool isWaitingForTaskCompletion = false)
     {
-        if (!_isCompleted)
+        if (_isCompleted)
         {
-            lock (_sync)
+            return;
+        }
+
+        lock (_sync)
+        {
+            if (_isCompleted)
             {
-                if (!_isCompleted)
+                return;
+            }
+
+            if (!isWaitingForTaskCompletion)
+            {
+                isWaitingForTaskCompletion = _work is { HasRunningTasks: true, IsEmpty: true };
+            }
+
+            var hasWork = !_work.IsEmpty || !_serial.IsEmpty;
+
+            if (isWaitingForTaskCompletion)
+            {
+                _pause.Reset();
+
+                if (_hasBatches)
                 {
-                    var isWaitingForTaskCompletion = _work is { HasRunningTasks: true, IsEmpty: true };
-                    var hasWork = !_work.IsEmpty || !_serial.IsEmpty;
-
-                    if (isWaitingForTaskCompletion)
-                    {
-                        _pause.Reset();
-
-                        if (_hasBatches)
-                        {
-                            _hasBatches = false;
-                            _batchDispatcher.BeginDispatch(_ct);
-                        }
-                    }
-                    else
-                    {
-                        if (!hasWork)
-                        {
-                            _isCompleted = true;
-                        }
-                    }
+                    _hasBatches = false;
+                    _batchDispatcher.BeginDispatch(_ct);
+                }
+            }
+            else
+            {
+                if (!hasWork)
+                {
+                    _isCompleted = true;
                 }
             }
         }
