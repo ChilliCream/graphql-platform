@@ -26,13 +26,17 @@ public sealed class FusionArchive : IDisposable
     private ArchiveMetadata? _metadata;
     private bool _disposed;
 
-    private FusionArchive(Stream stream, FusionArchiveMode mode, bool leaveOpen = false)
+    private FusionArchive(
+        Stream stream,
+        FusionArchiveMode mode,
+        bool leaveOpen,
+        FusionArchiveReadOptions  options)
     {
         _stream = stream;
         _mode = mode;
         _leaveOpen = leaveOpen;
         _archive = new ZipArchive(stream, (ZipArchiveMode)mode, leaveOpen);
-        _session = new ArchiveSession(_archive, mode);
+        _session = new ArchiveSession(_archive, mode, options);
     }
 
     /// <summary>
@@ -57,7 +61,7 @@ public sealed class FusionArchive : IDisposable
     public static FusionArchive Create(Stream stream, bool leaveOpen = false)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        return new FusionArchive(stream, FusionArchiveMode.Create, leaveOpen);
+        return new FusionArchive(stream, FusionArchiveMode.Create, leaveOpen, FusionArchiveReadOptions.Default);
     }
 
     /// <summary>
@@ -89,15 +93,20 @@ public sealed class FusionArchive : IDisposable
     /// <param name="stream">The stream containing the archive data.</param>
     /// <param name="mode">The mode to open the archive in.</param>
     /// <param name="leaveOpen">True to leave the stream open after disposal; otherwise, false.</param>
+    /// <param name="options">The options to use when reading from the archive.</param>
     /// <returns>A FusionArchive instance opened in the specified mode.</returns>
     /// <exception cref="ArgumentNullException">Thrown when stream is null.</exception>
     public static FusionArchive Open(
         Stream stream,
         FusionArchiveMode mode = FusionArchiveMode.Read,
-        bool leaveOpen = false)
+        bool leaveOpen = false,
+        FusionArchiveOptions options = default)
     {
         ArgumentNullException.ThrowIfNull(stream);
-        return new FusionArchive(stream, mode, leaveOpen);
+        var readOptions = new FusionArchiveReadOptions(
+            options.MaxAllowedSchemaSize ?? FusionArchiveReadOptions.Default.MaxAllowedSchemaSize,
+            options.MaxAllowedSettingsSize ?? FusionArchiveReadOptions.Default.MaxAllowedSettingsSize);
+        return new FusionArchive(stream, mode, leaveOpen, readOptions);
     }
 
     /// <summary>
@@ -156,7 +165,7 @@ public sealed class FusionArchive : IDisposable
             return _metadata;
         }
 
-        if (!await _session.ExistsAsync(FileNames.ArchiveMetadata, cancellationToken))
+        if (!await _session.ExistsAsync(FileNames.ArchiveMetadata, FileKind.Metadata, cancellationToken))
         {
             return null;
         }
@@ -165,7 +174,10 @@ public sealed class FusionArchive : IDisposable
 
         try
         {
-            await using var stream = await _session.OpenReadAsync(FileNames.ArchiveMetadata, cancellationToken);
+            await using var stream = await _session.OpenReadAsync(
+                FileNames.ArchiveMetadata,
+                FileKind.Metadata,
+                cancellationToken);
             await stream.CopyToAsync(buffer, cancellationToken);
             var metadata = ArchiveMetadataSerializer.Parse(buffer.WrittenMemory);
             _metadata = metadata;
@@ -292,136 +304,68 @@ public sealed class FusionArchive : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (!await _session.ExistsAsync(FileNames.CompositionSettings, cancellationToken))
+        if (!await _session.ExistsAsync(FileNames.CompositionSettings, FileKind.Settings, cancellationToken))
         {
             return null;
         }
 
-        await using var stream = await _session.OpenReadAsync(FileNames.CompositionSettings, cancellationToken);
+        await using var stream = await _session.OpenReadAsync(
+            FileNames.CompositionSettings,
+            FileKind.Settings,
+            cancellationToken);
         return await JsonDocument.ParseAsync(stream, default, cancellationToken);
     }
 
     /// <summary>
-    /// Sets the gateway schema for a specific format version.
+    /// Sets the gateway configuration for a specific format version using raw bytes.
     /// The version must be declared in the archive metadata before calling this method.
     /// </summary>
     /// <param name="schema">The gateway schema as a GraphQL schema string.</param>
+    /// <param name="settings">The gateway settings as a JSON document.</param>
     /// <param name="version">The gateway format version.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <exception cref="ArgumentException">Thrown when schema is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when version is null.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the archive is read-only, metadata is missing, or version is not declared.</exception>
-    public async Task SetGatewaySchemaAsync(
+    public async Task SetGatewayConfigurationAsync(
         string schema,
-        Version version,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(schema);
-        ArgumentNullException.ThrowIfNull(version);
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        EnsureMutable();
-
-        await SetGatewaySchemaAsync(Encoding.UTF8.GetBytes(schema), version, cancellationToken);
-    }
-
-    /// <summary>
-    /// Sets the gateway schema for a specific format version using raw bytes.
-    /// The version must be declared in the archive metadata before calling this method.
-    /// </summary>
-    /// <param name="schema">The gateway schema as UTF-8 encoded bytes.</param>
-    /// <param name="version">The gateway format version.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <exception cref="ArgumentNullException">Thrown when version is null.</exception>
-    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only, metadata is missing, or version is not declared.</exception>
-    public async Task SetGatewaySchemaAsync(
-        ReadOnlyMemory<byte> schema,
-        Version version,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(version);
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        EnsureMutable();
-
-        var metadata = await GetArchiveMetadataAsync(cancellationToken);
-
-        if (metadata is null)
-        {
-            throw new InvalidOperationException(
-                "You need to first define the archive metadata.");
-        }
-
-        if (!metadata.SupportedGatewayFormats.Contains(version))
-        {
-            throw new InvalidOperationException(
-                "You need to first declare the gateway schema version in the archive metadata.");
-        }
-
-        await using var stream = _session.OpenWrite(FileNames.GetGatewaySchemaPath(version));
-        await stream.WriteAsync(schema, cancellationToken);
-    }
-
-    /// <summary>
-    /// Attempts to get a gateway schema with the highest version that is less than or equal to the specified maximum version.
-    /// The schema data is written to the provided buffer.
-    /// </summary>
-    /// <param name="maxVersion">The maximum version to consider.</param>
-    /// <param name="buffer">The buffer to write the schema data to.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>A result indicating whether resolution was successful and the actual version used.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when maxVersion or buffer is null.</exception>
-    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when no supported gateway formats are found.</exception>
-    public async Task<ResolvedGatewaySchemaResult> TryGetGatewaySchemaAsync(
-        Version maxVersion,
-        IBufferWriter<byte> buffer,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(maxVersion);
-        ArgumentNullException.ThrowIfNull(buffer);
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        var metadata = await GetArchiveMetadataAsync(cancellationToken);
-        if (metadata?.SupportedGatewayFormats == null || !metadata.SupportedGatewayFormats.Any())
-        {
-            throw new InvalidOperationException("No supported gateway formats found in archive metadata.");
-        }
-
-        // we need to find the version that is less than or equal to the maxVersion
-        var version = metadata.SupportedGatewayFormats.OrderByDescending(v => v).FirstOrDefault(v => v <= maxVersion);
-        if (version == null)
-        {
-            return new ResolvedGatewaySchemaResult { IsResolved = false, ActualVersion = null };
-        }
-
-        await using var stream = await _session.OpenReadAsync(
-            FileNames.GetGatewaySchemaPath(version),
-            cancellationToken);
-        await stream.CopyToAsync(buffer, cancellationToken);
-        return new ResolvedGatewaySchemaResult { IsResolved = true, ActualVersion = version };
-    }
-
-    /// <summary>
-    /// Sets the gateway settings for a specific format version.
-    /// The version must be declared in the archive metadata before calling this method.
-    /// </summary>
-    /// <param name="settings">The gateway settings as a JSON document.</param>
-    /// <param name="version">The gateway format version.</param>
-    /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <exception cref="ArgumentNullException">Thrown when settings or version is null.</exception>
-    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only, metadata is missing, or version is not declared.</exception>
-    public async Task SetGatewaySettingsAsync(
         JsonDocument settings,
         Version version,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrEmpty(schema);
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(version);
         ObjectDisposedException.ThrowIf(_disposed, this);
         EnsureMutable();
 
+        await SetGatewayConfigurationAsync(Encoding.UTF8.GetBytes(schema), settings, version, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sets the gateway configuration for a specific format version using raw bytes.
+    /// The version must be declared in the archive metadata before calling this method.
+    /// </summary>
+    /// <param name="schema">The gateway schema as UTF-8 encoded bytes.</param>
+    /// <param name="settings">The gateway settings as a JSON document.</param>
+    /// <param name="version">The gateway format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <exception cref="ArgumentNullException">Thrown when version is null.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the archive is read-only, metadata is missing, or version is not declared.
+    /// </exception>
+    public async Task SetGatewayConfigurationAsync(
+        ReadOnlyMemory<byte> schema,
+        JsonDocument settings,
+        Version version,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(version);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable();
+
         var metadata = await GetArchiveMetadataAsync(cancellationToken);
 
         if (metadata is null)
@@ -436,38 +380,30 @@ public sealed class FusionArchive : IDisposable
                 "You need to first declare the gateway schema version in the archive metadata.");
         }
 
-        Exception? exception = null;
-        await using var stream = _session.OpenWrite(FileNames.GetGatewaySettingsPath(version));
-        var writer = PipeWriter.Create(stream);
-
-        try
+        await using (var stream = _session.OpenWrite(FileNames.GetGatewaySchemaPath(version)))
         {
-            await using var jsonWriter = new Utf8JsonWriter(writer, new JsonWriterOptions { Indented = true });
+            await stream.WriteAsync(schema, cancellationToken);
+        }
+
+        await using (var stream = _session.OpenWrite(FileNames.GetGatewaySettingsPath(version)))
+        {
+            await using var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
             settings.WriteTo(jsonWriter);
             await jsonWriter.FlushAsync(cancellationToken);
-            await writer.FlushAsync(cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            exception = ex;
-            throw;
-        }
-        finally
-        {
-            await writer.CompleteAsync(exception);
         }
     }
 
     /// <summary>
-    /// Attempts to get gateway settings with the highest version that is less than or equal to the specified maximum version.
+    /// Attempts to get a gateway schema with the highest version that is less
+    /// than or equal to the specified maximum version.
     /// </summary>
     /// <param name="maxVersion">The maximum version to consider.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>A result indicating whether resolution was successful, the actual version used, and the settings.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when maxVersion is null.</exception>
+    /// <returns>A gateway configuration.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when maxVersion or buffer is null.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     /// <exception cref="InvalidOperationException">Thrown when no supported gateway formats are found.</exception>
-    public async Task<ResolvedGatewaySettingsResult> TryGetGatewaySettingsAsync(
+    public async Task<GatewayConfiguration?> TryGetGatewayConfigurationAsync(
         Version maxVersion,
         CancellationToken cancellationToken = default)
     {
@@ -484,19 +420,22 @@ public sealed class FusionArchive : IDisposable
         var version = metadata.SupportedGatewayFormats.OrderByDescending(v => v).FirstOrDefault(v => v <= maxVersion);
         if (version == null)
         {
-            return new ResolvedGatewaySettingsResult { IsResolved = false, ActualVersion = null, Settings = null };
+            return null;
         }
 
-        if (!await _session.ExistsAsync(FileNames.GetGatewaySettingsPath(version), cancellationToken))
-        {
-            return new ResolvedGatewaySettingsResult { IsResolved = false, ActualVersion = null, Settings = null };
-        }
-
-        await using var stream = await _session.OpenReadAsync(
+        JsonDocument settings;
+        await using (var stream = await _session.OpenReadAsync(
             FileNames.GetGatewaySettingsPath(version),
-            cancellationToken);
-        var settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
-        return new ResolvedGatewaySettingsResult { IsResolved = true, ActualVersion = version, Settings = settings };
+            FileKind.Settings,
+            cancellationToken))
+        {
+            settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
+        }
+
+        return new GatewayConfiguration(OpenReadSchemaAsync,  settings, version);
+
+        Task<Stream> OpenReadSchemaAsync(CancellationToken ct)
+            => _session.OpenReadAsync(FileNames.GetGatewaySchemaPath(version), FileKind.Schema, ct);
     }
 
     /// <summary>
@@ -505,17 +444,20 @@ public sealed class FusionArchive : IDisposable
     /// </summary>
     /// <param name="schemaName">The name of the source schema.</param>
     /// <param name="schema">The source schema as UTF-8 encoded bytes.</param>
+    /// <param name="settings">The source schema configuration.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <exception cref="ArgumentException">Thrown when schemaName is null, empty, or invalid.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when schema is empty.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the archive is read-only, metadata is missing, or schema name is not declared.</exception>
-    public async Task SetSourceSchemaAsync(
+    public async Task SetSourceSchemaConfigurationAsync(
         string schemaName,
         ReadOnlyMemory<byte> schema,
+        JsonDocument settings,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
+        ArgumentNullException.ThrowIfNull(settings);
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(schema.Length, 0);
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -540,39 +482,55 @@ public sealed class FusionArchive : IDisposable
                 "You need to first declare the source schema in the archive metadata.");
         }
 
-        await using var stream = _session.OpenWrite(FileNames.GetSourceSchemaPath(schemaName));
-        await stream.WriteAsync(schema, cancellationToken);
+        await using (var stream = _session.OpenWrite(FileNames.GetSourceSchemaPath(schemaName)))
+        {
+            await stream.WriteAsync(schema, cancellationToken);
+        }
+
+        await using (var stream = _session.OpenWrite(FileNames.GetSourceSchemaSettingsPath(schemaName)))
+        {
+            await using var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
+            settings.WriteTo(jsonWriter);
+            await jsonWriter.FlushAsync(cancellationToken);
+        }
     }
 
     /// <summary>
-    /// Attempts to get a source schema from the archive.
-    /// The schema data is written to the provided buffer if found.
+    /// Attempts to get a source schema configuration from the archive.
     /// </summary>
     /// <param name="schemaName">The name of the source schema to retrieve.</param>
-    /// <param name="buffer">The buffer to write the schema data to.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>True if the schema was found and retrieved; otherwise, false.</returns>
+    /// <returns>A source schema configuration.</returns>
     /// <exception cref="ArgumentNullException">Thrown when schemaName or buffer is null.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
-    public async Task<bool> TryGetSourceSchemaAsync(
+    public async Task<SourceSchemaConfiguration?> TryGetSourceSchemaConfigurationAsync(
         string schemaName,
-        IBufferWriter<byte> buffer,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(schemaName);
-        ArgumentNullException.ThrowIfNull(buffer);
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (!await _session.ExistsAsync(FileNames.GetSourceSchemaPath(schemaName), cancellationToken))
+        if (!await _session.ExistsAsync(
+            FileNames.GetSourceSchemaPath(schemaName),
+            FileKind.Schema,
+            cancellationToken))
         {
-            return false;
+            return null;
         }
 
-        await using var stream = await _session.OpenReadAsync(
-            FileNames.GetSourceSchemaPath(schemaName),
-            cancellationToken);
-        await stream.CopyToAsync(buffer, cancellationToken);
-        return true;
+        JsonDocument settings;
+        await using (var stream = await _session.OpenReadAsync(
+            FileNames.GetSourceSchemaSettingsPath(schemaName),
+            FileKind.Settings,
+            cancellationToken))
+        {
+            settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
+        }
+
+        return new SourceSchemaConfiguration(OpenReadSchemaAsync, settings);
+
+        Task<Stream> OpenReadSchemaAsync(CancellationToken ct)
+            => _session.OpenReadAsync(FileNames.GetSourceSchemaPath(schemaName), FileKind.Schema, ct);
     }
 
     /// <summary>
@@ -642,8 +600,14 @@ public sealed class FusionArchive : IDisposable
         X509Certificate2 publicKey,
         CancellationToken cancellationToken = default)
     {
-        var manifestExists = await _session.ExistsAsync(FileNames.SignatureManifest, cancellationToken);
-        var signatureExists = await _session.ExistsAsync(FileNames.Signature, cancellationToken);
+        var manifestExists = await _session.ExistsAsync(
+            FileNames.SignatureManifest,
+            FileKind.Manifest,
+            cancellationToken);
+        var signatureExists = await _session.ExistsAsync(
+            FileNames.Signature,
+            FileKind.Signature,
+            cancellationToken);
 
         if (!manifestExists || !signatureExists)
         {
@@ -657,9 +621,11 @@ public sealed class FusionArchive : IDisposable
             // 1. Load manifest and signature
             await using var manifestStream = await _session.OpenReadAsync(
                 FileNames.SignatureManifest,
+                FileKind.Manifest,
                 cancellationToken);
             await using var signatureStream = await _session.OpenReadAsync(
                 FileNames.Signature,
+                FileKind.Signature,
                 cancellationToken);
             await manifestStream.CopyToAsync(buffer, cancellationToken);
             var manifest = SignatureManifestSerializer.Parse(buffer.WrittenMemory);
@@ -672,12 +638,14 @@ public sealed class FusionArchive : IDisposable
             // 2. Verify file integrity
             foreach (var file in manifest.Files.OrderBy(t => t.Key))
             {
-                if (!await _session.ExistsAsync(file.Key, cancellationToken))
+                var kind = FileNames.GetFileKind(file.Key);
+
+                if (!await _session.ExistsAsync(file.Key, kind, cancellationToken))
                 {
                     return SignatureVerificationResult.FilesMissing;
                 }
 
-                var actualHash = await ComputeFileHashAsync(file.Key, cancellationToken);
+                var actualHash = await ComputeFileHashAsync(file.Key, kind, cancellationToken);
                 if (!actualHash.Equals(file.Value, StringComparison.OrdinalIgnoreCase))
                 {
                     return SignatureVerificationResult.FilesModified;
@@ -726,8 +694,14 @@ public sealed class FusionArchive : IDisposable
     public async Task<SignatureInfo?> GetSignatureInfoAsync(
         CancellationToken cancellationToken = default)
     {
-        var manifestExists = await _session.ExistsAsync(FileNames.SignatureManifest, cancellationToken);
-        var signatureExists = await _session.ExistsAsync(FileNames.Signature, cancellationToken);
+        var manifestExists = await _session.ExistsAsync(
+            FileNames.SignatureManifest,
+            FileKind.Manifest,
+            cancellationToken);
+        var signatureExists = await _session.ExistsAsync(
+            FileNames.Signature,
+            FileKind.Signature,
+            cancellationToken);
 
         if (!manifestExists || !signatureExists)
         {
@@ -740,9 +714,11 @@ public sealed class FusionArchive : IDisposable
         {
             await using var manifestStream = await _session.OpenReadAsync(
                 FileNames.SignatureManifest,
+                FileKind.Manifest,
                 cancellationToken);
             await using var signatureStream = await _session.OpenReadAsync(
                 FileNames.Signature,
+                FileKind.Signature,
                 cancellationToken);
 
             await manifestStream.CopyToAsync(buffer, 1024, cancellationToken);
@@ -823,7 +799,8 @@ public sealed class FusionArchive : IDisposable
                 continue;
             }
 
-            files[path] = await ComputeFileHashAsync(path, cancellationToken);
+            var kind = FileNames.GetFileKind(path);
+            files[path] = await ComputeFileHashAsync(path, kind, cancellationToken);
         }
 
         var manifest = new SignatureManifest
@@ -846,9 +823,9 @@ public sealed class FusionArchive : IDisposable
         }
     }
 
-    private async Task<string> ComputeFileHashAsync(string path, CancellationToken cancellationToken)
+    private async Task<string> ComputeFileHashAsync(string path, FileKind kind, CancellationToken cancellationToken)
     {
-        await using var stream = await _session.OpenReadAsync(path, cancellationToken);
+        await using var stream = await _session.OpenReadAsync(path, kind, cancellationToken);
         using var sha256 = SHA256.Create();
         var hashBytes = await sha256.ComputeHashAsync(stream, cancellationToken);
 #if NET9_0_OR_GREATER
