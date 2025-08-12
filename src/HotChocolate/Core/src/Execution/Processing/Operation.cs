@@ -155,7 +155,7 @@ internal sealed class Operation : IOperation
         return (TState)state!;
     }
 
-    public TState GetOrAddState<TState, TContext>(
+    public TState GetOrAddState<TState>(
         string key,
         Func<string, TState> createState)
         => GetOrAddState<TState, object?>(key, (k, _) => createState(k), null);
