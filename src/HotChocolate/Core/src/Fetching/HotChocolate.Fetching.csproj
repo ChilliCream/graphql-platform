@@ -29,7 +29,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>FetchingResources.resx</DependentUpon>
     </Compile>
-    <Compile Update="BatchSchedulercs.cs">
+    <Compile Update="BatchDispatcher.IBatchScheduler.cs">
+      <DependentUpon>BatchDispatcher.cs</DependentUpon>
+    </Compile>
+    <Compile Update="BatchDispatcher.ExecutorSession.cs">
       <DependentUpon>BatchDispatcher.cs</DependentUpon>
     </Compile>
   </ItemGroup>

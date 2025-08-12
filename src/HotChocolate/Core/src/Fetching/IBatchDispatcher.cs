@@ -15,8 +15,8 @@ namespace HotChocolate.Fetching;
 /// </summary>
 public interface IBatchDispatcher
     : IBatchScheduler
-        , IObservable<BatchDispatchEventArgs>
-        , IDisposable
+    , IObservable<BatchDispatchEventArgs>
+    , IDisposable
 {
     /// <summary>
     /// Signals the dispatcher to begin processing queued batches. This method can be

@@ -7,13 +7,24 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Fetching;
 
 /// <summary>
-/// The execution engine batch dispatcher.
+/// <para>
+/// The default batch dispatcher that coordinates efficient batch dispatching between DataLoader and
+/// the Hot Chocolate execution engine. This dispatcher uses timing and prioritization strategies
+/// to optimize batching efficiency while maintaining low latency.
+/// </para>
+/// <para>
+/// The dispatcher processes batches based on their modification timestamps, prioritizing
+/// batches that haven't received new keys for the longest time. This allows newer batches
+/// to accumulate additional keys while older, "settled" batches are dispatched for
+/// optimal throughput.
+/// </para>
 /// </summary>
 public sealed partial class BatchDispatcher : IBatchDispatcher
 {
+    private const int MaxParallelBatches = 4;
     private readonly AsyncAutoResetEvent _signal = new();
     private readonly object _sync = new();
-    private readonly List<Batch> _batches = [];
+    private readonly HashSet<Batch> _enqueuedBatches = new();
     private readonly CancellationTokenSource _coordinatorCts = new();
     private int _enqueueVersion;
     private int _openBatches;
@@ -23,12 +34,23 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     private ImmutableArray<ExecutorSession> _sessions = [];
     private bool _disposed;
 
+    /// <summary>
+    /// <para>Subscribe to the batch dispatcher events.</para>
+    /// <para>Subscribers will be notified when batches are enqueued, evaluated and dispatched.</para>
+    /// </summary>
+    /// <param name="observer">
+    /// The observer that will be notified. about dispatcher events.
+    /// </param>
+    /// <returns>
+    /// Returns the subscription session that when being disposed will unsubscribe the observer.
+    /// </returns>
     public IDisposable Subscribe(IObserver<BatchDispatchEventArgs> observer)
     {
         ArgumentNullException.ThrowIfNull(observer);
         return new ExecutorSession(observer, this);
     }
 
+    /// <inheritdoc cref="IBatchDispatcher"/>
     public void BeginDispatch(CancellationToken cancellationToken = default)
     {
         _signal.Set();
@@ -45,10 +67,11 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
     private async Task CoordinatorAsync(CancellationToken stoppingToken)
     {
-        const int maxSpinUs = 12;
-        const int maxParallelBatches = 4;
-        var dispatchTasks = new List<Task>(maxParallelBatches);
-        var queue = new PriorityQueue<Batch, long>();
+        var backlog = new PriorityQueue<Batch, long>();
+        var dispatchTasks = new List<Task>(MaxParallelBatches);
+        var completedBatches = new List<Batch>(MaxParallelBatches);
+
+        stoppingToken.Register(() => _signal.Set());
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -59,85 +82,142 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
                 return;
             }
 
-            while (!stoppingToken.IsCancellationRequested)
+            await EvaluateAndDispatchAsync(backlog, dispatchTasks, completedBatches, stoppingToken);
+        }
+    }
+
+    private async Task EvaluateAndDispatchAsync(
+        PriorityQueue<Batch, long> backlog,
+        List<Task> dispatchTasks,
+        List<Batch> completedBatches,
+        CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            var openBatches = Volatile.Read(ref _openBatches);
+            long lastModified = 0;
+
+            // If we have no open batches to evaluate, we can stop
+            // and wait for another signal.
+            if (openBatches == 0)
             {
-                var openBatches = Volatile.Read(ref _openBatches);
-                long lastModified = 0;
+                return;
+            }
 
-                if (openBatches == 0)
+            // Clear the state for the next evaluation round.
+            backlog.Clear();
+            dispatchTasks.Clear();
+            completedBatches.Clear();
+
+            EvaluateOpenBatches(ref lastModified, backlog, dispatchTasks, completedBatches);
+
+            // If the evaluation selected batches for dispatch.
+            if (dispatchTasks.Count > 0)
+            {
+                // We wait for all dispatch tasks to be completed before we reset the signal
+                // that lets us pause the evaluation. Only then will we send a message to
+                // the subscribed executors to reevaluate if they can continue execution.
+                await Task.WhenAll(dispatchTasks);
+                _signal.TryResetToIdle();
+                Send(BatchDispatchEventType.Dispatched);
+                return;
+            }
+
+            // Signal that we have evaluated all enqueued tasks without dispatching any.
+            Send(BatchDispatchEventType.Evaluated);
+
+            // Spin-wait briefly to give executing resolvers time to add more
+            // data requirements to the open batches.
+            WaitForMoreBatchActivity(lastModified);
+        }
+    }
+
+    private void EvaluateOpenBatches(
+        ref long lastModified,
+        PriorityQueue<Batch, long> backlog,
+        List<Task> dispatchTasks,
+        List<Batch> completedBatches)
+    {
+        // Fill the evaluation backlog with the current enqueued batches.
+        // The backlog orders batches by ModifiedTimestamp, so batches that
+        // haven't been touched by a DataLoader for the longest time are evaluated first,
+        // giving them the highest likelihood of being dispatched.
+        lock (_enqueuedBatches)
+        {
+            foreach (var batch in _enqueuedBatches)
+            {
+                backlog.Enqueue(batch, batch.ModifiedTimestamp);
+            }
+        }
+
+        // In each evaluation round, we try to touch all batches in the backlog.
+        // If a batch has had no interaction with a DataLoader since the last evaluation
+        // (i.e., we can touch it twice without the DataLoader resetting its status),
+        // we complete the batch by dispatching it.
+        //
+        // We stop evaluation once we've dispatched MaxParallelBatches or when have touched all batches.
+        while (backlog.TryDequeue(out var batch, out _))
+        {
+            if (lastModified < batch.ModifiedTimestamp)
+            {
+                lastModified = batch.ModifiedTimestamp;
+            }
+
+            if (batch.Touch())
+            {
+                completedBatches.Add(batch);
+                dispatchTasks.Add(batch.DispatchAsync());
+                Interlocked.Decrement(ref _openBatches);
+            }
+
+            if (dispatchTasks.Count == MaxParallelBatches)
+            {
+                break;
+            }
+        }
+
+        // Remove batches that have been marked for dispatch from the enqueued list.
+        // Note: Calling DispatchAsync() closes the batch, preventing DataLoaders from
+        // enqueuing new keys. The _enqueuedBatches set only tracks batches available
+        // for evaluation rounds; it doesn't control whether new keys can be enqueued.
+        lock (_enqueuedBatches)
+        {
+            foreach (var completed in completedBatches)
+            {
+                _enqueuedBatches.Remove(completed);
+            }
+        }
+    }
+
+    private void WaitForMoreBatchActivity(long lastModified)
+    {
+        const int maxSpinUs = 12;
+
+        var lastSubscribed = Volatile.Read(ref _lastSubscribed);
+        var lastEnqueued = Volatile.Read(ref _lastEnqueued);
+
+        if (lastSubscribed > lastModified)
+        {
+            lastModified = lastSubscribed;
+        }
+
+        if (lastEnqueued > lastModified)
+        {
+            lastModified = lastEnqueued;
+        }
+
+        var ageUs = TicksToUs(Stopwatch.GetTimestamp() - lastModified);
+        if (ageUs <= maxSpinUs && ThreadPoolHasHeadroom())
+        {
+            var sw = new SpinWait();
+            var start = Stopwatch.GetTimestamp();
+
+            while (TicksToUs(Stopwatch.GetTimestamp() - start) < maxSpinUs)
+            {
+                sw.SpinOnce();
+                if (sw.Count >= 8)
                 {
-                    break;
-                }
-
-                dispatchTasks.Clear();
-                queue.Clear();
-
-                lock (_batches)
-                {
-                    foreach (var batch in _batches)
-                    {
-                        queue.Enqueue(batch, batch.ModifiedTimestamp);
-                    }
-
-                    while (queue.TryDequeue(out var batch, out _))
-                    {
-                        if (lastModified < batch.ModifiedTimestamp)
-                        {
-                            lastModified = batch.ModifiedTimestamp;
-                        }
-
-                        if (batch.Touch())
-                        {
-                            dispatchTasks.Add(batch.DispatchAsync());
-                            Interlocked.Decrement(ref _openBatches);
-                            _batches.Remove(batch);
-                        }
-
-                        if (dispatchTasks.Count == 4)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                if (dispatchTasks.Count > 0)
-                {
-                    await Task.WhenAll(dispatchTasks);
-                    Send(BatchDispatchEventType.Dispatched);
-                    break;
-                }
-
-                // we signal to the execution engine that we have evaluated the task.
-                // while we are doing this we spin for a while and then reevaluate
-                Send(BatchDispatchEventType.Evaluated);
-
-                var lastSubscribed = Volatile.Read(ref _lastSubscribed);
-                var lastEnqueued = Volatile.Read(ref _lastEnqueued);
-
-                if (lastSubscribed > lastModified)
-                {
-                    lastModified = lastSubscribed;
-                }
-
-                if (lastEnqueued > lastModified)
-                {
-                    lastModified = lastEnqueued;
-                }
-
-                var ageUs = TicksToUs(Stopwatch.GetTimestamp() - lastModified);
-                if (ageUs <= maxSpinUs && ThreadPoolHasHeadroom())
-                {
-                    var sw = new SpinWait();
-                    var start = Stopwatch.GetTimestamp();
-
-                    while (TicksToUs(Stopwatch.GetTimestamp() - start) < maxSpinUs)
-                    {
-                        sw.SpinOnce();
-                        if (sw.Count >= 8)
-                        {
-                            Thread.Yield();
-                        }
-                    }
+                    Thread.Yield();
                 }
             }
         }
@@ -172,51 +252,6 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
             _coordinatorCts.Dispose();
             _signal.Set();
             _disposed = true;
-        }
-    }
-
-    private class ExecutorSession : IDisposable
-    {
-        private readonly IObserver<BatchDispatchEventArgs> _observer;
-        private readonly BatchDispatcher _dispatcher;
-        private bool _disposed;
-
-        public ExecutorSession(
-            IObserver<BatchDispatchEventArgs> observer,
-            BatchDispatcher dispatcher)
-        {
-            _observer = observer;
-            _dispatcher = dispatcher;
-
-            lock (dispatcher._sync)
-            {
-                dispatcher._sessions = dispatcher._sessions.Add(this);
-                dispatcher._lastSubscribed = Stopwatch.GetTimestamp();
-                dispatcher._signal.Set();
-            }
-        }
-
-        public void OnNext(BatchDispatchEventArgs e)
-        {
-            _observer.OnNext(e);
-        }
-
-        public void OnCompleted()
-        {
-            _observer.OnCompleted();
-        }
-
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                lock (_dispatcher._sync)
-                {
-                    _dispatcher._sessions = _dispatcher._sessions.Remove(this);
-                }
-
-                _disposed = true;
-            }
         }
     }
 }

@@ -214,12 +214,15 @@ RESTART:
 
     public void OnNext(BatchDispatchEventArgs value)
     {
-        lock (_sync)
+        if (value.Type is BatchDispatchEventType.Enqueued or BatchDispatchEventType.Dispatched)
         {
-            _hasBatches = true;
-        }
+            lock (_sync)
+            {
+                _hasBatches = true;
+            }
 
-        _pause.Set();
+            _pause.Set();
+        }
     }
 
     public void OnError(Exception error)

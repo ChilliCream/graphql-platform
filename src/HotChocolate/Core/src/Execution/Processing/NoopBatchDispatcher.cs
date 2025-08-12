@@ -1,4 +1,3 @@
-using System.Reactive.Disposables;
 using GreenDonut;
 using HotChocolate.Fetching;
 
@@ -23,4 +22,13 @@ internal sealed class NoopBatchDispatcher : IBatchDispatcher
     }
 
     public static NoopBatchDispatcher Instance { get; } = new();
+
+    private class Disposable : IDisposable
+    {
+        public static IDisposable Empty { get; } = new Disposable();
+
+        public void Dispose()
+        {
+        }
+    }
 }
