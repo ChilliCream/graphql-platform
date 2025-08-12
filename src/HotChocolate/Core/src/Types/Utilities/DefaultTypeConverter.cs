@@ -2,8 +2,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Utilities;
 
 public partial class DefaultTypeConverter : ITypeConverter

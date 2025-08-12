@@ -5,8 +5,6 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers;
 
 /// <summary>

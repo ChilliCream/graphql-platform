@@ -28,13 +28,14 @@ internal sealed partial class WorkScheduler
 
         var work = task.IsSerial ? _serial : _work;
         task.IsRegistered = true;
+        task.Id = Interlocked.Increment(ref _nextId);
 
         lock (_sync)
         {
             work.Push(task);
         }
 
-        _pause.TryContinue();
+        _signal.Set();
     }
 
     /// <summary>
@@ -46,9 +47,9 @@ internal sealed partial class WorkScheduler
 
         lock (_sync)
         {
-            for (var i = 0; i < tasks.Length; i++)
+            foreach (var task in tasks)
             {
-                var task = tasks[i];
+                task.Id = Interlocked.Increment(ref _nextId);
                 task.IsRegistered = true;
 
                 if (task.IsSerial)
@@ -62,7 +63,7 @@ internal sealed partial class WorkScheduler
             }
         }
 
-        _pause.TryContinue();
+        _signal.Set();
     }
 
     /// <summary>
@@ -79,9 +80,11 @@ internal sealed partial class WorkScheduler
 
             if (work.Complete())
             {
+                _completed.TryAdd(task.Id, true);
+
                 lock (_sync)
                 {
-                    _pause.TryContinue();
+                    _signal.Set();
                 }
             }
         }

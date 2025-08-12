@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate;
 
 public partial class SchemaBuilder

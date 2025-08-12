@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 internal sealed partial class ExtendedType

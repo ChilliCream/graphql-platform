@@ -1,4 +1,3 @@
-#nullable enable
 namespace HotChocolate.Types.Relay;
 
 public sealed class NodeIdInvalidFormatException(object originalValue)

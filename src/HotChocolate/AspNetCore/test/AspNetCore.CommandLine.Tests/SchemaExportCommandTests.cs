@@ -27,6 +27,21 @@ public class SchemaExportCommandTests : IDisposable
     }
 
     [Fact]
+    public async Task App_Should_OutputCorrectHelpTest_When_Print_HelpIsRequested()
+    {
+        // arrange
+        var host = new Mock<IHost>().Object;
+        var console = new TestConsole();
+        var app = new App(host).Build();
+
+        // act
+        await app.InvokeAsync("schema print -h", console);
+
+        // assert
+        console.Out.ToString().MatchSnapshot();
+    }
+
+    [Fact]
     public async Task App_Should_PrintSchema_When_OutputNotSpecified()
     {
         // arrange
@@ -44,7 +59,7 @@ public class SchemaExportCommandTests : IDisposable
         var app = new App(host).Build();
 
         // act
-        await app.InvokeAsync("schema export", console);
+        await app.InvokeAsync("schema print", console);
 
         // assert
         console.Out.ToString().MatchSnapshot();
@@ -96,7 +111,7 @@ public class SchemaExportCommandTests : IDisposable
         var app = new App(host).Build();
 
         // act
-        await app.InvokeAsync("schema export --schema-name Foo", console);
+        await app.InvokeAsync("schema print --schema-name Foo", console);
 
         // assert
         console.Out.ToString().MatchSnapshot();
