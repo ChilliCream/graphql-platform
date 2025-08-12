@@ -4,7 +4,7 @@ namespace HotChocolate.Subscriptions.Postgres;
 /// This is a very similar implementation to the AsyncAutoResetEvent from Stephen Toub's blog post:
 /// https://devblogs.microsoft.com/pfxteam/building-async-coordination-primitives-part-2-asyncautoresetevent/
 /// </summary>
-internal sealed class AsyncResetEvent : IDisposable
+internal sealed class AsyncAutoResetEvent : IDisposable
 {
     private static readonly Task s_completedTask = Task.FromResult(true);
 
