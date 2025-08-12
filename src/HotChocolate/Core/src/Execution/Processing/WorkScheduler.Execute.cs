@@ -86,6 +86,10 @@ RESTART:
     {
         while (!_completed.ContainsKey(taskId))
         {
+            // we are waiting for completion of the current task
+            // so we force the `TryDispatchOrComplete` to seek completion
+            // even though the _work backlog might still have unprocessed
+            // tasks.
             TryDispatchOrComplete(isWaitingForTaskCompletion: true);
             await TryPauseAsync().ConfigureAwait(false);
         }
@@ -178,11 +182,10 @@ RESTART:
 
             if (isWaitingForTaskCompletion)
             {
-                _pause.Reset();
+                _signal.Reset();
 
-                if (_hasBatches)
+                if (Interlocked.CompareExchange(ref _hasBatches, 0, 1) == 1)
                 {
-                    _hasBatches = false;
                     _batchDispatcher.BeginDispatch(_ct);
                 }
             }
@@ -200,10 +203,10 @@ RESTART:
     {
         if (!_isCompleted)
         {
-            if (_pause.IsPaused)
+            if (_signal.IsPaused)
             {
                 _diagnosticEvents.StopProcessing(_requestContext);
-                await _pause;
+                await _signal;
             }
 
             return true;
@@ -214,16 +217,13 @@ RESTART:
 
     public void OnNext(BatchDispatchEventArgs value)
     {
+        // we
         if (value.Type is BatchDispatchEventType.Enqueued
             or BatchDispatchEventType.Dispatched
             or BatchDispatchEventType.CoordinatorCompleted)
         {
-            lock (_sync)
-            {
-                _hasBatches = true;
-            }
-
-            _pause.Set();
+            Interlocked.Exchange(ref _hasBatches, 1);
+            _signal.Set();
         }
     }
 

@@ -35,8 +35,19 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     private bool _disposed;
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="BatchDispatcher"/> class.
+    /// </summary>
+    public BatchDispatcher()
+    {
+        _coordinatorCts.Token.Register(() => _signal.Set());
+    }
+
+    /// <summary>
     /// <para>Subscribe to the batch dispatcher events.</para>
-    /// <para>Subscribers will be notified when batches are enqueued, evaluated and dispatched.</para>
+    /// <para>
+    /// Subscribers will be notified when the coordinator starts/completes and
+    /// when batches are enqueued, evaluated and dispatched.
+    /// </para>
     /// </summary>
     /// <param name="observer">
     /// The observer that will be notified. about dispatcher events.
@@ -71,7 +82,6 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         var dispatchTasks = new List<Task>(MaxParallelBatches);
         var completedBatches = new List<Batch>(MaxParallelBatches);
 
-        stoppingToken.Register(() => _signal.Set());
         Send(BatchDispatchEventType.CoordinatorStarted);
 
         try
@@ -170,7 +180,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         // (i.e., we can touch it twice without the DataLoader resetting its status),
         // we complete the batch by dispatching it.
         //
-        // We stop evaluation once we've dispatched MaxParallelBatches or when have touched all batches.
+        // We stop evaluation once we've dispatched MaxParallelBatches or when we have touched all batches.
         while (backlog.TryDequeue(out var batch, out _))
         {
             if (lastModified < batch.ModifiedTimestamp)
