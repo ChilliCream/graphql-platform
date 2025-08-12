@@ -2,11 +2,11 @@ using System.Buffers;
 using System.Text;
 using System.Text.Json;
 
-namespace HotChocolate.Fusion.Packaging
+namespace HotChocolate.Fusion
 {
-    public class GatewaySettingsComposerTests
+    public class SettingsComposerTests
     {
-        private readonly GatewaySettingsComposer _composer = new();
+        private readonly SettingsComposer _composer = new();
 
         [Fact]
         public void Compose_WithNullGatewaySettings_ThrowsArgumentNullException()

@@ -7,7 +7,6 @@
     <Project Path="src/Fusion.Execution/HotChocolate.Fusion.Execution.csproj" />
     <Project Path="src/Fusion.Language/HotChocolate.Fusion.Language.csproj" />
     <Project Path="src/Fusion.Packaging/HotChocolate.Fusion.Packaging.csproj" />
-    <Project Path="src/Fusion.Packaging.Settings/HotChocolate.Fusion.Packaging.Settings.csproj" />
     <Project Path="src/Fusion.Utilities/HotChocolate.Fusion.Utilities.csproj" />
   </Folder>
   <Folder Name="/test/">

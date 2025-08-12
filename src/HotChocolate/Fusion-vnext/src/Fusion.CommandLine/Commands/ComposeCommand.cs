@@ -1,10 +1,14 @@
 using System.Collections.Immutable;
 using System.CommandLine;
 using System.CommandLine.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Channels;
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Packaging;
 using static HotChocolate.Fusion.Properties.CommandLineResources;
 
 namespace HotChocolate.Fusion.Commands;
@@ -54,10 +58,7 @@ internal sealed class ComposeCommand : Command
             Description = ComposeCommand_EnableGlobalObjectIdentification_Description
         };
 
-        var watchModeOption = new Option<bool>("--watch")
-        {
-            Arity = ArgumentArity.ZeroOrOne
-        };
+        var watchModeOption = new Option<bool>("--watch") { Arity = ArgumentArity.ZeroOrOne };
 
         AddOption(workingDirectoryOption);
         AddOption(sourceSchemaFileOption);
@@ -152,9 +153,7 @@ internal sealed class ComposeCommand : Command
         // a single message which will trigger a new composition after the current one has completed.
         var compositionChannel = Channel.CreateBounded<string>(new BoundedChannelOptions(1)
         {
-            FullMode = BoundedChannelFullMode.DropOldest,
-            SingleReader = true,
-            SingleWriter = false
+            FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true, SingleWriter = false
         });
 
         // start the composition processor task
@@ -241,8 +240,8 @@ internal sealed class ComposeCommand : Command
 
             // only process files that are in our source schema paths or match the pattern
             var isRelevantFile = sourceSchemaFilePaths.Any(path =>
-                string.Equals(path, e.FullPath, StringComparison.OrdinalIgnoreCase))
-                || IsGraphQLSchemaFile(e.Name);
+                    string.Equals(path, e.FullPath, StringComparison.OrdinalIgnoreCase)) ||
+                IsGraphQLSchemaFile(e.Name);
 
             if (!isRelevantFile)
             {
@@ -327,8 +326,8 @@ internal sealed class ComposeCommand : Command
             return false;
         }
 
-        return fileName.EndsWith(".graphql", StringComparison.OrdinalIgnoreCase)
-            || fileName.EndsWith(".graphqls", StringComparison.OrdinalIgnoreCase);
+        return fileName.EndsWith(".graphql", StringComparison.OrdinalIgnoreCase) ||
+            fileName.EndsWith(".graphqls", StringComparison.OrdinalIgnoreCase);
     }
 
     private static ImmutableSortedSet<string> GetSourceSchemaFilePaths(
@@ -361,18 +360,18 @@ internal sealed class ComposeCommand : Command
         IConsole console,
         string workingDirectory,
         List<string> sourceSchemaFiles,
-        string? compositeSchemaFile,
+        string archiveFile,
+        string? environment,
         bool enableGlobalObjectIdentification,
         CancellationToken cancellationToken)
     {
-        IEnumerable<string> sourceSchemas;
+        environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
+        Dictionary<string, (SourceSchemaText, JsonDocument)> sourceSchemas;
 
         try
         {
-            sourceSchemas = await ReadSourceSchemasAsync(
-                sourceSchemaFiles,
-                workingDirectory,
-                cancellationToken);
+            sourceSchemas = await ReadSourceSchemasAsync(sourceSchemaFiles, cancellationToken);
         }
         catch (Exception e)
         {
@@ -380,19 +379,62 @@ internal sealed class ComposeCommand : Command
             return 1;
         }
 
+        using var archive = File.Exists(archiveFile)
+            ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
+            : FusionArchive.Create(archiveFile);
+
+        using var bufferWriter = new PooledArrayWriter();
+
+        foreach (var schemaName in await archive.GetSourceSchemaNamesAsync(cancellationToken))
+        {
+            if (!sourceSchemas.ContainsKey(schemaName))
+            {
+                var sourceSchemaConfiguration =
+                    await archive.TryGetSourceSchemaConfigurationAsync(
+                        schemaName,
+                        cancellationToken);
+
+                if (sourceSchemaConfiguration is null)
+                {
+                    throw new InvalidOperationException("The archive metadata are inconsistent.");
+                }
+
+                bufferWriter.Reset();
+
+                await using (var stream = await sourceSchemaConfiguration.OpenReadSchemaAsync(cancellationToken))
+                {
+                    int read;
+
+                    do
+                    {
+                        var memory = bufferWriter.GetMemory(4096);
+                        read = await stream.ReadAsync(memory, cancellationToken);
+                        bufferWriter.Advance(read);
+                    } while (read > 0);
+                }
+
+                var sourceText = new SourceSchemaText(schemaName, Encoding.UTF8.GetString(bufferWriter.WrittenSpan));
+                sourceSchemas[schemaName] = (sourceText, sourceSchemaConfiguration.Settings);
+            }
+        }
+
         var schemaComposerOptions = new SchemaComposerOptions
         {
             EnableGlobalObjectIdentification = enableGlobalObjectIdentification
         };
+
         var compositionLog = new CompositionLog();
-        var schemaComposer = new SchemaComposer(sourceSchemas, schemaComposerOptions, compositionLog);
+        var schemaComposer = new SchemaComposer(
+            sourceSchemas.Values.Select(t => t.Item1),
+            schemaComposerOptions,
+            compositionLog);
 
         var result = schemaComposer.Compose();
 
         WriteCompositionLog(
             compositionLog,
             writer: result.IsSuccess ? console.Out : console.Error,
-            writeAsGraphQLComments: result.IsSuccess && compositeSchemaFile is null);
+            writeAsGraphQLComments: result.IsSuccess);
 
         if (result.IsFailure)
         {
@@ -404,29 +446,19 @@ internal sealed class ComposeCommand : Command
             return 1;
         }
 
-        // If a composite schema file was not specified, print the result to the console.
-        if (compositeSchemaFile is null)
-        {
-            console.Out.WriteLine(result.Value.ToString());
-        }
-        else
-        {
-            var compositeSchemaPath = Path.Combine(workingDirectory, compositeSchemaFile);
-            var directoryPath = Path.GetDirectoryName(compositeSchemaPath);
+        bufferWriter.Reset();
+        new SettingsComposer().Compose(
+            bufferWriter,
+            sourceSchemas.Values.Select(t => t.Item2.RootElement).ToArray(),
+            environment);
 
-            if (directoryPath is not null && !Directory.Exists(directoryPath))
-            {
-                Directory.CreateDirectory(directoryPath);
-            }
+        await archive.SetGatewayConfigurationAsync(
+            result.Value + Environment.NewLine,
+            JsonDocument.Parse(bufferWriter.WrittenMemory),
+            new Version(2, 0, 0),
+            cancellationToken);
 
-            await File.WriteAllTextAsync(
-                compositeSchemaPath,
-                result.Value + Environment.NewLine,
-                cancellationToken);
-
-            console.Out.WriteLine(
-                string.Format(ComposeCommand_CompositeSchemaFile_Written, compositeSchemaPath));
-        }
+        console.Out.WriteLine(string.Format(ComposeCommand_CompositeSchemaFile_Written, archiveFile));
 
         return 0;
     }
@@ -472,48 +504,64 @@ internal sealed class ComposeCommand : Command
         }
     }
 
-    private static async Task<IEnumerable<string>> ReadSourceSchemasAsync(
+    private static async Task<Dictionary<string, (SourceSchemaText, JsonDocument)>> ReadSourceSchemasAsync(
         List<string> sourceSchemaFiles,
-        string workingDirectory,
         CancellationToken cancellationToken)
     {
-        ImmutableSortedSet<string> sourceSchemaFilePaths;
+        var sourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>();
 
-        // If no source schema files were specified, scan the working directory for *.graphql* files
-        if (sourceSchemaFiles.Count == 0)
+        foreach (var sourceSchemaFile in sourceSchemaFiles)
         {
-            sourceSchemaFilePaths =
-                new DirectoryInfo(workingDirectory)
-                    .GetFiles("*.graphql*", SearchOption.AllDirectories)
-                    .Where(f => IsGraphQLSchemaFile(f.Name))
-                    .Select(i => i.FullName)
-                    .ToImmutableSortedSet();
+            await ReadSourceSchemaAsync(sourceSchemaFile, sourceSchemas, cancellationToken);
+        }
 
-            if (sourceSchemaFilePaths.Count == 0)
+        static async Task ReadSourceSchemaAsync(
+            string sourceSchemaPath,
+            Dictionary<string, (SourceSchemaText, JsonDocument)> sourceSchemas,
+            CancellationToken cancellationToken)
+        {
+            string? schemaFilePath = null;
+
+            if (Directory.Exists(sourceSchemaPath))
             {
-                throw new Exception(ComposeCommand_Error_NoSourceSchemaFilesFound);
+                schemaFilePath =
+                    new DirectoryInfo(sourceSchemaPath)
+                        .GetFiles("*.graphql*", SearchOption.AllDirectories)
+                        .Where(f => IsGraphQLSchemaFile(f.Name))
+                        .Select(i => i.FullName)
+                        .FirstOrDefault();
             }
-        }
-        else
-        {
-            sourceSchemaFilePaths
-                = sourceSchemaFiles.Select(f => Path.Combine(workingDirectory, f))
-                    .ToImmutableSortedSet();
-        }
-
-        foreach (var sourceSchemaFilePath in sourceSchemaFilePaths)
-        {
-            if (!File.Exists(sourceSchemaFilePath))
+            else if (File.Exists(sourceSchemaPath))
             {
-                throw new Exception(
-                    string.Format(
-                        ComposeCommand_Error_SourceSchemaFileDoesNotExist,
-                        sourceSchemaFilePath));
+                schemaFilePath = sourceSchemaPath;
             }
-        }
 
-        return await Task.WhenAll(
-            sourceSchemaFilePaths.Select(
-                async f => await File.ReadAllTextAsync(f, cancellationToken)));
+            if (schemaFilePath is null)
+            {
+                throw new InvalidOperationException(
+                    $"Unable to find source schema file at location `{sourceSchemaPath}`.");
+            }
+
+            var settingsFilePath = Path.Combine(
+                Path.GetDirectoryName(schemaFilePath)!,
+                Path.GetFileNameWithoutExtension(schemaFilePath) + "-settings.json");
+
+            if (!File.Exists(settingsFilePath))
+            {
+                throw new InvalidOperationException(
+                    $"Missing source schema settings file `{settingsFilePath}`.");
+            }
+
+            var settings = JsonDocument.Parse(await File.ReadAllBytesAsync(settingsFilePath, cancellationToken));
+            var schemaName = settings.RootElement.GetProperty("name").GetString();
+
+            if (schemaName is null)
+            {
+                throw new InvalidOperationException("Invalid source schema settings format.");
+            }
+
+            var sourceText = await File.ReadAllTextAsync(schemaFilePath, cancellationToken);
+            sourceSchemas.TryAdd(schemaName, (new SourceSchemaText(schemaName, sourceText), settings));
+        }
     }
 }
