@@ -72,17 +72,32 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         var completedBatches = new List<Batch>(MaxParallelBatches);
 
         stoppingToken.Register(() => _signal.Set());
+        Send(BatchDispatchEventType.CoordinatorStarted);
 
-        while (!stoppingToken.IsCancellationRequested)
+        try
         {
-            await _signal;
-
-            if (stoppingToken.IsCancellationRequested)
+            while (!stoppingToken.IsCancellationRequested && !IsCompleted())
             {
-                return;
-            }
+                await _signal;
 
-            await EvaluateAndDispatchAsync(backlog, dispatchTasks, completedBatches, stoppingToken);
+                if (stoppingToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                await EvaluateAndDispatchAsync(backlog, dispatchTasks, completedBatches, stoppingToken);
+            }
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _isCoordinatorRunning, 0);
+            Send(BatchDispatchEventType.CoordinatorCompleted);
+        }
+
+        bool IsCompleted()
+        {
+            var openBatches = Volatile.Read(ref _openBatches);
+            return  openBatches == 0;
         }
     }
 

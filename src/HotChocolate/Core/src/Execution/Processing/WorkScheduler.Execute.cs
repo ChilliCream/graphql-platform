@@ -214,7 +214,9 @@ RESTART:
 
     public void OnNext(BatchDispatchEventArgs value)
     {
-        if (value.Type is BatchDispatchEventType.Enqueued or BatchDispatchEventType.Dispatched)
+        if (value.Type is BatchDispatchEventType.Enqueued
+            or BatchDispatchEventType.Dispatched
+            or BatchDispatchEventType.CoordinatorCompleted)
         {
             lock (_sync)
             {
