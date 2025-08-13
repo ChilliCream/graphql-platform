@@ -20,7 +20,7 @@
     <PackageVersion Include="Glob" Version="1.1.9" />
     <PackageVersion Include="IdentityModel" Version="4.1.1" />
     <PackageVersion Include="JsonPointer.Net" Version="5.0.0" />
-    <PackageVersion Include="Marten" Version="7.33.0" />
+    <PackageVersion Include="Marten" Version="7.40.0" />
     <PackageVersion Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
     <PackageVersion Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Core" Version="1.4.0" />
