@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.ModelContextProtocol.Extensions;
 using HotChocolate.ModelContextProtocol.Storage;
@@ -17,7 +18,7 @@ public sealed class CallToolHandlerTests
         var context = await CreateRequestContextAsync("unknown");
 
         // act
-        var result = await CallToolHandler.HandleAsync(context, null, CancellationToken.None);
+        var result = await CallToolHandler.HandleAsync(context, CancellationToken.None);
 
         // assert
         Assert.True(result.IsError);
@@ -41,12 +42,11 @@ public sealed class CallToolHandlerTests
             .AddUnionType<TestSchema.IPet>()
             .AddObjectType<TestSchema.Cat>()
             .AddObjectType<TestSchema.Dog>();
-        services
-            .AddMcpServer()
-            .WithGraphQLTools();
         var serviceProvider = services.BuildServiceProvider();
+        var executorProvider = serviceProvider.GetRequiredService<IRequestExecutorProvider>();
+        var executor = await executorProvider.GetExecutorAsync();
         Mock<IMcpServer> mockServer = new();
-        mockServer.SetupGet(s => s.Services).Returns(serviceProvider);
+        mockServer.SetupGet(s => s.Services).Returns(executor.Schema.Services);
 
         return new RequestContext<CallToolRequestParams>(mockServer.Object)
         {

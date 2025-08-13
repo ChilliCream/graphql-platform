@@ -15,16 +15,9 @@ internal static class CallToolHandler
 {
     public static async ValueTask<CallToolResult> HandleAsync(
         RequestContext<CallToolRequestParams> context,
-        string? schemaName,
         CancellationToken cancellationToken)
     {
-        var requestExecutor =
-            await context.Services!
-                .GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync(schemaName, cancellationToken)
-                .ConfigureAwait(false);
-
-        var registry = requestExecutor.Schema.Services.GetRequiredService<GraphQLMcpToolRegistry>();
+        var registry = context.Services!.GetRequiredService<GraphQLMcpToolRegistry>();
 
         if (!registry.TryGetTool(context.Params!.Name, out var graphQLMcpTool))
         {
@@ -41,6 +34,7 @@ internal static class CallToolHandler
             };
         }
 
+        var requestExecutor = context.Services!.GetRequiredService<IRequestExecutor>();
         var arguments =
             context.Params?.Arguments ?? Enumerable.Empty<KeyValuePair<string, JsonElement>>();
 

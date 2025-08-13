@@ -1,4 +1,3 @@
-using HotChocolate.Execution;
 using HotChocolate.ModelContextProtocol.Registries;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Protocol;
@@ -8,17 +7,9 @@ namespace HotChocolate.ModelContextProtocol.Handlers;
 
 internal static class ListToolsHandler
 {
-    public static async ValueTask<ListToolsResult> HandleAsync(
-        RequestContext<ListToolsRequestParams> context,
-        string? schemaName,
-        CancellationToken cancellationToken)
+    public static ListToolsResult Handle(RequestContext<ListToolsRequestParams> context)
     {
-        var executorProvider = context.Services!.GetRequiredService<IRequestExecutorProvider>();
-        var requestExecutor =
-            await executorProvider
-                .GetExecutorAsync(schemaName, cancellationToken)
-                .ConfigureAwait(false);
-        var registry = requestExecutor.Schema.Services.GetRequiredService<GraphQLMcpToolRegistry>();
+        var registry = context.Services!.GetRequiredService<GraphQLMcpToolRegistry>();
 
         return new ListToolsResult
         {

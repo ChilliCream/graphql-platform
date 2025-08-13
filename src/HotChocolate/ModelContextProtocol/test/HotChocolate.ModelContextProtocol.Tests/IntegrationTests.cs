@@ -270,19 +270,11 @@ public sealed class IntegrationTests
                             .AddObjectType<TestSchema.Dog>();
 
                     configureRequestExecutor?.Invoke(executor);
-
-                    services
-                        .AddMcpServer()
-                        .WithHttpTransport()
-                        .WithGraphQLTools();
                 })
             .Configure(
-                app =>
-                {
-                    app
-                        .UseRouting()
-                        .UseEndpoints(endpoints => endpoints.MapMcp("/mcp"));
-                });
+                app => app
+                    .UseRouting()
+                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
 
         return new TestServer(builder);
     }
@@ -294,7 +286,7 @@ public sealed class IntegrationTests
                 new SseClientTransport(
                     new SseClientTransportOptions
                     {
-                        Endpoint = new Uri(httpClient.BaseAddress!, "/mcp")
+                        Endpoint = new Uri(httpClient.BaseAddress!, "/graphql/mcp")
                     },
                     httpClient));
     }
