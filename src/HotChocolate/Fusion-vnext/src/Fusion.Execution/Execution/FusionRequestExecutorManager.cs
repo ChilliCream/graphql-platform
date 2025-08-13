@@ -213,14 +213,19 @@ internal sealed class FusionRequestExecutorManager
         {
             foreach (var sourceSchema in sourceSchemas.EnumerateObject())
             {
-                if (sourceSchema.Value.TryGetProperty("http", out var http))
+                if (sourceSchema.Value.TryGetProperty("transports", out var transports))
                 {
-                    var httpClient = new SourceSchemaHttpClientConfiguration(
-                        sourceSchema.Name,
-                        httpClientName: "Fusion",
-                        new Uri(http.GetProperty("url").GetString()!));
+                    if (transports.TryGetProperty("http", out var http))
+                    {
+                        var hasClientName = http.TryGetProperty("clientName", out var clientName);
 
-                    configurations.Add(httpClient);
+                        var httpClient = new SourceSchemaHttpClientConfiguration(
+                            sourceSchema.Name,
+                            httpClientName: hasClientName ? clientName.GetString()! : "fusion",
+                            new Uri(http.GetProperty("url").GetString()!));
+
+                        configurations.Add(httpClient);
+                    }
                 }
             }
         }
