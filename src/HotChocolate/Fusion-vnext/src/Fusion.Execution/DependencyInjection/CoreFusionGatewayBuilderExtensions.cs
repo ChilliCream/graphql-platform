@@ -46,6 +46,6 @@ public static partial class CoreFusionGatewayBuilderExtensions
 
         return Configure(
             builder,
-            setup => setup.DocumentProvider = _ => new InMemoryFusionConfigurationProvider(schemaDocument));
+            setup => setup.DocumentProvider = _ => new InMemoryFusionConfigurationProvider(schemaDocument, null));
     }
 }
