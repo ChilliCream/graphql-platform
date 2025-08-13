@@ -28,18 +28,22 @@ public class MapperContext : IMapperContext
         string clientName,
         IDocumentHashProvider hashProvider,
         RequestStrategy requestStrategy,
-        IReadOnlyList<TransportProfile> transportProfiles)
+        IReadOnlyList<TransportProfile> transportProfiles,
+        bool optionalEnum = false) // TODO
     {
         Namespace = @namespace;
         ClientName = clientName;
         HashProvider = hashProvider;
         RequestStrategy = requestStrategy;
         TransportProfiles = transportProfiles;
+        OptionalEnum = optionalEnum;
     }
 
     public string ClientName { get; }
 
     public string Namespace { get; }
+
+    public bool OptionalEnum { get; }
 
     public string StateNamespace => Namespace + ".State";
 

@@ -557,4 +557,31 @@ public class SchemaGeneratorTests
             }
             """);
     }
+
+    [Fact]
+    public void EnumWithUnknownSupportEnabled()
+    {
+        AssertResult(
+            new AssertSettings { EnableUnknownEnum = true },
+            """
+            schema {
+                query: Query
+            }
+
+            type Query {
+                enumField(arg: Enum1): Enum1
+            }
+
+            enum Enum1 {
+                FOO
+                BAR
+                #BAZ # (unknown to client)
+            }
+            """,
+            """
+            query GetEnumField($enumArg : Enum1) {
+                enumField(arg: $enumArg)
+            }
+            """);
+    }
 }
