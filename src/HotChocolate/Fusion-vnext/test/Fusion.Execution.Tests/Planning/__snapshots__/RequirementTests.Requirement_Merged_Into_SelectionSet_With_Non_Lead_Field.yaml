@@ -14,7 +14,7 @@ operation:
 nodes:
   - id: 1
     type: Operation
-    schema: CATALOG
+    schema: a
     operation: >-
       query Op_123_1 {
         products {
@@ -27,7 +27,7 @@ nodes:
       }
   - id: 2
     type: Operation
-    schema: REVIEWS
+    schema: b
     operation: >-
       query Op_123_2(
         $__fusion_1_id: Int!

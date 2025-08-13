@@ -13,7 +13,7 @@ operation:
 nodes:
   - id: 1
     type: Operation
-    schema: A
+    schema: a
     operation: >-
       query GetTopProducts_123_1 {
         topProducts {
@@ -23,7 +23,7 @@ nodes:
       }
   - id: 2
     type: Operation
-    schema: B
+    schema: b
     operation: >-
       query GetTopProducts_123_2(
         $__fusion_1_id: ID!

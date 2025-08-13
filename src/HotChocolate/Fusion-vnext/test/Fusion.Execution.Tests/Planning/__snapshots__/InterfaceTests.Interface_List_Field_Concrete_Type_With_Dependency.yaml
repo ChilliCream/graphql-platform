@@ -14,7 +14,7 @@ operation:
 nodes:
   - id: 1
     type: Operation
-    schema: SUBGRAPH_1
+    schema: a
     operation: >-
       query testQuery_123_1 {
         votables {
@@ -26,7 +26,7 @@ nodes:
       }
   - id: 2
     type: Operation
-    schema: SUBGRAPH_2
+    schema: b
     operation: >-
       query testQuery_123_2(
         $__fusion_1_id: ID!

@@ -11,7 +11,7 @@ operation:
 nodes:
   - id: 1
     type: Operation
-    schema: A
+    schema: a
     operation: >-
       query Op_123_1 {
         books {
@@ -21,7 +21,7 @@ nodes:
       }
   - id: 2
     type: Operation
-    schema: B
+    schema: b
     operation: >-
       query Op_123_2(
         $__fusion_1_id: String!

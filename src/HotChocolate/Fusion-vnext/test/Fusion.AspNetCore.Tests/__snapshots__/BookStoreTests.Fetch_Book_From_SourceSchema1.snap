@@ -16,7 +16,7 @@
           {
             "id": 1,
             "type": "Operation",
-            "schema": "A",
+            "schema": "a",
             "operation": "query Op_da31ef9b_1 {\n  bookById(id: 1) {\n    id\n    title\n  }\n}"
           }
         ]

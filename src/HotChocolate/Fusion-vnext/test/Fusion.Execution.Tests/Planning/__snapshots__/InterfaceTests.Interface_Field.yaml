@@ -10,7 +10,7 @@ operation:
 nodes:
   - id: 1
     type: Operation
-    schema: SUBGRAPH_1
+    schema: a
     operation: >-
       query testQuery_123_1 {
         votable {
