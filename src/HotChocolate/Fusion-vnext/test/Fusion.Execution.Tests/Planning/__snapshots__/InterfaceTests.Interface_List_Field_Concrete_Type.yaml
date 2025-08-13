@@ -12,6 +12,7 @@ operation:
     hash: 123
 nodes:
   - id: 1
+    type: Operation
     schema: SUBGRAPH_1
     operation: >-
       query testQuery_123_1 {

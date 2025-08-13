@@ -10,6 +10,7 @@ operation:
     hash: 123
 nodes:
   - id: 1
+    type: Operation
     schema: A
     operation: >-
       query Op_123_1 {
@@ -19,6 +20,7 @@ nodes:
         }
       }
   - id: 2
+    type: Operation
     schema: B
     operation: >-
       query Op_123_2(
