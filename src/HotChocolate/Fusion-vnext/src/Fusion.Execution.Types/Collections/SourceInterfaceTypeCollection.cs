@@ -4,8 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 namespace HotChocolate.Fusion.Types.Collections;
 
 public class SourceInterfaceTypeCollection(IEnumerable<SourceInterfaceType> members)
-    : SourceMemberCollection<SourceInterfaceType>(members), ISourceComplexTypeCollection<SourceInterfaceType>
-        , ISourceComplexTypeCollection<ISourceComplexType>
+    : SourceMemberCollection<SourceInterfaceType>(members)
+    , ISourceComplexTypeCollection<SourceInterfaceType>
+    , ISourceComplexTypeCollection<ISourceComplexType>
 {
     ISourceComplexType ISourceMemberCollection<ISourceComplexType>.this[string schemaName]
         => this[schemaName];
