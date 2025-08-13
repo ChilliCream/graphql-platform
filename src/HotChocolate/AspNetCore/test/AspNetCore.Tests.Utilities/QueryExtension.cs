@@ -1,6 +1,5 @@
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Mvc;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 
@@ -10,7 +9,7 @@ public class QueryExtension
     public long Time(Schema schema)
         => schema.CreatedAt.Ticks;
 
-    public bool Evict([FromServices] IRequestExecutorProvider executorResolver, ISchemaDefinition schema)
+    public bool Evict(IRequestExecutorProvider executorResolver, ISchemaDefinition schema)
     {
         ((RequestExecutorManager)executorResolver).EvictRequestExecutor(schema.Name);
         return true;
