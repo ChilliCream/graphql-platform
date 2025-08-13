@@ -45,14 +45,14 @@ public abstract class FusionTestBase : IDisposable
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null)
     {
-        var sourceSchemas = new List<string>();
+        var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
         var gatewayBuilder = gatewayServices.AddGraphQLGatewayServer();
 
         foreach (var (name, server) in sourceSchemaServers)
         {
             var schemaDocument = await server.Services.GetSchemaAsync(name);
-            sourceSchemas.Add(schemaDocument.ToString());
+            sourceSchemas.Add(new SourceSchemaText(name, schemaDocument.ToString()));
             gatewayServices.AddHttpClient(name, server);
             gatewayBuilder.AddHttpClientConfiguration(name, new Uri("http://localhost:5000/graphql"));
         }

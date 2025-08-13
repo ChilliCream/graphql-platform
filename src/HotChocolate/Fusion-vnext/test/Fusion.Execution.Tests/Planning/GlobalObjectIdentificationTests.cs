@@ -12,7 +12,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     public void Node_Field_Id_And_Typename_Selection()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -33,8 +33,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1);
 
         // act
         var plan = PlanOperation(
@@ -56,7 +55,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     public void Node_Field_Concrete_Type_Has_Dependency()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -72,7 +71,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -88,8 +87,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -113,7 +111,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     public void Node_Field_Concrete_Type_Selection_Has_Dependency()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -134,7 +132,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -150,8 +148,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -178,7 +175,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     public void Node_Field_Two_Concrete_Types_Selections_Have_Same_Dependency()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -198,7 +195,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -218,7 +215,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphC = new TestSubgraph(
+        var source3 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -234,8 +231,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB, subgraphC);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2, source3);
 
         // act
         var plan = PlanOperation(
@@ -265,7 +261,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     public void Node_Field_Two_Concrete_Types_Selections_Have_Different_Dependencies()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -285,7 +281,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -305,7 +301,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphC = new TestSubgraph(
+        var source3 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -321,8 +317,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB, subgraphC);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2, source3);
 
         // act
         var plan = PlanOperation(
@@ -357,7 +352,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     public void Node_Field_Selections_On_Interface()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -383,8 +378,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1);
 
         // act
         var plan = PlanOperation(
@@ -407,7 +401,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     public void Node_Field_Selections_On_Interface_And_Concrete_Type()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -433,8 +427,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1);
 
         // act
         var plan = PlanOperation(
@@ -460,7 +453,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     public void Node_FIeld_Selections_On_Interface_And_Concrete_Type_Both_Have_Different_Dependencies()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -490,7 +483,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -506,8 +499,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(
@@ -540,7 +532,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     public void Node_Field_Selections_On_Interface_Selection_Has_Dependency()
     {
         // arrange
-        var subgraphA = new TestSubgraph(
+        var source1 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -569,7 +561,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphB = new TestSubgraph(
+        var source2 = new TestSourceSchema(
             """
             type Query {
               node(id: ID!): Node @lookup
@@ -585,8 +577,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             }
             """);
 
-        var subgraphs = new TestSubgraphCollection(subgraphA, subgraphB);
-        var schema = subgraphs.BuildFusionSchema();
+        var schema = ComposeSchema(source1, source2);
 
         // act
         var plan = PlanOperation(

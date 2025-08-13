@@ -34,6 +34,8 @@ internal static class MutableObjectTypeDefinitionExtensions
                 .ToList();
 
         // To use an abstract lookup, the type must exist in the source schema.
+        // TODO: For abstract lookups we also need to validate that the type
+        //       is part of the abstract type's possible types in the specific source schema.
         if (type.ExistsInSchema(schemaName))
         {
             // Interface lookups.
