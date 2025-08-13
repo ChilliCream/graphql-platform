@@ -119,6 +119,54 @@ internal sealed class FetchResultStore : IDisposable
         }
     }
 
+    public void AddErrors(ReadOnlySpan<SourceSchemaError> errors, ImmutableArray<string> responseNames)
+    {
+        _lock.EnterWriteLock();
+
+        try
+        {
+            ref var error = ref MemoryMarshal.GetReference(errors);
+            ref var end = ref Unsafe.Add(ref error, errors.Length);
+
+            while (Unsafe.IsAddressLessThan(ref error, ref end))
+            {
+                // if (error.Path.IsRoot)
+                // {
+                //     var selectionSet = _operation.RootSelectionSet;
+                //     if (!_valueCompletion.BuildResult(selectionSet, data, errorTrie, _root))
+                //     {
+                //         return false;
+                //     }
+                // }
+                // else
+                // {
+                //     var startResult = GetStartObjectResult(error.Path);
+                //     if (!_valueCompletion.BuildResult(startResult.SelectionSet, data, errorTrie, startResult))
+                //     {
+                //         return false;
+                //     }
+                // }
+
+                foreach (var responseName in responseNames)
+                {
+                    var errorWithPath = ErrorBuilder.FromError(error.Error)
+                        .SetPath(error.Path.Append(responseName))
+                        // TODO: Locations
+                        .Build();
+
+                    // TODO: Null propagation
+                    _errors.Add(errorWithPath);
+                }
+
+                error = ref Unsafe.Add(ref error, 1)!;
+            }
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+    }
+
     public void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);

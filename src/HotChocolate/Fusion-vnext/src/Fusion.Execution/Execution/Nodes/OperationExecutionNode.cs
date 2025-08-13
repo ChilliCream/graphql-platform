@@ -56,57 +56,12 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         _variables = variables.ToArray();
 
-        var selectionSet = GetSelectionSetNodeFromPath(operation, source);
-
-        _providingSelectionSet = selectionSet ?? throw new InvalidOperationException("Could not determine source selection set");
+        // TODO: This might include requirements that we wouldn't want to create a front-end facing error for
+        _responseNames = GetResponseNamesFromPath(operation, source);
     }
 
-    private readonly SelectionSetNode _providingSelectionSet;
-
-    // TODO: Move
-    private static SelectionSetNode? GetSelectionSetNodeFromPath(OperationDefinitionNode operationDefinition, SelectionPath path)
-    {
-        var current = operationDefinition.SelectionSet;
-
-        if (path.IsRoot)
-        {
-            return current;
-        }
-
-        for (var i = path.Segments.Length - 1; i >= 0; i--)
-        {
-            var segment = path.Segments[i];
-
-            if (segment.Kind == SelectionPathSegmentKind.InlineFragment)
-            {
-                // TODO: Do we need to handle the case without a type condition?
-                var selection = current.Selections
-                    .OfType<InlineFragmentNode>()
-                    .FirstOrDefault(s => s.TypeCondition?.Name.Value == segment.Name);
-
-                if (selection is null)
-                {
-                    return null;
-                }
-
-                current = selection.SelectionSet;
-            }
-            else if (segment.Kind is SelectionPathSegmentKind.Field)
-            {
-                var selection = current.Selections
-                    .OfType<FieldNode>()
-                    .FirstOrDefault(s => s.Alias?.Value == segment.Name || s.Name.Value == segment.Name);
-
-                if (selection?.SelectionSet is null)
-                {
-                    return null;
-                }
-                current = selection.SelectionSet;
-            }
-        }
-
-        return current;
-    }
+    // TODO: Should this be a span
+    private readonly ImmutableArray<string> _responseNames;
 
     public override int Id { get; }
 
@@ -198,7 +153,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
         catch (Exception exception)
         {
-            context.AddException(exception);
+            AddErrors(context, exception, variables, _responseNames);
 
             return new ExecutionNodeResult(
                 Id,
@@ -231,7 +186,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 result?.Dispose();
             }
 
-            context.AddException(exception);
+            AddErrors(context, exception, variables, _responseNames);
 
             return new ExecutionNodeResult(
                 Id,
@@ -355,6 +310,109 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
 
         _isSealed = true;
+    }
+
+    private static ImmutableArray<string> GetResponseNamesFromPath(
+        OperationDefinitionNode operationDefinition,
+        SelectionPath path)
+    {
+        var selectionSet = GetSelectionSetNodeFromPath(operationDefinition, path);
+
+        if (selectionSet is null)
+        {
+            return [];
+        }
+
+        var responseNames = new List<string>();
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            // TODO: We need to handle InlineFragmentNodes here
+            if (selection is FieldNode fieldNode)
+            {
+                responseNames.Add(fieldNode.Alias?.Value ?? fieldNode.Name.Value);
+            }
+        }
+
+        return [..responseNames];
+    }
+
+    private static SelectionSetNode? GetSelectionSetNodeFromPath(OperationDefinitionNode operationDefinition, SelectionPath path)
+    {
+        var current = operationDefinition.SelectionSet;
+
+        if (path.IsRoot)
+        {
+            return current;
+        }
+
+        for (var i = path.Segments.Length - 1; i >= 0; i--)
+        {
+            var segment = path.Segments[i];
+
+            if (segment.Kind == SelectionPathSegmentKind.InlineFragment)
+            {
+                // TODO: Do we need to handle the case without a type condition?
+                var selection = current.Selections
+                    .OfType<InlineFragmentNode>()
+                    .FirstOrDefault(s => s.TypeCondition?.Name.Value == segment.Name);
+
+                if (selection is null)
+                {
+                    return null;
+                }
+
+                current = selection.SelectionSet;
+            }
+            else if (segment.Kind is SelectionPathSegmentKind.Field)
+            {
+                var selection = current.Selections
+                    .OfType<FieldNode>()
+                    .FirstOrDefault(s => s.Alias?.Value == segment.Name || s.Name.Value == segment.Name);
+
+                if (selection?.SelectionSet is null)
+                {
+                    return null;
+                }
+                current = selection.SelectionSet;
+            }
+        }
+
+        return current;
+    }
+
+    private static void AddErrors(
+        OperationPlanContext context,
+        Exception exception,
+        ImmutableArray<VariableValues> variables,
+        ImmutableArray<string> responseNames)
+    {
+        var bufferLength = Math.Max(variables.Length, 1);
+        var buffer = ArrayPool<SourceSchemaError>.Shared.Rent(bufferLength);
+
+        try
+        {
+            var error = ErrorBuilder.FromException(exception).Build();
+
+            if (variables.Length == 0)
+            {
+                buffer[0] = new SourceSchemaError(error, Path.Root);
+            }
+            else
+            {
+                for (var i = 0; i < variables.Length; i++)
+                {
+                    buffer[i] = new SourceSchemaError(error, variables[i].Path);
+                }
+            }
+            
+            context.AddErrors(buffer.AsSpan(0, bufferLength), responseNames);
+        }
+        finally
+        {
+            buffer.AsSpan(0, bufferLength).Clear();
+            ArrayPool<SourceSchemaError>.Shared.Return(buffer);
+        }
     }
 
     private sealed class SubscriptionEnumerable : IAsyncEnumerable<EventMessageResult>

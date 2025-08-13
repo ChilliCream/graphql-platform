@@ -2,6 +2,14 @@
   "data": {
     "topProduct": null
   },
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "path": [
+        "topProduct"
+      ]
+    }
+  ],
   "extensions": {
     "fusion": {
       "operationPlan": {

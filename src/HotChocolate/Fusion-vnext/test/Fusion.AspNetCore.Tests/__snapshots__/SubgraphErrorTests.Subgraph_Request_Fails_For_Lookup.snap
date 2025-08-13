@@ -5,6 +5,15 @@
       "name": null
     }
   },
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "path": [
+        "topProduct",
+        "name"
+      ]
+    }
+  ],
   "extensions": {
     "fusion": {
       "operationPlan": {

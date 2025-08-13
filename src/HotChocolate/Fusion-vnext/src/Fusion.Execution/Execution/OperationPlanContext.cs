@@ -105,10 +105,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     internal void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
         => _resultStore.AddPartialResults(result, selections);
 
-    internal void AddException(Exception? exception = null)
-    {
-        // TODO: Implement and change name
-    }
+    internal void AddErrors(ReadOnlySpan<SourceSchemaError> errors, ImmutableArray<string> responseNames)
+        => _resultStore.AddErrors(errors, responseNames);
 
     internal PooledArrayWriter CreateRentedBuffer()
         => _resultStore.CreateRentedBuffer();
