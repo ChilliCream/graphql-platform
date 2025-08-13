@@ -1271,14 +1271,14 @@ file static class Extensions
         string schemaName,
         FusionSchemaDefinition compositeSchema)
     {
-        if (type is FusionComplexTypeDefinition complexType)
+        // TODO: Currently we just check that the type exists in the given source schema
+        //       and that there are lookups for itself and / or the abstract types
+        //       it's a part of. However, we don't check that the type is part of the
+        //       abstract type in the given source schema.
+        if (type is FusionComplexTypeDefinition complexType
+            && complexType.Sources.TryGetMember(schemaName, out var source))
         {
-            var lookups = new List<Lookup>();
-
-            if (complexType.Sources.TryGetMember(schemaName, out var source))
-            {
-                lookups.AddRange(source.Lookups);
-            }
+            var lookups = new List<Lookup>(source.Lookups);
 
             foreach (var interfaceType in complexType.Implements)
             {
