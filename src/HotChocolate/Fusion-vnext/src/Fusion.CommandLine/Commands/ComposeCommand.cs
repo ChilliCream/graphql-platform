@@ -1,7 +1,5 @@
-using System.Collections.Immutable;
 using System.CommandLine;
 using System.CommandLine.IO;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
@@ -45,16 +43,14 @@ internal sealed class ComposeCommand : Command
         };
         sourceSchemaFileOption.AddAlias("-s");
         sourceSchemaFileOption.LegalFilePathsOnly();
-        sourceSchemaFileOption.IsRequired = true;
 
-        var archiveOption = new Option<string>("--gateway-config-file")
+        var archiveOption = new Option<string>("--fusion-archive")
         {
             Description = ComposeCommand_CompositeSchemaFile_Description
         };
         archiveOption.AddAlias("--far");
-        archiveOption.AddAlias("-g");
+        archiveOption.AddAlias("-f");
         archiveOption.LegalFilePathsOnly();
-        archiveOption.IsRequired = true;
 
         var environmentOption = new Option<string?>("--environment");
         environmentOption.AddAlias("--env");
@@ -67,21 +63,25 @@ internal sealed class ComposeCommand : Command
 
         var watchModeOption = new Option<bool>("--watch") { Arity = ArgumentArity.ZeroOrOne };
 
+        var printSchemaOption = new Option<bool>("--print") { IsHidden = true };
+
         AddOption(workingDirectoryOption);
         AddOption(sourceSchemaFileOption);
         AddOption(archiveOption);
         AddOption(environmentOption);
         AddOption(enableGlobalIdsOption);
         AddOption(watchModeOption);
+        AddOption(printSchemaOption);
 
         this.SetHandler(async context =>
         {
             var workingDirectory = context.ParseResult.GetValueForOption(workingDirectoryOption)!;
             var sourceSchemaFiles = context.ParseResult.GetValueForOption(sourceSchemaFileOption)!;
-            var archive = context.ParseResult.GetValueForOption(archiveOption)!;
+            var archive = context.ParseResult.GetValueForOption(archiveOption);
             var environment = context.ParseResult.GetValueForOption(environmentOption);
             var enableGlobalIds = context.ParseResult.GetValueForOption(enableGlobalIdsOption);
             var watchMode = context.ParseResult.GetValueForOption(watchModeOption);
+            var printSchema = context.ParseResult.GetValueForOption(printSchemaOption);
 
             context.ExitCode = await ExecuteAsync(
                 context.Console,
@@ -91,6 +91,7 @@ internal sealed class ComposeCommand : Command
                 environment,
                 enableGlobalIds,
                 watchMode,
+                printSchema,
                 context.GetCancellationToken());
         });
     }
@@ -99,15 +100,42 @@ internal sealed class ComposeCommand : Command
         IConsole console,
         string workingDirectory,
         List<string> sourceSchemaFiles,
-        string archiveFile,
+        string? archiveFile,
         string? environment,
         bool enableGlobalObjectIdentification,
         bool watchMode,
+        bool printSchema,
         CancellationToken cancellationToken)
     {
+        archiveFile ??= workingDirectory;
+
         if (Directory.Exists(archiveFile))
         {
             archiveFile = Path.Combine(archiveFile, "gateway.far");
+        }
+        else if(!Path.IsPathRooted(archiveFile))
+        {
+            archiveFile = Path.Combine(workingDirectory, archiveFile);
+        }
+
+        if (sourceSchemaFiles.Count == 0)
+        {
+            sourceSchemaFiles.AddRange(
+                new DirectoryInfo(workingDirectory)
+                    .GetFiles("*.graphql*", SearchOption.AllDirectories)
+                    .Where(f => IsSchemaFile(f.Name))
+                    .Select(i => i.FullName));
+        }
+        else
+        {
+            for (var i = 0; i < sourceSchemaFiles.Count; i++)
+            {
+                var sourceSchemaFile = sourceSchemaFiles[i];
+                if (!Path.IsPathRooted(sourceSchemaFile))
+                {
+                    sourceSchemaFiles[i] = Path.Combine(workingDirectory, sourceSchemaFile);
+                }
+            }
         }
 
         if (watchMode)
@@ -128,6 +156,7 @@ internal sealed class ComposeCommand : Command
             archiveFile,
             environment,
             enableGlobalObjectIdentification,
+            printSchema,
             cancellationToken);
     }
 
@@ -149,6 +178,7 @@ internal sealed class ComposeCommand : Command
             archiveFile,
             environment,
             enableGlobalObjectIdentification,
+            false,
             cancellationToken);
 
         // use a bounded channel to queue composition requests
@@ -315,6 +345,7 @@ internal sealed class ComposeCommand : Command
                     archiveFile,
                     environment,
                     enableGlobalObjectIdentification,
+                    false,
                     cancellationToken);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
@@ -345,6 +376,7 @@ internal sealed class ComposeCommand : Command
         string archiveFile,
         string? environment,
         bool enableGlobalObjectIdentification,
+        bool printSchema,
         CancellationToken cancellationToken)
     {
         environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
@@ -362,8 +394,8 @@ internal sealed class ComposeCommand : Command
         }
 
         using var archive = File.Exists(archiveFile)
-            ? FusionArchive.Create(archiveFile)
-            : FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update);
+            ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
+            : FusionArchive.Create(archiveFile);
         var schemaNames = new SortedSet<string>(StringComparer.Ordinal);
 
         await UpdateArchiveMetadata(archive, schemaNames, cancellationToken);
@@ -419,7 +451,7 @@ internal sealed class ComposeCommand : Command
         WriteCompositionLog(
             compositionLog,
             writer: result.IsSuccess ? console.Out : console.Error,
-            writeAsGraphQLComments: result.IsSuccess);
+            writeAsGraphQLComments: result.IsSuccess && printSchema);
 
         if (result.IsFailure)
         {
@@ -443,7 +475,11 @@ internal sealed class ComposeCommand : Command
             new Version(2, 0, 0),
             cancellationToken);
 
-        console.Out.WriteLine(string.Format(ComposeCommand_CompositeSchemaFile_Written, archiveFile));
+        await archive.CommitAsync(cancellationToken);
+
+        console.Out.WriteLine(printSchema
+            ? result.Value.ToString()
+            : string.Format(ComposeCommand_CompositeSchemaFile_Written, archiveFile));
 
         return 0;
     }
@@ -550,7 +586,7 @@ internal sealed class ComposeCommand : Command
             if (schemaFilePath is null)
             {
                 throw new InvalidOperationException(
-                    $"Unable to find source schema file at location `{sourceSchemaPath}`.");
+                    $"❌ Source schema file '{sourceSchemaPath}' does not exist.");
             }
 
             var settingsFilePath = Path.Combine(

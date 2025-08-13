@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
-    <ProjectReference Include="..\Fusion.Packaging.Settings\HotChocolate.Fusion.Packaging.Settings.csproj" />
     <ProjectReference Include="..\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
   </ItemGroup>
 
