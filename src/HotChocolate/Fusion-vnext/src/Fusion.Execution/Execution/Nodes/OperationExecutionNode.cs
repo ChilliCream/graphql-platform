@@ -55,6 +55,57 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
 
         _variables = variables.ToArray();
+
+        var selectionSet = GetSelectionSetNodeFromPath(operation, source);
+
+        _providingSelectionSet = selectionSet ?? throw new InvalidOperationException("Could not determine source selection set");
+    }
+
+    private readonly SelectionSetNode _providingSelectionSet;
+
+    // TODO: Move
+    private static SelectionSetNode? GetSelectionSetNodeFromPath(OperationDefinitionNode operationDefinition, SelectionPath path)
+    {
+        var current = operationDefinition.SelectionSet;
+
+        if (path.IsRoot)
+        {
+            return current;
+        }
+
+        for (var i = path.Segments.Length - 1; i >= 0; i--)
+        {
+            var segment = path.Segments[i];
+
+            if (segment.Kind == SelectionPathSegmentKind.InlineFragment)
+            {
+                // TODO: Do we need to handle the case without a type condition?
+                var selection = current.Selections
+                    .OfType<InlineFragmentNode>()
+                    .FirstOrDefault(s => s.TypeCondition?.Name.Value == segment.Name);
+
+                if (selection is null)
+                {
+                    return null;
+                }
+
+                current = selection.SelectionSet;
+            }
+            else if (segment.Kind is SelectionPathSegmentKind.Field)
+            {
+                var selection = current.Selections
+                    .OfType<FieldNode>()
+                    .FirstOrDefault(s => s.Alias?.Value == segment.Name || s.Name.Value == segment.Name);
+
+                if (selection?.SelectionSet is null)
+                {
+                    return null;
+                }
+                current = selection.SelectionSet;
+            }
+        }
+
+        return current;
     }
 
     public override int Id { get; }

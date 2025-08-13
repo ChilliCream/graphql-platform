@@ -305,6 +305,44 @@ public class SubgraphErrorTests : FusionTestBase
     }
 
     [Fact]
+    public async Task No_Data_And_Error_With_Path_For_Lookup_Leaf()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema6.Query>());
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+        ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+              topProduct {
+                price
+                name
+              }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task No_Data_And_Error_Without_Path_For_Lookup()
     {
         // arrange
@@ -473,6 +511,24 @@ public class SubgraphErrorTests : FusionTestBase
         public record Product(int Id)
         {
             public string GetName() => "Product " + Id;
+        }
+    }
+
+    public static class SourceSchema6
+    {
+        public class Query
+        {
+            [Lookup]
+            public Product GetProductById(int id) => new(id);
+        }
+
+        public record Product(int Id)
+        {
+            public string GetName(IResolverContext context)
+            {
+                throw new GraphQLException(ErrorBuilder.New().SetMessage("Could not resolve Product.name")
+                    .SetPath(context.Path).Build());
+            }
         }
     }
 }
