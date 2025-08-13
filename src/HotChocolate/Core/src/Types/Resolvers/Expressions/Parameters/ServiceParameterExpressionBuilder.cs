@@ -2,14 +2,11 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 /// <summary>
 /// Builds parameter expressions for resolver level dependency injection.
-/// Parameters need to be annotated with the <see cref="ServiceAttribute"/> or the
-/// <c>FromServicesAttribute</c>.
+/// Parameters need to be annotated with the <see cref="ServiceAttribute"/>.
 /// </summary>
 internal sealed class ServiceParameterExpressionBuilder
     : IParameterExpressionBuilder

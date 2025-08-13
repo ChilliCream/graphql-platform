@@ -4,8 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using HotChocolate.Types.Helpers;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public abstract class FieldCollection<T> : IReadOnlyList<T> where T : INameProvider

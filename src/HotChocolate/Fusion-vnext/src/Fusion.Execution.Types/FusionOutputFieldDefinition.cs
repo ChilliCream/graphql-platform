@@ -22,6 +22,7 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition
         Name = name;
         Description = description;
         IsDeprecated = isDeprecated;
+        IsIntrospectionField = name.StartsWith("__");
         DeprecationReason = deprecationReason;
         Arguments = arguments;
 
@@ -55,6 +56,8 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition
     public SchemaCoordinate Coordinate => new(DeclaringType.Name, Name, ofDirective: false);
 
     public bool IsDeprecated { get; }
+
+    public bool IsIntrospectionField { get; }
 
     public string? DeprecationReason { get; }
 

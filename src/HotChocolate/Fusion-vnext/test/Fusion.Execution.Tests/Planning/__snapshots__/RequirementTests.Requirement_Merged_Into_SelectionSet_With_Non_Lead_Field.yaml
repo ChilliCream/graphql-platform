@@ -1,0 +1,46 @@
+operation:
+  - document: >-
+      {
+        products {
+          brand {
+            name
+          }
+          nameAndId
+          id @fusion__requirement
+          name @fusion__requirement
+        }
+      }
+    hash: 123
+nodes:
+  - id: 1
+    schema: CATALOG
+    operation: >-
+      query Op_123_1 {
+        products {
+          brand {
+            name
+          }
+          id
+          name
+        }
+      }
+  - id: 2
+    schema: REVIEWS
+    operation: >-
+      query Op_123_2(
+        $__fusion_1_id: Int!
+        $__fusion_2_name: String!
+      ) {
+        productById(id: $__fusion_1_id) {
+          nameAndId(name: $__fusion_2_name)
+        }
+      }
+    source: $.productById
+    target: $.products
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: id
+      - name: __fusion_2_name
+        selectionMap: name
+    dependencies:
+      - id: 1

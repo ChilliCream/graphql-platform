@@ -238,6 +238,11 @@ internal sealed class FetchResultStore : IDisposable
 
                 (next, current) = (current, next);
                 next.Clear();
+
+                if (current.Count == 0)
+                {
+                    return [];
+                }
             }
 
             PooledArrayWriter? buffer = null;
