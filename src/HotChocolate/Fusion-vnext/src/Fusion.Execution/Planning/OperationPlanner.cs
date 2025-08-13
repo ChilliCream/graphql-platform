@@ -293,10 +293,11 @@ public sealed partial class OperationPlanner
                 requirements = requirements.Add(argumentRequirementKey, operationRequirement);
             }
 
-            // If the lookup returns an abstract type, we might need to insert a type refinement
-            // around our selection set.
+            string? lookupTypeRefinement = null;
             if (_schema.Types.TryGetType(lookup.FieldType, out var lookupFieldType)
-                && lookupFieldType != workItem.SelectionSet.Type)
+                && lookupFieldType != workItem.SelectionSet.Type
+                && !resolvable.Selections.All(s => s is InlineFragmentNode inlineFragment
+                    && inlineFragment.TypeCondition?.Name.Value == workItem.SelectionSet.Type.Name))
             {
                 var typeRefinement =
                     new InlineFragmentNode(
@@ -313,9 +314,11 @@ public sealed partial class OperationPlanner
                 index = indexBuilder;
 
                 operationBuilder.SetSelectionSet(selectionSetWithTypeRefinement);
+
+                lookupTypeRefinement = workItem.SelectionSet.Type.Name;
             }
 
-            operationBuilder.SetLookup(lookup, requirementKey);
+            operationBuilder.SetLookup(lookup, lookupTypeRefinement, requirementKey);
         }
 
         (var definition, index, var source) = operationBuilder.Build(index);
@@ -686,7 +689,32 @@ public sealed partial class OperationPlanner
             requirements = requirements.Add(argumentRequirementKey, operationRequirement);
         }
 
-        operationBuilder.SetLookup(workItem.Lookup, requirementKey);
+        string? lookupTypeRefinement = null;
+        if (_schema.Types.TryGetType(lookup.FieldType, out var lookupFieldType)
+            && lookupFieldType != selectionSetStub.Type
+            && !selectionSetNode.Selections.All(s => s is InlineFragmentNode inlineFragment
+                && inlineFragment.TypeCondition?.Name.Value == selectionSetStub.Type.Name))
+        {
+            var typeRefinement =
+                new InlineFragmentNode(
+                    null,
+                    new NamedTypeNode(selectionSetStub.Type.Name),
+                    [],
+                    selectionSetNode);
+            var selectionSetWithTypeRefinement = new SelectionSetNode(null, [typeRefinement]);
+
+            var indexBuilder = index.ToBuilder();
+
+            indexBuilder.Register(selectionSetNode, selectionSetWithTypeRefinement);
+
+            index = indexBuilder;
+
+            operationBuilder.SetSelectionSet(selectionSetWithTypeRefinement);
+
+            lookupTypeRefinement = selectionSetStub.Type.Name;
+        }
+
+        operationBuilder.SetLookup(workItem.Lookup, lookupTypeRefinement, requirementKey);
 
         var (definition, _, source) = operationBuilder.Build(index);
 
