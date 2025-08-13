@@ -5,15 +5,16 @@ namespace HotChocolate.Fusion.Planning;
 
 internal static class QueryPlannerHelpers
 {
-    public static string GetBestMatchingSubgraph(
+    public static string? GetBestMatchingSubgraph(
         this FusionGraphConfiguration configuration,
         IOperation operation,
+        SelectionPath? parentSelectionPath,
         IReadOnlyList<ISelection> selections,
         ObjectTypeMetadata typeMetadataContext,
         IReadOnlyList<string>? availableSubgraphs = null)
     {
         var bestScore = 0;
-        var bestSubgraph = configuration.SubgraphNames[0];
+        var bestSubgraph = default(string?);
 
         foreach (var subgraphName in availableSubgraphs ?? configuration.SubgraphNames)
         {
@@ -21,6 +22,7 @@ internal static class QueryPlannerHelpers
                 EvaluateSubgraphCompatibilityScore(
                     configuration,
                     operation,
+                    parentSelectionPath,
                     selections,
                     typeMetadataContext,
                     subgraphName);
@@ -38,11 +40,15 @@ internal static class QueryPlannerHelpers
     private static int EvaluateSubgraphCompatibilityScore(
         FusionGraphConfiguration configuration,
         IOperation operation,
+        SelectionPath? parentSelectionPath,
         IReadOnlyList<ISelection> selections,
         ObjectTypeMetadata typeMetadataContext,
         string schemaName)
     {
         var score = 0;
+
+        var pathOrTypeCanBeResolvedFromRoot = EnsurePathOrTypeCanBeResolvedFromRoot(configuration, parentSelectionPath, typeMetadataContext, schemaName);
+
         var stack = new Stack<(IReadOnlyList<ISelection> selections, ObjectTypeMetadata typeContext)>();
         stack.Push((selections, typeMetadataContext));
 
@@ -50,11 +56,21 @@ internal static class QueryPlannerHelpers
         {
             var (currentSelections, currentTypeContext) = stack.Pop();
 
+            // If there are no selections at the current node, it means the subgraph
+            // can resolve the path up to this point without requiring any further fields, so we increase the score.
+            if (currentSelections.Count == 0)
+            {
+                score++;
+            }
+
             foreach (var selection in currentSelections)
             {
                 if (!selection.Field.IsIntrospectionField &&
                     currentTypeContext.Fields[selection.Field.Name].Bindings
-                        .ContainsSubgraph(schemaName))
+                        .ContainsSubgraph(schemaName) &&
+                    (pathOrTypeCanBeResolvedFromRoot ||
+                        currentTypeContext.Fields[selection.Field.Name].Resolvers
+                        .ContainsResolvers(schemaName)))
                 {
                     score++;
 
@@ -72,5 +88,37 @@ internal static class QueryPlannerHelpers
         }
 
         return score;
+    }
+
+    private static bool EnsurePathOrTypeCanBeResolvedFromRoot(
+        FusionGraphConfiguration configuration,
+        SelectionPath? parentSelectionPath,
+        ObjectTypeMetadata typeMetadataContext,
+        string schemaName)
+    {
+        return typeMetadataContext.Resolvers.ContainsResolvers(schemaName) ||
+            configuration.EnsurePathCanBeResolvedFromRoot(schemaName, parentSelectionPath);
+    }
+
+    public static bool EnsurePathCanBeResolvedFromRoot(
+        this FusionGraphConfiguration configuration,
+        string subgraphName,
+        SelectionPath? path)
+    {
+        var current = path;
+
+        while (current is not null)
+        {
+            var typeMetadata = configuration.GetType<ObjectTypeMetadata>(current.Selection.DeclaringType.Name);
+
+            if (!typeMetadata.Fields[current.Selection.Field.Name].Bindings.ContainsSubgraph(subgraphName))
+            {
+                return false;
+            }
+
+            current = current.Parent;
+        }
+
+        return true;
     }
 }
