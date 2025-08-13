@@ -92,7 +92,10 @@
       "items": {
         "type": "string"
       },
-      "description": "List description"
+      "description": "List description",
+      "default": [
+        "default"
+      ]
     },
     "localDate": {
       "type": "string",
@@ -196,7 +199,5 @@
       "default": "00000000-0000-0000-0000-000000000000"
     }
   },
-  "required": [
-    "list"
-  ]
+  "required": []
 }

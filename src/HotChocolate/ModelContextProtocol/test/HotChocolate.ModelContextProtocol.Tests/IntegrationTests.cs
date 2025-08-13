@@ -161,13 +161,7 @@ public sealed class IntegrationTests
         var mcpClient = await CreateMcpClient(server.CreateClient());
 
         // act
-        var result = await mcpClient.CallToolAsync(
-            "get_with_defaulted_variables",
-            // FIXME: It should not be necessary to provide this variable.
-            new Dictionary<string, object?>
-            {
-                { "list", s_list }
-            });
+        var result = await mcpClient.CallToolAsync("get_with_defaulted_variables");
 
         // assert
         result.StructuredContent!
