@@ -1,4 +1,8 @@
+using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using HotChocolate.AspNetCore;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Logging;
@@ -43,7 +47,8 @@ public abstract class FusionTestBase : IDisposable
     public async Task<TestServer> CreateCompositeSchemaAsync(
         (string SchemaName, TestServer Server)[] sourceSchemaServers,
         Action<IServiceCollection>? configureServices = null,
-        Action<IApplicationBuilder>? configureApplication = null)
+        Action<IApplicationBuilder>? configureApplication = null,
+        [StringSyntax("json")] string? schemaSettings = null)
     {
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
@@ -54,7 +59,11 @@ public abstract class FusionTestBase : IDisposable
             var schemaDocument = await server.Services.GetSchemaAsync(name);
             sourceSchemas.Add(new SourceSchemaText(name, schemaDocument.ToString()));
             gatewayServices.AddHttpClient(name, server);
-            gatewayBuilder.AddHttpClientConfiguration(name, new Uri("http://localhost:5000/graphql"));
+
+            if (schemaSettings is null)
+            {
+                gatewayBuilder.AddHttpClientConfiguration(name, new Uri("http://localhost:5000/graphql"));
+            }
         }
 
         var compositionLog = new CompositionLog();
@@ -66,7 +75,14 @@ public abstract class FusionTestBase : IDisposable
             throw new InvalidOperationException(result.Errors[0].Message);
         }
 
-        gatewayBuilder.AddInMemoryConfiguration(result.Value.ToSyntaxNode());
+        JsonDocumentOwner? settings = null;
+        if (schemaSettings is not null)
+        {
+            var body = JsonDocument.Parse(schemaSettings);
+            settings = new JsonDocumentOwner(body, new EmptyMemoryOwner());
+        }
+
+        gatewayBuilder.AddInMemoryConfiguration(result.Value.ToSyntaxNode(), settings);
         gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
         gatewayBuilder.ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = false);
 
@@ -124,5 +140,12 @@ public abstract class FusionTestBase : IDisposable
             requestBuilder.TryAddGlobalState(ExecutionContextData.IncludeQueryPlan, true);
             return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
         }
+    }
+
+    private class EmptyMemoryOwner : IMemoryOwner<byte>
+    {
+        public Memory<byte> Memory => default;
+
+        public void Dispose() { }
     }
 }

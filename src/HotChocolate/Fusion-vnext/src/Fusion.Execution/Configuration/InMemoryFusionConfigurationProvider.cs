@@ -8,15 +8,18 @@ namespace HotChocolate.Fusion.Configuration;
 
 public sealed class InMemoryFusionConfigurationProvider : IFusionConfigurationProvider
 {
-    public InMemoryFusionConfigurationProvider(DocumentNode schemaDocument, JsonDocument? schemaSettings)
+    private readonly JsonDocumentOwner? _schemaSettings;
+
+    public InMemoryFusionConfigurationProvider(DocumentNode schemaDocument, JsonDocumentOwner? schemaSettings)
     {
         ArgumentNullException.ThrowIfNull(schemaDocument);
 
         Configuration = new FusionConfiguration(
             schemaDocument,
             new JsonDocumentOwner(
-                schemaSettings ?? JsonDocument.Parse("{ }"),
+                schemaSettings?.Document ?? JsonDocument.Parse("{ }"),
                 EmptyMemoryOwner.Instance));
+        _schemaSettings = schemaSettings;
     }
 
     public FusionConfiguration Configuration { get; }
@@ -29,7 +32,10 @@ public sealed class InMemoryFusionConfigurationProvider : IFusionConfigurationPr
     }
 
     public ValueTask DisposeAsync()
-        => ValueTask.CompletedTask;
+    {
+        _schemaSettings?.Dispose();
+        return ValueTask.CompletedTask;
+    }
 
     private sealed class EmptyMemoryOwner : IMemoryOwner<byte>
     {
