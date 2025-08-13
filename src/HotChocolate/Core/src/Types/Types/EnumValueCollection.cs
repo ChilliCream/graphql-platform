@@ -3,8 +3,6 @@ using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>

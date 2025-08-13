@@ -4,8 +4,6 @@ using System.Reflection;
 using System.Xml.Linq;
 using IOPath = System.IO.Path;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver

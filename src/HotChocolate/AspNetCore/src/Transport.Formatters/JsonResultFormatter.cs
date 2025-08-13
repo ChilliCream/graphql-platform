@@ -1,9 +1,8 @@
 using System.Buffers;
 using System.Text.Json;
-using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using static HotChocolate.Execution.ResultFieldNames;
 using static HotChocolate.Execution.JsonValueFormatter;
+using static HotChocolate.Execution.ResultFieldNames;
 
 namespace HotChocolate.Transport.Formatters;
 
@@ -15,6 +14,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     private readonly JsonWriterOptions _options;
     private readonly JsonSerializerOptions _serializerOptions;
     private readonly JsonNullIgnoreCondition _nullIgnoreCondition;
+    private readonly ThreadLocal<Utf8JsonWriter?> _writer = new(valueFactory: () => null, trackAllValues: false);
 
     /// <summary>
     /// Initializes a new instance of <see cref="JsonResultFormatter"/> with default options.
@@ -51,29 +51,21 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     public static JsonResultFormatter Default { get; } = new();
 
     /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync"/>
-    public async ValueTask FormatAsync(
+    public ValueTask FormatAsync(
         IExecutionResult result,
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        switch (result)
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(outputStream);
+
+        return result switch
         {
-            case IOperationResult singleResult:
-                await FormatInternalAsync(singleResult, outputStream, cancellationToken).ConfigureAwait(false);
-                break;
-
-            case OperationResultBatch resultBatch:
-                await FormatInternalAsync(resultBatch, outputStream, cancellationToken).ConfigureAwait(false);
-                break;
-
-            case IResponseStream responseStream:
-                await FormatInternalAsync(responseStream, outputStream, cancellationToken).ConfigureAwait(false);
-                break;
-
-            default:
-                throw new NotSupportedException(
-                    $"The result type '{result.GetType().FullName}' is not supported by the JSON formatter.");
-        }
+            IOperationResult singleResult => FormatInternalAsync(singleResult, outputStream, cancellationToken),
+            OperationResultBatch resultBatch => FormatInternalAsync(resultBatch, outputStream, cancellationToken),
+            IResponseStream responseStream => FormatInternalAsync(responseStream, outputStream, cancellationToken),
+            _ => throw new NotSupportedException($"The result type '{result.GetType().FullName}' is not supported."),
+        };
     }
 
     /// <summary>
@@ -164,7 +156,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
     private void FormatInternal(IOperationResult result, IBufferWriter<byte> writer)
     {
-        using var jsonWriter = new Utf8JsonWriter(writer, _options);
+        var jsonWriter = CreateWriter(writer);
         WriteResult(jsonWriter, result);
         jsonWriter.Flush();
     }
@@ -183,16 +175,25 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     private async ValueTask FormatInternalAsync(
         IOperationResult result,
         Stream outputStream,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        using var buffer = new PooledArrayWriter();
-        FormatInternal(result, buffer);
+        Exception? exception = null;
+        var writer = outputStream.CreatePipeWriter();
 
-        await outputStream
-            .WriteAsync(buffer.WrittenMemory, cancellationToken)
-            .ConfigureAwait(false);
-
-        await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            FormatInternal(result, writer);
+            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            exception = ex;
+            throw;
+        }
+        finally
+        {
+            await writer.CompleteAsync(exception).ConfigureAwait(false);
+        }
     }
 
     private async ValueTask FormatInternalAsync(
@@ -200,39 +201,49 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        using var buffer = new PooledArrayWriter();
+        Exception? exception = null;
+        var writer = outputStream.CreatePipeWriter();
 
-        foreach (var result in resultBatch.Results)
+        try
         {
-            switch (result)
+            foreach (var result in resultBatch.Results)
             {
-                case IOperationResult singleResult:
-                    FormatInternal(singleResult, buffer);
-                    break;
+                switch (result)
+                {
+                    case IOperationResult singleResult:
+                        FormatInternal(singleResult, writer);
+                        break;
 
-                case IResponseStream batchResult:
-                    await foreach (var partialResult in batchResult.ReadResultsAsync()
-                        .WithCancellation(cancellationToken)
-                        .ConfigureAwait(false))
-                    {
-                        try
+                    case IResponseStream batchResult:
+                        await foreach (var partialResult in batchResult.ReadResultsAsync()
+                            .WithCancellation(cancellationToken)
+                            .ConfigureAwait(false))
                         {
-                            FormatInternal(partialResult, buffer);
+                            try
+                            {
+                                FormatInternal(partialResult, writer);
+                                await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                            }
+                            finally
+                            {
+                                await partialResult.DisposeAsync().ConfigureAwait(false);
+                            }
                         }
-                        finally
-                        {
-                            await partialResult.DisposeAsync().ConfigureAwait(false);
-                        }
-                    }
-                    break;
+                        break;
+                }
             }
+
+            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
-
-        await outputStream
-            .WriteAsync(buffer.WrittenMemory, cancellationToken)
-            .ConfigureAwait(false);
-
-        await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+        catch (Exception ex)
+        {
+            exception = ex;
+            throw;
+        }
+        finally
+        {
+            await writer.CompleteAsync(exception).ConfigureAwait(false);
+        }
     }
 
     private async ValueTask FormatInternalAsync(
@@ -240,27 +251,34 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        using var buffer = new PooledArrayWriter();
+        Exception? exception = null;
+        var writer = outputStream.CreatePipeWriter();
 
-        await foreach (var partialResult in batchResult.ReadResultsAsync()
-            .WithCancellation(cancellationToken)
-            .ConfigureAwait(false))
+        try
         {
-            try
+            await foreach (var partialResult in batchResult.ReadResultsAsync()
+                .WithCancellation(cancellationToken)
+                .ConfigureAwait(false))
             {
-                FormatInternal(partialResult, buffer);
-            }
-            finally
-            {
-                await partialResult.DisposeAsync().ConfigureAwait(false);
+                try
+                {
+                    FormatInternal(partialResult, writer);
+                }
+                finally
+                {
+                    await partialResult.DisposeAsync().ConfigureAwait(false);
+                }
             }
         }
-
-        await outputStream
-            .WriteAsync(buffer.WrittenMemory, cancellationToken)
-            .ConfigureAwait(false);
-
-        await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+        catch (Exception ex)
+        {
+            exception = ex;
+            throw;
+        }
+        finally
+        {
+            await writer.CompleteAsync(exception).ConfigureAwait(false);
+        }
     }
 
     private void WriteResult(Utf8JsonWriter writer, IOperationResult result)
@@ -382,5 +400,18 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
             writer.WriteEndArray();
         }
+    }
+
+    private Utf8JsonWriter CreateWriter(IBufferWriter<byte> buffer)
+    {
+        if (_writer.Value is not { } jsonWriter)
+        {
+            jsonWriter = new Utf8JsonWriter(buffer, _options);
+            _writer.Value = jsonWriter;
+            return jsonWriter;
+        }
+
+        jsonWriter.Reset(buffer);
+        return jsonWriter;
     }
 }

@@ -235,7 +235,7 @@ internal sealed partial class SubscriptionExecutor
                 operationContext.Initialize(
                     _requestContext,
                     _requestContext.RequestServices,
-                    NoopBatchDispatcher.Default,
+                    NoopBatchDispatcher.Instance,
                     _requestContext.GetOperation(),
                     _requestContext.VariableValues[0],
                     rootValue,

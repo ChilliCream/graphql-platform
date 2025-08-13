@@ -7,8 +7,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
-#nullable enable
-
 namespace HotChocolate.Types.Introspection;
 
 // ReSharper disable once InconsistentNaming

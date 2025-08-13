@@ -1,7 +1,9 @@
 using System.CommandLine;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -17,9 +19,7 @@ internal sealed class ExportCommand : Command
     /// </summary>
     public ExportCommand() : base("export")
     {
-        Description =
-            "Export the graphql schema. If no output (--output) is specified the schema will be "
-            + "printed to the console.";
+        Description = "Export the graphql schema to a schema file";
 
         AddOption(Opt<OutputOption>.Instance);
         AddOption(Opt<SchemaNameOption>.Instance);
@@ -46,7 +46,7 @@ internal sealed class ExportCommand : Command
         {
             var schemaNames = provider.SchemaNames;
 
-            if(schemaNames.IsEmpty)
+            if (schemaNames.IsEmpty)
             {
                 console.WriteLine("No schemas registered.");
                 return;
@@ -54,24 +54,17 @@ internal sealed class ExportCommand : Command
 
             schemaName = schemaNames.Contains(ISchemaDefinition.DefaultName)
                 ? ISchemaDefinition.DefaultName
-                : schemaNames[1];
+                : schemaNames[0];
         }
 
         var executor = await provider.GetExecutorAsync(schemaName, cancellationToken);
+        output ??= new FileInfo(System.IO.Path.Combine(Environment.CurrentDirectory, "schema.graphqls"));
+        var result = await SchemaFileExporter.Export(output.FullName, executor, cancellationToken);
 
-        var sdl = executor.Schema.ToString();
-
-        if (output is not null)
-        {
-            await File.WriteAllTextAsync(
-                output.FullName,
-                sdl,
-                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
-                cancellationToken);
-        }
-        else
-        {
-            console.WriteLine(sdl);
-        }
+        // ReSharper disable LocalizableElement
+        console.WriteLine("Exported Files:");
+        console.WriteLine($"- {result.SchemaFileName}");
+        console.WriteLine($"- {result.SettingsFileName}");
+        // ReSharper restore LocalizableElement
     }
 }

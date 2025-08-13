@@ -14,6 +14,11 @@ public abstract class SchemaDefinitionVisitor<TContext>
     {
         foreach (var type in typesDefinition)
         {
+            if (type.IsIntrospectionType)
+            {
+                continue;
+            }
+
             VisitType(type, context);
         }
     }
@@ -154,6 +159,11 @@ public abstract class SchemaDefinitionVisitor<TContext>
     {
         foreach (var field in fields)
         {
+            if (field.IsIntrospectionField)
+            {
+                continue;
+            }
+
             VisitOutputField(field, context);
         }
     }
