@@ -1,0 +1,41 @@
+operation:
+  - document: >-
+      query GetTopProducts {
+        topProduct {
+          id
+          name
+          price
+          id @fusion__requirement
+        }
+      }
+    name: GetTopProducts
+    hash: 123
+nodes:
+  - id: 1
+    schema: A
+    operation: >-
+      query GetTopProducts_123_1 {
+        topProduct {
+          id
+          name
+        }
+      }
+  - id: 2
+    schema: B
+    operation: >-
+      query GetTopProducts_123_2(
+        $__fusion_1_id: ID!
+      ) {
+        node(id: $__fusion_1_id) {
+          ... on Product {
+            price
+          }
+        }
+      }
+    source: $.node.<Product>
+    target: $.topProduct
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: id
+    dependencies:
+      - id: 1
