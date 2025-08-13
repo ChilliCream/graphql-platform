@@ -9,6 +9,7 @@ operation:
     hash: 123
 nodes:
   - id: 1
+    type: Operation
     schema: a
     operation: >-
       query testQuery_123_1 {

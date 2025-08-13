@@ -1,12 +1,11 @@
 operation:
   - document: >-
       query GetTopProducts {
-        topProducts {
+        topProduct {
           id
           name
           price
           id @fusion__requirement
-          region @fusion__requirement
         }
       }
     name: GetTopProducts
@@ -17,10 +16,9 @@ nodes:
     schema: a
     operation: >-
       query GetTopProducts_123_1 {
-        topProducts {
+        topProduct {
           id
           name
-          region
         }
       }
   - id: 2
@@ -29,18 +27,17 @@ nodes:
     operation: >-
       query GetTopProducts_123_2(
         $__fusion_1_id: ID!
-        $__fusion_2_region: String!
       ) {
-        productById(id: $__fusion_1_id) {
-          price(region: $__fusion_2_region)
+        lookupUnionById(id: $__fusion_1_id) {
+          ... on Product {
+            price
+          }
         }
       }
-    source: $.productById
-    target: $.topProducts
+    source: $.lookupUnionById.<Product>
+    target: $.topProduct
     requirements:
       - name: __fusion_1_id
         selectionMap: id
-      - name: __fusion_2_region
-        selectionMap: region
     dependencies:
       - id: 1

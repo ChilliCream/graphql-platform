@@ -139,6 +139,30 @@ internal static class CompletionTools
         return new SourceInterfaceTypeCollection(temp);
     }
 
+    public static SourceUnionTypeCollection CreateSourceUnionTypeCollection(
+        UnionTypeDefinitionNode typeDef,
+        CompositeSchemaBuilderContext context)
+    {
+        var types = TypeDirectiveParser.Parse(typeDef.Directives);
+        var lookupDirectives = LookupDirectiveParser.Parse(typeDef.Directives);
+        var temp = new SourceUnionType[types.Length];
+
+        for (var i = 0; i < types.Length; i++)
+        {
+            var type = types[i];
+            var schemaName = context.GetSchemaName(type.SchemaKey);
+            var lookups = GetLookupBySchema(lookupDirectives, schemaName, typeDef.Name.Value, context);
+            context.RegisterForCompletionRange(lookups);
+
+            temp[i] = new SourceUnionType(
+                typeDef.Name.Value,
+                schemaName,
+                lookups);
+        }
+
+        return new SourceUnionTypeCollection(temp);
+    }
+
     private static ImmutableArray<Lookup> GetLookupBySchema(
         ImmutableArray<LookupDirective> allLookups,
         string schemaName,

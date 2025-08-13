@@ -13,6 +13,7 @@ operation:
     hash: 123
 nodes:
   - id: 1
+    type: Operation
     schema: a
     operation: >-
       query GetTopProducts_123_1 {
@@ -22,6 +23,7 @@ nodes:
         }
       }
   - id: 2
+    type: Operation
     schema: c
     operation: >-
       query GetTopProducts_123_2(
@@ -39,6 +41,7 @@ nodes:
     dependencies:
       - id: 3
   - id: 3
+    type: Operation
     schema: b
     operation: >-
       query GetTopProducts_123_3(

@@ -11,7 +11,7 @@ public class SourceMemberCollection<TMember>
 {
     private readonly FrozenDictionary<string, TMember> _members;
 
-    protected SourceMemberCollection(IEnumerable<TMember> members)
+    public SourceMemberCollection(IEnumerable<TMember> members)
     {
         _members = members.ToFrozenDictionary(t => t.SchemaName);
     }

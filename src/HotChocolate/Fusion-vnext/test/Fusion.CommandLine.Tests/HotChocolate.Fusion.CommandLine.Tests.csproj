@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Fusion.CommandLine\HotChocolate.Fusion.CommandLine.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
   </ItemGroup>
 
 </Project>

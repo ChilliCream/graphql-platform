@@ -533,7 +533,8 @@ internal static class CompositeSchemaBuilder
     {
         var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, context);
         var types = CompletionTools.CreateObjectTypeCollection(typeDef.Types, context);
-        type.Complete(new CompositeUnionTypeCompletionContext(types, directives, FeatureCollection.Empty));
+        var sources = CompletionTools.CreateSourceUnionTypeCollection(typeDef, context);
+        type.Complete(new CompositeUnionTypeCompletionContext(types, directives, sources, FeatureCollection.Empty));
     }
 
     private static void CompleteOutputField(
