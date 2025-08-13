@@ -1,5 +1,6 @@
 using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -28,6 +29,13 @@ public sealed class ObjectListResult : ListResult
     public override void SetNextValueNull()
     {
         Items.Add(null);
+    }
+
+    public override bool TrySetValueNull(int index)
+    {
+        Items[index] = null;
+
+        return !ElementType.IsNonNullType();
     }
 
     /// <summary>

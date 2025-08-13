@@ -174,6 +174,39 @@ public class SubgraphErrorTests : FusionTestBase
         using var result = await client.PostAsync(
             """
             {
+              nullableTopProduct {
+                price
+              }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Subgraph_Request_Fails_For_Root_Field_NonNull()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>(),
+            isOffline: true);
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+        ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
               topProduct {
                 price
               }
@@ -405,6 +438,45 @@ public class SubgraphErrorTests : FusionTestBase
 
         using var server2 = CreateSourceSchema(
             "B",
+            b => b.AddQueryType<SourceSchema2.Query>(),
+            isOffline: true);
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+        ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+              nullableTopProduct {
+                price
+                name
+              }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Subgraph_Request_Fails_For_Lookup_NonNull()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
             b => b.AddQueryType<SourceSchema3.Query>(),
             isOffline: true);
 
@@ -436,6 +508,45 @@ public class SubgraphErrorTests : FusionTestBase
 
     [Fact]
     public async Task Subgraph_Request_Fails_For_Lookup_On_List()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>(),
+            isOffline: true);
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+        ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+              topProducts {
+                price
+                name
+              }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Subgraph_Request_Fails_For_Lookup_On_List_NonNull()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -480,6 +591,8 @@ public class SubgraphErrorTests : FusionTestBase
         public class Query
         {
             public Product GetTopProduct() => new(1, 13.99);
+
+            public Product? GetNullableTopProduct() => new (1, 13.99);
 
             public List<Product> GetTopProducts()
                 => [new(1, 13.99), new(2, 13.99), new(3, 13.99)];

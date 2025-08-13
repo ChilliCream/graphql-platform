@@ -1,15 +1,10 @@
 {
-  "data": {
-    "nullableTopProduct": {
-      "price": 13.99,
-      "name": null
-    }
-  },
   "errors": [
     {
       "message": "Unexpected Execution Error",
       "path": [
-        "nullableTopProduct",
+        "topProducts",
+        0,
         "name"
       ]
     }
@@ -18,23 +13,23 @@
     "fusion": {
       "operationPlan": {
         "operation": {
-          "document": "{\n  nullableTopProduct {\n    price\n    name\n    id @fusion__requirement\n  }\n}",
-          "hash": "12015865a78f4ab2330778c5486a4026"
+          "document": "{\n  topProducts {\n    price\n    name\n    id @fusion__requirement\n  }\n}",
+          "hash": "67b3f75afa8d6eb979605a59d5462c1d"
         },
         "nodes": [
           {
             "id": 1,
             "type": "Operation",
             "schema": "A",
-            "operation": "query Op_12015865_1 {\n  nullableTopProduct {\n    price\n    id\n  }\n}"
+            "operation": "query Op_67b3f75a_1 {\n  topProducts {\n    price\n    id\n  }\n}"
           },
           {
             "id": 2,
             "type": "Operation",
             "schema": "B",
-            "operation": "query Op_12015865_2(\n  $__fusion_1_id: Int!\n) {\n  productById(id: $__fusion_1_id) {\n    name\n  }\n}",
+            "operation": "query Op_67b3f75a_2(\n  $__fusion_1_id: Int!\n) {\n  productById(id: $__fusion_1_id) {\n    name\n  }\n}",
             "source": "$.productById",
-            "target": "$.nullableTopProduct",
+            "target": "$.topProducts",
             "requirements": [
               {
                 "name": "__fusion_1_id",

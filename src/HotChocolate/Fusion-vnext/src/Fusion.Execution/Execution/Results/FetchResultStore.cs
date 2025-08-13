@@ -119,7 +119,7 @@ internal sealed class FetchResultStore : IDisposable
         }
     }
 
-    public void AddErrors(ReadOnlySpan<SourceSchemaError> errors, ImmutableArray<string> responseNames)
+    public bool AddErrors(ReadOnlySpan<SourceSchemaError> errors, ReadOnlySpan<string> responseNames)
     {
         _lock.EnterWriteLock();
 
@@ -130,32 +130,24 @@ internal sealed class FetchResultStore : IDisposable
 
             while (Unsafe.IsAddressLessThan(ref error, ref end))
             {
-                // if (error.Path.IsRoot)
-                // {
-                //     var selectionSet = _operation.RootSelectionSet;
-                //     if (!_valueCompletion.BuildResult(selectionSet, data, errorTrie, _root))
-                //     {
-                //         return false;
-                //     }
-                // }
-                // else
-                // {
-                //     var startResult = GetStartObjectResult(error.Path);
-                //     if (!_valueCompletion.BuildResult(startResult.SelectionSet, data, errorTrie, startResult))
-                //     {
-                //         return false;
-                //     }
-                // }
-
-                foreach (var responseName in responseNames)
+                if (error.Path.IsRoot)
                 {
-                    var errorWithPath = ErrorBuilder.FromError(error.Error)
-                        .SetPath(error.Path.Append(responseName))
-                        // TODO: Locations
-                        .Build();
-
-                    // TODO: Null propagation
-                    _errors.Add(errorWithPath);
+                    if (!_valueCompletion.BuildResult(_root, responseNames, error))
+                    {
+                        // TODO: This is wrong
+                        _root = null!;
+                        return false;
+                    }
+                }
+                else
+                {
+                    var startResult = GetStartObjectResult(error.Path);
+                    if (!_valueCompletion.BuildResult(startResult, responseNames, error))
+                    {
+                        // TODO: This is wrong
+                        _root = null!;
+                        return false;
+                    }
                 }
 
                 error = ref Unsafe.Add(ref error, 1)!;
@@ -165,6 +157,8 @@ internal sealed class FetchResultStore : IDisposable
         {
             _lock.ExitWriteLock();
         }
+
+        return true;
     }
 
     public void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)

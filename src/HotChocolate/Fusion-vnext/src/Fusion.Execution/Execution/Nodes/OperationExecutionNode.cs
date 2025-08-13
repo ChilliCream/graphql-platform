@@ -60,7 +60,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         _responseNames = GetResponseNamesFromPath(operation, source);
     }
 
-    // TODO: Should this be a span
+    // TODO: Move
     private readonly ImmutableArray<string> _responseNames;
 
     public override int Id { get; }
@@ -405,8 +405,8 @@ public sealed class OperationExecutionNode : ExecutionNode
                     buffer[i] = new SourceSchemaError(error, variables[i].Path);
                 }
             }
-            
-            context.AddErrors(buffer.AsSpan(0, bufferLength), responseNames);
+
+            context.AddErrors(buffer.AsSpan(0, bufferLength), responseNames.AsSpan());
         }
         finally
         {

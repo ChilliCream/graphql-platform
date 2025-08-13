@@ -114,6 +114,58 @@ internal sealed class ValueCompletion
         return true;
     }
 
+    public bool BuildResult(
+        ObjectResult objectResult,
+        ReadOnlySpan<string> responseNames,
+        SourceSchemaError sourceSchemaError)
+    {
+        foreach (var responseName in responseNames)
+        {
+            var fieldResult = objectResult[responseName];
+
+            if (!fieldResult.Selection.IsIncluded(_includeFlags))
+            {
+                continue;
+            }
+
+            var error = ErrorBuilder.FromError(sourceSchemaError.Error)
+                .SetPath(sourceSchemaError.Path.Append(responseName))
+                .AddLocation(fieldResult.Selection.SyntaxNodes[0].Node)
+                .Build();
+
+            _errors.Add(error);
+
+            if (_errorHandling is ErrorHandling.Propagate)
+            {
+                // TODO: We need an invalidated state for the resultdata
+                if (!PropagateNullValues(fieldResult))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private static bool PropagateNullValues(ResultData result)
+    {
+        while (result.Parent is not null)
+        {
+            var index = result.ParentIndex;
+            var parent = result.Parent;
+
+            if (parent.TrySetValueNull(index))
+            {
+                return true;
+            }
+
+            result = parent;
+        }
+
+        return false;
+    }
+
     private bool TryCompleteValue(
         Selection selection,
         IType type,
