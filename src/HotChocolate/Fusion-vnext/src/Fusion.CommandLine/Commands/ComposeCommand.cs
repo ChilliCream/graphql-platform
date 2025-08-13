@@ -45,15 +45,22 @@ internal sealed class ComposeCommand : Command
         };
         sourceSchemaFileOption.AddAlias("-s");
         sourceSchemaFileOption.LegalFilePathsOnly();
+        sourceSchemaFileOption.IsRequired = true;
 
-        var compositeSchemaFileOption = new Option<string>("--composite-schema-file")
+        var archiveOption = new Option<string>("--gateway-config-file")
         {
             Description = ComposeCommand_CompositeSchemaFile_Description
         };
-        compositeSchemaFileOption.AddAlias("-c");
-        compositeSchemaFileOption.LegalFilePathsOnly();
+        archiveOption.AddAlias("--far");
+        archiveOption.AddAlias("-g");
+        archiveOption.LegalFilePathsOnly();
+        archiveOption.IsRequired = true;
 
-        var enableGlobalObjectIdentificationOption = new Option<bool>("--enable-global-object-identification")
+        var environmentOption = new Option<string?>("--environment");
+        environmentOption.AddAlias("--env");
+        environmentOption.AddAlias("-e");
+
+        var enableGlobalIdsOption = new Option<bool>("--enable-global-object-identification")
         {
             Description = ComposeCommand_EnableGlobalObjectIdentification_Description
         };
@@ -62,25 +69,27 @@ internal sealed class ComposeCommand : Command
 
         AddOption(workingDirectoryOption);
         AddOption(sourceSchemaFileOption);
-        AddOption(compositeSchemaFileOption);
-        AddOption(enableGlobalObjectIdentificationOption);
+        AddOption(archiveOption);
+        AddOption(environmentOption);
+        AddOption(enableGlobalIdsOption);
         AddOption(watchModeOption);
 
         this.SetHandler(async context =>
         {
             var workingDirectory = context.ParseResult.GetValueForOption(workingDirectoryOption)!;
             var sourceSchemaFiles = context.ParseResult.GetValueForOption(sourceSchemaFileOption)!;
-            var compositeSchemaFile = context.ParseResult.GetValueForOption(compositeSchemaFileOption);
-            var enableGlobalObjectIdentification =
-                context.ParseResult.GetValueForOption(enableGlobalObjectIdentificationOption);
+            var archive = context.ParseResult.GetValueForOption(archiveOption)!;
+            var environment = context.ParseResult.GetValueForOption(environmentOption);
+            var enableGlobalIds = context.ParseResult.GetValueForOption(enableGlobalIdsOption);
             var watchMode = context.ParseResult.GetValueForOption(watchModeOption);
 
             context.ExitCode = await ExecuteAsync(
                 context.Console,
                 workingDirectory,
                 sourceSchemaFiles,
-                compositeSchemaFile,
-                enableGlobalObjectIdentification,
+                archive,
+                environment,
+                enableGlobalIds,
                 watchMode,
                 context.GetCancellationToken());
         });
@@ -90,27 +99,34 @@ internal sealed class ComposeCommand : Command
         IConsole console,
         string workingDirectory,
         List<string> sourceSchemaFiles,
-        string? compositeSchemaFile,
+        string archiveFile,
+        string? environment,
         bool enableGlobalObjectIdentification,
         bool watchMode,
         CancellationToken cancellationToken)
     {
+        if (Directory.Exists(archiveFile))
+        {
+            archiveFile = Path.Combine(archiveFile, "gateway.far");
+        }
+
         if (watchMode)
         {
             return await WatchComposeAsync(
                 console,
                 workingDirectory,
                 sourceSchemaFiles,
-                compositeSchemaFile,
+                archiveFile,
+                environment,
                 enableGlobalObjectIdentification,
                 cancellationToken);
         }
 
         return await ComposeAsync(
             console,
-            workingDirectory,
             sourceSchemaFiles,
-            compositeSchemaFile,
+            archiveFile,
+            environment,
             enableGlobalObjectIdentification,
             cancellationToken);
     }
@@ -119,7 +135,8 @@ internal sealed class ComposeCommand : Command
         IConsole console,
         string workingDirectory,
         List<string> sourceSchemaFiles,
-        string? compositeSchemaFile,
+        string archiveFile,
+        string? environment,
         bool enableGlobalObjectIdentification,
         CancellationToken cancellationToken)
     {
@@ -128,75 +145,50 @@ internal sealed class ComposeCommand : Command
         // Initial composition
         await ComposeAsync(
             console,
-            workingDirectory,
             sourceSchemaFiles,
-            compositeSchemaFile,
+            archiveFile,
+            environment,
             enableGlobalObjectIdentification,
             cancellationToken);
-
-        ImmutableSortedSet<string> sourceSchemaFilePaths;
-
-        try
-        {
-            sourceSchemaFilePaths = GetSourceSchemaFilePaths(sourceSchemaFiles, workingDirectory);
-        }
-        catch (Exception e)
-        {
-            console.Error.WriteLine(e.Message);
-            return 1;
-        }
-
-        using var fileWatcher = new FileSystemWatcher(workingDirectory);
 
         // use a bounded channel to queue composition requests
         // when already a composition is running we enqueue a new message ...
         // a single message which will trigger a new composition after the current one has completed.
-        var compositionChannel = Channel.CreateBounded<string>(new BoundedChannelOptions(1)
-        {
-            FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true, SingleWriter = false
-        });
+        var compositionChannel = Channel.CreateBounded<string>(
+            new BoundedChannelOptions(1)
+            {
+                FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true, SingleWriter = false
+            });
 
         // start the composition processor task
         var compositionTask = ProcessCompositionRequestsAsync(
             compositionChannel.Reader,
             console,
-            workingDirectory,
             sourceSchemaFiles,
-            compositeSchemaFile,
+            archiveFile,
+            environment,
             enableGlobalObjectIdentification,
             cancellationToken);
 
-        // set up file watcher for source schema files
-        fileWatcher.Filter = "*.graphql*";
-        fileWatcher.IncludeSubdirectories = true;
-        fileWatcher.NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite | NotifyFilters.FileName;
+        var sourceSchemaFileWatchers = new List<FileSystemWatcher>();
 
-        FileSystemWatcher? gatewayFileWatcher = null;
-
-        // Set up gateway file watcher if composite schema file is specified
-        if (compositeSchemaFile is not null)
+        foreach (var sourceSchemaPath in sourceSchemaFiles)
         {
-            var compositeSchemaPath = Path.Combine(workingDirectory, compositeSchemaFile);
-            var gatewayDirectory = Path.GetDirectoryName(compositeSchemaPath);
-            var gatewayFileName = Path.GetFileName(compositeSchemaPath);
-
-            if (gatewayDirectory is not null)
+            if (Directory.Exists(sourceSchemaPath))
             {
-                gatewayFileWatcher = new FileSystemWatcher(gatewayDirectory);
-                gatewayFileWatcher.Filter = gatewayFileName;
-                gatewayFileWatcher.NotifyFilter = NotifyFilters.FileName;
-
-                gatewayFileWatcher.Deleted += (_, e) => OnGatewayFileDeleted(e);
-                gatewayFileWatcher.EnableRaisingEvents = true;
+                CreateSourceSchemaWatcher(sourceSchemaFileWatchers, sourceSchemaPath, compositionChannel.Writer);
+            }
+            else if (IsSchemaFile(sourceSchemaPath))
+            {
+                var sourceSchemaDirectory = Path.GetDirectoryName(sourceSchemaPath)!;
+                CreateSourceSchemaWatcher(sourceSchemaFileWatchers, sourceSchemaDirectory, compositionChannel.Writer);
+            }
+            else
+            {
+                console.Out.WriteLine($"❌ The path `{sourceSchemaPath}` does not exist.");
+                return 1;
             }
         }
-
-        fileWatcher.Changed += (_, e) => OnSourceSchemaFileChanged(e);
-        fileWatcher.Created += (_, e) => OnSourceSchemaFileChanged(e);
-        fileWatcher.Deleted += (_, e) => OnSourceSchemaFileChanged(e);
-        fileWatcher.Renamed += (_, e) => OnSourceSchemaFileChanged(e);
-
-        fileWatcher.EnableRaisingEvents = true;
 
         console.Out.WriteLine($"👀 Watching for changes in {workingDirectory}");
         console.Out.WriteLine("Press Ctrl+C to stop watching...");
@@ -212,7 +204,11 @@ internal sealed class ComposeCommand : Command
         finally
         {
             compositionChannel.Writer.Complete();
-            gatewayFileWatcher?.Dispose();
+
+            foreach (var watcher in sourceSchemaFileWatchers)
+            {
+                watcher.Dispose();
+            }
 
             try
             {
@@ -225,55 +221,68 @@ internal sealed class ComposeCommand : Command
         }
 
         return 0;
+    }
+
+    private static void CreateSourceSchemaWatcher(
+        List<FileSystemWatcher> watchers,
+        string sourceSchemaDirectory,
+        ChannelWriter<string> writer)
+    {
+        var schemaFileWatcher = new FileSystemWatcher(sourceSchemaDirectory);
+        schemaFileWatcher.Filter = "*.*";
+        schemaFileWatcher.NotifyFilter = NotifyFilters.CreationTime | NotifyFilters.LastWrite | NotifyFilters.FileName;
+        schemaFileWatcher.Changed += (_, e) => OnSourceSchemaFileChanged(e);
+        schemaFileWatcher.Created += (_, e) => OnSourceSchemaFileChanged(e);
+        schemaFileWatcher.Deleted += (_, e) => OnSourceSchemaFileChanged(e);
+        schemaFileWatcher.Renamed += (_, e) => OnSourceSchemaFileChanged(e);
+        schemaFileWatcher.EnableRaisingEvents = true;
+
+        watchers.Add(schemaFileWatcher);
 
         void OnSourceSchemaFileChanged(FileSystemEventArgs e)
         {
-            // skip if this is the gateway file as this is handled somewhere else.
-            if (compositeSchemaFile is not null)
+            var extension = Path.GetExtension(e.Name)?.ToLower();
+            var fileName = Path.GetFileNameWithoutExtension(e.Name);
+            var directoryName = Path.GetDirectoryName(e.Name)!;
+
+            if (extension is ".json")
             {
-                var compositeSchemaPath = Path.Combine(workingDirectory, compositeSchemaFile);
-                if (string.Equals(e.FullPath, compositeSchemaPath, StringComparison.OrdinalIgnoreCase))
+                if (fileName?.EndsWith("-settings") == true)
                 {
-                    return;
+                    var schemaName = fileName[..^"-settings".Length];
+                    var schemaFilePath = Path.Combine(directoryName, schemaName + ".graphql");
+
+                    if (File.Exists(schemaFilePath))
+                    {
+                        TriggerComposition($"Settings of schema `{schemaFilePath}` were modified.");
+                    }
+                    else if (File.Exists(schemaFilePath + "s"))
+                    {
+                        TriggerComposition(
+                            $"Source schema settings file {e.ChangeType.ToString().ToLower()}: {e.FullPath}");
+                    }
                 }
             }
-
-            // only process files that are in our source schema paths or match the pattern
-            var isRelevantFile = sourceSchemaFilePaths.Any(path =>
-                    string.Equals(path, e.FullPath, StringComparison.OrdinalIgnoreCase)) ||
-                IsGraphQLSchemaFile(e.Name);
-
-            if (!isRelevantFile)
+            else if (extension is ".graphql" or ".graphqls")
             {
-                return;
-            }
-
-            TriggerComposition($"Source schema file {e.ChangeType.ToString().ToLower()}: {e.Name}");
-        }
-
-        void OnGatewayFileDeleted(FileSystemEventArgs e)
-        {
-            // we wait 500ms to see if the gateway file is recreated.
-            Thread.Sleep(500);
-
-            // if it's still missing we trigger a new composition.
-            var compositeSchemaPath = Path.Combine(workingDirectory, compositeSchemaFile);
-            if (!File.Exists(compositeSchemaPath))
-            {
-                TriggerComposition($"Gateway file deleted: {e.Name}");
+                var settingsFile = Path.Combine(directoryName, $"{fileName}-settings.json");
+                if (File.Exists(settingsFile))
+                {
+                    TriggerComposition($"Source schema file {e.ChangeType.ToString().ToLower()}: {e.FullPath}");
+                }
             }
         }
 
         void TriggerComposition(string reason)
-            => compositionChannel.Writer.TryWrite(reason);
+            => writer.TryWrite(reason);
     }
 
     private static async Task ProcessCompositionRequestsAsync(
         ChannelReader<string> reader,
         IConsole console,
-        string workingDirectory,
         List<string> sourceSchemaFiles,
-        string? compositeSchemaFile,
+        string archiveFile,
+        string? environment,
         bool enableGlobalObjectIdentification,
         CancellationToken cancellationToken)
     {
@@ -302,9 +311,9 @@ internal sealed class ComposeCommand : Command
 
                 await ComposeAsync(
                     console,
-                    workingDirectory,
                     sourceSchemaFiles,
-                    compositeSchemaFile,
+                    archiveFile,
+                    environment,
                     enableGlobalObjectIdentification,
                     cancellationToken);
             }
@@ -319,46 +328,19 @@ internal sealed class ComposeCommand : Command
         }
     }
 
-    private static bool IsGraphQLSchemaFile(string? fileName)
+    private static bool IsSchemaFile(string? fileName)
     {
         if (fileName is null)
         {
             return false;
         }
 
-        return fileName.EndsWith(".graphql", StringComparison.OrdinalIgnoreCase) ||
-            fileName.EndsWith(".graphqls", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static ImmutableSortedSet<string> GetSourceSchemaFilePaths(
-        List<string> sourceSchemaFiles,
-        string workingDirectory)
-    {
-        // if no source schema files were specified, scan the working directory for *.graphql* files
-        if (sourceSchemaFiles.Count > 0)
-        {
-            return sourceSchemaFiles
-                .Select(f => Path.Combine(workingDirectory, f))
-                .ToImmutableSortedSet();
-        }
-
-        var foundFiles = new DirectoryInfo(workingDirectory)
-            .GetFiles("*.graphql*", SearchOption.AllDirectories)
-            .Where(f => IsGraphQLSchemaFile(f.Name))
-            .Select(i => i.FullName)
-            .ToImmutableSortedSet();
-
-        if (foundFiles.Count == 0)
-        {
-            throw new Exception(ComposeCommand_Error_NoSourceSchemaFilesFound);
-        }
-
-        return foundFiles;
+        return fileName.EndsWith(".graphql", StringComparison.OrdinalIgnoreCase)
+            || fileName.EndsWith(".graphqls", StringComparison.OrdinalIgnoreCase);
     }
 
     private static async Task<int> ComposeAsync(
         IConsole console,
-        string workingDirectory,
         List<string> sourceSchemaFiles,
         string archiveFile,
         string? environment,
@@ -380,12 +362,15 @@ internal sealed class ComposeCommand : Command
         }
 
         using var archive = File.Exists(archiveFile)
-            ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
-            : FusionArchive.Create(archiveFile);
+            ? FusionArchive.Create(archiveFile)
+            : FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update);
+        var schemaNames = new SortedSet<string>(StringComparer.Ordinal);
+
+        await UpdateArchiveMetadata(archive, schemaNames, cancellationToken);
 
         using var bufferWriter = new PooledArrayWriter();
 
-        foreach (var schemaName in await archive.GetSourceSchemaNamesAsync(cancellationToken))
+        foreach (var schemaName in schemaNames)
         {
             if (!sourceSchemas.ContainsKey(schemaName))
             {
@@ -396,7 +381,7 @@ internal sealed class ComposeCommand : Command
 
                 if (sourceSchemaConfiguration is null)
                 {
-                    throw new InvalidOperationException("The archive metadata are inconsistent.");
+                    continue;
                 }
 
                 bufferWriter.Reset();
@@ -463,6 +448,30 @@ internal sealed class ComposeCommand : Command
         return 0;
     }
 
+    private static async Task UpdateArchiveMetadata(
+        FusionArchive archive,
+        SortedSet<string> sourceSchemaNames,
+        CancellationToken cancellationToken)
+    {
+        var metadata = await archive.GetArchiveMetadataAsync(cancellationToken);
+
+        if (metadata is not null)
+        {
+            foreach (var schemaName in metadata.SourceSchemas)
+            {
+                sourceSchemaNames.Add(schemaName);
+            }
+        }
+
+        metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version(2, 0, 0)],
+            SourceSchemas = [..sourceSchemaNames]
+        };
+
+        await archive.SetArchiveMetadataAsync(metadata, cancellationToken);
+    }
+
     private static void WriteCompositionLog(
         CompositionLog compositionLog,
         IStandardStreamWriter writer,
@@ -515,6 +524,8 @@ internal sealed class ComposeCommand : Command
             await ReadSourceSchemaAsync(sourceSchemaFile, sourceSchemas, cancellationToken);
         }
 
+        return sourceSchemas;
+
         static async Task ReadSourceSchemaAsync(
             string sourceSchemaPath,
             Dictionary<string, (SourceSchemaText, JsonDocument)> sourceSchemas,
@@ -527,7 +538,7 @@ internal sealed class ComposeCommand : Command
                 schemaFilePath =
                     new DirectoryInfo(sourceSchemaPath)
                         .GetFiles("*.graphql*", SearchOption.AllDirectories)
-                        .Where(f => IsGraphQLSchemaFile(f.Name))
+                        .Where(f => IsSchemaFile(f.Name))
                         .Select(i => i.FullName)
                         .FirstOrDefault();
             }
