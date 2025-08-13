@@ -167,26 +167,29 @@ The approach of either implementation-first or code-first can be used in conjunc
 
 ## Id Serializer
 
-Unique (or global) Ids are generated using the `IIdSerializer`. We can access it like any other service and use it to serialize or deserialize global Ids ourselves.
+Unique (or global) Ids are generated using the `DefaultNodeIdSerializer`. We can access it like any other service and use it to serialize or deserialize global Ids ourselves.
+
 
 ```csharp
 public class Query
 {
     public string Example(IIdSerializer serializer)
     {
-        string serializedId = serializer.Serialize(null, "Product", "123");
+        string serializedId = serializer.Format("Product", "123");
 
-        IdValue deserializedIdValue = serializer.Deserialize(serializedId);
-        object deserializedId = deserializedIdValue.Value;
+        NodeId deserializedIdValue = serializer.Parse(serializedId, typeof(Int32));
+        object deserializedId = deserializedIdValue.InternalId;
 
         // Omitted code for brevity
     }
 }
 ```
 
-The `Serialize()` method takes the schema name as a first argument, followed by the type name and lastly the actual Id.
+The `Format()` method takes the type name as a first argument, followed by the actual Id.
 
 [Learn more about accessing services](/docs/hotchocolate/v15/fetching-data/resolvers#injecting-services)
+
+> Note: `OptimizedNodeIdSerializer` and `LegacyNodeIdSerializer` can also be used in the above example as serializers.
 
 # Complex Ids
 
