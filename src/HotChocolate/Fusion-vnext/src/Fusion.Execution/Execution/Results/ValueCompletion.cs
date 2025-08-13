@@ -80,32 +80,9 @@ internal sealed class ValueCompletion
 
                 if (!TryCompleteValue(selection, selection.Type, element, errorTrieForResponseName, 0, fieldResult))
                 {
-                    var parentIndex = fieldResult.ParentIndex;
-                    var parent = fieldResult.Parent;
-
                     if (_errorHandling is ErrorHandling.Propagate)
                     {
-                        while (parent is not null)
-                        {
-                            if (parent.TrySetValueNull(parentIndex))
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                parentIndex = parent.ParentIndex;
-                                parent = parent.Parent;
-
-                                if (parent is null)
-                                {
-                                    return false;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        fieldResult?.TrySetValueNull(parentIndex);
+                        PropagateNullValues(objectResult);
                     }
                 }
             }
@@ -114,7 +91,7 @@ internal sealed class ValueCompletion
         return true;
     }
 
-    public bool BuildResult(
+    public void BuildResult(
         ObjectResult objectResult,
         ReadOnlySpan<string> responseNames,
         SourceSchemaError sourceSchemaError)
@@ -135,35 +112,43 @@ internal sealed class ValueCompletion
 
             _errors.Add(error);
 
-            if (_errorHandling is ErrorHandling.Propagate)
+            if (_errorHandling is ErrorHandling.Propagate && fieldResult.Selection.Type.IsNonNullType())
             {
-                // TODO: We need an invalidated state for the resultdata
-                if (!PropagateNullValues(fieldResult))
-                {
-                    return false;
-                }
+                PropagateNullValues(objectResult);
+
+                return;
             }
         }
-
-        return true;
     }
 
-    private static bool PropagateNullValues(ResultData result)
+    private static void PropagateNullValues(ResultData result)
     {
+        if (result.IsInvalidated)
+        {
+            return;
+        }
+
+        result.IsInvalidated = true;
+
         while (result.Parent is not null)
         {
             var index = result.ParentIndex;
             var parent = result.Parent;
 
+            if (parent.IsInvalidated)
+            {
+                return;
+            }
+
             if (parent.TrySetValueNull(index))
             {
-                return true;
+                return;
             }
+
+            parent.IsInvalidated = true;
 
             result = parent;
         }
-
-        return false;
     }
 
     private bool TryCompleteValue(

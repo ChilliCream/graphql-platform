@@ -31,6 +31,7 @@ public sealed class ObjectListResult : ListResult
         Items.Add(null);
     }
 
+    /// <inheritdoc />
     public override bool TrySetValueNull(int index)
     {
         Items[index] = null;

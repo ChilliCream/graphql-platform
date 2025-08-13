@@ -21,6 +21,8 @@ public abstract class ResultData : IResultDataJsonFormatter
     /// </summary>
     protected internal int ParentIndex { get; private set; }
 
+    public bool IsInvalidated { get; set; }
+
     /// <summary>
     /// Gets the path of the result.
     /// </summary>

@@ -130,25 +130,19 @@ internal sealed class FetchResultStore : IDisposable
 
             while (Unsafe.IsAddressLessThan(ref error, ref end))
             {
-                if (error.Path.IsRoot)
+                if (_root.IsInvalidated)
                 {
-                    if (!_valueCompletion.BuildResult(_root, responseNames, error))
-                    {
-                        // TODO: This is wrong
-                        _root = null!;
-                        return false;
-                    }
+                    return false;
                 }
-                else
+
+                var result = error.Path.IsRoot ? _root : GetStartObjectResult(error.Path);
+
+                if (result.IsInvalidated)
                 {
-                    var startResult = GetStartObjectResult(error.Path);
-                    if (!_valueCompletion.BuildResult(startResult, responseNames, error))
-                    {
-                        // TODO: This is wrong
-                        _root = null!;
-                        return false;
-                    }
+                    continue;
                 }
+
+                _valueCompletion.BuildResult(result, responseNames, error);
 
                 error = ref Unsafe.Add(ref error, 1)!;
             }

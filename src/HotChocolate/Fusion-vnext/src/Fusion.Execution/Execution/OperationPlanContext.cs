@@ -144,7 +144,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
         var result = resultBuilder
             .AddErrors(_resultStore.Errors)
-            .SetData(_resultStore.Data)
+            .SetData(_resultStore.Data.IsInvalidated ? null : _resultStore.Data)
             .RegisterForCleanup(_resultStore.MemoryOwners)
             .RegisterForCleanup(_resultPoolSessionHolder)
             .Build();
