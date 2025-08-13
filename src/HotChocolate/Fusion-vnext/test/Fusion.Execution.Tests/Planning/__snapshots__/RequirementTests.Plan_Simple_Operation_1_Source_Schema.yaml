@@ -10,7 +10,7 @@ operation:
     hash: 123
 nodes:
   - id: 1
-    schema: A
+    schema: a
     operation: >-
       query Op_123_1 {
         books {
@@ -19,7 +19,7 @@ nodes:
         }
       }
   - id: 2
-    schema: B
+    schema: b
     operation: >-
       query Op_123_2(
         $__fusion_1_id: String!

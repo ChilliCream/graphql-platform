@@ -15,7 +15,7 @@ operation:
     hash: 123
 nodes:
   - id: 1
-    schema: SUBGRAPH_1
+    schema: a
     operation: >-
       query testQuery_123_1 {
         posts {
@@ -28,7 +28,7 @@ nodes:
         }
       }
   - id: 2
-    schema: SUBGRAPH_2
+    schema: b
     operation: >-
       query testQuery_123_2(
         $__fusion_1_id: ID!
