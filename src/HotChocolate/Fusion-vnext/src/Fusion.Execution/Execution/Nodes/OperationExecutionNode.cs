@@ -57,8 +57,6 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         _variables = variables.ToArray();
 
-        // TODO: This might include requirements that we wouldn't want to create a front-end facing error for
-        // TODO: How to deal with selections on a specific type? Creating errors for all possible response names is wrong
         _responseNames = GetResponseNamesFromPath(operation, source);
     }
 
@@ -332,12 +330,20 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         var responseNames = new List<string>();
 
-        foreach (var selection in selectionSet.Selections)
+        var stack = new Stack<ISelectionNode>(selectionSet.Selections);
+
+        while (stack.TryPop(out var selection))
         {
-            // TODO: We need to handle InlineFragmentNodes here
             if (selection is FieldNode fieldNode)
             {
                 responseNames.Add(fieldNode.Alias?.Value ?? fieldNode.Name.Value);
+            }
+            else if (selection is InlineFragmentNode inlineFragmentNode)
+            {
+                foreach (var child in inlineFragmentNode.SelectionSet.Selections)
+                {
+                    stack.Push(child);
+                }
             }
         }
 
@@ -359,7 +365,6 @@ public sealed class OperationExecutionNode : ExecutionNode
 
             if (segment.Kind == SelectionPathSegmentKind.InlineFragment)
             {
-                // TODO: Do we need to handle the case without a type condition?
                 var selection = current.Selections
                     .OfType<InlineFragmentNode>()
                     .FirstOrDefault(s => s.TypeCondition?.Name.Value == segment.Name);
@@ -381,6 +386,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 {
                     return null;
                 }
+
                 current = selection.SelectionSet;
             }
         }

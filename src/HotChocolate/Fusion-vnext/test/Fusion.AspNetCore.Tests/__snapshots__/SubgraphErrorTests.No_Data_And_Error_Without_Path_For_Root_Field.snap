@@ -7,7 +7,7 @@
       "message": "A global error"
     },
     {
-      "message": "Unexpected execution error",
+      "message": "Unexpected Execution Error",
       "path": [
         "productById"
       ]

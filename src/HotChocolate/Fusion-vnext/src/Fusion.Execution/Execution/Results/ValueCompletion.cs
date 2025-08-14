@@ -89,7 +89,7 @@ internal sealed class ValueCompletion
         {
             var fieldResult = objectResult[responseName];
 
-            if (!fieldResult.Selection.IsIncluded(_includeFlags))
+            if (fieldResult.Selection.IsInternal || !fieldResult.Selection.IsIncluded(_includeFlags))
             {
                 continue;
             }
