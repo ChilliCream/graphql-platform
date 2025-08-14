@@ -39,7 +39,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\StrawberryShake\MetaPackages\Server\StrawberryShake.Server.csproj" />
     <ProjectReference Include="..\Legacy.Fusion\HotChocolate.Fusion.Abstractions.csproj" />
   </ItemGroup>
 
