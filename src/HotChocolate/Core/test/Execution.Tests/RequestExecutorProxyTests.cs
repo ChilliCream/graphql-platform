@@ -41,16 +41,14 @@ public class RequestExecutorProxyTests
                 .Services
                 .BuildServiceProvider()
                 .GetRequiredService<RequestExecutorManager>();
-        var evicted = false;
         var updated = false;
 
         var proxy = new TestProxy(resolver, resolver, ISchemaDefinition.DefaultName);
-        proxy.ExecutorEvicted += () =>
+        proxy.ExecutorUpdated += () =>
         {
-            evicted = true;
+            updated = true;
             executorUpdatedResetEvent.Set();
         };
-        proxy.ExecutorUpdated += () => updated = true;
 
         // act
         var a = await proxy.GetExecutorAsync(CancellationToken.None);
@@ -60,7 +58,6 @@ public class RequestExecutorProxyTests
 
         // assert
         Assert.NotSame(a, b);
-        Assert.True(evicted);
         Assert.True(updated);
     }
 
@@ -70,19 +67,13 @@ public class RequestExecutorProxyTests
         string schemaName)
         : RequestExecutorProxy(executorProvider, executorEvents, schemaName)
     {
-        public event Action? ExecutorEvicted;
         public event Action? ExecutorUpdated;
 
-        protected override void OnRequestExecutorUpdated(IRequestExecutor? executor)
+        protected override void OnAfterRequestExecutorSwapped(
+            IRequestExecutor newExecutor,
+            IRequestExecutor oldExecutor)
         {
-            if (executor is null)
-            {
-                ExecutorEvicted?.Invoke();
-            }
-            else
-            {
-                ExecutorUpdated?.Invoke();
-            }
+            ExecutorUpdated?.Invoke();
         }
     }
 }
