@@ -1248,6 +1248,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified type is not an abstract type..
+        /// </summary>
+        internal static string TypeDefinitionExtensions_TheSpecifiedTypeIsNotAnAbstractType {
+            get {
+                return ResourceManager.GetString("TypeDefinitionExtensions_TheSpecifiedTypeIsNotAnAbstractType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The argument &apos;{0}&apos; is missing..
         /// </summary>
         internal static string TypeDefinitionInvalidRule_ArgumentMissing {

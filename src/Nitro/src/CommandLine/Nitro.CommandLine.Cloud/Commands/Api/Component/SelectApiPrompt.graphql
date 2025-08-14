@@ -1,0 +1,26 @@
+query SelectApiPromptQuery($workspaceId: ID!, $after: Version, $first: Int) {
+  workspaceById(workspaceId: $workspaceId) {
+    apis(after: $after, first: $first) {
+      edges {
+        ...SelectApiPrompt_ApiEdge
+      }
+      pageInfo {
+        ...PageInfo
+      }
+    }
+  }
+}
+
+fragment SelectApiPrompt_ApiEdge on ApisEdge {
+  cursor
+  node {
+    ...SelectApiPrompt_Api
+  }
+}
+
+fragment SelectApiPrompt_Api on Api {
+  id
+  name
+  path
+  ...ApiDetailPrompt_Api
+}

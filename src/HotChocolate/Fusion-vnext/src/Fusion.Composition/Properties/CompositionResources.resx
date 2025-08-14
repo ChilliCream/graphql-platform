@@ -414,6 +414,9 @@
   <data name="ShareableMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked.</value>
   </data>
+  <data name="TypeDefinitionExtensions_TheSpecifiedTypeIsNotAnAbstractType" xml:space="preserve">
+    <value>The specified type is not an abstract type.</value>
+  </data>
   <data name="TypeDefinitionInvalidRule_ArgumentMissing" xml:space="preserve">
     <value>The argument '{0}' is missing.</value>
   </data>
