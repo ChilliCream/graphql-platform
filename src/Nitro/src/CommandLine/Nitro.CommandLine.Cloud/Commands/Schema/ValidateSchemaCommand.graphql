@@ -1,0 +1,22 @@
+mutation validateSchemaVersion($input: ValidateSchemaInput!){
+  validateSchema(input: $input){
+    id
+    errors {
+      ...UnauthorizedOperation
+      ...ApiNotFoundError
+      ...StageNotFoundError
+      ...SchemaNotFoundError
+      ...Error
+    }
+  }
+}
+
+subscription onSchemaVersionValidationUpdated($requestId: ID!) {
+  onSchemaVersionValidationUpdate(requestId: $requestId) {
+    __typename
+    ...SchemaVersionValidationFailed
+    ...SchemaVersionValidationSuccess
+    ...OperationInProgress
+    ...ValidationInProgress
+  }
+}

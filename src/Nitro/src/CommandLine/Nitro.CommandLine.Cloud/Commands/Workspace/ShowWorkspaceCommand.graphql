@@ -1,0 +1,5 @@
+query ShowWorkspaceCommandQuery($workspaceId: ID!){
+  node(id: $workspaceId){
+    ...WorkspaceDetailPrompt_Workspace
+  }
+}

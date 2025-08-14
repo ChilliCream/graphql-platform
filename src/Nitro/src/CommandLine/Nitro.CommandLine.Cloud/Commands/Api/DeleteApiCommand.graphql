@@ -1,0 +1,26 @@
+query DeleteApiCommandQuery($apiId: ID!){
+  node(id: $apiId){
+    ...DeleteApiCommandQuery_Api
+  }
+}
+
+fragment DeleteApiCommandQuery_Api on Api {
+  name
+  version
+  workspace {
+    id
+
+  }
+}
+
+mutation DeleteApiCommandMutation($apiId: ID!) {
+  deleteApiById(input: { apiId: $apiId }) {
+    api {
+      name
+      ...ApiDetailPrompt_Api
+    }
+    errors {
+      ...Error
+    }
+  }
+}
