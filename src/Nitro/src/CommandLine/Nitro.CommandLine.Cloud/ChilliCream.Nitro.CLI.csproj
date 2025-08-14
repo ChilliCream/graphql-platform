@@ -3,7 +3,7 @@
     <TargetFrameworks>$(CLITargetFrameworks)</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <OutputType>Exe</OutputType>
-    <IsPackable>true</IsPackable>
+    <IsPackable>false</IsPackable>
     <PackAsTool>true</PackAsTool>
     <UseAppHost>false</UseAppHost>
     <Nullable>enable</Nullable>

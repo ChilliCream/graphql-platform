@@ -5,6 +5,7 @@
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
     <TargetFrameworks>$(CLITargetFrameworks)</TargetFrameworks>
     <IsAotCompatible>true</IsAotCompatible>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
