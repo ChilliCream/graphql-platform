@@ -136,5 +136,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\StrawberryShake\MetaPackages\Server\StrawberryShake.Server.csproj" />
+    <ProjectReference Include="..\CommandLine.Fusion.Compatibility\Nitro.CommandLine.Fusion.Compatibility.csproj" />
   </ItemGroup>
 </Project>
