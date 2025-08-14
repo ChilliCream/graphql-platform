@@ -1,12 +1,14 @@
 using System.CommandLine.Builder;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
+using HotChocolate.Fusion.Packaging;
 using RootCommand = HotChocolate.Fusion.Commands.RootCommand;
 
 namespace HotChocolate.Fusion;
 
-public sealed class ComposeCommandTests
+public sealed class ComposeCommandTests : IDisposable
 {
+    private readonly List<string> _tempFiles = [];
     private static readonly string s_validExample1CompositeSchema =
         File.ReadAllText("__resources__/valid-example-1-result/composite-schema.graphqls");
 
@@ -17,56 +19,9 @@ public sealed class ComposeCommandTests
     public async Task Compose_ValidExample1_FromSpecified_ToStdOut()
     {
         // arrange
+        var archiveFileName = CreateTempFile();
         var builder = new CommandLineBuilder(new RootCommand()).UseDefaults();
-        string[] args =
-        [
-            "compose",
-            "--source-schema-file",
-            "__resources__/valid-example-1/source-schema-1.graphqls",
-            "--source-schema-file",
-            "__resources__/valid-example-1/source-schema-2.graphqls"
-        ];
-        var testConsole = new TestConsole();
 
-        // act
-        var exitCode = await builder.Build().InvokeAsync(args, testConsole);
-
-        // assert
-        Assert.Equal(0, exitCode);
-        testConsole.Out.ToString()!.ReplaceLineEndings("\n")
-            .MatchInlineSnapshot(s_validExample1CompositeSchema);
-    }
-
-    [Fact]
-    public async Task Compose_ValidExample1_FromWorkingDirectory_ToStdOut()
-    {
-        // arrange
-        var builder = new CommandLineBuilder(new RootCommand()).UseDefaults();
-        string[] args =
-        [
-            "compose",
-            "--working-directory",
-            "__resources__/valid-example-1"
-        ];
-        var testConsole = new TestConsole();
-
-        // act
-        var exitCode = await builder.Build().InvokeAsync(args, testConsole);
-
-        // assert
-        Assert.Equal(0, exitCode);
-        testConsole.Out.ToString()!.ReplaceLineEndings("\n")
-            .MatchInlineSnapshot(s_validExample1CompositeSchema);
-    }
-
-    [Fact]
-    public async Task Compose_ValidExample1_FromSpecified_ToFileInCurrentDirectory()
-    {
-        // arrange
-        var builder = new CommandLineBuilder(new RootCommand()).UseDefaults();
-        var directory = Directory.GetCurrentDirectory();
-        const string fileName = "valid-example-1-composite-schema.graphqls";
-        var filePath = Path.Combine(directory, fileName);
         string[] args =
         [
             "compose",
@@ -74,8 +29,68 @@ public sealed class ComposeCommandTests
             "__resources__/valid-example-1/source-schema-1.graphqls",
             "--source-schema-file",
             "__resources__/valid-example-1/source-schema-2.graphqls",
-            "--composite-schema-file",
-            fileName
+            "--fusion-archive",
+            archiveFileName
+        ];
+        var testConsole = new TestConsole();
+
+        // act
+        var exitCode = await builder.Build().InvokeAsync(args, testConsole);
+
+        // assert
+        Assert.Equal(0, exitCode);
+
+        using var archive = FusionArchive.Open(archiveFileName);
+        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        Assert.NotNull(config);
+        var sourceText = await ReadSchemaAsync(config);
+        sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
+    }
+
+    [Fact]
+    public async Task Compose_ValidExample1_FromWorkingDirectory_ToStdOut()
+    {
+        // arrange
+        var archiveFileName = CreateTempFile();
+        var builder = new CommandLineBuilder(new RootCommand()).UseDefaults();
+        string[] args =
+        [
+            "compose",
+            "--working-directory",
+            "__resources__/valid-example-1",
+            "--fusion-archive",
+            archiveFileName
+        ];
+        var testConsole = new TestConsole();
+
+        // act
+        var exitCode = await builder.Build().InvokeAsync(args, testConsole);
+
+        // assert
+        Assert.Equal(0, exitCode);
+
+        using var archive = FusionArchive.Open(archiveFileName);
+        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        Assert.NotNull(config);
+        var sourceText = await ReadSchemaAsync(config);
+        sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
+    }
+
+    [Fact]
+    public async Task Compose_ValidExample1_FromSpecified_ToFileInCurrentDirectory()
+    {
+        // arrange
+        var builder = new CommandLineBuilder(new RootCommand()).UseDefaults();
+        var archiveFileName = CreateTempFile();
+        string[] args =
+        [
+            "compose",
+            "--source-schema-file",
+            "__resources__/valid-example-1/source-schema-1.graphqls",
+            "--source-schema-file",
+            "__resources__/valid-example-1/source-schema-2.graphqls",
+            "--fusion-archive",
+            archiveFileName
         ];
 
         // act
@@ -83,12 +98,13 @@ public sealed class ComposeCommandTests
 
         // assert
         Assert.Equal(0, exitCode);
-        Assert.True(File.Exists(filePath));
-        (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n")
-            .MatchInlineSnapshot(s_validExample1CompositeSchema);
+        Assert.True(File.Exists(archiveFileName));
 
-        // cleanup
-        File.Delete(filePath);
+        using var archive = FusionArchive.Open(archiveFileName);
+        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        Assert.NotNull(config);
+        var sourceText = await ReadSchemaAsync(config);
+        sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
     }
 
     [Fact]
@@ -97,8 +113,9 @@ public sealed class ComposeCommandTests
         // arrange
         var builder = new CommandLineBuilder(new RootCommand()).UseDefaults();
         var directory = Directory.GetCurrentDirectory();
-        const string fileName = "../valid-example-1-composite-schema.graphqls";
+        string fileName = $"../{Path.GetRandomFileName()}";
         var filePath = Path.Combine(directory, fileName);
+        _tempFiles.Add(filePath);
         string[] args =
         [
             "compose",
@@ -106,7 +123,7 @@ public sealed class ComposeCommandTests
             "__resources__/valid-example-1/source-schema-1.graphqls",
             "--source-schema-file",
             "__resources__/valid-example-1/source-schema-2.graphqls",
-            "--composite-schema-file",
+            "--fusion-archive",
             fileName
         ];
 
@@ -116,11 +133,12 @@ public sealed class ComposeCommandTests
         // assert
         Assert.Equal(0, exitCode);
         Assert.True(File.Exists(filePath));
-        (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n")
-            .MatchInlineSnapshot(s_validExample1CompositeSchema);
 
-        // cleanup
-        File.Delete(filePath);
+        using var archive = FusionArchive.Open(fileName);
+        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        Assert.NotNull(config);
+        var sourceText = await ReadSchemaAsync(config);
+        sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
     }
 
     [Fact]
@@ -129,14 +147,15 @@ public sealed class ComposeCommandTests
         // arrange
         var builder = new CommandLineBuilder(new RootCommand()).UseDefaults();
         const string workingDirectory = "__resources__/valid-example-1";
-        const string fileName = "valid-example-1-composite-schema.graphqls";
+        string fileName = Path.GetRandomFileName();
         var filePath = Path.Combine(workingDirectory, fileName);
+        _tempFiles.Add(filePath);
         string[] args =
         [
             "compose",
             "--working-directory",
             workingDirectory,
-            "--composite-schema-file",
+            "--fusion-archive",
             fileName
         ];
 
@@ -146,11 +165,12 @@ public sealed class ComposeCommandTests
         // assert
         Assert.Equal(0, exitCode);
         Assert.True(File.Exists(filePath));
-        (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n")
-            .MatchInlineSnapshot(s_validExample1CompositeSchema);
 
-        // cleanup
-        File.Delete(filePath);
+        using var archive = FusionArchive.Open(filePath);
+        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        Assert.NotNull(config);
+        var sourceText = await ReadSchemaAsync(config);
+        sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
     }
 
     [Fact]
@@ -159,14 +179,15 @@ public sealed class ComposeCommandTests
         // arrange
         var builder = new CommandLineBuilder(new RootCommand()).UseDefaults();
         const string workingDirectory = "__resources__/valid-example-1";
-        const string fileName = "../valid-example-1-composite-schema.graphqls";
+        var fileName = $"../{Path.GetRandomFileName()}";
         var filePath = Path.Combine(workingDirectory, fileName);
+        _tempFiles.Add(filePath);
         string[] args =
         [
             "compose",
             "--working-directory",
             workingDirectory,
-            "--composite-schema-file",
+            "--fusion-archive",
             fileName
         ];
 
@@ -176,11 +197,12 @@ public sealed class ComposeCommandTests
         // assert
         Assert.Equal(0, exitCode);
         Assert.True(File.Exists(filePath));
-        (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n")
-            .MatchInlineSnapshot(s_validExample1CompositeSchema);
 
-        // cleanup
-        File.Delete(filePath);
+        using var archive = FusionArchive.Open(filePath);
+        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        Assert.NotNull(config);
+        var sourceText = await ReadSchemaAsync(config);
+        sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
     }
 
     [Fact]
@@ -189,13 +211,14 @@ public sealed class ComposeCommandTests
         // arrange
         var builder = new CommandLineBuilder(new RootCommand()).UseDefaults();
         const string workingDirectory = "__resources__/valid-example-1";
-        var filePath = Path.GetTempFileName();
+        var filePath = CreateTempFile();
+
         string[] args =
         [
             "compose",
             "--working-directory",
             workingDirectory,
-            "--composite-schema-file",
+            "--fusion-archive",
             filePath
         ];
 
@@ -205,11 +228,12 @@ public sealed class ComposeCommandTests
         // assert
         Assert.Equal(0, exitCode);
         Assert.True(File.Exists(filePath));
-        (await File.ReadAllTextAsync(filePath)).ReplaceLineEndings("\n")
-            .MatchInlineSnapshot(s_validExample1CompositeSchema);
 
-        // cleanup
-        File.Delete(filePath);
+        using var archive = FusionArchive.Open(filePath);
+        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        Assert.NotNull(config);
+        var sourceText = await ReadSchemaAsync(config);
+        sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
     }
 
     [Fact]
@@ -217,7 +241,6 @@ public sealed class ComposeCommandTests
     {
         // arrange
         var builder = new CommandLineBuilder(new RootCommand()).UseDefaults();
-        const string fileName = "valid-example-1-composite-schema.graphqls";
         string[] args =
         [
             "compose",
@@ -227,8 +250,6 @@ public sealed class ComposeCommandTests
             "__resources__/valid-example-1/source-schema-1.graphqls",
             "--source-schema-file",
             "__resources__/valid-example-1/source-schema-2.graphqls",
-            "--composite-schema-file",
-            fileName
         ];
         var testConsole = new TestConsole();
 
@@ -246,10 +267,8 @@ public sealed class ComposeCommandTests
     public async Task Compose_ValidExample1_FromSpecified_ToFileInNewDirectory()
     {
         // arrange
+        var archiveFileName = CreateTempFile();
         var builder = new CommandLineBuilder(new RootCommand()).UseDefaults();
-        const string directory = "new";
-        const string fileName = "valid-example-1-composite-schema.graphqls";
-        var filePath = Path.Combine(directory, fileName);
         string[] args =
         [
             "compose",
@@ -257,8 +276,8 @@ public sealed class ComposeCommandTests
             "__resources__/valid-example-1/source-schema-1.graphqls",
             "--source-schema-file",
             "__resources__/valid-example-1/source-schema-2.graphqls",
-            "--composite-schema-file",
-            filePath
+            "--fusion-archive",
+            archiveFileName
         ];
 
         // act
@@ -266,10 +285,7 @@ public sealed class ComposeCommandTests
 
         // assert
         Assert.Equal(0, exitCode);
-        Assert.True(File.Exists(filePath));
-
-        // cleanup
-        Directory.Delete(directory, recursive: true);
+        Assert.True(File.Exists(archiveFileName));
     }
 
     [Fact]
@@ -301,12 +317,16 @@ public sealed class ComposeCommandTests
     public async Task Compose_InvalidExample1_FromWorkingDirectory_ToStdOutWithWarnings()
     {
         // arrange
+        var archiveFileName = CreateTempFile();
         var builder = new CommandLineBuilder(new RootCommand()).UseDefaults();
         string[] args =
         [
             "compose",
             "--working-directory",
-            "__resources__/invalid-example-1"
+            "__resources__/invalid-example-1",
+            "--fusion-archive",
+            archiveFileName,
+            "--print"
         ];
         var testConsole = new TestConsole();
 
@@ -338,5 +358,39 @@ public sealed class ComposeCommandTests
         // assert
         Assert.Equal(1, exitCode);
         testConsole.Error.ToString()!.ReplaceLineEndings("\n").MatchSnapshot();
+    }
+
+    private static async Task<string> ReadSchemaAsync(GatewayConfiguration config)
+    {
+        await using var stream = await config.OpenReadSchemaAsync();
+        using var reader = new StreamReader(stream);
+        return await reader.ReadToEndAsync();
+    }
+
+    private string CreateTempFile()
+    {
+        var tempFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        _tempFiles.Add(tempFile);
+        return tempFile;
+    }
+
+    public void Dispose()
+    {
+        foreach (var file in _tempFiles)
+        {
+            if (File.Exists(file))
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+        }
+
+        _tempFiles.Clear();
     }
 }

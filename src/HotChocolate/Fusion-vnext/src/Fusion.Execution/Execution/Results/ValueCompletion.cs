@@ -13,31 +13,47 @@ internal sealed class ValueCompletion
     private readonly ErrorHandling _errorHandling;
     private readonly int _maxDepth;
     private readonly ulong _includeFlags;
+    private readonly List<IError> _errors;
 
     public ValueCompletion(
         ISchemaDefinition schema,
         ResultPoolSession resultPoolSession,
         ErrorHandling errorHandling,
         int maxDepth,
-        ulong includeFlags)
+        ulong includeFlags,
+        List<IError> errors)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(resultPoolSession);
+        ArgumentNullException.ThrowIfNull(errors);
 
         _schema = schema;
         _resultPoolSession = resultPoolSession;
-        _includeFlags = includeFlags;
-        _maxDepth = maxDepth;
         _errorHandling = errorHandling;
+        _maxDepth = maxDepth;
+        _includeFlags = includeFlags;
+        _errors = errors;
     }
 
-    public bool BuildResult(
+    public void BuildResult(
         SelectionSet selectionSet,
-        SourceSchemaResult sourceSchemaResult,
         JsonElement data,
+        ErrorTrie? errorTrie,
+        ReadOnlySpan<string> responseNames,
         ObjectResult objectResult)
     {
-        // we need to validate the data and create a GraphQL error if its not an object.
+        if (data is not { ValueKind: JsonValueKind.Object })
+        {
+            var error = errorTrie?.FindFirstError() ??
+                ErrorBuilder.New()
+                    .SetMessage("Unexpected Execution Error")
+                    .Build();
+
+            BuildErrorResult(objectResult, responseNames, error, objectResult.Path);
+
+            return;
+        }
+
         foreach (var selection in selectionSet.Selections)
         {
             if (!selection.IsIncluded(_includeFlags))
@@ -47,55 +63,104 @@ internal sealed class ValueCompletion
 
             var fieldResult = objectResult[selection.ResponseName];
 
-            if (data.TryGetProperty(selection.ResponseName, out var element)
-                && !TryCompleteValue(selection, selection.Type, sourceSchemaResult, element, 0, fieldResult))
+            if (data.TryGetProperty(selection.ResponseName, out var element))
             {
-                var parentIndex = fieldResult.ParentIndex;
-                var parent = fieldResult.Parent;
+                ErrorTrie? errorTrieForResponseName = null;
+                errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
-                if (_errorHandling is ErrorHandling.Propagate)
+                if (!TryCompleteValue(selection, selection.Type, element, errorTrieForResponseName, 0, fieldResult))
                 {
-                    while (parent is not null)
+                    if (_errorHandling is ErrorHandling.Propagate)
                     {
-                        if (parent.TrySetValueNull(parentIndex))
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            parentIndex = parent.ParentIndex;
-                            parent = parent.Parent;
-
-                            if (parent is null)
-                            {
-                                return false;
-                            }
-                        }
+                        PropagateNullValues(objectResult);
                     }
-                }
-                else
-                {
-                    fieldResult?.TrySetValueNull(parentIndex);
                 }
             }
         }
+    }
 
-        return true;
+    public void BuildErrorResult(
+        ObjectResult objectResult,
+        ReadOnlySpan<string> responseNames,
+        IError error,
+        Path path)
+    {
+        foreach (var responseName in responseNames)
+        {
+            var fieldResult = objectResult[responseName];
+
+            if (fieldResult.Selection.IsInternal || !fieldResult.Selection.IsIncluded(_includeFlags))
+            {
+                continue;
+            }
+
+            var errorWithPath = ErrorBuilder.FromError(error)
+                .SetPath(path.Append(responseName))
+                .AddLocation(fieldResult.Selection.SyntaxNodes[0].Node)
+                .Build();
+
+            _errors.Add(errorWithPath);
+
+            if (_errorHandling is ErrorHandling.Propagate && fieldResult.Selection.Type.IsNonNullType())
+            {
+                PropagateNullValues(objectResult);
+
+                return;
+            }
+        }
+    }
+
+    private static void PropagateNullValues(ResultData result)
+    {
+        if (result.IsInvalidated)
+        {
+            return;
+        }
+
+        result.IsInvalidated = true;
+
+        while (result.Parent is not null)
+        {
+            var index = result.ParentIndex;
+            var parent = result.Parent;
+
+            if (parent.IsInvalidated)
+            {
+                return;
+            }
+
+            if (parent.TrySetValueNull(index))
+            {
+                return;
+            }
+
+            parent.IsInvalidated = true;
+
+            result = parent;
+        }
     }
 
     private bool TryCompleteValue(
         Selection selection,
         IType type,
-        SourceSchemaResult sourceSchemaResult,
         JsonElement data,
+        ErrorTrie? errorTrie,
         int depth,
         ResultData parent)
     {
+        if (errorTrie?.Error is { } error)
+        {
+            var errorWithPath = ErrorBuilder.FromError(error)
+                .SetPath(parent.Path)
+                .AddLocation(selection.SyntaxNodes[0].Node)
+                .Build();
+            _errors.Add(errorWithPath);
+        }
+
         if (type.Kind is TypeKind.NonNull)
         {
             if (data.IsNullOrUndefined() && _errorHandling is ErrorHandling.Propagate)
             {
-                parent.SetNextValueNull();
                 return false;
             }
 
@@ -104,23 +169,22 @@ internal sealed class ValueCompletion
 
         if (data.IsNullOrUndefined())
         {
-            parent.SetNextValueNull();
             return true;
         }
 
         if (type.Kind is TypeKind.List)
         {
-            return TryCompleteList(selection, type, sourceSchemaResult, data, depth, parent);
+            return TryCompleteList(selection, type, data, errorTrie, depth, parent);
         }
 
         if (type.Kind is TypeKind.Object)
         {
-            return TryCompleteObjectValue(selection, type, sourceSchemaResult, data, depth, parent);
+            return TryCompleteObjectValue(selection, type, data, errorTrie, depth, parent);
         }
 
         if (type.Kind is TypeKind.Interface or TypeKind.Union)
         {
-            return TryCompleteAbstractValue(selection, type, sourceSchemaResult, data, depth, parent);
+            return TryCompleteAbstractValue(selection, type, data, errorTrie, depth, parent);
         }
 
         if (type.Kind is TypeKind.Scalar or TypeKind.Enum)
@@ -135,8 +199,8 @@ internal sealed class ValueCompletion
     private bool TryCompleteList(
         Selection selection,
         IType type,
-        SourceSchemaResult sourceSchemaResult,
         JsonElement data,
+        ErrorTrie? errorTrie,
         int depth,
         ResultData parent)
     {
@@ -154,31 +218,37 @@ internal sealed class ValueCompletion
                 : _resultPoolSession.RentObjectListResult();
         listResult.Initialize(type);
 
-#if NET9_0_OR_GREATER
         for (int i = 0, len = data.GetArrayLength(); i < len; ++i)
         {
             var item = data[i];
-#else
-        foreach (var item in data.EnumerateArray())
-        {
-#endif
+            ErrorTrie? errorTrieForIndex = null;
+            errorTrie?.TryGetValue(i, out errorTrieForIndex);
+
+            if (errorTrieForIndex?.Error is { } error)
+            {
+                var errorWithPath = ErrorBuilder.FromError(error)
+                    .SetPath(parent.Path.Append(i))
+                    .AddLocation(selection.SyntaxNodes[0].Node)
+                    .Build();
+                _errors.Add(errorWithPath);
+            }
+
             if (item.IsNullOrUndefined())
             {
                 if (!isNullable && _errorHandling is ErrorHandling.Propagate)
                 {
-                    parent.SetNextValueNull();
                     return false;
                 }
 
                 listResult.SetNextValueNull();
+
                 continue;
             }
 
-            if (!HandleElement(item))
+            if (!HandleElement(item, errorTrieForIndex))
             {
                 if (!isNullable)
                 {
-                    parent.SetNextValueNull();
                     return false;
                 }
 
@@ -189,11 +259,11 @@ internal sealed class ValueCompletion
         parent.SetNextValue(listResult);
         return true;
 
-        bool HandleElement(in JsonElement item)
+        bool HandleElement(in JsonElement item, ErrorTrie? errorTrieForIndex)
         {
             if (isNested)
             {
-                return TryCompleteList(selection, elementType, sourceSchemaResult, item, depth, listResult);
+                return TryCompleteList(selection, elementType, item, errorTrieForIndex, depth, listResult);
             }
             else if (isLeaf)
             {
@@ -202,7 +272,7 @@ internal sealed class ValueCompletion
             }
             else
             {
-                return TryCompleteObjectValue(selection, elementType, sourceSchemaResult, item, depth, listResult);
+                return TryCompleteObjectValue(selection, elementType, item, errorTrieForIndex, depth, listResult);
             }
         }
     }
@@ -210,22 +280,22 @@ internal sealed class ValueCompletion
     private bool TryCompleteObjectValue(
         Selection selection,
         IType type,
-        SourceSchemaResult sourceSchemaResult,
         JsonElement data,
+        ErrorTrie? errorTrie,
         int depth,
         ResultData parent)
     {
         var namedType = type.NamedType();
         var objectType = Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
 
-        return TryCompleteObjectValue(selection, objectType, sourceSchemaResult, data, depth, parent);
+        return TryCompleteObjectValue(selection, objectType, data, errorTrie, depth, parent);
     }
 
     private bool TryCompleteObjectValue(
         Selection selection,
         IObjectTypeDefinition objectType,
-        SourceSchemaResult sourceSchemaResult,
         JsonElement data,
+        ErrorTrie? errorTrie,
         int depth,
         ResultData parent)
     {
@@ -236,6 +306,7 @@ internal sealed class ValueCompletion
         var objectResult = _resultPoolSession.RentObjectResult();
 
         objectResult.Initialize(_resultPoolSession, selectionSet, _includeFlags);
+        objectResult.SetParent(parent, parent.ParentIndex);
 
         foreach (var field in objectResult.Fields)
         {
@@ -246,11 +317,15 @@ internal sealed class ValueCompletion
                 continue;
             }
 
-            if (data.TryGetProperty(fieldSelection.ResponseName, out var child)
-                && !TryCompleteValue(fieldSelection, fieldSelection.Type, sourceSchemaResult, child, depth, field))
+            if (data.TryGetProperty(fieldSelection.ResponseName, out var child))
             {
-                parent.SetNextValueNull();
-                return false;
+                ErrorTrie? errorTrieForResponseName = null;
+                errorTrie?.TryGetValue(fieldSelection.ResponseName, out errorTrieForResponseName);
+
+                if (!TryCompleteValue(fieldSelection, fieldSelection.Type, child, errorTrieForResponseName, depth, field))
+                {
+                    return false;
+                }
             }
         }
 
@@ -261,15 +336,15 @@ internal sealed class ValueCompletion
     private bool TryCompleteAbstractValue(
         Selection selection,
         IType type,
-        SourceSchemaResult sourceSchemaResult,
         JsonElement data,
+        ErrorTrie? errorTrie,
         int depth,
         ResultData parent)
         => TryCompleteObjectValue(
             selection,
             GetType(type, data),
-            sourceSchemaResult,
             data,
+            errorTrie,
             depth,
             parent);
 

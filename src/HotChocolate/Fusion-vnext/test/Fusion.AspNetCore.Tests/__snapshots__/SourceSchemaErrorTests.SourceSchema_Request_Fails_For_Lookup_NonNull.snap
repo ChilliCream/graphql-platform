@@ -1,0 +1,52 @@
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "path": [
+        "topProduct",
+        "name"
+      ]
+    }
+  ],
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "{\n  topProduct {\n    price\n    name\n    id @fusion__requirement\n  }\n}",
+          "hash": "e24d93b6245cedd878fff4452f5f16b9"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": "query Op_e24d93b6_1 {\n  topProduct {\n    price\n    id\n  }\n}",
+            "responseNames": [
+              "topProduct"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": "query Op_e24d93b6_2(\n  $__fusion_1_id: Int!\n) {\n  productById(id: $__fusion_1_id) {\n    name\n  }\n}",
+            "responseNames": [
+              "name"
+            ],
+            "source": "$.productById",
+            "target": "$.topProduct",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "selectionMap": "id"
+              }
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

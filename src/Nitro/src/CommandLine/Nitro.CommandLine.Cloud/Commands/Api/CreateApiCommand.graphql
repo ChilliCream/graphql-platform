@@ -1,0 +1,42 @@
+mutation CreateApiCommandMutation(
+  $workspaceId: ID!
+  $path: [String!]!
+  $name: String!
+  $kind: ApiKind
+) {
+  pushWorkspaceChanges(
+    input: {
+      changes: [
+        {
+          api: {
+            create: {
+              name: $name
+              path: $path
+              referenceId: "api"
+              workspaceId: $workspaceId
+              kind: $kind
+            }
+          }
+        }
+      ]
+    }
+  ) {
+    changes {
+      referenceId
+      error {
+        ...Error
+      }
+      result {
+        ...CreateApiCommandMutation_Api
+      }
+    }
+    errors {
+      ...Error
+    }
+  }
+}
+
+fragment CreateApiCommandMutation_Api on Api {
+  name
+  ...ApiDetailPrompt_Api
+}

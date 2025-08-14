@@ -132,6 +132,7 @@ internal static class CompositeSchemaBuilder
             typeDefinitions.ToImmutable(),
             directiveTypes.ToImmutable(),
             directiveDefinitions.ToImmutable(),
+            CreateSourceSchemaLookup(schema),
             features,
             typeInterceptor);
     }
@@ -532,7 +533,8 @@ internal static class CompositeSchemaBuilder
     {
         var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, context);
         var types = CompletionTools.CreateObjectTypeCollection(typeDef.Types, context);
-        type.Complete(new CompositeUnionTypeCompletionContext(types, directives, FeatureCollection.Empty));
+        var sources = CompletionTools.CreateSourceUnionTypeCollection(typeDef, context);
+        type.Complete(new CompositeUnionTypeCompletionContext(types, directives, sources, FeatureCollection.Empty));
     }
 
     private static void CompleteOutputField(
@@ -553,7 +555,7 @@ internal static class CompositeSchemaBuilder
 
         var directives = CompletionTools.CreateDirectiveCollection(fieldDef.Directives, context);
         var type = context.GetType(fieldDef.Type).ExpectOutputType();
-        var sources = BuildSourceObjectFieldCollection(declaringType.Name, fieldDefinition, fieldDef, context);
+        var sources = BuildSourceOutputFieldCollection(declaringType.Name, fieldDefinition, fieldDef, context);
         var features = FeatureCollection.Empty;
 
         context.Interceptor.OnCompleteOutputField(
@@ -564,7 +566,7 @@ internal static class CompositeSchemaBuilder
             ref features);
 
         fieldDefinition.Complete(
-            new CompositeObjectFieldCompletionContext(
+            new CompositeOutputFieldCompletionContext(
                 declaringType,
                 directives,
                 type,
@@ -572,7 +574,7 @@ internal static class CompositeSchemaBuilder
                 features));
     }
 
-    private static SourceObjectFieldCollection BuildSourceObjectFieldCollection(
+    private static SourceObjectFieldCollection BuildSourceOutputFieldCollection(
         string declaringTypeName,
         FusionOutputFieldDefinition fieldDefinition,
         FieldDefinitionNode fieldDef,
@@ -584,7 +586,11 @@ internal static class CompositeSchemaBuilder
 
         foreach (var fieldDirective in fieldDirectives)
         {
-            var requirements = ParseRequirements(declaringTypeName, requireDirectives, fieldDirective.SchemaName);
+            var requirements = ParseRequirements(
+                declaringTypeName,
+                requireDirectives,
+                fieldDirective.SchemaKey,
+                context);
 
             if (requirements is not null)
             {
@@ -594,7 +600,7 @@ internal static class CompositeSchemaBuilder
             temp.Add(
                 new SourceOutputField(
                     fieldDirective.SourceName ?? fieldDefinition.Name,
-                    fieldDirective.SchemaName,
+                    context.GetSchemaName(fieldDirective.SchemaKey),
                     requirements,
                     CompleteType(fieldDef.Type, fieldDirective.SourceType, context)));
         }
@@ -604,9 +610,10 @@ internal static class CompositeSchemaBuilder
         static FieldRequirements? ParseRequirements(
             string declaringTypeName,
             ImmutableArray<RequireDirective> requireDirectives,
-            string schemaName)
+            SchemaKey schemaKey,
+            CompositeSchemaBuilderContext context)
         {
-            var requireDirective = requireDirectives.FirstOrDefault(t => t.SchemaName == schemaName);
+            var requireDirective = requireDirectives.FirstOrDefault(t => t.SchemaKey.Equals(schemaKey));
 
             if (requireDirective is not null)
             {
@@ -635,7 +642,7 @@ internal static class CompositeSchemaBuilder
                 var arguments = argumentsBuilder.ToImmutable();
                 var fields = fieldsBuilder.ToImmutable();
 
-                return new FieldRequirements(schemaName, declaringTypeName, arguments, fields);
+                return new FieldRequirements(context.GetSchemaName(schemaKey), declaringTypeName, arguments, fields);
             }
 
             return null;
@@ -781,6 +788,32 @@ internal static class CompositeSchemaBuilder
         }
 
         return null;
+    }
+
+    private static ImmutableDictionary<string, SourceSchemaInfo> CreateSourceSchemaLookup(DocumentNode schema)
+    {
+        var sourceSchemaDefinition =
+            schema.Definitions
+                .OfType<EnumTypeDefinitionNode>()
+                .FirstOrDefault(t => t.Name.Value.Equals(FusionBuiltIns.Schema, StringComparison.Ordinal));
+
+        if (sourceSchemaDefinition is null)
+        {
+            throw new InvalidOperationException(
+                $"An executable schema must specify the `{FusionBuiltIns.Schema}` type.");
+        }
+
+        return sourceSchemaDefinition.Values
+            .Select(sourceSchema => new SourceSchemaInfo(sourceSchema.Name.Value, GetSchemaName(sourceSchema)))
+            .ToImmutableDictionary(sourceSchemaInfo => sourceSchemaInfo.Key);
+
+        static string GetSchemaName(EnumValueDefinitionNode sourceSchema)
+        {
+            var directive = sourceSchema.Directives.FirstOrDefault(t =>
+                t.Name.Value.Equals(FusionBuiltIns.SchemaMetadata, StringComparison.Ordinal));
+            var nameArg = directive?.Arguments.FirstOrDefault(t => t.Name.Value.Equals("name"));
+            return nameArg?.Value is StringValueNode nameValue ? nameValue.Value : sourceSchema.Name.Value;
+        }
     }
 
     private sealed class EmptyServiceProvider : IServiceProvider

@@ -12,6 +12,7 @@ internal sealed class OperationDefinitionBuilder
     private string? _name;
     private string? _description;
     private Lookup? _lookup;
+    private string? _lookupTypeRefinement;
     private string? _requirementKey;
     private SelectionSetNode? _selectionSet;
 
@@ -40,9 +41,10 @@ internal sealed class OperationDefinitionBuilder
         return this;
     }
 
-    public OperationDefinitionBuilder SetLookup(Lookup? lookup, string? requirementKey)
+    public OperationDefinitionBuilder SetLookup(Lookup? lookup, string? lookupTypeRefinement, string? requirementKey)
     {
         _lookup = lookup;
+        _lookupTypeRefinement = lookupTypeRefinement;
         _requirementKey = requirementKey;
         return this;
     }
@@ -76,7 +78,7 @@ internal sealed class OperationDefinitionBuilder
             }
 
             var lookupField = new FieldNode(
-                new NameNode(_lookup.Name),
+                new NameNode(_lookup.FieldName),
                 null,
                 [],
                 arguments,
@@ -87,7 +89,13 @@ internal sealed class OperationDefinitionBuilder
             var indexBuilder = index.ToBuilder();
             indexBuilder.Register(selectionSet);
             index = indexBuilder;
-            selectionPath = selectionPath.AppendField(_lookup.Name);
+
+            if (!string.IsNullOrEmpty(_lookupTypeRefinement))
+            {
+                selectionPath = selectionPath.AppendFragment(_lookupTypeRefinement);
+            }
+
+            selectionPath = selectionPath.AppendField(_lookup.FieldName);
         }
 
         var definition = new OperationDefinitionNode(

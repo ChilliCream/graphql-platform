@@ -15,6 +15,11 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     private Task? _task;
 
     /// <summary>
+    /// Gets or sets the internal execution id.
+    /// </summary>
+    public uint Id { get; set; }
+
+    /// <summary>
     /// Gets access to the resolver context for this task.
     /// </summary>
     internal MiddlewareContext Context => _context;

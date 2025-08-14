@@ -21,6 +21,5 @@ internal static class WellKnownDirectiveNames
     public const string Override = "override";
     public const string Provides = "provides";
     public const string Require = "require";
-    public const string SchemaName = "schemaName";
     public const string Shareable = "shareable";
 }

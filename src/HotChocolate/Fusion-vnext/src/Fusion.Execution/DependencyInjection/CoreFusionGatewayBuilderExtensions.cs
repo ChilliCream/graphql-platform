@@ -1,3 +1,5 @@
+using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Language;
 
@@ -39,13 +41,14 @@ public static partial class CoreFusionGatewayBuilderExtensions
 
     public static IFusionGatewayBuilder AddInMemoryConfiguration(
         this IFusionGatewayBuilder builder,
-        DocumentNode schemaDocument)
+        DocumentNode schemaDocument,
+        JsonDocumentOwner? schemaSettings = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(schemaDocument);
 
         return Configure(
             builder,
-            setup => setup.DocumentProvider = _ => new InMemoryFusionConfigurationProvider(schemaDocument));
+            setup => setup.DocumentProvider = _ => new InMemoryFusionConfigurationProvider(schemaDocument, schemaSettings));
     }
 }

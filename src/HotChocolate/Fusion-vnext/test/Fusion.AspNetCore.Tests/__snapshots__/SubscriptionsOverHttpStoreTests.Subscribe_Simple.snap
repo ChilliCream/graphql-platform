@@ -18,13 +18,19 @@
             "id": 1,
             "type": "Operation",
             "schema": "A",
-            "operation": "subscription Op_a6fc02fc_1 {\n  onBookCreated {\n    id\n  }\n}"
+            "operation": "subscription Op_a6fc02fc_1 {\n  onBookCreated {\n    id\n  }\n}",
+            "responseNames": [
+              "onBookCreated"
+            ]
           },
           {
             "id": 2,
             "type": "Operation",
             "schema": "B",
             "operation": "query Op_a6fc02fc_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    title\n  }\n}",
+            "responseNames": [
+              "title"
+            ],
             "source": "$.bookById",
             "target": "$.onBookCreated",
             "requirements": [
@@ -64,13 +70,19 @@
             "id": 1,
             "type": "Operation",
             "schema": "A",
-            "operation": "subscription Op_a6fc02fc_1 {\n  onBookCreated {\n    id\n  }\n}"
+            "operation": "subscription Op_a6fc02fc_1 {\n  onBookCreated {\n    id\n  }\n}",
+            "responseNames": [
+              "onBookCreated"
+            ]
           },
           {
             "id": 2,
             "type": "Operation",
             "schema": "B",
             "operation": "query Op_a6fc02fc_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    title\n  }\n}",
+            "responseNames": [
+              "title"
+            ],
             "source": "$.bookById",
             "target": "$.onBookCreated",
             "requirements": [
@@ -110,13 +122,19 @@
             "id": 1,
             "type": "Operation",
             "schema": "A",
-            "operation": "subscription Op_a6fc02fc_1 {\n  onBookCreated {\n    id\n  }\n}"
+            "operation": "subscription Op_a6fc02fc_1 {\n  onBookCreated {\n    id\n  }\n}",
+            "responseNames": [
+              "onBookCreated"
+            ]
           },
           {
             "id": 2,
             "type": "Operation",
             "schema": "B",
             "operation": "query Op_a6fc02fc_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    title\n  }\n}",
+            "responseNames": [
+              "title"
+            ],
             "source": "$.bookById",
             "target": "$.onBookCreated",
             "requirements": [

@@ -51,9 +51,6 @@
           "name": "PageInfo"
         },
         {
-          "name": "fusion__Schema"
-        },
-        {
           "name": "String"
         },
         {
@@ -75,10 +72,10 @@
         "nodes": [
           {
             "id": 1,
+            "type": "Introspection",
             "selections": [
               {
                 "id": 1,
-                "type": "Introspection",
                 "responseName": "__schema",
                 "fieldName": "__schema"
               }

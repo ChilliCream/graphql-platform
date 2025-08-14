@@ -15,16 +15,7 @@ public class JsonSerializer : ScalarSerializer<JsonElement, JsonElement>
 
     public override JsonElement Parse(JsonElement serializedValue)
     {
-        using var writer = new ArrayWriter();
-
-        // write json value to buffer.
-        using var jsonWriter = new Utf8JsonWriter(writer);
-        serializedValue.WriteTo(jsonWriter);
-        jsonWriter.Flush();
-
-        // now we read the buffer and create an element that does not need to be disposed.
-        var reader = new Utf8JsonReader(writer.GetWrittenSpan(), true, default);
-        return JsonElement.ParseValue(ref reader);
+        return serializedValue.Clone();
     }
 
     protected override JsonElement Format(JsonElement runtimeValue)

@@ -10,10 +10,10 @@
         "nodes": [
           {
             "id": 1,
+            "type": "Introspection",
             "selections": [
               {
                 "id": 1,
-                "type": "Introspection",
                 "responseName": "__typename",
                 "fieldName": "__typename"
               }

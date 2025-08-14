@@ -1,4 +1,8 @@
+using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using HotChocolate.AspNetCore;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Logging;
@@ -7,6 +11,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Fusion;
 
@@ -19,7 +24,8 @@ public abstract class FusionTestBase : IDisposable
         string schemaName,
         Action<IRequestExecutorBuilder> configureBuilder,
         Action<IServiceCollection>? configureServices = null,
-        Action<IApplicationBuilder>? configureApplication = null)
+        Action<IApplicationBuilder>? configureApplication = null,
+        bool isOffline = false)
     {
         configureApplication ??=
             app =>
@@ -36,6 +42,8 @@ public abstract class FusionTestBase : IDisposable
                 var builder = services.AddGraphQLServer(schemaName);
                 configureBuilder(builder);
                 configureServices?.Invoke(services);
+
+                services.Configure<SourceSchemaOptions>(opt => opt.IsOffline = isOffline);
             },
             configureApplication);
     }
@@ -43,18 +51,25 @@ public abstract class FusionTestBase : IDisposable
     public async Task<TestServer> CreateCompositeSchemaAsync(
         (string SchemaName, TestServer Server)[] sourceSchemaServers,
         Action<IServiceCollection>? configureServices = null,
-        Action<IApplicationBuilder>? configureApplication = null)
+        Action<IApplicationBuilder>? configureApplication = null,
+        [StringSyntax("json")] string? schemaSettings = null)
     {
-        var sourceSchemas = new List<string>();
+        var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
         var gatewayBuilder = gatewayServices.AddGraphQLGatewayServer();
 
         foreach (var (name, server) in sourceSchemaServers)
         {
             var schemaDocument = await server.Services.GetSchemaAsync(name);
-            sourceSchemas.Add(schemaDocument.ToString());
-            gatewayServices.AddHttpClient(name, server);
-            gatewayBuilder.AddHttpClientConfiguration(name, new Uri("http://localhost:5000/graphql"));
+            sourceSchemas.Add(new SourceSchemaText(name, schemaDocument.ToString()));
+
+            var subgraphOptions = server.Services.GetRequiredService<IOptions<SourceSchemaOptions>>().Value;
+            gatewayServices.AddHttpClient(name, server, subgraphOptions.IsOffline);
+
+            if (schemaSettings is null)
+            {
+                gatewayBuilder.AddHttpClientConfiguration(name, new Uri("http://localhost:5000/graphql"));
+            }
         }
 
         var compositionLog = new CompositionLog();
@@ -66,7 +81,14 @@ public abstract class FusionTestBase : IDisposable
             throw new InvalidOperationException(result.Errors[0].Message);
         }
 
-        gatewayBuilder.AddInMemoryConfiguration(result.Value.ToSyntaxNode());
+        JsonDocumentOwner? settings = null;
+        if (schemaSettings is not null)
+        {
+            var body = JsonDocument.Parse(schemaSettings);
+            settings = new JsonDocumentOwner(body, new EmptyMemoryOwner());
+        }
+
+        gatewayBuilder.AddInMemoryConfiguration(result.Value.ToSyntaxNode(), settings);
         gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
         gatewayBuilder.ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = false);
 
@@ -113,6 +135,11 @@ public abstract class FusionTestBase : IDisposable
         }
     }
 
+    private sealed class SourceSchemaOptions
+    {
+        public bool IsOffline { get; set; }
+    }
+
     private sealed class OperationPlanHttpRequestInterceptor : DefaultHttpRequestInterceptor
     {
         public override ValueTask OnCreateAsync(
@@ -124,5 +151,12 @@ public abstract class FusionTestBase : IDisposable
             requestBuilder.TryAddGlobalState(ExecutionContextData.IncludeQueryPlan, true);
             return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
         }
+    }
+
+    private class EmptyMemoryOwner : IMemoryOwner<byte>
+    {
+        public Memory<byte> Memory => default;
+
+        public void Dispose() { }
     }
 }

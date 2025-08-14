@@ -99,11 +99,17 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal void AddPartialResults(SelectionPath sourcePath, ReadOnlySpan<SourceSchemaResult> results)
-        => _resultStore.AddPartialResults(sourcePath, results);
+    internal void AddPartialResults(
+        SelectionPath sourcePath,
+        ReadOnlySpan<SourceSchemaResult> results,
+        ReadOnlySpan<string> responseNames)
+        => _resultStore.AddPartialResults(sourcePath, results, responseNames);
 
     internal void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
         => _resultStore.AddPartialResults(result, selections);
+
+    internal void AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
+        => _resultStore.AddErrors(error, responseNames, paths);
 
     internal PooledArrayWriter CreateRentedBuffer()
         => _resultStore.CreateRentedBuffer();
@@ -141,7 +147,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
         var result = resultBuilder
             .AddErrors(_resultStore.Errors)
-            .SetData(_resultStore.Data)
+            .SetData(_resultStore.Data.IsInvalidated ? null : _resultStore.Data)
             .RegisterForCleanup(_resultStore.MemoryOwners)
             .RegisterForCleanup(_resultPoolSessionHolder)
             .Build();
