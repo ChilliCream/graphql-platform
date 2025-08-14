@@ -1,3 +1,5 @@
+using System.Buffers;
+using System.Collections.Immutable;
 using System.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Clients;
@@ -7,7 +9,7 @@ public sealed class SourceSchemaErrors
     /// <summary>
     /// Errors without a path.
     /// </summary>
-    public required List<IError>? RootErrors { get; init; }
+    public required ImmutableArray<IError> RootErrors { get; init; }
 
     public required ErrorTrie Trie { get; init; }
 
@@ -18,8 +20,8 @@ public sealed class SourceSchemaErrors
             return null;
         }
 
-        List<IError>? rootErrors = null;
-        ErrorTrie root = new ErrorTrie();
+        ImmutableArray<IError>.Builder? rootErrors = null;
+        var root = new ErrorTrie();
 
         foreach (var jsonError in json.EnumerateArray())
         {
@@ -34,37 +36,47 @@ public sealed class SourceSchemaErrors
 
             if (error.Path is null)
             {
-                rootErrors ??= [];
+                rootErrors ??= ImmutableArray.CreateBuilder<IError>();
                 rootErrors.Add(error);
                 continue;
             }
 
-            var pathSegments = error.Path.ToList();
-            var lastPathIndex = pathSegments.Count - 1;
+            var rented = ArrayPool<object>.Shared.Rent(error.Path.Length);
+            var pathSegments = rented.AsSpan(0, error.Path.Length);
+            error.Path.ToList(pathSegments);
+            var lastPathIndex = pathSegments.Length - 1;
 
-            for (var i = 0; i < pathSegments.Count; i++)
+            try
             {
-                var pathSegment = pathSegments[i];
+                for (var i = 0; i < pathSegments.Length; i++)
+                {
+                    var pathSegment = pathSegments[i];
 
-                if (currentTrie.TryGetValue(pathSegment, out var trieAtPath))
-                {
-                    currentTrie = trieAtPath;
-                }
-                else
-                {
-                    var newTrie = new ErrorTrie();
-                    currentTrie[pathSegment] = newTrie;
-                    currentTrie = newTrie;
-                }
+                    if (currentTrie.TryGetValue(pathSegment, out var trieAtPath))
+                    {
+                        currentTrie = trieAtPath;
+                    }
+                    else
+                    {
+                        var newTrie = new ErrorTrie();
+                        currentTrie[pathSegment] = newTrie;
+                        currentTrie = newTrie;
+                    }
 
-                if (i == lastPathIndex)
-                {
-                    currentTrie.Error = error;
+                    if (i == lastPathIndex)
+                    {
+                        currentTrie.Error = error;
+                    }
                 }
+            }
+            finally
+            {
+                pathSegments.Clear();
+                ArrayPool<object>.Shared.Return(rented);
             }
         }
 
-        return new SourceSchemaErrors { RootErrors = rootErrors, Trie = root };
+        return new SourceSchemaErrors { RootErrors = rootErrors?.ToImmutableArray() ?? [], Trie = root };
     }
 
     private static IError? CreateError(JsonElement jsonError)

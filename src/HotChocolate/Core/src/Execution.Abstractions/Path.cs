@@ -203,6 +203,49 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
         return stack;
     }
 
+    /// <summary>
+    /// Creates a new list representing the current <see cref="Path"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns a new list representing the current <see cref="Path"/>.
+    /// </returns>
+    public void ToList(Span<object> path)
+    {
+        if (IsRoot)
+        {
+            return;
+        }
+
+        if (path.Length < Length)
+        {
+            throw new ArgumentException(
+                "The path span mustn't be smaller than the length of the path.",
+                nameof(path));
+        }
+
+        var current = this;
+        var length = path.Length;
+
+        while (!current.IsRoot)
+        {
+            switch (current)
+            {
+                case IndexerPathSegment indexer:
+                    path[--length] = indexer.Index;
+                    break;
+
+                case NamePathSegment name:
+                    path[--length] = name.Name;
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+
+            current = current.Parent;
+        }
+    }
+
     /// <summary>Returns a string that represents the current <see cref="Path"/>.</summary>
     /// <returns>A string that represents the current <see cref="Path"/>.</returns>
     public override string ToString() => Print();

@@ -98,7 +98,7 @@ internal sealed class FetchResultStore : IDisposable
                 // we need to track the result objects as they used rented memory.
                 _memory.Push(result);
 
-                if (result.Errors?.RootErrors is { } rootErrors)
+                if (result.Errors?.RootErrors is { Length: > 0 } rootErrors)
                 {
                     _errors.AddRange(rootErrors);
                 }
