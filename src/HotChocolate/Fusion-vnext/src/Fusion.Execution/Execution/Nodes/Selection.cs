@@ -102,6 +102,11 @@ public sealed class Selection
 
     public override string ToString()
     {
+        if (SyntaxNodes[0].Node.Alias is not null)
+        {
+            return $"{ResponseName} : {Field.Name}";
+        }
+
         return Field.Name;
     }
 
