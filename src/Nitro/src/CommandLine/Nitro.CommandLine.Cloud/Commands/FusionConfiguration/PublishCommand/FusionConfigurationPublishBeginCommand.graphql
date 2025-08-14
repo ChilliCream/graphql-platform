@@ -1,5 +1,7 @@
-mutation BeginFusionConfigurationPublish($input: BeginFusionConfigurationPublishInput!){
-  beginFusionConfigurationPublish(input: $input){
+mutation BeginFusionConfigurationPublish(
+  $input: BeginFusionConfigurationPublishInput!
+) {
+  beginFusionConfigurationPublish(input: $input) {
     requestId
     errors {
       ...UnauthorizedOperation
@@ -12,20 +14,19 @@ mutation BeginFusionConfigurationPublish($input: BeginFusionConfigurationPublish
   }
 }
 
-subscription OnFusionConfigurationPublishingTaskChanged($requestId: ID!){
-  onFusionConfigurationPublishingTaskChanged(requestId: $requestId){
+subscription OnFusionConfigurationPublishingTaskChanged($requestId: ID!) {
+  onFusionConfigurationPublishingTaskChanged(requestId: $requestId) {
     state
     __typename
-    ... ProcessingTaskIsReady
-    ... ProcessingTaskIsQueued
-    ... FusionConfigurationPublishingSuccess
-    ... FusionConfigurationPublishingFailed
-    ... FusionConfigurationValidationSuccess
-    ... FusionConfigurationValidationFailed
-    ... ValidationInProgress
-    ... OperationInProgress
-    ... WaitForApproval
-    ... ProcessingTaskApproved
+    ...ProcessingTaskIsReady
+    ...ProcessingTaskIsQueued
+    ...FusionConfigurationPublishingSuccess
+    ...FusionConfigurationPublishingFailed
+    ...FusionConfigurationValidationSuccess
+    ...FusionConfigurationValidationFailed
+    ...ValidationInProgress
+    ...OperationInProgress
+    ...WaitForApproval
+    ...ProcessingTaskApproved
   }
 }
-

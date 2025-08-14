@@ -1,5 +1,7 @@
-mutation CancelFusionConfigurationPublish($input: CancelFusionConfigurationCompositionInput!){
-  cancelFusionConfigurationComposition(input: $input){
+mutation CancelFusionConfigurationPublish(
+  $input: CancelFusionConfigurationCompositionInput!
+) {
+  cancelFusionConfigurationComposition(input: $input) {
     errors {
       ...UnauthorizedOperation
       ...FusionConfigurationRequestNotFoundError
@@ -8,5 +10,3 @@ mutation CancelFusionConfigurationPublish($input: CancelFusionConfigurationCompo
     }
   }
 }
-
-

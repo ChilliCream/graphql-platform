@@ -10,8 +10,8 @@ namespace ChilliCream.Nitro.CLI.Option.Binders;
 
 internal static class ApiClientCommandLineBuilderExtensions
 {
-    private static string _userAgent = $"Nitro CLI/{VersionInfo.PackageVersion}";
-    private static string _clientId = "<<NITRO_GRAPHQL_CLIENT_ID>>"; // TODO inject client id via build
+    private static readonly string _userAgent = $"Nitro CLI/{VersionInfo.PackageVersion}";
+    private const string _clientId = "<<NITRO_GRAPHQL_CLIENT_ID>>"; // TODO inject client id via build
 
     public static CommandLineBuilder AddApiClient(this CommandLineBuilder builder)
         => builder
@@ -33,8 +33,8 @@ internal static class ApiClientCommandLineBuilderExtensions
         var builder = serviceCollection.AddHttpClient(ApiClient.ClientName,
             client =>
             {
-                if (sessionService.Session?.ApiUrl is { } apiUrl &&
-                    cloudUrlResult is not { IsImplicit: false })
+                if (sessionService.Session?.ApiUrl is { } apiUrl
+                    && cloudUrlResult is not { IsImplicit: false })
                 {
                     client.BaseAddress = new Uri($"https://{apiUrl}/graphql");
                 }
@@ -59,8 +59,8 @@ internal static class ApiClientCommandLineBuilderExtensions
                         $"Could not find any api URL. Either specify --cloud-url or run {"nitro login".AsCommand()}");
                 }
 
-                if (sessionService.Session?.Tokens?.AccessToken is { } token &&
-                    apiKeyResult is not { IsImplicit: false })
+                if (sessionService.Session?.Tokens?.AccessToken is { } token
+                    && apiKeyResult is not { IsImplicit: false })
                 {
                     client.DefaultRequestHeaders.Add(HeaderNames.Authorization, $"Bearer {token}");
                 }
@@ -107,4 +107,3 @@ internal static class ApiClientCommandLineBuilderExtensions
         return services.BuildServiceProvider().GetRequiredService<IApiClient>();
     }
 }
-

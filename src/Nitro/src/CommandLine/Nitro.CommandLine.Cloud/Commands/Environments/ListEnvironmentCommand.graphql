@@ -1,9 +1,10 @@
 query ListEnvironmentCommandQuery(
-  $workspaceId: ID!,
-  $after: Version,
-  $first: Int){
+  $workspaceId: ID!
+  $after: Version
+  $first: Int
+) {
   workspaceById(workspaceId: $workspaceId) {
-    environments(after: $after, first:$first){
+    environments(after: $after, first: $first) {
       edges {
         ...ListEnvironmentCommand_EnvironmentEdge
       }

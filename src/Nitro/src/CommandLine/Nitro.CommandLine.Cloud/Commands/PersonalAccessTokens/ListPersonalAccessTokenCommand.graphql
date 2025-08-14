@@ -1,8 +1,6 @@
-query ListPersonalAccessTokenCommandQuery(
-  $after: String,
-  $first: Int){
+query ListPersonalAccessTokenCommandQuery($after: String, $first: Int) {
   me {
-    personalAccessTokens(after: $after, first:$first){
+    personalAccessTokens(after: $after, first: $first) {
       edges {
         ...ListPersonalAccessTokenCommand_PersonalAccessTokenEdge
       }

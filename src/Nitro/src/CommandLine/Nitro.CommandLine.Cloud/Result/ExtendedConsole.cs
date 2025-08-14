@@ -61,7 +61,7 @@ file static class ThrowHelper
     public static Exception ConsoleInNonInteractiveMode()
     {
         return new ExitException(
-            "Console runs in non interactive mode, yet a user interaction was attempted. " +
-            "Check the documentation of the command to see all options");
+            "Console runs in non interactive mode, yet a user interaction was attempted. "
+            + "Check the documentation of the command to see all options");
     }
 }

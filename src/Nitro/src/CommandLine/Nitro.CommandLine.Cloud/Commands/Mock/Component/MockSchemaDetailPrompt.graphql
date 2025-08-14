@@ -12,4 +12,3 @@ fragment MockSchemaDetailPrompt on MockSchema {
   downstreamUrl
   url
 }
-

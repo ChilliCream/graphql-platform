@@ -1,5 +1,7 @@
-mutation RevokePersonalAccessTokenCommandMutation($input: RevokePersonalAccessTokenInput!) {
-  revokePersonalAccessToken(input: $input ) {
+mutation RevokePersonalAccessTokenCommandMutation(
+  $input: RevokePersonalAccessTokenInput!
+) {
+  revokePersonalAccessToken(input: $input) {
     personalAccessToken {
       ...RevokePersonalAccessTokenCommand_PersonalAccessToken
     }
@@ -10,10 +12,8 @@ mutation RevokePersonalAccessTokenCommandMutation($input: RevokePersonalAccessTo
   }
 }
 
-
 fragment RevokePersonalAccessTokenCommand_PersonalAccessToken on PersonalAccessToken {
   id
   description
   ...PersonalAccessTokenDetailPrompt_PersonalAccessToken
 }
-

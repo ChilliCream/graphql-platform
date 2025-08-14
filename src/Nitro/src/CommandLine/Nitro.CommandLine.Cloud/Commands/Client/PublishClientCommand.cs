@@ -70,7 +70,10 @@ internal sealed class PublishClientCommand : Command
 
             var input = new PublishClientInput
             {
-                ClientId = clientId, Stage = stage, Tag = tag, WaitForApproval = waitForApproval
+                ClientId = clientId,
+                Stage = stage,
+                Tag = tag,
+                WaitForApproval = waitForApproval
             };
 
             if (force)

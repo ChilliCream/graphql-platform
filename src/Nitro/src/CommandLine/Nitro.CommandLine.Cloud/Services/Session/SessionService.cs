@@ -25,7 +25,7 @@ internal class SessionService : ISessionService
     {
         try
         {
-            if (Session is { Tokens.IdToken : { } idToken, IdentityServer: { } authority })
+            if (Session is { Tokens.IdToken: { } idToken, IdentityServer: { } authority })
             {
                 await CreateClient(o =>
                     {
@@ -35,7 +35,8 @@ internal class SessionService : ISessionService
                     .LogoutAsync(
                         new LogoutRequest
                         {
-                            BrowserDisplayMode = DisplayMode.Hidden, IdTokenHint = idToken
+                            BrowserDisplayMode = DisplayMode.Hidden,
+                            IdTokenHint = idToken
                         },
                         cancellationToken: cancellationToken);
             }
@@ -65,8 +66,8 @@ internal class SessionService : ISessionService
     {
         Session = await _configurationService.GetAsync<Session>(cancellationToken);
 
-        if (Session?.Tokens is { RefreshToken: { } refreshToken, ExpiresAt: var expiresAt } &&
-            expiresAt < DateTimeOffset.Now.AddMinutes(-1))
+        if (Session?.Tokens is { RefreshToken: { } refreshToken, ExpiresAt: var expiresAt }
+            && expiresAt < DateTimeOffset.Now.AddMinutes(-1))
         {
             await RefreshTokenAsync(
                 Session.IdentityServer,
@@ -255,12 +256,12 @@ file static class LocalExtensions
             }
         }
 
-        if (userId is null ||
-            sessionId is null ||
-            email is null ||
-            tenant is null ||
-            issuer is null ||
-            apiUrl is null)
+        if (userId is null
+            || sessionId is null
+            || email is null
+            || tenant is null
+            || issuer is null
+            || apiUrl is null)
         {
             throw new ExitException("The session");
         }

@@ -1,5 +1,5 @@
-mutation publishSchemaVersion($input: PublishSchemaInput!){
-  publishSchema(input: $input){
+mutation publishSchemaVersion($input: PublishSchemaInput!) {
+  publishSchema(input: $input) {
     id
     errors {
       ...UnauthorizedOperation
@@ -11,7 +11,7 @@ mutation publishSchemaVersion($input: PublishSchemaInput!){
   }
 }
 
-subscription onSchemaVersionPublishUpdated($requestId: ID! ){
+subscription onSchemaVersionPublishUpdated($requestId: ID!) {
   onSchemaVersionPublishingUpdate(requestId: $requestId) {
     __typename
     ...SchemaVersionPublishFailed

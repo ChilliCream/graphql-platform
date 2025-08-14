@@ -1,5 +1,5 @@
-mutation unpublishClient($input: UnpublishClientInput!){
-  unpublishClient(input: $input ){
+mutation unpublishClient($input: UnpublishClientInput!) {
+  unpublishClient(input: $input) {
     clientVersion {
       id
       client {

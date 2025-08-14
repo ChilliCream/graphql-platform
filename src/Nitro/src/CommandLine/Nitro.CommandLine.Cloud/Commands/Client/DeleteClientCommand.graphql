@@ -1,5 +1,5 @@
 mutation DeleteClientByIdCommandMutation($input: DeleteClientByIdInput!) {
-  deleteClientById(input: $input){
+  deleteClientById(input: $input) {
     client {
       ...DeleteClientByIdCommandMutation_Client
     }
@@ -10,7 +10,6 @@ mutation DeleteClientByIdCommandMutation($input: DeleteClientByIdInput!) {
     }
   }
 }
-
 
 fragment DeleteClientByIdCommandMutation_Client on Client {
   name

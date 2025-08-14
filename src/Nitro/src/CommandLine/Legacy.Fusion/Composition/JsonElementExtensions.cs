@@ -1,5 +1,5 @@
+using System.Buffers;
 using System.Text.Json;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -7,13 +7,13 @@ internal static class JsonElementExtensions
 {
     public static JsonElement SafeClone(this JsonElement element)
     {
-        using var writer = new ArrayWriter();
+        var writer = new ArrayBufferWriter<byte>();
         using var jsonWriter = new Utf8JsonWriter(writer);
 
         element.WriteTo(jsonWriter);
         jsonWriter.Flush();
 
-        var reader = new Utf8JsonReader(writer.GetWrittenSpan(), true, default);
+        var reader = new Utf8JsonReader(writer.WrittenSpan, true, default);
         return JsonElement.ParseValue(ref reader);
     }
 }

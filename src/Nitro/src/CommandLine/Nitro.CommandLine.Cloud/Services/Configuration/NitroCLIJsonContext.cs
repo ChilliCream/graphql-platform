@@ -7,6 +7,4 @@ namespace ChilliCream.Nitro.CLI;
 [JsonSerializable(typeof(Session))]
 [JsonSerializable(typeof(PersistedQueryStreamResult))]
 [JsonSerializable(typeof(StageConfigurationParameter[]))]
-internal partial class NitroCLIJsonContext : JsonSerializerContext
-{
-}
+internal partial class NitroCLIJsonContext : JsonSerializerContext;

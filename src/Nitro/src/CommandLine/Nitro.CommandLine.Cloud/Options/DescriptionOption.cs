@@ -9,7 +9,6 @@ internal class DescriptionOption : Option<string>
     }
 }
 
-
 internal sealed class OptionalDescriptionOption : DescriptionOption
 {
     public OptionalDescriptionOption() : base()

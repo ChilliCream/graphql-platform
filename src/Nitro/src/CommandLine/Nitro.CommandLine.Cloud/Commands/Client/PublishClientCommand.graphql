@@ -1,5 +1,5 @@
-mutation publishClientVersion($input: PublishClientInput!){
-  publishClient(input: $input){
+mutation publishClientVersion($input: PublishClientInput!) {
+  publishClient(input: $input) {
     id
     errors {
       ...UnauthorizedOperation
@@ -11,7 +11,7 @@ mutation publishClientVersion($input: PublishClientInput!){
   }
 }
 
-subscription onClientVersionPublishUpdated($requestId: ID! ){
+subscription onClientVersionPublishUpdated($requestId: ID!) {
   onClientVersionPublishingUpdate(requestId: $requestId) {
     __typename
     ...ClientVersionPublishFailed

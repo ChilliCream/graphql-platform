@@ -1,9 +1,6 @@
-query SelectClientPromptQuery(
-  $apiId: ID!,
-  $after: String,
-  $first: Int){
+query SelectClientPromptQuery($apiId: ID!, $after: String, $first: Int) {
   apiById(id: $apiId) {
-    clients(after: $after, first:$first){
+    clients(after: $after, first: $first) {
       edges {
         ...SelectClientPrompt_ClientEdge
       }

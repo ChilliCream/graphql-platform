@@ -1,9 +1,6 @@
-query SelectApiPromptQuery(
-  $workspaceId: ID!,
-  $after: Version,
-  $first: Int){
+query SelectApiPromptQuery($workspaceId: ID!, $after: Version, $first: Int) {
   workspaceById(workspaceId: $workspaceId) {
-    apis(after: $after, first:$first){
+    apis(after: $after, first: $first) {
       edges {
         ...SelectApiPrompt_ApiEdge
       }

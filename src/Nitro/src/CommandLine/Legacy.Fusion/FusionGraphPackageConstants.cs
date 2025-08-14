@@ -43,7 +43,7 @@ public static class FusionGraphPackageConstants
     /// <summary>
     /// Gets the file name of a GraphQL schema document.
     /// </summary>
-    public const string SchemaFileName  = "schema.graphql";
+    public const string SchemaFileName = "schema.graphql";
 
     /// <summary>
     /// Gets the relationship id of the root GraphQL schema document in a package.

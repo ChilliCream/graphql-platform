@@ -33,7 +33,8 @@ internal class SystemBrowser(int? port = null, string? path = null) : IBrowser
             {
                 return new BrowserResult
                 {
-                    ResultType = BrowserResultType.UnknownError, Error = "Empty response."
+                    ResultType = BrowserResultType.UnknownError,
+                    Error = "Empty response."
                 };
             }
 
@@ -47,7 +48,8 @@ internal class SystemBrowser(int? port = null, string? path = null) : IBrowser
         {
             return new BrowserResult
             {
-                ResultType = BrowserResultType.UnknownError, Error = ex.Message
+                ResultType = BrowserResultType.UnknownError,
+                Error = ex.Message
             };
         }
     }

@@ -1,5 +1,7 @@
-mutation CommitFusionConfigurationPublish($input: CommitFusionConfigurationPublishInput!){
-  commitFusionConfigurationPublish(input: $input){
+mutation CommitFusionConfigurationPublish(
+  $input: CommitFusionConfigurationPublishInput!
+) {
+  commitFusionConfigurationPublish(input: $input) {
     errors {
       ...UnauthorizedOperation
       ...FusionConfigurationRequestNotFoundError
