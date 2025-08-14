@@ -29,6 +29,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="StrawberryShake.Server" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="Duende.IdentityModel.OidcClient" VersionOverride="6.0.1" />
     <PackageReference Include="Spectre.Console" />
@@ -39,6 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- <ProjectReference Include="..\..\..\..\StrawberryShake\MetaPackages\Server\StrawberryShake.Server.csproj" /> -->
     <ProjectReference Include="..\Legacy.Fusion\HotChocolate.Fusion.Abstractions.csproj" />
   </ItemGroup>
 
