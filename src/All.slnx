@@ -288,6 +288,10 @@
     <Project Path="HotChocolate/Utilities/test/Utilities.Introspection.Tests/HotChocolate.Utilities.Introspection.Tests.csproj" />
     <Project Path="HotChocolate/Utilities/test/Utilities.Tests/HotChocolate.Utilities.Tests.csproj" />
   </Folder>
+  <Folder Name="/Nitro/">
+    <Project Path="Nitro/src/CommandLine/Legacy.Fusion/HotChocolate.Fusion.Abstractions.csproj" />
+    <Project Path="Nitro/src/CommandLine/Nitro.CommandLine.Cloud/ChilliCream.Nitro.CLI.csproj" />
+  </Folder>
   <Folder Name="/StrawberryShake/" />
   <Folder Name="/StrawberryShake/Client/" />
   <Folder Name="/StrawberryShake/Client/src/">

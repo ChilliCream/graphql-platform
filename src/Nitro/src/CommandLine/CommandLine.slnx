@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/Legacy.Fusion/">
+    <Project Path="Legacy.Fusion/HotChocolate.Fusion.Abstractions.csproj" />
+  </Folder>
+  <Folder Name="/Nitro.CommandLine.Cloud/">
+    <Project Path="Nitro.CommandLine.Cloud/ChilliCream.Nitro.CLI.csproj" />
+  </Folder>
+  <Project Path="../../../HotChocolate/Language/src/Language.SyntaxTree/HotChocolate.Language.SyntaxTree.csproj" />
+  <Project Path="../../../HotChocolate/Language/src/Language.Utf8/HotChocolate.Language.Utf8.csproj" />
+  <Project Path="../../../HotChocolate/Language/src/Language.Visitors/HotChocolate.Language.Visitors.csproj" />
+  <Project Path="../../../HotChocolate/Language/src/Language.Web/HotChocolate.Language.Web.csproj" />
+  <Project Path="../../../HotChocolate/Language/src/Language/HotChocolate.Language.csproj" />
+  <Project Path="../../../HotChocolate/Utilities/src/Utilities.Buffers/HotChocolate.Utilities.Buffers.csproj" />
+</Solution>
