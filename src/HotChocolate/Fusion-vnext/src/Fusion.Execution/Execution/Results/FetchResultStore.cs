@@ -119,42 +119,6 @@ internal sealed class FetchResultStore : IDisposable
         }
     }
 
-    public bool AddErrors(ReadOnlySpan<SourceSchemaError> errors, ReadOnlySpan<string> responseNames)
-    {
-        _lock.EnterWriteLock();
-
-        try
-        {
-            ref var error = ref MemoryMarshal.GetReference(errors);
-            ref var end = ref Unsafe.Add(ref error, errors.Length);
-
-            while (Unsafe.IsAddressLessThan(ref error, ref end))
-            {
-                if (_root.IsInvalidated)
-                {
-                    return false;
-                }
-
-                var result = error.Path.IsRoot ? _root : GetStartObjectResult(error.Path);
-
-                if (result.IsInvalidated)
-                {
-                    continue;
-                }
-
-                _valueCompletion.BuildResult(result, responseNames, error);
-
-                error = ref Unsafe.Add(ref error, 1)!;
-            }
-        }
-        finally
-        {
-            _lock.ExitWriteLock();
-        }
-
-        return true;
-    }
-
     public void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -187,6 +151,40 @@ internal sealed class FetchResultStore : IDisposable
         }
     }
 
+    public void AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
+    {
+        _lock.EnterWriteLock();
+
+        try
+        {
+            ref var path = ref MemoryMarshal.GetReference(paths);
+            ref var end = ref Unsafe.Add(ref path, paths.Length);
+
+            while (Unsafe.IsAddressLessThan(ref path, ref end))
+            {
+                if (_root.IsInvalidated)
+                {
+                    return;
+                }
+
+                var result = path.IsRoot ? _root : GetStartObjectResult(path);
+
+                if (result.IsInvalidated)
+                {
+                    continue;
+                }
+
+                _valueCompletion.BuildResult(result, responseNames, error, path);
+
+                path = ref Unsafe.Add(ref path, 1)!;
+            }
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+    }
+
     private bool SaveSafe(
         ReadOnlySpan<SourceSchemaResult> results,
         ReadOnlySpan<JsonElement> dataElements,
@@ -203,21 +201,22 @@ internal sealed class FetchResultStore : IDisposable
 
             while (Unsafe.IsAddressLessThan(ref result, ref end))
             {
-                if (result.Path.IsRoot)
+                if (_root.IsInvalidated)
                 {
-                    var selectionSet = _operation.RootSelectionSet;
-                    if (!_valueCompletion.BuildResult(selectionSet, data, errorTrie, _root))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
-                else
+
+                var objectResult = result.Path.IsRoot ? _root : GetStartObjectResult(result.Path);
+                var selectionSet = result.Path.IsRoot ? _operation.RootSelectionSet : objectResult.SelectionSet;
+
+                if (objectResult.IsInvalidated)
                 {
-                    var startResult = GetStartObjectResult(result.Path);
-                    if (!_valueCompletion.BuildResult(startResult.SelectionSet, data, errorTrie, startResult))
-                    {
-                        return false;
-                    }
+                    continue;
+                }
+
+                if (!_valueCompletion.BuildResult(selectionSet, data, errorTrie, objectResult))
+                {
+                    return false;
                 }
 
                 result = ref Unsafe.Add(ref result, 1)!;

@@ -1,10 +1,4 @@
 {
-  "data": {
-    "topProduct": {
-      "price": 13.99,
-      "name": null
-    }
-  },
   "errors": [
     {
       "message": "Could not resolve Product",

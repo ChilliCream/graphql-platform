@@ -1,7 +1,4 @@
 {
-  "data": {
-    "productById": null
-  },
   "errors": [
     {
       "message": "Could not resolve Product",

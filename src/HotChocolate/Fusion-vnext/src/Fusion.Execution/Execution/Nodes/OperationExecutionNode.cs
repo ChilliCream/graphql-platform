@@ -387,32 +387,32 @@ public sealed class OperationExecutionNode : ExecutionNode
         ImmutableArray<VariableValues> variables,
         ImmutableArray<string> responseNames)
     {
-        var bufferLength = Math.Max(variables.Length, 1);
-        var buffer = ArrayPool<SourceSchemaError>.Shared.Rent(bufferLength);
-
-        try
-        {
             var error = ErrorBuilder.FromException(exception).Build();
 
             if (variables.Length == 0)
             {
-                buffer[0] = new SourceSchemaError(error, Path.Root);
+                context.AddErrors(error, responseNames.AsSpan(), Path.Root);
             }
             else
             {
-                for (var i = 0; i < variables.Length; i++)
+                var bufferLength = Math.Max(variables.Length, 1);
+                var buffer = ArrayPool<Path>.Shared.Rent(bufferLength);
+
+                try
                 {
-                    buffer[i] = new SourceSchemaError(error, variables[i].Path);
+                    for (var i = 0; i < variables.Length; i++)
+                    {
+                        buffer[i] = variables[i].Path;
+                    }
+
+                    context.AddErrors(error, responseNames.AsSpan(), buffer.AsSpan(0, bufferLength));
+                }
+                finally
+                {
+                    buffer.AsSpan(0, bufferLength).Clear();
+                    ArrayPool<Path>.Shared.Return(buffer);
                 }
             }
-
-            context.AddErrors(buffer.AsSpan(0, bufferLength), responseNames.AsSpan());
-        }
-        finally
-        {
-            buffer.AsSpan(0, bufferLength).Clear();
-            ArrayPool<SourceSchemaError>.Shared.Return(buffer);
-        }
     }
 
     private sealed class SubscriptionEnumerable : IAsyncEnumerable<EventMessageResult>

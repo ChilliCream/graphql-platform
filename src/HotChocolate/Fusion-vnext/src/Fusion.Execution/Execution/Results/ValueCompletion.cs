@@ -59,6 +59,11 @@ internal sealed class ValueCompletion
                     .Build();
 
                 _errors.Add(errorWithPath);
+
+                if (_errorHandling is ErrorHandling.Propagate)
+                {
+                    PropagateNullValues(objectResult);
+                }
             }
 
             return false;
@@ -94,7 +99,8 @@ internal sealed class ValueCompletion
     public void BuildResult(
         ObjectResult objectResult,
         ReadOnlySpan<string> responseNames,
-        SourceSchemaError sourceSchemaError)
+        IError error,
+        Path path)
     {
         foreach (var responseName in responseNames)
         {
@@ -105,12 +111,12 @@ internal sealed class ValueCompletion
                 continue;
             }
 
-            var error = ErrorBuilder.FromError(sourceSchemaError.Error)
-                .SetPath(sourceSchemaError.Path.Append(responseName))
+            var errorWithPath = ErrorBuilder.FromError(error)
+                .SetPath(path.Append(responseName))
                 .AddLocation(fieldResult.Selection.SyntaxNodes[0].Node)
                 .Build();
 
-            _errors.Add(error);
+            _errors.Add(errorWithPath);
 
             if (_errorHandling is ErrorHandling.Propagate && fieldResult.Selection.Type.IsNonNullType())
             {
