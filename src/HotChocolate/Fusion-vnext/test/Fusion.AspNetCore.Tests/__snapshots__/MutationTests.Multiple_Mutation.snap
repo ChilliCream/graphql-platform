@@ -26,13 +26,19 @@
             "id": 1,
             "type": "Operation",
             "schema": "A",
-            "operation": "mutation Op_192dc5f8_1 {\n  a: createBook(input: { title: \"Book1\" }) {\n    book {\n      id\n    }\n  }\n}"
+            "operation": "mutation Op_192dc5f8_1 {\n  a: createBook(input: { title: \"Book1\" }) {\n    book {\n      id\n    }\n  }\n}",
+            "responseNames": [
+              "a"
+            ]
           },
           {
             "id": 2,
             "type": "Operation",
             "schema": "B",
             "operation": "query Op_192dc5f8_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    author\n  }\n}",
+            "responseNames": [
+              "author"
+            ],
             "source": "$.bookById",
             "target": "$.a.book",
             "requirements": [
@@ -49,13 +55,19 @@
             "id": 3,
             "type": "Operation",
             "schema": "A",
-            "operation": "mutation Op_192dc5f8_3 {\n  b: createBook(input: { title: \"Book2\" }) {\n    book {\n      id\n      title\n    }\n  }\n}"
+            "operation": "mutation Op_192dc5f8_3 {\n  b: createBook(input: { title: \"Book2\" }) {\n    book {\n      id\n      title\n    }\n  }\n}",
+            "responseNames": [
+              "b"
+            ]
           },
           {
             "id": 4,
             "type": "Operation",
             "schema": "B",
             "operation": "query Op_192dc5f8_4(\n  $__fusion_2_id: Int!\n) {\n  bookById(id: $__fusion_2_id) {\n    author\n  }\n}",
+            "responseNames": [
+              "author"
+            ],
             "source": "$.bookById",
             "target": "$.b.book",
             "requirements": [
