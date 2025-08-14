@@ -42,16 +42,11 @@ public sealed class UpdateMockCommand : Command
         IHttpClientFactory clientFactory,
         CancellationToken cancellationToken)
     {
-        var extensionFile =
-            context.ParseResult.GetValueForOption(Opt<OptionalExtensionFileOption>.Instance)!;
-        var baseSchemaFile =
-            context.ParseResult.GetValueForOption(Opt<OptionalBaseSchemaFileOption>.Instance)!;
-        var downstreamUrl =
-            context.ParseResult.GetValueForOption(Opt<OptionalDownstreamUrlOption>.Instance)!;
-        var mockSchemaName =
-            context.ParseResult.GetValueForOption(Opt<OptionalMockSchemaNameOption>.Instance)!;
-        var mockSchemaId =
-            context.ParseResult.GetValueForArgument(Opt<OptionalIdArgument>.Instance);
+        var extensionFile = context.ParseResult.GetValueForOption(Opt<OptionalExtensionFileOption>.Instance);
+        var baseSchemaFile = context.ParseResult.GetValueForOption(Opt<OptionalBaseSchemaFileOption>.Instance);
+        var downstreamUrl = context.ParseResult.GetValueForOption(Opt<OptionalDownstreamUrlOption>.Instance);
+        var mockSchemaName = context.ParseResult.GetValueForOption(Opt<OptionalMockSchemaNameOption>.Instance);
+        var mockSchemaId = context.ParseResult.GetValueForArgument(Opt<OptionalIdArgument>.Instance);
 
         if (string.IsNullOrWhiteSpace(mockSchemaId))
         {
@@ -72,14 +67,11 @@ public sealed class UpdateMockCommand : Command
             }
 
             var selectedMock = await SelectMockSchemaPrompt
-                .New(client, selectedApi.Id).RenderAsync(console, cancellationToken);
+                .New(client, selectedApi.Id)
+                .RenderAsync(console, cancellationToken);
 
-            if (selectedMock?.Id is null)
-            {
-                throw new ExitException("No mock schema selected.");
-            }
+            mockSchemaId = selectedMock?.Id ?? throw new ExitException("No mock schema selected.");
 
-            mockSchemaId = selectedMock.Id;
             await console
                 .Status()
                 .Spinner(Spinner.Known.BouncingBar)

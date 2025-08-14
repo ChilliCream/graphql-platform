@@ -10,7 +10,7 @@ namespace ChilliCream.Nitro.CLI.Option.Binders;
 
 internal static class ApiClientCommandLineBuilderExtensions
 {
-    private static readonly string _userAgent = $"Nitro CLI/{VersionInfo.PackageVersion}";
+    private static readonly string _userAgent = $"Nitro CLI/{Version}";
     private const string _clientId = "<<NITRO_GRAPHQL_CLIENT_ID>>"; // TODO inject client id via build
 
     public static CommandLineBuilder AddApiClient(this CommandLineBuilder builder)
@@ -78,9 +78,7 @@ internal static class ApiClientCommandLineBuilderExtensions
                     .Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                 client.DefaultRequestHeaders.Add(Headers.GraphQLClientId, _clientId);
-                client.DefaultRequestHeaders.Add(
-                    Headers.GraphQLClientVersion,
-                    VersionInfo.PackageVersion);
+                client.DefaultRequestHeaders.Add(Headers.GraphQLClientVersion, Version);
                 client.DefaultRequestHeaders.Add(Headers.CCCAgent, _userAgent);
 
                 client.DefaultRequestHeaders.Add(Headers.GraphQLPreflight, "1");
@@ -105,5 +103,14 @@ internal static class ApiClientCommandLineBuilderExtensions
             .AddApiClient();
 
         return services.BuildServiceProvider().GetRequiredService<IApiClient>();
+    }
+
+    static string Version
+    {
+        get
+        {
+            var version = typeof(ApiClientCommandLineBuilderExtensions).Assembly.GetName().Version!;
+            return new Version(version.Major, version.Minor, version.Build).ToString();
+        }
     }
 }
