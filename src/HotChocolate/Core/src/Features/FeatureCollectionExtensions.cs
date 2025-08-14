@@ -31,8 +31,8 @@ public static class FeatureCollectionExtensions
 
     public static TFeature GetOrSet<TFeature>(
         this IFeatureCollection featureCollection,
-        TFeature value)
-        => GetOrSet(featureCollection, static state => state, value);
+        Func<TFeature> factory)
+        => GetOrSet(featureCollection, _ => factory(), (object?)null);
 
     public static TFeature GetOrSet<TFeature, TState>(
         this IFeatureCollection featureCollection,
