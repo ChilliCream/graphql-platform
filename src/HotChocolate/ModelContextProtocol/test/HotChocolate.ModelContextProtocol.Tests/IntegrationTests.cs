@@ -28,7 +28,7 @@ public sealed class IntegrationTests
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNonNullableVariables.graphql")));
         var server = CreateTestServer(b => b.AddMcpOperationDocumentStorage(storage));
-        var mcpClient = await CreateMcpClient(server.CreateClient());
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
         var tools = await mcpClient.ListToolsAsync();
@@ -57,7 +57,7 @@ public sealed class IntegrationTests
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql")));
         var server = CreateTestServer(b => b.AddMcpOperationDocumentStorage(storage));
-        var mcpClient = await CreateMcpClient(server.CreateClient());
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
         var result = await mcpClient.CallToolAsync(
@@ -107,7 +107,7 @@ public sealed class IntegrationTests
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNonNullableVariables.graphql")));
         var server = CreateTestServer(b => b.AddMcpOperationDocumentStorage(storage));
-        var mcpClient = await CreateMcpClient(server.CreateClient());
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
         var result = await mcpClient.CallToolAsync(
@@ -158,7 +158,7 @@ public sealed class IntegrationTests
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithDefaultedVariables.graphql")));
         var server = CreateTestServer(b => b.AddMcpOperationDocumentStorage(storage));
-        var mcpClient = await CreateMcpClient(server.CreateClient());
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
         var result = await mcpClient.CallToolAsync("get_with_defaulted_variables");
@@ -183,7 +183,7 @@ public sealed class IntegrationTests
                 b => b
                     .AddMcpOperationDocumentStorage(storage)
                     .AddType(new TimeSpanType(TimeSpanFormat.DotNet)));
-        var mcpClient = await CreateMcpClient(server.CreateClient());
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
         var result = await mcpClient.CallToolAsync(
@@ -230,7 +230,7 @@ public sealed class IntegrationTests
         await storage.SaveToolDocumentAsync(
             Utf8GraphQLParser.Parse("query GetWithErrors { withErrors }"));
         var server = CreateTestServer(b => b.AddMcpOperationDocumentStorage(storage));
-        var mcpClient = await CreateMcpClient(server.CreateClient());
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
         var result = await mcpClient.CallToolAsync("get_with_errors");
@@ -279,7 +279,7 @@ public sealed class IntegrationTests
         return new TestServer(builder);
     }
 
-    private static async Task<IMcpClient> CreateMcpClient(HttpClient httpClient)
+    private static async Task<IMcpClient> CreateMcpClientAsync(HttpClient httpClient)
     {
         return
             await McpClientFactory.CreateAsync(
