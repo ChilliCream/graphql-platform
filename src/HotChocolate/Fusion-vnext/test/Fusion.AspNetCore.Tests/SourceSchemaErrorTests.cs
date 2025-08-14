@@ -154,7 +154,7 @@ public class SourceSchemaErrorTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Subgraph_Request_Fails_For_Root_Field()
+    public async Task SourceSchema_Request_Fails_For_Root_Field()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -187,7 +187,7 @@ public class SourceSchemaErrorTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Subgraph_Request_Fails_For_Root_Field_NonNull()
+    public async Task SourceSchema_Request_Fails_For_Root_Field_NonNull()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -505,7 +505,7 @@ public class SourceSchemaErrorTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Subgraph_Request_Fails_For_Lookup()
+    public async Task SourceSchema_Request_Fails_For_Lookup()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -544,7 +544,7 @@ public class SourceSchemaErrorTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Subgraph_Request_Fails_For_Lookup_NonNull()
+    public async Task SourceSchema_Request_Fails_For_Lookup_NonNull()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -583,7 +583,7 @@ public class SourceSchemaErrorTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Subgraph_Request_Fails_For_Lookup_On_List()
+    public async Task SourceSchema_Request_Fails_For_Lookup_On_List()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -622,7 +622,7 @@ public class SourceSchemaErrorTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Subgraph_Request_Fails_For_Lookup_On_List_NonNull()
+    public async Task SourceSchema_Request_Fails_For_Lookup_On_List_NonNull()
     {
         // arrange
         using var server1 = CreateSourceSchema(
