@@ -4,15 +4,36 @@ using System.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
+/// <summary>
+/// Represents the collection of errors returned from a specific source schema.
+/// This class organizes errors into two categories: root-level errors without field paths and
+/// field-specific errors organized by their GraphQL paths using an <see cref="ErrorTrie"/>.
+/// </summary>
 public sealed class SourceSchemaErrors
 {
     /// <summary>
-    /// Errors without a path.
+    /// Gets the collection of errors that are not associated with specific GraphQL field paths.
     /// </summary>
     public required ImmutableArray<IError> RootErrors { get; init; }
 
+    /// <summary>
+    /// Gets the trie structure containing errors organized by their GraphQL field paths.
+    /// </summary>
     public required ErrorTrie Trie { get; init; }
 
+    /// <summary>
+    /// Creates a <see cref="SourceSchemaErrors"/> instance from a JSON array of GraphQL errors.
+    /// </summary>
+    /// <param name="json">
+    /// A <see cref="JsonElement"/> representing the "errors" array from a GraphQL response.
+    /// </param>
+    /// <returns>
+    /// A <see cref="SourceSchemaErrors"/> instance containing the parsed errors, or
+    /// <c>null</c> if the JSON is not a valid array format.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when an error path contains unsupported element types (only strings and integer are supported).
+    /// </exception>
     public static SourceSchemaErrors? From(JsonElement json)
     {
         if (json.ValueKind != JsonValueKind.Array)
