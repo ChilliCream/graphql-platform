@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace HotChocolate.Authorization;
 
 /// <summary>
@@ -7,8 +5,6 @@ namespace HotChocolate.Authorization;
 /// </summary>
 public sealed class AuthorizeDirective
 {
-    private readonly string _cacheKey;
-
     /// <summary>
     /// Initializes a new instance of <see cref="AuthorizeDirective"/>.
     /// </summary>
@@ -44,16 +40,19 @@ public sealed class AuthorizeDirective
     /// <param name="apply">
     /// Specifies when the authorization directive shall be applied.
     /// </param>
+    /// <param name="metadata">
+    /// Metadata that can be used for authorization.
+    /// </param>
     public AuthorizeDirective(
         string? policy = null,
         IReadOnlyList<string>? roles = null,
-        ApplyPolicy apply = ApplyPolicy.BeforeResolver)
+        ApplyPolicy apply = ApplyPolicy.BeforeResolver,
+        IReadOnlyList<object>? metadata = null)
     {
         Policy = policy;
         Roles = roles?.OrderBy(r => r).ToList();
         Apply = apply;
-
-        _cacheKey = BuildCacheKey(Policy, Roles);
+        Metadata = metadata;
     }
 
     /// <summary>
@@ -80,40 +79,7 @@ public sealed class AuthorizeDirective
     public ApplyPolicy Apply { get; }
 
     /// <summary>
-    /// Gets a cache key that uniquely identifies the combined authorization policy,
-    /// of the specified <see cref="Roles"/> and <see cref="Policy"/>.
+    /// Gets the metadata that can be used for authorization.
     /// </summary>
-    internal string GetPolicyCacheKey() => _cacheKey;
-
-    private static string BuildCacheKey(string? policy, IReadOnlyList<string>? roles)
-    {
-        if (string.IsNullOrEmpty(policy) && roles is null)
-        {
-            return string.Empty;
-        }
-
-        var sb = new StringBuilder();
-
-        if (!string.IsNullOrEmpty(policy))
-        {
-            sb.Append(policy);
-        }
-
-        sb.Append(";");
-
-        if (roles is not null)
-        {
-            for (var i = 0; i < roles.Count; i++)
-            {
-                sb.Append(roles[i]);
-
-                if (i < roles.Count - 1)
-                {
-                    sb.Append(",");
-                }
-            }
-        }
-
-        return sb.ToString();
-    }
+    public IReadOnlyList<object>? Metadata { get; }
 }
