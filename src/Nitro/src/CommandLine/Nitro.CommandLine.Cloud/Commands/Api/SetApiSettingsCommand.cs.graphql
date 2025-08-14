@@ -1,8 +1,7 @@
 mutation SetApiSettingsCommandMutation($input: UpdateApiSettingsInput!) {
-  updateApiSettings(input: $input){
+  updateApiSettings(input: $input) {
     api {
       ...SetApiSettingsCommandMutation_Api
-
     }
     errors {
       ...ApiNotFoundError
@@ -10,7 +9,6 @@ mutation SetApiSettingsCommandMutation($input: UpdateApiSettingsInput!) {
       ...Error
     }
   }
-
 }
 
 fragment SetApiSettingsCommandMutation_Api on Api {

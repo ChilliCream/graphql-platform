@@ -1,5 +1,5 @@
-mutation validateClientVersion($input: ValidateClientInput!){
-  validateClient(input: $input){
+mutation validateClientVersion($input: ValidateClientInput!) {
+  validateClient(input: $input) {
     id
     errors {
       ...UnauthorizedOperation

@@ -1,8 +1,9 @@
 query SetDefaultWorkspaceCommand_SelectWorkspace_Query(
   $after: String
-  $first: Int){
+  $first: Int
+) {
   me {
-    workspaces(after: $after, first:$first){
+    workspaces(after: $after, first: $first) {
       edges {
         cursor
         node {

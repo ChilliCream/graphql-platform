@@ -1,5 +1,7 @@
-mutation ValidateFusionConfigurationPublish($input: ValidateFusionConfigurationCompositionInput!){
-  validateFusionConfigurationComposition(input: $input){
+mutation ValidateFusionConfigurationPublish(
+  $input: ValidateFusionConfigurationCompositionInput!
+) {
+  validateFusionConfigurationComposition(input: $input) {
     errors {
       ...UnauthorizedOperation
       ...FusionConfigurationRequestNotFoundError
@@ -8,5 +10,3 @@ mutation ValidateFusionConfigurationPublish($input: ValidateFusionConfigurationC
     }
   }
 }
-
-

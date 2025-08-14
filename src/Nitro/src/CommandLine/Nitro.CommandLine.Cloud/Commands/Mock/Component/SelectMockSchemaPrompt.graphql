@@ -1,9 +1,6 @@
-query SelectMockSchemaPromptQuery(
-  $apiId: ID!,
-  $after: String,
-  $first: Int){
+query SelectMockSchemaPromptQuery($apiId: ID!, $after: String, $first: Int) {
   apiById(id: $apiId) {
-    mockSchemas(after: $after, first:$first){
+    mockSchemas(after: $after, first: $first) {
       edges {
         ...SelectMockCommand_MockEdge
       }

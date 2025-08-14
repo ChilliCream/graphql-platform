@@ -1,4 +1,3 @@
-
 fragment StageDetailPrompt_Stage on Stage {
   id
   name
@@ -7,4 +6,3 @@ fragment StageDetailPrompt_Stage on Stage {
     ...StageCondition
   }
 }
-

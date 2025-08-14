@@ -1,9 +1,6 @@
-query ListApiCommandQuery(
-  $workspaceId: ID!,
-  $after: Version,
-  $first: Int){
+query ListApiCommandQuery($workspaceId: ID!, $after: Version, $first: Int) {
   workspaceById(workspaceId: $workspaceId) {
-    apis(after: $after, first:$first){
+    apis(after: $after, first: $first) {
       edges {
         ...ListApiCommand_ApiEdge
       }

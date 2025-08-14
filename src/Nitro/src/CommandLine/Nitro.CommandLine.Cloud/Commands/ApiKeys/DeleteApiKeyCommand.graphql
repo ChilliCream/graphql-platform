@@ -1,6 +1,6 @@
 mutation DeleteApiKeyCommandMutation($input: DeleteApiKeyInput!) {
-  deleteApiKey(input: $input ) {
-    apiKey{
+  deleteApiKey(input: $input) {
+    apiKey {
       ...DeleteApiKeyCommand_ApiKey
     }
     errors {
@@ -10,9 +10,7 @@ mutation DeleteApiKeyCommandMutation($input: DeleteApiKeyInput!) {
   }
 }
 
-
 fragment DeleteApiKeyCommand_ApiKey on ApiKey {
   id
   ...ApiKeyDetailPrompt_ApiKey
 }
-

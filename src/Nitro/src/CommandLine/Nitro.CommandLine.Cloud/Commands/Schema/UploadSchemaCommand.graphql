@@ -1,6 +1,5 @@
-mutation uploadSchema($input: UploadSchemaInput!)
-{
-  uploadSchema(input: $input){
+mutation uploadSchema($input: UploadSchemaInput!) {
+  uploadSchema(input: $input) {
     schemaVersion {
       id
     }

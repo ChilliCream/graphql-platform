@@ -1,5 +1,5 @@
 mutation CreateClientCommandMutation($input: CreateClientInput!) {
-  createClient(input: $input){
+  createClient(input: $input) {
     client {
       ...CreateClientCommandMutation_Client
     }
@@ -10,7 +10,6 @@ mutation CreateClientCommandMutation($input: CreateClientInput!) {
     }
   }
 }
-
 
 fragment CreateClientCommandMutation_Client on Client {
   name
