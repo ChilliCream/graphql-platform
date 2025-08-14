@@ -148,19 +148,19 @@ internal sealed class ValueCompletion
         int depth,
         ResultData parent)
     {
+        if (errorTrie?.Error is { } error)
+        {
+            var errorWithPath = ErrorBuilder.FromError(error)
+                .SetPath(parent.Path)
+                .AddLocation(selection.SyntaxNodes[0].Node)
+                .Build();
+            _errors.Add(errorWithPath);
+        }
+
         if (type.Kind is TypeKind.NonNull)
         {
             if (data.IsNullOrUndefined() && _errorHandling is ErrorHandling.Propagate)
             {
-                parent.SetNextValueNull();
-                if (errorTrie?.Error is { } error)
-                {
-                    var errorWithPath = ErrorBuilder.FromError(error)
-                        .SetPath(parent.Path)
-                        .AddLocation(selection.SyntaxNodes[0].Node)
-                        .Build();
-                    _errors.Add(errorWithPath);
-                }
                 return false;
             }
 
@@ -169,15 +169,6 @@ internal sealed class ValueCompletion
 
         if (data.IsNullOrUndefined())
         {
-            parent.SetNextValueNull();
-            if (errorTrie?.Error is { } error)
-            {
-                var errorWithPath = ErrorBuilder.FromError(error)
-                    .SetPath(parent.Path)
-                    .AddLocation(selection.SyntaxNodes[0].Node)
-                    .Build();
-                _errors.Add(errorWithPath);
-            }
             return true;
         }
 
@@ -230,12 +221,22 @@ internal sealed class ValueCompletion
         for (int i = 0, len = data.GetArrayLength(); i < len; ++i)
         {
             var item = data[i];
+            ErrorTrie? errorTrieForIndex = null;
+            errorTrie?.TryGetValue(i, out errorTrieForIndex);
+
+            if (errorTrieForIndex?.Error is { } error)
+            {
+                var errorWithPath = ErrorBuilder.FromError(error)
+                    .SetPath(parent.Path.Append(i))
+                    .AddLocation(selection.SyntaxNodes[0].Node)
+                    .Build();
+                _errors.Add(errorWithPath);
+            }
 
             if (item.IsNullOrUndefined())
             {
                 if (!isNullable && _errorHandling is ErrorHandling.Propagate)
                 {
-                    parent.SetNextValueNull();
                     return false;
                 }
 
@@ -244,11 +245,10 @@ internal sealed class ValueCompletion
                 continue;
             }
 
-            if (!HandleElement(item, i))
+            if (!HandleElement(item, errorTrieForIndex))
             {
                 if (!isNullable)
                 {
-                    parent.SetNextValueNull();
                     return false;
                 }
 
@@ -259,11 +259,8 @@ internal sealed class ValueCompletion
         parent.SetNextValue(listResult);
         return true;
 
-        bool HandleElement(in JsonElement item, int index)
+        bool HandleElement(in JsonElement item, ErrorTrie? errorTrieForIndex)
         {
-            ErrorTrie? errorTrieForIndex = null;
-            errorTrie?.TryGetValue(index, out errorTrieForIndex);
-
             if (isNested)
             {
                 return TryCompleteList(selection, elementType, item, errorTrieForIndex, depth, listResult);
@@ -327,7 +324,6 @@ internal sealed class ValueCompletion
 
                 if (!TryCompleteValue(fieldSelection, fieldSelection.Type, child, errorTrieForResponseName, depth, field))
                 {
-                    parent.SetNextValueNull();
                     return false;
                 }
             }
