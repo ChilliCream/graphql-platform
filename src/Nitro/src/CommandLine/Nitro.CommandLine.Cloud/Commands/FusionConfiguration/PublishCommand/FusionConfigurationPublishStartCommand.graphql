@@ -1,0 +1,12 @@
+mutation StartFusionConfigurationPublish($input: StartFusionConfigurationCompositionInput!){
+  startFusionConfigurationComposition(input: $input){
+    errors {
+      ...UnauthorizedOperation
+      ...FusionConfigurationRequestNotFoundError
+      ...InvalidProcessingStateTransitionError
+      ...Error
+    }
+  }
+}
+
+
