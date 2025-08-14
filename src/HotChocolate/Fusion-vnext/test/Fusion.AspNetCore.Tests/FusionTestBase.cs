@@ -43,7 +43,7 @@ public abstract class FusionTestBase : IDisposable
                 configureBuilder(builder);
                 configureServices?.Invoke(services);
 
-                services.Configure<SubgraphOptions>(opt => opt.IsOffline = isOffline);
+                services.Configure<SourceSchemaOptions>(opt => opt.IsOffline = isOffline);
             },
             configureApplication);
     }
@@ -63,7 +63,7 @@ public abstract class FusionTestBase : IDisposable
             var schemaDocument = await server.Services.GetSchemaAsync(name);
             sourceSchemas.Add(new SourceSchemaText(name, schemaDocument.ToString()));
 
-            var subgraphOptions = server.Services.GetRequiredService<IOptions<SubgraphOptions>>().Value;
+            var subgraphOptions = server.Services.GetRequiredService<IOptions<SourceSchemaOptions>>().Value;
             gatewayServices.AddHttpClient(name, server, subgraphOptions.IsOffline);
 
             if (schemaSettings is null)
@@ -135,7 +135,7 @@ public abstract class FusionTestBase : IDisposable
         }
     }
 
-    private sealed class SubgraphOptions
+    private sealed class SourceSchemaOptions
     {
         public bool IsOffline { get; set; }
     }

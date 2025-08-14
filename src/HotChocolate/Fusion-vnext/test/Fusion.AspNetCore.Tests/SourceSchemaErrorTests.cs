@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
-public class SubgraphErrorTests : FusionTestBase
+public class SourceSchemaErrorTests : FusionTestBase
 {
     #region Root
 
