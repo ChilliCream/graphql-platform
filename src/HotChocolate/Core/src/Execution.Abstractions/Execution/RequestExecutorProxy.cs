@@ -1,4 +1,6 @@
+using System.Threading.Channels;
 using HotChocolate.Features;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution;
 
@@ -14,6 +16,15 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
     private readonly IRequestExecutorProvider _executorProvider;
     private readonly string _schemaName;
     private readonly IDisposable? _eventSubscription;
+    private readonly CancellationTokenSource _cts = new();
+    private readonly Channel<RequestExecutorEvent> _events =
+        Channel.CreateBounded<RequestExecutorEvent>(
+            new BoundedChannelOptions(1)
+            {
+                SingleReader = true,
+                SingleWriter = true,
+                FullMode = BoundedChannelFullMode.DropOldest
+            });
     private bool _disposed;
 
     /// <summary>
@@ -42,6 +53,7 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
 
         var observer = new RequestExecutorEventObserver(OnRequestExecutorEvent);
         _eventSubscription = executorEvents.Subscribe(observer);
+         OnUpdateRequestExecutorAsync(_cts.Token).FireAndForget();
     }
 
     /// <summary>
@@ -178,7 +190,7 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
                     .ConfigureAwait(false);
 
                 CurrentExecutor = executor;
-                OnRequestExecutorUpdated(executor);
+                OnConfigureRequestExecutor(executor, null);
             }
             else
             {
@@ -193,7 +205,11 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
         return executor;
     }
 
-    protected virtual void OnRequestExecutorUpdated(IRequestExecutor? executor)
+    protected virtual void OnConfigureRequestExecutor(IRequestExecutor newExecutor, IRequestExecutor? oldExecutor)
+    {
+    }
+
+    protected virtual void OnAfterRequestExecutorSwapped(IRequestExecutor newExecutor, IRequestExecutor oldExecutor)
     {
     }
 
@@ -204,33 +220,42 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
             return;
         }
 
-        if (eventArgs.Type is RequestExecutorEventType.Evicted)
+        if (eventArgs.Type is RequestExecutorEventType.Created)
         {
-            _semaphore.Wait();
-
-            try
-            {
-                CurrentExecutor = null;
-                OnRequestExecutorUpdated(null);
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
+            _events.Writer.TryWrite(eventArgs);
         }
-        else if (eventArgs.Type is RequestExecutorEventType.Created)
+    }
+
+    private async Task OnUpdateRequestExecutorAsync(CancellationToken ct)
+    {
+        await foreach (var eventArgs in _events.Reader.ReadAllAsync(ct).ConfigureAwait(false))
         {
-            _semaphore.Wait();
+            IRequestExecutor newExecutor;
+            IRequestExecutor oldExecutor;
+
+            await _semaphore.WaitAsync(ct);
 
             try
             {
-                CurrentExecutor = eventArgs.Executor;
-                OnRequestExecutorUpdated(eventArgs.Executor);
+                // events are only raised when there is an initial executor
+                // so its guaranteed that we have a CurrentExecutor at this point.
+                oldExecutor = CurrentExecutor!;
+                newExecutor = eventArgs.Executor;
+
+                OnConfigureRequestExecutor(newExecutor, oldExecutor);
+
+                // we only assign the executor after we have run configuration logic
+                // on the new instance.
+                CurrentExecutor = newExecutor;
             }
             finally
             {
                 _semaphore.Release();
             }
+
+            // after the swap of the executors we allow classes extending this proxy
+            // to run notification logic that does not run within the lock context.
+            OnAfterRequestExecutorSwapped(newExecutor, oldExecutor);
         }
     }
 
@@ -239,8 +264,17 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
         if (!_disposed)
         {
             CurrentExecutor = null;
+            _cts.Cancel();
+            _cts.Dispose();
+            _events.Writer.TryComplete();
             _eventSubscription?.Dispose();
             _semaphore.Dispose();
+
+            while (_events.Reader.TryRead(out _))
+            {
+                // we drain the channel
+            }
+
             _disposed = true;
         }
     }
