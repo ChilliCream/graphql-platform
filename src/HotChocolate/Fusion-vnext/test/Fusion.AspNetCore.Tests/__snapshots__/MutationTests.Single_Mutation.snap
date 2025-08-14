@@ -19,13 +19,19 @@
             "id": 1,
             "type": "Operation",
             "schema": "A",
-            "operation": "mutation Op_8adeedac_1 {\n  a: createBook(input: { title: \"Book1\" }) {\n    book {\n      id\n    }\n  }\n}"
+            "operation": "mutation Op_8adeedac_1 {\n  a: createBook(input: { title: \"Book1\" }) {\n    book {\n      id\n    }\n  }\n}",
+            "responseNames": [
+              "a"
+            ]
           },
           {
             "id": 2,
             "type": "Operation",
             "schema": "B",
             "operation": "query Op_8adeedac_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    author\n  }\n}",
+            "responseNames": [
+              "author"
+            ],
             "source": "$.bookById",
             "target": "$.a.book",
             "requirements": [

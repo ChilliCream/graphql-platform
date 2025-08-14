@@ -116,6 +116,15 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         jsonWriter.WriteString("schema", node.SchemaName);
         jsonWriter.WriteString("operation", node.Operation.ToString(indented: true));
 
+        jsonWriter.WriteStartArray("responseNames");
+
+        foreach (var responseName in node.ResponseNames)
+        {
+            jsonWriter.WriteStringValue(responseName);
+        }
+
+        jsonWriter.WriteEndArray();
+
         if (!node.Source.IsRoot)
         {
             jsonWriter.WriteString("source", node.Source.ToString());

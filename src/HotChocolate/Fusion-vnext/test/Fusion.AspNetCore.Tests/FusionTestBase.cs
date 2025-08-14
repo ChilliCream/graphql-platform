@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Fusion;
 
@@ -23,7 +24,8 @@ public abstract class FusionTestBase : IDisposable
         string schemaName,
         Action<IRequestExecutorBuilder> configureBuilder,
         Action<IServiceCollection>? configureServices = null,
-        Action<IApplicationBuilder>? configureApplication = null)
+        Action<IApplicationBuilder>? configureApplication = null,
+        bool isOffline = false)
     {
         configureApplication ??=
             app =>
@@ -40,6 +42,8 @@ public abstract class FusionTestBase : IDisposable
                 var builder = services.AddGraphQLServer(schemaName);
                 configureBuilder(builder);
                 configureServices?.Invoke(services);
+
+                services.Configure<SourceSchemaOptions>(opt => opt.IsOffline = isOffline);
             },
             configureApplication);
     }
@@ -58,7 +62,9 @@ public abstract class FusionTestBase : IDisposable
         {
             var schemaDocument = await server.Services.GetSchemaAsync(name);
             sourceSchemas.Add(new SourceSchemaText(name, schemaDocument.ToString()));
-            gatewayServices.AddHttpClient(name, server);
+
+            var subgraphOptions = server.Services.GetRequiredService<IOptions<SourceSchemaOptions>>().Value;
+            gatewayServices.AddHttpClient(name, server, subgraphOptions.IsOffline);
 
             if (schemaSettings is null)
             {
@@ -127,6 +133,11 @@ public abstract class FusionTestBase : IDisposable
         {
             _testServerSession.Dispose();
         }
+    }
+
+    private sealed class SourceSchemaOptions
+    {
+        public bool IsOffline { get; set; }
     }
 
     private sealed class OperationPlanHttpRequestInterceptor : DefaultHttpRequestInterceptor
