@@ -3,7 +3,8 @@
     {
       "message": "Could not resolve Product",
       "path": [
-        "topProduct"
+        "topProduct",
+        "name"
       ]
     }
   ],

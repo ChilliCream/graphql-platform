@@ -1,13 +1,14 @@
 {
-  "data": {
-    "topProduct": {
-      "price": 13.99,
-      "name": null
-    }
-  },
   "errors": [
     {
       "message": "A global error"
+    },
+    {
+      "message": "Unexpected execution error",
+      "path": [
+        "topProduct",
+        "name"
+      ]
     }
   ],
   "extensions": {

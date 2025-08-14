@@ -4,7 +4,8 @@
       "message": "Could not resolve Product",
       "path": [
         "topProducts",
-        0
+        0,
+        "name"
       ]
     }
   ],

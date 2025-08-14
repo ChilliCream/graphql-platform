@@ -36,37 +36,23 @@ internal sealed class ValueCompletion
         _errors = errors;
     }
 
-    public bool BuildResult(
+    public void BuildResult(
         SelectionSet selectionSet,
         JsonElement data,
         ErrorTrie? errorTrie,
+        ReadOnlySpan<string> responseNames,
         ObjectResult objectResult)
     {
         if (data is not { ValueKind: JsonValueKind.Object })
         {
-            // If we encounter a null, we check if there's an error on this field
-            // or somewhere below. If there is, we add the error, since it likely
-            // propagated and erased the current field result.
-            if (errorTrie?.FindPathToFirstError() is { } pathToFirstError)
-            {
-                var path = Path.FromList(pathToFirstError.Path);
-
-                var errorWithPath = ErrorBuilder.FromError(pathToFirstError.Error)
-                    .SetPath(objectResult.Path.Append(path))
-
-                    // We should add the location here, but not sure if it's worth it to iterate the
-                    // selections for it.
+            var error = errorTrie?.FindFirstError() ??
+                ErrorBuilder.New()
+                    .SetMessage("Unexpected execution error") // TODO: Better message
                     .Build();
 
-                _errors.Add(errorWithPath);
+            BuildResult(objectResult, responseNames, error, objectResult.Path);
 
-                if (_errorHandling is ErrorHandling.Propagate)
-                {
-                    PropagateNullValues(objectResult);
-                }
-            }
-
-            return false;
+            return;
         }
 
         foreach (var selection in selectionSet.Selections)
@@ -92,8 +78,6 @@ internal sealed class ValueCompletion
                 }
             }
         }
-
-        return true;
     }
 
     public void BuildResult(

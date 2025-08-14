@@ -16,6 +16,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 {
     private readonly OperationRequirement[] _requirements;
     private readonly string[] _variables;
+    private readonly ImmutableArray<string> _responseNames;
     private ExecutionNode[] _dependencies = [];
     private ExecutionNode[] _dependents = [];
     private int _dependencyCount;
@@ -57,13 +58,13 @@ public sealed class OperationExecutionNode : ExecutionNode
         _variables = variables.ToArray();
 
         // TODO: This might include requirements that we wouldn't want to create a front-end facing error for
+        // TODO: How to deal with selections on a specific type? Creating errors for all possible response names is wrong
         _responseNames = GetResponseNamesFromPath(operation, source);
     }
 
-    // TODO: Move
-    private readonly ImmutableArray<string> _responseNames;
-
     public override int Id { get; }
+
+    private ReadOnlySpan<string> ResponseNames => _responseNames.AsSpan();
 
     /// <summary>
     /// Gets the unique identifier of the operation.
@@ -153,7 +154,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
         catch (Exception exception)
         {
-            AddErrors(context, exception, variables, _responseNames);
+            AddErrors(context, exception, variables, ResponseNames);
 
             return new ExecutionNodeResult(
                 Id,
@@ -174,7 +175,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 buffer[index++] = result;
             }
 
-            context.AddPartialResults(Source, buffer.AsSpan(0, index));
+            context.AddPartialResults(Source, buffer.AsSpan(0, index), ResponseNames);
         }
         catch (Exception exception)
         {
@@ -186,7 +187,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 result?.Dispose();
             }
 
-            AddErrors(context, exception, variables, _responseNames);
+            AddErrors(context, exception, variables, ResponseNames);
 
             return new ExecutionNodeResult(
                 Id,
@@ -208,6 +209,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             Stopwatch.GetElapsedTime(start));
     }
 
+    // TODO: Error handling
     internal async Task<SubscriptionResult> SubscribeAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
@@ -385,34 +387,34 @@ public sealed class OperationExecutionNode : ExecutionNode
         OperationPlanContext context,
         Exception exception,
         ImmutableArray<VariableValues> variables,
-        ImmutableArray<string> responseNames)
+        ReadOnlySpan<string> responseNames)
     {
-            var error = ErrorBuilder.FromException(exception).Build();
+        var error = ErrorBuilder.FromException(exception).Build();
 
-            if (variables.Length == 0)
+        if (variables.Length == 0)
+        {
+            context.AddErrors(error, responseNames, Path.Root);
+        }
+        else
+        {
+            var pathBufferLength = variables.Length;
+            var pathBuffer = ArrayPool<Path>.Shared.Rent(pathBufferLength);
+
+            try
             {
-                context.AddErrors(error, responseNames.AsSpan(), Path.Root);
+                for (var i = 0; i < variables.Length; i++)
+                {
+                    pathBuffer[i] = variables[i].Path;
+                }
+
+                context.AddErrors(error, responseNames, pathBuffer.AsSpan(0, pathBufferLength));
             }
-            else
+            finally
             {
-                var bufferLength = Math.Max(variables.Length, 1);
-                var buffer = ArrayPool<Path>.Shared.Rent(bufferLength);
-
-                try
-                {
-                    for (var i = 0; i < variables.Length; i++)
-                    {
-                        buffer[i] = variables[i].Path;
-                    }
-
-                    context.AddErrors(error, responseNames.AsSpan(), buffer.AsSpan(0, bufferLength));
-                }
-                finally
-                {
-                    buffer.AsSpan(0, bufferLength).Clear();
-                    ArrayPool<Path>.Shared.Return(buffer);
-                }
+                pathBuffer.AsSpan(0, pathBufferLength).Clear();
+                ArrayPool<Path>.Shared.Return(pathBuffer);
             }
+        }
     }
 
     private sealed class SubscriptionEnumerable : IAsyncEnumerable<EventMessageResult>
@@ -500,7 +502,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 if (hasResult)
                 {
                     _resultBuffer[0] = _resultEnumerator.Current;
-                    _context.AddPartialResults(_node.Source, _resultBuffer);
+                    _context.AddPartialResults(_node.Source, _resultBuffer, _node.ResponseNames);
                 }
             }
             catch (Exception ex)

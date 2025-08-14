@@ -4,32 +4,25 @@ public sealed class ErrorTrie : Dictionary<object, ErrorTrie>
 {
     public IError? Error { get; set; }
 
-    public (object[] Path, IError Error)? FindPathToFirstError()
+    public IError? FindFirstError()
     {
         if (Error is not null)
         {
-            return ([], Error);
+            return Error;
         }
 
-        var stack = new Stack<(ErrorTrie Node, List<object> Path)>();
+        var stack = new Stack<ErrorTrie>(Values);
 
-        foreach (var kvp in this)
+        while (stack.TryPop(out var errorTrie))
         {
-            stack.Push((kvp.Value, [kvp.Key]));
-        }
-
-        while (stack.Count > 0)
-        {
-            var (node, path) = stack.Pop();
-
-            if (node.Error is not null)
+            if (errorTrie.Error is not null)
             {
-                return ([..path], node.Error);
+                return errorTrie.Error;
             }
 
-            foreach (var kvp in node)
+            foreach (var child in errorTrie.Values)
             {
-                stack.Push((kvp.Value, [..path, kvp.Key]));
+                stack.Push(child);
             }
         }
 

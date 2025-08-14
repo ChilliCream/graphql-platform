@@ -5,6 +5,12 @@
   "errors": [
     {
       "message": "A global error"
+    },
+    {
+      "message": "Unexpected execution error",
+      "path": [
+        "productById"
+      ]
     }
   ],
   "extensions": {

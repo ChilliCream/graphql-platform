@@ -66,9 +66,10 @@ internal sealed class FetchResultStore : IDisposable
 
     public ConcurrentStack<IDisposable> MemoryOwners => _memory;
 
-    public bool AddPartialResults(
+    public void AddPartialResults(
         SelectionPath sourcePath,
-        ReadOnlySpan<SourceSchemaResult> results)
+        ReadOnlySpan<SourceSchemaResult> results,
+        ReadOnlySpan<string> responseNames)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(sourcePath);
@@ -110,7 +111,7 @@ internal sealed class FetchResultStore : IDisposable
                 errorTrie = ref Unsafe.Add(ref errorTrie, 1)!;
             }
 
-            return SaveSafe(results, dataElementsSpan, errorTriesSpan);
+            SaveSafe(results, dataElementsSpan, errorTriesSpan, responseNames);
         }
         finally
         {
@@ -167,14 +168,14 @@ internal sealed class FetchResultStore : IDisposable
                     return;
                 }
 
-                var result = path.IsRoot ? _root : GetStartObjectResult(path);
+                var objectResult = path.IsRoot ? _root : GetStartObjectResult(path);
 
-                if (result.IsInvalidated)
+                if (objectResult.IsInvalidated)
                 {
                     continue;
                 }
 
-                _valueCompletion.BuildResult(result, responseNames, error, path);
+                _valueCompletion.BuildResult(objectResult, responseNames, error, path);
 
                 path = ref Unsafe.Add(ref path, 1)!;
             }
@@ -185,10 +186,11 @@ internal sealed class FetchResultStore : IDisposable
         }
     }
 
-    private bool SaveSafe(
+    private void SaveSafe(
         ReadOnlySpan<SourceSchemaResult> results,
         ReadOnlySpan<JsonElement> dataElements,
-        ReadOnlySpan<ErrorTrie?> errorTries)
+        ReadOnlySpan<ErrorTrie?> errorTries,
+        ReadOnlySpan<string> responseNames)
     {
         _lock.EnterWriteLock();
 
@@ -203,7 +205,7 @@ internal sealed class FetchResultStore : IDisposable
             {
                 if (_root.IsInvalidated)
                 {
-                    return false;
+                    return;
                 }
 
                 var objectResult = result.Path.IsRoot ? _root : GetStartObjectResult(result.Path);
@@ -214,10 +216,7 @@ internal sealed class FetchResultStore : IDisposable
                     continue;
                 }
 
-                if (!_valueCompletion.BuildResult(selectionSet, data, errorTrie, objectResult))
-                {
-                    return false;
-                }
+                _valueCompletion.BuildResult(selectionSet, data, errorTrie, responseNames, objectResult);
 
                 result = ref Unsafe.Add(ref result, 1)!;
                 data = ref Unsafe.Add(ref data, 1);
@@ -228,8 +227,6 @@ internal sealed class FetchResultStore : IDisposable
         {
             _lock.ExitWriteLock();
         }
-
-        return true;
     }
 
     public ImmutableArray<VariableValues> CreateVariableValueSets(

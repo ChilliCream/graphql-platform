@@ -1,10 +1,43 @@
 {
+  "data": {
+    "topProducts": [
+      {
+        "price": 13.99,
+        "name": null
+      },
+      {
+        "price": 13.99,
+        "name": null
+      },
+      {
+        "price": 13.99,
+        "name": null
+      }
+    ]
+  },
   "errors": [
     {
       "message": "Could not resolve Product",
       "path": [
         "topProducts",
-        0
+        0,
+        "name"
+      ]
+    },
+    {
+      "message": "Could not resolve Product",
+      "path": [
+        "topProducts",
+        1,
+        "name"
+      ]
+    },
+    {
+      "message": "Could not resolve Product",
+      "path": [
+        "topProducts",
+        2,
+        "name"
       ]
     }
   ],

@@ -99,8 +99,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal void AddPartialResults(SelectionPath sourcePath, ReadOnlySpan<SourceSchemaResult> results)
-        => _resultStore.AddPartialResults(sourcePath, results);
+    internal void AddPartialResults(
+        SelectionPath sourcePath,
+        ReadOnlySpan<SourceSchemaResult> results,
+        ReadOnlySpan<string> responseNames)
+        => _resultStore.AddPartialResults(sourcePath, results, responseNames);
 
     internal void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
         => _resultStore.AddPartialResults(result, selections);
