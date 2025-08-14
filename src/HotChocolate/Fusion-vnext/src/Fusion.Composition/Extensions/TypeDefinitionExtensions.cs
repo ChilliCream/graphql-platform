@@ -1,5 +1,6 @@
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
+using static HotChocolate.Fusion.Properties.CompositionResources;
 using static HotChocolate.Fusion.WellKnownArgumentNames;
 using static HotChocolate.Fusion.WellKnownDirectiveNames;
 
@@ -7,7 +8,6 @@ namespace HotChocolate.Fusion.Extensions;
 
 internal static class TypeDefinitionExtensions
 {
-    // todo put all of this data in the execution schema.
     public static IEnumerable<MutableObjectTypeDefinition> GetPossibleTypes(
         this ITypeDefinition type,
         string schemaName,
@@ -16,7 +16,7 @@ internal static class TypeDefinitionExtensions
         if (type.Kind is not TypeKind.Object and not TypeKind.Interface and not TypeKind.Union)
         {
             throw new ArgumentException(
-                "The specified type is not an abstract type.", // tmp not very accurate message + loc
+                TypeDefinitionExtensions_TheSpecifiedTypeIsNotAnAbstractType,
                 nameof(type));
         }
 
