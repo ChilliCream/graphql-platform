@@ -1,5 +1,0 @@
-query ShowEnvironmentCommandQuery($workspaceId: ID!) {
-  node(id: $workspaceId) {
-    ...EnvironmentDetailPrompt_Environment
-  }
-}

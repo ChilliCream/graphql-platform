@@ -1,5 +1,0 @@
-query ShowClientCommandQuery($clientId: ID!) {
-  node(id: $clientId) {
-    ...ClientDetailPrompt_Client
-  }
-}

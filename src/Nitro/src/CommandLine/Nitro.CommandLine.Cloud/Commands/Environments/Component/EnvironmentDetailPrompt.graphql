@@ -1,7 +1,0 @@
-fragment EnvironmentDetailPrompt_Environment on Environment {
-  id
-  name
-  workspace {
-    name
-  }
-}

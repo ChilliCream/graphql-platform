@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PackAsTool>true</PackAsTool>
+    <UseAppHost>false</UseAppHost>
+    <ToolCommandName>nitro</ToolCommandName>
+    <RootNamespace>Nitro.CommandLine</RootNamespace>
+    <AssemblyName>nitro</AssemblyName>
+    <PackageId>ChilliCream.Nitro.CommandLine</PackageId>
+  </PropertyGroup>
+
+</Project>
