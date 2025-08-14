@@ -54,7 +54,6 @@ internal sealed class UnpublishClientCommand : Command
             await UnpublishClient(null);
         }
 
-
         return ExitCodes.Success;
 
         async Task UnpublishClient(StatusContext? ctx)

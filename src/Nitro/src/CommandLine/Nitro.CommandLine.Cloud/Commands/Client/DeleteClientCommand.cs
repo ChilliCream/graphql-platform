@@ -81,7 +81,6 @@ internal sealed class DeleteClientCommand : Command
             return ExitCodes.Success;
         }
 
-
         var input = new DeleteClientByIdInput { ClientId = clientId };
         var result =
             await client.DeleteClientByIdCommandMutation.ExecuteAsync(input, cancellationToken);

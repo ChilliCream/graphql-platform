@@ -1,6 +1,5 @@
-mutation uploadClient($input: UploadClientInput!)
-{
-  uploadClient(input: $input){
+mutation uploadClient($input: UploadClientInput!) {
+  uploadClient(input: $input) {
     clientVersion {
       id
     }

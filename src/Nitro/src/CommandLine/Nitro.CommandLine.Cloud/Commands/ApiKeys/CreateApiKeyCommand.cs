@@ -63,7 +63,8 @@ internal sealed class CreateApiKeyCommand : Command
         {
             context.SetResult(new
             {
-                changeResult.Secret, Details = ApiKeyDetailPrompt.From(detail).ToResult()
+                changeResult.Secret,
+                Details = ApiKeyDetailPrompt.From(detail).ToResult()
             });
         }
 

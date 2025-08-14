@@ -1,8 +1,6 @@
-query ListWorkspaceCommandQuery(
-  $after: String
-  $first: Int){
+query ListWorkspaceCommandQuery($after: String, $first: Int) {
   me {
-    workspaces(after: $after, first:$first){
+    workspaces(after: $after, first: $first) {
       edges {
         ...ListWorkspaceCommand_WorkspaceEdge
       }

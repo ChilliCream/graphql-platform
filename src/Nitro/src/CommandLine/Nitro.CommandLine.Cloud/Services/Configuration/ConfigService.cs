@@ -18,7 +18,7 @@ internal class ConfigurationService : IConfigurationService
         {
             await EnsureConfigFile<T>(cancellationToken);
 
-            T? config = default(T);
+            var config = default(T);
 
             var configFile = Path.Combine(_configFolder, T.FileName);
             if (File.Exists(configFile))

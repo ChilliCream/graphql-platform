@@ -1,9 +1,6 @@
-query ListApiKeyCommandQuery(
-  $workspaceId: ID!,
-  $after: String,
-  $first: Int){
+query ListApiKeyCommandQuery($workspaceId: ID!, $after: String, $first: Int) {
   workspaceById(workspaceId: $workspaceId) {
-    apiKeys(after: $after, first:$first){
+    apiKeys(after: $after, first: $first) {
       edges {
         ...ListApiKeyCommand_ApiKeyEdge
       }

@@ -3525,20 +3525,8 @@ enum WorkspaceUserRole {
   MEMBER
 }
 
-"The authorize directive."
-directive "Defines when when the authorize directive shall be applied.By default the authorize directives are applied during the validation phase." apply: ApplyPolicy! = BEFORE_RESOLVER "The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!]) on OBJECT | FIELD_DEFINITION
-
-"The purpose of the  directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overalery or response."
-directive  on SENUM | INPUT_FIELD_DEFINITION
-
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
 directive @defer("Deferred when true." if: Boolean "If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String) on FRAGMENT_SPREAD | INLINE_FRAGMENT
-
-"The purpose of the `` directive is to either inform the static analysis about the size of returned lists  or to point the analysis to where to find that information."
-directive  on FIELD_DEFINITIO
-
-"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
-directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
 
 scalar Any
 

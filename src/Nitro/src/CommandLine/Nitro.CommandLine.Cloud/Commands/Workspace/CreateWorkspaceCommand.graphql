@@ -1,5 +1,5 @@
-mutation CreateWorkspaceCommandMutation($input: CreateWorkspaceInput!){
-  createWorkspace(input: $input){
+mutation CreateWorkspaceCommandMutation($input: CreateWorkspaceInput!) {
+  createWorkspace(input: $input) {
     workspace {
       id
       name
@@ -18,4 +18,3 @@ mutation CreateWorkspaceCommandMutation($input: CreateWorkspaceInput!){
     }
   }
 }
-

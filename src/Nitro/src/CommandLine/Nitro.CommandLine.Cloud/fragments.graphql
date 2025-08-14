@@ -32,7 +32,7 @@ fragment StageNotFoundError on StageNotFoundError {
   ...Error
 }
 
-fragment FusionConfigurationRequestNotFoundError on  FusionConfigurationRequestNotFoundError{
+fragment FusionConfigurationRequestNotFoundError on FusionConfigurationRequestNotFoundError {
   __typename
   message
   ...Error
@@ -410,7 +410,7 @@ fragment PersistedQueryValidationError on PersistedQueryValidationError {
     }
   }
 }
-fragment ClientVersionValidationFailed on ClientVersionValidationFailed{
+fragment ClientVersionValidationFailed on ClientVersionValidationFailed {
   state
   errors {
     ...PersistedQueryValidationError
@@ -419,7 +419,7 @@ fragment ClientVersionValidationFailed on ClientVersionValidationFailed{
   }
 }
 
-fragment ClientVersionValidationSuccess on ClientVersionValidationSuccess{
+fragment ClientVersionValidationSuccess on ClientVersionValidationSuccess {
   state
 }
 
@@ -430,14 +430,14 @@ fragment ClientVersionPublishSuccess on ClientVersionPublishSuccess {
 fragment ClientVersionPublishFailed on ClientVersionPublishFailed {
   state
   errors {
-    ... UnexpectedProcessingError
-    ... ProcessingTimeoutError
-    ... ConcurrentOperationError
-    ... PersistedQueryValidationError
+    ...UnexpectedProcessingError
+    ...ProcessingTimeoutError
+    ...ConcurrentOperationError
+    ...PersistedQueryValidationError
   }
 }
 
-fragment OperationInProgress on OperationInProgress{
+fragment OperationInProgress on OperationInProgress {
   state
 }
 
@@ -446,23 +446,23 @@ fragment WaitForApproval on WaitForApproval {
   deployment {
     ... on SchemaDeployment {
       errors {
-        ... OperationsAreNotAllowedError
-        ... SchemaVersionSyntaxError
-        ... SchemaChangeViolationError
-        ... InvalidGraphQLSchemaError
-        ... PersistedQueryValidationError
+        ...OperationsAreNotAllowedError
+        ...SchemaVersionSyntaxError
+        ...SchemaChangeViolationError
+        ...InvalidGraphQLSchemaError
+        ...PersistedQueryValidationError
       }
     }
     ... on ClientDeployment {
       errors {
-        ... PersistedQueryValidationError
+        ...PersistedQueryValidationError
       }
     }
     ... on FusionConfigurationDeployment {
       errors {
-        ... SchemaChangeViolationError
-        ... InvalidGraphQLSchemaError
-        ... PersistedQueryValidationError
+        ...SchemaChangeViolationError
+        ...InvalidGraphQLSchemaError
+        ...PersistedQueryValidationError
       }
     }
   }
@@ -472,45 +472,44 @@ fragment ProcessingTaskApproved on ProcessingTaskApproved {
   state
 }
 
-fragment ValidationInProgress on ValidationInProgress{
+fragment ValidationInProgress on ValidationInProgress {
   state
 }
 
-fragment ProcessingTaskIsReady on ProcessingTaskIsReady{
+fragment ProcessingTaskIsReady on ProcessingTaskIsReady {
   ready: __typename
 }
 
-fragment ProcessingTaskIsQueued on ProcessingTaskIsQueued{
+fragment ProcessingTaskIsQueued on ProcessingTaskIsQueued {
   queued: __typename
   queuePosition
 }
-fragment FusionConfigurationPublishingSuccess on FusionConfigurationPublishingSuccess{
+fragment FusionConfigurationPublishingSuccess on FusionConfigurationPublishingSuccess {
   success: __typename
 }
 fragment FusionConfigurationPublishingFailed on FusionConfigurationPublishingFailed {
   failed: __typename
   errors {
     message
-    ... InvalidGraphQLSchemaError
+    ...InvalidGraphQLSchemaError
   }
 }
 
-fragment FusionConfigurationValidationFailed on FusionConfigurationValidationFailed{
+fragment FusionConfigurationValidationFailed on FusionConfigurationValidationFailed {
   failed: __typename
   errors {
     ...UnexpectedProcessingError
     ...PersistedQueryValidationError
     ...SchemaVersionChangeViolationError
-    ... InvalidGraphQLSchemaError
+    ...InvalidGraphQLSchemaError
   }
 }
-fragment FusionConfigurationValidationSuccess on FusionConfigurationValidationSuccess{
+fragment FusionConfigurationValidationSuccess on FusionConfigurationValidationSuccess {
   success: __typename
   changes {
     ...SchemaChangeLogEntry
   }
 }
-
 
 fragment InvalidProcessingStateTransitionError on InvalidProcessingStateTransitionError {
   __typename
@@ -518,7 +517,7 @@ fragment InvalidProcessingStateTransitionError on InvalidProcessingStateTransiti
   ...Error
 }
 
-fragment SchemaVersionValidationFailed on SchemaVersionValidationFailed{
+fragment SchemaVersionValidationFailed on SchemaVersionValidationFailed {
   state
   errors {
     ...UnexpectedProcessingError
@@ -528,44 +527,40 @@ fragment SchemaVersionValidationFailed on SchemaVersionValidationFailed{
     ...PersistedQueryValidationError
     ...SchemaVersionChangeViolationError
     ...OperationsAreNotAllowedError
-    ... PersistedQueryValidationError
+    ...PersistedQueryValidationError
   }
 }
 
-fragment SchemaVersionValidationSuccess on SchemaVersionValidationSuccess
-{
+fragment SchemaVersionValidationSuccess on SchemaVersionValidationSuccess {
   state
   changes {
     ...SchemaChangeLogEntry
   }
 }
 
-fragment SchemaVersionPublishFailed on SchemaVersionPublishFailed
-{
+fragment SchemaVersionPublishFailed on SchemaVersionPublishFailed {
   __typename
   state
   errors {
-    ... ConcurrentOperationError
-    ... OperationsAreNotAllowedError
-    ... SchemaVersionSyntaxError
-    ... SchemaVersionChangeViolationError
-    ... InvalidGraphQLSchemaError
-    ... PersistedQueryValidationError
-    ... UnexpectedProcessingError
-    ... ProcessingTimeoutError
+    ...ConcurrentOperationError
+    ...OperationsAreNotAllowedError
+    ...SchemaVersionSyntaxError
+    ...SchemaVersionChangeViolationError
+    ...InvalidGraphQLSchemaError
+    ...PersistedQueryValidationError
+    ...UnexpectedProcessingError
+    ...ProcessingTimeoutError
   }
 }
 
-fragment ApiNotFoundError on ApiNotFoundError
-{
+fragment ApiNotFoundError on ApiNotFoundError {
   __typename
   message
   apiId
   ...Error
 }
 
-fragment SubgraphInvalidError on SubgraphInvalidError
-{
+fragment SubgraphInvalidError on SubgraphInvalidError {
   __typename
   message
   ...Error
@@ -578,15 +573,13 @@ fragment PageInfo on PageInfo {
   startCursor
 }
 
-fragment ApiKeyNotFoundError on ApiKeyNotFoundError
-{
+fragment ApiKeyNotFoundError on ApiKeyNotFoundError {
   __typename
   message
   apiKeyId
 }
 
-fragment StagesHavePublishedDependenciesError on StagesHavePublishedDependenciesError
-{
+fragment StagesHavePublishedDependenciesError on StagesHavePublishedDependenciesError {
   __typename
   message
   stages {
@@ -608,7 +601,6 @@ fragment StagesHavePublishedDependenciesError on StagesHavePublishedDependencies
     }
   }
 }
-
 
 fragment StageCondition on StageCondition {
   ...AfterStageCondition

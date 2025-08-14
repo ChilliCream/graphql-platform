@@ -56,7 +56,6 @@ internal sealed class DownloadClientCommand : Command
             await UploadClient(null);
         }
 
-
         return ExitCodes.Success;
 
         async Task UploadClient(StatusContext? ctx)

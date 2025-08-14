@@ -15,7 +15,7 @@ internal sealed class EditStagesCommand : Command
     {
         Name = "default",
         DisplayName = "Default",
-        Conditions = Array.Empty<StageConditionUpdateInput>(),
+        Conditions = Array.Empty<StageConditionUpdateInput>()
     };
 
     public EditStagesCommand()
@@ -174,7 +174,7 @@ file static class ClientExtensions
                 Conditions = x
                     .Conditions.OfType<IAfterStageCondition>()
                     .Select(y => new StageConditionUpdateInput { AfterStage = y.AfterStage!.Name })
-                    .ToArray(),
+                    .ToArray()
             })
             .ToList();
     }
@@ -200,7 +200,7 @@ file static class ClientExtensions
             {
                 Stages = updateResult.Data?.UpdateStages.Api?.Stages.Select(y =>
                     StageDetailPrompt.From(y).ToObject()
-                ),
+                )
             }
         );
 
@@ -288,7 +288,7 @@ file static class Extensions
         {
             Name = name,
             DisplayName = displayName,
-            Conditions = conditionInputs,
+            Conditions = conditionInputs
         };
     }
 
@@ -331,7 +331,7 @@ file static class StringExtensions
             DisplayName = stage.DisplayName,
             Conditions = stage
                 .Conditions.Select(x => new StageConditionUpdateInput { AfterStage = x.AfterStage })
-                .ToArray(),
+                .ToArray()
         };
 }
 

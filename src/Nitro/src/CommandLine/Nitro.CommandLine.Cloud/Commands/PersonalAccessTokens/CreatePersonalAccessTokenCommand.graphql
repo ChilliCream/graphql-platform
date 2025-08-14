@@ -1,5 +1,7 @@
-mutation CreatePersonalAccessTokenCommandMutation($input: CreatePersonalAccessTokenInput!) {
-  createPersonalAccessToken( input: $input ) {
+mutation CreatePersonalAccessTokenCommandMutation(
+  $input: CreatePersonalAccessTokenInput!
+) {
+  createPersonalAccessToken(input: $input) {
     result {
       token {
         ...CreatePersonalAccessTokenCommandMutation_PersonalAccessToken
@@ -12,7 +14,6 @@ mutation CreatePersonalAccessTokenCommandMutation($input: CreatePersonalAccessTo
     }
   }
 }
-
 
 fragment CreatePersonalAccessTokenCommandMutation_PersonalAccessToken on PersonalAccessToken {
   id

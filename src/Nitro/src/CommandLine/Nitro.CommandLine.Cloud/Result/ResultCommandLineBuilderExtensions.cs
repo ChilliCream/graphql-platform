@@ -40,7 +40,6 @@ internal static class ResultCommandLineBuilderExtensions
             extendedConsole.IsInteractive = true;
         }
 
-
         if (resultHolder.Result is { } result)
         {
             foreach (var formatter in formatters)

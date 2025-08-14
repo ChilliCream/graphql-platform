@@ -85,7 +85,7 @@ internal sealed class ListEnvironmentCommand : Command
         var endCursor = result.Data?.WorkspaceById?.Environments?.PageInfo.EndCursor;
 
         var items = result.Data?.WorkspaceById?.Environments?.Edges?.Select(x =>
-                new { x.Node.Id, x.Node.Name, })
+                new { x.Node.Id, x.Node.Name })
             .Cast<object>()
             .ToArray() ?? [];
 

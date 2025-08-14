@@ -1,5 +1,5 @@
-mutation validateSchemaVersion($input: ValidateSchemaInput!){
-  validateSchema(input: $input){
+mutation validateSchemaVersion($input: ValidateSchemaInput!) {
+  validateSchema(input: $input) {
     id
     errors {
       ...UnauthorizedOperation

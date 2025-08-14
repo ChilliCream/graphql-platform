@@ -1,5 +1,7 @@
-mutation StartFusionConfigurationPublish($input: StartFusionConfigurationCompositionInput!){
-  startFusionConfigurationComposition(input: $input){
+mutation StartFusionConfigurationPublish(
+  $input: StartFusionConfigurationCompositionInput!
+) {
+  startFusionConfigurationComposition(input: $input) {
     errors {
       ...UnauthorizedOperation
       ...FusionConfigurationRequestNotFoundError
@@ -8,5 +10,3 @@ mutation StartFusionConfigurationPublish($input: StartFusionConfigurationComposi
     }
   }
 }
-
-

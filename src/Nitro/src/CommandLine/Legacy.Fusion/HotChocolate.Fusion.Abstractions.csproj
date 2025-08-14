@@ -4,16 +4,11 @@
     <AssemblyName>HotChocolate.Fusion.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
     <TargetFrameworks>$(CLITargetFrameworks)</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <EnableTrimAnalyzer Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</EnableTrimAnalyzer>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Language\src\Language\HotChocolate.Language.csproj" />
-    <ProjectReference Include="..\..\..\..\HotChocolate\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>

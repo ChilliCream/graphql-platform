@@ -163,7 +163,8 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
         var stream = FileHelpers.CreateFileStream(configurationFile);
         var input = new CommitFusionConfigurationPublishInput()
         {
-            RequestId = requestId, Configuration = new(stream, "gateway.fgp")
+            RequestId = requestId,
+            Configuration = new(stream, "gateway.fgp")
         };
 
         var result =

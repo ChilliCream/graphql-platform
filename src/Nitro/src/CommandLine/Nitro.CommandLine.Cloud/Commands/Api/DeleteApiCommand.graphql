@@ -1,5 +1,5 @@
-query DeleteApiCommandQuery($apiId: ID!){
-  node(id: $apiId){
+query DeleteApiCommandQuery($apiId: ID!) {
+  node(id: $apiId) {
     ...DeleteApiCommandQuery_Api
   }
 }
@@ -9,7 +9,6 @@ fragment DeleteApiCommandQuery_Api on Api {
   version
   workspace {
     id
-
   }
 }
 

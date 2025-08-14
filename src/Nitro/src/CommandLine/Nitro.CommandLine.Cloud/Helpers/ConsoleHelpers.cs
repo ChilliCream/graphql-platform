@@ -42,7 +42,7 @@ internal static class ConsoleHelpers
 
     public static void OkLine(this IAnsiConsole console, string message)
     {
-        console.MarkupLine($"{Glyphs.Check.Space()}{message}");
+        console.MarkupLine(Glyphs.Check.Space() + message);
     }
 
     public static void Json(this IAnsiConsole console, object obj)
@@ -56,7 +56,7 @@ internal static class ConsoleHelpers
 
     public static void ErrorLine(this IAnsiConsole console, string message)
     {
-        console.MarkupLine($"{Glyphs.Cross.Space()}{message}");
+        console.MarkupLine(Glyphs.Cross.Space() + message);
     }
 
     public static void OkQuestion(this IAnsiConsole console, string question, string result)
@@ -130,7 +130,7 @@ internal static class ConsoleHelpers
 
     public static void WarningLine(this IAnsiConsole console, string message)
     {
-        console.MarkupLine($"{Glyphs.ExclamationMark.Space()}{message}");
+        console.MarkupLine(Glyphs.ExclamationMark.Space() + message);
     }
 
     public static void Error(this IAnsiConsole console, string message)
@@ -255,7 +255,7 @@ internal static class ConsoleHelpers
         this IAnsiConsole console,
         ISchemaVersionChangeViolationError error)
     {
-        Tree tree = new Tree("");
+        var tree = new Tree("");
         tree.AddSchemaChanges(error.Changes.OfType<ISchemaChange>());
         console.Write(tree);
     }
@@ -264,7 +264,7 @@ internal static class ConsoleHelpers
         this IAnsiConsole console,
         ISchemaChangeViolationError error)
     {
-        Tree tree = new Tree("");
+        var tree = new Tree("");
         tree.AddSchemaChanges(error.Changes.OfType<ISchemaChange>());
         console.Write(tree);
     }

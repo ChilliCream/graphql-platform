@@ -9,9 +9,7 @@
     <Nullable>enable</Nullable>
     <GenerateVersionInfo>true</GenerateVersionInfo>
     <ToolCommandName>nitro</ToolCommandName>
-    <PublishAot>true</PublishAot>
-    <PublishTrimmed>true</PublishTrimmed>
-    <TrimmerDefaultAction>link</TrimmerDefaultAction>
+    <IsAotCompatible>true</IsAotCompatible>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
 
@@ -31,6 +29,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="StrawberryShake.Server" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="Duende.IdentityModel.OidcClient" VersionOverride="6.0.1" />
     <PackageReference Include="Spectre.Console" />
@@ -41,7 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\StrawberryShake\MetaPackages\Server\StrawberryShake.Server.csproj" />
+    <!-- <ProjectReference Include="..\..\..\..\StrawberryShake\MetaPackages\Server\StrawberryShake.Server.csproj" /> -->
     <ProjectReference Include="..\Legacy.Fusion\HotChocolate.Fusion.Abstractions.csproj" />
   </ItemGroup>
 

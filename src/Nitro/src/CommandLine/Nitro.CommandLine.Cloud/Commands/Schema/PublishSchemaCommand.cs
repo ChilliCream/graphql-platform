@@ -71,7 +71,10 @@ internal sealed class PublishSchemaCommand : Command
 
             var input = new PublishSchemaInput
             {
-                ApiId = apiId, Stage = stage, Tag = tag, WaitForApproval = waitForApproval
+                ApiId = apiId,
+                Stage = stage,
+                Tag = tag,
+                WaitForApproval = waitForApproval
             };
 
             if (force)
@@ -175,4 +178,3 @@ internal sealed class PublishSchemaCommand : Command
         return requestId;
     }
 }
-

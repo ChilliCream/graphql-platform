@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion;
 
@@ -265,10 +264,7 @@ public sealed class FusionTypeNames
 
     public static FusionTypeNames From(DocumentNode document)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         var schemaDef = document.Definitions.OfType<SchemaDefinitionNode>().FirstOrDefault();
 
@@ -296,16 +292,16 @@ public sealed class FusionTypeNames
             {
                 var prefixSelfArg =
                     directive.Arguments.FirstOrDefault(
-                        t => t.Name.Value.EqualsOrdinal("prefixSelf"));
+                        t => t.Name.Value.Equals("prefixSelf", StringComparison.Ordinal));
 
                 if (prefixSelfArg?.Value is BooleanValueNode { Value: true, })
                 {
                     var prefixArg =
                         directive.Arguments.FirstOrDefault(
-                            t => t.Name.Value.EqualsOrdinal("prefix"));
+                            t => t.Name.Value.Equals("prefix", StringComparison.Ordinal));
 
-                    if (prefixArg?.Value is StringValueNode prefixVal &&
-                        directive.Name.Value.EqualsOrdinal($"{prefixVal.Value}{prefixedFusionDir}"))
+                    if (prefixArg?.Value is StringValueNode prefixVal
+                        && directive.Name.Value.Equals(prefixVal.Value + prefixedFusionDir, StringComparison.Ordinal))
                     {
                         prefixSelf = true;
                         prefix = prefixVal.Value;
@@ -317,11 +313,11 @@ public sealed class FusionTypeNames
 
         foreach (var directive in schemaDirectives)
         {
-            if (directive.Name.Value.EqualsOrdinal(FusionTypeBaseNames.FusionDirective))
+            if (directive.Name.Value.Equals(FusionTypeBaseNames.FusionDirective, StringComparison.Ordinal))
             {
                 var prefixArg =
                     directive.Arguments.FirstOrDefault(
-                        t => t.Name.Value.EqualsOrdinal("prefix"));
+                        t => t.Name.Value.Equals("prefix", StringComparison.Ordinal));
 
                 if (prefixArg?.Value is StringValueNode prefixVal)
                 {

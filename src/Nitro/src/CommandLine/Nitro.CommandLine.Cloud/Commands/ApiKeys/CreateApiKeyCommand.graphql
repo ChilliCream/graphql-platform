@@ -1,5 +1,5 @@
 mutation CreateApiKeyCommandMutation($input: CreateApiKeyForApiInput!) {
-  createApiKeyForApi( input: $input ) {
+  createApiKeyForApi(input: $input) {
     result {
       key {
         ...CreateApiKeyCommandMutation_ApiKey
@@ -12,7 +12,6 @@ mutation CreateApiKeyCommandMutation($input: CreateApiKeyForApiInput!) {
     }
   }
 }
-
 
 fragment CreateApiKeyCommandMutation_ApiKey on ApiKey {
   id

@@ -91,7 +91,6 @@ public sealed class UpdateMockCommand : Command
             await CreateNewMock(null);
         }
 
-
         return ExitCodes.Success;
 
         async Task CreateNewMock(StatusContext? ctx)
@@ -113,7 +112,6 @@ public sealed class UpdateMockCommand : Command
                     ? mockSchemaName
                     : null,
                 cancellationToken);
-
 
             console.EnsureNoErrors(result);
             var data = console.EnsureData(result);

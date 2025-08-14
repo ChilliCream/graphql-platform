@@ -1,9 +1,6 @@
-query ListMockCommandQuery(
-  $apiId: ID!,
-  $after: String,
-  $first: Int){
+query ListMockCommandQuery($apiId: ID!, $after: String, $first: Int) {
   apiById(id: $apiId) {
-    mockSchemas(after: $after, first:$first){
+    mockSchemas(after: $after, first: $first) {
       edges {
         ...ListMockCommand_MockEdge
       }
