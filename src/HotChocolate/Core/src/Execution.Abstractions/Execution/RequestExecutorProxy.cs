@@ -53,7 +53,7 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
 
         var observer = new RequestExecutorEventObserver(OnRequestExecutorEvent);
         _eventSubscription = executorEvents.Subscribe(observer);
-         OnUpdateRequestExecutorAsync(_cts.Token).FireAndForget();
+        OnUpdateRequestExecutorAsync(_cts.Token).FireAndForget();
     }
 
     /// <summary>
