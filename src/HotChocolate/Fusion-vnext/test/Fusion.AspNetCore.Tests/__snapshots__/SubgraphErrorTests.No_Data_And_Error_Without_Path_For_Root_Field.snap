@@ -25,7 +25,10 @@
             "id": 1,
             "type": "Operation",
             "schema": "A",
-            "operation": "query Op_97fd38fc_1 {\n  productById(id: 1) {\n    name\n  }\n}"
+            "operation": "query Op_97fd38fc_1 {\n  productById(id: 1) {\n    name\n  }\n}",
+            "responseNames": [
+              "productById"
+            ]
           }
         ]
       }

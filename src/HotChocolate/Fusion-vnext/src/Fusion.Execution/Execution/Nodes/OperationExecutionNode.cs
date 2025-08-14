@@ -16,7 +16,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 {
     private readonly OperationRequirement[] _requirements;
     private readonly string[] _variables;
-    private readonly ImmutableArray<string> _responseNames;
+    private readonly string[] _responseNames;
     private ExecutionNode[] _dependencies = [];
     private ExecutionNode[] _dependents = [];
     private int _dependencyCount;
@@ -29,7 +29,8 @@ public sealed class OperationExecutionNode : ExecutionNode
         string schemaName,
         SelectionPath target,
         SelectionPath source,
-        OperationRequirement[] requirements)
+        OperationRequirement[] requirements,
+        string[] responseNames)
     {
         Id = id;
         Operation = operation;
@@ -37,6 +38,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         Target = target;
         Source = source;
         _requirements = requirements;
+        _responseNames = responseNames;
 
         // We compute the hash of the operation definition when it is set.
         // This hash can be used within the GraphQL client to identify the operation
@@ -56,13 +58,9 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
 
         _variables = variables.ToArray();
-
-        _responseNames = GetResponseNamesFromPath(operation, source);
     }
 
     public override int Id { get; }
-
-    private ReadOnlySpan<string> ResponseNames => _responseNames.AsSpan();
 
     /// <summary>
     /// Gets the unique identifier of the operation.
@@ -73,6 +71,11 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// Gets the operation definition that this execution node represents.
     /// </summary>
     public OperationDefinitionNode Operation { get; }
+
+    /// <summary>
+    /// Gets the response names of the <see cref="Target"/> selection set that are fulfilled by this operation.
+    /// </summary>
+    public ReadOnlySpan<string> ResponseNames => _responseNames;
 
     /// <summary>
     /// Gets the name of the source schema that this operation is executed against.
@@ -315,83 +318,6 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
 
         _isSealed = true;
-    }
-
-    private static ImmutableArray<string> GetResponseNamesFromPath(
-        OperationDefinitionNode operationDefinition,
-        SelectionPath path)
-    {
-        var selectionSet = GetSelectionSetNodeFromPath(operationDefinition, path);
-
-        if (selectionSet is null)
-        {
-            return [];
-        }
-
-        var responseNames = new List<string>();
-
-        var stack = new Stack<ISelectionNode>(selectionSet.Selections);
-
-        while (stack.TryPop(out var selection))
-        {
-            if (selection is FieldNode fieldNode)
-            {
-                responseNames.Add(fieldNode.Alias?.Value ?? fieldNode.Name.Value);
-            }
-            else if (selection is InlineFragmentNode inlineFragmentNode)
-            {
-                foreach (var child in inlineFragmentNode.SelectionSet.Selections)
-                {
-                    stack.Push(child);
-                }
-            }
-        }
-
-        return [..responseNames];
-    }
-
-    private static SelectionSetNode? GetSelectionSetNodeFromPath(OperationDefinitionNode operationDefinition, SelectionPath path)
-    {
-        var current = operationDefinition.SelectionSet;
-
-        if (path.IsRoot)
-        {
-            return current;
-        }
-
-        for (var i = path.Segments.Length - 1; i >= 0; i--)
-        {
-            var segment = path.Segments[i];
-
-            if (segment.Kind == SelectionPathSegmentKind.InlineFragment)
-            {
-                var selection = current.Selections
-                    .OfType<InlineFragmentNode>()
-                    .FirstOrDefault(s => s.TypeCondition?.Name.Value == segment.Name);
-
-                if (selection is null)
-                {
-                    return null;
-                }
-
-                current = selection.SelectionSet;
-            }
-            else if (segment.Kind is SelectionPathSegmentKind.Field)
-            {
-                var selection = current.Selections
-                    .OfType<FieldNode>()
-                    .FirstOrDefault(s => s.Alias?.Value == segment.Name || s.Name.Value == segment.Name);
-
-                if (selection?.SelectionSet is null)
-                {
-                    return null;
-                }
-
-                current = selection.SelectionSet;
-            }
-        }
-
-        return current;
     }
 
     private static void AddErrors(
