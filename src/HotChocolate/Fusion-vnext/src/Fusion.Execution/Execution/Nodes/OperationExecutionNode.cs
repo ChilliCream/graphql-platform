@@ -209,7 +209,6 @@ public sealed class OperationExecutionNode : ExecutionNode
             Stopwatch.GetElapsedTime(start));
     }
 
-    // TODO: Error handling
     internal async Task<SubscriptionResult> SubscribeAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
@@ -224,20 +223,26 @@ public sealed class OperationExecutionNode : ExecutionNode
         };
 
         var client = context.GetClient(SchemaName, Operation.Operation);
-        var response = await client.ExecuteAsync(context, request, cancellationToken);
 
-        if (!response.IsSuccessful)
+        try
         {
+            var response = await client.ExecuteAsync(context, request, cancellationToken);
+
+            var stream = new SubscriptionEnumerable(
+                context,
+                this,
+                response,
+                response.ReadAsResultStreamAsync(cancellationToken),
+                context.GetDiagnosticEvents());
+
+            return SubscriptionResult.Success(stream);
+        }
+        catch (Exception exception)
+        {
+            AddErrors(context, exception, variables, ResponseNames);
+
             return SubscriptionResult.Failed();
         }
-
-        var stream = new SubscriptionEnumerable(
-            context,
-            this,
-            response,
-            response.ReadAsResultStreamAsync(cancellationToken),
-            context.GetDiagnosticEvents());
-        return SubscriptionResult.Success(stream);
     }
 
     internal void AddDependency(ExecutionNode node)
@@ -505,7 +510,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                     _context.AddPartialResults(_node.Source, _resultBuffer, _node.ResponseNames);
                 }
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
                 // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
                 _resultBuffer[0]?.Dispose();
@@ -516,7 +521,12 @@ public sealed class OperationExecutionNode : ExecutionNode
                     scope ?? Disposable.Empty,
                     start ?? Stopwatch.GetTimestamp(),
                     Stopwatch.GetTimestamp(),
-                    Exception: ex);
+                    Exception: exception);
+
+                var error = ErrorBuilder.FromException(exception).Build();
+
+                _context.AddErrors(error, _node.ResponseNames, Path.Root);
+
                 return true;
             }
 

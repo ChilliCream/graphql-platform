@@ -175,7 +175,7 @@ internal sealed class FetchResultStore : IDisposable
                     continue;
                 }
 
-                _valueCompletion.BuildResult(objectResult, responseNames, error, path);
+                _valueCompletion.BuildErrorResult(objectResult, responseNames, error, path);
 
                 path = ref Unsafe.Add(ref path, 1)!;
             }
