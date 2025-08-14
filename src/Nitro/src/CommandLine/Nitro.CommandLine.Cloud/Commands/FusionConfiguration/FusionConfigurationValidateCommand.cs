@@ -58,7 +58,6 @@ internal sealed class FusionConfigurationValidateCommand : Command
             await ValidateSchema(null);
         }
 
-
         return isValid ? ExitCodes.Success : ExitCodes.Error;
 
         async Task ValidateSchema(StatusContext? ctx)

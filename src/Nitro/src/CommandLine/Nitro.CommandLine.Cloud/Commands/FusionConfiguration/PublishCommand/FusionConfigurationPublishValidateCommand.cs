@@ -60,7 +60,6 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
             return await ValidateAsync(null);
         }
 
-
         async Task<int> ValidateAsync(StatusContext? ctx)
         {
             console.Log("Initialized");
@@ -69,7 +68,8 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
 
             var input = new ValidateFusionConfigurationCompositionInput()
             {
-                RequestId = requestId, Configuration = new(stream, "gateway.fgp")
+                RequestId = requestId,
+                Configuration = new(stream, "gateway.fgp")
             };
 
             var result = await client.ValidateFusionConfigurationPublish

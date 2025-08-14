@@ -32,7 +32,7 @@ internal sealed class LoginCommand : Command
     {
         cloudUrl ??= OidcConfiguration.IdentityUrl;
 
-        Session? session = await console
+        var session = await console
             .DefaultStatus()
             .StartAsync(
                 $"A web browser has been opened at [blue underline]{cloudUrl}[/]. Please continue the login in the web browser.",

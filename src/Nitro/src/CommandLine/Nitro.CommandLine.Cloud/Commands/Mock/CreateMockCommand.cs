@@ -84,7 +84,6 @@ public sealed class CreateMockCommand : Command
                 mockSchemaName,
                 cancellationToken);
 
-
             console.EnsureNoErrors(result);
             var data = console.EnsureData(result);
             console.PrintErrorsAndExit(data.CreateMockSchema.Errors);

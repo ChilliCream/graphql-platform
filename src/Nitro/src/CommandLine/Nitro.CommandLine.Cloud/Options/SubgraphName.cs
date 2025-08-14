@@ -16,4 +16,3 @@ internal sealed class OptionalSubgraphNameOption : SubgraphNameOption
         IsRequired = false;
     }
 }
-

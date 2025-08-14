@@ -10,7 +10,7 @@ internal static class CommandLineBuilderExtensions
     {
         T? value = default;
 
-        builder.AddService<T>(_ => value ??= new TImpl());
+        builder.AddService(_ => value ??= new TImpl());
 
         return builder;
     }

@@ -67,7 +67,9 @@ internal sealed class ValidateSchemaCommand : Command
 
             var input = new ValidateSchemaInput
             {
-                ApiId = apiId, Stage = stage, Schema = new Upload(stream, "operations.graphql")
+                ApiId = apiId,
+                Stage = stage,
+                Schema = new Upload(stream, "operations.graphql")
             };
 
             console.Log("Create validation request");

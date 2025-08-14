@@ -17,7 +17,7 @@ internal static class ConsoleCommandLineBuilderExtensions
                     }
 
                     var customConsole = ExtendedConsole.Create(ansiConsole);
-                    x.BindingContext.AddService<ExtendedConsole>(_ => customConsole);
+                    x.BindingContext.AddService(_ => customConsole);
                 },
                 MiddlewareOrder.Configuration)
             .AddService<IAnsiConsole>(sp => sp.GetRequiredService<ExtendedConsole>());

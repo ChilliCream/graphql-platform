@@ -1,7 +1,7 @@
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CLI.Option.Binders;
 using ChilliCream.Nitro.CLI.Exceptions;
+using ChilliCream.Nitro.CLI.Option.Binders;
 using ChilliCream.Nitro.CLI.Results;
 
 namespace ChilliCream.Nitro.CLI;

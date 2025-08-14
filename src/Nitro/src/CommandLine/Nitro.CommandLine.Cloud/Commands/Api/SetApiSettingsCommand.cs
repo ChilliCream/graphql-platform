@@ -52,17 +52,17 @@ internal sealed class SetApiSettingsApiCommand : Command
 
         var result = await client.SetApiSettingsCommandMutation
             .ExecuteAsync(new UpdateApiSettingsInput
+            {
+                ApiId = id,
+                Settings = new PartialApiSettingsInput()
                 {
-                    ApiId = id,
-                    Settings = new PartialApiSettingsInput()
+                    SchemaRegistry = new PartialSchemaRegistrySettingsInput()
                     {
-                        SchemaRegistry = new PartialSchemaRegistrySettingsInput()
-                        {
-                            TreatDangerousAsBreaking = treatDangerousChangesAsBreaking,
-                            AllowBreakingSchemaChanges = allowBreakingSchemaChanges
-                        }
+                        TreatDangerousAsBreaking = treatDangerousChangesAsBreaking,
+                        AllowBreakingSchemaChanges = allowBreakingSchemaChanges
                     }
-                },
+                }
+            },
                 ct);
 
         console.EnsureNoErrors(result);

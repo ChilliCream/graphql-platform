@@ -4,14 +4,14 @@ namespace ChilliCream.Nitro.CLI;
 
 internal class SelectableTable<TEdge>
 {
-    private readonly List<CustomTableColumn> _columns = new();
-    private readonly List<Action<Table>> _configureTable = new();
+    private readonly List<CustomTableColumn> _columns = [];
+    private readonly List<Action<Table>> _configureTable = [];
 
     private readonly Dictionary<ConsoleKeyOrChar,
             Func<SelectableTable<TEdge>, int, CancellationToken, Task<InputAction>>>
-        _keyActions = new();
+        _keyActions = [];
 
-    private readonly List<Func<SelectableTable<TEdge>, CustomMarkup>> _addons = new();
+    private readonly List<Func<SelectableTable<TEdge>, CustomMarkup>> _addons = [];
 
     private string _title = string.Empty;
 
@@ -49,7 +49,7 @@ internal class SelectableTable<TEdge>
 
     public int SelectedIndex { get; set; }
 
-    public Dictionary<string, object> ContextData { get; set; } = new();
+    public Dictionary<string, object> ContextData { get; set; } = [];
 
     public SelectableTable<TEdge> Title(string title)
     {
@@ -200,8 +200,8 @@ internal class SelectableTable<TEdge>
             }
 
             if (inputAction is null && (
-                    _keyActions.TryGetValue(rawKey.Key, out var action) ||
-                    _keyActions.TryGetValue(rawKey.KeyChar, out action)))
+                    _keyActions.TryGetValue(rawKey.Key, out var action)
+                || _keyActions.TryGetValue(rawKey.KeyChar, out action)))
             {
                 inputAction = await action(this, SelectedIndex, cancellationToken);
             }
@@ -229,7 +229,7 @@ internal class SelectableTable<TEdge>
         return default;
     }
 
-    private struct CustomTableColumn
+    private readonly struct CustomTableColumn
     {
         public CustomTableColumn(
             string name,
@@ -267,7 +267,7 @@ internal record InputAction
     public record None : InputAction;
 }
 
-internal struct CustomMarkup
+internal readonly struct CustomMarkup
 {
     public Renderable Content { get; init; }
 
@@ -327,7 +327,8 @@ internal static class SelectableTableExtension
     {
         return table.AddAddon(_ => new CustomMarkup()
         {
-            Content = new Markup($"[grey dim]{text}[/]"), IsSelectable = false
+            Content = new Markup($"[grey dim]{text}[/]"),
+            IsSelectable = false
         });
     }
 }

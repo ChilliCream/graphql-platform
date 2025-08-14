@@ -1,6 +1,6 @@
 using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Helpers;
 using ChilliCream.Nitro.CLI.Exceptions;
+using ChilliCream.Nitro.CLI.Helpers;
 using StrawberryShake;
 using static ChilliCream.Nitro.CLI.ThrowHelper;
 
@@ -37,7 +37,7 @@ internal class ForwardPaginationContainer<TResult, TEdge>
     private IPageInfo? _latestPageInfo;
     private int _currentPage = -1;
 
-    private readonly List<IReadOnlyList<TEdge>> _pages = new();
+    private readonly List<IReadOnlyList<TEdge>> _pages = [];
 
     private readonly FetchAsync<TResult> _fetchAsync;
     private readonly SelectPageInfo<TResult> _pageInfoSelector;
@@ -65,8 +65,8 @@ internal class ForwardPaginationContainer<TResult, TEdge>
     }
 
     public bool HasNext()
-        => _currentPage < _pages.Count - 1 ||
-            (_latestPageInfo?.HasNextPage is not false && _currentPage == _pages.Count - 1);
+        => _currentPage < _pages.Count - 1
+        || (_latestPageInfo?.HasNextPage is not false && _currentPage == _pages.Count - 1);
 
     public bool HasPrevious() => _currentPage > 0;
 

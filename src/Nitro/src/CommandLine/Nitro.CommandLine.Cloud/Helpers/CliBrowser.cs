@@ -8,7 +8,7 @@ internal class CliBrowser : IBrowser
         BrowserOptions options,
         CancellationToken cancellationToken = default)
     {
-        using HttpClient client = new HttpClient();
+        using var client = new HttpClient();
         client.BaseAddress = new Uri(options.StartUrl);
 
         try
@@ -22,7 +22,8 @@ internal class CliBrowser : IBrowser
 
             return new BrowserResult
             {
-                ResultType = BrowserResultType.UnknownError, Error = "Empty response."
+                ResultType = BrowserResultType.UnknownError,
+                Error = "Empty response."
             };
         }
         catch (TaskCanceledException ex)
@@ -33,7 +34,8 @@ internal class CliBrowser : IBrowser
         {
             return new BrowserResult
             {
-                ResultType = BrowserResultType.UnknownError, Error = ex.Message
+                ResultType = BrowserResultType.UnknownError,
+                Error = ex.Message
             };
         }
     }

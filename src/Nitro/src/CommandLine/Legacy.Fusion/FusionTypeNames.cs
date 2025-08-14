@@ -265,10 +265,7 @@ public sealed class FusionTypeNames
 
     public static FusionTypeNames From(DocumentNode document)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         var schemaDef = document.Definitions.OfType<SchemaDefinitionNode>().FirstOrDefault();
 
@@ -304,8 +301,8 @@ public sealed class FusionTypeNames
                         directive.Arguments.FirstOrDefault(
                             t => t.Name.Value.EqualsOrdinal("prefix"));
 
-                    if (prefixArg?.Value is StringValueNode prefixVal &&
-                        directive.Name.Value.EqualsOrdinal($"{prefixVal.Value}{prefixedFusionDir}"))
+                    if (prefixArg?.Value is StringValueNode prefixVal
+                        && directive.Name.Value.EqualsOrdinal(prefixVal.Value + prefixedFusionDir))
                     {
                         prefixSelf = true;
                         prefix = prefixVal.Value;
