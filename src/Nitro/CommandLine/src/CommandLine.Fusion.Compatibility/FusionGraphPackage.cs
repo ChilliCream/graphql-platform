@@ -106,7 +106,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     }
 
     /// <summary>
-    /// Gets the Fusion graph document to configure the a Fusion GraphQL Gateway.
+    /// Gets the Fusion graph document to configure a Fusion GraphQL Gateway.
     /// </summary>
     /// <param name="cancellationToken">
     /// The cancellation token.

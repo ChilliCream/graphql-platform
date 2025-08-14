@@ -1,20 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>$(CLITargetFrameworks)</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <OutputType>Exe</OutputType>
-    <IsPackable>false</IsPackable>
-    <PackAsTool>true</PackAsTool>
-    <UseAppHost>false</UseAppHost>
-    <Nullable>enable</Nullable>
-    <GenerateVersionInfo>true</GenerateVersionInfo>
-    <ToolCommandName>nitro</ToolCommandName>
-    <IsAotCompatible>true</IsAotCompatible>
+    <RootNamespace>Nitro.CommandLine</RootNamespace>
+    <AssemblyName>>Nitro.CommandLine.Cloud</AssemblyName>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <PackageId>ChilliCream.Nitro.CLI</PackageId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -22,14 +10,7 @@
     <GraphQLPersistedOperationFormat>relay</GraphQLPersistedOperationFormat>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <LangVersion>latest</LangVersion>
-    <EnablePreviewFeatures>true</EnablePreviewFeatures>
-    <GenerateRequiresPreviewFeaturesAttribute>true</GenerateRequiresPreviewFeaturesAttribute>
-  </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="StrawberryShake.Server" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="Duende.IdentityModel.OidcClient" VersionOverride="6.0.1" />
     <PackageReference Include="Spectre.Console" />
@@ -37,15 +18,6 @@
     <PackageReference Include="System.Commandline" />
     <PackageReference Include="System.Linq.Async" />
     <PackageReference Include="System.Reactive" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- <ProjectReference Include="..\..\..\..\StrawberryShake\MetaPackages\Server\StrawberryShake.Server.csproj" /> -->
-    <ProjectReference Include="..\Legacy.Fusion\HotChocolate.Fusion.Abstractions.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>
@@ -160,5 +132,9 @@
     <GraphQL Update="Commands\PersonalAccessTokens\Component\PersonalAccessTokenDetailPrompt.graphql">
       <Generator>MSBuild:GenerateGraphQLCode</Generator>
     </GraphQL>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\StrawberryShake\MetaPackages\Server\StrawberryShake.Server.csproj" />
   </ItemGroup>
 </Project>

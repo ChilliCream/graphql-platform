@@ -1,11 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Fusion.Abstractions</AssemblyName>
-    <RootNamespace>HotChocolate.Fusion</RootNamespace>
-    <TargetFrameworks>$(CLITargetFrameworks)</TargetFrameworks>
-    <IsAotCompatible>true</IsAotCompatible>
-    <IsPackable>false</IsPackable>
+    <RootNamespace>Nitro.CommandLine.Fusion</RootNamespace>
+    <AssemblyName>Nitro.CommandLine.Fusion</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
