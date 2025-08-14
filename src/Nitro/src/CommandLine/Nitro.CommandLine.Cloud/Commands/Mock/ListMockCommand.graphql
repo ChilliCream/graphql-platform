@@ -1,0 +1,28 @@
+query ListMockCommandQuery(
+  $apiId: ID!,
+  $after: String,
+  $first: Int){
+  apiById(id: $apiId) {
+    mockSchemas(after: $after, first:$first){
+      edges {
+        ...ListMockCommand_MockEdge
+      }
+      pageInfo {
+        ...PageInfo
+      }
+    }
+  }
+}
+
+fragment ListMockCommand_MockEdge on MockSchemasEdge {
+  cursor
+  node {
+    ...ListMockCommand_Mock
+  }
+}
+
+fragment ListMockCommand_Mock on MockSchema {
+  id
+  name
+  ...MockSchemaDetailPrompt
+}

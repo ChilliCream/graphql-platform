@@ -1,0 +1,21 @@
+mutation validateClientVersion($input: ValidateClientInput!){
+  validateClient(input: $input){
+    id
+    errors {
+      ...UnauthorizedOperation
+      ...StageNotFoundError
+      ...ClientNotFoundError
+      ...Error
+    }
+  }
+}
+
+subscription onClientVersionValidationUpdated($requestId: ID!) {
+  onClientVersionValidationUpdate(requestId: $requestId) {
+    __typename
+    ...ClientVersionValidationFailed
+    ...ClientVersionValidationSuccess
+    ...OperationInProgress
+    ...ValidationInProgress
+  }
+}

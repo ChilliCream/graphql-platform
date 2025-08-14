@@ -1,0 +1,23 @@
+mutation UpdateMockSchema(
+  $mockSchemaId: ID!,
+  $baseSchemaFile: Upload,
+  $downstreamUrl: String,
+  $extensionsSchemaFile: Upload,
+  $name: String) {
+  updateMockSchema(input: {
+    id: $mockSchemaId,
+    baseSchemaFile: $baseSchemaFile,
+    downstreamUrl: $downstreamUrl,
+    extensionsSchemaFile: $extensionsSchemaFile,
+    name: $name
+  }) {
+    mockSchema {
+      id
+      ...MockSchemaDetailPrompt
+    }
+    errors {
+      ...MockSchemaNotFoundError
+      ...MockSchemaNonUniqueNameError
+    }
+  }
+}

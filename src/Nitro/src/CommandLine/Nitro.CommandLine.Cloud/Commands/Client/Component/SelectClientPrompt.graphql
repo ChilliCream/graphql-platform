@@ -1,0 +1,28 @@
+query SelectClientPromptQuery(
+  $apiId: ID!,
+  $after: String,
+  $first: Int){
+  apiById(id: $apiId) {
+    clients(after: $after, first:$first){
+      edges {
+        ...SelectClientPrompt_ClientEdge
+      }
+      pageInfo {
+        ...PageInfo
+      }
+    }
+  }
+}
+
+fragment SelectClientPrompt_ClientEdge on ClientsEdge {
+  cursor
+  node {
+    ...SelectClientPrompt_Client
+  }
+}
+
+fragment SelectClientPrompt_Client on Client {
+  id
+  name
+  ...ClientDetailPrompt_Client
+}

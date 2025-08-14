@@ -1,0 +1,21 @@
+mutation CreateWorkspaceCommandMutation($input: CreateWorkspaceInput!){
+  createWorkspace(input: $input){
+    workspace {
+      id
+      name
+      ...WorkspaceDetailPrompt_Workspace
+    }
+    errors {
+      ... on UnauthorizedOperation {
+        message
+      }
+      ... on ValidationError {
+        message
+      }
+      ... on Error {
+        message
+      }
+    }
+  }
+}
+

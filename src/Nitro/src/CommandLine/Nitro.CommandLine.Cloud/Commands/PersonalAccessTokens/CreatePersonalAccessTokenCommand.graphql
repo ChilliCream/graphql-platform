@@ -1,0 +1,20 @@
+mutation CreatePersonalAccessTokenCommandMutation($input: CreatePersonalAccessTokenInput!) {
+  createPersonalAccessToken( input: $input ) {
+    result {
+      token {
+        ...CreatePersonalAccessTokenCommandMutation_PersonalAccessToken
+      }
+      secret
+    }
+    errors {
+      ...UnauthorizedOperation
+      ...Error
+    }
+  }
+}
+
+
+fragment CreatePersonalAccessTokenCommandMutation_PersonalAccessToken on PersonalAccessToken {
+  id
+  ...PersonalAccessTokenDetailPrompt_PersonalAccessToken
+}

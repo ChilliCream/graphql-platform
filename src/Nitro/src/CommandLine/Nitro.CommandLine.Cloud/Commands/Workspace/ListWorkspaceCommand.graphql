@@ -1,0 +1,28 @@
+query ListWorkspaceCommandQuery(
+  $after: String
+  $first: Int){
+  me {
+    workspaces(after: $after, first:$first){
+      edges {
+        ...ListWorkspaceCommand_WorkspaceEdge
+      }
+      pageInfo {
+        ...PageInfo
+      }
+    }
+  }
+}
+
+fragment ListWorkspaceCommand_WorkspaceEdge on WorkspacesEdge {
+  cursor
+  node {
+    ...ListWorkspaceCommand_Workspace
+  }
+}
+
+fragment ListWorkspaceCommand_Workspace on Workspace {
+  id
+  name
+  personal
+  ...WorkspaceDetailPrompt_Workspace
+}
