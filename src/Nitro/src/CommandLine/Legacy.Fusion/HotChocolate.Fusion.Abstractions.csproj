@@ -12,7 +12,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Language\src\Language\HotChocolate.Language.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
   </ItemGroup>
