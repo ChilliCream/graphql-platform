@@ -4,6 +4,7 @@
     <AssemblyName>HotChocolate.Fusion.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
     <TargetFrameworks>$(CLITargetFrameworks)</TargetFrameworks>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <PropertyGroup>

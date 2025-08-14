@@ -9,9 +9,7 @@
     <Nullable>enable</Nullable>
     <GenerateVersionInfo>true</GenerateVersionInfo>
     <ToolCommandName>nitro</ToolCommandName>
-    <PublishAot>true</PublishAot>
-    <PublishTrimmed>true</PublishTrimmed>
-    <TrimmerDefaultAction>link</TrimmerDefaultAction>
+    <IsAotCompatible>true</IsAotCompatible>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
 
