@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>Nitro.CommandLine.Fusion</RootNamespace>
     <AssemblyName>Nitro.CommandLine.Fusion.Compatibility</AssemblyName>
-    <PackageName>Nitro.CommandLine.Fusion.Compatibility</PackageName>
+    <PackageName>ChilliCream.Nitro.CommandLine.Fusion.Compatibility</PackageName>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
 
