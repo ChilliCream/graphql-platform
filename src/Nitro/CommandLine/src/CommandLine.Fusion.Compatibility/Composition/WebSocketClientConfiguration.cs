@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Composition;
+namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
 
 /// <summary>
 /// Represents the configuration for a WebSocket client that can be used to subscribe to a subgraph.

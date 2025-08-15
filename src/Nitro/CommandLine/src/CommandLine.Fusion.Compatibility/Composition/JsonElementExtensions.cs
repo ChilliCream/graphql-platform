@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Text.Json;
 
-namespace HotChocolate.Fusion.Composition;
+namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
 
 internal static class JsonElementExtensions
 {

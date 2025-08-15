@@ -3,14 +3,13 @@ using System.IO.Packaging;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
-using HotChocolate.Fusion.Composition;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using static HotChocolate.Fusion.FusionAbstractionResources;
-using static HotChocolate.Fusion.FusionGraphPackageConstants;
+using static ChilliCream.Nitro.CommandLine.Fusion.Compatibility.FusionAbstractionResources;
+using static ChilliCream.Nitro.CommandLine.Fusion.Compatibility.FusionGraphPackageConstants;
 using static HotChocolate.Language.Utf8GraphQLParser;
 
-namespace HotChocolate.Fusion;
+namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
 
 /// <summary>
 /// <para>

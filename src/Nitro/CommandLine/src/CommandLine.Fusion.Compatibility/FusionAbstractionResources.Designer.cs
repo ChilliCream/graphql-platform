@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace HotChocolate.Fusion {
+namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility {
     using System;
     
     
@@ -28,7 +28,7 @@ namespace HotChocolate.Fusion {
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Fusion.FusionAbstractionResources", typeof(FusionAbstractionResources).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("ChilliCream.Nitro.CommandLine.Fusion.Compatibility.FusionAbstractionResources", typeof(FusionAbstractionResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
