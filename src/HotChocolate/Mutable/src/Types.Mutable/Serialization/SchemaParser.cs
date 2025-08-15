@@ -28,6 +28,14 @@ public static class SchemaParser
         SchemaParserOptions options = default)
     {
         var document = Utf8GraphQLParser.Parse(sourceText);
+        return Parse(schema, document, options);
+    }
+
+    public static void Parse(
+        MutableSchemaDefinition schema,
+        DocumentNode document,
+        SchemaParserOptions options = default)
+    {
         var existingTypeNames = schema.Types.Select(t => t.Name);
         var existingDirectiveNames = schema.DirectiveDefinitions.AsEnumerable().Select(d => d.Name);
         var skippedNodes = new HashSet<ISyntaxNode>();
