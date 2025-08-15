@@ -1,5 +1,3 @@
-#nullable disable
-
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using System.Diagnostics.CodeAnalysis;
