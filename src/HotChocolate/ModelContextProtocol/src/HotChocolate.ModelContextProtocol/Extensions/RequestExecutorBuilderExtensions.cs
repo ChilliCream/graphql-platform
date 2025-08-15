@@ -51,7 +51,7 @@ public static class RequestExecutorBuilderExtensions
                     .AddSingleton<GraphQLMcpToolRegistry>();
 
                 services
-                    .AddMcpServer()
+                    .AddMcpServer(o => o.Capabilities?.Tools?.ListChanged = true)
                     .WithHttpTransport()
                     .WithListToolsHandler(
                         (context, _) => ValueTask.FromResult(ListToolsHandler.Handle(context)))

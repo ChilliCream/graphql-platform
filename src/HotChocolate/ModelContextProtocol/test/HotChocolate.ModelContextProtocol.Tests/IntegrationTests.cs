@@ -6,11 +6,14 @@ using HotChocolate.Language;
 using HotChocolate.ModelContextProtocol.Extensions;
 using HotChocolate.ModelContextProtocol.Storage;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol;
 
 namespace HotChocolate.ModelContextProtocol;
 
@@ -43,6 +46,67 @@ public sealed class IntegrationTests
                         t.Title,
                         t.Description
                     }),
+                s_jsonSerializerOptions)
+            .ReplaceLineEndings("\n")
+            .MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public async Task ListTools_AfterSchemaUpdate_ReturnsUpdatedTools()
+    {
+        // arrange
+        var storage = new InMemoryMcpOperationDocumentStorage();
+        await storage.SaveToolDocumentAsync(
+            Utf8GraphQLParser.Parse(
+                await File.ReadAllTextAsync("__resources__/GetSingleField.graphql")));
+        var typeModule = new TestTypeModule();
+        var builder = new WebHostBuilder()
+            .ConfigureServices(
+                services => services
+                    .AddRouting()
+                    .AddGraphQL()
+                    .AddTypeModule(_ => typeModule)
+                    .AddMcp()
+                    .AddMcpOperationDocumentStorage(storage))
+            .Configure(
+                app => app
+                    .UseRouting()
+                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
+        var server = new TestServer(builder);
+        var mcpClient1 = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent = new ManualResetEventSlim(false);
+        mcpClient1.RegisterNotificationHandler(
+            NotificationMethods.ToolListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent.Set();
+                await ValueTask.CompletedTask;
+            });
+
+        // act
+        var tools = await mcpClient1.ListToolsAsync();
+        typeModule.TriggerChange();
+        IList<McpClientTool>? updatedTools = null;
+
+        if (listChangedResetEvent.Wait(TimeSpan.FromSeconds(5)))
+        {
+            var mcpClient2 = await CreateMcpClientAsync(server.CreateClient());
+            updatedTools = await mcpClient2.ListToolsAsync();
+        }
+
+        // assert
+        Assert.NotNull(updatedTools);
+        JsonSerializer.Serialize(
+                tools.Concat(updatedTools).Select(
+                    t =>
+                        new
+                        {
+                            t.Name,
+                            t.Title,
+                            t.Description,
+                            t.JsonSchema,
+                            t.ReturnJsonSchema
+                        }),
                 s_jsonSerializerOptions)
             .ReplaceLineEndings("\n")
             .MatchSnapshot(extension: ".json");
@@ -289,5 +353,33 @@ public sealed class IntegrationTests
                         Endpoint = new Uri(httpClient.BaseAddress!, "/graphql/mcp")
                     },
                     httpClient));
+    }
+
+    private class TestTypeModule : TypeModule
+    {
+        private int _executionCount;
+
+        public override ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
+            IDescriptorContext context,
+            CancellationToken cancellationToken)
+        {
+            var types = new List<ITypeSystemMember>();
+
+            var queryType = new ObjectTypeConfiguration(OperationTypeNames.Query);
+
+            queryType.Fields.Add(
+                new ObjectFieldConfiguration(
+                    "field",
+                    $"Field description {_executionCount}.",
+                    type: TypeReference.Parse(_executionCount == 0 ? "Int!" : "String"),
+                    pureResolver: _ => _executionCount));
+            types.Add(ObjectType.CreateUnsafe(queryType));
+
+            _executionCount++;
+
+            return new ValueTask<IReadOnlyCollection<ITypeSystemMember>>(types);
+        }
+
+        public void TriggerChange() => OnTypesChanged();
     }
 }

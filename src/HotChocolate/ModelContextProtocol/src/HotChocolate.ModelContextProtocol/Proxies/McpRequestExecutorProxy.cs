@@ -1,7 +1,11 @@
 using HotChocolate.Execution;
 using HotChocolate.Features;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using ModelContextProtocol;
 using ModelContextProtocol.AspNetCore;
+using ModelContextProtocol.Server;
+using static ModelContextProtocol.Protocol.NotificationMethods;
 
 namespace HotChocolate.ModelContextProtocol.Proxies;
 
@@ -35,18 +39,35 @@ internal sealed class McpRequestExecutorProxy(
         return executor.Features.GetRequired<McpExecutorSession>();
     }
 
-    protected override void OnRequestExecutorUpdated(IRequestExecutor? executor)
+    protected override void OnConfigureRequestExecutor(
+        IRequestExecutor newExecutor,
+        IRequestExecutor? oldExecutor)
     {
-        if (executor is not null)
+        if (oldExecutor is not null)
         {
-            var session =
-                new McpExecutorSession(
-                    executor.Schema.Services.GetRequiredService<StreamableHttpHandler>(),
-                    executor.Schema.Services.GetRequiredService<SseHandler>());
-
-            executor.Features.Set(session);
-            _session = session;
+            var handler = oldExecutor.Schema.Services.GetRequiredService<StreamableHttpHandler>();
+            var firstMcpSession = handler.Sessions.Values.FirstOrDefault();
+            newExecutor.Features.Set(firstMcpSession);
         }
+
+        var session =
+            new McpExecutorSession(
+                newExecutor.Schema.Services.GetRequiredService<StreamableHttpHandler>(),
+                newExecutor.Schema.Services.GetRequiredService<SseHandler>());
+
+        newExecutor.Features.Set(session);
+        _session = session;
+    }
+
+    protected override void OnAfterRequestExecutorSwapped(
+        IRequestExecutor newExecutor,
+        IRequestExecutor oldExecutor)
+    {
+        var firstMcpSession =
+            newExecutor.Features.Get<HttpMcpSession<StreamableHttpServerTransport>?>();
+
+        // https://github.com/modelcontextprotocol/csharp-sdk/issues/564#issuecomment-3184188188
+        firstMcpSession?.Server?.SendNotificationAsync(ToolListChangedNotification).FireAndForget();
     }
 }
 
