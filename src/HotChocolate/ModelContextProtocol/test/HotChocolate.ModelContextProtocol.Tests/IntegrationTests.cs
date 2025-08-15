@@ -23,7 +23,7 @@ public sealed class IntegrationTests
     public async Task ListTools_Valid_ReturnsTools()
     {
         // arrange
-        var storage = new InMemoryMcpToolStorage();
+        var storage = new InMemoryOperationToolStorage();
         await storage.AddToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql")));
@@ -55,7 +55,7 @@ public sealed class IntegrationTests
     public async Task ListTools_AfterSchemaUpdate_ReturnsUpdatedTools()
     {
         // arrange
-        var storage = new InMemoryMcpToolStorage();
+        var storage = new InMemoryOperationToolStorage();
         await storage.AddToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetSingleField.graphql")));
@@ -116,7 +116,7 @@ public sealed class IntegrationTests
     public async Task CallTool_GetWithNullableVariables_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new InMemoryMcpToolStorage();
+        var storage = new InMemoryOperationToolStorage();
         await storage.AddToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql")));
@@ -166,7 +166,7 @@ public sealed class IntegrationTests
     public async Task CallTool_GetWithNonNullableVariables_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new InMemoryMcpToolStorage();
+        var storage = new InMemoryOperationToolStorage();
         await storage.AddToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNonNullableVariables.graphql")));
@@ -217,7 +217,7 @@ public sealed class IntegrationTests
     public async Task CallTool_GetWithDefaultedVariables_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new InMemoryMcpToolStorage();
+        var storage = new InMemoryOperationToolStorage();
         await storage.AddToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithDefaultedVariables.graphql")));
@@ -238,7 +238,7 @@ public sealed class IntegrationTests
     public async Task CallTool_GetWithComplexVariables_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new InMemoryMcpToolStorage();
+        var storage = new InMemoryOperationToolStorage();
         await storage.AddToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithComplexVariables.graphql")));
@@ -290,7 +290,7 @@ public sealed class IntegrationTests
     public async Task CallTool_GetWithErrors_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new InMemoryMcpToolStorage();
+        var storage = new InMemoryOperationToolStorage();
         await storage.AddToolAsync(
             Utf8GraphQLParser.Parse("query GetWithErrors { withErrors }"));
         var server = CreateTestServer(b => b.AddMcpToolStorageStorage(storage));

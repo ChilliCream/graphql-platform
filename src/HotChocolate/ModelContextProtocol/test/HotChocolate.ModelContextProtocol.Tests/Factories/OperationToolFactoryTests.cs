@@ -5,18 +5,18 @@ using HotChocolate.Types;
 
 namespace HotChocolate.ModelContextProtocol.Factories;
 
-public sealed class GraphQLMcpToolFactoryTests
+public sealed class OperationToolFactoryTests
 {
     [Fact]
     public void CreateTool_DocumentWithNoOperations_ThrowsException()
     {
         // arrange & act
-        static GraphQLMcpTool Action()
+        static OperationTool Action()
         {
             var schema = CreateSchema();
             var document = Utf8GraphQLParser.Parse("fragment Fragment on Type { field }");
 
-            return new GraphQLMcpToolFactory(schema).CreateTool("", document);
+            return new OperationToolFactory(schema).CreateTool("", document);
         }
 
         // assert
@@ -27,7 +27,7 @@ public sealed class GraphQLMcpToolFactoryTests
     public void CreateTool_DocumentWithMultipleOperations_ThrowsException()
     {
         // arrange & act
-        static GraphQLMcpTool Action()
+        static OperationTool Action()
         {
             var schema = CreateSchema();
             var document = Utf8GraphQLParser.Parse(
@@ -45,7 +45,7 @@ public sealed class GraphQLMcpToolFactoryTests
                 }
                 """);
 
-            return new GraphQLMcpToolFactory(schema).CreateTool("", document);
+            return new OperationToolFactory(schema).CreateTool("", document);
         }
 
         // assert
@@ -68,7 +68,7 @@ public sealed class GraphQLMcpToolFactoryTests
             """);
 
         // act
-        var tool = new GraphQLMcpToolFactory(schema).CreateTool("get_books", document);
+        var tool = new OperationToolFactory(schema).CreateTool("get_books", document);
         var mcpTool = tool.Tool;
 
         // assert
@@ -97,7 +97,7 @@ public sealed class GraphQLMcpToolFactoryTests
             """);
 
         // act
-        var tool = new GraphQLMcpToolFactory(schema).CreateTool("add_book", document);
+        var tool = new OperationToolFactory(schema).CreateTool("add_book", document);
         var mcpTool = tool.Tool;
 
         // assert
@@ -126,7 +126,7 @@ public sealed class GraphQLMcpToolFactoryTests
             """);
 
         // act
-        var tool = new GraphQLMcpToolFactory(schema).CreateTool("book_added", document);
+        var tool = new OperationToolFactory(schema).CreateTool("book_added", document);
         var mcpTool = tool.Tool;
 
         // assert
@@ -154,7 +154,7 @@ public sealed class GraphQLMcpToolFactoryTests
             """);
 
         // act
-        var tool = new GraphQLMcpToolFactory(schema).CreateTool("get_books", document);
+        var tool = new OperationToolFactory(schema).CreateTool("get_books", document);
 
         // assert
         Assert.Equal("Custom Title", tool.Tool.Title);
@@ -176,7 +176,7 @@ public sealed class GraphQLMcpToolFactoryTests
             """);
 
         // act
-        var tool = new GraphQLMcpToolFactory(schema).CreateTool("add_book", document);
+        var tool = new OperationToolFactory(schema).CreateTool("add_book", document);
         var mcpTool = tool.Tool;
 
         // assert
@@ -195,7 +195,7 @@ public sealed class GraphQLMcpToolFactoryTests
 
         // act
         var tool =
-            new GraphQLMcpToolFactory(schema).CreateTool("get_with_nullable_variables", document);
+            new OperationToolFactory(schema).CreateTool("get_with_nullable_variables", document);
         var mcpTool = tool.Tool;
 
         // assert
@@ -213,7 +213,7 @@ public sealed class GraphQLMcpToolFactoryTests
 
         // act
         var tool =
-            new GraphQLMcpToolFactory(schema)
+            new OperationToolFactory(schema)
                 .CreateTool("get_with_non_nullable_variables", document);
         var mcpTool = tool.Tool;
 
@@ -232,7 +232,7 @@ public sealed class GraphQLMcpToolFactoryTests
 
         // act
         var tool =
-            new GraphQLMcpToolFactory(schema).CreateTool("get_with_defaulted_variables", document);
+            new OperationToolFactory(schema).CreateTool("get_with_defaulted_variables", document);
         var mcpTool = tool.Tool;
 
         // assert
@@ -250,7 +250,7 @@ public sealed class GraphQLMcpToolFactoryTests
 
         // act
         var tool =
-            new GraphQLMcpToolFactory(schema).CreateTool("get_with_complex_variables", document);
+            new OperationToolFactory(schema).CreateTool("get_with_complex_variables", document);
         var mcpTool = tool.Tool;
 
         // assert
@@ -276,7 +276,7 @@ public sealed class GraphQLMcpToolFactoryTests
 
         // act
         var tool =
-            new GraphQLMcpToolFactory(schema)
+            new OperationToolFactory(schema)
                 .CreateTool("get_with_variable_min_max_values", document);
 
         // assert
@@ -306,7 +306,7 @@ public sealed class GraphQLMcpToolFactoryTests
 
         // act
         var tool =
-            new GraphQLMcpToolFactory(schema).CreateTool("get_with_interface_type", document);
+            new OperationToolFactory(schema).CreateTool("get_with_interface_type", document);
 
         // assert
         tool.Tool.OutputSchema.MatchSnapshot(extension: ".json");
@@ -333,7 +333,7 @@ public sealed class GraphQLMcpToolFactoryTests
             """);
 
         // act
-        var tool = new GraphQLMcpToolFactory(schema).CreateTool("get_with_union_type", document);
+        var tool = new OperationToolFactory(schema).CreateTool("get_with_union_type", document);
 
         // assert
         tool.Tool.OutputSchema.MatchSnapshot(extension: ".json");
@@ -389,7 +389,7 @@ public sealed class GraphQLMcpToolFactoryTests
 
         // act
         var tool =
-            new GraphQLMcpToolFactory(schema).CreateTool("get_with_skip_and_include", document);
+            new OperationToolFactory(schema).CreateTool("get_with_skip_and_include", document);
 
         // assert
         tool.Tool.OutputSchema.MatchSnapshot(extension: ".json");
@@ -408,7 +408,7 @@ public sealed class GraphQLMcpToolFactoryTests
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
 
         // act
-        var tool = new GraphQLMcpToolFactory(schema).CreateTool("", document);
+        var tool = new OperationToolFactory(schema).CreateTool("", document);
 
         // assert
         Assert.Equal(destructiveHint, tool.Tool.Annotations?.DestructiveHint);
@@ -452,7 +452,7 @@ public sealed class GraphQLMcpToolFactoryTests
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
 
         // act
-        var tool = new GraphQLMcpToolFactory(schema).CreateTool("", document);
+        var tool = new OperationToolFactory(schema).CreateTool("", document);
 
         // assert
         Assert.Equal(destructiveHint, tool.Tool.Annotations?.DestructiveHint);
@@ -487,7 +487,7 @@ public sealed class GraphQLMcpToolFactoryTests
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
 
         // act
-        var tool = new GraphQLMcpToolFactory(schema).CreateTool("", document);
+        var tool = new OperationToolFactory(schema).CreateTool("", document);
 
         // assert
         Assert.Equal(destructiveHint, tool.Tool.Annotations?.DestructiveHint);
@@ -506,7 +506,7 @@ public sealed class GraphQLMcpToolFactoryTests
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
 
         // act
-        var tool = new GraphQLMcpToolFactory(schema).CreateTool("", document);
+        var tool = new OperationToolFactory(schema).CreateTool("", document);
 
         // assert
         Assert.Equal(idempotentHint, tool.Tool.Annotations?.IdempotentHint);
@@ -550,7 +550,7 @@ public sealed class GraphQLMcpToolFactoryTests
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
 
         // act
-        var tool = new GraphQLMcpToolFactory(schema).CreateTool("", document);
+        var tool = new OperationToolFactory(schema).CreateTool("", document);
 
         // assert
         Assert.Equal(idempotentHint, tool.Tool.Annotations?.IdempotentHint);
@@ -585,7 +585,7 @@ public sealed class GraphQLMcpToolFactoryTests
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
 
         // act
-        var tool = new GraphQLMcpToolFactory(schema).CreateTool("", document);
+        var tool = new OperationToolFactory(schema).CreateTool("", document);
 
         // assert
         Assert.Equal(idempotentHint, tool.Tool.Annotations?.IdempotentHint);
@@ -607,7 +607,7 @@ public sealed class GraphQLMcpToolFactoryTests
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
 
         // act
-        var tool = new GraphQLMcpToolFactory(schema).CreateTool("", document);
+        var tool = new OperationToolFactory(schema).CreateTool("", document);
 
         // assert
         Assert.Equal(openWorldHint, tool.Tool.Annotations?.OpenWorldHint);
@@ -668,7 +668,7 @@ public sealed class GraphQLMcpToolFactoryTests
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
 
         // act
-        var tool = new GraphQLMcpToolFactory(schema).CreateTool("", document);
+        var tool = new OperationToolFactory(schema).CreateTool("", document);
 
         // assert
         Assert.Equal(openWorldHint, tool.Tool.Annotations?.OpenWorldHint);
@@ -723,7 +723,7 @@ public sealed class GraphQLMcpToolFactoryTests
         var document = Utf8GraphQLParser.Parse(File.ReadAllText($"__resources__/{fileName}"));
 
         // act
-        var tool = new GraphQLMcpToolFactory(schema).CreateTool("", document);
+        var tool = new OperationToolFactory(schema).CreateTool("", document);
 
         // assert
         Assert.Equal(openWorldHint, tool.Tool.Annotations?.OpenWorldHint);
@@ -739,7 +739,7 @@ public sealed class GraphQLMcpToolFactoryTests
                 File.ReadAllText("__resources__/AnnotationsWithFragment.graphql"));
 
         // act
-        var tool = new GraphQLMcpToolFactory(schema).CreateTool("", document);
+        var tool = new OperationToolFactory(schema).CreateTool("", document);
         var mcpTool = tool.Tool;
 
         // assert

@@ -10,9 +10,9 @@ using static HotChocolate.ModelContextProtocol.WellKnownDirectiveNames;
 
 namespace HotChocolate.ModelContextProtocol.Factories;
 
-internal sealed class GraphQLMcpToolFactory(ISchemaDefinition schema)
+internal sealed class OperationToolFactory(ISchemaDefinition schema)
 {
-    public GraphQLMcpTool CreateTool(string name, DocumentNode document)
+    public OperationTool CreateTool(string name, DocumentNode document)
     {
         var operationNode = document.Definitions.OfType<OperationDefinitionNode>().Single();
         var mcpToolDirective = operationNode.GetMcpToolDirective();
@@ -44,7 +44,7 @@ internal sealed class GraphQLMcpToolFactory(ISchemaDefinition schema)
             }
         };
 
-        return new GraphQLMcpTool(operation, tool);
+        return new OperationTool(operation, tool);
     }
 
     private JsonSchema CreateInputSchema(OperationDefinitionNode operation)

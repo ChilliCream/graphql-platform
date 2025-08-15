@@ -1,6 +1,6 @@
 namespace HotChocolate.ModelContextProtocol.Storage;
 
-public enum McpToolStorageEventType
+public enum OperationToolStorageEventType
 {
     Added,
     Modified,

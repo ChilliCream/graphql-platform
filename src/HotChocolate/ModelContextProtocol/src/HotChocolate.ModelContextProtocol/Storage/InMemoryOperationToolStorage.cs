@@ -6,13 +6,13 @@ using HotChocolate.ModelContextProtocol.Extensions;
 
 namespace HotChocolate.ModelContextProtocol.Storage;
 
-public sealed class InMemoryMcpToolStorage : IMcpToolStorage
+public sealed class InMemoryOperationToolStorage : IOperationToolStorage
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly Dictionary<string, McpTool> _tools = [];
+    private readonly Dictionary<string, OperationToolDefinition> _tools = [];
     private ImmutableList<ObserverSession> _sessions = [];
 
-    public IDisposable Subscribe(IObserver<McpToolStorageEventArgs> observer)
+    public IDisposable Subscribe(IObserver<OperationToolStorageEventArgs> observer)
     {
         _semaphore.Wait();
 
@@ -28,7 +28,7 @@ public sealed class InMemoryMcpToolStorage : IMcpToolStorage
         }
     }
 
-    public async IAsyncEnumerable<McpTool> GetToolsAsync(
+    public async IAsyncEnumerable<OperationToolDefinition> GetToolsAsync(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         await _semaphore.WaitAsync(cancellationToken);
@@ -68,20 +68,20 @@ public sealed class InMemoryMcpToolStorage : IMcpToolStorage
         ArgumentException.ThrowIfNullOrEmpty(name);
         ArgumentNullException.ThrowIfNull(document);
 
-        McpToolStorageEventType type;
+        OperationToolStorageEventType type;
         await _semaphore.WaitAsync(cancellationToken);
 
         try
         {
-            var tool = new McpTool(name, document);
+            var tool = new OperationToolDefinition(name, document);
             if (_tools.TryAdd(name, tool))
             {
-                type = McpToolStorageEventType.Added;
+                type = OperationToolStorageEventType.Added;
             }
             else
             {
                 _tools[name] = tool;
-                type = McpToolStorageEventType.Modified;
+                type = OperationToolStorageEventType.Modified;
             }
         }
         finally
@@ -92,10 +92,10 @@ public sealed class InMemoryMcpToolStorage : IMcpToolStorage
         NotifySubscribers(name, document, type);
     }
 
-    private void NotifySubscribers(string name, DocumentNode? document, McpToolStorageEventType type)
+    private void NotifySubscribers(string name, DocumentNode? document, OperationToolStorageEventType type)
     {
         var sessions = _sessions;
-        var eventArgs = new McpToolStorageEventArgs(name, type, document);
+        var eventArgs = new OperationToolStorageEventArgs(name, type, document);
 
         foreach (var session in sessions)
         {
@@ -104,13 +104,13 @@ public sealed class InMemoryMcpToolStorage : IMcpToolStorage
     }
 
     private sealed class ObserverSession(
-        InMemoryMcpToolStorage storage,
-        IObserver<McpToolStorageEventArgs> observer)
+        InMemoryOperationToolStorage storage,
+        IObserver<OperationToolStorageEventArgs> observer)
         : IDisposable
     {
         private bool _disposed;
 
-        public void Notify(McpToolStorageEventArgs eventArgs)
+        public void Notify(OperationToolStorageEventArgs eventArgs)
         {
             observer.OnNext(eventArgs);
         }

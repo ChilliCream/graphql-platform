@@ -10,7 +10,7 @@ internal static class OperationDefinitionNodeExtensions
     public static McpToolDirective? GetMcpToolDirective(this OperationDefinitionNode operationNode)
     {
         var mcpToolDirectiveNode =
-            operationNode.Directives.SingleOrDefault(d => d.Name.Value == McpTool);
+            operationNode.Directives.SingleOrDefault(d => d.Name.Value == WellKnownDirectiveNames.McpTool);
 
         return mcpToolDirectiveNode is null
             ? null

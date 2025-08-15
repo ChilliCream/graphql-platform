@@ -7,9 +7,8 @@ internal static class InputFieldExtensions
 {
     public static JsonSchema ToJsonSchema(this InputField inputField)
     {
-        var graphQLType = inputField.Type;
-        var schemaBuilder =
-            graphQLType.ToJsonSchemaBuilder(isOneOf: inputField.DeclaringType.IsOneOf);
+        var type = inputField.Type;
+        var schemaBuilder = type.ToJsonSchemaBuilder(isOneOf: inputField.DeclaringType.IsOneOf);
 
         // Description.
         if (inputField.Description is not null)
@@ -20,7 +19,7 @@ internal static class InputFieldExtensions
         // Default value.
         if (inputField.DefaultValue is not null)
         {
-            schemaBuilder.Default(inputField.DefaultValue.ToJsonNode(graphQLType));
+            schemaBuilder.Default(inputField.DefaultValue.ToJsonNode(type));
         }
 
         return schemaBuilder.Build();

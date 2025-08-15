@@ -9,24 +9,24 @@ using static ModelContextProtocol.Protocol.NotificationMethods;
 
 namespace HotChocolate.ModelContextProtocol.Registries;
 
-internal sealed class GraphQLMcpToolStorageObserver : IDisposable
+internal sealed class ToolStorageObserver : IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly CancellationTokenSource _cts = new();
     private readonly CancellationToken _ct;
-    private readonly GraphQLMcpToolRegistry _registry;
-    private readonly GraphQLMcpToolFactory _toolFactory;
+    private readonly ToolRegistry _registry;
+    private readonly OperationToolFactory _toolFactory;
     private readonly StreamableHttpHandler _httpHandler;
-    private readonly IMcpToolStorage _storage;
+    private readonly IOperationToolStorage _storage;
     private IDisposable? _subscription;
-    private ImmutableDictionary<string, GraphQLMcpTool> _tools = ImmutableDictionary<string, GraphQLMcpTool>.Empty;
+    private ImmutableDictionary<string, OperationTool> _tools = ImmutableDictionary<string, OperationTool>.Empty;
     private bool _disposed;
 
-    public GraphQLMcpToolStorageObserver(
-        GraphQLMcpToolRegistry registry,
-        GraphQLMcpToolFactory toolFactory,
+    public ToolStorageObserver(
+        ToolRegistry registry,
+        OperationToolFactory toolFactory,
         StreamableHttpHandler httpHandler,
-        IMcpToolStorage storage)
+        IOperationToolStorage storage)
     {
         _registry = registry;
         _toolFactory = toolFactory;
@@ -53,7 +53,7 @@ internal sealed class GraphQLMcpToolStorageObserver : IDisposable
 
         try
         {
-            var tools = ImmutableDictionary.CreateBuilder<string, GraphQLMcpTool>();
+            var tools = ImmutableDictionary.CreateBuilder<string, OperationTool>();
 
             await foreach (var tool in _storage.GetToolsAsync(cancellationToken))
             {
@@ -69,7 +69,7 @@ internal sealed class GraphQLMcpToolStorageObserver : IDisposable
         }
     }
 
-    private void ProcessBatch(IList<McpToolStorageEventArgs> eventArgs)
+    private void ProcessBatch(IList<OperationToolStorageEventArgs> eventArgs)
     {
         _semaphore.Wait(_ct);
 
@@ -79,13 +79,13 @@ internal sealed class GraphQLMcpToolStorageObserver : IDisposable
             {
                 switch (eventArg.Type)
                 {
-                    case McpToolStorageEventType.Added:
-                    case McpToolStorageEventType.Modified:
+                    case OperationToolStorageEventType.Added:
+                    case OperationToolStorageEventType.Modified:
                         var tool = _toolFactory.CreateTool(eventArg.Name, eventArg.Document!);
                         _tools = _tools.SetItem(eventArg.Name, tool);
                         break;
 
-                    case McpToolStorageEventType.Removed:
+                    case OperationToolStorageEventType.Removed:
                         _tools = _tools.Remove(eventArg.Name);
                         break;
 

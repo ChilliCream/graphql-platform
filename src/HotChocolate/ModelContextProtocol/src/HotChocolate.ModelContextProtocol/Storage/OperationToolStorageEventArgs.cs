@@ -2,7 +2,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.ModelContextProtocol.Storage;
 
-public record McpToolStorageEventArgs(
+public record OperationToolStorageEventArgs(
     string Name,
-    McpToolStorageEventType Type,
+    OperationToolStorageEventType Type,
     DocumentNode? Document = null);

@@ -3,7 +3,6 @@ using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.ModelContextProtocol.Registries;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -17,7 +16,7 @@ internal static class CallToolHandler
         RequestContext<CallToolRequestParams> context,
         CancellationToken cancellationToken)
     {
-        var registry = context.Services!.GetRequiredService<GraphQLMcpToolRegistry>();
+        var registry = context.Services!.GetRequiredService<ToolRegistry>();
 
         if (!registry.TryGetTool(context.Params!.Name, out var tool))
         {
@@ -35,8 +34,7 @@ internal static class CallToolHandler
         }
 
         var requestExecutor = context.Services!.GetRequiredService<IRequestExecutor>();
-        var arguments =
-            context.Params?.Arguments ?? Enumerable.Empty<KeyValuePair<string, JsonElement>>();
+        var arguments = context.Params?.Arguments ?? Enumerable.Empty<KeyValuePair<string, JsonElement>>();
 
         Dictionary<string, object?> variableValues = [];
         using var buffer = new PooledArrayWriter();
