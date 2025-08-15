@@ -1,5 +1,4 @@
 using HotChocolate.Language;
-using HotChocolate.ModelContextProtocol.Directives;
 
 namespace HotChocolate.ModelContextProtocol.Storage;
 

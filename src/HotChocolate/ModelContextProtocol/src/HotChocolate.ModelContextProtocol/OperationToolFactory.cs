@@ -8,7 +8,7 @@ using ModelContextProtocol.Protocol;
 using static HotChocolate.ModelContextProtocol.WellKnownArgumentNames;
 using static HotChocolate.ModelContextProtocol.WellKnownDirectiveNames;
 
-namespace HotChocolate.ModelContextProtocol.Factories;
+namespace HotChocolate.ModelContextProtocol;
 
 internal sealed class OperationToolFactory(ISchemaDefinition schema)
 {

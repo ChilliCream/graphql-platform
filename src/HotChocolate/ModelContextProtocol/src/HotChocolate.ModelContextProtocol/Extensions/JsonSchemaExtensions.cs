@@ -1,5 +1,4 @@
 using System.Text.Json;
-using HotChocolate.ModelContextProtocol.JsonSerializerContexts;
 using Json.Schema;
 
 namespace HotChocolate.ModelContextProtocol.Extensions;

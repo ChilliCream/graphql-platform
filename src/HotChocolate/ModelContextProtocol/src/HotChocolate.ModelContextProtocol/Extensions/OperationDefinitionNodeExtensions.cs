@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.ModelContextProtocol.Directives;
-using static HotChocolate.ModelContextProtocol.WellKnownDirectiveNames;
 
 namespace HotChocolate.ModelContextProtocol.Extensions;
 

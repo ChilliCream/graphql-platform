@@ -1,9 +1,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.ModelContextProtocol.Factories;
 using HotChocolate.ModelContextProtocol.Handlers;
 using HotChocolate.ModelContextProtocol.Proxies;
-using HotChocolate.ModelContextProtocol.Registries;
 using HotChocolate.ModelContextProtocol.Storage;
 using HotChocolate.ModelContextProtocol.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -78,6 +76,7 @@ public static class RequestExecutorBuilderExtensions
                                 .ConfigureAwait(false));
             });
 
+        // TODO: MST we need to make sure that this directive is hidden in the introspection
         builder.AddDirectiveType<McpToolAnnotationsDirectiveType>();
 
         builder.ConfigureOnRequestExecutorCreatedAsync(

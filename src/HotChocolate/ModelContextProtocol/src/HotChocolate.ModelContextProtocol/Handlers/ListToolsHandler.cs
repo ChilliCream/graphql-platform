@@ -1,4 +1,3 @@
-using HotChocolate.ModelContextProtocol.Registries;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;

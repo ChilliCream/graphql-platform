@@ -1,13 +1,12 @@
 using System.Collections.Immutable;
 using System.Reactive.Linq;
-using HotChocolate.ModelContextProtocol.Factories;
 using HotChocolate.ModelContextProtocol.Storage;
 using HotChocolate.Utilities;
 using ModelContextProtocol;
 using ModelContextProtocol.AspNetCore;
 using static ModelContextProtocol.Protocol.NotificationMethods;
 
-namespace HotChocolate.ModelContextProtocol.Registries;
+namespace HotChocolate.ModelContextProtocol;
 
 internal sealed class ToolStorageObserver : IDisposable
 {
@@ -101,8 +100,10 @@ internal sealed class ToolStorageObserver : IDisposable
             _semaphore.Release();
         }
 
-        var server = _httpHandler.Sessions.Values.FirstOrDefault()?.Server;
-        server?.SendNotificationAsync(ToolListChangedNotification, cancellationToken: _ct).FireAndForget();
+        foreach (var session in _httpHandler.Sessions.Values)
+        {
+            session?.Server?.SendNotificationAsync(ToolListChangedNotification, cancellationToken: _ct).FireAndForget();
+        }
     }
 
     public void Dispose()
