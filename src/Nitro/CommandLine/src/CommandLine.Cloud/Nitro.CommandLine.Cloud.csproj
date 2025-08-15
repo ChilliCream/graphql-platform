@@ -2,6 +2,7 @@
   <PropertyGroup>
     <RootNamespace>ChilliCream.Nitro.CommandLine.Cloud</RootNamespace>
     <AssemblyName>ChilliCream.Nitro.CommandLine.Cloud</AssemblyName>
+    <PackageId>ChilliCream.Nitro.CommandLine.Cloud</PackageId>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
 

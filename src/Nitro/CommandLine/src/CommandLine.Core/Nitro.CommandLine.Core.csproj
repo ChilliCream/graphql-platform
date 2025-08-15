@@ -3,6 +3,7 @@
   <PropertyGroup>
     <RootNamespace>ChilliCream.Nitro.CommandLine</RootNamespace>
     <AssemblyName>ChilliCream.Nitro.CommandLine.Core</AssemblyName>
+    <PackageId>ChilliCream.Nitro.CommandLine.Core</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
