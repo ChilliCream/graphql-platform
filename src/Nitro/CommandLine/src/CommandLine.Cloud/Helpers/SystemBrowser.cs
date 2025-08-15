@@ -7,9 +7,9 @@ using Duende.IdentityModel.OidcClient.Browser;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using static ChilliCream.Nitro.CLI.OidcConfiguration;
+using static ChilliCream.Nitro.CommandLine.Cloud.OidcConfiguration;
 
-namespace ChilliCream.Nitro.CLI.Helpers;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Helpers;
 
 internal class SystemBrowser(int? port = null, string? path = null) : IBrowser
 {

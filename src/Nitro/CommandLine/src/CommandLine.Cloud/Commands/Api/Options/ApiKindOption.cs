@@ -1,6 +1,6 @@
-using ChilliCream.Nitro.CLI.Option;
+using ChilliCream.Nitro.CommandLine.Cloud.Option;
 
-namespace ChilliCream.Nitro.CLI.Commands.Api.Options;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Api.Options;
 
 internal sealed class ApiKindOption : Option<string>
 {

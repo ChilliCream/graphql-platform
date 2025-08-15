@@ -1,14 +1,13 @@
 using System.IdentityModel.Tokens.Jwt;
-using ChilliCream.Nitro.CLI.Auth;
-using ChilliCream.Nitro.CLI.Exceptions;
-using ChilliCream.Nitro.CLI.Helpers;
+using ChilliCream.Nitro.CommandLine.Cloud.Auth;
+using ChilliCream.Nitro.CommandLine.Cloud.Helpers;
 using Duende.IdentityModel.Client;
 using Duende.IdentityModel.OidcClient;
 using Duende.IdentityModel.OidcClient.Browser;
 using Duende.IdentityModel.OidcClient.Results;
-using static ChilliCream.Nitro.CLI.WellKnownClaims;
+using static ChilliCream.Nitro.CommandLine.Cloud.WellKnownClaims;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal class SessionService : ISessionService
 {

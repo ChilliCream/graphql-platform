@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion;
+namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
 
 /// <summary>
 /// Defines constants that are used in the fusion graph package.

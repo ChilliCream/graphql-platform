@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CLI.Commands.Mock;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Mock;
 
 internal sealed class MockCommand : Command
 {
@@ -6,6 +6,8 @@ internal sealed class MockCommand : Command
     {
         Description = "Create, Update and Delete Mocks";
         IsHidden = true;
+
+        this.AddNitroCloudDefaultOptions();
 
         AddCommand(new CreateMockCommand());
         AddCommand(new ListMockCommand());

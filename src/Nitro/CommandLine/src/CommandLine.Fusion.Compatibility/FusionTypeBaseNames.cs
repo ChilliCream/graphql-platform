@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion;
+namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
 
 /// <summary>
 /// The base type names for the fusion gateway.

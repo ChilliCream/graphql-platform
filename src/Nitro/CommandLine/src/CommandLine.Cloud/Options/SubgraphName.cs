@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CLI.Option;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Option;
 
 internal class SubgraphNameOption : Option<string>
 {

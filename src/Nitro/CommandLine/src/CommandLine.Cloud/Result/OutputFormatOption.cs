@@ -1,6 +1,6 @@
-using ChilliCream.Nitro.CLI.Option;
+using ChilliCream.Nitro.CommandLine.Cloud.Option;
 
-namespace ChilliCream.Nitro.CLI.Results;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Results;
 
 internal sealed class OutputFormatOption : Option<OutputFormat?>
 {

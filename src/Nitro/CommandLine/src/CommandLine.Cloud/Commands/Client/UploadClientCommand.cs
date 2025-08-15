@@ -1,12 +1,11 @@
-using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Exceptions;
-using ChilliCream.Nitro.CLI.Helpers;
-using ChilliCream.Nitro.CLI.Option;
-using ChilliCream.Nitro.CLI.Option.Binders;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Helpers;
+using ChilliCream.Nitro.CommandLine.Cloud.Option;
+using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 using StrawberryShake;
 using Command = System.CommandLine.Command;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal sealed class UploadClientCommand : Command
 {

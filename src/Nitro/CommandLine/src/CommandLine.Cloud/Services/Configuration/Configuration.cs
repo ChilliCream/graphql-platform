@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization.Metadata;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal interface IConfigurationFile
 {

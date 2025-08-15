@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization.Metadata;
-using ChilliCream.Nitro.CLI.Auth;
+using ChilliCream.Nitro.CommandLine.Cloud.Auth;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal class Session(
     string sessionId,

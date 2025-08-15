@@ -1,7 +1,7 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CLI.Option;
+using ChilliCream.Nitro.CommandLine.Cloud.Option;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal static class InvocationContextExtensions
 {

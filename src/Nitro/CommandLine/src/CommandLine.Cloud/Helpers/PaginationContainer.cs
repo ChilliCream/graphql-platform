@@ -1,10 +1,9 @@
-using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Exceptions;
-using ChilliCream.Nitro.CLI.Helpers;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Helpers;
 using StrawberryShake;
-using static ChilliCream.Nitro.CLI.ThrowHelper;
+using static ChilliCream.Nitro.CommandLine.Cloud.ThrowHelper;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal static class PaginationContainer
 {

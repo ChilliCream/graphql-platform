@@ -9,7 +9,7 @@ using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
 using static HotChocolate.Fusion.Properties.CommandLineResources;
 
-namespace HotChocolate.Fusion.Commands;
+namespace HotChocolate.Fusion.CommandLine;
 
 internal sealed class ComposeCommand : Command
 {

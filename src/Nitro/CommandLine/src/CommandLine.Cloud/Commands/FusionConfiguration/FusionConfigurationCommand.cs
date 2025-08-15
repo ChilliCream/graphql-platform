@@ -1,10 +1,12 @@
-namespace ChilliCream.Nitro.CLI.Commands.FusionConfiguration;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.FusionConfiguration;
 
 internal sealed class FusionConfigurationCommand : Command
 {
     public FusionConfigurationCommand() : base("fusion-configuration")
     {
         Description = "Manage fusion configurations";
+
+        this.AddNitroCloudDefaultOptions();
 
         AddCommand(new FusionConfigurationPublishCommand());
         AddCommand(new FusionConfigurationDownloadCommand());
