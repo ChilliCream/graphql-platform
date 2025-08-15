@@ -152,7 +152,7 @@ internal static class TypeExtensions
                 // The following types are serialized as strings:
                 // URL, UUID, ByteArray, DateTime, Date, TimeSpan, LocalDate, LocalDateTime,
                 // LocalTime.
-                // FIXME: Treating all unknown scalar types as strings is a temporary solution.
+                // TODO: Treating all unknown scalar types as strings is a temporary solution.
                 _ => SchemaValueType.String
             },
             UnionType => SchemaValueType.Object,

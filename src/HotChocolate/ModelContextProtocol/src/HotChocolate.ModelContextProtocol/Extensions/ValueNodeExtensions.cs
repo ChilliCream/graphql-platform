@@ -19,7 +19,7 @@ internal static class ValueNodeExtensions
             {
                 DecimalType => JsonValue.Create(floatValueNode.ToDecimal()),
                 FloatType => JsonValue.Create(floatValueNode.ToDouble()),
-                // FIXME: Treating all unknown scalar types as strings is a temporary solution.
+                // TODO: Treating all unknown scalar types as strings is a temporary solution.
                 _ => JsonValue.Create(floatValueNode.Value)
             },
             IntValueNode intValueNode => nullableType switch
@@ -30,7 +30,7 @@ internal static class ValueNodeExtensions
                 IntType => JsonValue.Create(intValueNode.ToInt32()),
                 LongType => JsonValue.Create(intValueNode.ToInt64()),
                 ShortType => JsonValue.Create(intValueNode.ToInt16()),
-                // FIXME: Treating all unknown scalar types as strings is a temporary solution.
+                // TODO: Treating all unknown scalar types as strings is a temporary solution.
                 _ => JsonValue.Create(intValueNode.Value)
             },
             ListValueNode listValueNode => listValueNode.ToJsonNode(nullableType),
