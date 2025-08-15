@@ -11,7 +11,7 @@ namespace HotChocolate.Types;
 public class TimeSpanType
     : ScalarType<TimeSpan, StringValueNode>
 {
-    private readonly TimeSpanFormat _format;
+    public TimeSpanFormat Format { get; }
 
     public TimeSpanType(
         TimeSpanFormat format = TimeSpanFormat.Iso8601,
@@ -27,7 +27,7 @@ public class TimeSpanType
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {
-        _format = format;
+        Format = format;
         Description = description;
     }
 
@@ -39,7 +39,7 @@ public class TimeSpanType
 
     protected override TimeSpan ParseLiteral(StringValueNode valueSyntax)
     {
-        if (TryDeserializeFromString(valueSyntax.Value, _format, out var value)
+        if (TryDeserializeFromString(valueSyntax.Value, Format, out var value)
             && value != null)
         {
             return value.Value;
@@ -52,7 +52,7 @@ public class TimeSpanType
 
     protected override StringValueNode ParseValue(TimeSpan runtimeValue)
     {
-        return _format == TimeSpanFormat.Iso8601
+        return Format == TimeSpanFormat.Iso8601
             ? new StringValueNode(XmlConvert.ToString(runtimeValue))
             : new StringValueNode(runtimeValue.ToString("c"));
     }
@@ -65,7 +65,7 @@ public class TimeSpanType
         }
 
         if (resultValue is string s
-            && TryDeserializeFromString(s, _format, out var timeSpan))
+            && TryDeserializeFromString(s, Format, out var timeSpan))
         {
             return ParseValue(timeSpan);
         }
@@ -90,7 +90,7 @@ public class TimeSpanType
 
         if (runtimeValue is TimeSpan timeSpan)
         {
-            if (_format == TimeSpanFormat.Iso8601)
+            if (Format == TimeSpanFormat.Iso8601)
             {
                 resultValue = XmlConvert.ToString(timeSpan);
                 return true;
@@ -113,7 +113,7 @@ public class TimeSpanType
         }
 
         if (resultValue is string s
-            && TryDeserializeFromString(s, _format, out var timeSpan))
+            && TryDeserializeFromString(s, Format, out var timeSpan))
         {
             runtimeValue = timeSpan;
             return true;

@@ -13,6 +13,8 @@
     <PackageVersion Include="Basic.Reference.Assemblies.Net100" Version="1.8.2" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.8.2" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net90" Version="1.8.2" />
+    <PackageVersion Include="CaseConverter" Version="2.0.1" />
+    <PackageVersion Include="ChilliCream.ModelContextProtocol.AspNetCore" Version="0.0.1-p.2" />
     <PackageVersion Include="ChilliCream.Nitro.App" Version="$(NitroVersion)" />
     <PackageVersion Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
@@ -21,6 +23,7 @@
     <PackageVersion Include="Glob" Version="1.1.9" />
     <PackageVersion Include="IdentityModel" Version="4.1.1" />
     <PackageVersion Include="JsonPointer.Net" Version="5.0.0" />
+    <PackageVersion Include="JsonSchema.Net" Version="7.3.4" />
     <PackageVersion Include="Marten" Version="7.33.0" />
     <PackageVersion Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
     <PackageVersion Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
