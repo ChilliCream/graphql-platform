@@ -2,5 +2,5 @@ namespace HotChocolate.ModelContextProtocol.Storage;
 
 public interface IOperationToolStorage : IObservable<OperationToolStorageEventArgs>
 {
-    IAsyncEnumerable<OperationToolDefinition> GetToolsAsync(CancellationToken cancellationToken = default);
+    ValueTask<IEnumerable<OperationToolDefinition>> GetToolsAsync(CancellationToken cancellationToken = default);
 }

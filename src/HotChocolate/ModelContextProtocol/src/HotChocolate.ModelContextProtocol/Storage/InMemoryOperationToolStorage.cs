@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using CaseConverter;
 using HotChocolate.Language;
 using HotChocolate.ModelContextProtocol.Extensions;
@@ -28,17 +27,14 @@ public sealed class InMemoryOperationToolStorage : IOperationToolStorage
         }
     }
 
-    public async IAsyncEnumerable<OperationToolDefinition> GetToolsAsync(
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async ValueTask<IEnumerable<OperationToolDefinition>> GetToolsAsync(
+        CancellationToken cancellationToken = default)
     {
         await _semaphore.WaitAsync(cancellationToken);
 
         try
         {
-            foreach (var tool in _tools.Values)
-            {
-                yield return tool;
-            }
+            return _tools.Values.ToList();
         }
         finally
         {

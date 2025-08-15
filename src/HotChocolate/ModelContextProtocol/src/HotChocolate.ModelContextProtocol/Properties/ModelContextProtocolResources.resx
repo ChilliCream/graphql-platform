@@ -42,4 +42,7 @@
   <data name="ValueNodeExtensions_UnableToConvertValueNodeToJsonNode" xml:space="preserve">
     <value>Unable to convert value node of type '{0}' to JSON node.</value>
   </data>
+  <data name="OperationToolDefinition_OperationToolDefinition_An_operation_tool_document_must_have_exactly_one_operation_definition_" xml:space="preserve">
+    <value>An operation tool document must have exactly one operation definition.</value>
+  </data>
 </root>
