@@ -1,5 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.CommandLine\HotChocolate.Fusion.CommandLine.csproj" />
+    <ProjectReference Include="..\CommandLine.Cloud\Nitro.CommandLine.Cloud.csproj" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <PackAsTool>true</PackAsTool>

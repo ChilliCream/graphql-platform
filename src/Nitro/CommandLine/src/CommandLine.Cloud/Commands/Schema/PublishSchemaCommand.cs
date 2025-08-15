@@ -2,7 +2,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Exceptions;
 using ChilliCream.Nitro.CLI.Option;
 using ChilliCream.Nitro.CLI.Option.Binders;
 using StrawberryShake;

@@ -1,0 +1,53 @@
+using System.CommandLine.Builder;
+using ChilliCream.Nitro.CLI.Commands.Api;
+using ChilliCream.Nitro.CLI.Commands.ApiKey;
+using ChilliCream.Nitro.CLI.Commands.Environment;
+using ChilliCream.Nitro.CLI.Commands.FusionConfiguration;
+using ChilliCream.Nitro.CLI.Commands.Mock;
+using ChilliCream.Nitro.CLI.Commands.PersonalAccessToken;
+using ChilliCream.Nitro.CLI.Commands.Stages;
+using ChilliCream.Nitro.CLI.Option;
+using ChilliCream.Nitro.CLI.Option.Binders;
+using ChilliCream.Nitro.CLI.Results;
+
+namespace ChilliCream.Nitro.CLI;
+
+public static class NitroCloudCommandExtensions
+{
+    public static CommandLineBuilder AddNitroCloud(this CommandLineBuilder builder)
+    {
+        builder.Command.AddNitroCloudCommands();
+
+        // TODO: Check that these don't interfere
+        builder.AddService<IConfigurationService, ConfigurationService>()
+            .AddSession()
+            .AddResult()
+            .AddApiClient()
+            .AddSessionMiddleware()
+            .AddResultMiddleware();
+
+        return builder;
+    }
+
+    private static void AddNitroCloudCommands(this Command command)
+    {
+        // TODO: These might need to be inlined into all commands as to not appear globally
+        command.AddGlobalOption(Opt<CloudUrlOption>.Instance);
+        command.AddGlobalOption(Opt<ApiKeyOption>.Instance);
+        command.AddGlobalOption(Opt<OutputFormatOption>.Instance);
+
+        command.AddCommand(new ApiKeyCommand());
+        command.AddCommand(new ApiCommand());
+        command.AddCommand(new ClientCommand());
+        command.AddCommand(new EnvironmentCommand());
+        command.AddCommand(new LaunchCommand());
+        command.AddCommand(new LoginCommand());
+        command.AddCommand(new LogoutCommand());
+        command.AddCommand(new SchemaCommand());
+        command.AddCommand(new FusionConfigurationCommand());
+        command.AddCommand(new StageCommand());
+        command.AddCommand(new WorkspaceCommand());
+        command.AddCommand(new MockCommand());
+        command.AddCommand(new PersonalAccessTokenCommand());
+    }
+}

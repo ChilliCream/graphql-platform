@@ -11,6 +11,6 @@ internal static class Constants
 internal static class OidcConfiguration
 {
     public const string IdentityUrl = "https://identity.chillicream.com";
-    public const string ClientId = "<<NITRO_IDENTITY_CLIENT_ID>>"; // TODO Replace with actual client id during build
-    public const string Scopes = "<<NITRO_IDENTITY_SCOPES>>"; // TODO Replace with actual client id during build
+    public const string ClientId = "<<NITRO_IDENTITY_CLIENT_ID>>"; // TODO: Replace with actual client id during build
+    public const string Scopes = "<<NITRO_IDENTITY_SCOPES>>"; // TODO: Replace with actual client id during build
 }

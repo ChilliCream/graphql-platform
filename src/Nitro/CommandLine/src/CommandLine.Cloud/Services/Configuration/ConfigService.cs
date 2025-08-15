@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using ChilliCream.Nitro.CLI.Exceptions;
 using static System.Environment.SpecialFolder;
 using static System.Environment.SpecialFolderOption;
 

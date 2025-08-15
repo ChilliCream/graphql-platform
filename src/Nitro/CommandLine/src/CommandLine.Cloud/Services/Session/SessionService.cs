@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using ChilliCream.Nitro.CLI.Auth;
-using ChilliCream.Nitro.CLI.Exceptions;
 using ChilliCream.Nitro.CLI.Helpers;
 using Duende.IdentityModel.Client;
 using Duende.IdentityModel.OidcClient;

@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Exceptions;
 using ChilliCream.Nitro.CLI.Helpers;
 using StrawberryShake;
 using static ChilliCream.Nitro.CLI.ThrowHelper;

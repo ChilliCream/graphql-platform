@@ -1,9 +1,8 @@
-using ChilliCream.Nitro.CLI.Exceptions;
 using Spectre.Console.Rendering;
 
-namespace ChilliCream.Nitro.CLI.Results;
+namespace ChilliCream.Nitro;
 
-internal sealed class ExtendedConsole(IAnsiConsole console) : IExtendedConsole
+public sealed class ExtendedConsole(IAnsiConsole console) : IExtendedConsole
 {
     public bool IsInteractive { get; set; } = true;
 

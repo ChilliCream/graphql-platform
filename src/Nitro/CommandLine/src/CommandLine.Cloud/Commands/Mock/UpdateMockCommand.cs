@@ -1,7 +1,6 @@
 using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CLI.Client;
 using ChilliCream.Nitro.CLI.Commands.Mock.Component;
-using ChilliCream.Nitro.CLI.Exceptions;
 using ChilliCream.Nitro.CLI.Helpers;
 using ChilliCream.Nitro.CLI.Option;
 using ChilliCream.Nitro.CLI.Option.Binders;

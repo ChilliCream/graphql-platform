@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CLI.Exceptions;
-
 namespace ChilliCream.Nitro.CLI;
 
 internal static class ThrowHelper

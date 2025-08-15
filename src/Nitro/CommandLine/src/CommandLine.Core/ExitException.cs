@@ -1,6 +1,6 @@
-namespace ChilliCream.Nitro.CLI.Exceptions;
+namespace ChilliCream.Nitro;
 
-internal sealed class ExitException : Exception
+public sealed class ExitException : Exception
 {
     public ExitException() : base("")
     {
