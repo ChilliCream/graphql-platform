@@ -2,7 +2,9 @@
 
   <PropertyGroup>
     <RootNamespace>Nitro.CommandLine.Fusion</RootNamespace>
-    <AssemblyName>Nitro.CommandLine.Fusion</AssemblyName>
+    <AssemblyName>Nitro.CommandLine.Fusion.Compatibility</AssemblyName>
+    <PackageName>Nitro.CommandLine.Fusion.Compatibility</PackageName>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
