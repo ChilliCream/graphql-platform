@@ -13,11 +13,13 @@ partial class Build
     AbsolutePath AllSolutionFile => SourceDirectory / "All.sln";
     AbsolutePath TestSolutionFile => TemporaryDirectory / "Build.Test.sln";
     AbsolutePath PackSolutionFile => SourceDirectory / "Build.Pack.sln";
+    AbsolutePath NitroSolutionFile => SourceDirectory / "Nitro" / "CommandLine" / "Nitro.CommandLine.slnx";
 
     AbsolutePath OutputDirectory => RootDirectory / "output";
     AbsolutePath TestResultDirectory => OutputDirectory / "test-results";
     AbsolutePath CoverageReportDirectory => OutputDirectory / "coverage-reports";
     AbsolutePath PackageDirectory => OutputDirectory / "packages";
+    AbsolutePath NitroPackageDirectory => OutputDirectory / "nitro-packages";
     AbsolutePath HotChocolateDirectoryBuildProps => SourceDirectory / "HotChocolate" / "Directory.Build.Props";
     AbsolutePath TemplatesNuSpec => RootDirectory / "templates" / "HotChocolate.Templates.nuspec";
     AbsolutePath EmptyServer12Proj => RootDirectory / "templates" / "server" / "HotChocolate.Template.Server.csproj";

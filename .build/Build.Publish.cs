@@ -56,8 +56,12 @@ partial class Build
             DotNetBuildSonarSolution(
                 PackSolutionFile,
                 include: file =>
-                    !Path.GetFileNameWithoutExtension(file)
-                        .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(file);
+
+                    return !fileName.EndsWith("tests", StringComparison.OrdinalIgnoreCase) &&
+                        !fileName.StartsWith("nitro.", StringComparison.OrdinalIgnoreCase);
+                });
 
             DotNetRestore(c => c.SetProjectFile(PackSolutionFile));
 
@@ -86,6 +90,41 @@ partial class Build
                 .SetOutputDirectory(PackageDirectory)
                 .SetConfiguration(Configuration)
                 .CombineWith(t => t.SetTargetPath(TemplatesNuSpec)));
+        });
+
+    Target PackNitro => _ => _
+        .Produces(PackageDirectory / "*.nupkg")
+        .Produces(PackageDirectory / "*.snupkg")
+        .Requires(() => Configuration.Equals(Release))
+        .Executes(() =>
+        {
+            DotNetRestore(c => c.SetProjectFile(NitroSolutionFile));
+
+            DotNetBuild(c => c
+                .SetNoRestore(false)
+                .SetProjectFile(NitroSolutionFile)
+                .SetConfiguration(Configuration)
+                .SetInformationalVersion(SemVersion)
+                .SetFileVersion(Version)
+                .SetAssemblyVersion(Version)
+                .SetVersion(SemVersion)
+                .SetProperty("NitroApiClientId", "123")
+                .SetProperty("NitroIdentityClientId", "456")
+                .SetProperty("NitroIdentityScopes", "789"));
+
+            DotNetPack(c => c
+                .SetNoRestore(true)
+                .SetNoBuild(true)
+                .SetProject(NitroSolutionFile)
+                .SetConfiguration(Configuration)
+                .SetOutputDirectory(NitroPackageDirectory)
+                .SetInformationalVersion(SemVersion)
+                .SetFileVersion(Version)
+                .SetAssemblyVersion(Version)
+                .SetVersion(SemVersion)
+                .SetProperty("NitroApiClientId", "123")
+                .SetProperty("NitroIdentityClientId", "456")
+                .SetProperty("NitroIdentityScopes", "789"));
         });
 
     Target Publish => _ => _
