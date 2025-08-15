@@ -17,6 +17,9 @@
     <None Update="$(MSBuildProjectDirectory)\__resources__\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="__resources__\GetSingleFieldWithAlias.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

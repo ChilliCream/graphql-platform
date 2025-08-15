@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.ModelContextProtocol.Directives;
-using static HotChocolate.ModelContextProtocol.WellKnownDirectiveNames;
 
 namespace HotChocolate.ModelContextProtocol.Extensions;
 
@@ -10,7 +9,7 @@ internal static class OperationDefinitionNodeExtensions
     public static McpToolDirective? GetMcpToolDirective(this OperationDefinitionNode operationNode)
     {
         var mcpToolDirectiveNode =
-            operationNode.Directives.SingleOrDefault(d => d.Name.Value == McpTool);
+            operationNode.Directives.FirstOrDefault(d => d.Name.Value == WellKnownDirectiveNames.McpTool);
 
         return mcpToolDirectiveNode is null
             ? null

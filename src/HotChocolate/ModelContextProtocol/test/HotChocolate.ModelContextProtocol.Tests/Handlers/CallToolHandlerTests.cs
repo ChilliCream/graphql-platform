@@ -29,11 +29,11 @@ public sealed class CallToolHandlerTests
     private static async Task<RequestContext<CallToolRequestParams>> CreateRequestContextAsync(
         string toolName)
     {
-        var storage = new InMemoryMcpToolStorage();
-        await storage.AddToolAsync(
+        var storage = new InMemoryOperationToolStorage();
+        await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql")));
-        var services = new ServiceCollection().AddSingleton<IMcpToolStorage>(storage);
+        var services = new ServiceCollection().AddSingleton<IOperationToolStorage>(storage);
         services.AddLogging();
         services
             .AddGraphQL()

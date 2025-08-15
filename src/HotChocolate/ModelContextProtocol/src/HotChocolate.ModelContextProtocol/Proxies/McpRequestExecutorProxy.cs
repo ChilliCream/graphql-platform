@@ -70,7 +70,3 @@ internal sealed class McpRequestExecutorProxy(
         firstMcpSession?.Server?.SendNotificationAsync(ToolListChangedNotification).FireAndForget();
     }
 }
-
-internal sealed record McpExecutorSession(
-    StreamableHttpHandler StreamableHttpHandler,
-    SseHandler SseHandler);

@@ -1,9 +1,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.ModelContextProtocol.Factories;
 using HotChocolate.ModelContextProtocol.Handlers;
 using HotChocolate.ModelContextProtocol.Proxies;
-using HotChocolate.ModelContextProtocol.Registries;
 using HotChocolate.ModelContextProtocol.Storage;
 using HotChocolate.ModelContextProtocol.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,20 +38,20 @@ public static class RequestExecutorBuilderExtensions
             services =>
             {
                 services
-                    .TryAddSingleton<IMcpToolStorage, InMemoryMcpToolStorage>();
+                    .TryAddSingleton<IOperationToolStorage, InMemoryOperationToolStorage>();
 
                 services
                     .TryAddSingleton(
-                        static sp => new GraphQLMcpToolFactory(
+                        static sp => new OperationToolFactory(
                             sp.GetRequiredService<ISchemaDefinition>()));
 
                 services
                     .TryAddSingleton(
-                        static sp => new GraphQLMcpToolStorageObserver(
-                            sp.GetRequiredService<GraphQLMcpToolRegistry>(),
-                            sp.GetRequiredService<GraphQLMcpToolFactory>(),
+                        static sp => new ToolStorageObserver(
+                            sp.GetRequiredService<ToolRegistry>(),
+                            sp.GetRequiredService<OperationToolFactory>(),
                             sp.GetRequiredService<StreamableHttpHandler>(),
-                            sp.GetRequiredService<IMcpToolStorage>()));
+                            sp.GetRequiredService<IOperationToolStorage>()));
 
                 services
                     .AddSingleton(
@@ -64,7 +62,7 @@ public static class RequestExecutorBuilderExtensions
                         static sp => sp
                             .GetRootServiceProvider()
                             .GetRequiredService<ILoggerFactory>())
-                    .AddSingleton<GraphQLMcpToolRegistry>();
+                    .AddSingleton<ToolRegistry>();
 
                 services
                     .AddMcpServer(o => o.Capabilities?.Tools?.ListChanged = true)
@@ -78,13 +76,14 @@ public static class RequestExecutorBuilderExtensions
                                 .ConfigureAwait(false));
             });
 
+        // TODO: MST we need to make sure that this directive is hidden in the introspection
         builder.AddDirectiveType<McpToolAnnotationsDirectiveType>();
 
         builder.ConfigureOnRequestExecutorCreatedAsync(
             async (executor, cancellationToken) =>
             {
                 var schema = executor.Schema;
-                var storageObserver = schema.Services.GetRequiredService<GraphQLMcpToolStorageObserver>();
+                var storageObserver = schema.Services.GetRequiredService<ToolStorageObserver>();
                 await storageObserver.StartAsync(cancellationToken);
             });
 
@@ -93,7 +92,7 @@ public static class RequestExecutorBuilderExtensions
 
     public static IRequestExecutorBuilder AddMcpToolStorageStorage(
         this IRequestExecutorBuilder builder,
-        IMcpToolStorage storage)
+        IOperationToolStorage storage)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(storage);

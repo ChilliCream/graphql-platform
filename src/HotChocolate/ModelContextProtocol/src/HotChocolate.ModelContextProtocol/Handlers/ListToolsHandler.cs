@@ -1,4 +1,3 @@
-using HotChocolate.ModelContextProtocol.Registries;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -9,7 +8,7 @@ internal static class ListToolsHandler
 {
     public static ListToolsResult Handle(RequestContext<ListToolsRequestParams> context)
     {
-        var registry = context.Services!.GetRequiredService<GraphQLMcpToolRegistry>();
+        var registry = context.Services!.GetRequiredService<ToolRegistry>();
 
         return new ListToolsResult
         {
