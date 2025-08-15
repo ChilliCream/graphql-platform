@@ -1,7 +1,7 @@
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 
-namespace ChilliCream.Nitro;
+namespace ChilliCream.Nitro.CommandLine;
 
 public static class CommandLineBuilderExtensions
 {

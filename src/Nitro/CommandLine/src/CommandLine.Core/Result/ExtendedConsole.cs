@@ -1,6 +1,6 @@
 using Spectre.Console.Rendering;
 
-namespace ChilliCream.Nitro;
+namespace ChilliCream.Nitro.CommandLine;
 
 public sealed class ExtendedConsole(IAnsiConsole console) : IExtendedConsole
 {

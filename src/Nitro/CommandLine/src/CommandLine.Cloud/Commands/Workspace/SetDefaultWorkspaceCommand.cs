@@ -1,6 +1,7 @@
 using ChilliCream.Nitro.CLI.Auth;
 using ChilliCream.Nitro.CLI.Client;
 using ChilliCream.Nitro.CLI.Option.Binders;
+using ChilliCream.Nitro.CommandLine;
 using static ChilliCream.Nitro.CLI.ThrowHelper;
 
 namespace ChilliCream.Nitro.CLI;

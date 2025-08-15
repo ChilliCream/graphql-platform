@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro;
+namespace ChilliCream.Nitro.CommandLine;
 
 public static class ExitCodes
 {

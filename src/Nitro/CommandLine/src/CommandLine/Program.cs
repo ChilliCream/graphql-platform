@@ -1,6 +1,5 @@
-﻿using System.CommandLine.Builder;
+using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
-using ChilliCream.Nitro;
 using ChilliCream.Nitro.CLI;
 using ChilliCream.Nitro.CommandLine;
 using HotChocolate.Fusion.CommandLine;

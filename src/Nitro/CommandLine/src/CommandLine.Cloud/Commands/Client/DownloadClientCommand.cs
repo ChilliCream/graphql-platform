@@ -3,6 +3,7 @@ using System.Text.Json;
 using ChilliCream.Nitro.CLI.Client;
 using ChilliCream.Nitro.CLI.Option;
 using ChilliCream.Nitro.CLI.Option.Binders;
+using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CLI.Commands.Client;
 

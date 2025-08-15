@@ -6,6 +6,7 @@ using ChilliCream.Nitro.CLI.Client;
 using ChilliCream.Nitro.CLI.Helpers;
 using ChilliCream.Nitro.CLI.Option;
 using ChilliCream.Nitro.CLI.Option.Binders;
+using ChilliCream.Nitro.CommandLine;
 using StrawberryShake;
 using static ChilliCream.Nitro.CLI.ThrowHelper;
 

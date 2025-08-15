@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CLI.Client;
+using ChilliCream.Nitro.CommandLine;
 using StrawberryShake;
 
 namespace ChilliCream.Nitro.CLI;

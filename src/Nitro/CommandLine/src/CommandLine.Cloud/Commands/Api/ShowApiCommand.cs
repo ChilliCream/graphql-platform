@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CLI.Helpers;
 using ChilliCream.Nitro.CLI.Option;
 using ChilliCream.Nitro.CLI.Option.Binders;
 using ChilliCream.Nitro.CLI.Results;
+using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CLI;
 

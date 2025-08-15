@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal static class Glyphs
 {

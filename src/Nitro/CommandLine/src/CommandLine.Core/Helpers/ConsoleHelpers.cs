@@ -1,16 +1,9 @@
 using System.CommandLine.Invocation;
 
-namespace ChilliCream.Nitro;
+namespace ChilliCream.Nitro.CommandLine;
 
 public static class ConsoleHelpers
 {
-    public static void PrintHeader(this IAnsiConsole console)
-    {
-        console.Write(new FigletText("Nitro").Color(Color.Red).Centered());
-        console.Write(new Rule("[white]By ChilliCream[/]"));
-        console.WriteLine();
-    }
-
     public static void Log(this IAnsiConsole console, string str)
     {
         console.MarkupLine("[grey]LOG: [/]" + str);
@@ -58,13 +51,6 @@ public static class ConsoleHelpers
         console.MarkupLine(
             $"{Glyphs.QuestionMark.Space()}[bold]{question}[/]: [darkseagreen4]{result}[/]");
     }
-
-    public static async Task<string> AskAsync(
-        this IAnsiConsole console,
-        string question,
-        CancellationToken cancellationToken)
-        => await new TextPrompt<string>(question.AsQuestion())
-            .ShowAsync(console, cancellationToken);
 
     public static async Task<string> OptionOrAskAsync(
         this InvocationContext context,
