@@ -31,16 +31,11 @@ jobs:
 
       - name: 📦 Build NuGet Packages
         run: |
-          ./build.sh pack \
-            --SemVersion ${{ env.GIT_TAG }} \
-            --Configuration Release \
-            --NitroApiClientId "$NITRO_API_CLIENT_ID" \
-            --NitroIdentityClientId "$NITRO_IDENTITY_CLIENT_ID" \
-            --NitroIdentityScopes "$NITRO_IDENTITY_SCOPES"
+          ./build.sh pack --SemVersion ${{ env.GIT_TAG }} --Configuration Release
         env:
-          NITRO_API_CLIENT_ID: ${{ secrets.NITRO_API_CLIENT_ID }}
-          NITRO_IDENTITY_CLIENT_ID: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
-          NITRO_IDENTITY_SCOPES: ${{ secrets.NITRO_IDENTITY_SCOPES }}
+          NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
+          NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
+          NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
 
       # TODO: Publish persisted operations of Nitro.Cloud
 
