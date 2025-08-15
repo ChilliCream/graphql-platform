@@ -10,7 +10,7 @@ using static HotChocolate.ModelContextProtocol.WellKnownDirectiveNames;
 
 namespace HotChocolate.ModelContextProtocol.Factories;
 
-internal sealed class GraphQLMcpToolFactory(ISchemaDefinition graphQLSchema)
+internal sealed class GraphQLMcpToolFactory(ISchemaDefinition schema)
 {
     public GraphQLMcpTool CreateTool(string name, DocumentNode document)
     {
@@ -23,8 +23,8 @@ internal sealed class GraphQLMcpToolFactory(ISchemaDefinition graphQLSchema)
                     operationNode.Name!.Value,
                     document,
                     operationNode,
-                    (ObjectType)graphQLSchema.GetOperationType(operationNode.Operation),
-                    graphQLSchema));
+                    (ObjectType)schema.GetOperationType(operationNode.Operation),
+                    schema));
         var inputSchema = CreateInputSchema(operationNode);
         var outputSchema = CreateOutputSchema(operation);
 
@@ -54,7 +54,7 @@ internal sealed class GraphQLMcpToolFactory(ISchemaDefinition graphQLSchema)
 
         foreach (var variableNode in operation.VariableDefinitions)
         {
-            var graphQLType = variableNode.Type.GetGraphQLType(graphQLSchema);
+            var graphQLType = variableNode.Type.GetGraphQLType(schema);
             var propertyBuilder = graphQLType.ToJsonSchemaBuilder();
             var variableName = variableNode.Variable.Name.Value;
 
