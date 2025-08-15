@@ -9,6 +9,7 @@ operation:
     hash: 123
 nodes:
   - id: 1
+    type: Operation
     schema: PRODUCTS
     operation: >-
       query Op_123_1 {

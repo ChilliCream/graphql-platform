@@ -12,19 +12,80 @@ public class BookStoreTests : FusionTestBase
     {
         // arrange
         using var server1 = CreateSourceSchema(
-            "A",
+            "a",
             b => b.AddQueryType<SourceSchema1.Query>());
 
         using var server2 = CreateSourceSchema(
-            "B",
+            "b",
             b => b.AddQueryType<SourceSchema2.Query>());
 
         // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
-            ("B", server2),
+            ("a", server1),
+            ("b", server2),
         ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+              bookById(id: 1) {
+                id
+                title
+              }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Fetch_Book_From_SourceSchema1_With_Settings()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1),
+                ("b", server2),
+            ],
+            schemaSettings:
+            """
+            {
+              "sourceSchemas": {
+                "a": {
+                  "transports": {
+                    "http": {
+                      "clientName": "a",
+                      "url": "http://localhost:5000/graphql"
+                    }
+                  }
+                },
+                "b": {
+                  "transports": {
+                    "http": {
+                      "clientName": "b",
+                      "url": "http://localhost:5000/graphql"
+                    }
+                  }
+                }
+              }
+            }
+            """);
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());

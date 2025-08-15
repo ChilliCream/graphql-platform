@@ -27,6 +27,7 @@
     <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Pipeline\HotChocolate.PersistedOperations.Pipeline.csproj" />
     <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
     <ProjectReference Include="..\Fusion.Execution.Types\HotChocolate.Fusion.Execution.Types.csproj" />
+    <ProjectReference Include="..\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
     <ProjectReference Include="..\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
   </ItemGroup>
 

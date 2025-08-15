@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
@@ -143,10 +144,11 @@ public sealed partial class OperationPlanner
                         []);
             }
 
-            if (s_forwardVariableRewriter.Rewrite(step.Definition, forwardVariableContext) is OperationDefinitionNode rewritten
-                && !ReferenceEquals(rewritten, step.Definition))
+            var rewrittenNode = s_forwardVariableRewriter.Rewrite(step.Definition, forwardVariableContext);
+            if (rewrittenNode is OperationDefinitionNode rewrittenOperationNode
+                && !ReferenceEquals(rewrittenOperationNode, step.Definition))
             {
-                return step with { Definition = rewritten };
+                return step with { Definition = rewrittenOperationNode };
             }
 
             return step;
@@ -190,7 +192,8 @@ public sealed partial class OperationPlanner
                     step.SchemaName,
                     step.Target,
                     step.Source,
-                    requirements);
+                    requirements,
+                    GetResponseNamesFromPath(step.Definition, step.Source));
 
                 completedNodes.Add(step.Id, operationNode);
             }
@@ -237,6 +240,92 @@ public sealed partial class OperationPlanner
                 node.AddDependency(dependencyNode);
             }
         }
+    }
+
+    private static string[] GetResponseNamesFromPath(
+        OperationDefinitionNode operationDefinition,
+        SelectionPath path)
+    {
+        var selectionSet = GetSelectionSetNodeFromPath(operationDefinition, path);
+
+        if (selectionSet is null)
+        {
+            return [];
+        }
+
+        var responseNames = new List<string>();
+
+        var stack = new Stack<ISelectionNode>(selectionSet.Selections);
+
+        while (stack.TryPop(out var selection))
+        {
+            switch (selection)
+            {
+                case FieldNode fieldNode:
+                    responseNames.Add(fieldNode.Alias?.Value ?? fieldNode.Name.Value);
+                    break;
+
+                case InlineFragmentNode inlineFragmentNode:
+                    foreach (var child in inlineFragmentNode.SelectionSet.Selections)
+                    {
+                        stack.Push(child);
+                    }
+                    break;
+            }
+        }
+
+        return [..responseNames];
+    }
+
+    private static SelectionSetNode? GetSelectionSetNodeFromPath(
+        OperationDefinitionNode operationDefinition,
+        SelectionPath path)
+    {
+        var current = operationDefinition.SelectionSet;
+
+        if (path.IsRoot)
+        {
+            return current;
+        }
+
+        for (var i = path.Segments.Length - 1; i >= 0; i--)
+        {
+            var segment = path.Segments[i];
+
+            switch (segment.Kind)
+            {
+                case SelectionPathSegmentKind.InlineFragment:
+                {
+                    var selection = current.Selections
+                        .OfType<InlineFragmentNode>()
+                        .FirstOrDefault(s => s.TypeCondition?.Name.Value == segment.Name);
+
+                    if (selection is null)
+                    {
+                        return null;
+                    }
+
+                    current = selection.SelectionSet;
+                    break;
+                }
+                case SelectionPathSegmentKind.Field:
+                {
+                    var selection = current.Selections
+                        .OfType<FieldNode>()
+                        .FirstOrDefault(s => s.Alias?.Value == segment.Name || s.Name.Value == segment.Name);
+
+                    if (selection?.SelectionSet is null)
+                    {
+                        return null;
+                    }
+
+                    current = selection.SelectionSet;
+                    break;
+                }
+            }
+        }
+
+        return current;
     }
 }
 

@@ -22,7 +22,8 @@ operation:
     hash: 123
 nodes:
   - id: 1
-    schema: SUBGRAPH_1
+    type: Operation
+    schema: a
     operation: >-
       query testQuery_123_1 {
         users {
@@ -41,7 +42,8 @@ nodes:
         }
       }
   - id: 2
-    schema: SUBGRAPH_3
+    type: Operation
+    schema: c
     operation: >-
       query testQuery_123_2(
         $__fusion_1_id: ID!
@@ -58,7 +60,8 @@ nodes:
     dependencies:
       - id: 1
   - id: 3
-    schema: SUBGRAPH_2
+    type: Operation
+    schema: b
     operation: >-
       query testQuery_123_3(
         $__fusion_2_id: ID!

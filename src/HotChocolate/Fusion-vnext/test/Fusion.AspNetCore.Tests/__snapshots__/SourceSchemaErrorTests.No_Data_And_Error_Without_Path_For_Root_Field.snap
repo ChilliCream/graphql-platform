@@ -1,0 +1,37 @@
+{
+  "data": {
+    "productById": null
+  },
+  "errors": [
+    {
+      "message": "A global error"
+    },
+    {
+      "message": "Unexpected Execution Error",
+      "path": [
+        "productById"
+      ]
+    }
+  ],
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "operation": {
+          "document": "{\n  productById(id: 1) {\n    name\n  }\n}",
+          "hash": "97fd38fcea394bc6badd7ea22c6de660"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": "query Op_97fd38fc_1 {\n  productById(id: 1) {\n    name\n  }\n}",
+            "responseNames": [
+              "productById"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

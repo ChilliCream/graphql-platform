@@ -100,6 +100,16 @@ public sealed class Selection
         return false;
     }
 
+    public override string ToString()
+    {
+        if (SyntaxNodes[0].Node.Alias is not null)
+        {
+            return $"{ResponseName} : {Field.Name}";
+        }
+
+        return Field.Name;
+    }
+
     internal void Seal(SelectionSet selectionSet)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)

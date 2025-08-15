@@ -13,7 +13,8 @@ operation:
     hash: 123
 nodes:
   - id: 1
-    schema: CATALOG
+    type: Operation
+    schema: a
     operation: >-
       query Op_123_1 {
         products {
@@ -25,7 +26,8 @@ nodes:
         }
       }
   - id: 2
-    schema: REVIEWS
+    type: Operation
+    schema: b
     operation: >-
       query Op_123_2(
         $__fusion_1_id: Int!
