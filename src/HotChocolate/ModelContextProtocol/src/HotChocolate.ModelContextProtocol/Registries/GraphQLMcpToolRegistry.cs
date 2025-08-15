@@ -1,28 +1,30 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.ModelContextProtocol.Registries;
 
 internal sealed class GraphQLMcpToolRegistry
 {
-    private readonly Dictionary<string, GraphQLMcpTool> _tools = [];
+    private ImmutableDictionary<string, GraphQLMcpTool> _tools = ImmutableDictionary<string, GraphQLMcpTool>.Empty;
+    private ImmutableArray<Func<Task>> _callbacks = [];
 
-    public void Add(GraphQLMcpTool tool)
+    public void OnToolsUpdate(Func<Task> callback)
+        => _callbacks = _callbacks.Add(callback);
+
+    public void UpdateTools(ImmutableDictionary<string, GraphQLMcpTool> tools)
     {
-        _tools[tool.Name] = tool;
+        _tools = tools;
+
+        foreach (var callback in _callbacks)
+        {
+            callback().FireAndForget();
+        }
     }
 
-    public Dictionary<string, GraphQLMcpTool> GetTools()
-    {
-        return _tools;
-    }
+    public IEnumerable<GraphQLMcpTool> GetTools()
+        => _tools.Values.OrderBy(t => t.Name);
 
     public bool TryGetTool(string name, [NotNullWhen(true)] out GraphQLMcpTool? tool)
-    {
-        return _tools.TryGetValue(name, out tool);
-    }
-
-    public void Clear()
-    {
-        _tools.Clear();
-    }
+        => _tools.TryGetValue(name, out tool);
 }

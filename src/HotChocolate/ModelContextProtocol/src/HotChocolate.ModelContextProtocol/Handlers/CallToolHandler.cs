@@ -19,7 +19,7 @@ internal static class CallToolHandler
     {
         var registry = context.Services!.GetRequiredService<GraphQLMcpToolRegistry>();
 
-        if (!registry.TryGetTool(context.Params!.Name, out var graphQLMcpTool))
+        if (!registry.TryGetTool(context.Params!.Name, out var tool))
         {
             return new CallToolResult
             {
@@ -50,7 +50,7 @@ internal static class CallToolHandler
         var result =
             await requestExecutor.ExecuteAsync(
                 b => b
-                    .SetDocument(graphQLMcpTool.Operation.Document)
+                    .SetDocument(tool.Operation.Document)
                     .SetVariableValues(variableValues),
                 cancellationToken)
                 .ConfigureAwait(false);

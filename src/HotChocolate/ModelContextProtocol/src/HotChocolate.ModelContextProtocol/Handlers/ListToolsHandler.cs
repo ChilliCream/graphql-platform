@@ -13,7 +13,7 @@ internal static class ListToolsHandler
 
         return new ListToolsResult
         {
-            Tools = registry.GetTools().Values.Select(t => t.McpTool).ToList()
+            Tools = registry.GetTools().Select(t => t.Tool).ToList()
         };
     }
 }
