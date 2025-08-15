@@ -3,7 +3,7 @@ name: 🚀 Release
 on:
   push:
     tags:
-      - '16.*'
+      - "16.*"
 
 jobs:
   release:
@@ -31,7 +31,18 @@ jobs:
 
       - name: 📦 Build NuGet Packages
         run: |
-          ./build.sh pack --SemVersion ${{ env.GIT_TAG }} --Configuration Release
+          ./build.sh pack \
+            --SemVersion ${{ env.GIT_TAG }} \
+            --Configuration Release \
+            --NitroApiClientId "$NITRO_API_CLIENT_ID" \
+            --NitroIdentityClientId "$NITRO_IDENTITY_CLIENT_ID" \
+            --NitroIdentityScopes "$NITRO_IDENTITY_SCOPES"
+        env:
+          NITRO_API_CLIENT_ID: ${{ secrets.NITRO_API_CLIENT_ID }}
+          NITRO_IDENTITY_CLIENT_ID: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
+          NITRO_IDENTITY_SCOPES: ${{ secrets.NITRO_IDENTITY_SCOPES }}
+
+      # TODO: Publish persisted operations of Nitro.Cloud
 
       - name: 🚀 Push Packages to NuGet
         run: |

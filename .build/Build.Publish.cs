@@ -72,7 +72,10 @@ partial class Build
                 .SetInformationalVersion(SemVersion)
                 .SetFileVersion(Version)
                 .SetAssemblyVersion(Version)
-                .SetVersion(SemVersion));
+                .SetVersion(SemVersion)
+                .SetProperty("NitroApiClientId", NitroApiClientId)
+                .SetProperty("NitroIdentityClientId", NitroIdentityClientId)
+                .SetProperty("NitroIdentityScopes", NitroIdentityScopes));
 
             DotNetPack(c => c
                 .SetNoRestore(true)
