@@ -194,7 +194,7 @@ internal static class TreeNodeExtensions
 
             _ => node.AddNodeWithSeverity(
                 SchemaChangeSeverity.Dangerous,
-                "Unknown change. Try to update the version of ChilliCream.Nitro.CommandLine.Cloud")
+                "Unknown change. Try to update the version of ChilliCream.Nitro.CommandLine")
         };
     }
 

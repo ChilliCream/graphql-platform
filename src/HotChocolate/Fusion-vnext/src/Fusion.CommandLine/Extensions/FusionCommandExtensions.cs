@@ -7,12 +7,12 @@ public static class FusionCommandExtensions
 {
     public static CommandLineBuilder AddFusion(this CommandLineBuilder builder)
     {
-        builder.Command.AddFusion();
+        builder.Command.AddFusionCommands();
 
         return builder;
     }
 
-    private static Command AddFusion(this Command command)
+    private static Command AddFusionCommands(this Command command)
     {
         command.AddCommand(new ComposeCommand());
 
