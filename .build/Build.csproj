@@ -13,7 +13,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nuke.Common" Version="6.3.0" />
+    <PackageReference Include="Nuke.Common" Version="9.0.4" />
+    <PackageReference Include="Nuke.Tooling.Generator" Version="9.0.4" />
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
     <PackageReference Include="Semver" Version="2.3.0" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" Version="9.0.0-*" />
