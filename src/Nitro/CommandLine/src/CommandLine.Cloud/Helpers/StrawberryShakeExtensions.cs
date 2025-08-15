@@ -1,7 +1,7 @@
 using StrawberryShake;
-using static ChilliCream.Nitro.CLI.ThrowHelper;
+using static ChilliCream.Nitro.CommandLine.Cloud.ThrowHelper;
 
-namespace ChilliCream.Nitro.CLI.Helpers;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Helpers;
 
 public static class StrawberryShakeExtensions
 {

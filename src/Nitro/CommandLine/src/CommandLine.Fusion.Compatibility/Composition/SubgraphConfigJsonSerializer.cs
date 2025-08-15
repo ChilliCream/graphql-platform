@@ -2,7 +2,7 @@ using System.Buffers;
 using System.Text;
 using System.Text.Json;
 
-namespace HotChocolate.Fusion.Composition;
+namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
 
 /// <summary>
 /// Represents the formatter for the core subgraph configuration.

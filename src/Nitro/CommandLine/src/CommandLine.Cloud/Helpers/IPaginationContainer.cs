@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal interface IPaginationContainer<TEdge>
 {

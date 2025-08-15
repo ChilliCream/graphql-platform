@@ -2,15 +2,15 @@ using System.CommandLine.Invocation;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Exceptions;
-using ChilliCream.Nitro.CLI.Helpers;
-using ChilliCream.Nitro.CLI.Option;
-using ChilliCream.Nitro.CLI.Option.Binders;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Helpers;
+using ChilliCream.Nitro.CommandLine.Cloud.Option;
+using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
+using ChilliCream.Nitro.CommandLine;
 using StrawberryShake;
-using static ChilliCream.Nitro.CLI.ThrowHelper;
+using static ChilliCream.Nitro.CommandLine.Cloud.ThrowHelper;
 
-namespace ChilliCream.Nitro.CLI.Commands.FusionConfiguration;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.FusionConfiguration;
 
 internal sealed class FusionConfigurationPublishCommitCommand : Command
 {

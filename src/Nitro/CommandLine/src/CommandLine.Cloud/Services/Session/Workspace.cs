@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CLI.Auth;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Auth;
 
 internal sealed class Workspace(string id, string name)
 {

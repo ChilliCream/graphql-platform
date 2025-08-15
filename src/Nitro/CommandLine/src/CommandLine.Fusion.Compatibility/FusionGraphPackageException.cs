@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion;
+namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
 
 /// <summary>
 /// Represents an exception that is thrown when a fusion graph package is invalid.

@@ -1,6 +1,6 @@
-using ChilliCream.Nitro.CLI.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 public sealed class SelectApiPrompt(IApiClient client, string workspaceId)
 {

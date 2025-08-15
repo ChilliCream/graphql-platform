@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CLI.Commands.Environment;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Environment;
 
 public sealed class EnvironmentNameOption : Option<string>
 {

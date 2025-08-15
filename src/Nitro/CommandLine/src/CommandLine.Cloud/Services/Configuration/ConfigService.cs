@@ -1,10 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using ChilliCream.Nitro.CLI.Exceptions;
+using ChilliCream.Nitro.CommandLine;
 using static System.Environment.SpecialFolder;
 using static System.Environment.SpecialFolderOption;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal class ConfigurationService : IConfigurationService
 {

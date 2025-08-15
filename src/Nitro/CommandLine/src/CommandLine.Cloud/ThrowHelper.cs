@@ -1,6 +1,4 @@
-using ChilliCream.Nitro.CLI.Exceptions;
-
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal static class ThrowHelper
 {

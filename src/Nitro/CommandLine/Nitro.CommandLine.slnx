@@ -15,4 +15,5 @@
   <Folder Name="/src/CommandLine/">
     <Project Path="src/CommandLine/Nitro.CommandLine.csproj" />
   </Folder>
+  <Project Path="../../HotChocolate/Fusion-vnext/src/Fusion.CommandLine/HotChocolate.Fusion.CommandLine.csproj" />
 </Solution>

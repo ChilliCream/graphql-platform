@@ -1,6 +1,6 @@
-using ChilliCream.Nitro.CLI.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
 
-namespace ChilliCream.Nitro.CLI.Commands.Mock.Component;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Mock.Component;
 
 internal sealed class MockSchemaDetailPrompt(IMockSchemaDetailPrompt data)
 {

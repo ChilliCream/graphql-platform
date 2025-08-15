@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace HotChocolate.Fusion.Composition;
+namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
 
 /// <summary>
 /// The runtime representation of subgraph-config.json.

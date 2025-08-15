@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CLI.Option.Binders;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 
 internal sealed class ApiClientConfiguration : IApiClientConfiguration
 {

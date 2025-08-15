@@ -1,11 +1,11 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Helpers;
-using ChilliCream.Nitro.CLI.Option;
-using ChilliCream.Nitro.CLI.Option.Binders;
-using ChilliCream.Nitro.CLI.Results;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Helpers;
+using ChilliCream.Nitro.CommandLine.Cloud.Option;
+using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
+using ChilliCream.Nitro.CommandLine.Cloud.Results;
 
-namespace ChilliCream.Nitro.CLI.Commands.Stages;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Stages;
 
 internal sealed class ListStagesCommand : Command
 {

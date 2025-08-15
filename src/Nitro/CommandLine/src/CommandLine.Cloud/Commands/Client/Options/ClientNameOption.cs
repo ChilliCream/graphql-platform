@@ -1,6 +1,6 @@
-using ChilliCream.Nitro.CLI.Option;
+using ChilliCream.Nitro.CommandLine.Cloud.Option;
 
-namespace ChilliCream.Nitro.CLI.Commands.Client;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Client;
 
 internal sealed class ClientNameOption : Option<string>
 {
