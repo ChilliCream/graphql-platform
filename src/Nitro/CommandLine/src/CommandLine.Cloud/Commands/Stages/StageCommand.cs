@@ -6,6 +6,8 @@ internal sealed class StageCommand : Command
     {
         Description = "Manage stages";
 
+        this.AddNitroCloudDefaultOptions();
+
         AddCommand(new EditStagesCommand());
         AddCommand(new ListStagesCommand());
     }

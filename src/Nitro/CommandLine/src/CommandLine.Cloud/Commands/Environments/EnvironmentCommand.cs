@@ -6,6 +6,8 @@ internal sealed class EnvironmentCommand : Command
     {
         Description = "Use this command to manage environments";
 
+        this.AddNitroCloudDefaultOptions();
+
         AddCommand(new CreateEnvironmentCommand());
         AddCommand(new ListEnvironmentCommand());
         AddCommand(new ShowEnvironmentCommand());

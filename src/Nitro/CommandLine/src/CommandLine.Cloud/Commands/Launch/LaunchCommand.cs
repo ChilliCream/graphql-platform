@@ -9,6 +9,8 @@ internal sealed class LaunchCommand : Command
     {
         Description = "This command launches Nitro in your default browser";
 
+        this.AddNitroCloudDefaultOptions();
+
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<IAnsiConsole>(),

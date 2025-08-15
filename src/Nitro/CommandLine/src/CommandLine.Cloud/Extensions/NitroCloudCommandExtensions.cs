@@ -18,7 +18,6 @@ public static class NitroCloudCommandExtensions
     {
         builder.Command.AddNitroCloudCommands();
 
-        // TODO: Check that these don't interfere
         builder.AddService<IConfigurationService, ConfigurationService>()
             .AddSession()
             .AddResult()
@@ -29,13 +28,8 @@ public static class NitroCloudCommandExtensions
         return builder;
     }
 
-    private static void AddNitroCloudCommands(this Command command)
+    internal static void AddNitroCloudCommands(this Command command)
     {
-        // TODO: These might need to be inlined into all commands as to not appear globally
-        command.AddGlobalOption(Opt<CloudUrlOption>.Instance);
-        command.AddGlobalOption(Opt<ApiKeyOption>.Instance);
-        command.AddGlobalOption(Opt<OutputFormatOption>.Instance);
-
         command.AddCommand(new ApiKeyCommand());
         command.AddCommand(new ApiCommand());
         command.AddCommand(new ClientCommand());
@@ -49,5 +43,12 @@ public static class NitroCloudCommandExtensions
         command.AddCommand(new WorkspaceCommand());
         command.AddCommand(new MockCommand());
         command.AddCommand(new PersonalAccessTokenCommand());
+    }
+
+    internal static void AddNitroCloudDefaultOptions(this Command command)
+    {
+        command.AddOption(Opt<CloudUrlOption>.Instance);
+        command.AddOption(Opt<ApiKeyOption>.Instance);
+        command.AddOption(Opt<OutputFormatOption>.Instance);
     }
 }

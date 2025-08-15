@@ -6,6 +6,8 @@ internal static class Constants
     public const int DefaultTimeoutSec = 60 * 5;
 
     public const string NitroWebUrl = "https://nitro.chillicream.com";
+
+    public const string ApiUrl = "https://api.chillicream.com";
 }
 
 internal static class OidcConfiguration

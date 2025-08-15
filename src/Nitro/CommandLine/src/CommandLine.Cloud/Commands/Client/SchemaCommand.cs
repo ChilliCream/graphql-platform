@@ -8,6 +8,8 @@ internal sealed class ClientCommand : Command
     {
         Description = "Upload, publish and validate clients";
 
+        this.AddNitroCloudDefaultOptions();
+
         AddCommand(new PublishClientCommand());
         AddCommand(new UnpublishClientCommand());
         AddCommand(new ValidateClientCommand());

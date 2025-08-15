@@ -6,6 +6,8 @@ internal sealed class FusionConfigurationCommand : Command
     {
         Description = "Manage fusion configurations";
 
+        this.AddNitroCloudDefaultOptions();
+
         AddCommand(new FusionConfigurationPublishCommand());
         AddCommand(new FusionConfigurationDownloadCommand());
 
