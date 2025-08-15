@@ -54,7 +54,7 @@ internal sealed class ToolStorageObserver : IDisposable
         {
             var tools = ImmutableDictionary.CreateBuilder<string, OperationTool>();
 
-            await foreach (var tool in _storage.GetToolsAsync(cancellationToken))
+            foreach (var tool in await _storage.GetToolsAsync(cancellationToken))
             {
                 tools.Add(tool.Name, _toolFactory.CreateTool(tool.Name, tool.Document));
             }
