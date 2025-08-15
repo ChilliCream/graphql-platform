@@ -20,7 +20,7 @@ public sealed class ComposeCommandTests : IDisposable
     {
         // arrange
         var archiveFileName = CreateTempFile();
-        var builder = new CommandLineBuilder(new FusionRootCommand()).UseDefaults();
+        var builder = GetCommandLineBuilder();
 
         string[] args =
         [
@@ -52,7 +52,7 @@ public sealed class ComposeCommandTests : IDisposable
     {
         // arrange
         var archiveFileName = CreateTempFile();
-        var builder = new CommandLineBuilder(new FusionRootCommand()).UseDefaults();
+        var builder = GetCommandLineBuilder();
         string[] args =
         [
             "compose",
@@ -80,7 +80,7 @@ public sealed class ComposeCommandTests : IDisposable
     public async Task Compose_ValidExample1_FromSpecified_ToFileInCurrentDirectory()
     {
         // arrange
-        var builder = new CommandLineBuilder(new FusionRootCommand()).UseDefaults();
+        var builder = GetCommandLineBuilder();
         var archiveFileName = CreateTempFile();
         string[] args =
         [
@@ -111,7 +111,7 @@ public sealed class ComposeCommandTests : IDisposable
     public async Task Compose_ValidExample1_FromSpecified_ToFileRelativeToCurrentDirectory()
     {
         // arrange
-        var builder = new CommandLineBuilder(new FusionRootCommand()).UseDefaults();
+        var builder = GetCommandLineBuilder();
         var directory = Directory.GetCurrentDirectory();
         string fileName = $"../{Path.GetRandomFileName()}";
         var filePath = Path.Combine(directory, fileName);
@@ -145,7 +145,7 @@ public sealed class ComposeCommandTests : IDisposable
     public async Task Compose_ValidExample1_FromWorkingDirectory_ToFileInWorkingDirectory()
     {
         // arrange
-        var builder = new CommandLineBuilder(new FusionRootCommand()).UseDefaults();
+        var builder = GetCommandLineBuilder();
         const string workingDirectory = "__resources__/valid-example-1";
         string fileName = Path.GetRandomFileName();
         var filePath = Path.Combine(workingDirectory, fileName);
@@ -177,7 +177,7 @@ public sealed class ComposeCommandTests : IDisposable
     public async Task Compose_ValidExample1_FromWorkingDirectory_ToFileRelativeToWorkingDirectory()
     {
         // arrange
-        var builder = new CommandLineBuilder(new FusionRootCommand()).UseDefaults();
+        var builder = GetCommandLineBuilder();
         const string workingDirectory = "__resources__/valid-example-1";
         var fileName = $"../{Path.GetRandomFileName()}";
         var filePath = Path.Combine(workingDirectory, fileName);
@@ -209,7 +209,7 @@ public sealed class ComposeCommandTests : IDisposable
     public async Task Compose_ValidExample1_FromWorkingDirectory_ToFileAtFullyQualifiedPath()
     {
         // arrange
-        var builder = new CommandLineBuilder(new FusionRootCommand()).UseDefaults();
+        var builder = GetCommandLineBuilder();
         const string workingDirectory = "__resources__/valid-example-1";
         var filePath = CreateTempFile();
 
@@ -240,7 +240,7 @@ public sealed class ComposeCommandTests : IDisposable
     public async Task Compose_ValidExample1_FromSpecified_ToFileInNonExistentWorkingDirectory()
     {
         // arrange
-        var builder = new CommandLineBuilder(new FusionRootCommand()).UseDefaults();
+        var builder = GetCommandLineBuilder();
         string[] args =
         [
             "compose",
@@ -267,8 +267,8 @@ public sealed class ComposeCommandTests : IDisposable
     public async Task Compose_ValidExample1_FromSpecified_ToFileInNewDirectory()
     {
         // arrange
+        var builder = GetCommandLineBuilder();
         var archiveFileName = CreateTempFile();
-        var builder = new CommandLineBuilder(new FusionRootCommand()).UseDefaults();
         string[] args =
         [
             "compose",
@@ -292,7 +292,7 @@ public sealed class ComposeCommandTests : IDisposable
     public async Task Compose_FromNonExistentFiles()
     {
         // arrange
-        var builder = new CommandLineBuilder(new FusionRootCommand()).UseDefaults();
+        var builder = GetCommandLineBuilder();
         string[] args =
         [
             "compose",
@@ -318,7 +318,7 @@ public sealed class ComposeCommandTests : IDisposable
     {
         // arrange
         var archiveFileName = CreateTempFile();
-        var builder = new CommandLineBuilder(new FusionRootCommand()).UseDefaults();
+        var builder = GetCommandLineBuilder();
         string[] args =
         [
             "compose",
@@ -343,7 +343,7 @@ public sealed class ComposeCommandTests : IDisposable
     public async Task Compose_InvalidExample1_FromWorkingDirectory_ToStdOutWithWarningsAndErrors()
     {
         // arrange
-        var builder = new CommandLineBuilder(new FusionRootCommand()).UseDefaults();
+        var builder = GetCommandLineBuilder();
         string[] args =
         [
             "compose",
@@ -358,6 +358,13 @@ public sealed class ComposeCommandTests : IDisposable
         // assert
         Assert.Equal(1, exitCode);
         testConsole.Error.ToString()!.ReplaceLineEndings("\n").MatchSnapshot();
+    }
+
+    private static CommandLineBuilder GetCommandLineBuilder()
+    {
+        return new CommandLineBuilder(new FusionRootCommand())
+            .AddFusion()
+            .UseDefaults();
     }
 
     private static async Task<string> ReadSchemaAsync(GatewayConfiguration config)
