@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <PackageReference Include="Nuke.Common" Version="9.0.4" />
-    <PackageReference Include="Nuke.Tooling.Generator" Version="9.0.4" />
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
     <PackageReference Include="Semver" Version="2.3.0" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" Version="9.0.0-*" />
@@ -26,6 +25,7 @@
     <PackageDownload Include="OpenCover" Version="[4.7.1221]" />
     <PackageDownload Include="ReportGenerator" Version="[5.1.20]" />
     <PackageDownload Include="xunit.runner.console" Version="[2.4.2]" />
+    <PackageDownload Include="ChilliCream.Nitro.CLI" Version="[1.2.7]" />
   </ItemGroup>
 
 </Project>
