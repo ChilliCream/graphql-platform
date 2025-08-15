@@ -18,12 +18,13 @@ public static class NitroCloudCommandExtensions
     {
         builder.Command.AddNitroCloudCommands();
 
+        // TODO: Re-add the result stuff once we figured out how to be AOT compliant with it
         builder.AddService<IConfigurationService, ConfigurationService>()
             .AddSession()
-            .AddResult()
+            // .AddResult()
             .AddApiClient()
-            .AddSessionMiddleware()
-            .AddResultMiddleware();
+            .AddSessionMiddleware();
+            // .AddResultMiddleware();
 
         return builder;
     }
@@ -47,8 +48,9 @@ public static class NitroCloudCommandExtensions
 
     internal static void AddNitroCloudDefaultOptions(this Command command)
     {
-        command.AddOption(Opt<CloudUrlOption>.Instance);
-        command.AddOption(Opt<ApiKeyOption>.Instance);
-        command.AddOption(Opt<OutputFormatOption>.Instance);
+        command.AddGlobalOption(Opt<CloudUrlOption>.Instance);
+        command.AddGlobalOption(Opt<ApiKeyOption>.Instance);
+        // TODO: Re-add once we figured out how to be AOT compliant with it
+        // command.AddGlobalOption(Opt<OutputFormatOption>.Instance);
     }
 }

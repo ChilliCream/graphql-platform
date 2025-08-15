@@ -34,7 +34,7 @@ public static class ConsoleHelpers
 
     public static void Json(this IAnsiConsole console, object obj)
     {
-        // TODO enable for full AOT compliancy
+        // TODO: enable for full AOT compliancy
         // console.Write(new JsonText(
         //     JsonSerializer.Serialize(obj,
         //         new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })));
