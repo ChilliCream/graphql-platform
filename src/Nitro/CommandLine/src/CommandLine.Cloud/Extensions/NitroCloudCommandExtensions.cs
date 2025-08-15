@@ -1,16 +1,16 @@
 using System.CommandLine.Builder;
-using ChilliCream.Nitro.CLI.Commands.Api;
-using ChilliCream.Nitro.CLI.Commands.ApiKey;
-using ChilliCream.Nitro.CLI.Commands.Environment;
-using ChilliCream.Nitro.CLI.Commands.FusionConfiguration;
-using ChilliCream.Nitro.CLI.Commands.Mock;
-using ChilliCream.Nitro.CLI.Commands.PersonalAccessToken;
-using ChilliCream.Nitro.CLI.Commands.Stages;
-using ChilliCream.Nitro.CLI.Option;
-using ChilliCream.Nitro.CLI.Option.Binders;
-using ChilliCream.Nitro.CLI.Results;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.Api;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.ApiKey;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.Environment;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.Mock;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.PersonalAccessToken;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.Stages;
+using ChilliCream.Nitro.CommandLine.Cloud.Option;
+using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
+using ChilliCream.Nitro.CommandLine.Cloud.Results;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 public static class NitroCloudCommandExtensions
 {

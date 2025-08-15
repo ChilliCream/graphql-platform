@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CLI.Commands.FusionConfiguration;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.FusionConfiguration;
 
 internal sealed class FusionConfigurationPublishCommand : Command
 {

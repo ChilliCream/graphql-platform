@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CLI.Commands.Api;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Api;
 
 internal sealed class ApiCommand : Command
 {

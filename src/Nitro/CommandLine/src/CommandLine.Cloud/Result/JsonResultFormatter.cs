@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CLI.Results;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Results;
 
 internal sealed class JsonResultFormatter(IAnsiConsole console) : IResultFormatter
 {

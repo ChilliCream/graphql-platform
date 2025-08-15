@@ -1,11 +1,11 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Option;
-using ChilliCream.Nitro.CLI.Option.Binders;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Option;
+using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 using ChilliCream.Nitro.CommandLine;
 
-namespace ChilliCream.Nitro.CLI.Commands.Client;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Client;
 
 internal sealed class DownloadClientCommand : Command
 {

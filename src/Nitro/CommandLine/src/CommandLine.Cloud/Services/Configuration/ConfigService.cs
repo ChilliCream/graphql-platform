@@ -4,7 +4,7 @@ using ChilliCream.Nitro.CommandLine;
 using static System.Environment.SpecialFolder;
 using static System.Environment.SpecialFolderOption;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal class ConfigurationService : IConfigurationService
 {

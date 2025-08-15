@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CLI.Commands.PersonalAccessToken;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.PersonalAccessToken;
 
 internal sealed class PersonalAccessTokenCommand : Command
 {

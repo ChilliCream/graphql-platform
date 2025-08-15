@@ -1,6 +1,6 @@
 using Spectre.Console.Rendering;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal class SelectableTable<TEdge>
 {

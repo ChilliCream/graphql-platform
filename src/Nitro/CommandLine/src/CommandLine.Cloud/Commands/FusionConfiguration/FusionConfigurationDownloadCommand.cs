@@ -1,10 +1,10 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Option;
-using ChilliCream.Nitro.CLI.Option.Binders;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Option;
+using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 using StrawberryShake;
 
-namespace ChilliCream.Nitro.CLI.Commands.FusionConfiguration;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.FusionConfiguration;
 
 internal sealed class FusionConfigurationDownloadCommand : Command
 {

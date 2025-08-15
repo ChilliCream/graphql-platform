@@ -1,6 +1,6 @@
 using System.CommandLine.Help;
 
-namespace ChilliCream.Nitro.CLI.Results;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Results;
 
 internal abstract class Result;
 

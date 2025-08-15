@@ -1,11 +1,11 @@
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Net.Http.Headers;
-using ChilliCream.Nitro.CLI.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
 using Microsoft.Net.Http.Headers;
 using static System.UriKind;
 
-namespace ChilliCream.Nitro.CLI.Option.Binders;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 
 internal static class ApiClientCommandLineBuilderExtensions
 {

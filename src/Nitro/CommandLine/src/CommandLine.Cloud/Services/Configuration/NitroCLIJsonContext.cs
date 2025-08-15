@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
-using ChilliCream.Nitro.CLI.Commands.Client;
-using ChilliCream.Nitro.CLI.Commands.Stages;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.Stages;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 [JsonSerializable(typeof(Session))]
 [JsonSerializable(typeof(PersistedQueryStreamResult))]

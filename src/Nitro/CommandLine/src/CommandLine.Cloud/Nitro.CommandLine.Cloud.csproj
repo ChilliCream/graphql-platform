@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RootNamespace>Nitro.CommandLine</RootNamespace>
-    <AssemblyName>Nitro.CommandLine.Cloud</AssemblyName>
+    <RootNamespace>ChilliCream.Nitro.CommandLine.Cloud</RootNamespace>
+    <AssemblyName>ChilliCream.Nitro.CommandLine.Cloud</AssemblyName>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
 

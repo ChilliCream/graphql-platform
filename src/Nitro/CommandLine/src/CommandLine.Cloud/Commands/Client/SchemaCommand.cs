@@ -1,6 +1,6 @@
-using ChilliCream.Nitro.CLI.Commands.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.Client;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal sealed class ClientCommand : Command
 {

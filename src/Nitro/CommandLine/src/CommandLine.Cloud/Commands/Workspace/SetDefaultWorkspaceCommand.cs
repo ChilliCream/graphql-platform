@@ -1,10 +1,10 @@
-using ChilliCream.Nitro.CLI.Auth;
-using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Option.Binders;
+using ChilliCream.Nitro.CommandLine.Cloud.Auth;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 using ChilliCream.Nitro.CommandLine;
-using static ChilliCream.Nitro.CLI.ThrowHelper;
+using static ChilliCream.Nitro.CommandLine.Cloud.ThrowHelper;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal sealed class SetDefaultWorkspaceCommand : Command
 {

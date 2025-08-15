@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal sealed class SchemaCommand : Command
 {

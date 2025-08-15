@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CLI.Commands.Stages;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Stages;
 
 internal sealed class StageConfigurationOption : Option<string>
 {

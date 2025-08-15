@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CLI.Commands.Mock;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Mock;
 
 internal sealed class MockCommand : Command
 {
