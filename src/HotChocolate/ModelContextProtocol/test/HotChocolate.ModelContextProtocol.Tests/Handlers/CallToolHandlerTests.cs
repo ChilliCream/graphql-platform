@@ -30,7 +30,7 @@ public sealed class CallToolHandlerTests
         string toolName)
     {
         var storage = new InMemoryOperationToolStorage();
-        await storage.AddToolAsync(
+        await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql")));
         var services = new ServiceCollection().AddSingleton<IOperationToolStorage>(storage);

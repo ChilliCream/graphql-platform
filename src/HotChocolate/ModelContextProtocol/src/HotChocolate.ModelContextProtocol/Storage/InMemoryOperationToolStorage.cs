@@ -1,33 +1,19 @@
-using System.Collections.Immutable;
 using CaseConverter;
 using HotChocolate.Language;
-using HotChocolate.ModelContextProtocol.Extensions;
 
 namespace HotChocolate.ModelContextProtocol.Storage;
 
-public sealed class InMemoryOperationToolStorage : IOperationToolStorage
+/// <summary>
+/// In-memory implementation of <see cref="IOperationToolStorage"/> for testing purposes only.
+/// Provides thread-safe storage with synchronous change notifications.
+/// </summary>
+public sealed class InMemoryOperationToolStorage : OperationToolStorageBase
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly Dictionary<string, OperationToolDefinition> _tools = [];
-    private ImmutableList<ObserverSession> _sessions = [];
 
-    public IDisposable Subscribe(IObserver<OperationToolStorageEventArgs> observer)
-    {
-        _semaphore.Wait();
-
-        try
-        {
-            var session = new ObserverSession(this, observer);
-            _sessions = _sessions.Add(session);
-            return session;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-    }
-
-    public async ValueTask<IEnumerable<OperationToolDefinition>> GetToolsAsync(
+    /// <inheritdoc />
+    public override async ValueTask<IEnumerable<OperationToolDefinition>> GetToolsAsync(
         CancellationToken cancellationToken = default)
     {
         await _semaphore.WaitAsync(cancellationToken);
@@ -42,7 +28,16 @@ public sealed class InMemoryOperationToolStorage : IOperationToolStorage
         }
     }
 
-    public Task AddToolAsync(DocumentNode document, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Adds or updates a tool using the operation name as the tool identifier.
+    /// </summary>
+    /// <param name="document">GraphQL document containing exactly one named operation.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <exception cref="ArgumentException">Thrown when document has no operation definition or operation is unnamed.</exception>
+    public Task AddOrUpdateToolAsync(
+        DocumentNode document,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);
 
@@ -53,13 +48,23 @@ public sealed class InMemoryOperationToolStorage : IOperationToolStorage
             throw new ArgumentException($"Document {document} has no operation definition");
         }
 
-        var toolDirective = operation.GetMcpToolDirective();
-        var name = toolDirective?.Title;
-        name ??= operation.Name?.Value.ToSnakeCase();
-        return AddToolAsync(name!, document, cancellationToken);
+        var name = operation.Name?.Value.ToSnakeCase();
+        return AddOrUpdateToolAsync(name!, document, cancellationToken);
     }
 
-    public async Task AddToolAsync(string name, DocumentNode document, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Adds or updates a tool with the specified name.
+    /// Fires <see cref="OperationToolStorageEventType.Added"/> for new tools or
+    /// <see cref="OperationToolStorageEventType.Modified"/> for existing tools.
+    /// </summary>
+    /// <param name="name">The name of the tool.</param>
+    /// <param name="document">GraphQL document containing the operation definition.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public async Task AddOrUpdateToolAsync(
+        string name,
+        DocumentNode document,
+        CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
         ArgumentNullException.ThrowIfNull(document);
@@ -88,48 +93,34 @@ public sealed class InMemoryOperationToolStorage : IOperationToolStorage
         NotifySubscribers(name, document, type);
     }
 
-    private void NotifySubscribers(string name, DocumentNode? document, OperationToolStorageEventType type)
+    /// <summary>
+    /// Removes a tool from storage.
+    /// Fires <see cref="OperationToolStorageEventType.Removed"/> if the tool existed.
+    /// </summary>
+    /// <param name="name">The name of the tool to remove.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public async Task RemoveToolAsync(
+        string name,
+        CancellationToken cancellationToken = default)
     {
-        var sessions = _sessions;
-        var eventArgs = new OperationToolStorageEventArgs(name, type, document);
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
-        foreach (var session in sessions)
+        await _semaphore.WaitAsync(cancellationToken);
+        bool removed;
+
+        try
         {
-            session.Notify(eventArgs);
+            removed = _tools.Remove(name);
         }
-    }
-
-    private sealed class ObserverSession(
-        InMemoryOperationToolStorage storage,
-        IObserver<OperationToolStorageEventArgs> observer)
-        : IDisposable
-    {
-        private bool _disposed;
-
-        public void Notify(OperationToolStorageEventArgs eventArgs)
+        finally
         {
-            observer.OnNext(eventArgs);
+            _semaphore.Release();
         }
 
-        public void Dispose()
+        if (removed)
         {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _disposed = true;
-
-            storage._semaphore.Wait();
-
-            try
-            {
-                storage._sessions = storage._sessions.Remove(this);
-            }
-            finally
-            {
-                storage._semaphore.Release();
-            }
+            NotifySubscribers(name, null, OperationToolStorageEventType.Removed);
         }
     }
 }

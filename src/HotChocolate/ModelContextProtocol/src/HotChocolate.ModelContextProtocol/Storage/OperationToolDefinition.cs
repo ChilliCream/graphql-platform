@@ -1,5 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.ModelContextProtocol.Directives;
+using HotChocolate.ModelContextProtocol.Extensions;
 using static HotChocolate.ModelContextProtocol.Properties.ModelContextProtocolResources;
 using static HotChocolate.ModelContextProtocol.WellKnownDirectiveNames;
 
@@ -67,16 +68,12 @@ public sealed class OperationToolDefinition
                 nameof(document));
         }
 
-        McpToolDirective? toolDirective = null;
-        var toolDirectiveNode = operation.Directives.FirstOrDefault(t => t.Name.Value.Equals(McpTool));
-
         // If we find a tool directive, parse it and remove it from the document.
         // The tool directive is metadata only and doesn't exist in the target schema.
         // Removing it prevents execution errors when the operation is executed.
-        if (toolDirectiveNode is not null)
+        var toolDirective = operation.GetMcpToolDirective();
+        if (toolDirective is not null)
         {
-            toolDirective = McpToolDirectiveParser.Parse(toolDirectiveNode);
-
             var tempDirectives = operation.Directives.ToList();
             foreach (var directive in operation.Directives)
             {
