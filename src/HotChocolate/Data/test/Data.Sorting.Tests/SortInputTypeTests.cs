@@ -237,6 +237,18 @@ public class SortInputTypeTests : SortTestBase
         schema.ToString().MatchSnapshot();
     }
 
+    [Fact]
+    public void SortInputType_ShouldInferDeprecatedDirective_ForDeprecatedFields()
+    {
+        // arrange
+        // act
+        var schema = CreateSchema(
+            s => s.AddType(new SortInputType<TypeWithDeprecatedField>()));
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
     public class IgnoreTest
     {
         public int Id { get; set; }
@@ -368,4 +380,8 @@ public class SortInputTypeTests : SortTestBase
             descriptor.Field(x => x.Root).UseFiltering();
         }
     }
+
+    public record TypeWithDeprecatedField(
+        string Foo,
+        [property: GraphQLDeprecated("old")] string? DeprecatedField = null);
 }
