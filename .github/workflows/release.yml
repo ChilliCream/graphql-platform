@@ -3,7 +3,7 @@ name: 🚀 Release
 on:
   push:
     tags:
-      - '16.*'
+      - "16.*"
 
 jobs:
   release:
@@ -32,6 +32,18 @@ jobs:
       - name: 📦 Build NuGet Packages
         run: |
           ./build.sh pack --SemVersion ${{ env.GIT_TAG }} --Configuration Release
+        env:
+          NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
+          NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
+          NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
+
+      - name: 📦 Publish Nitro CLI client
+        run: |
+          ./build.sh UploadNitroClient --SemVersion ${{ env.GIT_TAG }}
+          ./build.sh PublishNitroClient --SemVersion ${{ env.GIT_TAG }}
+        env:
+          NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
+          NitroApiKey: ${{ secrets.NITRO_API_KEY }}
 
       - name: 🚀 Push Packages to NuGet
         run: |
