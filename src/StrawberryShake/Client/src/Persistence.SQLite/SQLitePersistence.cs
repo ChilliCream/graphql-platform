@@ -98,7 +98,7 @@ public class SQLitePersistence : IDisposable
 
             var request = requestFactory.Create(variables);
 
-            var result = OperationResult.Create(
+            var result = OperationResultHelper.Create(
                 dataFactory.Create(dataInfo),
                 resultType,
                 dataInfo,
