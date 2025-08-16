@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using StrawberryShake.Transport.WebSockets;
 using StrawberryShake.Transport.WebSockets.Protocols;
@@ -19,7 +20,7 @@ public static class WebSocketClientFactoryServiceCollectionExtensions
     /// <returns>
     /// An <see cref="IWebSocketClientBuilder"/> that can be used to configure the client.
     /// </returns>
-    public static IServiceCollection AddProtocol<TFactory>(this IServiceCollection services)
+    public static IServiceCollection AddProtocol<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TFactory>(this IServiceCollection services)
         where TFactory : class, ISocketProtocolFactory
     {
         ArgumentNullException.ThrowIfNull(services);
