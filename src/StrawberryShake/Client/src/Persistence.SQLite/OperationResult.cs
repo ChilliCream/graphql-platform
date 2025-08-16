@@ -6,10 +6,10 @@ namespace StrawberryShake.Persistence.SQLite;
 /// This is a helper class that provides generic and non-generic factory methods to create
 /// a new instance of <see cref="OperationResult{T}"/>.
 /// </summary>
-public static class OperationResultHelper
+internal static class OperationResult
 {
     private static readonly MethodInfo s_factory =
-        typeof(OperationResultHelper)
+        typeof(OperationResult)
             .GetMethods(BindingFlags.Public | BindingFlags.Static)
             .First(m =>
                 m.IsGenericMethodDefinition

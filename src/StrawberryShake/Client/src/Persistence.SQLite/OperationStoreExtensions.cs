@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace StrawberryShake.Persistence.SQLite;
 
-public static class OperationStoreExtensions
+internal static class OperationStoreExtensions
 {
     private static readonly MethodInfo s_setGeneric = typeof(IOperationStore)
         .GetMethods(BindingFlags.Instance | BindingFlags.Public)
