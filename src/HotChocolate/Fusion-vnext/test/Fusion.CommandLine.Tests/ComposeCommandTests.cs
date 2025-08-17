@@ -249,7 +249,7 @@ public sealed class ComposeCommandTests : IDisposable
             "--source-schema-file",
             "__resources__/valid-example-1/source-schema-1.graphqls",
             "--source-schema-file",
-            "__resources__/valid-example-1/source-schema-2.graphqls",
+            "__resources__/valid-example-1/source-schema-2.graphqls"
         ];
         var testConsole = new TestConsole();
 
