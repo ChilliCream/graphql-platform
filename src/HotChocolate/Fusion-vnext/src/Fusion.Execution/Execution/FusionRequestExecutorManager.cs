@@ -555,7 +555,7 @@ internal sealed class FusionRequestExecutorManager
                 var documentHash = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(configuration.ToString()));
                 var settingsHash = XxHash64.HashToUInt64(GetRawUtf8Value(configuration.Settings.Document.RootElement));
 
-                if (documentHash == _documentHash &&  settingsHash == _settingsHash)
+                if (documentHash == _documentHash && settingsHash == _settingsHash)
                 {
                     continue;
                 }

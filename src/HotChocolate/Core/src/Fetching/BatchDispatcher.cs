@@ -24,7 +24,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     private const int MaxParallelBatches = 4;
     private readonly AsyncAutoResetEvent _signal = new();
     private readonly object _sync = new();
-    private readonly HashSet<Batch> _enqueuedBatches = new();
+    private readonly HashSet<Batch> _enqueuedBatches = [];
     private readonly CancellationTokenSource _coordinatorCts = new();
     private int _enqueueVersion;
     private int _openBatches;
@@ -39,7 +39,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     /// </summary>
     public BatchDispatcher()
     {
-        _coordinatorCts.Token.Register(() => _signal.Set());
+        _coordinatorCts.Token.Register(_signal.Set);
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         bool IsCompleted()
         {
             var openBatches = Volatile.Read(ref _openBatches);
-            return  openBatches == 0;
+            return openBatches == 0;
         }
     }
 

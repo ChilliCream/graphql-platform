@@ -1,5 +1,4 @@
 using System.Text.Json;
-using StrawberryShake.Internal;
 
 namespace StrawberryShake.Serialization;
 

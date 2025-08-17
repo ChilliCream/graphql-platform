@@ -27,7 +27,9 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
         Channel.CreateBounded<bool>(
             new BoundedChannelOptions(1)
             {
-                FullMode = BoundedChannelFullMode.DropNewest, SingleReader = true, SingleWriter = false
+                FullMode = BoundedChannelFullMode.DropNewest,
+                SingleReader = true,
+                SingleWriter = false
             });
 
     private readonly CancellationTokenSource _cts;

@@ -74,7 +74,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         response.MatchSnapshot();
     }
 
-     [Fact]
+    [Fact]
     public async Task No_Data_And_Error_With_Path_For_Root_Field()
     {
         // arrange
@@ -668,7 +668,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         {
             public Product GetTopProduct() => new(1, 13.99);
 
-            public Product? GetNullableTopProduct() => new (1, 13.99);
+            public Product? GetNullableTopProduct() => new(1, 13.99);
 
             public List<Product> GetTopProducts()
                 => [new(1, 13.99), new(2, 13.99), new(3, 13.99)];
