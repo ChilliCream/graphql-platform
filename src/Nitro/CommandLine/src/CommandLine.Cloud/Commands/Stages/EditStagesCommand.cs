@@ -11,7 +11,7 @@ namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Stages;
 
 internal sealed class EditStagesCommand : Command
 {
-    private static readonly StageUpdateInput _defaultStage = new()
+    private static readonly StageUpdateInput s_defaultStage = new()
     {
         Name = "default",
         DisplayName = "Default",
@@ -114,7 +114,7 @@ internal sealed class EditStagesCommand : Command
                     console.WriteLine("Add new stage: ");
 
                     updatedStages = updatedStages.Add(
-                        await console.EditStage(updatedStages, _defaultStage, cancellationToken)
+                        await console.EditStage(updatedStages, s_defaultStage, cancellationToken)
                     );
 
                     break;

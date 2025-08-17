@@ -1,9 +1,7 @@
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Cloud.Client;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
 using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
-using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Client;
 
@@ -90,11 +88,6 @@ internal sealed class DownloadClientCommand : Command
             }
         }
     }
-
-    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
-    {
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-    };
 
     private static async Task WriteToRelayJson(
         FileSystemInfo output,

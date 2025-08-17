@@ -109,7 +109,7 @@ public sealed class OperationToolDefinition
         Title = title ?? toolDirective?.Title;
         DestructiveHint = destructiveHint ?? toolDirective?.DestructiveHint;
         IdempotentHint = idempotentHint ?? toolDirective?.IdempotentHint;
-        OpenWorldHint = openWorldHint ??  toolDirective?.OpenWorldHint;
+        OpenWorldHint = openWorldHint ?? toolDirective?.OpenWorldHint;
     }
 
     /// <summary>

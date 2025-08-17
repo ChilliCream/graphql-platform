@@ -5,7 +5,6 @@ using ChilliCream.Nitro.CommandLine.Cloud.Helpers;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
 using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 using ChilliCream.Nitro.CommandLine.Cloud.Results;
-using ChilliCream.Nitro.CommandLine;
 using StrawberryShake;
 using static ChilliCream.Nitro.CommandLine.Cloud.ThrowHelper;
 
