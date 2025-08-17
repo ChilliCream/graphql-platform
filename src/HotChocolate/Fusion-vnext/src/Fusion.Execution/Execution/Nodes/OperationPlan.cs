@@ -43,7 +43,11 @@ public sealed class OperationPlanTrace
     public required TimeSpan Duration { get; init; }
 
     public ImmutableDictionary<int, ExecutionNodeTrace> Nodes { get; init; } =
+#if NET10_0_OR_GREATER
+        [];
+#else
         ImmutableDictionary<int, ExecutionNodeTrace>.Empty;
+#endif
 }
 
 public sealed class ExecutionNodeTrace

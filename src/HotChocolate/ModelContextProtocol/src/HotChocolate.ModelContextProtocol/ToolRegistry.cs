@@ -6,7 +6,11 @@ namespace HotChocolate.ModelContextProtocol;
 
 internal sealed class ToolRegistry
 {
+#if NET10_0_OR_GREATER
+    private ImmutableDictionary<string, OperationTool> _tools = [];
+#else
     private ImmutableDictionary<string, OperationTool> _tools = ImmutableDictionary<string, OperationTool>.Empty;
+#endif
     private ImmutableArray<Func<Task>> _callbacks = [];
 
     public void OnToolsUpdate(Func<Task> callback)

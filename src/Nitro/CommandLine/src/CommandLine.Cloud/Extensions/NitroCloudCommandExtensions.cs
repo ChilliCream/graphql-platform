@@ -23,7 +23,9 @@ public static class NitroCloudCommandExtensions
             // .AddResult()
             .AddApiClient()
             .AddSessionMiddleware();
+#pragma warning disable format
             // .AddResultMiddleware();
+#pragma warning restore format
 
         return builder;
     }
