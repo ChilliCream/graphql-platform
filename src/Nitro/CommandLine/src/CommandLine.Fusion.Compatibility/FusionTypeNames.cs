@@ -294,7 +294,7 @@ public sealed class FusionTypeNames
                     directive.Arguments.FirstOrDefault(
                         t => t.Name.Value.Equals("prefixSelf", StringComparison.Ordinal));
 
-                if (prefixSelfArg?.Value is BooleanValueNode { Value: true, })
+                if (prefixSelfArg?.Value is BooleanValueNode { Value: true })
                 {
                     var prefixArg =
                         directive.Arguments.FirstOrDefault(

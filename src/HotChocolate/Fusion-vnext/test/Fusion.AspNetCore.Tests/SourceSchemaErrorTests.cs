@@ -21,7 +21,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
+            ("A", server1)
         ]);
 
         // assert
@@ -53,7 +53,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
+            ("A", server1)
         ]);
 
         // assert
@@ -85,7 +85,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
+            ("A", server1)
         ]);
 
         // assert
@@ -132,7 +132,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
+            ("A", server1)
         ]);
 
         // assert
@@ -165,7 +165,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
+            ("A", server1)
         ]);
 
         // assert
@@ -198,7 +198,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
+            ("A", server1)
         ]);
 
         // assert
@@ -239,7 +239,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -277,7 +277,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -315,7 +315,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -353,7 +353,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -391,7 +391,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -429,7 +429,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -482,7 +482,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -521,7 +521,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -560,7 +560,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -599,7 +599,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -638,7 +638,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
