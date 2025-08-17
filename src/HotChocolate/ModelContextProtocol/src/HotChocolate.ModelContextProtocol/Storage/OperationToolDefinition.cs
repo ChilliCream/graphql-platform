@@ -1,5 +1,4 @@
 using HotChocolate.Language;
-using HotChocolate.ModelContextProtocol.Directives;
 using HotChocolate.ModelContextProtocol.Extensions;
 using static HotChocolate.ModelContextProtocol.Properties.ModelContextProtocolResources;
 using static HotChocolate.ModelContextProtocol.WellKnownDirectiveNames;
