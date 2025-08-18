@@ -627,6 +627,6 @@ internal sealed class ComposeCommand : Command
             return message;
         }
 
-        return string.Join(Environment.NewLine + "  ", lines);
+        return string.Join(Environment.NewLine + "   ", lines);
     }
 }
