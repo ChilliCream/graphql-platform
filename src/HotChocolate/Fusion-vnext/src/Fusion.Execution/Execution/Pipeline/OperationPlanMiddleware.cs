@@ -1,7 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Rewriters;
-using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
@@ -39,26 +38,11 @@ internal sealed class OperationPlanMiddleware
         var operationHash = context.OperationDocumentInfo.Hash.Value;
         var operationShortHash = operationHash[..8];
         var rewritten = _rewriter.RewriteDocument(operationDocumentInfo.Document, context.Request.OperationName);
-        var operation = GetOperation(rewritten);
+        var operation = rewritten.GetOperation(context.Request.OperationName);
         var executionPlan = _planner.CreatePlan(operationId, operationHash, operationShortHash, operation);
         context.SetOperationPlan(executionPlan);
 
         return next(context);
-
-        // TODO: this algorithm is wrong and will fail with multiple operations.
-        static OperationDefinitionNode GetOperation(DocumentNode document)
-        {
-            for (var i = 0; i < document.Definitions.Count; i++)
-            {
-                if (document.Definitions[i] is OperationDefinitionNode operation)
-                {
-                    return operation;
-                }
-            }
-
-            throw new InvalidOperationException(
-                "The operation document does not contain an operation definition.");
-        }
     }
 
     public static RequestMiddleware Create()

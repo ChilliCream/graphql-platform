@@ -1,4 +1,3 @@
-using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Language;
@@ -25,6 +24,16 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return Configure(
             builder,
             setup => setup.SchemaServiceModifiers.Add(configure));
+    }
+
+    public static IFusionGatewayBuilder AddConfigurationProvider(
+        this IFusionGatewayBuilder builder,
+        Func<IServiceProvider, IFusionConfigurationProvider> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return Configure(builder, setup => setup.DocumentProvider = configure);
     }
 
     public static IFusionGatewayBuilder AddFileSystemConfiguration(

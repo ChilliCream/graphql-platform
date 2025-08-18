@@ -1,0 +1,7 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ChilliCream.Nitro.CommandLine.Fusion</RootNamespace>
+    <AssemblyName>ChilliCream.Nitro.CommandLine.Fusion</AssemblyName>
+    <PackageId>ChilliCream.Nitro.CommandLine.Fusion</PackageId>
+  </PropertyGroup>
+</Project>

@@ -19,7 +19,7 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     private IErrorHandler _errorHandler = null!;
     private ResultBuilder _result = null!;
     private IExecutionDiagnosticEvents _diagnosticEvents = null!;
-    private ConcurrentDictionary<uint, bool> _completed = new();
+    private readonly ConcurrentDictionary<uint, bool> _completed = new();
     private uint _nextId = 1;
     private CancellationToken _ct;
 

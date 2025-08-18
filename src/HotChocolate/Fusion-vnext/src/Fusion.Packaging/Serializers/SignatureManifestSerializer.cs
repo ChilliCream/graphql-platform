@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Reflection.Metadata;
 using System.Text.Json;
 
 namespace HotChocolate.Fusion.Packaging.Serializers;

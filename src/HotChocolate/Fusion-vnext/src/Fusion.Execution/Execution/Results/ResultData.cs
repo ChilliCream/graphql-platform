@@ -22,6 +22,12 @@ public abstract class ResultData : IResultDataJsonFormatter
     protected internal int ParentIndex { get; private set; }
 
     /// <summary>
+    /// Gets a value indicating if this result data object was invalidated do to an error
+    /// or null propagation.
+    /// </summary>
+    public bool IsInvalidated { get; set; }
+
+    /// <summary>
     /// Gets the path of the result.
     /// </summary>
     public Path Path

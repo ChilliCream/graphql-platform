@@ -51,7 +51,7 @@ public abstract class FusionTestBase : IDisposable
         return FusionSchemaDefinition.Create(compositeSchemaDoc);
     }
 
-    protected static FusionSchemaDefinition ComposeSchema( params TestSourceSchema[] schemas)
+    protected static FusionSchemaDefinition ComposeSchema(params TestSourceSchema[] schemas)
         => ComposeSchema(schemas.Select(t => t.Schema).ToArray());
 
     protected static DocumentNode ComposeSchemaDocument(
@@ -165,7 +165,7 @@ public abstract class FusionTestBase : IDisposable
 
             if (lines.Length > 0 && lines[0].StartsWith("# name:"))
             {
-                name = lines[0].Substring("# name:".Length).Trim();
+                name = lines[0]["# name:".Length..].Trim();
                 sourceText = string.Join(Environment.NewLine, lines.Skip(1));
             }
             else

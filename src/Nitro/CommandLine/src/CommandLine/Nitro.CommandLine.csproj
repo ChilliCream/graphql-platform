@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PackAsTool>true</PackAsTool>
+    <UseAppHost>false</UseAppHost>
+    <ToolCommandName>nitro</ToolCommandName>
+    <RootNamespace>ChilliCream.Nitro.CommandLine</RootNamespace>
+    <AssemblyName>nitro</AssemblyName>
+    <PackageId>ChilliCream.Nitro.CommandLine</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.CommandLine\HotChocolate.Fusion.CommandLine.csproj" />
+    <ProjectReference Include="..\CommandLine.Cloud\Nitro.CommandLine.Cloud.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="CommandLineResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="CommandLineResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandLineResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

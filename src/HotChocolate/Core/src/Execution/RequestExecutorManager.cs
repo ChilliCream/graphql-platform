@@ -226,7 +226,7 @@ internal sealed partial class RequestExecutorManager
         previousExecutor.TypeModuleChangeMonitor.Dispose();
 
         // This will hot swap the request executor.
-        await CreateRequestExecutorAsync(schemaName, false, CancellationToken.None)
+        await CreateRequestExecutorAsync(schemaName, isInitialCreation: false, CancellationToken.None)
             .ConfigureAwait(false);
 
         previousExecutor.DiagnosticEvents.ExecutorEvicted(schemaName, previousExecutor.Executor);

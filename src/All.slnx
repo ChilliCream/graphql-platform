@@ -213,6 +213,13 @@
     <Project Path="HotChocolate/Marten/test/Data.Marten.Filters.Tests/Data.Marten.Filters.Tests.csproj" />
     <Project Path="HotChocolate/Marten/test/Data.Marten.Sorting.Tests/Data.Marten.Sorting.Tests.csproj" />
   </Folder>
+  <Folder Name="/HotChocolate/ModelContextProtocol/" />
+  <Folder Name="/HotChocolate/ModelContextProtocol/src/">
+    <Project Path="HotChocolate/ModelContextProtocol/src/HotChocolate.ModelContextProtocol/HotChocolate.ModelContextProtocol.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/ModelContextProtocol/test/">
+    <Project Path="HotChocolate/ModelContextProtocol/test/HotChocolate.ModelContextProtocol.Tests/HotChocolate.ModelContextProtocol.Tests.csproj" />
+  </Folder>
   <Folder Name="/HotChocolate/MongoDb/" />
   <Folder Name="/HotChocolate/MongoDb/src/">
     <Project Path="HotChocolate/MongoDb/src/Data/HotChocolate.Data.MongoDb.csproj" />
@@ -287,6 +294,16 @@
   <Folder Name="/HotChocolate/Utilities/test/">
     <Project Path="HotChocolate/Utilities/test/Utilities.Introspection.Tests/HotChocolate.Utilities.Introspection.Tests.csproj" />
     <Project Path="HotChocolate/Utilities/test/Utilities.Tests/HotChocolate.Utilities.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Nitro/" />
+  <Folder Name="/Nitro/CommandLine/" />
+  <Folder Name="/Nitro/CommandLine/src/" />
+  <Folder Name="/Nitro/CommandLine/src/CommandLine.Cloud/">
+    <Project Path="Nitro/CommandLine/src/CommandLine/Nitro.CommandLine.csproj" />
+    <Project Path="Nitro/CommandLine/src/CommandLine.Core/Nitro.CommandLine.Core.csproj" />
+    <Project Path="Nitro/CommandLine/src/CommandLine.Cloud/Nitro.CommandLine.Cloud.csproj" />
+    <Project Path="Nitro/CommandLine/src/CommandLine.Fusion/Nitro.CommandLine.Fusion.csproj" />
+    <Project Path="Nitro/CommandLine/src/CommandLine.Fusion.Compatibility/Nitro.CommandLine.Fusion.Compatibility.csproj" />
   </Folder>
   <Folder Name="/StrawberryShake/" />
   <Folder Name="/StrawberryShake/Client/" />
