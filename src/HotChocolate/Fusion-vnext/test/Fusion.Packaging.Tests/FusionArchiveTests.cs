@@ -7,8 +7,8 @@ namespace HotChocolate.Fusion.Packaging;
 
 public class FusionArchiveTests : IDisposable
 {
-    private readonly List<Stream> _streamsToDispose = new();
-    private readonly List<X509Certificate2> _certificatesToDispose = new();
+    private readonly List<Stream> _streamsToDispose = [];
+    private readonly List<X509Certificate2> _certificatesToDispose = [];
 
     [Fact]
     public void Create_WithNullStream_ThrowsArgumentNullException()
@@ -224,7 +224,7 @@ public class FusionArchiveTests : IDisposable
         await archive.SetArchiveMetadataAsync(metadata);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            archive.SetGatewayConfigurationAsync("schema", CreateSettingsJson(),new Version("3.0.0")));
+            archive.SetGatewayConfigurationAsync("schema", CreateSettingsJson(), new Version("3.0.0")));
     }
 
     [Fact]

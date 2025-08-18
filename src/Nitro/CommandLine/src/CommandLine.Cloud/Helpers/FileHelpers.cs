@@ -1,6 +1,4 @@
-using ChilliCream.Nitro.CLI.Exceptions;
-
-namespace ChilliCream.Nitro.CLI.Helpers;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Helpers;
 
 internal static class FileHelpers
 {

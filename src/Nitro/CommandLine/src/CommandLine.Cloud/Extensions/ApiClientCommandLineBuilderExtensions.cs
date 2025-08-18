@@ -1,17 +1,16 @@
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Net.Http.Headers;
-using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Exceptions;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
 using Microsoft.Net.Http.Headers;
 using static System.UriKind;
 
-namespace ChilliCream.Nitro.CLI.Option.Binders;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 
 internal static class ApiClientCommandLineBuilderExtensions
 {
-    private static readonly string _userAgent = $"Nitro CLI/{Version}";
-    private const string _clientId = "<<NITRO_GRAPHQL_CLIENT_ID>>"; // TODO inject client id via build
+    private static readonly string s_userAgent = $"Nitro CLI/{Version}";
+    private const string ClientId = "<<NITRO_GRAPHQL_CLIENT_ID>>"; // TODO: inject client id via build
 
     public static CommandLineBuilder AddApiClient(this CommandLineBuilder builder)
         => builder
@@ -77,9 +76,9 @@ internal static class ApiClientCommandLineBuilderExtensions
                 client.DefaultRequestHeaders.Accept
                     .Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                client.DefaultRequestHeaders.Add(Headers.GraphQLClientId, _clientId);
+                client.DefaultRequestHeaders.Add(Headers.GraphQLClientId, ClientId);
                 client.DefaultRequestHeaders.Add(Headers.GraphQLClientVersion, Version);
-                client.DefaultRequestHeaders.Add(Headers.CCCAgent, _userAgent);
+                client.DefaultRequestHeaders.Add(Headers.CCCAgent, s_userAgent);
 
                 client.DefaultRequestHeaders.Add(Headers.GraphQLPreflight, "1");
 

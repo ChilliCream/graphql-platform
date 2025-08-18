@@ -24,7 +24,7 @@ public class BatchDispatcherTests
         {
             await Task.Delay(10);
 
-            if (observer.Events.Count >=5)
+            if (observer.Events.Count >= 5)
             {
                 break;
             }

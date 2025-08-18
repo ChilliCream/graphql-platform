@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion;
+namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
 
 /// <summary>
 /// Defines the names of the arguments that can be used with the fusion directives.

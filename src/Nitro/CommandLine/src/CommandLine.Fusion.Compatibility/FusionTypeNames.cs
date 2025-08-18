@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion;
+namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
 
 /// <summary>
 /// Helper class that tracks the namespaced fusion types.
@@ -294,7 +294,7 @@ public sealed class FusionTypeNames
                     directive.Arguments.FirstOrDefault(
                         t => t.Name.Value.Equals("prefixSelf", StringComparison.Ordinal));
 
-                if (prefixSelfArg?.Value is BooleanValueNode { Value: true, })
+                if (prefixSelfArg?.Value is BooleanValueNode { Value: true })
                 {
                     var prefixArg =
                         directive.Arguments.FirstOrDefault(

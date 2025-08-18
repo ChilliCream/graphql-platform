@@ -13,6 +13,8 @@
     <PackageVersion Include="Basic.Reference.Assemblies.Net100" Version="1.8.2" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.8.2" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net90" Version="1.8.2" />
+    <PackageVersion Include="CaseConverter" Version="2.0.1" />
+    <PackageVersion Include="ChilliCream.ModelContextProtocol.AspNetCore" Version="0.0.1-p.2" />
     <PackageVersion Include="ChilliCream.Nitro.App" Version="$(NitroVersion)" />
     <PackageVersion Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
@@ -21,6 +23,7 @@
     <PackageVersion Include="Glob" Version="1.1.9" />
     <PackageVersion Include="IdentityModel" Version="4.1.1" />
     <PackageVersion Include="JsonPointer.Net" Version="5.0.0" />
+    <PackageVersion Include="JsonSchema.Net" Version="7.3.4" />
     <PackageVersion Include="Marten" Version="7.33.0" />
     <PackageVersion Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
     <PackageVersion Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
@@ -49,7 +52,7 @@
     <PackageVersion Include="Spectre.Console.Json" Version="0.50.0" />
     <PackageVersion Include="Spectre.Console" Version="0.50.0" />
     <PackageVersion Include="sqlite-net-pcl" Version="1.9.172" />
-    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />
+    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
     <PackageVersion Include="Squadron.AzureStorage" Version="0.25.0-preview.2" />
     <PackageVersion Include="Squadron.Mongo" Version="0.25.0-preview.2" />
     <PackageVersion Include="Squadron.Nats" Version="0.25.0-preview.2" />
@@ -58,7 +61,6 @@
     <PackageVersion Include="Squadron.RavenDB" Version="0.25.0-preview.2" />
     <PackageVersion Include="Squadron.Redis" Version="0.25.0-preview.2" />
     <PackageVersion Include="StackExchange.Redis" Version="2.6.80" />
-    <PackageVersion Include="StrawberryShake.Server" Version="15.1.8" />
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.13.1" />
@@ -69,10 +71,10 @@
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.extensibility.core" Version="2.9.3" />
     <PackageVersion Include="xunit.extensibility.execution" Version="2.9.3" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.1" />
-    <PackageVersion Include="xunit.v3.assert" Version="1.1.0" />
-    <PackageVersion Include="xunit.v3.extensibility.core" Version="1.1.0" />
-    <PackageVersion Include="xunit.v3" Version="1.1.0" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageVersion Include="xunit.v3.assert" Version="3.0.1" />
+    <PackageVersion Include="xunit.v3.extensibility.core" Version="3.0.1" />
+    <PackageVersion Include="xunit.v3" Version="3.0.1" />
     <PackageVersion Include="xunit" Version="2.9.3" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
@@ -147,7 +149,7 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="8.0.10" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="8.0.10" />
     <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
-    <PackageVersion Include="System.IO.Packaging" Version="8.0.0" />
+    <PackageVersion Include="System.IO.Packaging" Version="8.0.1" />
     <PackageVersion Include="System.IO.Hashing" Version="8.0.0" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
   </ItemGroup>
@@ -158,8 +160,8 @@
     <PackageVersion Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'debug'">
-    <PackageVersion Include="Roslynator.Analyzers" Version="4.13.1" />
-    <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="4.13.1" />
-    <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="4.13.1" />
+    <PackageVersion Include="Roslynator.Analyzers" Version="4.14.0" />
+    <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="4.14.0" />
+    <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="4.14.0" />
   </ItemGroup>
 </Project>

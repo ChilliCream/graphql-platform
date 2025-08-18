@@ -1,17 +1,17 @@
 using System.CommandLine.Invocation;
 using System.Text.Json;
-using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Helpers;
-using ChilliCream.Nitro.CLI.Option;
-using ChilliCream.Nitro.CLI.Option.Binders;
-using ChilliCream.Nitro.CLI.Results;
-using static ChilliCream.Nitro.CLI.ThrowHelper;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Helpers;
+using ChilliCream.Nitro.CommandLine.Cloud.Option;
+using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
+using ChilliCream.Nitro.CommandLine.Cloud.Results;
+using static ChilliCream.Nitro.CommandLine.Cloud.ThrowHelper;
 
-namespace ChilliCream.Nitro.CLI.Commands.Stages;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Stages;
 
 internal sealed class EditStagesCommand : Command
 {
-    private static readonly StageUpdateInput _defaultStage = new()
+    private static readonly StageUpdateInput s_defaultStage = new()
     {
         Name = "default",
         DisplayName = "Default",
@@ -114,7 +114,7 @@ internal sealed class EditStagesCommand : Command
                     console.WriteLine("Add new stage: ");
 
                     updatedStages = updatedStages.Add(
-                        await console.EditStage(updatedStages, _defaultStage, cancellationToken)
+                        await console.EditStage(updatedStages, s_defaultStage, cancellationToken)
                     );
 
                     break;

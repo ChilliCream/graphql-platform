@@ -1,6 +1,6 @@
-using ChilliCream.Nitro.CLI.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal static class TreeNodeExtensions
 {
@@ -194,7 +194,7 @@ internal static class TreeNodeExtensions
 
             _ => node.AddNodeWithSeverity(
                 SchemaChangeSeverity.Dangerous,
-                "Unknown change. Try to update the version of ChilliCream.Nitro.CLI")
+                "Unknown change. Try to update the version of ChilliCream.Nitro.CommandLine")
         };
     }
 

@@ -1,14 +1,13 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Commands.Mock.Component;
-using ChilliCream.Nitro.CLI.Exceptions;
-using ChilliCream.Nitro.CLI.Helpers;
-using ChilliCream.Nitro.CLI.Option;
-using ChilliCream.Nitro.CLI.Option.Binders;
-using ChilliCream.Nitro.CLI.Results;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.Mock.Component;
+using ChilliCream.Nitro.CommandLine.Cloud.Helpers;
+using ChilliCream.Nitro.CommandLine.Cloud.Option;
+using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
+using ChilliCream.Nitro.CommandLine.Cloud.Results;
 using StrawberryShake;
 
-namespace ChilliCream.Nitro.CLI.Commands.Mock;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Mock;
 
 public sealed class CreateMockCommand : Command
 {

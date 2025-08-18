@@ -1,6 +1,6 @@
 using Duende.IdentityModel;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal static class WellKnownClaims
 {

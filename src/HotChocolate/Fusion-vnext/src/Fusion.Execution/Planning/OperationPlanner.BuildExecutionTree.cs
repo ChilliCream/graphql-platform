@@ -274,7 +274,7 @@ public sealed partial class OperationPlanner
             }
         }
 
-        return [..responseNames];
+        return [.. responseNames];
     }
 
     private static SelectionSetNode? GetSelectionSetNodeFromPath(

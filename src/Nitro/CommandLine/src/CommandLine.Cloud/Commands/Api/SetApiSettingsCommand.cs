@@ -1,12 +1,12 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Commands.Api.Options;
-using ChilliCream.Nitro.CLI.Option;
-using ChilliCream.Nitro.CLI.Option.Binders;
-using ChilliCream.Nitro.CLI.Results;
-using static ChilliCream.Nitro.CLI.ThrowHelper;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.Api.Options;
+using ChilliCream.Nitro.CommandLine.Cloud.Option;
+using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
+using ChilliCream.Nitro.CommandLine.Cloud.Results;
+using static ChilliCream.Nitro.CommandLine.Cloud.ThrowHelper;
 
-namespace ChilliCream.Nitro.CLI.Commands.Api;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Api;
 
 internal sealed class SetApiSettingsApiCommand : Command
 {

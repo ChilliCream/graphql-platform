@@ -1,10 +1,10 @@
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Option;
-using ChilliCream.Nitro.CLI.Option.Binders;
-using ChilliCream.Nitro.CLI.Results;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Option;
+using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
+using ChilliCream.Nitro.CommandLine.Cloud.Results;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal sealed class ListEnvironmentCommand : Command
 {

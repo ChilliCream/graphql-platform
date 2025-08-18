@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 public sealed class SetAsDefaultWorkspaceOption : Option<bool?>
 {

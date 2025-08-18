@@ -9,7 +9,7 @@ using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
 using static HotChocolate.Fusion.Properties.CommandLineResources;
 
-namespace HotChocolate.Fusion.Commands;
+namespace HotChocolate.Fusion.CommandLine;
 
 internal sealed class ComposeCommand : Command
 {
@@ -113,7 +113,7 @@ internal sealed class ComposeCommand : Command
         {
             archiveFile = Path.Combine(archiveFile, "gateway.far");
         }
-        else if(!Path.IsPathRooted(archiveFile))
+        else if (!Path.IsPathRooted(archiveFile))
         {
             archiveFile = Path.Combine(workingDirectory, archiveFile);
         }
@@ -187,7 +187,9 @@ internal sealed class ComposeCommand : Command
         var compositionChannel = Channel.CreateBounded<string>(
             new BoundedChannelOptions(1)
             {
-                FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true, SingleWriter = false
+                FullMode = BoundedChannelFullMode.DropOldest,
+                SingleReader = true,
+                SingleWriter = false
             });
 
         // start the composition processor task
@@ -502,7 +504,7 @@ internal sealed class ComposeCommand : Command
         metadata = new ArchiveMetadata
         {
             SupportedGatewayFormats = [new Version(2, 0, 0)],
-            SourceSchemas = [..sourceSchemaNames]
+            SourceSchemas = [.. sourceSchemaNames]
         };
 
         await archive.SetArchiveMetadataAsync(metadata, cancellationToken);

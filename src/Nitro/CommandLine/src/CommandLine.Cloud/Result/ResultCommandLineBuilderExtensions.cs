@@ -1,9 +1,8 @@
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CLI.Option;
-using ChilliCream.Nitro.CLI.Option.Binders;
+using ChilliCream.Nitro.CommandLine.Cloud.Option;
 
-namespace ChilliCream.Nitro.CLI.Results;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Results;
 
 internal static class ResultCommandLineBuilderExtensions
 {

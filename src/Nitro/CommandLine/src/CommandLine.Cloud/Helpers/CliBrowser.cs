@@ -1,6 +1,6 @@
 using Duende.IdentityModel.OidcClient.Browser;
 
-namespace ChilliCream.Nitro.CLI.Helpers;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Helpers;
 
 internal class CliBrowser : IBrowser
 {

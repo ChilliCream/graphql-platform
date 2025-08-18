@@ -1,8 +1,8 @@
-using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Helpers;
-using static ChilliCream.Nitro.CLI.ClientDetailFields;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Helpers;
+using static ChilliCream.Nitro.CommandLine.Cloud.ClientDetailFields;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal sealed class ClientDetailPrompt
 {

@@ -185,11 +185,6 @@ public sealed class GraphQLHttpResponse : IDisposable
         throw new InvalidOperationException("Received a successful response with an unexpected content type.");
     }
 
-    private static async IAsyncEnumerable<OperationResult> SingleResult(ValueTask<OperationResult> result)
-    {
-        yield return await result.ConfigureAwait(false);
-    }
-
     /// <summary>
     /// Disposes the underlying <see cref="HttpResponseMessage"/>.
     /// </summary>

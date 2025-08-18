@@ -1,6 +1,6 @@
-using ChilliCream.Nitro.CLI.Auth;
+using ChilliCream.Nitro.CommandLine.Cloud.Auth;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal interface ISessionService
 {

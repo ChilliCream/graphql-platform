@@ -23,7 +23,7 @@ public class BookStoreTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("a", server1),
-            ("b", server2),
+            ("b", server2)
         ]);
 
         // assert
@@ -61,7 +61,7 @@ public class BookStoreTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
             [
                 ("a", server1),
-                ("b", server2),
+                ("b", server2)
             ],
             schemaSettings:
             """
@@ -122,7 +122,7 @@ public class BookStoreTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -178,7 +178,7 @@ public class BookStoreTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -217,7 +217,7 @@ public class BookStoreTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // act
@@ -259,7 +259,7 @@ public class BookStoreTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // act

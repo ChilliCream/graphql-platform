@@ -1,9 +1,8 @@
-using ChilliCream.Nitro.CLI.Client;
-using ChilliCream.Nitro.CLI.Exceptions;
-using ChilliCream.Nitro.CLI.Option;
-using ChilliCream.Nitro.CLI.Option.Binders;
+using ChilliCream.Nitro.CommandLine.Cloud.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Option;
+using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 
-namespace ChilliCream.Nitro.CLI;
+namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal sealed class LoginCommand : Command
 {
@@ -12,11 +11,11 @@ internal sealed class LoginCommand : Command
         Description =
             "This command logs you in with a user account. Nitro CLI will try to launch a web browser to log you in interactively";
 
-        AddOption(Opt<NoDefaultCloudUrlOption>.Instance);
+        AddOption(Opt<IdentityCloudUrlOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
-            Opt<NoDefaultCloudUrlOption>.Instance,
+            Opt<IdentityCloudUrlOption>.Instance,
             Bind.FromServiceProvider<IAnsiConsole>(),
             Bind.FromServiceProvider<IApiClient>(),
             Bind.FromServiceProvider<ISessionService>(),
@@ -24,14 +23,12 @@ internal sealed class LoginCommand : Command
     }
 
     private static async Task<int> ExecuteAsync(
-        string? cloudUrl,
+        string cloudUrl,
         IAnsiConsole console,
         IApiClient client,
         ISessionService sessionService,
         CancellationToken cancellationToken)
     {
-        cloudUrl ??= OidcConfiguration.IdentityUrl;
-
         var session = await console
             .DefaultStatus()
             .StartAsync(

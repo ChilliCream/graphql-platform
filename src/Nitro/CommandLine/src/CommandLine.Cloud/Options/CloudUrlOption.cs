@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CLI.Option;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Option;
 
 internal sealed class CloudUrlOption : Option<string>
 {
@@ -7,6 +7,6 @@ internal sealed class CloudUrlOption : Option<string>
         Description = "The url of the api.";
         IsRequired = false;
         IsHidden = false;
-        this.DefaultFromEnvironmentValue("CLOUD_URL", defaultValue: "api.chillicream.com");
+        this.DefaultFromEnvironmentValue("CLOUD_URL", defaultValue: Constants.ApiUrl["https://".Length..]);
     }
 }

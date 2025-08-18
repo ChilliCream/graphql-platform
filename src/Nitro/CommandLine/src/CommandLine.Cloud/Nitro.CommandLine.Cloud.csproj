@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RootNamespace>Nitro.CommandLine</RootNamespace>
-    <AssemblyName>>Nitro.CommandLine.Cloud</AssemblyName>
+    <RootNamespace>ChilliCream.Nitro.CommandLine.Cloud</RootNamespace>
+    <AssemblyName>ChilliCream.Nitro.CommandLine.Cloud</AssemblyName>
+    <PackageId>ChilliCream.Nitro.CommandLine.Cloud</PackageId>
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
 
@@ -139,7 +140,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\StrawberryShake\MetaPackages\Server\StrawberryShake.Server.csproj" />
+    <ProjectReference Include="..\CommandLine.Core\Nitro.CommandLine.Core.csproj" />
     <ProjectReference Include="..\CommandLine.Fusion.Compatibility\Nitro.CommandLine.Fusion.Compatibility.csproj" />
+    <ProjectReference Include="..\..\..\..\StrawberryShake\Client\src\Core\StrawberryShake.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\StrawberryShake\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
   </ItemGroup>
 </Project>

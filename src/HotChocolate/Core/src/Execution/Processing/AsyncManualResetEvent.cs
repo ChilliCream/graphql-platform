@@ -27,7 +27,7 @@ internal sealed class AsyncManualResetEvent : INotifyCompletion
             if (!cont)
             {
                 // it is expected that there is only one awaiter per pause.
-                Debug.Assert( _continuation is null, "There should only be one awaiter.");
+                Debug.Assert(_continuation is null, "There should only be one awaiter.");
                 _continuation = continuation;
             }
         }
