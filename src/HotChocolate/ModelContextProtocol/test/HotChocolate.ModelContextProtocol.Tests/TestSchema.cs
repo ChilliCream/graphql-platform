@@ -1,6 +1,8 @@
 // ReSharper disable NotAccessedPositionalProperty.Global
 // ReSharper disable UnusedMember.Global
+using System.Security.Claims;
 using System.Text.Json;
+using HotChocolate.Authorization;
 using HotChocolate.Language;
 using HotChocolate.ModelContextProtocol.Attributes;
 using HotChocolate.Types;
@@ -235,6 +237,9 @@ public sealed class TestSchema
                     .SetException(new Exception("Exception 2"))
                     .Build());
         }
+
+        [Authorize(Roles = ["Admin"])]
+        public string? GetWithAuth(ClaimsPrincipal principal) => principal.Identity?.Name;
     }
 
     public sealed class Mutation
