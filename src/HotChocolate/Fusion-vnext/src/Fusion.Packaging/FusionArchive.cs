@@ -30,7 +30,7 @@ public sealed class FusionArchive : IDisposable
         Stream stream,
         FusionArchiveMode mode,
         bool leaveOpen,
-        FusionArchiveReadOptions  options)
+        FusionArchiveReadOptions options)
     {
         _stream = stream;
         _mode = mode;
@@ -432,7 +432,7 @@ public sealed class FusionArchive : IDisposable
             settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
         }
 
-        return new GatewayConfiguration(OpenReadSchemaAsync,  settings, version);
+        return new GatewayConfiguration(OpenReadSchemaAsync, settings, version);
 
         Task<Stream> OpenReadSchemaAsync(CancellationToken ct)
             => _session.OpenReadAsync(FileNames.GetGatewaySchemaPath(version), FileKind.Schema, ct);
@@ -663,7 +663,7 @@ public sealed class FusionArchive : IDisposable
             }
 
             // 4. Verify cryptographic signature
-            var signedCms  = new SignedCms(contentInfo, detached: true);
+            var signedCms = new SignedCms(contentInfo, detached: true);
             signedCms.Decode(signatureBytes);
             signedCms.CheckSignature(
                 new X509Certificate2Collection(publicKey),

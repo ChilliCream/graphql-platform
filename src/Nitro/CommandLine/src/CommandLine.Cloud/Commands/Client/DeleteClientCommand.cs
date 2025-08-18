@@ -3,7 +3,6 @@ using ChilliCream.Nitro.CommandLine.Cloud.Client;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
 using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 using ChilliCream.Nitro.CommandLine.Cloud.Results;
-using ChilliCream.Nitro.CommandLine;
 using static ChilliCream.Nitro.CommandLine.Cloud.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Client;

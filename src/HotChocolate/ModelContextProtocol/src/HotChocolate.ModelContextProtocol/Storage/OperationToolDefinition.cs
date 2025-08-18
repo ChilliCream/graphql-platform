@@ -1,5 +1,4 @@
 using HotChocolate.Language;
-using HotChocolate.ModelContextProtocol.Directives;
 using HotChocolate.ModelContextProtocol.Extensions;
 using static HotChocolate.ModelContextProtocol.Properties.ModelContextProtocolResources;
 using static HotChocolate.ModelContextProtocol.WellKnownDirectiveNames;
@@ -109,7 +108,7 @@ public sealed class OperationToolDefinition
         Title = title ?? toolDirective?.Title;
         DestructiveHint = destructiveHint ?? toolDirective?.DestructiveHint;
         IdempotentHint = idempotentHint ?? toolDirective?.IdempotentHint;
-        OpenWorldHint = openWorldHint ??  toolDirective?.OpenWorldHint;
+        OpenWorldHint = openWorldHint ?? toolDirective?.OpenWorldHint;
     }
 
     /// <summary>

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Language;

@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Cloud.Client;
 using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
-using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Cloud;
 

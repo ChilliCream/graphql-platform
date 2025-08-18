@@ -18,7 +18,11 @@ internal sealed class ToolStorageObserver : IDisposable
     private readonly StreamableHttpHandler _httpHandler;
     private readonly IOperationToolStorage _storage;
     private IDisposable? _subscription;
+#if NET10_0_OR_GREATER
+    private ImmutableDictionary<string, OperationTool> _tools = [];
+#else
     private ImmutableDictionary<string, OperationTool> _tools = ImmutableDictionary<string, OperationTool>.Empty;
+#endif
     private bool _disposed;
 
     public ToolStorageObserver(

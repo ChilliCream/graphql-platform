@@ -52,7 +52,7 @@
     <PackageVersion Include="Spectre.Console.Json" Version="0.50.0" />
     <PackageVersion Include="Spectre.Console" Version="0.50.0" />
     <PackageVersion Include="sqlite-net-pcl" Version="1.9.172" />
-    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />
+    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
     <PackageVersion Include="Squadron.AzureStorage" Version="0.25.0-preview.2" />
     <PackageVersion Include="Squadron.Mongo" Version="0.25.0-preview.2" />
     <PackageVersion Include="Squadron.Nats" Version="0.25.0-preview.2" />
@@ -71,10 +71,10 @@
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.extensibility.core" Version="2.9.3" />
     <PackageVersion Include="xunit.extensibility.execution" Version="2.9.3" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.1" />
-    <PackageVersion Include="xunit.v3.assert" Version="1.1.0" />
-    <PackageVersion Include="xunit.v3.extensibility.core" Version="1.1.0" />
-    <PackageVersion Include="xunit.v3" Version="1.1.0" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageVersion Include="xunit.v3.assert" Version="3.0.1" />
+    <PackageVersion Include="xunit.v3.extensibility.core" Version="3.0.1" />
+    <PackageVersion Include="xunit.v3" Version="3.0.1" />
     <PackageVersion Include="xunit" Version="2.9.3" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
@@ -160,8 +160,8 @@
     <PackageVersion Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'debug'">
-    <PackageVersion Include="Roslynator.Analyzers" Version="4.13.1" />
-    <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="4.13.1" />
-    <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="4.13.1" />
+    <PackageVersion Include="Roslynator.Analyzers" Version="4.14.0" />
+    <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="4.14.0" />
+    <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="4.14.0" />
   </ItemGroup>
 </Project>
