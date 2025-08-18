@@ -126,7 +126,7 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         }
 
         jsonWriter.WriteString("document", node.Operation.ToString(indented: true));
-        jsonWriter.WriteString("hash", node.OperationId);
+        jsonWriter.WriteString("hash", node.OperationHash);
         jsonWriter.WriteString("shortHash", node.OperationHash[..8]);
         jsonWriter.WriteEndObject();
 
