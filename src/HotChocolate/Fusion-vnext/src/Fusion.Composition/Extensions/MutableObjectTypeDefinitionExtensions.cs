@@ -19,12 +19,6 @@ internal static class MutableObjectTypeDefinitionExtensions
             d => d.Name == FusionType && (string)d.Arguments[Schema].Value! == schemaName);
     }
 
-    public static bool ExistsInSchema(this MutableOutputFieldDefinition field, string schemaName)
-    {
-        return field.Directives.AsEnumerable().Any(
-            d => d.Name == FusionField && (string)d.Arguments[Schema].Value! == schemaName);
-    }
-
     public static IEnumerable<IDirective> GetFusionLookupDirectives(
         this MutableObjectTypeDefinition type,
         string schemaName,
