@@ -616,7 +616,7 @@ internal sealed class ComposeCommand : Command
 
     /// <summary>
     /// Since we're prefixing the message with an emoji and space before printing,
-    /// we need to also indent each line of a multiline message by two spaces to fix the alignment.
+    /// we need to also indent each line of a multiline message by three spaces to fix the alignment.
     /// </summary>
     private static string FormatMultilineMessage(string message)
     {
