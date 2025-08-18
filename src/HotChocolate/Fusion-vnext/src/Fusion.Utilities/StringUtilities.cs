@@ -18,6 +18,11 @@ public static class StringUtilities
         {
             var currentChar = input[i];
 
+            if (currentChar is '-' or '.')
+            {
+                currentChar = '_';
+            }
+
             // Ignore consecutive underscores.
             if (currentChar == '_' && previousChar == '_')
             {
