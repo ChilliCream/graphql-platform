@@ -4,6 +4,7 @@
     <RootNamespace>ChilliCream.Nitro.CommandLine.Fusion.Compatibility</RootNamespace>
     <AssemblyName>ChilliCream.Nitro.CommandLine.Fusion.Compatibility</AssemblyName>
     <PackageId>ChilliCream.Nitro.CommandLine.Fusion.Compatibility</PackageId>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
