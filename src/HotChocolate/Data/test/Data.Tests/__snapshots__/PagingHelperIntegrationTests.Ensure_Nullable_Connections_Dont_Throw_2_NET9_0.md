@@ -4,7 +4,7 @@
 
 ```sql
 -- @__p_0='11'
-SELECT f0."Id", f0."Name", b."Id" IS NULL, b."Id", b."Description", b."SomeField1", b."SomeField2"
+SELECT b."Id" IS NULL, b."Description", b."Id", b."SomeField1", b."SomeField2", f0."Id", f0."Name"
 FROM (
     SELECT f."Id", f."BarId", f."Name"
     FROM "Foos" AS f
@@ -18,7 +18,7 @@ ORDER BY f0."Name", f0."Id"
 ## Expression 0
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Name).ThenBy(t => t.Id).Select(root => new Foo() {Id = root.Id, Name = root.Name, Bar = IIF((root.Bar == null), null, new Bar() {Id = root.Bar.Id, Description = IIF((root.Bar.Description == null), null, root.Bar.Description), SomeField1 = root.Bar.SomeField1, SomeField2 = IIF((root.Bar.SomeField2 == null), null, root.Bar.SomeField2)})}).Take(11)
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Name).ThenBy(t => t.Id).Select(root => new Foo() {Bar = IIF((root.Bar == null), null, new Bar() {Description = IIF((root.Bar.Description == null), null, root.Bar.Description), Id = root.Bar.Id, SomeField1 = root.Bar.SomeField1, SomeField2 = IIF((root.Bar.SomeField2 == null), null, root.Bar.SomeField2)}), Id = root.Id, Name = root.Name}).Take(11)
 ```
 
 ## Result

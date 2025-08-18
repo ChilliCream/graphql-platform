@@ -38,7 +38,7 @@
 -- @__value_1='46'
 -- @__p_3='3'
 -- @__p_2='6'
-SELECT p."Name", p."BrandId", p."Id"
+SELECT p."BrandId", p."Name", p."Id"
 FROM "Products" AS p
 WHERE p."Name" < @__value_0 OR (p."Name" = @__value_0 AND p."Id" > @__value_1)
 ORDER BY p."Name" DESC, p."Id"
