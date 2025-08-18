@@ -28,7 +28,7 @@ public static class SchemaParser
         SchemaParserOptions options = default)
     {
         var document = Utf8GraphQLParser.Parse(sourceText);
-        return Parse(schema, document, options);
+        Parse(schema, document, options);
     }
 
     public static void Parse(
