@@ -108,7 +108,10 @@
     <Project Path="HotChocolate/Core/src/Types.Shared/HotChocolate.Types.Shared.csproj" />
     <Project Path="HotChocolate/Core/src/Types/HotChocolate.Types.csproj" />
     <Project Path="HotChocolate/Core/src/Validation/HotChocolate.Validation.csproj" />
+    <Project Path="HotChocolate/Core/src/Execution.Operation.Abstractions/HotChocolate.Execution.Operation.Abstractions.csproj" />
   </Folder>
+  <Folder Name="/HotChocolate/Core/src/Features/" />
+  <Folder Name="/HotChocolate/Core/src/Types.Abstractions/" />
   <Folder Name="/HotChocolate/Core/test/">
     <Project Path="HotChocolate/Core/test/Abstractions.Tests/HotChocolate.Abstractions.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Authorization.Tests/HotChocolate.Authorization.Tests.csproj" />
