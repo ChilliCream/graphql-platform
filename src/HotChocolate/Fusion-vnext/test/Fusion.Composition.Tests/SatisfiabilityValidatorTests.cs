@@ -1939,6 +1939,225 @@ public sealed class SatisfiabilityValidatorTests
             """);
     }
 
+    [Fact]
+    public void Type_Without_Lookup_But_Shared_Path()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    firstName: String!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    lastName: String!
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    middleName: String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.False(result.IsFailure);
+    }
+
+    [Fact]
+    public void Type_Without_Lookup_But_Shared_Path_With_Requirement()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    firstName: String!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    fullName(firstName: String! @require(field: "{ firstName }")): String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.False(result.IsFailure);
+    }
+
+    [Fact]
+    public void Type_Without_Lookup_Not_All_Schemas_Share_Path()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    firstName: String!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    other: Viewer
+                }
+
+                type Viewer {
+                    lastName: String!
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    middleName: String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsFailure);
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Viewer.lastName' on path 'A:Query.viewer<Viewer>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Viewer.lastName<String>'.
+                No lookups found for type 'Viewer' in schema 'B'.
+
+            Unable to access the field 'Viewer.lastName' on path 'C:Query.viewer<Viewer>'.
+              Unable to transition between schemas 'C' and 'B' for access to field 'B:Viewer.lastName<String>'.
+                No lookups found for type 'Viewer' in schema 'B'.
+
+            Unable to access the field 'Viewer.firstName' on path 'B:Query.other<Viewer>'.
+              Unable to transition between schemas 'B' and 'A' for access to field 'A:Viewer.firstName<String>'.
+                No lookups found for type 'Viewer' in schema 'A'.
+
+            Unable to access the field 'Viewer.middleName' on path 'B:Query.other<Viewer>'.
+              Unable to transition between schemas 'B' and 'C' for access to field 'C:Viewer.middleName<String>'.
+                No lookups found for type 'Viewer' in schema 'C'.
+            """);
+    }
+
+    [Fact]
+    public void Type_Without_Lookup_Not_All_Schemas_Share_Path_With_Requirement()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    fullName(firstName: String! @require(field: "{ firstName }")): String!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    other: Viewer
+                }
+
+                type Viewer {
+                    firstName: String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsFailure);
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Viewer.fullName' on path 'A:Query.viewer<Viewer>'.
+              Unable to satisfy the requirement '{ firstName }' on field 'A:Viewer.fullName<String>'.
+                Unable to satisfy the requirement 'firstName'.
+                  Unable to access the required field 'Viewer.firstName' on path 'A:Query.viewer<Viewer>'.
+                    Unable to transition between schemas 'A' and 'B' for access to required field 'B:Viewer.firstName<String>'.
+                      No lookups found for type 'Viewer' in schema 'B'.
+
+            Unable to access the field 'Viewer.firstName' on path 'A:Query.viewer<Viewer>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Viewer.firstName<String>'.
+                No lookups found for type 'Viewer' in schema 'B'.
+
+            Unable to access the field 'Viewer.fullName' on path 'B:Query.other<Viewer>'.
+              Unable to transition between schemas 'B' and 'A' for access to field 'A:Viewer.fullName<String>'.
+                No lookups found for type 'Viewer' in schema 'A'.
+            """);
+    }
+
     [Theory]
     [MemberData(nameof(GlobalObjectIdentificationExamplesData))]
     public void GlobalObjectIdentification_Examples(string[] sdl, bool success, string? logs = null)
