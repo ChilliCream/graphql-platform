@@ -535,7 +535,7 @@ internal sealed class ComposeCommand : Command
                 _ => throw new InvalidOperationException()
             };
 
-            var message = $"{emoji} [{abbreviatedSeverity}] {entry.Message} ({entry.Code})";
+            var message = $"{emoji} [{abbreviatedSeverity}] {FormatMultilineMessage(entry.Message)} ({entry.Code})";
 
             if (writeAsGraphQLComments)
             {
@@ -612,5 +612,21 @@ internal sealed class ComposeCommand : Command
             var sourceText = await File.ReadAllTextAsync(schemaFilePath, cancellationToken);
             sourceSchemas.TryAdd(schemaName, (new SourceSchemaText(schemaName, sourceText), settings));
         }
+    }
+
+    /// <summary>
+    /// Since we're prefixing the message with an emoji and space before printing,
+    /// we need to also indent each line of a multiline message by three spaces to fix the alignment.
+    /// </summary>
+    private static string FormatMultilineMessage(string message)
+    {
+        var lines = message.Split(Environment.NewLine);
+
+        if (lines.Length <= 1)
+        {
+            return message;
+        }
+
+        return string.Join(Environment.NewLine + "   ", lines);
     }
 }
