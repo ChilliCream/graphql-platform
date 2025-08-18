@@ -1,6 +1,7 @@
 using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Pipeline;
+using static HotChocolate.Fusion.Configuration.FusionSetupUtilities;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -249,7 +250,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        FusionGatewayBuilderUtilities.ClearPipeline(builder);
+        ClearPipeline(builder);
 
         return builder
             .UseInstrumentation()
@@ -271,7 +272,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        FusionGatewayBuilderUtilities.ClearPipeline(builder);
+        ClearPipeline(builder);
 
         return builder
             .UseInstrumentation()
@@ -295,7 +296,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        FusionGatewayBuilderUtilities.ClearPipeline(builder);
+        ClearPipeline(builder);
 
         return builder
             .UseInstrumentation()

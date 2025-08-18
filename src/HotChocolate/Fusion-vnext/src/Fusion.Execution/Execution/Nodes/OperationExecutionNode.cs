@@ -1,8 +1,8 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO.Hashing;
 using System.Reactive.Disposables;
+using System.Security.Cryptography;
 using System.Text;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
@@ -43,7 +43,12 @@ public sealed class OperationExecutionNode : ExecutionNode
         // We compute the hash of the operation definition when it is set.
         // This hash can be used within the GraphQL client to identify the operation
         // and optimize request serialization.
-        OperationId = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(operation.ToString())).ToString();
+        var operationBytes = Encoding.UTF8.GetBytes(operation.ToString());
+#if NET9_0_OR_GREATER
+        OperationHash = Convert.ToHexStringLower(SHA256.HashData(operationBytes));
+#else
+        OperationHash = Convert.ToHexString(SHA256.HashData(operationBytes)).ToLowerInvariant();
+#endif
 
         var variables = new List<string>();
 
@@ -60,12 +65,20 @@ public sealed class OperationExecutionNode : ExecutionNode
         _variables = variables.ToArray();
     }
 
+    /// <summary>
+    /// Gets the plan unique node id.
+    /// </summary>
     public override int Id { get; }
 
     /// <summary>
     /// Gets the unique identifier of the operation.
     /// </summary>
-    public string OperationId { get; }
+    public string OperationId => OperationHash;
+
+    /// <summary>
+    /// Gets a SHA256 has of the <see cref="Operation"/>.
+    /// </summary>
+    public string OperationHash { get; }
 
     /// <summary>
     /// Gets the operation definition that this execution node represents.
