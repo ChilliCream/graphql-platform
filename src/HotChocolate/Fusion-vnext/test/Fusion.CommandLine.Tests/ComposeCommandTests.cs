@@ -113,7 +113,7 @@ public sealed class ComposeCommandTests : IDisposable
         // arrange
         var builder = GetCommandLineBuilder();
         var directory = Directory.GetCurrentDirectory();
-        string fileName = $"../{Path.GetRandomFileName()}";
+        var fileName = $"../{Path.GetRandomFileName()}";
         var filePath = Path.Combine(directory, fileName);
         _tempFiles.Add(filePath);
         string[] args =
@@ -147,7 +147,7 @@ public sealed class ComposeCommandTests : IDisposable
         // arrange
         var builder = GetCommandLineBuilder();
         const string workingDirectory = "__resources__/valid-example-1";
-        string fileName = Path.GetRandomFileName();
+        var fileName = Path.GetRandomFileName();
         var filePath = Path.Combine(workingDirectory, fileName);
         _tempFiles.Add(filePath);
         string[] args =
@@ -249,7 +249,7 @@ public sealed class ComposeCommandTests : IDisposable
             "--source-schema-file",
             "__resources__/valid-example-1/source-schema-1.graphqls",
             "--source-schema-file",
-            "__resources__/valid-example-1/source-schema-2.graphqls",
+            "__resources__/valid-example-1/source-schema-2.graphqls"
         ];
         var testConsole = new TestConsole();
 

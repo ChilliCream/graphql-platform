@@ -149,7 +149,7 @@ public sealed class SourceSchemaErrors
             {
                 { ValueKind: JsonValueKind.String } nameElement => path.Append(nameElement.GetString()!),
                 { ValueKind: JsonValueKind.Number } indexElement => path.Append(indexElement.GetInt32()),
-                _ => throw new InvalidOperationException("The error path contains an unsupported element."),
+                _ => throw new InvalidOperationException("The error path contains an unsupported element.")
             };
         }
 

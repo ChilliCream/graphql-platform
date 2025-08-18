@@ -200,7 +200,7 @@ public sealed class GraphQLHttpRequest
     /// </summary>
     public static ImmutableArray<MediaTypeWithQualityHeaderValue> GraphQLOverSse { get; } =
     [
-        new(ContentType.EventStream),
+        new(ContentType.EventStream)
     ];
 
     /// <summary>

@@ -456,7 +456,7 @@ internal sealed class FetchResultStore : IDisposable
         {
             var segment = sourcePath.Segments[i];
 
-            if (!current.TryGetValue(segment.Name, out  current))
+            if (!current.TryGetValue(segment.Name, out current))
             {
                 return null;
             }

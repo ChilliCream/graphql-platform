@@ -10,8 +10,8 @@ internal static class OptionExtensions
         return option;
     }
 
-    private const string _prefix = "NITRO_";
-    private static readonly string[] _prefixes = [_prefix, "BARISTA_"];
+    private const string Prefix = "NITRO_";
+    private static readonly string[] s_prefixes = [Prefix, "BARISTA_"];
 
     public static Option<T> DefaultFromEnvironmentValue<T>(
         this Option<T> option,
@@ -19,7 +19,7 @@ internal static class OptionExtensions
         Func<string, object>? transform = null,
         T? defaultValue = default)
     {
-        var value = _prefixes
+        var value = s_prefixes
             .Select(prefix => Environment.GetEnvironmentVariable(prefix + name))
             .FirstOrDefault(value => value is not null);
 
@@ -34,7 +34,7 @@ internal static class OptionExtensions
         }
 
         option.Description ??= "";
-        option.Description = $"{option.Description} [env: {_prefix}{name}]";
+        option.Description = $"{option.Description} [env: {Prefix}{name}]";
 
         return option;
     }

@@ -70,7 +70,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Indent();
             foreach (var requirement in node.Requirements.ToArray().OrderBy(t => t.Key))
             {
-                writer.WriteLine("- name: {0}",  requirement.Key);
+                writer.WriteLine("- name: {0}", requirement.Key);
                 writer.Indent();
                 writer.WriteLine("selectionMap: {0}", requirement.Map);
                 writer.Unindent();

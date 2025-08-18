@@ -9,8 +9,8 @@ namespace ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 
 internal static class ApiClientCommandLineBuilderExtensions
 {
-    private static readonly string _userAgent = $"Nitro CLI/{Version}";
-    private const string _clientId = BuildSecrets.NitroApiClientId;
+    private static readonly string s_userAgent = $"Nitro CLI/{Version}";
+    private const string ClientId = BuildSecrets.NitroApiClientId;
 
     public static CommandLineBuilder AddApiClient(this CommandLineBuilder builder)
         => builder
@@ -76,9 +76,9 @@ internal static class ApiClientCommandLineBuilderExtensions
                 client.DefaultRequestHeaders.Accept
                     .Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                client.DefaultRequestHeaders.Add(Headers.GraphQLClientId, _clientId);
+                client.DefaultRequestHeaders.Add(Headers.GraphQLClientId, ClientId);
                 client.DefaultRequestHeaders.Add(Headers.GraphQLClientVersion, Version);
-                client.DefaultRequestHeaders.Add(Headers.CCCAgent, _userAgent);
+                client.DefaultRequestHeaders.Add(Headers.CCCAgent, s_userAgent);
 
                 client.DefaultRequestHeaders.Add(Headers.GraphQLPreflight, "1");
 
