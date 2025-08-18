@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using ChilliCream.Nitro.CommandLine;
 using static System.Environment.SpecialFolder;
 using static System.Environment.SpecialFolderOption;
 
@@ -8,7 +7,7 @@ namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 internal class ConfigurationService : IConfigurationService
 {
-    private static readonly string _configFolder =
+    private static readonly string s_configFolder =
         Path.Combine(Environment.GetFolderPath(ApplicationData, Create), "nitro");
 
     public async Task<T?> GetAsync<T>(CancellationToken cancellationToken)
@@ -20,7 +19,7 @@ internal class ConfigurationService : IConfigurationService
 
             var config = default(T);
 
-            var configFile = Path.Combine(_configFolder, T.FileName);
+            var configFile = Path.Combine(s_configFolder, T.FileName);
             if (File.Exists(configFile))
             {
                 try
@@ -67,7 +66,7 @@ internal class ConfigurationService : IConfigurationService
         {
             await EnsureConfigFile<T>(cancellationToken);
 
-            var configFile = Path.Combine(_configFolder, T.FileName);
+            var configFile = Path.Combine(s_configFolder, T.FileName);
             File.Delete(configFile);
             await using var stream = File.OpenWrite(configFile);
 
@@ -86,7 +85,7 @@ internal class ConfigurationService : IConfigurationService
 
     public Task ResetAsync<T>(CancellationToken cancellationToken) where T : IConfigurationFile
     {
-        var configFile = Path.Combine(_configFolder, T.FileName);
+        var configFile = Path.Combine(s_configFolder, T.FileName);
         if (File.Exists(configFile))
         {
             File.Delete(configFile);
@@ -98,12 +97,12 @@ internal class ConfigurationService : IConfigurationService
     private static async Task EnsureConfigFile<T>(CancellationToken cancellationToken)
         where T : IConfigurationFile
     {
-        if (!Directory.Exists(_configFolder))
+        if (!Directory.Exists(s_configFolder))
         {
-            Directory.CreateDirectory(_configFolder);
+            Directory.CreateDirectory(s_configFolder);
         }
 
-        var configFile = Path.Combine(_configFolder, T.FileName);
+        var configFile = Path.Combine(s_configFolder, T.FileName);
         if (!File.Exists(configFile) && T.Default is not null)
         {
             await using var stream = File.OpenWrite(configFile);

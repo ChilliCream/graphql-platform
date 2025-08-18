@@ -2,23 +2,23 @@ namespace ChilliCream.Nitro.CommandLine.Cloud.Option;
 
 internal static class Opt<TOption> where TOption : new()
 {
-    private static readonly object _lock = new();
+    private static readonly object s_lock = new();
 
-    private static TOption? _instance;
+    private static TOption? s_instance;
 
     public static TOption Instance
     {
         get
         {
-            if (_instance == null)
+            if (s_instance == null)
             {
-                lock (_lock)
+                lock (s_lock)
                 {
-                    _instance ??= new();
+                    s_instance ??= new();
                 }
             }
 
-            return _instance;
+            return s_instance;
         }
     }
 }

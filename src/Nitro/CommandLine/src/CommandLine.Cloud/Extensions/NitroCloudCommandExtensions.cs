@@ -8,7 +8,6 @@ using ChilliCream.Nitro.CommandLine.Cloud.Commands.PersonalAccessToken;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.Stages;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
 using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
-using ChilliCream.Nitro.CommandLine.Cloud.Results;
 
 namespace ChilliCream.Nitro.CommandLine.Cloud;
 
@@ -24,7 +23,9 @@ public static class NitroCloudCommandExtensions
             // .AddResult()
             .AddApiClient()
             .AddSessionMiddleware();
+#pragma warning disable format
             // .AddResultMiddleware();
+#pragma warning restore format
 
         return builder;
     }

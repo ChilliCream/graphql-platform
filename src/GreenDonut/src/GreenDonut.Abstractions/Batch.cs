@@ -24,7 +24,7 @@ public abstract class Batch
     /// maximum size threshold).
     /// </para>
     /// </summary>
-    public abstract int Size { get;  }
+    public abstract int Size { get; }
 
     /// <summary>
     /// <para>

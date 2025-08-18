@@ -2175,7 +2175,7 @@ public sealed class SatisfiabilityValidatorTests
                         id: ID!
                         name: String!
                     }
-                    """,
+                    """
                 ],
                 true,
                 null

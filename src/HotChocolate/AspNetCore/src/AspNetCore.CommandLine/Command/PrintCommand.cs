@@ -1,9 +1,5 @@
 using System.CommandLine;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 

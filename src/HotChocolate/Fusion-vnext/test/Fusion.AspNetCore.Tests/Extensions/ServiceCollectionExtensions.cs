@@ -43,13 +43,13 @@ public static class ServiceCollectionExtensions
                 $"No test server registered with the name: {name}");
         }
 
-    private class ErrorHandler : HttpClientHandler
-            {
-                protected override Task<HttpResponseMessage> SendAsync(
-                    HttpRequestMessage request,
-                    CancellationToken cancellationToken)
-                    => Task.FromResult(new HttpResponseMessage(HttpStatusCode.InternalServerError));
-            }
+        private class ErrorHandler : HttpClientHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(
+                HttpRequestMessage request,
+                CancellationToken cancellationToken)
+                => Task.FromResult(new HttpResponseMessage(HttpStatusCode.InternalServerError));
+        }
     }
 
     private record TestServerRegistration(string Name, TestServer Server, bool IsOffline = false);

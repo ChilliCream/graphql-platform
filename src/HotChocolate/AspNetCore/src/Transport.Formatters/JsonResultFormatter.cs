@@ -64,7 +64,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
             IOperationResult singleResult => FormatInternalAsync(singleResult, outputStream, cancellationToken),
             OperationResultBatch resultBatch => FormatInternalAsync(resultBatch, outputStream, cancellationToken),
             IResponseStream responseStream => FormatInternalAsync(responseStream, outputStream, cancellationToken),
-            _ => throw new NotSupportedException($"The result type '{result.GetType().FullName}' is not supported."),
+            _ => throw new NotSupportedException($"The result type '{result.GetType().FullName}' is not supported.")
         };
     }
 
