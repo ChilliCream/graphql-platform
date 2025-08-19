@@ -125,10 +125,14 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     internal IOperationResult Complete()
     {
+        var environment = Schema.TryGetEnvironment();
+
         var trace = _collectTelemetry
             ? new OperationPlanTrace
             {
                 TraceId = _traceId,
+                AppId = environment?.AppId,
+                EnvironmentName = environment?.Name,
                 Duration = Stopwatch.GetElapsedTime(_start),
                 Nodes = Traces.ToImmutableDictionary(t => t.Id)
             }

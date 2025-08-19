@@ -13,6 +13,12 @@ internal static class MutableOutputFieldDefinitionExtensions
         field.Directives.Add(new Directive(new MutableDirectiveDefinition(Lookup)));
     }
 
+    public static bool ExistsInSchema(this MutableOutputFieldDefinition field, string schemaName)
+    {
+        return field.Directives.AsEnumerable().Any(
+            d => d.Name == FusionField && (string)d.Arguments[Schema].Value! == schemaName);
+    }
+
     public static string? GetFusionFieldProvides(
         this MutableOutputFieldDefinition field,
         string schemaName)

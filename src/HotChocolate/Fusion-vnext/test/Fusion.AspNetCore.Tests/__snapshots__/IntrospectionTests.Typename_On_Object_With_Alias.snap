@@ -21,15 +21,22 @@
     "fusion": {
       "operationPlan": {
         "operation": {
+          "kind": "Query",
           "document": "{\n  books {\n    nodes {\n      a: __typename\n    }\n  }\n}",
-          "hash": "01be2e0ffad76cbb91821c8ed1419f71"
+          "hash": "01be2e0ffad76cbb91821c8ed1419f71",
+          "shortHash": "01be2e0f"
         },
         "nodes": [
           {
             "id": 1,
             "type": "Operation",
             "schema": "A",
-            "operation": "query Op_01be2e0f_1 {\n  books {\n    nodes {\n      a: __typename\n    }\n  }\n}",
+            "operation": {
+              "name": "Op_01be2e0f_1",
+              "document": "query Op_01be2e0f_1 {\n  books {\n    nodes {\n      a: __typename\n    }\n  }\n}",
+              "hash": "74efab5648b66cf80d55f98962815bd04288337f5a732ea83c271317f4926fa6",
+              "shortHash": "74efab56"
+            },
             "responseNames": [
               "books"
             ]

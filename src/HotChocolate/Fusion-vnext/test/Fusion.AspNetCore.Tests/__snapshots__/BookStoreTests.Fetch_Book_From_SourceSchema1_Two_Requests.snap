@@ -9,15 +9,22 @@
     "fusion": {
       "operationPlan": {
         "operation": {
+          "kind": "Query",
           "document": "{\n  bookById(id: 1) {\n    id\n    title\n  }\n}",
-          "hash": "da31ef9bfb0a7c42de9b1578b454d0af"
+          "hash": "da31ef9bfb0a7c42de9b1578b454d0af",
+          "shortHash": "da31ef9b"
         },
         "nodes": [
           {
             "id": 1,
             "type": "Operation",
             "schema": "A",
-            "operation": "query Op_da31ef9b_1 {\n  bookById(id: 1) {\n    id\n    title\n  }\n}",
+            "operation": {
+              "name": "Op_da31ef9b_1",
+              "document": "query Op_da31ef9b_1 {\n  bookById(id: 1) {\n    id\n    title\n  }\n}",
+              "hash": "435ceaaaa1b0f701c486c3a5eab603b30a5be84224fd3a039d4ae960a2a0ec85",
+              "shortHash": "435ceaaa"
+            },
             "responseNames": [
               "bookById"
             ]

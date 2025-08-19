@@ -6,8 +6,10 @@
     "fusion": {
       "operationPlan": {
         "operation": {
+          "kind": "Query",
           "document": "{\n  __typename\n}",
-          "hash": "ef5c9e7b1e24de261642083d4e294322"
+          "hash": "ef5c9e7b1e24de261642083d4e294322",
+          "shortHash": "ef5c9e7b"
         },
         "nodes": [
           {

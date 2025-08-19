@@ -37,7 +37,7 @@
 -- @__p_0='3'
 SELECT (
     SELECT count(*)::int
-    FROM "Products" AS p0) AS "TotalCount", p."Name", p."BrandId", p."Id"
+    FROM "Products" AS p0) AS "TotalCount", p."BrandId", p."Name", p."Id"
 FROM "Products" AS p
 ORDER BY p."Name" DESC, p."Id"
 LIMIT @__p_0

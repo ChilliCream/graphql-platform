@@ -1,5 +1,6 @@
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+  <Import Project="Directory.Build.props.user" Condition="Exists('Directory.Build.props.user')" />
   <PropertyGroup>
     <PackageIcon>hotchocolate-signet.png</PackageIcon>
   </PropertyGroup>
