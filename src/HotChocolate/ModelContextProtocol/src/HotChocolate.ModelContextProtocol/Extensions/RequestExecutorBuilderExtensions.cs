@@ -19,6 +19,7 @@ public static class RequestExecutorBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services
+            .AddHttpContextAccessor()
             .AddKeyedSingleton(
                 builder.Name,
                 static (sp, name) => new McpRequestExecutorProxy(

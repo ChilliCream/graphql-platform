@@ -37,6 +37,7 @@ public sealed class CallToolHandlerTests
         services.AddLogging();
         services
             .AddGraphQL()
+            .AddAuthorization()
             .AddMcp()
             .AddQueryType<TestSchema.Query>()
             .AddInterfaceType<TestSchema.IPet>()

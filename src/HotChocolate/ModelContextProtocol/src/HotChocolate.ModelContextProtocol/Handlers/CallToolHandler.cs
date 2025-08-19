@@ -1,8 +1,10 @@
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -45,14 +47,15 @@ internal static class CallToolHandler
             variableValues.Add(name, jsonValueParser.Parse(value));
         }
 
-        var result =
-            await requestExecutor.ExecuteAsync(
-                b => b
-                    .SetDocument(tool.Operation.Document)
-                    .SetVariableValues(variableValues),
-                cancellationToken)
-                .ConfigureAwait(false);
-
+        var httpContext =
+            context.Services!.GetRootServiceProvider().GetRequiredService<IHttpContextAccessor>().HttpContext!;
+        var requestBuilder = CreateRequestBuilder(httpContext);
+        var request =
+            requestBuilder
+                .SetDocument(tool.Operation.Document)
+                .SetVariableValues(variableValues)
+                .Build();
+        var result = await requestExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         var operationResult = result.ExpectOperationResult();
 
         return new CallToolResult
@@ -65,5 +68,21 @@ internal static class CallToolHandler
             StructuredContent = JsonNode.Parse(operationResult.ToJson()),
             IsError = operationResult.Errors?.Any()
         };
+    }
+
+    private static OperationRequestBuilder CreateRequestBuilder(HttpContext httpContext)
+    {
+        var requestBuilder = new OperationRequestBuilder();
+        var userState = new UserState(httpContext.User);
+
+        requestBuilder.Features.Set(userState);
+        requestBuilder.Features.Set(httpContext);
+        requestBuilder.Features.Set(httpContext.User);
+
+        requestBuilder.TrySetServices(httpContext.RequestServices);
+        requestBuilder.TryAddGlobalState(nameof(HttpContext), httpContext);
+        requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), userState.User);
+
+        return requestBuilder;
     }
 }
