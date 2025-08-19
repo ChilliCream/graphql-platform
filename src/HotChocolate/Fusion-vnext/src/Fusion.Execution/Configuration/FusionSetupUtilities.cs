@@ -8,6 +8,11 @@ namespace HotChocolate.Fusion.Configuration;
 /// </summary>
 public static class FusionSetupUtilities
 {
+    /// <summary>
+    /// Gets the max supported fusion version.
+    /// </summary>
+    public static Version Version { get; } = new(2, 0, 0, 0);
+
     internal static IFusionGatewayBuilder Configure(
         IFusionGatewayBuilder builder,
         Action<FusionGatewaySetup> configure)
