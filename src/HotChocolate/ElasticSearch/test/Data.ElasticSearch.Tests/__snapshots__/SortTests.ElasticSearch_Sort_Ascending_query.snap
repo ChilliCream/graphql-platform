@@ -1,0 +1,12 @@
+﻿{
+  "query": {
+    "match_all": {}
+  },
+  "sort": [
+    {
+      "name.keyword": {
+        "order": "asc"
+      }
+    }
+  ]
+}
