@@ -76,4 +76,6 @@ public class CSharpGeneratorSettings
             subscription: TransportType.WebSocket)
 
     ];
+
+    public bool OptionalEnum { get; set; }
 }
