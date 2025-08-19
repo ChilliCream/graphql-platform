@@ -1,0 +1,18 @@
+schema {
+  query: QueryType
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+type QueryType {
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  some: Some
+}
+
+type Some implements Node {
+  id: ID!
+}

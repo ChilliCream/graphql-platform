@@ -1,3 +1,5 @@
+using HotChocolate.Features;
+using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate;
@@ -13,7 +15,7 @@ public static class RelaySchemaBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(schemaBuilder);
 
-        return AddGlobalObjectIdentification(schemaBuilder, true);
+        return AddGlobalObjectIdentification(schemaBuilder, null);
     }
 
     /// <summary>
@@ -22,21 +24,21 @@ public static class RelaySchemaBuilderExtensions
     /// </summary>
     public static ISchemaBuilder AddGlobalObjectIdentification(
         this ISchemaBuilder schemaBuilder,
-        bool registerNodeInterface)
+        Action<GlobalObjectIdentificationOptions>? configure)
     {
         ArgumentNullException.ThrowIfNull(schemaBuilder);
 
-        schemaBuilder.Features.Set(new NodeSchemaFeature());
+        var feature = schemaBuilder.Features.GetOrSet(new NodeSchemaFeature());
 
         schemaBuilder.TryAddTypeInterceptor<NodeIdSerializerTypeInterceptor>();
 
-        if (registerNodeInterface)
-        {
-            schemaBuilder
-                .TryAddTypeInterceptor<NodeFieldTypeInterceptor>()
-                .TryAddTypeInterceptor<NodeResolverTypeInterceptor>()
-                .AddType<NodeType>();
-        }
+        configure?.Invoke(feature.Options);
+
+        // TODO: Move this and only do if RegisterNodeInterface is true
+        schemaBuilder
+            .TryAddTypeInterceptor(new NodeFieldTypeInterceptor(feature.Options))
+            .TryAddTypeInterceptor<NodeResolverTypeInterceptor>()
+            .AddType<NodeType>();
 
         return schemaBuilder;
     }
@@ -54,4 +56,38 @@ public static class RelaySchemaBuilderExtensions
             .ModifyMutationPayloadOptions(configureOptions)
             .TryAddTypeInterceptor<QueryFieldTypeInterceptor>();
     }
+}
+
+// TODO: Move
+public sealed class GlobalObjectIdentificationOptions
+{
+    /// <summary>
+    /// Specifies if the node interface and the node field shall be registered with the schema.
+    /// </summary>
+    public bool RegisterNodeInterface { get; set; } = true;
+
+    /// <summary>
+    /// Defines if the schema building process shall validate that all nodes are resolvable through `node`.
+    /// </summary>
+    public bool EnsureAllNodesCanBeResolved { get; set; } = true;
+
+    /// <summary>
+    /// Specifies the maximum allowed nodes that can be fetched at once through the nodes field.
+    /// </summary>
+    public int MaxAllowedNodeBatchSize { get; set; } = 50;
+
+    /// <summary>
+    /// Specifies whether a plural <c>Query.nodes</c> field shall be added to the schema.
+    /// </summary>
+    public bool AddNodesField { get; set; } = true;
+
+    /// <summary>
+    /// Specifies whether the <c>Query.node</c> field should be annotated
+    /// with the composite schema <c>@lookup</c> directive.
+    /// </summary>
+    /// <remarks>
+    /// This is necessary if you want to enable the global object identification
+    /// integration in the Fusion gateway.
+    /// </remarks>
+    public bool MarkNodeFieldAsLookup { get; set; }
 }

@@ -112,11 +112,6 @@ public interface IReadOnlySchemaOptions
     bool EnableOneOf { get; }
 
     /// <summary>
-    /// Defines if the schema building process shall validate that all nodes are resolvable through `node`.
-    /// </summary>
-    bool EnsureAllNodesCanBeResolved { get; }
-
-    /// <summary>
     /// Defines if flag enums should be inferred as object value nodes
     /// </summary>
     /// <example>
@@ -174,11 +169,6 @@ public interface IReadOnlySchemaOptions
     /// Enables the @schemaName directive.
     /// </summary>
     bool EnableSchemaNameDirective { get; }
-
-    /// <summary>
-    /// Specifies the maximum allowed nodes that can be fetched at once through the nodes field.
-    /// </summary>
-    int MaxAllowedNodeBatchSize { get; }
 
     /// <summary>
     /// Specified if the leading I shall be stripped from the interface name.

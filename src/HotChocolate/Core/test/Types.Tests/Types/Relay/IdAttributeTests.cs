@@ -30,7 +30,7 @@ public class IdAttributeTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
-                .AddGlobalObjectIdentification(false)
+                .AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false)
                 .AddNodeIdValueSerializer<StronglyTypedIdNodeIdValueSerializer>()
                 .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
@@ -101,7 +101,7 @@ public class IdAttributeTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
-                .AddGlobalObjectIdentification(false)
+                .AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false)
                 .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(@"query foo {
@@ -127,7 +127,7 @@ public class IdAttributeTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
-                .AddGlobalObjectIdentification(false)
+                .AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false)
                 .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(
@@ -182,7 +182,7 @@ public class IdAttributeTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
-                .AddGlobalObjectIdentification(false)
+                .AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false)
                 .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(
@@ -237,7 +237,7 @@ public class IdAttributeTests
             .AddGraphQLServer()
             .AddQueryType<Query>()
             .AddType<FooPayload>()
-            .AddGlobalObjectIdentification(false)
+            .AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false)
             .BuildRequestExecutorAsync();
 
         var someId = Convert.ToBase64String("Some:1"u8);
@@ -285,7 +285,7 @@ public class IdAttributeTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
-                .AddGlobalObjectIdentification(false)
+                .AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false)
                 .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(
@@ -322,7 +322,7 @@ public class IdAttributeTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
-                .AddGlobalObjectIdentification(false)
+                .AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false)
                 .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(
@@ -360,7 +360,7 @@ public class IdAttributeTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
-                .AddGlobalObjectIdentification(false)
+                .AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false)
                 .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(
@@ -402,7 +402,7 @@ public class IdAttributeTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
-                .AddGlobalObjectIdentification(false)
+                .AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false)
                 .AddNodeIdValueSerializer<StronglyTypedIdNodeIdValueSerializer>()
                 .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
@@ -437,7 +437,7 @@ public class IdAttributeTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
-                .AddGlobalObjectIdentification(false)
+                .AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false)
                 .BuildSchemaAsync();
 
         schema.ToString().MatchSnapshot();
@@ -455,7 +455,7 @@ public class IdAttributeTests
                 d.Name("Query");
                 d.Field("abc").ID().ID().ID().ID().Resolve("abc");
             })
-            .AddGlobalObjectIdentification(false)
+            .AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false)
             .TryAddTypeInterceptor(inspector)
             .BuildSchemaAsync();
 

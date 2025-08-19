@@ -34,8 +34,8 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// Global Object Identification specification.
     /// </summary>
     /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-    /// <param name="registerNodeInterface">
-    /// Specifies if the node interface and the node field shall be registered with the schema.
+    /// <param name="configure">
+    /// An action to configure the <see cref="GlobalObjectIdentificationOptions"/>.
     /// </param>
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
@@ -43,16 +43,17 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddGlobalObjectIdentification(
         this IRequestExecutorBuilder builder,
-        bool registerNodeInterface)
+        Action<GlobalObjectIdentificationOptions> configure)
     {
         ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         if (builder.Services.All(t => t.ServiceType != typeof(INodeIdSerializer)))
         {
             builder.AddDefaultNodeIdSerializer();
         }
 
-        return builder.ConfigureSchema(c => c.AddGlobalObjectIdentification(registerNodeInterface));
+        return builder.ConfigureSchema(c => c.AddGlobalObjectIdentification(configure));
     }
 
     /// <summary>

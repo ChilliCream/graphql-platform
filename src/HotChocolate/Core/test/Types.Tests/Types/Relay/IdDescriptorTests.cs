@@ -19,7 +19,7 @@ public class IdDescriptorTests
                 .AddGraphQLServer()
                 .AddQueryType<QueryType>()
                 .AddType<FooPayloadType>()
-                .AddGlobalObjectIdentification(false)
+                .AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false)
                 .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(
@@ -54,7 +54,7 @@ public class IdDescriptorTests
                 .AddGraphQLServer()
                 .AddQueryType<QueryType>()
                 .AddType<FooPayloadType>()
-                .AddGlobalObjectIdentification(false)
+                .AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false)
                 .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(
