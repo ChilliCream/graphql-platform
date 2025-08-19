@@ -753,6 +753,7 @@ public sealed class OperationToolFactoryTests
         var schemaBuilder =
             SchemaBuilder
                 .New()
+                .AddAuthorizeDirectiveType()
                 .ModifyOptions(o => o.StripLeadingIFromInterface = true)
                 .AddMcp()
                 .AddQueryType<TestSchema.Query>()

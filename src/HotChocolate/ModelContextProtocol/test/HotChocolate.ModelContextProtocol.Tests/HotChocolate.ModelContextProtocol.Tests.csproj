@@ -6,10 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore.Authorization\HotChocolate.AspNetCore.Authorization.csproj" />
     <ProjectReference Include="..\..\src\HotChocolate.ModelContextProtocol\HotChocolate.ModelContextProtocol.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" />
   </ItemGroup>
 

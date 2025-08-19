@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using CookieCrumble;
@@ -12,6 +14,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 
@@ -369,6 +372,45 @@ public sealed class IntegrationTests
             .MatchSnapshot(extension: ".json");
     }
 
+    [Fact]
+    public async Task CallTool_GetWithAuthSuccess_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new InMemoryOperationToolStorage();
+        await storage.AddOrUpdateToolAsync(Utf8GraphQLParser.Parse("query GetWithAuth { withAuth }"));
+        var server = CreateTestServer(b => b.AddMcpToolStorageStorage(storage));
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient(), TestJwtTokenHelper.GenerateToken());
+
+        // act
+        var result1 = await mcpClient.CallToolAsync("get_with_auth");
+        var result2 = await mcpClient.CallToolAsync("get_with_auth");
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result1.StructuredContent, "Result 1", markdownLanguage: "json");
+        snapshot.Add(result2.StructuredContent, "Result 2", markdownLanguage: "json");
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task CallTool_GetWithAuthFailure_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new InMemoryOperationToolStorage();
+        await storage.AddOrUpdateToolAsync(Utf8GraphQLParser.Parse("query GetWithAuth { withAuth }"));
+        var server = CreateTestServer(b => b.AddMcpToolStorageStorage(storage));
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var result = await mcpClient.CallToolAsync("get_with_auth");
+
+        // assert
+        result.StructuredContent!
+            .ToString()
+            .ReplaceLineEndings("\n")
+            .MatchSnapshot(extension: ".json");
+    }
+
     private static readonly JsonSerializerOptions s_jsonSerializerOptions =
         new()
         {
@@ -385,11 +427,23 @@ public sealed class IntegrationTests
             .ConfigureServices(
                 services =>
                 {
+                    services
+                        .AddAuthentication()
+                        .AddJwtBearer(
+                            o => o.TokenValidationParameters =
+                                new TokenValidationParameters
+                                {
+                                    ValidIssuer = TokenIssuer,
+                                    ValidAudience = TokenAudience,
+                                    IssuerSigningKey = s_tokenKey
+                                });
+
                     var executor =
                         services
                             .AddLogging()
                             .AddRouting()
                             .AddGraphQL()
+                            .AddAuthorization()
                             .AddMcp()
                             .AddQueryType<TestSchema.Query>()
                             .AddInterfaceType<TestSchema.IPet>()
@@ -402,19 +456,24 @@ public sealed class IntegrationTests
             .Configure(
                 app => app
                     .UseRouting()
+                    .UseAuthentication()
                     .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
 
         return new TestServer(builder);
     }
 
-    private static async Task<IMcpClient> CreateMcpClientAsync(HttpClient httpClient)
+    private static async Task<IMcpClient> CreateMcpClientAsync(HttpClient httpClient, string? token = null)
     {
         return
             await McpClientFactory.CreateAsync(
                 new SseClientTransport(
                     new SseClientTransportOptions
                     {
-                        Endpoint = new Uri(httpClient.BaseAddress!, "/graphql/mcp")
+                        Endpoint = new Uri(httpClient.BaseAddress!, "/graphql/mcp"),
+                        AdditionalHeaders = new Dictionary<string, string>()
+                        {
+                            { "Authorization", $"Bearer {token}" }
+                        }
                     },
                     httpClient));
     }
@@ -446,4 +505,29 @@ public sealed class IntegrationTests
 
         public void TriggerChange() => OnTypesChanged();
     }
+
+    private static class TestJwtTokenHelper
+    {
+        public static string GenerateToken()
+        {
+            var claims = new Claim[]
+            {
+                new(ClaimTypes.Name, "Test"),
+                new(ClaimTypes.Role, "Admin")
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: TokenIssuer,
+                audience: TokenAudience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(30),
+                signingCredentials: new SigningCredentials(s_tokenKey, SecurityAlgorithms.HmacSha256));
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+    }
+
+    private const string TokenIssuer = "test-issuer";
+    private const string TokenAudience = "test-audience";
+    private static readonly SymmetricSecurityKey s_tokenKey = new("test-secret-key-at-least-32-bytes"u8.ToArray());
 }
