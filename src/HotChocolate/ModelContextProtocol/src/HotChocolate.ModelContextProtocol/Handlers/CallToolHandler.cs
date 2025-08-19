@@ -49,7 +49,7 @@ internal static class CallToolHandler
 
         var httpContext =
             context.Services!.GetRootServiceProvider().GetRequiredService<IHttpContextAccessor>().HttpContext!;
-        var requestBuilder = GetRequestBuilder(httpContext);
+        var requestBuilder = CreateRequestBuilder(httpContext);
         var request =
             requestBuilder
                 .SetDocument(tool.Operation.Document)
@@ -70,7 +70,7 @@ internal static class CallToolHandler
         };
     }
 
-    private static OperationRequestBuilder GetRequestBuilder(HttpContext httpContext)
+    private static OperationRequestBuilder CreateRequestBuilder(HttpContext httpContext)
     {
         var requestBuilder = new OperationRequestBuilder();
         var userState = new UserState(httpContext.User);
