@@ -51,9 +51,6 @@
           "name": "PageInfo"
         },
         {
-          "name": "fusion__Schema"
-        },
-        {
           "name": "String"
         },
         {
@@ -69,16 +66,18 @@
     "fusion": {
       "operationPlan": {
         "operation": {
+          "kind": "Query",
           "document": "{\n  __schema {\n    types {\n      name\n    }\n  }\n}",
-          "hash": "e4e78f6ce44f74870f424cc260b232a6"
+          "hash": "e4e78f6ce44f74870f424cc260b232a6",
+          "shortHash": "e4e78f6c"
         },
         "nodes": [
           {
             "id": 1,
+            "type": "Introspection",
             "selections": [
               {
                 "id": 1,
-                "type": "Introspection",
                 "responseName": "__schema",
                 "fieldName": "__schema"
               }

@@ -46,14 +46,17 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         OperationPlanTrace? trace)
     {
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteString("document", plan.Operation.Definition.ToString(indented: true));
 
         if (!string.IsNullOrEmpty(plan.Operation.Name))
         {
             jsonWriter.WriteString("name", plan.Operation.Name);
         }
 
-        jsonWriter.WriteString("hash", plan.Operation.Id);
+        jsonWriter.WriteString("kind", plan.Operation.Definition.Operation.ToString());
+        jsonWriter.WriteString("document", plan.Operation.Definition.ToString(indented: true));
+
+        jsonWriter.WriteString("hash", plan.Operation.Hash);
+        jsonWriter.WriteString("shortHash", plan.Operation.Hash[..8]);
 
         if (trace is not null)
         {
@@ -114,7 +117,27 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         jsonWriter.WriteNumber("id", node.Id);
         jsonWriter.WriteString("type", "Operation");
         jsonWriter.WriteString("schema", node.SchemaName);
-        jsonWriter.WriteString("operation", node.Operation.ToString(indented: true));
+
+        jsonWriter.WriteStartObject("operation");
+
+        if (node.Operation.Name is { } name)
+        {
+            jsonWriter.WriteString("name", name.Value);
+        }
+
+        jsonWriter.WriteString("document", node.Operation.ToString(indented: true));
+        jsonWriter.WriteString("hash", node.OperationHash);
+        jsonWriter.WriteString("shortHash", node.OperationHash[..8]);
+        jsonWriter.WriteEndObject();
+
+        jsonWriter.WriteStartArray("responseNames");
+
+        foreach (var responseName in node.ResponseNames)
+        {
+            jsonWriter.WriteStringValue(responseName);
+        }
+
+        jsonWriter.WriteEndArray();
 
         if (!node.Source.IsRoot)
         {
@@ -176,6 +199,7 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
     {
         jsonWriter.WriteStartObject();
         jsonWriter.WriteNumber("id", node.Id);
+        jsonWriter.WriteString("type", "Introspection");
 
         jsonWriter.WriteStartArray("selections");
 
@@ -183,7 +207,6 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         {
             jsonWriter.WriteStartObject();
             jsonWriter.WriteNumber("id", selection.Id);
-            jsonWriter.WriteString("type", "Introspection");
             jsonWriter.WriteString("responseName", selection.ResponseName);
             jsonWriter.WriteString("fieldName", selection.Field.Name);
             jsonWriter.WriteEndObject();

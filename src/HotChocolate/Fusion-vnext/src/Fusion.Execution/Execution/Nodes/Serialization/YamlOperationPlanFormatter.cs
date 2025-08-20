@@ -38,6 +38,9 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
     {
         writer.WriteLine("- id: {0}", node.Id);
         writer.Indent();
+
+        writer.WriteLine("type: {0}", "Operation");
+
         writer.WriteLine("schema: {0}", node.SchemaName);
 
         writer.WriteLine("operation: >-");
@@ -67,7 +70,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Indent();
             foreach (var requirement in node.Requirements.ToArray().OrderBy(t => t.Key))
             {
-                writer.WriteLine("- name: {0}",  requirement.Key);
+                writer.WriteLine("- name: {0}", requirement.Key);
                 writer.Indent();
                 writer.WriteLine("selectionMap: {0}", requirement.Map);
                 writer.Unindent();
@@ -157,6 +160,8 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
     {
         writer.WriteLine("- id: {0}", node.Id);
         writer.Indent();
+
+        writer.WriteLine("type: {0}", "Introspection");
 
         writer.WriteLine("selections:");
         writer.Indent();

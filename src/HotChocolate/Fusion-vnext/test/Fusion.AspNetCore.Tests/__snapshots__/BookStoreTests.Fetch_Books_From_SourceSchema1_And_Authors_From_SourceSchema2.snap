@@ -37,21 +37,39 @@
     "fusion": {
       "operationPlan": {
         "operation": {
+          "kind": "Query",
           "document": "{\n  books {\n    nodes {\n      id\n      title\n      author {\n        name\n        id @fusion__requirement\n      }\n    }\n  }\n}",
-          "hash": "e1aceb9e9e35ff2ae28cd57aff448023"
+          "hash": "e1aceb9e9e35ff2ae28cd57aff448023",
+          "shortHash": "e1aceb9e"
         },
         "nodes": [
           {
             "id": 1,
             "type": "Operation",
             "schema": "A",
-            "operation": "query Op_e1aceb9e_1 {\n  books {\n    nodes {\n      id\n      title\n      author {\n        id\n      }\n    }\n  }\n}"
+            "operation": {
+              "name": "Op_e1aceb9e_1",
+              "document": "query Op_e1aceb9e_1 {\n  books {\n    nodes {\n      id\n      title\n      author {\n        id\n      }\n    }\n  }\n}",
+              "hash": "0b2428ea9476f459cc2fec72992880bf55d72e9e7ad5e39616cdd5f7a0668424",
+              "shortHash": "0b2428ea"
+            },
+            "responseNames": [
+              "books"
+            ]
           },
           {
             "id": 2,
             "type": "Operation",
             "schema": "B",
-            "operation": "query Op_e1aceb9e_2(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}",
+            "operation": {
+              "name": "Op_e1aceb9e_2",
+              "document": "query Op_e1aceb9e_2(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}",
+              "hash": "68b1f4e2f4855a186fe70bbff45a7af35f2672d21506037da6b6108f4e3eb9ce",
+              "shortHash": "68b1f4e2"
+            },
+            "responseNames": [
+              "name"
+            ],
             "source": "$.authorById",
             "target": "$.books.nodes.author",
             "requirements": [

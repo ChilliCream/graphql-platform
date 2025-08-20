@@ -4,16 +4,18 @@
     "fusion": {
       "operationPlan": {
         "operation": {
+          "kind": "Query",
           "document": "query(\n  $s: Boolean! = true\n) {\n  __typename @skip(if: $s)\n}",
-          "hash": "6fe5ef6b2885d351015c1d64f6c1eda8"
+          "hash": "6fe5ef6b2885d351015c1d64f6c1eda8",
+          "shortHash": "6fe5ef6b"
         },
         "nodes": [
           {
             "id": 1,
+            "type": "Introspection",
             "selections": [
               {
                 "id": 1,
-                "type": "Introspection",
                 "responseName": "__typename",
                 "fieldName": "__typename"
               }

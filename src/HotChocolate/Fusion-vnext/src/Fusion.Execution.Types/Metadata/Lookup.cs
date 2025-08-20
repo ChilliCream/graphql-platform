@@ -17,7 +17,7 @@ public sealed class Lookup : INeedsCompletion
     /// </summary>
     /// <param name="schemaName">The name of the source schema.</param>
     /// <param name="declaringTypeName">The name of the type that declares the field.</param>
-    /// <param name="name">The name of the lookup field.</param>
+    /// <param name="fieldName">The name of the lookup field.</param>
     /// <param name="arguments">The arguments that represent field requirements.</param>
     /// <param name="fields">The paths to the field that are required.</param>
     /// <exception cref="ArgumentException">
@@ -30,13 +30,13 @@ public sealed class Lookup : INeedsCompletion
     public Lookup(
         string schemaName,
         string declaringTypeName,
-        string name,
+        string fieldName,
         ImmutableArray<LookupArgument> arguments,
         ImmutableArray<IValueSelectionNode> fields)
     {
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
         ArgumentException.ThrowIfNullOrEmpty(declaringTypeName);
-        ArgumentException.ThrowIfNullOrEmpty(name);
+        ArgumentException.ThrowIfNullOrEmpty(fieldName);
 
         if (arguments.Length == 0)
         {
@@ -50,7 +50,7 @@ public sealed class Lookup : INeedsCompletion
 
         _declaringTypeName = declaringTypeName;
         SchemaName = schemaName;
-        Name = name;
+        FieldName = fieldName;
         Arguments = arguments;
         Fields = fields;
     }
@@ -63,7 +63,12 @@ public sealed class Lookup : INeedsCompletion
     /// <summary>
     /// Gets the name of the lookup field.
     /// </summary>
-    public string Name { get; }
+    public string FieldName { get; }
+
+    /// <summary>
+    /// Get the name of lookup field type.
+    /// </summary>
+    public string FieldType => _declaringTypeName;
 
     /// <summary>
     /// Gets the arguments that represent field requirements.

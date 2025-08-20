@@ -13,7 +13,8 @@ operation:
     hash: 123
 nodes:
   - id: 1
-    schema: SUBGRAPH_1
+    type: Operation
+    schema: a
     operation: >-
       query testQuery_123_1 {
         authorables {
@@ -23,7 +24,8 @@ nodes:
         }
       }
   - id: 2
-    schema: SUBGRAPH_2
+    type: Operation
+    schema: b
     operation: >-
       query testQuery_123_2(
         $__fusion_1_id: ID!

@@ -4,8 +4,6 @@ using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
 
-#nullable enable
-
 namespace HotChocolate.Configuration.Validation;
 
 /// <summary>

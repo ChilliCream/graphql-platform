@@ -1,3 +1,5 @@
+using System.Net;
+using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -8,10 +10,11 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddHttpClient(
         this IServiceCollection services,
         string name,
-        TestServer server)
+        TestServer server,
+        bool isOffline = false)
     {
         services.TryAddSingleton<IHttpClientFactory, Factory>();
-        return services.AddSingleton(new TestServerRegistration(name, server));
+        return services.AddSingleton(new TestServerRegistration(name, server, isOffline));
     }
 
     private class Factory : IHttpClientFactory
@@ -27,13 +30,27 @@ public static class ServiceCollectionExtensions
         {
             if (_registrations.TryGetValue(name, out var registration))
             {
-                return registration.Server.CreateClient();
+                var client = registration.IsOffline
+                    ? new HttpClient(new ErrorHandler())
+                    : registration.Server.CreateClient();
+
+                client.DefaultRequestHeaders.AddGraphQLPreflight();
+
+                return client;
             }
 
             throw new InvalidOperationException(
                 $"No test server registered with the name: {name}");
         }
+
+        private class ErrorHandler : HttpClientHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(
+                HttpRequestMessage request,
+                CancellationToken cancellationToken)
+                => Task.FromResult(new HttpResponseMessage(HttpStatusCode.InternalServerError));
+        }
     }
 
-    private record TestServerRegistration(string Name, TestServer Server);
+    private record TestServerRegistration(string Name, TestServer Server, bool IsOffline = false);
 }

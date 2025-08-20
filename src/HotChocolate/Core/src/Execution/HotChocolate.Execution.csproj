@@ -104,9 +104,6 @@
     <Compile Update="Processing\WorkScheduler.Execute.cs">
       <DependentUpon>WorkScheduler.cs</DependentUpon>
     </Compile>
-    <Compile Update="Processing\WorkScheduler.Pause.cs">
-      <DependentUpon>WorkScheduler.cs</DependentUpon>
-    </Compile>
     <Compile Update="DependencyInjection\SchemaRequestExecutorBuilderExtensions.Convention.cs">
       <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
     </Compile>

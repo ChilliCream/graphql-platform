@@ -6,16 +6,18 @@
     "fusion": {
       "operationPlan": {
         "operation": {
+          "kind": "Query",
           "document": "{\n  a: __typename\n}",
-          "hash": "7b8f0c1340147b94f95e9f1045239ad0"
+          "hash": "7b8f0c1340147b94f95e9f1045239ad0",
+          "shortHash": "7b8f0c13"
         },
         "nodes": [
           {
             "id": 1,
+            "type": "Introspection",
             "selections": [
               {
                 "id": 1,
-                "type": "Introspection",
                 "responseName": "a",
                 "fieldName": "__typename"
               }

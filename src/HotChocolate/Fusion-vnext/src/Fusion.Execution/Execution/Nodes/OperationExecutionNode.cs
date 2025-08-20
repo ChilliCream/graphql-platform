@@ -1,8 +1,8 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO.Hashing;
 using System.Reactive.Disposables;
+using System.Security.Cryptography;
 using System.Text;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
@@ -16,6 +16,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 {
     private readonly OperationRequirement[] _requirements;
     private readonly string[] _variables;
+    private readonly string[] _responseNames;
     private ExecutionNode[] _dependencies = [];
     private ExecutionNode[] _dependents = [];
     private int _dependencyCount;
@@ -28,7 +29,8 @@ public sealed class OperationExecutionNode : ExecutionNode
         string schemaName,
         SelectionPath target,
         SelectionPath source,
-        OperationRequirement[] requirements)
+        OperationRequirement[] requirements,
+        string[] responseNames)
     {
         Id = id;
         Operation = operation;
@@ -36,11 +38,17 @@ public sealed class OperationExecutionNode : ExecutionNode
         Target = target;
         Source = source;
         _requirements = requirements;
+        _responseNames = responseNames;
 
         // We compute the hash of the operation definition when it is set.
         // This hash can be used within the GraphQL client to identify the operation
         // and optimize request serialization.
-        OperationId = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(operation.ToString())).ToString();
+        var operationBytes = Encoding.UTF8.GetBytes(operation.ToString());
+#if NET9_0_OR_GREATER
+        OperationHash = Convert.ToHexStringLower(SHA256.HashData(operationBytes));
+#else
+        OperationHash = Convert.ToHexString(SHA256.HashData(operationBytes)).ToLowerInvariant();
+#endif
 
         var variables = new List<string>();
 
@@ -57,17 +65,30 @@ public sealed class OperationExecutionNode : ExecutionNode
         _variables = variables.ToArray();
     }
 
+    /// <summary>
+    /// Gets the plan unique node id.
+    /// </summary>
     public override int Id { get; }
 
     /// <summary>
     /// Gets the unique identifier of the operation.
     /// </summary>
-    public string OperationId { get; }
+    public string OperationId => OperationHash;
+
+    /// <summary>
+    /// Gets a SHA256 has of the <see cref="Operation"/>.
+    /// </summary>
+    public string OperationHash { get; }
 
     /// <summary>
     /// Gets the operation definition that this execution node represents.
     /// </summary>
     public OperationDefinitionNode Operation { get; }
+
+    /// <summary>
+    /// Gets the response names of the <see cref="Target"/> selection set that are fulfilled by this operation.
+    /// </summary>
+    public ReadOnlySpan<string> ResponseNames => _responseNames;
 
     /// <summary>
     /// Gets the name of the source schema that this operation is executed against.
@@ -139,15 +160,22 @@ public sealed class OperationExecutionNode : ExecutionNode
         };
 
         var client = context.GetClient(SchemaName, Operation.Operation);
-        var response = await client.ExecuteAsync(context, request, cancellationToken);
+        SourceSchemaClientResponse response;
 
-        if (!response.IsSuccessful)
+        try
         {
+            response = await client.ExecuteAsync(context, request, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            AddErrors(context, exception, variables, ResponseNames);
+
             return new ExecutionNodeResult(
                 Id,
                 Activity.Current,
                 ExecutionStatus.Failed,
-                Stopwatch.GetElapsedTime(start));
+                Stopwatch.GetElapsedTime(start),
+                exception);
         }
 
         var index = 0;
@@ -161,9 +189,9 @@ public sealed class OperationExecutionNode : ExecutionNode
                 buffer[index++] = result;
             }
 
-            context.AddPartialResults(Source, buffer.AsSpan(0, index));
+            context.AddPartialResults(Source, buffer.AsSpan(0, index), ResponseNames);
         }
-        catch
+        catch (Exception exception)
         {
             // if there is an error, we need to make sure that the pooled buffers for the JsonDocuments
             // are returned to the pool.
@@ -173,7 +201,14 @@ public sealed class OperationExecutionNode : ExecutionNode
                 result?.Dispose();
             }
 
-            throw;
+            AddErrors(context, exception, variables, ResponseNames);
+
+            return new ExecutionNodeResult(
+                Id,
+                Activity.Current,
+                ExecutionStatus.Failed,
+                Stopwatch.GetElapsedTime(start),
+                exception);
         }
         finally
         {
@@ -202,20 +237,26 @@ public sealed class OperationExecutionNode : ExecutionNode
         };
 
         var client = context.GetClient(SchemaName, Operation.Operation);
-        var response = await client.ExecuteAsync(context, request, cancellationToken);
 
-        if (!response.IsSuccessful)
+        try
         {
+            var response = await client.ExecuteAsync(context, request, cancellationToken);
+
+            var stream = new SubscriptionEnumerable(
+                context,
+                this,
+                response,
+                response.ReadAsResultStreamAsync(cancellationToken),
+                context.GetDiagnosticEvents());
+
+            return SubscriptionResult.Success(stream);
+        }
+        catch (Exception exception)
+        {
+            AddErrors(context, exception, variables, ResponseNames);
+
             return SubscriptionResult.Failed();
         }
-
-        var stream = new SubscriptionEnumerable(
-            context,
-            this,
-            response,
-            response.ReadAsResultStreamAsync(cancellationToken),
-            context.GetDiagnosticEvents());
-        return SubscriptionResult.Success(stream);
     }
 
     internal void AddDependency(ExecutionNode node)
@@ -290,6 +331,40 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
 
         _isSealed = true;
+    }
+
+    private static void AddErrors(
+        OperationPlanContext context,
+        Exception exception,
+        ImmutableArray<VariableValues> variables,
+        ReadOnlySpan<string> responseNames)
+    {
+        var error = ErrorBuilder.FromException(exception).Build();
+
+        if (variables.Length == 0)
+        {
+            context.AddErrors(error, responseNames, Path.Root);
+        }
+        else
+        {
+            var pathBufferLength = variables.Length;
+            var pathBuffer = ArrayPool<Path>.Shared.Rent(pathBufferLength);
+
+            try
+            {
+                for (var i = 0; i < variables.Length; i++)
+                {
+                    pathBuffer[i] = variables[i].Path;
+                }
+
+                context.AddErrors(error, responseNames, pathBuffer.AsSpan(0, pathBufferLength));
+            }
+            finally
+            {
+                pathBuffer.AsSpan(0, pathBufferLength).Clear();
+                ArrayPool<Path>.Shared.Return(pathBuffer);
+            }
+        }
     }
 
     private sealed class SubscriptionEnumerable : IAsyncEnumerable<EventMessageResult>
@@ -377,10 +452,10 @@ public sealed class OperationExecutionNode : ExecutionNode
                 if (hasResult)
                 {
                     _resultBuffer[0] = _resultEnumerator.Current;
-                    _context.AddPartialResults(_node.Source, _resultBuffer);
+                    _context.AddPartialResults(_node.Source, _resultBuffer, _node.ResponseNames);
                 }
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
                 // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
                 _resultBuffer[0]?.Dispose();
@@ -391,7 +466,12 @@ public sealed class OperationExecutionNode : ExecutionNode
                     scope ?? Disposable.Empty,
                     start ?? Stopwatch.GetTimestamp(),
                     Stopwatch.GetTimestamp(),
-                    Exception: ex);
+                    Exception: exception);
+
+                var error = ErrorBuilder.FromException(exception).Build();
+
+                _context.AddErrors(error, _node.ResponseNames, Path.Root);
+
                 return true;
             }
 

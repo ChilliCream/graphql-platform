@@ -284,7 +284,7 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         var lookupDirectives =
             type.GetFusionLookupDirectives(transitionToSchemaName, unionTypes).ToImmutableArray();
 
-        if (!lookupDirectives.Any())
+        if (!lookupDirectives.Any() && !HasPathInSchema(context.Path, transitionToSchemaName))
         {
             errors.Add(
                 new SatisfiabilityError(
@@ -333,6 +333,23 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         }
 
         return [.. errors];
+    }
+
+    private bool HasPathInSchema(
+        SatisfiabilityPath path,
+        string schemaName)
+    {
+        var stack = new Stack<SatisfiabilityPathItem>(path);
+
+        while (stack.TryPop(out var item))
+        {
+            if (!item.Field.ExistsInSchema(schemaName))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static IType CreateType(ITypeNode typeNode, ITypeDefinition namedType)
