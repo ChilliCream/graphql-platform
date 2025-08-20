@@ -15,7 +15,9 @@ namespace HotChocolate.Fusion.Execution;
 public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 {
     private static readonly JsonOperationPlanFormatter s_planFormatter = new();
+    private readonly ConcurrentDictionary<int, List<ExecutionNode>> _nodesToComplete = new();
     private readonly FetchResultStore _resultStore;
+    private readonly ExecutionState  _executionState;
     private readonly bool _collectTelemetry;
     private ResultPoolSessionHolder _resultPoolSessionHolder;
     private ISourceSchemaClientScope _clientScope;
@@ -53,6 +55,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             _resultPoolSessionHolder,
             operationPlan.Operation,
             IncludeFlags);
+
+        _executionState = new ExecutionState { CollectTelemetry = true };
     }
 
     public OperationPlan OperationPlan { get; }
@@ -67,6 +71,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     public ResultPoolSession ResultPool => _resultPoolSessionHolder;
 
+    internal ExecutionState ExecutionState => _executionState;
+
     public ulong IncludeFlags { get; }
 
     public bool CollectTelemetry => _collectTelemetry;
@@ -74,6 +80,23 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     public IFeatureCollection Features => RequestContext.Features;
 
     public ImmutableArray<ExecutionNodeTrace> Traces { get; internal set; } = [];
+
+    internal void EnqueueForExecution(ExecutionNode node, ExecutionNode dependentNode)
+    {
+        var dependentNodes = _nodesToComplete.GetOrAdd(node.Id, _ => [dependentNode]);
+        if (!dependentNodes.Contains(dependentNode))
+        {
+            dependentNodes.Add(dependentNode);
+        }
+    }
+
+    internal ImmutableArray<ExecutionNode> GetDependentsToExecute(ExecutionNode node)
+        => _nodesToComplete.TryGetValue(node.Id, out var nodesToComplete)
+            ? [..nodesToComplete]
+            : ImmutableArray<ExecutionNode>.Empty;
+
+    internal void CompleteNode(ExecutionNodeResult result)
+        => _executionState.EnqueueForCompletion(result);
 
     internal ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,

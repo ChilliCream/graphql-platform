@@ -17,11 +17,6 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly OperationRequirement[] _requirements;
     private readonly string[] _variables;
     private readonly string[] _responseNames;
-    private ExecutionNode[] _dependencies = [];
-    private ExecutionNode[] _dependents = [];
-    private int _dependencyCount;
-    private int _dependentCount;
-    private bool _isSealed;
 
     public OperationExecutionNode(
         int id,
@@ -70,6 +65,8 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// </summary>
     public override int Id { get; }
 
+    public override ExecutionNodeType Type => ExecutionNodeType.Operation;
+
     /// <summary>
     /// Gets the unique identifier of the operation.
     /// </summary>
@@ -107,17 +104,6 @@ public sealed class OperationExecutionNode : ExecutionNode
     public SelectionPath Source { get; }
 
     /// <summary>
-    /// Gets the execution nodes that depend on this operation to be completed
-    /// before they can be executed.
-    /// </summary>
-    public ReadOnlySpan<ExecutionNode> Dependents => _dependents;
-
-    /// <summary>
-    /// Gets the execution nodes that this operation depends on.
-    /// </summary>
-    public override ReadOnlySpan<ExecutionNode> Dependencies => _dependencies;
-
-    /// <summary>
     /// Gets the data requirements that are needed to execute this operation.
     /// </summary>
     public ReadOnlySpan<OperationRequirement> Requirements => _requirements;
@@ -127,29 +113,15 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// </summary>
     public ReadOnlySpan<string> Variables => _variables;
 
-    public override async Task<ExecutionNodeResult> ExecuteAsync(
+    protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var diagnosticEvents = context.GetDiagnosticEvents();
-        using var scope = diagnosticEvents.ExecuteOperation(context, this);
-        return await ExecuteInternalAsync(context, cancellationToken);
-    }
-
-    private async Task<ExecutionNodeResult> ExecuteInternalAsync(
-        OperationPlanContext context,
-        CancellationToken cancellationToken)
-    {
-        var start = Stopwatch.GetTimestamp();
         var variables = context.CreateVariableValueSets(Target, Variables, Requirements);
 
         if (variables.Length == 0 && (Requirements.Length > 0 || Variables.Length > 0))
         {
-            return new ExecutionNodeResult(
-                Id,
-                Activity.Current,
-                ExecutionStatus.Skipped,
-                Stopwatch.GetElapsedTime(start));
+            return ExecutionStatus.Skipped;
         }
 
         var request = new SourceSchemaClientRequest
@@ -169,13 +141,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         catch (Exception exception)
         {
             AddErrors(context, exception, variables, ResponseNames);
-
-            return new ExecutionNodeResult(
-                Id,
-                Activity.Current,
-                ExecutionStatus.Failed,
-                Stopwatch.GetElapsedTime(start),
-                exception);
+            return ExecutionStatus.Failed;
         }
 
         var index = 0;
@@ -203,12 +169,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 
             AddErrors(context, exception, variables, ResponseNames);
 
-            return new ExecutionNodeResult(
-                Id,
-                Activity.Current,
-                ExecutionStatus.Failed,
-                Stopwatch.GetElapsedTime(start),
-                exception);
+            return ExecutionStatus.Failed;
         }
         finally
         {
@@ -216,12 +177,11 @@ public sealed class OperationExecutionNode : ExecutionNode
             ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
         }
 
-        return new ExecutionNodeResult(
-            Id,
-            Activity.Current,
-            ExecutionStatus.Success,
-            Stopwatch.GetElapsedTime(start));
+        return ExecutionStatus.Success;
     }
+
+    protected override IDisposable CreateScope(OperationPlanContext context)
+        => context.GetDiagnosticEvents().ExecuteOperation(context, this);
 
     internal async Task<SubscriptionResult> SubscribeAsync(
         OperationPlanContext context,
@@ -257,80 +217,6 @@ public sealed class OperationExecutionNode : ExecutionNode
 
             return SubscriptionResult.Failed();
         }
-    }
-
-    internal void AddDependency(ExecutionNode node)
-    {
-        if (_isSealed)
-        {
-            throw new InvalidOperationException("The operation execution node is already sealed.");
-        }
-
-        ArgumentNullException.ThrowIfNull(node);
-
-        if (node.Equals(this))
-        {
-            throw new InvalidOperationException("An operation cannot depend on itself.");
-        }
-
-        if (_dependencies.Length == 0)
-        {
-            _dependencies = new ExecutionNode[4];
-        }
-
-        if (_dependencyCount == _dependencies.Length)
-        {
-            Array.Resize(ref _dependencies, _dependencyCount * 2);
-        }
-
-        _dependencies[_dependencyCount++] = node;
-    }
-
-    internal void AddDependent(ExecutionNode node)
-    {
-        if (_isSealed)
-        {
-            throw new InvalidOperationException("The operation execution node is already sealed.");
-        }
-
-        ArgumentNullException.ThrowIfNull(node);
-
-        if (node.Equals(this))
-        {
-            throw new InvalidOperationException("An operation cannot depend on itself.");
-        }
-
-        if (_dependents.Length == 0)
-        {
-            _dependents = new ExecutionNode[4];
-        }
-
-        if (_dependentCount == _dependents.Length)
-        {
-            Array.Resize(ref _dependents, _dependentCount * 2);
-        }
-
-        _dependents[_dependentCount++] = node;
-    }
-
-    protected internal override void Seal()
-    {
-        if (_isSealed)
-        {
-            throw new InvalidOperationException("The operation execution node is already sealed.");
-        }
-
-        if (_dependencies.Length > _dependencyCount)
-        {
-            Array.Resize(ref _dependencies, _dependencyCount);
-        }
-
-        if (_dependents.Length > _dependentCount)
-        {
-            Array.Resize(ref _dependents, _dependentCount);
-        }
-
-        _isSealed = true;
     }
 
     private static void AddErrors(
@@ -480,7 +366,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 Current = new EventMessageResult(
                     _node.Id,
                     Activity.Current,
-                    ExecutionStatus.Failed,
+                    ExecutionStatus.Success,
                     scope,
                     start.Value,
                     Stopwatch.GetTimestamp());

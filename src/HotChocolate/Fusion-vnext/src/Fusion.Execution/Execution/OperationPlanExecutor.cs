@@ -1,12 +1,14 @@
-using System.Collections.Immutable;
+using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Execution;
 
-public sealed class OperationPlanExecutor
+internal sealed class OperationPlanExecutor
 {
     public async Task<IExecutionResult> ExecuteAsync(
         RequestContext requestContext,
@@ -16,9 +18,124 @@ public sealed class OperationPlanExecutor
     {
         var context = new OperationPlanContext(requestContext, variables, operationPlan);
         context.Begin();
-        var strategy = DetermineExecutionStrategy(context);
-        await ExecutorSession.ExecuteAsync(context, strategy, cancellationToken);
+
+        switch (operationPlan.Operation.Definition.Operation)
+        {
+            case OperationType.Query:
+                await ExecuteQueryAsync(context, operationPlan, context.ExecutionState, cancellationToken);
+                break;
+
+            case OperationType.Mutation:
+                await ExecuteMutationAsync(context, operationPlan, context.ExecutionState, cancellationToken);
+                break;
+
+            default:
+                throw new InvalidOperationException("Only queries and mutations can be executed.");
+        }
+
         return context.Complete();
+    }
+
+    private static async Task ExecuteQueryAsync(
+        OperationPlanContext context,
+        OperationPlan plan,
+        ExecutionState executionState,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.Register(() => executionState.Signal.TryResetToIdle());
+
+        // GraphQL queries allow us to execute the plan by using full parallelism.
+        // We fill the backlog with all nodes from the operation plan.
+        executionState.FillBacklog(plan);
+
+        // Then we start all root nodes as they can be processed in parallel.
+        foreach (var root in plan.RootNodes)
+        {
+            executionState.StartNode(context, root, cancellationToken);
+        }
+
+        while (!cancellationToken.IsCancellationRequested
+            && executionState.IsProcessing())
+        {
+            while (executionState.TryDequeueCompletedResult(out var result))
+            {
+                var node = plan.GetNodeById(result.Id);
+                executionState.CompleteNode(node, result);
+            }
+
+            executionState.EnqueueNextNodes(context, cancellationToken);
+
+            if (cancellationToken.IsCancellationRequested
+                || !executionState.IsProcessing())
+            {
+                break;
+            }
+
+            // The signal will be set every time a node completes and will release the executor
+            // from the async wait to go through the completed results.
+            await executionState.Signal;
+        }
+
+        if (context.CollectTelemetry)
+        {
+            context.Traces = [..executionState.Traces];
+        }
+    }
+
+    private static async Task ExecuteMutationAsync(
+        OperationPlanContext context,
+        OperationPlan plan,
+        ExecutionState executionState,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.Register(() => executionState.Signal.TryResetToIdle());
+
+        // For mutations, we fill the backlog with all nodes from the operation plan just like for queries.
+        executionState.FillBacklog(plan);
+
+        // The difference here is that the planner has one root node for each mutation field.
+        // We execute the root nodes one after the other to cater for the GraphQL spec mutation algorithm
+        // that requires sequential execution the roots but allows for parallel execution of their subtrees.
+        foreach (var root in plan.RootNodes)
+        {
+            // We start the first root ...
+            executionState.StartNode(context, root, cancellationToken);
+
+            // ... and then process the subtree until its complete.
+            // This is why in the mutation algorithm check for `HasActiveNodes` instead of `IsProcessing` which
+            // would be true as long as there are items on the backlog. `HasActiveNodes` however will be true
+            // as long as there are active nodes that result from processing the current subtree.
+            while (!cancellationToken.IsCancellationRequested && executionState.HasActiveNodes())
+            {
+                while (executionState.TryDequeueCompletedResult(out var result))
+                {
+                    var node = plan.GetNodeById(result.Id);
+                    executionState.CompleteNode(node, result);
+                }
+
+                executionState.EnqueueNextNodes(context, cancellationToken);
+
+                if (cancellationToken.IsCancellationRequested
+                    || !executionState.HasActiveNodes())
+                {
+                    break;
+                }
+
+                // The signal will be set every time a node completes and will release the executor
+                // from the async wait to go through the completed results.
+                await executionState.Signal;
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
+        }
+
+        if (context.CollectTelemetry)
+        {
+            context.Traces = [..executionState.Traces];
+        }
     }
 
     public async Task<IExecutionResult> SubscribeAsync(
@@ -30,21 +147,23 @@ public sealed class OperationPlanExecutor
         // which represents the subscription to a source schema.
         var root = operationPlan.RootNodes.Single();
 
+        // In the case of a subscription the initial node must always be an operation node
+        // that represents the subscription to a specific source schema.
         if (root is not OperationExecutionNode subscriptionNode)
         {
-            // TODO : error handling
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("The specified operation plan is not supported.");
         }
 
         var context = new OperationPlanContext(requestContext, operationPlan);
         var subscription = await subscriptionNode.SubscribeAsync(context, cancellationToken);
-        var strategy = DetermineExecutionStrategy(context);
-        var session = new ExecutorSession(context, strategy, cancellationToken);
+        var executionState = context.ExecutionState;
+        var plan = context.OperationPlan;
+
+        cancellationToken.Register(() => executionState.Signal.TryResetToIdle());
 
         if (subscription.Status is not ExecutionStatus.Success)
         {
-            // TODO : error handling
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("We could not subscribe to the underlying source schema.");
         }
 
         var stream = new ResponseStream(CreateResponseStream);
@@ -60,7 +179,44 @@ public sealed class OperationPlanExecutor
                 try
                 {
                     context.Begin(eventArgs.StartTimestamp, eventArgs.Activity?.TraceId.ToHexString());
-                    await session.ExecuteAsync(subscriptionNode, eventArgs);
+
+                    executionState.Reset();
+                    executionState.FillBacklog(plan);
+                    executionState.EnqueueForCompletion(
+                        new ExecutionNodeResult(
+                            subscriptionNode.Id,
+                            eventArgs.Activity,
+                            eventArgs.Status,
+                            eventArgs.Duration,
+                            null,
+                            []));
+
+                    while (!cancellationToken.IsCancellationRequested && executionState.IsProcessing())
+                    {
+                        while (executionState.TryDequeueCompletedResult(out var nodeResult))
+                        {
+                            var node = plan.GetNodeById(nodeResult.Id);
+                            executionState.CompleteNode(node, nodeResult);
+                        }
+
+                        executionState.EnqueueNextNodes(context, cancellationToken);
+
+                        if (cancellationToken.IsCancellationRequested
+                            || !executionState.IsProcessing())
+                        {
+                            break;
+                        }
+
+                        // The signal will be set every time a node completes and will release the executor
+                        // from the async wait to go through the completed results.
+                        await executionState.Signal;
+                    }
+
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
                     result = context.Complete();
                 }
                 finally
@@ -73,268 +229,184 @@ public sealed class OperationPlanExecutor
             }
         }
     }
+}
 
-    private static ExecutionStrategy DetermineExecutionStrategy(OperationPlanContext context)
-        => context.OperationPlan.Operation.Definition.Operation switch
-        {
-            OperationType.Query => ExecutionStrategy.Query,
-            OperationType.Mutation => ExecutionStrategy.Mutation,
-            OperationType.Subscription => ExecutionStrategy.Subscription,
-            _ => throw new InvalidOperationException()
-        };
+internal sealed class ExecutionState
+{
+    private readonly List<ExecutionNode> _stack = [];
 
-    private sealed class ExecutorSession
+    private readonly List<ExecutionNode> _backlog = [];
+
+    private readonly HashSet<ExecutionNode> _completed = [];
+
+    private readonly ConcurrentQueue<ExecutionNodeResult> _completedResults = new();
+
+    private int _activeNodes;
+
+    public readonly List<ExecutionNodeTrace> Traces = [];
+
+    public readonly AsyncAutoResetEvent Signal = new();
+
+    public bool CollectTelemetry;
+
+    public void FillBacklog(OperationPlan plan)
     {
-        private readonly List<ExecutionNode> _stack = [];
-        private readonly HashSet<ExecutionNode> _completed = [];
-        private readonly HashSet<Task<ExecutionNodeResult>> _activeTasks = [];
-        private readonly List<Task<ExecutionNodeResult>> _completedTasks = [];
-        private readonly List<ExecutionNode> _backlog;
-        private readonly OperationPlanContext _context;
-        private readonly OperationPlan _plan;
-        private readonly ImmutableArray<ExecutionNodeTrace>.Builder? _traces;
-        private readonly CancellationToken _cancellationToken;
-        private readonly ExecutionStrategy _strategy;
-        private int _nextRootNode;
-
-        public ExecutorSession(
-            OperationPlanContext context,
-            ExecutionStrategy strategy,
-            CancellationToken cancellationToken)
+        switch (plan.Operation.Definition.Operation)
         {
-            _context = context;
-            _strategy = strategy;
-            _cancellationToken = cancellationToken;
-            _plan = context.OperationPlan;
-            _backlog = [.. context.OperationPlan.AllNodes];
+            case OperationType.Query:
+                _backlog.AddRange(plan.AllNodes);
+                break;
 
-            // For sequential execution (mutations), remove root nodes from backlog initially
-            if (_strategy is ExecutionStrategy.Mutation or ExecutionStrategy.Subscription)
-            {
-                foreach (var root in context.OperationPlan.RootNodes)
+            case OperationType.Mutation:
+                foreach (var node in plan.AllNodes)
                 {
-                    _backlog.Remove(root);
-                }
-            }
-
-            _traces = context.CollectTelemetry
-                ? ImmutableArray.CreateBuilder<ExecutionNodeTrace>()
-                : null;
-        }
-
-        public static Task ExecuteAsync(
-            OperationPlanContext context,
-            ExecutionStrategy strategy,
-            CancellationToken cancellationToken)
-            => new ExecutorSession(context, strategy, cancellationToken).ExecuteInternalAsync();
-
-        public async Task ExecuteAsync(ExecutionNode node, EventMessageResult result)
-        {
-            // pre-seed state for the first node
-            _completed.Add(node);
-            _traces?.Add(new ExecutionNodeTrace
-            {
-                Id = node.Id,
-                SpanId = result.Activity?.SpanId.ToHexString(),
-                Status = result.Status,
-                Duration = result.Duration
-            });
-
-            // process the rest of the nodes
-            while (EnqueueNextNodes())
-            {
-                await WaitForNextCompletionAsync();
-            }
-
-            // add the traces to the context
-            if (_traces is { Count: > 0 })
-            {
-                _context.Traces = [.. _traces];
-            }
-
-            // reset the state for the next execution
-            _backlog.AddRange(_plan.AllNodes);
-
-            foreach (var root in _plan.RootNodes)
-            {
-                _backlog.Remove(root);
-            }
-
-            _traces?.Clear();
-            _stack.Clear();
-            _completed.Clear();
-            _activeTasks.Clear();
-            _completedTasks.Clear();
-        }
-
-        private async Task ExecuteInternalAsync()
-        {
-            if (_strategy == ExecutionStrategy.Query)
-            {
-                await ExecuteQueryAsync();
-            }
-            else
-            {
-                await ExecuteMutationAsync();
-            }
-
-            if (_traces is { Count: > 0 })
-            {
-                _context.Traces = [.. _traces];
-            }
-        }
-
-        private async Task ExecuteQueryAsync()
-        {
-            // Start all root nodes immediately for parallel execution
-            StartAllRootNodes();
-
-            // Process until all nodes complete
-            while (IsProcessing())
-            {
-                await WaitForNextCompletionAsync();
-                EnqueueNextNodes();
-            }
-        }
-
-        private async Task ExecuteMutationAsync()
-        {
-            // Sequential root processing - one root at a time
-            while (StartNextRootNode())
-            {
-                // Complete the entire subtree of current root before starting next
-                var enqueued = true;
-                while (enqueued)
-                {
-                    await WaitForNextCompletionAsync();
-                    enqueued = EnqueueNextNodes();
-                }
-            }
-        }
-
-        private void StartAllRootNodes()
-        {
-            foreach (var node in _context.OperationPlan.RootNodes)
-            {
-                StartNode(node);
-            }
-        }
-
-        private bool StartNextRootNode()
-        {
-            var roots = _context.OperationPlan.RootNodes;
-            if (_nextRootNode < roots.Length)
-            {
-                StartNode(roots[_nextRootNode++]);
-                return true;
-            }
-
-            return false;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool IsProcessing() => _backlog.Count > 0 || _activeTasks.Count > 0;
-
-        private void SkipNode(ExecutionNode node)
-        {
-            _stack.Clear();
-            _stack.Push(node);
-
-            while (_stack.TryPop(out var current))
-            {
-                _backlog.Remove(current);
-
-                foreach (var enqueuedNode in _backlog)
-                {
-                    if (enqueuedNode.Dependencies.Contains(current))
-                    {
-                        _stack.Push(enqueuedNode);
-                    }
-                }
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void StartNode(ExecutionNode node)
-        {
-            _backlog.Remove(node);
-            _activeTasks.Add(node.ExecuteAsync(_context, _cancellationToken));
-        }
-
-        private async Task WaitForNextCompletionAsync()
-        {
-            await Task.WhenAny(_activeTasks);
-
-            foreach (var task in _activeTasks)
-            {
-                if (task.IsCompletedSuccessfully)
-                {
-                    var node = _plan.GetNodeById(task.Result.Id);
-
-                    _completedTasks.Add(task);
-                    _completed.Add(node);
-                    _traces?.Add(new ExecutionNodeTrace
-                    {
-                        Id = task.Result.Id,
-                        SpanId = task.Result.Activity?.SpanId.ToHexString(),
-                        Status = task.Result.Status,
-                        Duration = task.Result.Duration
-                    });
-
-                    if (task.Result.Status is ExecutionStatus.Skipped or ExecutionStatus.Failed)
-                    {
-                        SkipNode(node);
-                    }
-                }
-                else if (task.IsFaulted || task.IsCanceled)
-                {
-                    // execution nodes are not expected to throw as exception should be handled within.
-                    // if they do it's a fatal error for the execution, so we await failed task here
-                    // so that they can throw and terminate the execution.
-                    await task;
-                }
-            }
-
-            foreach (var task in _completedTasks)
-            {
-                _activeTasks.Remove(task);
-            }
-
-            _completedTasks.Clear();
-        }
-
-        private bool EnqueueNextNodes()
-        {
-            var enqueued = false;
-            _stack.Clear();
-
-            foreach (var node in _backlog)
-            {
-                var dependenciesFulfilled = true;
-
-                foreach (var dependency in node.Dependencies)
-                {
-                    if (_completed.Contains(dependency))
+                    // we skip root nodes as they are enqueued by the algorithm
+                    // one by one.
+                    if (node.Dependencies.Length == 0)
                     {
                         continue;
                     }
 
-                    dependenciesFulfilled = false;
+                    _backlog.Add(node);
                 }
+                break;
 
-                if (dependenciesFulfilled)
-                {
-                    _stack.Push(node);
-                    enqueued = true;
-                }
-            }
+            case OperationType.Subscription:
+                _backlog.AddRange(plan.AllNodes);
+                _backlog.Remove(plan.RootNodes.Single());
 
-            foreach (var node in _stack)
-            {
-                StartNode(node);
-            }
+                // The root node of a subscription is started outside the state.
+                // We cater to this fact and fix the state by stating with am active node count of 1.
+                Interlocked.Increment(ref _activeNodes);
+                break;
 
-            return enqueued;
+            default:
+                throw new ArgumentOutOfRangeException(
+                    "Unexpected operation type.");
         }
+    }
+
+    public void Reset()
+    {
+        _stack.Clear();
+        _backlog.Clear();
+        _completed.Clear();
+        _completedResults.Clear();
+        _activeNodes = 0;
+
+        Traces.Clear();
+        Signal.TryResetToIdle();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsProcessing() => _backlog.Count > 0 || Volatile.Read(ref _activeNodes) > 0;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool HasActiveNodes() => Volatile.Read(ref _activeNodes) > 0;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void StartNode(OperationPlanContext context, ExecutionNode node, CancellationToken cancellationToken)
+    {
+        Interlocked.Increment(ref _activeNodes);
+        _backlog.Remove(node);
+        node.ExecuteAsync(context, cancellationToken).FireAndForget();
+    }
+
+    public void EnqueueForCompletion(ExecutionNodeResult result)
+    {
+        _completedResults.Enqueue(result);
+        Signal.Set();
+    }
+
+    public bool TryDequeueCompletedResult([NotNullWhen(true)] out ExecutionNodeResult? result)
+        => _completedResults.TryDequeue(out result);
+
+    public void CompleteNode(ExecutionNode node, ExecutionNodeResult result)
+    {
+        Interlocked.Decrement(ref _activeNodes);
+        _completed.Add(node);
+
+        if (CollectTelemetry)
+        {
+            Traces.Add(new ExecutionNodeTrace
+            {
+                Id = result.Id,
+                SpanId = result.Activity?.SpanId.ToHexString(),
+                Status = result.Status,
+                Duration = result.Duration
+            });
+        }
+
+        if (result.DependentsToExecute.Length > 0)
+        {
+            foreach (var dependent in node.Dependents)
+            {
+                if (!result.DependentsToExecute.Contains(dependent))
+                {
+                    SkipNode(dependent);
+                }
+            }
+        }
+
+        if (result.Status is ExecutionStatus.Skipped or ExecutionStatus.Failed)
+        {
+            SkipNode(node);
+        }
+    }
+
+    public void SkipNode(ExecutionNode node)
+    {
+        _stack.Clear();
+        _stack.Push(node);
+
+        while (_stack.TryPop(out var current))
+        {
+            _backlog.Remove(current);
+
+            foreach (var enqueuedNode in _backlog)
+            {
+                if (enqueuedNode.Dependencies.Contains(current))
+                {
+                    _stack.Push(enqueuedNode);
+                }
+            }
+        }
+    }
+
+    public bool EnqueueNextNodes(OperationPlanContext context, CancellationToken cancellationToken)
+    {
+        _stack.Clear();
+
+        foreach (var node in _backlog)
+        {
+            if (CanExecuteNode(node))
+            {
+                _stack.Push(node);
+            }
+        }
+
+        foreach (var node in _stack)
+        {
+            StartNode(context, node, cancellationToken);
+        }
+
+        return _stack.Count > 0;
+    }
+
+    private bool CanExecuteNode(ExecutionNode node)
+    {
+        var dependenciesFulfilled = true;
+
+        foreach (var dependency in node.Dependencies)
+        {
+            if (_completed.Contains(dependency))
+            {
+                continue;
+            }
+
+            dependenciesFulfilled = false;
+        }
+
+        return dependenciesFulfilled;
     }
 }
