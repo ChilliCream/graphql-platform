@@ -8,6 +8,7 @@ using ChilliCream.Nitro.CommandLine.Cloud.Commands.PersonalAccessToken;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.Stages;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
 using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
+using ChilliCream.Nitro.CommandLine.Cloud.Results;
 
 namespace ChilliCream.Nitro.CommandLine.Cloud;
 
@@ -17,15 +18,12 @@ public static class NitroCloudCommandExtensions
     {
         builder.Command.AddNitroCloudCommands();
 
-        // TODO: Re-add the result stuff once we figured out how to be AOT compliant with it
         builder.AddService<IConfigurationService, ConfigurationService>()
             .AddSession()
-            // .AddResult()
+            .AddResult()
             .AddApiClient()
-            .AddSessionMiddleware();
-#pragma warning disable format
-            // .AddResultMiddleware();
-#pragma warning restore format
+            .AddSessionMiddleware()
+            .AddResultMiddleware();
 
         return builder;
     }
@@ -51,7 +49,6 @@ public static class NitroCloudCommandExtensions
     {
         command.AddGlobalOption(Opt<CloudUrlOption>.Instance);
         command.AddGlobalOption(Opt<ApiKeyOption>.Instance);
-        // TODO: Re-add once we figured out how to be AOT compliant with it
-        // command.AddGlobalOption(Opt<OutputFormatOption>.Instance);
+        command.AddGlobalOption(Opt<OutputFormatOption>.Instance);
     }
 }

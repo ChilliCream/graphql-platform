@@ -59,7 +59,7 @@ internal sealed class DeleteApiKeyCommand : Command
         console.OkLine(
             $"ApiKey {changeResult.Name.AsHighlight()} [dim](ID:{changeResult.Id})[/] was deleted");
 
-        context.SetResult(ApiKeyDetailPrompt.From(changeResult).ToResult());
+        context.SetResult(ApiKeyDetailPrompt.From(changeResult).ToObject());
 
         return ExitCodes.Success;
     }

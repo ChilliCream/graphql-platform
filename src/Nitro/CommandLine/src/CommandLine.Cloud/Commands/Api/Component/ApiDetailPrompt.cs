@@ -12,27 +12,57 @@ internal sealed class ApiDetailPrompt
         _data = data;
     }
 
-    public Result ToResult()
+    public ApiDetailPromptResult ToObject()
     {
-        return new ObjectResult(new
+        return new ApiDetailPromptResult
         {
-            _data.Id,
-            _data.Name,
+            Id = _data.Id,
+            Name = _data.Name,
             Path = string.Join("/", _data.Path),
             Workspace = _data.Workspace is { } workspace
-                ? new { workspace.Name }
+                ? new ApiDetailPromptWorkspace { Name = workspace.Name }
                 : null,
-            Settings = new
+            ApiDetailPromptSettings = new ApiDetailPromptSettings
             {
-                SchemaRegistry = new
+                ApiDetailPromptSchemaRegistry = new ApiDetailPromptSchemaRegistrySettings
                 {
-                    _data.Settings.SchemaRegistry.TreatDangerousAsBreaking,
-                    _data.Settings.SchemaRegistry.AllowBreakingSchemaChanges
+                    TreatDangerousAsBreaking = _data.Settings.SchemaRegistry.TreatDangerousAsBreaking,
+                    AllowBreakingSchemaChanges = _data.Settings.SchemaRegistry.AllowBreakingSchemaChanges
                 }
             }
-        });
+        };
     }
 
     public static ApiDetailPrompt From(IApiDetailPrompt_Api data)
         => new(data);
+
+    public class ApiDetailPromptResult
+    {
+        public required string Id { get; init; }
+
+        public required string Name { get; init; }
+
+        public required string Path { get; init; }
+
+        public required ApiDetailPromptWorkspace? Workspace { get; init; }
+
+        public required ApiDetailPromptSettings ApiDetailPromptSettings { get; init; }
+    }
+
+    public class ApiDetailPromptWorkspace
+    {
+        public required string Name { get; init; }
+    }
+
+    public class ApiDetailPromptSettings
+    {
+        public required ApiDetailPromptSchemaRegistrySettings ApiDetailPromptSchemaRegistry { get; init; }
+    }
+
+    public class ApiDetailPromptSchemaRegistrySettings
+    {
+        public required bool TreatDangerousAsBreaking { get; init; }
+
+        public required bool AllowBreakingSchemaChanges { get; init; }
+    }
 }

@@ -96,7 +96,7 @@ internal sealed class ListMockCommand : Command
                 MockSchemaDetailPrompt.From(x.Node).ToObject())
             .ToArray() ?? [];
 
-        context.SetResult(new PaginatedListResult(items, endCursor!));
+        context.SetResult(new PaginatedListResult<MockSchemaDetailPrompt.MockSchemaDetailPromptResult>(items, endCursor));
 
         return ExitCodes.Success;
     }

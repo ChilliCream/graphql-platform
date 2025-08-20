@@ -91,13 +91,12 @@ internal sealed class ListClientCommand : Command
         var endCursor = (result.Data?.Node as IListClientCommandQuery_Node_Api)?.Clients?.PageInfo
             .EndCursor;
 
-        var items = (result.Data?.Node as IListClientCommandQuery_Node_Api)?.Clients?.Edges?.Select(
-                x =>
-                    new { x.Node.Id, x.Node.Name })
-            .Cast<object>()
+        var taskItems = (result.Data?.Node as IListClientCommandQuery_Node_Api)?.Clients?.Edges?.Select(x =>
+                ClientDetailPrompt.From(x.Node, client).ToObject([]))
             .ToArray() ?? [];
+        var items = await Task.WhenAll(taskItems);
 
-        context.SetResult(new PaginatedListResult(items, endCursor!));
+        context.SetResult(new PaginatedListResult<ClientDetailPrompt.ClientDetailPromptResult>(items, endCursor));
 
         return ExitCodes.Success;
     }

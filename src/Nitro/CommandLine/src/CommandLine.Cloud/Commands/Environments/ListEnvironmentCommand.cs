@@ -85,11 +85,10 @@ internal sealed class ListEnvironmentCommand : Command
         var endCursor = result.Data?.WorkspaceById?.Environments?.PageInfo.EndCursor;
 
         var items = result.Data?.WorkspaceById?.Environments?.Edges?.Select(x =>
-                new { x.Node.Id, x.Node.Name })
-            .Cast<object>()
+                EnvironmentDetailPrompt.From(x.Node).ToObject())
             .ToArray() ?? [];
 
-        context.SetResult(new PaginatedListResult(items, endCursor!));
+        context.SetResult(new PaginatedListResult<EnvironmentDetailPrompt.EnvironmentDetailPromptResult>(items, endCursor));
 
         return ExitCodes.Success;
     }
