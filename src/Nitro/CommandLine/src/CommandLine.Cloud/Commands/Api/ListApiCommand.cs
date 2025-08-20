@@ -63,7 +63,7 @@ internal sealed class ListApiCommand : Command
 
         if (api?.Node is IApiDetailPrompt_Api node)
         {
-            context.SetResult(ApiDetailPrompt.From(node).ToResult());
+            context.SetResult(ApiDetailPrompt.From(node).ToObject());
         }
 
         return ExitCodes.Success;
@@ -86,25 +86,10 @@ internal sealed class ListApiCommand : Command
         var endCursor = result.Data?.WorkspaceById?.Apis?.PageInfo.EndCursor;
 
         var items = result.Data?.WorkspaceById?.Apis?.Edges?.Select(x =>
-                new
-                {
-                    x.Node.Id,
-                    x.Node.Name,
-                    x.Node.Path,
-                    Settings = new
-                    {
-                        SchemaRegistry = new
-                        {
-                            x.Node.Settings.SchemaRegistry.TreatDangerousAsBreaking,
-                            x.Node.Settings.SchemaRegistry
-                                .AllowBreakingSchemaChanges
-                        }
-                    }
-                })
-            .Cast<object>()
+                ApiDetailPrompt.From(x.Node).ToObject())
             .ToArray() ?? [];
 
-        context.SetResult(new PaginatedListResult(items, endCursor!));
+        context.SetResult(new PaginatedListResult<ApiDetailPrompt.ApiDetailPromptResult>(items, endCursor));
 
         return ExitCodes.Success;
     }

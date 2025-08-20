@@ -62,7 +62,7 @@ internal sealed class ListApiKeyCommand : Command
 
         if (api?.Node is IApiKeyDetailPrompt_ApiKey node)
         {
-            context.SetResult(ApiKeyDetailPrompt.From(node).ToResult());
+            context.SetResult(ApiKeyDetailPrompt.From(node).ToObject());
         }
 
         return ExitCodes.Success;
@@ -84,19 +84,11 @@ internal sealed class ListApiKeyCommand : Command
 
         var endCursor = result.Data?.WorkspaceById?.ApiKeys?.PageInfo.EndCursor;
 
-        var items = result.Data?.WorkspaceById?.ApiKeys?.Edges?.Select(x =>
-                new
-                {
-                    x.Node.Id,
-                    x.Node.Name,
-                    Workspace = x.Node.Workspace is { } workspace
-                        ? new { workspace.Name }
-                        : null
-                })
-            .Cast<object>()
+        var items =  result.Data?.WorkspaceById?.ApiKeys?.Edges?.Select(x =>
+                ApiKeyDetailPrompt.From(x.Node).ToObject())
             .ToArray() ?? [];
 
-        context.SetResult(new PaginatedListResult(items, endCursor!));
+        context.SetResult(new PaginatedListResult<ApiKeyDetailPrompt.ApiKeyDetailPromptResult>(items, endCursor));
 
         return ExitCodes.Success;
     }

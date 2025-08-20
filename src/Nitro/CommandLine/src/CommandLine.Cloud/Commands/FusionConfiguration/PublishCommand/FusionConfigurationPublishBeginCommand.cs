@@ -147,8 +147,13 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
 
             console.WriteLine("Request ID:");
             console.WriteLine(requestId);
-            context.SetResult(new { RequestId = requestId });
+            context.SetResult(new FusionConfigurationPublishBeginCommandResult { RequestId = requestId });
             await FusionConfigurationPublishingState.SetRequestId(requestId, ct);
         }
+    }
+
+    public class FusionConfigurationPublishBeginCommandResult
+    {
+        public required string RequestId { get; init; }
     }
 }

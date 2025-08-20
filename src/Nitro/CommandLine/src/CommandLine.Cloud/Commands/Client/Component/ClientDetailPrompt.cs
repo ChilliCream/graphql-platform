@@ -17,14 +17,14 @@ internal sealed class ClientDetailPrompt
         _client = client;
     }
 
-    public async Task<object> ToObject(string[] formats)
+    public async Task<ClientDetailPromptResult> ToObject(string[] formats)
     {
-        return new
+        return new ClientDetailPromptResult
         {
-            _data.Id,
-            _data.Name,
+            Id = _data.Id,
+            Name = _data.Name,
             Api = _data.Api is { } api
-                ? new { api.Name }
+                ? new Api { Name = api.Name }
                 : null,
             Versions = formats.Contains(Versions)
                 ? await RenderVersions()
@@ -69,28 +69,53 @@ internal sealed class ClientDetailPrompt
         return versions;
     }
 
-    private async Task<object?> RenderVersions()
+    private async Task<IReadOnlyList<VersionInfo>> RenderVersions()
     {
         var versions = await _clientNodes.Value;
-        return versions.Select(x => new { x.Tag, x.CreatedAt, x.Stages });
+        return versions.ToList();
     }
 
-    private async Task<object?> RenderPublishedVersions()
+    private async Task<IReadOnlyList<PublishedVersion>> RenderPublishedVersions()
     {
         var versions = await _clientNodes.Value;
 
         return versions
             .SelectMany(x => x.Stages.Select(y => (Stage: y, x.Tag)))
             .GroupBy(x => x.Stage)
-            .Select(x => new { Stage = x.Key, Versions = x.Select(y => y.Tag).ToArray() })
-            .ToArray();
+            .Select(x => new PublishedVersion { Stage = x.Key, Versions = x.Select(y => y.Tag).ToList() })
+            .ToList();
     }
 
     public static ClientDetailPrompt From(IClientDetailPrompt_Client data, IApiClient client)
         => new(data, client);
 
-    private record struct VersionInfo(
+    public class ClientDetailPromptResult
+    {
+        public required string Id { get; init; }
+
+        public required string Name { get; init; }
+
+        public required Api? Api { get; init; }
+
+        public required IReadOnlyList<VersionInfo>? Versions { get; init; }
+
+        public required IReadOnlyList<PublishedVersion>? PublishedVersions { get; init; }
+    }
+
+    public record VersionInfo(
         string Tag,
         DateTimeOffset CreatedAt,
         string[] Stages);
+
+    public class PublishedVersion
+    {
+        public required string Stage { get; init; }
+
+        public required IReadOnlyList<string> Versions { get; init; }
+    }
+
+    public class Api
+    {
+        public required string Name { get; init; }
+    }
 }

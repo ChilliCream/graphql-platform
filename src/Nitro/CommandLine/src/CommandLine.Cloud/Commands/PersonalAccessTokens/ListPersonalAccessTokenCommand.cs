@@ -91,11 +91,14 @@ internal sealed class ListPersonalAccessTokenCommand : Command
 
         var endCursor = result.Data?.Me?.PersonalAccessTokens?.PageInfo.EndCursor;
 
-        var items = result.Data?.Me?.PersonalAccessTokens?.Edges?
-            .Select(x => PersonalAccessTokenDetailPrompt.From(x.Node).ToObject())
-            .ToArray() ?? [];
+        var items = result.Data?.Me?.PersonalAccessTokens?.Edges?.Select(x =>
+                    PersonalAccessTokenDetailPrompt.From(x.Node).ToObject())
+                .ToArray() ??
+            [];
 
-        context.SetResult(new PaginatedListResult(items, endCursor!));
+        context.SetResult(
+            new PaginatedListResult<PersonalAccessTokenDetailPrompt.PersonalAccessTokenDetailPromptResult>(items,
+                endCursor));
 
         return ExitCodes.Success;
     }

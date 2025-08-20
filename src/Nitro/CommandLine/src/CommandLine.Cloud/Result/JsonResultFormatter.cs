@@ -1,3 +1,6 @@
+using System.Text.Json;
+using Spectre.Console.Json;
+
 namespace ChilliCream.Nitro.CommandLine.Cloud.Results;
 
 internal sealed class JsonResultFormatter(IAnsiConsole console) : IResultFormatter
@@ -16,6 +19,10 @@ internal sealed class JsonResultFormatter(IAnsiConsole console) : IResultFormatt
 
     private void FormatObjectResult(ObjectResult objectResult)
     {
-        console.Json(objectResult.Value);
+        var obj = objectResult.Value;
+
+        var serializedObj = JsonSerializer.Serialize(obj, obj.GetType(), JsonSourceGenerationContext.Default);
+
+        console.Write(new JsonText(serializedObj));
     }
 }

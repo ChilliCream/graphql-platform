@@ -11,18 +11,32 @@ internal sealed class EnvironmentDetailPrompt
         _data = data;
     }
 
-    public object ToObject()
+    public EnvironmentDetailPromptResult ToObject()
     {
-        return new
+        return new EnvironmentDetailPromptResult
         {
-            _data.Id,
-            _data.Name,
+            Id = _data.Id,
+            Name = _data.Name,
             Workspace = _data.Workspace is { } workspace
-                ? new { workspace.Name }
+                ? new EnvironmentDetailPromptWorkspace { Name = workspace.Name }
                 : null
         };
     }
 
     public static EnvironmentDetailPrompt From(IEnvironmentDetailPrompt_Environment data)
         => new(data);
+
+    public class EnvironmentDetailPromptResult
+    {
+        public required string Id { get; init; }
+
+        public required string Name { get; init; }
+
+        public required EnvironmentDetailPromptWorkspace? Workspace { get; init; }
+    }
+
+    public class EnvironmentDetailPromptWorkspace
+    {
+        public required string Name { get; init; }
+    }
 }

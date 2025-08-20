@@ -70,7 +70,7 @@ internal sealed class DeleteApiCommand : Command
         console.OkLine(
             $"Api {changeResult.Name.AsHighlight()} [dim](ID:{changeResult.Id})[/] was deleted");
 
-        context.SetResult(ApiDetailPrompt.From(changeResult).ToResult());
+        context.SetResult(ApiDetailPrompt.From(changeResult).ToObject());
 
         return ExitCodes.Success;
     }

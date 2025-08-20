@@ -37,7 +37,7 @@ internal sealed class ShowApiCommand : Command
 
         if (data.Node is IApiDetailPrompt_Api node)
         {
-            context.SetResult(ApiDetailPrompt.From(node).ToResult());
+            context.SetResult(ApiDetailPrompt.From(node).ToObject());
         }
         else
         {
