@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
@@ -8,6 +9,7 @@ namespace HotChocolate.Fusion.Types;
 /// <summary>
 /// Represents a lookup field in a source schema.
 /// </summary>
+[DebuggerDisplay("{FieldName}:{FieldType} ({SchemaName})")]
 public sealed class Lookup : INeedsCompletion
 {
     private readonly string _declaringTypeName;
