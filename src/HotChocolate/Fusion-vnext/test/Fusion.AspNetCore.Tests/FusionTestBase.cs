@@ -73,7 +73,8 @@ public abstract class FusionTestBase : IDisposable
         }
 
         var compositionLog = new CompositionLog();
-        var composer = new SchemaComposer(sourceSchemas, new SchemaComposerOptions(), compositionLog);
+        var composerOptions = new SchemaComposerOptions { EnableGlobalObjectIdentification = true };
+        var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
 
         if (!result.IsSuccess)
