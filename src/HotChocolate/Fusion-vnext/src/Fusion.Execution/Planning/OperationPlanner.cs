@@ -8,6 +8,8 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
+// TODO: Add all types implementing node as metadata on the schema
+
 public sealed partial class OperationPlanner
 {
     private readonly FusionSchemaDefinition _schema;

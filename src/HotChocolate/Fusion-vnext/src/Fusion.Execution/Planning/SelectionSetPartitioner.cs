@@ -7,7 +7,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
+internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 {
     public SelectionSetPartitionerResult Partition(
         SelectionSetPartitionerInput input)
