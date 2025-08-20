@@ -195,14 +195,11 @@ file static class ClientExtensions
         updateResult.EnsureData();
         console.PrintErrorsAndExit(updateResult.Data?.UpdateStages.Errors);
 
-        context.SetResult(
-            new
-            {
-                Stages = updateResult.Data?.UpdateStages.Api?.Stages.Select(y =>
-                    StageDetailPrompt.From(y).ToObject()
-                )
-            }
-        );
+        var items =  updateResult.Data?.UpdateStages.Api?.Stages
+            .Select(x => StageDetailPrompt.From(x).ToObject())
+            .ToArray() ?? [];
+
+        context.SetResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null));
 
         console.OkLine("Successfully updated stages");
     }

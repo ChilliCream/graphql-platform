@@ -80,7 +80,7 @@ internal sealed class SetApiSettingsApiCommand : Command
 
         if (api is IApiDetailPrompt_Api detail)
         {
-            context.SetResult(ApiDetailPrompt.From(detail).ToResult());
+            context.SetResult(ApiDetailPrompt.From(detail).ToObject());
         }
 
         return ExitCodes.Success;

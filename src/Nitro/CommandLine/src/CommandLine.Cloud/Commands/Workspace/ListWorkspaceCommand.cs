@@ -84,7 +84,7 @@ internal sealed class ListWorkspaceCommand : Command
                 WorkspaceDetailPrompt.From(x.Node).ToObject())
             .ToArray() ?? [];
 
-        context.SetResult(new PaginatedListResult(items, endCursor!));
+        context.SetResult(new PaginatedListResult<WorkspaceDetailPrompt.WorkspaceDetailPromptResult>(items, endCursor));
 
         return ExitCodes.Success;
     }

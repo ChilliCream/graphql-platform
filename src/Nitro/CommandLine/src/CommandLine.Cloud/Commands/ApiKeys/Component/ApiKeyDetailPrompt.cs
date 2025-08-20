@@ -12,18 +12,32 @@ internal sealed class ApiKeyDetailPrompt
         _data = data;
     }
 
-    public Result ToResult()
+    public ApiKeyDetailPromptResult ToObject()
     {
-        return new ObjectResult(new
+        return new ApiKeyDetailPromptResult
         {
-            _data.Id,
-            _data.Name,
+            Id = _data.Id,
+            Name = _data.Name,
             Workspace = _data.Workspace is { } workspace
-                ? new { workspace.Name }
+                ? new ApiKeyDetailPromptWorkspace { Name = workspace.Name }
                 : null
-        });
+        };
     }
 
     public static ApiKeyDetailPrompt From(IApiKeyDetailPrompt_ApiKey data)
         => new(data);
+
+    public class ApiKeyDetailPromptResult
+    {
+        public required string Id { get; init; }
+
+        public required string Name { get; init; }
+
+        public required ApiKeyDetailPromptWorkspace? Workspace { get; init; }
+    }
+
+    public class ApiKeyDetailPromptWorkspace
+    {
+        public required string Name { get; init; }
+    }
 }

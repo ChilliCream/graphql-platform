@@ -61,13 +61,20 @@ internal sealed class CreateApiKeyCommand : Command
 
         if (changeResult.Key is IApiKeyDetailPrompt_ApiKey detail)
         {
-            context.SetResult(new
+            context.SetResult(new CreateApiKeyResult
             {
-                changeResult.Secret,
-                Details = ApiKeyDetailPrompt.From(detail).ToResult()
+                Secret = changeResult.Secret,
+                Details = ApiKeyDetailPrompt.From(detail).ToObject()
             });
         }
 
         return ExitCodes.Success;
+    }
+
+    public class CreateApiKeyResult
+    {
+        public required string Secret { get; init; }
+
+        public required ApiKeyDetailPrompt.ApiKeyDetailPromptResult Details { get; init; }
     }
 }

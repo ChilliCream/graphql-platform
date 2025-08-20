@@ -94,7 +94,7 @@ internal sealed class ListStagesCommand : Command
             .Select(x => StageDetailPrompt.From(x).ToObject())
             .ToArray() ?? [];
 
-        context.SetResult(new { Values = items });
+        context.SetResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null));
 
         return ExitCodes.Success;
     }

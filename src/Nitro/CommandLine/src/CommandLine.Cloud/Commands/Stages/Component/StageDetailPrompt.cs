@@ -11,18 +11,35 @@ internal sealed class StageDetailPrompt
         _data = data;
     }
 
-    public object ToObject()
+    public StageDetailPromptResult ToObject()
     {
-        return new
+        return new StageDetailPromptResult
         {
-            _data.Id,
-            _data.Name,
+            Id = _data.Id,
+            Name = _data.Name,
             Conditions = _data.Conditions
                 .OfType<IAfterStageCondition>()
-                .Select(x => new { Kind = "AfterStage", x.AfterStage!.Name })
+                .Select(x => new StageCondition { Kind = "AfterStage", Name =  x.AfterStage!.Name })
+                .ToList()
         };
     }
 
     public static StageDetailPrompt From(IStageDetailPrompt_Stage data)
         => new(data);
+
+    public class StageDetailPromptResult
+    {
+        public required string Id { get; init; }
+
+        public required string Name { get; init; }
+
+        public required IReadOnlyList<StageCondition> Conditions { get; init; }
+    }
+
+    public class StageCondition
+    {
+        public required string Kind { get; init; }
+
+        public required string Name { get; init; }
+    }
 }

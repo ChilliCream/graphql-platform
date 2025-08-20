@@ -69,13 +69,20 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
         if (changeResult.Token is IPersonalAccessTokenDetailPrompt_PersonalAccessToken detail)
         {
             context.SetResult(
-                new
+                new CreatePersonalAccessTokenCommandResult
                 {
-                    changeResult.Secret,
+                    Secret = changeResult.Secret,
                     Details = PersonalAccessTokenDetailPrompt.From(detail).ToObject()
                 });
         }
 
         return ExitCodes.Success;
+    }
+
+    public class CreatePersonalAccessTokenCommandResult
+    {
+        public required string Secret { get; init; }
+
+        public required PersonalAccessTokenDetailPrompt.PersonalAccessTokenDetailPromptResult Details { get; init; }
     }
 }

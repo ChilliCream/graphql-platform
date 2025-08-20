@@ -12,12 +12,29 @@ internal sealed class PersonalAccessTokenDetailPrompt
         _data = data;
     }
 
-    public object ToObject()
+    public PersonalAccessTokenDetailPromptResult ToObject()
     {
-        return new { _data.Id, _data.Description, _data.CreatedAt, _data.ExpiresAt };
+        return new PersonalAccessTokenDetailPromptResult
+        {
+            Id = _data.Id,
+            Description = _data.Description,
+            CreatedAt = _data.CreatedAt,
+            ExpiresAt = _data.ExpiresAt
+        };
     }
 
     public static PersonalAccessTokenDetailPrompt From(
         IPersonalAccessTokenDetailPrompt_PersonalAccessToken data)
         => new(data);
+
+    public class PersonalAccessTokenDetailPromptResult
+    {
+        public required string Id { get; init; }
+
+        public required string Description { get; init; }
+
+        public required DateTimeOffset CreatedAt { get; init; }
+
+        public required DateTimeOffset ExpiresAt { get; init; }
+    }
 }

@@ -52,12 +52,6 @@ internal static class ResultCommandLineBuilderExtensions
         }
     }
 
-    public static void SetResult(this InvocationContext context, Result result)
-    {
-        var resultHolder = context.BindingContext.GetRequiredService<ResultHolder>();
-        resultHolder.Result = result;
-    }
-
     public static void SetResult(this InvocationContext context, object result)
     {
         var resultHolder = context.BindingContext.GetRequiredService<ResultHolder>();

@@ -32,15 +32,6 @@ public static class ConsoleHelpers
         console.MarkupLine(Glyphs.Check.Space() + message);
     }
 
-    public static void Json(this IAnsiConsole console, object obj)
-    {
-        // TODO: enable for full AOT compliancy
-        // console.Write(new JsonText(
-        //     JsonSerializer.Serialize(obj,
-        //         new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })));
-        console.WriteLine("NOT SUPPORTED");
-    }
-
     public static void ErrorLine(this IAnsiConsole console, string message)
     {
         console.MarkupLine(Glyphs.Cross.Space() + message);

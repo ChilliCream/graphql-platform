@@ -76,7 +76,7 @@ internal sealed class CreateApiCommand : Command
 
         if (changeResult.Result is IApiDetailPrompt_Api detail)
         {
-            context.SetResult(ApiDetailPrompt.From(detail).ToResult());
+            context.SetResult(ApiDetailPrompt.From(detail).ToObject());
         }
 
         return ExitCodes.Success;
