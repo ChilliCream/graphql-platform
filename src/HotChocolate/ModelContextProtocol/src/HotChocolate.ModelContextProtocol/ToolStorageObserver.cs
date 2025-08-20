@@ -2,8 +2,6 @@ using System.Collections.Immutable;
 using System.Reactive.Linq;
 using HotChocolate.ModelContextProtocol.Storage;
 using HotChocolate.Utilities;
-using HotChocolate.Validation;
-using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol;
 using ModelContextProtocol.AspNetCore;
 using static ModelContextProtocol.Protocol.NotificationMethods;
