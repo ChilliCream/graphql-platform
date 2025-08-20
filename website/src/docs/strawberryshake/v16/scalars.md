@@ -62,10 +62,10 @@ You can declare a scalar extension and add the `@serializationType` or/and the `
 
 ```graphql
 "Defines the serializationType of a scalar"
-directive @serializationType(name: String!) on SCALAR
+directive @serializationType(name: String! valueType: Boolean = false) on SCALAR
 
 "Defines the runtimeType of a scalar"
-directive @runtimeType(name: String!) on SCALAR
+directive @runtimeType(name: String! valueType: Boolean = false) on SCALAR
 
 "Represents an integer value that is greater or equal to 0"
 extend scalar PositiveInt
@@ -112,6 +112,10 @@ _configuration_
 ```csharp
 serviceCollection.AddSerializer<PositiveIntSerializer>();
 ```
+
+> ⚠️ **Note:** When using a value type (struct) with `@serializationType` or `@runtimeType`, you must set `valueType: true` to ensure correct code generation.  
+> However, this is not required for intrinsic primitive value types (e.g., `int`, `float`, `bool`).  
+> Example: `@serializationType(name: "global::MyNamespace.MyStruct", valueType: true)`
 
 ### Any or JSON
 
