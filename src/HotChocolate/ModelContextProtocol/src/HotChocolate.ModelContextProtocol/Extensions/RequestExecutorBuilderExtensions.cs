@@ -39,9 +39,6 @@ public static class RequestExecutorBuilderExtensions
             services =>
             {
                 services
-                    .TryAddSingleton<IOperationToolStorage, InMemoryOperationToolStorage>();
-
-                services
                     .TryAddSingleton(
                         static sp => new OperationToolFactory(
                             sp.GetRequiredService<ISchemaDefinition>()));
@@ -91,7 +88,7 @@ public static class RequestExecutorBuilderExtensions
         return builder;
     }
 
-    public static IRequestExecutorBuilder AddMcpToolStorageStorage(
+    public static IRequestExecutorBuilder AddMcpToolStorage(
         this IRequestExecutorBuilder builder,
         IOperationToolStorage storage)
     {
