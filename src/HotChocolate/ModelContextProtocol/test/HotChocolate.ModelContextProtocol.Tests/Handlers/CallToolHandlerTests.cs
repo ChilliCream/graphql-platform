@@ -1,7 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.ModelContextProtocol.Extensions;
-using HotChocolate.ModelContextProtocol.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -29,16 +28,17 @@ public sealed class CallToolHandlerTests
     private static async Task<RequestContext<CallToolRequestParams>> CreateRequestContextAsync(
         string toolName)
     {
-        var storage = new InMemoryOperationToolStorage();
+        var storage = new TestOperationToolStorage();
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql")));
-        var services = new ServiceCollection().AddSingleton<IOperationToolStorage>(storage);
+        var services = new ServiceCollection();
         services.AddLogging();
         services
             .AddGraphQL()
             .AddAuthorization()
             .AddMcp()
+            .AddMcpToolStorage(storage)
             .AddQueryType<TestSchema.Query>()
             .AddInterfaceType<TestSchema.IPet>()
             .AddUnionType<TestSchema.IPet>()

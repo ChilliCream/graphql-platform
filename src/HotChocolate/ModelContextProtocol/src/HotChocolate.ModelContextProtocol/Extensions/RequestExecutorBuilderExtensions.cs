@@ -39,9 +39,6 @@ public static class RequestExecutorBuilderExtensions
             services =>
             {
                 services
-                    .TryAddSingleton<IOperationToolStorage, InMemoryOperationToolStorage>();
-
-                services
                     .TryAddSingleton(
                         static sp => new OperationToolFactory(
                             sp.GetRequiredService<ISchemaDefinition>()));
