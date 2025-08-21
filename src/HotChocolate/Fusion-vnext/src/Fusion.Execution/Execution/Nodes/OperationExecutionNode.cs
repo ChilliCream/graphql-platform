@@ -14,14 +14,14 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly string[] _forwardedVariables;
     private readonly string[] _responseNames;
     private readonly OperationSourceText _operation;
-    private readonly string _schemaName;
+    private readonly string? _schemaName;
     private readonly SelectionPath _target;
     private readonly SelectionPath _source;
 
     internal OperationExecutionNode(
         int id,
         OperationSourceText operation,
-        string schemaName,
+        string? schemaName,
         SelectionPath target,
         SelectionPath source,
         OperationRequirement[] requirements,
@@ -60,8 +60,9 @@ public sealed class OperationExecutionNode : ExecutionNode
 
     /// <summary>
     /// Gets the name of the source schema that this operation is executed against.
+    /// If <c>null</c> the schema is dynamic and will be set at runtime.
     /// </summary>
-    public string SchemaName => _schemaName;
+    public string? SchemaName => _schemaName;
 
     /// <summary>
     /// Gets the path to the selection set for which this operation fetches data.
@@ -84,7 +85,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// </summary>
     public ReadOnlySpan<string> ForwardedVariables => _forwardedVariables;
 
-    public override async ValueTask<ExecutionStatus> OnExecuteAsync(
+    protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
@@ -95,6 +96,8 @@ public sealed class OperationExecutionNode : ExecutionNode
             return ExecutionStatus.Skipped;
         }
 
+        var schemaName = _schemaName ?? context.GetSchemaNameForOperationNode(Id);
+
         context.TrackVariableValueSets(this, variables);
 
         var request = new SourceSchemaClientRequest
@@ -104,7 +107,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             Variables = variables
         };
 
-        var client = context.GetClient(_schemaName, _operation.Type);
+        var client = context.GetClient(schemaName, _operation.Type);
         SourceSchemaClientResponse response;
 
         try
@@ -162,6 +165,8 @@ public sealed class OperationExecutionNode : ExecutionNode
     {
         var variables = context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
 
+        var schemaName = _schemaName ?? context.GetSchemaNameForOperationNode(Id);
+
         context.TrackVariableValueSets(this, variables);
 
         var request = new SourceSchemaClientRequest
@@ -171,7 +176,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             Variables = variables
         };
 
-        var client = context.GetClient(SchemaName, _operation.Type);
+        var client = context.GetClient(schemaName, _operation.Type);
 
         try
         {

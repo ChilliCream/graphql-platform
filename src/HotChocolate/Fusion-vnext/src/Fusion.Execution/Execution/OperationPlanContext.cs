@@ -28,6 +28,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     private string? _traceId;
     private long _start;
     private bool _disposed;
+    private Dictionary<int, string>? _dynamicSchemaNameByOperationNodeId;
 
     public OperationPlanContext(
         RequestContext requestContext,
@@ -99,6 +100,18 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         => _nodesToComplete.TryGetValue(node.Id, out var nodesToComplete)
             ? [.. nodesToComplete]
             : [];
+
+    internal void SetSchemaForOperationNode(int operationNodeId, string schemaName)
+    {
+        _dynamicSchemaNameByOperationNodeId ??= new Dictionary<int, string>();
+
+        _dynamicSchemaNameByOperationNodeId.Add(operationNodeId, schemaName);
+    }
+
+    internal string GetSchemaNameForOperationNode(int operationNodeId)
+        => _dynamicSchemaNameByOperationNodeId?[operationNodeId] ??
+            throw new InvalidOperationException(
+                $"Expected to find a schema name for dynamic operation node '{operationNodeId}'.");
 
     internal void TrackVariableValueSets(ExecutionNode node, ImmutableArray<VariableValues> variableValueSets)
     {

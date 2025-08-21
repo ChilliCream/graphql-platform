@@ -8,7 +8,7 @@ public record NodePlanStep : PlanStep
 
     public required IValueNode IdValue { get; init; }
 
-    public required OperationDefinitionNode FallbackQuery { get; init; }
+    public required OperationPlanStep FallbackQuery { get; init; }
 
     public Dictionary<string, OperationPlanStep> Branches { get; } = new();
 

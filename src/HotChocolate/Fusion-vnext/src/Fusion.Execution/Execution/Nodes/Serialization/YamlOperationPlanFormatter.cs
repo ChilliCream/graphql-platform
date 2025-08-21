@@ -96,8 +96,11 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("type: {0}", "Operation");
 
-        writer.WriteLine("schema: {0}", node.SchemaName);
-
+        if (node.SchemaName is not null)
+        {
+            writer.WriteLine("schema: {0}", node.SchemaName);
+        }
+        
         writer.WriteLine("operation: >-");
         writer.Indent();
         var reader = new StringReader(node.Operation.SourceText);
@@ -211,16 +214,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         }
         writer.Unindent();
 
-        writer.WriteLine("fallback: >-");
-        writer.Indent();
-        var reader = new StringReader(node.FallbackQuery.SourceText);
-        var line = reader.ReadLine();
-        while (line != null)
-        {
-            writer.WriteLine(line);
-            line = reader.ReadLine();
-        }
-        writer.Unindent();
+        writer.WriteLine("fallback: {0}", node.FallbackQuery.Id);
 
         if (trace is not null)
         {

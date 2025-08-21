@@ -301,13 +301,7 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
 
         jsonWriter.WriteEndObject();
 
-        jsonWriter.WriteStartObject("fallback");
-        jsonWriter.WriteString("name", node.FallbackQuery.Name);
-        jsonWriter.WriteString("type", node.FallbackQuery.Type.ToString());
-        jsonWriter.WriteString("document", node.FallbackQuery.SourceText);
-        jsonWriter.WriteString("hash", node.FallbackQuery.Hash);
-        jsonWriter.WriteString("shortHash", node.FallbackQuery.Hash[..8]);
-        jsonWriter.WriteEndObject();
+        jsonWriter.WriteNumber("fallback", node.FallbackQuery.Id);
 
         if (trace is not null)
         {

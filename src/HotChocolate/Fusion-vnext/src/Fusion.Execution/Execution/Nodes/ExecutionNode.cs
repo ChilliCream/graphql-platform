@@ -62,7 +62,7 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
         context.CompleteNode(result);
     }
 
-    public abstract ValueTask<ExecutionStatus> OnExecuteAsync(
+    protected abstract ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default);
 

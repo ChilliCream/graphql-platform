@@ -960,10 +960,24 @@ public sealed partial class OperationPlanner
 
         (var fallbackQuery, index, _) = fallbackQueryBuilder.Build(index);
 
+        var fallbackOperationStep = new OperationPlanStep
+        {
+            Id = stepId + 1, // TODO: Is this safe?
+            Definition = fallbackQuery,
+            Type = _schema.QueryType, // TODO: Is this correct?
+            SchemaName = null,
+            RootSelectionSetId = index.GetId(fallbackQuery.SelectionSet),
+            SelectionSets = SelectionSetIndexer.CreateIdSet(fallbackQuery.SelectionSet, index),
+            Dependents = [],
+            Requirements = ImmutableDictionary<string, OperationRequirement>.Empty,
+            Target = SelectionPath.Root,
+            Source = SelectionPath.Root
+        };
+
         var step = new NodePlanStep
         {
             Id = stepId,
-            FallbackQuery = fallbackQuery,
+            FallbackQuery = fallbackOperationStep,
             ResponseName = responseName,
             IdValue = idArgumentValue
         };
@@ -977,7 +991,9 @@ public sealed partial class OperationPlanner
             SchemaName = current.SchemaName,
             SelectionSetIndex = index,
             Backlog = backlog,
-            Steps = current.Steps.Add(step),
+            Steps = current.Steps
+                .Add(fallbackOperationStep)
+                .Add(step),
             PathCost = current.PathCost,
             BacklogCost = backlog.Count(),
             LastRequirementId = current.LastRequirementId
@@ -1279,7 +1295,9 @@ file static class Extensions
     {
         for (var i = 0; i < current.Steps.Count; i++)
         {
-            if (current.Steps[i] is OperationPlanStep step && step.SelectionSets.Contains(selectionSetId))
+            if (current.Steps[i] is OperationPlanStep step
+                && step.SelectionSets.Contains(selectionSetId)
+                && !string.IsNullOrEmpty(step.SchemaName))
             {
                 yield return (step, i, step.SchemaName);
             }

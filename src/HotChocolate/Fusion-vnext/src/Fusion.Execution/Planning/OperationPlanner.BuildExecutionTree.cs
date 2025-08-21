@@ -115,8 +115,6 @@ public sealed partial class OperationPlanner
             }
             else if (step is NodePlanStep nodePlanStep)
             {
-                updatedPlanSteps = updatedPlanSteps.Replace(step, AddVariableDefinitionsToNode(nodePlanStep));
-
                 foreach (var (_, dependent) in nodePlanStep.Branches)
                 {
                     if (!dependencyLookup.TryGetValue(dependent.Id, out var dependencies))
@@ -140,20 +138,6 @@ public sealed partial class OperationPlanner
             emptySelectionSetContext.HasEmptySelectionSet = false;
             s_hasEmptySelectionSetVisitor.Visit(step.Definition, emptySelectionSetContext);
             return emptySelectionSetContext.HasEmptySelectionSet;
-        }
-
-        NodePlanStep AddVariableDefinitionsToNode(NodePlanStep step)
-        {
-            forwardVariableContext.Reset();
-
-            var rewrittenNode = s_forwardVariableRewriter.Rewrite(step.FallbackQuery, forwardVariableContext);
-            if (rewrittenNode is OperationDefinitionNode rewrittenOperationNode
-                && !ReferenceEquals(rewrittenOperationNode, step.FallbackQuery))
-            {
-                return step with { FallbackQuery = rewrittenOperationNode };
-            }
-
-            return step;
         }
 
         OperationPlanStep AddVariableDefinitions(OperationPlanStep step)
@@ -252,8 +236,7 @@ public sealed partial class OperationPlanner
                     var node = new NodeExecutionNode(
                         nodeStep.Id,
                         nodeStep.ResponseName,
-                        nodeStep.IdValue,
-                        nodeStep.FallbackQuery.ToSourceText());
+                        nodeStep.IdValue);
 
                     completedNodes.Add(step.Id, node);
                 }

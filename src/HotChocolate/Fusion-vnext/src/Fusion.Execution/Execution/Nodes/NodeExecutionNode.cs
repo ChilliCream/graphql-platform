@@ -1,4 +1,3 @@
-using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -6,10 +5,10 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 public sealed class NodeExecutionNode(
     int id,
     string responseName,
-    IValueNode idValue,
-    OperationSourceText fallbackQuery) : ExecutionNode
+    IValueNode idValue) : ExecutionNode
 {
     private readonly Dictionary<string, ExecutionNode> _branches = [];
+    private ExecutionNode _fallbackQuery = null!;
 
     public override int Id { get; } = id;
 
@@ -21,15 +20,15 @@ public sealed class NodeExecutionNode(
 
     public string ResponseName => responseName;
 
-    public OperationSourceText FallbackQuery { get; } = fallbackQuery;
+    public ExecutionNode FallbackQuery => _fallbackQuery;
 
     // TODO: This should be computed at schema generation and placed as metadata on the schema definition
-    private readonly Dictionary<string, string> _typeNameToSchemaLookup = new Dictionary<string, string>
+    private readonly Dictionary<string, string> _typeNameToSchemaLookup = new()
     {
         ["Discussion"] = "a"
     };
 
-    public override async ValueTask<ExecutionStatus> OnExecuteAsync(
+    protected override ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
@@ -42,7 +41,7 @@ public sealed class NodeExecutionNode(
         };
 
         if (!context.TryParseTypeNameFromId(id, out var typeName)
-            || !_typeNameToSchemaLookup.TryGetValue(typeName, out var schema))
+            || !_typeNameToSchemaLookup.TryGetValue(typeName, out var schemaName))
         {
             // We have an invalid id or a valid id of a type that does not implement the Node interface
             var error = ErrorBuilder.New()
@@ -51,7 +50,7 @@ public sealed class NodeExecutionNode(
 
             context.AddErrors(error, [ResponseName], Path.Root);
 
-            return ExecutionStatus.Failed;
+            return ValueTask.FromResult(ExecutionStatus.Failed);
         }
 
         if (_branches.TryGetValue(typeName, out var operation))
@@ -59,26 +58,15 @@ public sealed class NodeExecutionNode(
             // We have a branch and we select it for exclusive execution
             EnqueueDependentForExecution(context, operation);
 
-            return ExecutionStatus.Success;
+            return ValueTask.FromResult(ExecutionStatus.Success);
         }
 
-        // We have a valid type, but no branch, so we execute the fallback operation.
+        // We have a valid type, but no branch, so we execute the fallback query.
+        EnqueueDependentForExecution(context, FallbackQuery);
 
-        // TODO: Constructing this on the fly is bad, mkay
-        var fallbackExecutionNode = new OperationExecutionNode(
-            Id + 1, // TODO: This is wrong
-            FallbackQuery,
-            schema,
-            SelectionPath.Root,
-            SelectionPath.Root,
-            [],
-            [], // TODO
-            [ResponseName]
-        );
+        context.SetSchemaForOperationNode(FallbackQuery.Id, schemaName);
 
-        // TODO: We need to skip all branch nodes in this case
-
-        return await fallbackExecutionNode.OnExecuteAsync(context, cancellationToken);
+        return ValueTask.FromResult(ExecutionStatus.Success);
 
         string GetVariableValue(VariableNode variable)
         {
@@ -93,11 +81,12 @@ public sealed class NodeExecutionNode(
         }
     }
 
-    // TODO: Handle sealing
     internal void AddBranch(string objectTypeName, ExecutionNode node)
     {
         ArgumentException.ThrowIfNullOrEmpty(objectTypeName);
         ArgumentNullException.ThrowIfNull(node);
+
+        ExpectMutable();
 
         if (node.Equals(this))
         {
@@ -105,5 +94,19 @@ public sealed class NodeExecutionNode(
         }
 
         _branches[objectTypeName] = node;
+    }
+
+    internal void AddFallbackQuery(ExecutionNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+
+        ExpectMutable();
+
+        if (node.Equals(this))
+        {
+            throw new InvalidOperationException("A node can not be the fallback query of itself.");
+        }
+
+        _fallbackQuery = node;
     }
 }

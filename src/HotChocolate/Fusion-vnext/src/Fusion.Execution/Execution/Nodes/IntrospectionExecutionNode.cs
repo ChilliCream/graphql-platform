@@ -28,7 +28,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
     public ReadOnlySpan<Selection> Selections => _selections;
 
-    public override ValueTask<ExecutionStatus> OnExecuteAsync(
+    protected override ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {

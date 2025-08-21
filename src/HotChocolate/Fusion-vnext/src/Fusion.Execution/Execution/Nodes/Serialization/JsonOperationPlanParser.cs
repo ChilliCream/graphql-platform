@@ -248,15 +248,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     private static (NodeExecutionNode, int[]?, Dictionary<string, int>?) ParseNodeNode(
         JsonElement nodeElement, int id, Operation operation)
     {
-        var fallbackElement = nodeElement.GetProperty("fallback");
-        var fallbackOperationName = fallbackElement.GetProperty("name").GetString()!;
-        var fallbackOperationType = Enum.Parse<OperationType>(fallbackElement.GetProperty("type").GetString()!);
-        var fallbackDocument= fallbackElement.GetProperty("document").GetString()!;
-        var fallbackHash = fallbackElement.GetProperty("hash").GetString()!;
-
         var responseName = nodeElement.GetProperty("responseName").GetString()!;
 
-        // TODO: Not sure if this GetRawText is correct
         var idValueProperty = nodeElement.GetProperty("idValue").GetRawText();
         var idValue = Utf8GraphQLParser.Syntax.ParseValueLiteral(idValueProperty, false);
 
@@ -284,15 +277,12 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             branches.Add(branch.Name, nodeId);
         }
 
+        var fallbackNodeId = nodeElement.GetProperty("fallback").GetInt32();
+
         var node = new NodeExecutionNode(
             id,
             responseName,
-            idValue,
-            new OperationSourceText(
-                fallbackOperationName,
-                fallbackOperationType,
-                fallbackDocument,
-                fallbackHash));
+            idValue);
 
         // TODO: We might need the forwarded variables for the inline OperationExecutionNode
 
