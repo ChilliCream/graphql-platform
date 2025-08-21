@@ -9,13 +9,13 @@ operation:
         }
       }
     name: GetTopProducts
-    hash: 123
+    hash: 123456789101112
 nodes:
   - id: 1
     type: Operation
     schema: a
     operation: >-
-      query GetTopProducts_123_1 {
+      query GetTopProducts_123456789101112_1 {
         topProduct {
           id
           name
@@ -25,7 +25,7 @@ nodes:
     type: Operation
     schema: b
     operation: >-
-      query GetTopProducts_123_2(
+      query GetTopProducts_123456789101112_2(
         $__fusion_1_id: ID!
       ) {
         lookupUnionById(id: $__fusion_1_id) {
@@ -34,7 +34,7 @@ nodes:
           }
         }
       }
-    source: $.lookupUnionById.<Product>
+    source: $.lookupUnionById<Product>
     target: $.topProduct
     requirements:
       - name: __fusion_1_id

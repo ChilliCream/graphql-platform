@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -303,27 +304,27 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         public ImmutableStack<FieldSelection> FieldsWithRequirements { get; set; } = [];
 
-        public Stack<ISyntaxNode> Nodes { get; } = new();
+        public List<ISyntaxNode> Nodes { get; } = [];
 
         public SelectionPath BuildPath()
         {
-            var path = RootPath;
+            var builder = SelectionPath.CreateBuilder(RootPath);
 
             foreach (var node in Nodes)
             {
                 switch (node)
                 {
                     case FieldNode fieldNode:
-                        path = path.AppendField(fieldNode.Alias?.Value ?? fieldNode.Name.Value);
+                        builder.AppendField(fieldNode.Alias?.Value ?? fieldNode.Name.Value);
                         break;
 
                     case InlineFragmentNode { TypeCondition: not null } inlineFragmentNode:
-                        path = path.AppendFragment(inlineFragmentNode.TypeCondition.Name.Value);
+                        builder.AppendFragment(inlineFragmentNode.TypeCondition.Name.Value);
                         break;
                 }
             }
 
-            return path;
+            return builder.Build();
         }
 
         public uint GetId(SelectionSetNode selectionSetNode)

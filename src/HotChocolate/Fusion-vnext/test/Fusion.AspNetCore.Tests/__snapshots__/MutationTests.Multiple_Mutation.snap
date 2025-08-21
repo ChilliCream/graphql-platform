@@ -17,9 +17,11 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
+        "id": "3a6f9339b5c58d9c6b3e92fd1bea194a33da06eb3f00f37190fde15e7cce5bb3",
         "operation": {
           "kind": "Mutation",
           "document": "mutation {\n  a: createBook(input: { title: \"Book1\" }) {\n    book {\n      id\n      author\n      id @fusion__requirement\n    }\n  }\n  b: createBook(input: { title: \"Book2\" }) {\n    book {\n      id\n      title\n      author\n      id @fusion__requirement\n    }\n  }\n}",
+          "id": "192dc5f8a8f00336bac2094122ae7902",
           "hash": "192dc5f8a8f00336bac2094122ae7902",
           "shortHash": "192dc5f8"
         },
@@ -30,6 +32,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_192dc5f8_1",
+              "type": "Mutation",
               "document": "mutation Op_192dc5f8_1 {\n  a: createBook(input: { title: \"Book1\" }) {\n    book {\n      id\n    }\n  }\n}",
               "hash": "25548a2f7a33295a8f2a1fcea06b2bad716e453ba4641f9a0e47d4eaa596cf31",
               "shortHash": "25548a2f"
@@ -44,6 +47,7 @@
             "schema": "B",
             "operation": {
               "name": "Op_192dc5f8_2",
+              "type": "Query",
               "document": "query Op_192dc5f8_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    author\n  }\n}",
               "hash": "78ea0ad4a49e140fec3cf1418cb5f4d32017dc582e370faa522a02b1e20f22da",
               "shortHash": "78ea0ad4"
@@ -56,9 +60,12 @@
             "requirements": [
               {
                 "name": "__fusion_1_id",
+                "type": "Int!",
+                "path": "$.a.book",
                 "selectionMap": "id"
               }
             ],
+            "forwardedVariables": [],
             "dependencies": [
               1
             ]
@@ -69,6 +76,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_192dc5f8_3",
+              "type": "Mutation",
               "document": "mutation Op_192dc5f8_3 {\n  b: createBook(input: { title: \"Book2\" }) {\n    book {\n      id\n      title\n    }\n  }\n}",
               "hash": "30dc15e4e9aef4d4c7bceb038aeef3d4b8f149155d491a5ebf2094e0dc7c2c83",
               "shortHash": "30dc15e4"
@@ -83,6 +91,7 @@
             "schema": "B",
             "operation": {
               "name": "Op_192dc5f8_4",
+              "type": "Query",
               "document": "query Op_192dc5f8_4(\n  $__fusion_2_id: Int!\n) {\n  bookById(id: $__fusion_2_id) {\n    author\n  }\n}",
               "hash": "a0421ddd786011e521afea221016c052d1f15da63f869829ba94cb07d4553d17",
               "shortHash": "a0421ddd"
@@ -95,9 +104,12 @@
             "requirements": [
               {
                 "name": "__fusion_2_id",
+                "type": "Int!",
+                "path": "$.b.book",
                 "selectionMap": "id"
               }
             ],
+            "forwardedVariables": [],
             "dependencies": [
               3
             ]

@@ -9,9 +9,11 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
+        "id": "a6a0ec861f10d265a8e68e421b09d83cd0fc0465ffe37b276a3291ba1c141d40",
         "operation": {
           "kind": "Subscription",
           "document": "subscription {\n  onBookCreated {\n    id\n    title\n    id @fusion__requirement\n  }\n}",
+          "id": "a6fc02fcd58c513d69d75983869b251f",
           "hash": "a6fc02fcd58c513d69d75983869b251f",
           "shortHash": "a6fc02fc"
         },
@@ -22,6 +24,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_a6fc02fc_1",
+              "type": "Subscription",
               "document": "subscription Op_a6fc02fc_1 {\n  onBookCreated {\n    id\n  }\n}",
               "hash": "34406d1c68a98e2322ad00b753c0c8097fbc97b2b9bf307522646e08f1ad4096",
               "shortHash": "34406d1c"
@@ -36,6 +39,7 @@
             "schema": "B",
             "operation": {
               "name": "Op_a6fc02fc_2",
+              "type": "Query",
               "document": "query Op_a6fc02fc_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    title\n  }\n}",
               "hash": "de30926b00718ae714fcc0da2bea071fa233c64d9ddea4f3831c2cfb887efc18",
               "shortHash": "de30926b"
@@ -48,9 +52,12 @@
             "requirements": [
               {
                 "name": "__fusion_1_id",
+                "type": "Int!",
+                "path": "$.onBookCreated",
                 "selectionMap": "id"
               }
             ],
+            "forwardedVariables": [],
             "dependencies": [
               1
             ]
@@ -73,9 +80,11 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
+        "id": "a6a0ec861f10d265a8e68e421b09d83cd0fc0465ffe37b276a3291ba1c141d40",
         "operation": {
           "kind": "Subscription",
           "document": "subscription {\n  onBookCreated {\n    id\n    title\n    id @fusion__requirement\n  }\n}",
+          "id": "a6fc02fcd58c513d69d75983869b251f",
           "hash": "a6fc02fcd58c513d69d75983869b251f",
           "shortHash": "a6fc02fc"
         },
@@ -86,6 +95,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_a6fc02fc_1",
+              "type": "Subscription",
               "document": "subscription Op_a6fc02fc_1 {\n  onBookCreated {\n    id\n  }\n}",
               "hash": "34406d1c68a98e2322ad00b753c0c8097fbc97b2b9bf307522646e08f1ad4096",
               "shortHash": "34406d1c"
@@ -100,6 +110,7 @@
             "schema": "B",
             "operation": {
               "name": "Op_a6fc02fc_2",
+              "type": "Query",
               "document": "query Op_a6fc02fc_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    title\n  }\n}",
               "hash": "de30926b00718ae714fcc0da2bea071fa233c64d9ddea4f3831c2cfb887efc18",
               "shortHash": "de30926b"
@@ -112,9 +123,12 @@
             "requirements": [
               {
                 "name": "__fusion_1_id",
+                "type": "Int!",
+                "path": "$.onBookCreated",
                 "selectionMap": "id"
               }
             ],
+            "forwardedVariables": [],
             "dependencies": [
               1
             ]
@@ -137,9 +151,11 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
+        "id": "a6a0ec861f10d265a8e68e421b09d83cd0fc0465ffe37b276a3291ba1c141d40",
         "operation": {
           "kind": "Subscription",
           "document": "subscription {\n  onBookCreated {\n    id\n    title\n    id @fusion__requirement\n  }\n}",
+          "id": "a6fc02fcd58c513d69d75983869b251f",
           "hash": "a6fc02fcd58c513d69d75983869b251f",
           "shortHash": "a6fc02fc"
         },
@@ -150,6 +166,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_a6fc02fc_1",
+              "type": "Subscription",
               "document": "subscription Op_a6fc02fc_1 {\n  onBookCreated {\n    id\n  }\n}",
               "hash": "34406d1c68a98e2322ad00b753c0c8097fbc97b2b9bf307522646e08f1ad4096",
               "shortHash": "34406d1c"
@@ -164,6 +181,7 @@
             "schema": "B",
             "operation": {
               "name": "Op_a6fc02fc_2",
+              "type": "Query",
               "document": "query Op_a6fc02fc_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    title\n  }\n}",
               "hash": "de30926b00718ae714fcc0da2bea071fa233c64d9ddea4f3831c2cfb887efc18",
               "shortHash": "de30926b"
@@ -176,9 +194,12 @@
             "requirements": [
               {
                 "name": "__fusion_1_id",
+                "type": "Int!",
+                "path": "$.onBookCreated",
                 "selectionMap": "id"
               }
             ],
+            "forwardedVariables": [],
             "dependencies": [
               1
             ]

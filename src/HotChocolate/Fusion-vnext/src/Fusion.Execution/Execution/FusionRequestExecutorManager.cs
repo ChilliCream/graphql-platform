@@ -281,7 +281,6 @@ internal sealed class FusionRequestExecutorManager
         AddParserServices(schemaServices);
         AddDocumentValidator(setup, schemaServices);
         AddDiagnosticEvents(schemaServices);
-        AddSourceSchemaClients(schemaServices);
 
         foreach (var configure in setup.SchemaServiceModifiers)
         {
@@ -388,17 +387,6 @@ internal sealed class FusionRequestExecutorManager
 
         services.AddSingleton<ICoreExecutionDiagnosticEvents>(
             static sp => sp.GetRequiredService<IFusionExecutionDiagnosticEvents>());
-    }
-
-    private static void AddSourceSchemaClients(
-        IServiceCollection services)
-    {
-        services.AddSingleton(
-            static sp =>
-            {
-                var options = sp.GetRequiredService<ISchemaDefinition>().GetRequestOptions();
-                return new Cache<string>(options.SourceSchemaOperationCacheSize);
-            });
     }
 
     private static FusionSchemaDefinition CreateSchema(

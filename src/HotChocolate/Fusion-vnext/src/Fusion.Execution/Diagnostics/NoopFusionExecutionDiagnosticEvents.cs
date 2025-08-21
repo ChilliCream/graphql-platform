@@ -32,6 +32,9 @@ internal sealed class NoopFusionExecutionDiagnosticEvents : IFusionExecutionDiag
 
     public void DocumentNotFoundInStorage(RequestContext context, OperationDocumentId documentId) { }
 
+    public IDisposable PlanOperation(RequestContext context)
+        => this;
+
     public IDisposable ExecuteOperation(OperationPlanContext context, OperationExecutionNode node)
         => this;
 

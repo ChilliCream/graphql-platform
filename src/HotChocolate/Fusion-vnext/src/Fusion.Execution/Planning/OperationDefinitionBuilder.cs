@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -63,7 +64,7 @@ internal sealed class OperationDefinitionBuilder
         }
 
         var selectionSet = _selectionSet;
-        var selectionPath = SelectionPath.Root;
+        var selectionPathBuilder = SelectionPath.CreateBuilder();
 
         if (_lookup is not null)
         {
@@ -90,12 +91,12 @@ internal sealed class OperationDefinitionBuilder
             indexBuilder.Register(selectionSet);
             index = indexBuilder;
 
+            selectionPathBuilder.AppendField(_lookup.FieldName);
+
             if (!string.IsNullOrEmpty(_lookupTypeRefinement))
             {
-                selectionPath = selectionPath.AppendFragment(_lookupTypeRefinement);
+                selectionPathBuilder.AppendFragment(_lookupTypeRefinement);
             }
-
-            selectionPath = selectionPath.AppendField(_lookup.FieldName);
         }
 
         var definition = new OperationDefinitionNode(
@@ -107,6 +108,6 @@ internal sealed class OperationDefinitionBuilder
             [],
             selectionSet);
 
-        return (definition, index, selectionPath);
+        return (definition, index, selectionPathBuilder.Build());
     }
 }

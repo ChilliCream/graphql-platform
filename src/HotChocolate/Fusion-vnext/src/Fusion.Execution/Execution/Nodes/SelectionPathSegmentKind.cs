@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Types;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 public enum SelectionPathSegmentKind
 {

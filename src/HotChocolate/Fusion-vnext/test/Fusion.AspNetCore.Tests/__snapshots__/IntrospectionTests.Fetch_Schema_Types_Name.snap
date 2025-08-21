@@ -65,9 +65,11 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
+        "id": "15516fc0017f6db8db388a12505832d188fcc0b66fbeb98b9ff774f4f32ce535",
         "operation": {
           "kind": "Query",
           "document": "{\n  __schema {\n    types {\n      name\n    }\n  }\n}",
+          "id": "e4e78f6ce44f74870f424cc260b232a6",
           "hash": "e4e78f6ce44f74870f424cc260b232a6",
           "shortHash": "e4e78f6c"
         },
