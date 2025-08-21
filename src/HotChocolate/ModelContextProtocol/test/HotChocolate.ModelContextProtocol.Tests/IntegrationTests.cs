@@ -33,7 +33,7 @@ public sealed class IntegrationTests
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNonNullableVariables.graphql")));
-        var server = CreateTestServer(b => b.AddMcpToolStorageStorage(storage));
+        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -70,7 +70,7 @@ public sealed class IntegrationTests
                     .AddGraphQL()
                     .AddTypeModule(_ => typeModule)
                     .AddMcp()
-                    .AddMcpToolStorageStorage(storage))
+                    .AddMcpToolStorage(storage))
             .Configure(
                 app => app
                     .UseRouting()
@@ -131,7 +131,7 @@ public sealed class IntegrationTests
                     .AddGraphQL()
                     .AddTypeModule(_ => typeModule)
                     .AddMcp()
-                    .AddMcpToolStorageStorage(storage))
+                    .AddMcpToolStorage(storage))
             .Configure(
                 app => app
                     .UseRouting()
@@ -186,7 +186,7 @@ public sealed class IntegrationTests
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql")));
-        var server = CreateTestServer(b => b.AddMcpToolStorageStorage(storage));
+        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -236,7 +236,7 @@ public sealed class IntegrationTests
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNonNullableVariables.graphql")));
-        var server = CreateTestServer(b => b.AddMcpToolStorageStorage(storage));
+        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -287,7 +287,7 @@ public sealed class IntegrationTests
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithDefaultedVariables.graphql")));
-        var server = CreateTestServer(b => b.AddMcpToolStorageStorage(storage));
+        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -311,7 +311,7 @@ public sealed class IntegrationTests
         var server =
             CreateTestServer(
                 b => b
-                    .AddMcpToolStorageStorage(storage)
+                    .AddMcpToolStorage(storage)
                     .AddType(new TimeSpanType(TimeSpanFormat.DotNet)));
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
@@ -359,7 +359,7 @@ public sealed class IntegrationTests
         var storage = new InMemoryOperationToolStorage();
         await storage.AddOrUpdateToolAsync(
             Utf8GraphQLParser.Parse("query GetWithErrors { withErrors }"));
-        var server = CreateTestServer(b => b.AddMcpToolStorageStorage(storage));
+        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -378,7 +378,7 @@ public sealed class IntegrationTests
         // arrange
         var storage = new InMemoryOperationToolStorage();
         await storage.AddOrUpdateToolAsync(Utf8GraphQLParser.Parse("query GetWithAuth { withAuth }"));
-        var server = CreateTestServer(b => b.AddMcpToolStorageStorage(storage));
+        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
         var mcpClient = await CreateMcpClientAsync(server.CreateClient(), TestJwtTokenHelper.GenerateToken());
 
         // act
@@ -398,7 +398,7 @@ public sealed class IntegrationTests
         // arrange
         var storage = new InMemoryOperationToolStorage();
         await storage.AddOrUpdateToolAsync(Utf8GraphQLParser.Parse("query GetWithAuth { withAuth }"));
-        var server = CreateTestServer(b => b.AddMcpToolStorageStorage(storage));
+        var server = CreateTestServer(b => b.AddMcpToolStorage(storage));
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
