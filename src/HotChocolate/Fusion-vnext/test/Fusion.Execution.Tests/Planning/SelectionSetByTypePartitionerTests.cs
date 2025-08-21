@@ -6,6 +6,64 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
+public class RootSelectionSetPartitionerTests : FusionTestBase
+{
+    [Fact]
+    public void Only_Selections_On_Concrete_Type()
+    {
+        // arrange
+        var source1 = new TestSourceSchema(
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              title: String!
+            }
+            """);
+        var schema = ComposeSchema(source1);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($id: ID!) {
+                node(id: $id) {
+                    ... on Discussion {
+                      title
+                    }
+                }
+            }
+            """);
+        
+        var operation = doc.Definitions
+            .OfType<OperationDefinitionNode>()
+            .Single();
+        var index = SelectionSetIndexer.Create(operation);
+
+        var input = new SelectionSetByTypePartitionerInput
+        {
+            SelectionSet = new SelectionSet(
+                index.GetId(operation.SelectionSet),
+                operation.SelectionSet,
+                schema.Types["Node"],
+                Execution.Nodes.SelectionPath.Root),
+            SelectionSetIndex = index
+        };
+        var partitioner = new SelectionSetByTypePartitioner(schema);
+
+        // act
+        var result = partitioner.Partition(input);
+
+        // assert
+        Assert.NotNull(result);
+    }
+}
+
 public class SelectionSetByTypePartitionerTests : FusionTestBase
 {
     [Fact]
@@ -684,7 +742,7 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
                 index.GetId(nodeField.SelectionSet!),
                 nodeField.SelectionSet!,
                 schema.Types["Node"],
-                SelectionPath.Root),
+                Execution.Nodes.SelectionPath.Root),
             SelectionSetIndex = index
         };
         var partitioner = new SelectionSetByTypePartitioner(schema);

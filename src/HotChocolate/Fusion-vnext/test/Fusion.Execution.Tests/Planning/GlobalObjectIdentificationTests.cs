@@ -27,7 +27,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
 
             type Discussion implements Node @key(fields: "id") {
               id: ID!
-              title: Float!
+              title: String!
             }
             """);
 
@@ -66,6 +66,56 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     }
 
     [Fact]
+    public void Node_Field_With_Alias_And_Unconventional_ById_Lookup()
+    {
+        // arrange
+        var source1 = new TestSourceSchema(
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node @key(fields: "id") {
+              id: ID!
+            }
+            """);
+
+        var source2 = new TestSourceSchema(
+            """
+            type Query {
+              discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+            }
+
+            type Discussion {
+              id: ID!
+              title: String!
+            }
+            """);
+
+        var schema = ComposeSchema(source1, source2);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query testQuery($id: ID!) {
+              node(id: $id) {
+                ... on Discussion {
+                  title
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Node_Field_Just_Id_And_Typename_Selected()
     {
         // arrange
@@ -81,7 +131,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
 
             type Discussion implements Node @key(fields: "id") {
               id: ID!
-              title: Float!
+              title: String!
             }
             """);
 
@@ -124,7 +174,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
 
             type Discussion implements Node @key(fields: "id") {
               id: ID!
-              title: Float!
+              title: String!
             }
             """);
 

@@ -477,16 +477,3 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
         }
     }
 }
-
-internal readonly ref struct SelectionSetByTypePartitionerInput
-{
-    public required SelectionSet SelectionSet { get; init; }
-    public required ISelectionSetIndex SelectionSetIndex { get; init; }
-}
-
-internal sealed record SelectionSetByTypePartitionerResult(
-    SelectionSetNode? SharedSelectionSet,
-    ImmutableArray<SelectionSetByType> SelectionSetsByType,
-    ISelectionSetIndex SelectionSetIndex);
-
-internal sealed record SelectionSetByType(FusionObjectTypeDefinition Type, SelectionSetNode SelectionSet);

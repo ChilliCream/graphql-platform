@@ -54,14 +54,36 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             {
                 case FieldNode fieldNode:
                 {
-                    var (resolvable, unresolvable) =
-                        RewriteFieldNode(
-                            context,
-                            complexType!,
-                            fieldNode,
-                            GetProvidedField(fieldNode, providedSelectionSetNode));
+                    // The __typename field is available on all subgraphs, so we always treat it as resolvable.
+                    // We need to check it like this to also handle the union { __typename } case.
+                    if (fieldNode.Name.Value.Equals(IntrospectionFieldNames.TypeName))
+                    {
+                        CompleteSelection(fieldNode, fieldNode, null, i);
+                    }
+                    else
+                    {
+                        if (type == schema.QueryType)
+                        {
+                            var field = complexType!.Fields[fieldNode.Name.Value];
 
-                    CompleteSelection(fieldNode, resolvable, unresolvable, i);
+                            if (field.IsIntrospectionField
+                                || field is { Name: "node", Type: IInterfaceTypeDefinition { Name: "Node" } })
+                            {
+                                // TODO: This is not good
+                                CompleteSelection(fieldNode, null, null, i);
+                                continue;
+                            }
+                        }
+
+                        var (resolvable, unresolvable) =
+                            RewriteFieldNode(
+                                context,
+                                complexType!,
+                                fieldNode,
+                                GetProvidedField(fieldNode, providedSelectionSetNode));
+
+                        CompleteSelection(fieldNode, resolvable, unresolvable, i);
+                    }
                     break;
                 }
 
@@ -174,12 +196,6 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         FieldNode fieldNode,
         FieldNode? providedFieldNode)
     {
-        // the __typename field is available on all subgraphs
-        if (fieldNode.Name.Value.Equals(IntrospectionFieldNames.TypeName))
-        {
-            return (fieldNode, null);
-        }
-
         var field = complexType.Fields[fieldNode.Name.Value];
 
         if (providedFieldNode is null)
