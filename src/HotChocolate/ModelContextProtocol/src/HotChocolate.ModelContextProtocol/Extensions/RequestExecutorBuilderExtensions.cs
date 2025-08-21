@@ -91,7 +91,7 @@ public static class RequestExecutorBuilderExtensions
         return builder;
     }
 
-    public static IRequestExecutorBuilder AddMcpToolStorageStorage(
+    public static IRequestExecutorBuilder AddMcpToolStorage(
         this IRequestExecutorBuilder builder,
         IOperationToolStorage storage)
     {
