@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Features;
@@ -9,6 +10,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -19,6 +21,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     private readonly ConcurrentDictionary<int, ImmutableArray<VariableValues>> _traceDetails = new();
     private readonly FetchResultStore _resultStore;
     private readonly ExecutionState _executionState;
+    private readonly INodeIdParser _nodeIdParser;
     private readonly bool _collectTelemetry;
     private ResultPoolSessionHolder _resultPoolSessionHolder;
     private ISourceSchemaClientScope _clientScope;
@@ -50,6 +53,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         _resultPoolSessionHolder = requestContext.CreateResultPoolSession();
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope = requestContext.CreateClientScope();
+        _nodeIdParser = requestContext.RequestServices.GetRequiredService<INodeIdParser>();
 
         _resultStore = new FetchResultStore(
             requestContext.Schema,
@@ -248,6 +252,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
         return ClientScope.GetClient(schemaName, operationType);
     }
+
+    public bool TryParseTypeNameFromId(string id, [NotNullWhen(true)] out string? typeName)
+        => _nodeIdParser.TryParseTypeNameFromId(id, out typeName);
 
     public async ValueTask DisposeAsync()
     {

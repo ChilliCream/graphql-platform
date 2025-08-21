@@ -121,6 +121,10 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
                 case IntrospectionExecutionNode introspectionNode:
                     WriteIntrospectionNode(jsonWriter, introspectionNode, nodeTrace);
                     break;
+
+                case NodeExecutionNode nodeExecutionNode:
+                    WriteNodeNode(jsonWriter, nodeExecutionNode, nodeTrace);
+                    break;
             }
         }
 
@@ -274,6 +278,46 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         {
             jsonWriter.WritePropertyName(field.Name.Value);
             WriteValueNode(jsonWriter, field.Value);
+        }
+
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteNodeNode(Utf8JsonWriter jsonWriter, NodeExecutionNode node, ExecutionNodeTrace? trace)
+    {
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteNumber("id", node.Id);
+        jsonWriter.WriteString("type", node.Type.ToString());
+
+        jsonWriter.WriteString("idValue", node.IdValue.ToString());
+        jsonWriter.WriteString("responseName", node.ResponseName);
+
+        jsonWriter.WriteStartObject("branches");
+
+        foreach (var branch in node.Branches)
+        {
+            jsonWriter.WriteNumber(branch.Key, branch.Value.Id);
+        }
+
+        jsonWriter.WriteEndObject();
+
+        jsonWriter.WriteStartObject("fallback");
+        jsonWriter.WriteString("name", node.FallbackQuery.Name);
+        jsonWriter.WriteString("type", node.FallbackQuery.Type.ToString());
+        jsonWriter.WriteString("document", node.FallbackQuery.SourceText);
+        jsonWriter.WriteString("hash", node.FallbackQuery.Hash);
+        jsonWriter.WriteString("shortHash", node.FallbackQuery.Hash[..8]);
+        jsonWriter.WriteEndObject();
+
+        if (trace is not null)
+        {
+            if (!string.IsNullOrEmpty(trace.SpanId))
+            {
+                jsonWriter.WriteString("spanId", trace.SpanId);
+            }
+
+            jsonWriter.WriteNumber("duration", trace.Duration.TotalMilliseconds);
+            jsonWriter.WriteString("status", trace.Status.ToString());
         }
 
         jsonWriter.WriteEndObject();
