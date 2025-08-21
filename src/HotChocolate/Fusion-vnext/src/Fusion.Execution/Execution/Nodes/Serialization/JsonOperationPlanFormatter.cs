@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections.Immutable;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -31,32 +32,49 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         using var jsonWriter = new Utf8JsonWriter(writer, _writerOptions);
         jsonWriter.WriteStartObject();
 
+        jsonWriter.WriteString("id", plan.Id);
+
         jsonWriter.WritePropertyName("operation");
-        WriteOperation(jsonWriter, plan, trace);
+        WriteOperation(jsonWriter, plan.Operation, trace);
 
         jsonWriter.WritePropertyName("nodes");
-        WriteNodes(jsonWriter, plan, trace);
+        WriteNodes(jsonWriter, plan.AllNodes, trace);
+
+        jsonWriter.WriteEndObject();
+    }
+
+    internal void Format(IBufferWriter<byte> writer, Operation operation, ImmutableArray<ExecutionNode> allNodes)
+    {
+        using var jsonWriter = new Utf8JsonWriter(writer, _writerOptions);
+        jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("operation");
+        WriteOperation(jsonWriter, operation, null);
+
+        jsonWriter.WritePropertyName("nodes");
+        WriteNodes(jsonWriter, allNodes, null);
 
         jsonWriter.WriteEndObject();
     }
 
     private static void WriteOperation(
         Utf8JsonWriter jsonWriter,
-        OperationPlan plan,
+        Operation operation,
         OperationPlanTrace? trace)
     {
         jsonWriter.WriteStartObject();
 
-        if (!string.IsNullOrEmpty(plan.Operation.Name))
+        if (!string.IsNullOrEmpty(operation.Name))
         {
-            jsonWriter.WriteString("name", plan.Operation.Name);
+            jsonWriter.WriteString("name", operation.Name);
         }
 
-        jsonWriter.WriteString("kind", plan.Operation.Definition.Operation.ToString());
-        jsonWriter.WriteString("document", plan.Operation.Definition.ToString(indented: true));
+        jsonWriter.WriteString("kind", operation.Definition.Operation.ToString());
+        jsonWriter.WriteString("document", operation.Definition.ToString(indented: true));
 
-        jsonWriter.WriteString("hash", plan.Operation.Hash);
-        jsonWriter.WriteString("shortHash", plan.Operation.Hash[..8]);
+        jsonWriter.WriteString("id", operation.Id);
+        jsonWriter.WriteString("hash", operation.Hash);
+        jsonWriter.WriteString("shortHash", operation.Hash[..8]);
 
         if (trace is not null)
         {
@@ -83,12 +101,12 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
 
     private static void WriteNodes(
         Utf8JsonWriter jsonWriter,
-        OperationPlan plan,
+        ImmutableArray<ExecutionNode> allNodes,
         OperationPlanTrace? trace)
     {
         jsonWriter.WriteStartArray();
 
-        foreach (var node in plan.AllNodes)
+        foreach (var node in allNodes)
         {
             ExecutionNodeTrace? nodeTrace = null;
             trace?.Nodes.TryGetValue(node.Id, out nodeTrace);
@@ -115,19 +133,15 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
     {
         jsonWriter.WriteStartObject();
         jsonWriter.WriteNumber("id", node.Id);
-        jsonWriter.WriteString("type", "Operation");
+        jsonWriter.WriteString("type", node.Type.ToString());
         jsonWriter.WriteString("schema", node.SchemaName);
 
         jsonWriter.WriteStartObject("operation");
-
-        if (node.Operation.Name is { } name)
-        {
-            jsonWriter.WriteString("name", name.Value);
-        }
-
-        jsonWriter.WriteString("document", node.Operation.ToString(indented: true));
-        jsonWriter.WriteString("hash", node.OperationHash);
-        jsonWriter.WriteString("shortHash", node.OperationHash[..8]);
+        jsonWriter.WriteString("name", node.Op.Name);
+        jsonWriter.WriteString("type", node.Op.Type.ToString());
+        jsonWriter.WriteString("document", node.Op.SourceText);
+        jsonWriter.WriteString("hash", node.Op.Hash);
+        jsonWriter.WriteString("shortHash", node.Op.Hash[..8]);
         jsonWriter.WriteEndObject();
 
         jsonWriter.WriteStartArray("responseNames");
@@ -158,8 +172,22 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
             {
                 jsonWriter.WriteStartObject();
                 jsonWriter.WriteString("name", requirement.Key);
+                jsonWriter.WriteString("type", requirement.Type.ToString());
+                jsonWriter.WriteString("path", requirement.Path.ToString());
                 jsonWriter.WriteString("selectionMap", requirement.Map.ToString());
                 jsonWriter.WriteEndObject();
+            }
+
+            jsonWriter.WriteEndArray();
+        }
+
+        if (node.Requirements.Length > 0)
+        {
+            jsonWriter.WriteStartArray("forwardedVariables");
+
+            foreach (var variableName in node.ForwardedVariables)
+            {
+                jsonWriter.WriteStringValue(variableName);
             }
 
             jsonWriter.WriteEndArray();
@@ -199,7 +227,7 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
     {
         jsonWriter.WriteStartObject();
         jsonWriter.WriteNumber("id", node.Id);
-        jsonWriter.WriteString("type", "Introspection");
+        jsonWriter.WriteString("type", node.Type.ToString());
 
         jsonWriter.WriteStartArray("selections");
 

@@ -47,7 +47,7 @@ public sealed class Operation : IOperation
         _includeConditions = includeConditions;
         _lastId = lastId;
 
-        _features  = new FeatureCollection();
+        _features = new FeatureCollection();
         rootSelectionSet.Seal(this);
     }
 
@@ -132,6 +132,7 @@ public sealed class Operation : IOperation
                             _includeConditions,
                             ref _lastId);
                     selectionSet.Seal(this);
+                    _selectionSets.TryAdd(key, selectionSet);
                 }
             }
         }

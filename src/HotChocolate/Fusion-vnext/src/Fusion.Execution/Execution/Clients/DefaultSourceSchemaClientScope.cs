@@ -13,21 +13,17 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
     private readonly ConcurrentDictionary<(string Name, OperationType Type), ISourceSchemaClient> _clients = [];
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly SourceSchemaClientConfigurations _configurations;
-    private readonly Cache<string> _operationStringCache;
     private bool _disposed;
 
     public DefaultSourceSchemaClientScope(
         FusionSchemaDefinition schemaDefinition,
-        IHttpClientFactory httpClientFactory,
-        Cache<string> operationStringCache)
+        IHttpClientFactory httpClientFactory)
     {
         ArgumentNullException.ThrowIfNull(schemaDefinition);
         ArgumentNullException.ThrowIfNull(httpClientFactory);
-        ArgumentNullException.ThrowIfNull(operationStringCache);
 
         _httpClientFactory = httpClientFactory;
         _configurations = schemaDefinition.Features.GetRequired<SourceSchemaClientConfigurations>();
-        _operationStringCache = operationStringCache;
     }
 
     public ISourceSchemaClient GetClient(string name, OperationType operationType)
@@ -56,8 +52,7 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
 
                             sourceSchemaClient = new SourceSchemaHttpClient(
                                 GraphQLHttpClient.Create(httpClient, disposeHttpClient: true),
-                                httpClientConfig,
-                                _operationStringCache);
+                                httpClientConfig);
 
                             _clients.TryAdd(key, sourceSchemaClient);
                             break;

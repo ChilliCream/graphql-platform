@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using System.Security.Cryptography;
+using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -21,21 +23,18 @@ public sealed partial class OperationPlanner
             var introspectionNode = new IntrospectionExecutionNode(1, [.. operation.RootSelectionSet.Selections]);
             introspectionNode.Seal();
 
-            return new OperationPlan
-            {
-                Operation = operation,
-                OperationDefinition = operationDefinition,
-                RootNodes = [introspectionNode],
-                AllNodes = [introspectionNode]
-            };
+            var nodes = ImmutableArray.Create<ExecutionNode>(introspectionNode);
+
+            return OperationPlan.Create(operation, nodes, nodes);
         }
 
         var completedSteps = new HashSet<int>();
         var completedNodes = new Dictionary<int, ExecutionNode>();
         var dependencyLookup = new Dictionary<int, HashSet<int>>();
+        var hasVariables = operationDefinition.VariableDefinitions.Count > 0;
 
         planSteps = PrepareSteps(planSteps, operationDefinition, dependencyLookup);
-        BuildExecutionNodes(planSteps, completedSteps, completedNodes, dependencyLookup);
+        BuildExecutionNodes(planSteps, completedSteps, completedNodes, dependencyLookup, hasVariables);
         BuildDependencyStructure(completedNodes, dependencyLookup);
 
         var rootNodes = planSteps
@@ -62,13 +61,7 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
-        return new OperationPlan
-        {
-            Operation = operation,
-            OperationDefinition = operationDefinition,
-            RootNodes = rootNodes,
-            AllNodes = allNodes
-        };
+        return OperationPlan.Create(operation, rootNodes, allNodes);
     }
 
     private static ImmutableList<OperationPlanStep> PrepareSteps(
@@ -159,9 +152,11 @@ public sealed partial class OperationPlanner
         ImmutableList<OperationPlanStep> planSteps,
         HashSet<int> completedSteps,
         Dictionary<int, ExecutionNode> completedNodes,
-        Dictionary<int, HashSet<int>> dependencyLookup)
+        Dictionary<int, HashSet<int>> dependencyLookup,
+        bool hasVariables)
     {
         var readySteps = planSteps.Where(t => !dependencyLookup.ContainsKey(t.Id)).ToList();
+        List<string>? variables = null;
 
         while (completedSteps.Count < planSteps.Count)
         {
@@ -186,13 +181,31 @@ public sealed partial class OperationPlanner
                     requirements = temp.ToArray();
                 }
 
+                variables?.Clear();
+
+                if (hasVariables && step.Definition.VariableDefinitions.Count > 0)
+                {
+                    variables ??= [];
+
+                    foreach (var variableDef in step.Definition.VariableDefinitions)
+                    {
+                        if (requirements.Any(r => r.Key == variableDef.Variable.Name.Value))
+                        {
+                            continue;
+                        }
+
+                        variables.Add(variableDef.Variable.Name.Value);
+                    }
+                }
+
                 var operationNode = new OperationExecutionNode(
                     step.Id,
-                    step.Definition,
+                    step.Definition.ToSourceText(),
                     step.SchemaName,
                     step.Target,
                     step.Source,
                     requirements,
+                    variables?.Count > 0 ? variables.ToArray() : [],
                     GetResponseNamesFromPath(step.Definition, step.Source));
 
                 completedNodes.Add(step.Id, operationNode);
@@ -331,6 +344,8 @@ public sealed partial class OperationPlanner
 
 file static class Extensions
 {
+    private static readonly Encoding s_encoding = Encoding.UTF8;
+
     public static bool HasIntrospectionFields(this Operation operation)
     {
         foreach (var selection in operation.RootSelectionSet.Selections)
@@ -357,5 +372,17 @@ file static class Extensions
         }
 
         return selections.ToArray();
+    }
+
+    public static OperationSourceText ToSourceText(this OperationDefinitionNode operation)
+    {
+        var sourceText = operation.ToString(indented: true);
+        var sourceTextUtf8 = s_encoding.GetBytes(sourceText);
+#if NET9_0_OR_GREATER
+        var operationHash = Convert.ToHexStringLower(SHA256.HashData(sourceTextUtf8));
+#else
+        var operationHash = Convert.ToHexString(SHA256.HashData(sourceTextUtf8)).ToLowerInvariant();
+#endif
+        return new OperationSourceText(operation.Name!.Value, operation.Operation, sourceText, operationHash);
     }
 }

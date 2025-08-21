@@ -45,7 +45,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: >-");
         writer.Indent();
-        var reader = new StringReader(node.Operation.ToString(indented: true));
+        var reader = new StringReader(node.Op.SourceText);
         var line = reader.ReadLine();
         while (line != null)
         {

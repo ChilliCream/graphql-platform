@@ -26,7 +26,6 @@ internal sealed class DefaultSourceSchemaClientScopeFactory : ISourceSchemaClien
                 nameof(schemaDefinition));
         }
 
-        var operationCache = schema.Services.GetRequiredService<Cache<string>>();
-        return new DefaultSourceSchemaClientScope(schema, _httpClientFactory, operationCache);
+        return new DefaultSourceSchemaClientScope(schema, _httpClientFactory);
     }
 }
