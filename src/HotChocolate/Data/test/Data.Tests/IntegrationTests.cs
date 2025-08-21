@@ -9,6 +9,7 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data;
@@ -960,6 +961,88 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task UsingQueryContext_ShouldNotBreak_Pagination_ForRecordReturnType()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddErrorFilter(x => new Error {Message = x.Exception!.Message})
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<RecordQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query f {
+              # Selection set matches record-ctor params
+              u1: nonNullUsers {
+                edges {
+                  node {
+                    firstName
+                    id
+                  }
+                }
+              }
+
+              # Selection set is subset of record-ctor params (incompatible, since we can`t provide a valid value)
+              u2: nonNullUsers {
+                edges {
+                  node {
+                    firstName
+                  }
+                }
+              }
+
+             # Selection set matches record-ctor params
+              u3: nonNullDefaultValuesUsers {
+                edges {
+                  node {
+                    id
+                    firstName
+                    zipCode
+                    address
+                  }
+                }
+              }
+
+              # Selection set is subset of record-ctor params (compatible, since we can provide the default value)
+              u4: nonNullDefaultValuesUsers {
+                edges {
+                  node {
+                    firstName
+                  }
+                }
+              }
+
+             # Selection set matches record-ctor params
+              u5: nullableUsers {
+                edges {
+                  node {
+                    id
+                    firstName
+                  }
+                }
+              }
+
+              # Selection set is subset of record-ctor params
+              u6: nullableUsers {
+                edges {
+                  node {
+                    firstName
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
     [QueryType]
     public static class StaticQuery
     {
@@ -1213,5 +1296,43 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }.AsQueryable()
                 .With(context, t => t with { Operations = t.Operations.Add(SortBy<Author>.Ascending(t => t.Id)) });
+    }
+
+#pragma warning disable RCS1102
+    public class RecordQuery
+#pragma warning restore RCS1102
+    {
+        [UsePaging]
+        [UseFiltering]
+        public Connection<NonNullUser> GetNonNullUsers(QueryContext<NonNullUser> query)
+            => Connection.Empty<NonNullUser>();
+
+        [UsePaging]
+        [UseFiltering]
+        public Connection<NonNullDefaultValuesUser> GetNonNullDefaultValuesUsers(QueryContext<NonNullDefaultValuesUser> query)
+            => Connection.Empty<NonNullDefaultValuesUser>();
+
+        [UsePaging]
+        [UseFiltering]
+        public Connection<NullableUser> GetNullableUsers(QueryContext<NullableUser> query)
+            => Connection.Empty<NullableUser>();
+
+        public record NonNullUser(
+            string Id,
+            string FirstName
+        );
+
+        public record NonNullDefaultValuesUser(
+            string Id = "",
+            string FirstName = "",
+            string ZipCode = null!,
+            // ReSharper disable once PreferConcreteValueOverDefault
+            string Address = default!
+        );
+
+        public record NullableUser(
+            string? Id,
+            string? FirstName
+        );
     }
 }
