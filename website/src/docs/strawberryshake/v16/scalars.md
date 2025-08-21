@@ -24,7 +24,7 @@ Strawberry Shake supports the following scalars out of the box:
 # Custom Scalars
 
 As an addition to the scalars listed above, you can define your own scalars for the client.
-A scalar has two representation: the `runtimeType` and the `serializationType`.
+A scalar has two representations: the `runtimeType` and the `serializationType`.
 The `runtimeType` refers to the type you use in your dotnet application.
 The `serializationType` is the type that is used to transport the value.
 
@@ -61,13 +61,39 @@ If you want to change the `serializationType` or/and the `runtimeType` of a scal
 You can declare a scalar extension and add the `@serializationType` or/and the `@runtimeType` directive.
 
 ```graphql
-"Defines the serializationType of a scalar"
-directive @serializationType(name: String! valueType: Boolean = false) on SCALAR
+"""
+Defines the serialization type of a scalar.
+"""
+directive @serializationType(
+  """
+  The fully qualified .NET type name.
+  """
+  name: String!
 
-"Defines the runtimeType of a scalar"
-directive @runtimeType(name: String! valueType: Boolean = false) on SCALAR
+  """
+  Indicates whether the specified type is a value type (struct).
+  """
+  valueType: Boolean = false
+) on SCALAR
 
-"Represents an integer value that is greater or equal to 0"
+"""
+Defines the runtime type of a scalar.
+"""
+directive @runtimeType(
+  """
+  The fully qualified .NET type name.
+  """
+  name: String!
+
+  """
+  Indicates whether the specified type is a value type (struct).
+  """
+  valueType: Boolean = false
+) on SCALAR
+
+"""
+Represents an integer value that is greater or equal to 0.
+"""
 extend scalar PositiveInt
     @serializationType(name: "global::System.Int32")
     @runtimeType(name: "global::System.Int32")
@@ -79,7 +105,7 @@ As soon as you specify custom serialization and runtime types you also need to p
 
 A scalar identifies its serializer by the scalar name, runtime- and serialization type.
 You have to provide an `ISerializer` as soon as you change the `serializationType` or the `runtimeType`.
-Use the base class `ScalarSerializer<TValue>` or `ScalarSerializer<TSerializer, TRuntime>` to create you custom serializer.
+Use the base class `ScalarSerializer<TValue>` or `ScalarSerializer<TSerializer, TRuntime>` to create your custom serializer.
 
 ### Simple Example
 
@@ -114,8 +140,8 @@ serviceCollection.AddSerializer<PositiveIntSerializer>();
 ```
 
 > ⚠️ **Note:** When using a value type (struct) with `@serializationType` or `@runtimeType`, you must set `valueType: true` to ensure correct code generation.  
-> However, this is not required for intrinsic primitive value types (e.g., `int`, `float`, `bool`).  
-> Example: `@serializationType(name: "global::MyNamespace.MyStruct", valueType: true)`
+> This is not required for intrinsic primitive value types already supported as built-in scalars by Strawberry Shake (e.g., `int`, `float`, `bool`).  
+> Example: `@serializationType(name: "global::System.Numerics.Vector2", valueType: true)`
 
 ### Any or JSON
 
