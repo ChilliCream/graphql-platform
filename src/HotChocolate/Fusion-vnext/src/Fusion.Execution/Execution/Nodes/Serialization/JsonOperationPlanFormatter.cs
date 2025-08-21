@@ -4,6 +4,9 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Language;
+using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
@@ -206,16 +209,7 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
             jsonWriter.WriteEndArray();
         }
 
-        if (trace is not null)
-        {
-            if (!string.IsNullOrEmpty(trace.SpanId))
-            {
-                jsonWriter.WriteString("spanId", trace.SpanId);
-            }
-
-            jsonWriter.WriteNumber("duration", trace.Duration.TotalMilliseconds);
-            jsonWriter.WriteString("status", trace.Status.ToString());
-        }
+        TryWriteNodeTrace(jsonWriter, trace);
 
         jsonWriter.WriteEndObject();
     }
@@ -242,6 +236,13 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
 
         jsonWriter.WriteEndArray();
 
+        TryWriteNodeTrace(jsonWriter, trace);
+
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void TryWriteNodeTrace(Utf8JsonWriter jsonWriter, ExecutionNodeTrace? trace)
+    {
         if (trace is not null)
         {
             if (!string.IsNullOrEmpty(trace.SpanId))
@@ -251,8 +252,80 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
 
             jsonWriter.WriteNumber("duration", trace.Duration.TotalMilliseconds);
             jsonWriter.WriteString("status", trace.Status.ToString());
+
+            if (trace.VariableSets.Length > 0)
+            {
+                jsonWriter.WriteStartObject("variableSets");
+
+                foreach (var variableSet in trace.VariableSets)
+                {
+                    jsonWriter.WritePropertyName(variableSet.Path.ToString());
+                    WriteObjectValueNode(jsonWriter, variableSet.Values);
+                }
+
+                jsonWriter.WriteEndObject();
+            }
+        }
+    }
+
+    private static void WriteObjectValueNode(Utf8JsonWriter jsonWriter, ObjectValueNode node)
+    {
+        jsonWriter.WriteStartObject();
+
+        foreach (var field in node.Fields)
+        {
+            jsonWriter.WritePropertyName(field.Name.Value);
+            WriteValueNode(jsonWriter, field.Value);
         }
 
         jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteValueNode(Utf8JsonWriter jsonWriter, IValueNode value)
+    {
+        switch (value)
+        {
+            case EnumValueNode enumValue:
+                jsonWriter.WriteStringValue(enumValue.Value);
+                break;
+
+            case FloatValueNode floatValue:
+                jsonWriter.WriteRawValue(floatValue.AsSpan());
+                break;
+
+            case IntValueNode intValue:
+                jsonWriter.WriteRawValue(intValue.AsSpan());
+                break;
+
+            case BooleanValueNode booleanValue:
+                jsonWriter.WriteBooleanValue(booleanValue.Value);
+                break;
+
+            case ListValueNode listValue:
+                jsonWriter.WriteStartArray();
+
+                foreach (var item in listValue.Items)
+                {
+                    WriteValueNode(jsonWriter, item);
+                }
+
+                jsonWriter.WriteEndArray();
+                break;
+
+            case NullValueNode:
+                jsonWriter.WriteNullValue();
+                break;
+
+            case ObjectValueNode objectValue:
+                WriteObjectValueNode(jsonWriter, objectValue);
+                break;
+
+            case StringValueNode stringValue:
+                jsonWriter.WriteStringValue(stringValue.AsSpan());
+                break;
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(value));
+        }
     }
 }

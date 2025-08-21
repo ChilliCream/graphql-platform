@@ -16,6 +16,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 {
     private static readonly JsonOperationPlanFormatter s_planFormatter = new();
     private readonly ConcurrentDictionary<int, List<ExecutionNode>> _nodesToComplete = new();
+    private readonly ConcurrentDictionary<int, ImmutableArray<VariableValues>> _traceDetails = new();
     private readonly FetchResultStore _resultStore;
     private readonly ExecutionState  _executionState;
     private readonly bool _collectTelemetry;
@@ -94,6 +95,28 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         => _nodesToComplete.TryGetValue(node.Id, out var nodesToComplete)
             ? [..nodesToComplete]
             : ImmutableArray<ExecutionNode>.Empty;
+
+    internal void TrackVariableValueSets(ExecutionNode node, ImmutableArray<VariableValues> variableValueSets)
+    {
+        if (!CollectTelemetry || variableValueSets.IsEmpty)
+        {
+            return;
+        }
+
+        _traceDetails.TryAdd(node.Id, variableValueSets);
+    }
+
+    internal ImmutableArray<VariableValues> GetVariableValueSets(ExecutionNode node)
+    {
+        if (!CollectTelemetry)
+        {
+            return [];
+        }
+
+        return _traceDetails.TryGetValue(node.Id, out var variableValueSets)
+            ? variableValueSets
+            : [];
+    }
 
     internal void CompleteNode(ExecutionNodeResult result)
         => _executionState.EnqueueForCompletion(result);

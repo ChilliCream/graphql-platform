@@ -96,6 +96,8 @@ public sealed class OperationExecutionNode : ExecutionNode
             return ExecutionStatus.Skipped;
         }
 
+        context.TrackVariableValueSets(this, variables);
+
         var request = new SourceSchemaClientRequest
         {
             OperationType = _operation.Type,
@@ -160,6 +162,8 @@ public sealed class OperationExecutionNode : ExecutionNode
         CancellationToken cancellationToken = default)
     {
         var variables = context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
+
+        context.TrackVariableValueSets(this, variables);
 
         var request = new SourceSchemaClientRequest
         {
@@ -324,7 +328,8 @@ public sealed class OperationExecutionNode : ExecutionNode
                     scope ?? Disposable.Empty,
                     start ?? Stopwatch.GetTimestamp(),
                     Stopwatch.GetTimestamp(),
-                    Exception: exception);
+                    Exception: exception,
+                    VariableValueSets: _context.GetVariableValueSets(_node));
 
                 var error = ErrorBuilder.FromException(exception).Build();
 
@@ -341,7 +346,9 @@ public sealed class OperationExecutionNode : ExecutionNode
                     ExecutionStatus.Success,
                     scope,
                     start.Value,
-                    Stopwatch.GetTimestamp());
+                    Stopwatch.GetTimestamp(),
+                    Exception: null,
+                    VariableValueSets: _context.GetVariableValueSets(_node));
                 return true;
             }
 
