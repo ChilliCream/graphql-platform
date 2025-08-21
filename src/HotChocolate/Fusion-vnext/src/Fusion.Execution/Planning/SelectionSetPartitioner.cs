@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -303,7 +304,7 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         public ImmutableStack<FieldSelection> FieldsWithRequirements { get; set; } = [];
 
-        public Stack<ISyntaxNode> Nodes { get; } = new();
+        public List<ISyntaxNode> Nodes { get; } = [];
 
         public SelectionPath BuildPath()
         {

@@ -1,9 +1,6 @@
 using System.Collections.Frozen;
 using System.Collections.Immutable;
-using System.IO.Hashing;
-using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
-using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Language;
@@ -16,122 +13,122 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </summary>
 public sealed record OperationPlan
 {
-   private static readonly JsonOperationPlanFormatter s_formatter = new();
-   private readonly FrozenDictionary<int, ExecutionNode> _nodes = FrozenDictionary<int, ExecutionNode>.Empty;
+    private static readonly JsonOperationPlanFormatter s_formatter = new();
+    private readonly FrozenDictionary<int, ExecutionNode> _nodes = FrozenDictionary<int, ExecutionNode>.Empty;
 
-   private OperationPlan(
-       string id,
-       Operation operation,
-       ImmutableArray<ExecutionNode> rootNodes,
-       ImmutableArray<ExecutionNode> allNodes)
-   {
-       Id = id;
-       Operation = operation;
-       RootNodes = rootNodes;
-       AllNodes = allNodes;
-       _nodes = allNodes.ToFrozenDictionary(t => t.Id);
-   }
+    private OperationPlan(
+        string id,
+        Operation operation,
+        ImmutableArray<ExecutionNode> rootNodes,
+        ImmutableArray<ExecutionNode> allNodes)
+    {
+        Id = id;
+        Operation = operation;
+        RootNodes = rootNodes;
+        AllNodes = allNodes;
+        _nodes = allNodes.ToFrozenDictionary(t => t.Id);
+    }
 
-   /// <summary>
-   /// Gets the unique identifier for this operation plan.
-   /// </summary>
-   public string Id { get; }
+    /// <summary>
+    /// Gets the unique identifier for this operation plan.
+    /// </summary>
+    public string Id { get; }
 
-   /// <summary>
-   /// Gets the GraphQL operation associated with this execution plan.
-   /// </summary>
-   public Operation Operation { get; }
+    /// <summary>
+    /// Gets the GraphQL operation associated with this execution plan.
+    /// </summary>
+    public Operation Operation { get; }
 
-   /// <summary>
-   /// Gets the variable definitions from the operation.
-   /// </summary>
-   public IReadOnlyList<VariableDefinitionNode> VariableDefinitions
-       => Operation.Definition.VariableDefinitions;
+    /// <summary>
+    /// Gets the variable definitions from the operation.
+    /// </summary>
+    public IReadOnlyList<VariableDefinitionNode> VariableDefinitions
+        => Operation.Definition.VariableDefinitions;
 
-   /// <summary>
-   /// Gets the name of the operation, or <c>null</c> if the operation is anonymous.
-   /// </summary>
-   public string? OperationName => Operation.Name;
+    /// <summary>
+    /// Gets the name of the operation, or <c>null</c> if the operation is anonymous.
+    /// </summary>
+    public string? OperationName => Operation.Name;
 
-   /// <summary>
-   /// Gets the root execution nodes that serve as entry points for query execution.
-   /// </summary>
-   public ImmutableArray<ExecutionNode> RootNodes { get; }
+    /// <summary>
+    /// Gets the root execution nodes that serve as entry points for query execution.
+    /// </summary>
+    public ImmutableArray<ExecutionNode> RootNodes { get; }
 
-   /// <summary>
-   /// Gets all execution nodes in the plan, including both root and nested nodes.
-   /// </summary>
-   public ImmutableArray<ExecutionNode> AllNodes { get; }
+    /// <summary>
+    /// Gets all execution nodes in the plan, including both root and nested nodes.
+    /// </summary>
+    public ImmutableArray<ExecutionNode> AllNodes { get; }
 
-   /// <summary>
-   /// Retrieves an execution node by its unique identifier.
-   /// </summary>
-   /// <param name="id">The unique identifier of the execution node is unique within this plan.</param>
-   /// <returns>The execution node with the specified identifier.</returns>
-   /// <exception cref="KeyNotFoundException">Thrown when no node with the specified ID exists.</exception>
-   public ExecutionNode GetNodeById(int id)
-       => _nodes[id];
+    /// <summary>
+    /// Retrieves an execution node by its unique identifier.
+    /// </summary>
+    /// <param name="id">The unique identifier of the execution node is unique within this plan.</param>
+    /// <returns>The execution node with the specified identifier.</returns>
+    /// <exception cref="KeyNotFoundException">Thrown when no node with the specified ID exists.</exception>
+    public ExecutionNode GetNodeById(int id)
+        => _nodes[id];
 
-   /// <summary>
-   /// Creates a new operation plan with the specified identifier.
-   /// </summary>
-   /// <param name="id">The unique identifier for the operation plan.</param>
-   /// <param name="operation">The GraphQL operation.</param>
-   /// <param name="rootNodes">The root execution nodes.</param>
-   /// <param name="allNodes">All execution nodes in the plan.</param>
-   /// <returns>A new <see cref="OperationPlan"/> instance.</returns>
-   /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is null or empty.</exception>
-   /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
-   /// <exception cref="ArgumentOutOfRangeException">Thrown when node arrays have negative length.</exception>
-   public static OperationPlan Create(
-       string id,
-       Operation operation,
-       ImmutableArray<ExecutionNode> rootNodes,
-       ImmutableArray<ExecutionNode> allNodes)
-   {
-       ArgumentException.ThrowIfNullOrEmpty(id);
-       ArgumentNullException.ThrowIfNull(operation);
-       ArgumentOutOfRangeException.ThrowIfLessThan(rootNodes.Length, 0);
-       ArgumentOutOfRangeException.ThrowIfLessThan(allNodes.Length, 0);
+    /// <summary>
+    /// Creates a new operation plan with the specified identifier.
+    /// </summary>
+    /// <param name="id">The unique identifier for the operation plan.</param>
+    /// <param name="operation">The GraphQL operation.</param>
+    /// <param name="rootNodes">The root execution nodes.</param>
+    /// <param name="allNodes">All execution nodes in the plan.</param>
+    /// <returns>A new <see cref="OperationPlan"/> instance.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when node arrays have negative length.</exception>
+    public static OperationPlan Create(
+        string id,
+        Operation operation,
+        ImmutableArray<ExecutionNode> rootNodes,
+        ImmutableArray<ExecutionNode> allNodes)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(id);
+        ArgumentNullException.ThrowIfNull(operation);
+        ArgumentOutOfRangeException.ThrowIfLessThan(rootNodes.Length, 0);
+        ArgumentOutOfRangeException.ThrowIfLessThan(allNodes.Length, 0);
 
-       return new OperationPlan(id, operation, rootNodes, allNodes);
-   }
+        return new OperationPlan(id, operation, rootNodes, allNodes);
+    }
 
-   /// <summary>
-   /// Creates a new operation plan with an auto-generated identifier based on the operation's content.
-   /// The identifier is generated by computing a SHA256 hash of the serialized operation plan.
-   /// </summary>
-   /// <param name="operation">The GraphQL operation.</param>
-   /// <param name="rootNodes">The root execution nodes.</param>
-   /// <param name="allNodes">All execution nodes in the plan.</param>
-   /// <returns>A new <see cref="OperationPlan"/> instance with a content-based identifier.</returns>
-   /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
-   /// <exception cref="ArgumentOutOfRangeException">Thrown when node arrays have negative length.</exception>
-   public static OperationPlan Create(
-       Operation operation,
-       ImmutableArray<ExecutionNode> rootNodes,
-       ImmutableArray<ExecutionNode> allNodes)
-   {
-       ArgumentNullException.ThrowIfNull(operation);
-       ArgumentOutOfRangeException.ThrowIfLessThan(rootNodes.Length, 0);
-       ArgumentOutOfRangeException.ThrowIfLessThan(allNodes.Length, 0);
+    /// <summary>
+    /// Creates a new operation plan with an auto-generated identifier based on the operation's content.
+    /// The identifier is generated by computing a SHA256 hash of the serialized operation plan.
+    /// </summary>
+    /// <param name="operation">The GraphQL operation.</param>
+    /// <param name="rootNodes">The root execution nodes.</param>
+    /// <param name="allNodes">All execution nodes in the plan.</param>
+    /// <returns>A new <see cref="OperationPlan"/> instance with a content-based identifier.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when node arrays have negative length.</exception>
+    public static OperationPlan Create(
+        Operation operation,
+        ImmutableArray<ExecutionNode> rootNodes,
+        ImmutableArray<ExecutionNode> allNodes)
+    {
+        ArgumentNullException.ThrowIfNull(operation);
+        ArgumentOutOfRangeException.ThrowIfLessThan(rootNodes.Length, 0);
+        ArgumentOutOfRangeException.ThrowIfLessThan(allNodes.Length, 0);
 
-       using var buffer = new PooledArrayWriter(initialBufferSize: 4096);
-       s_formatter.Format(buffer, operation, allNodes);
+        using var buffer = new PooledArrayWriter(initialBufferSize: 4096);
+        s_formatter.Format(buffer, operation, allNodes);
 
-       // Generate a unique identifier for the operation plan by hashing its serialized form.
-       // The hash is appended to the same buffer to reuse the already-allocated memory.
-       var hashDestination = buffer.GetSpan(32);
+        // Generate a unique identifier for the operation plan by hashing its serialized form.
+        // The hash is appended to the same buffer to reuse the already-allocated memory.
+        var hashDestination = buffer.GetSpan(32);
 
-       SHA256.HashData(buffer.WrittenSpan, hashDestination);
-       buffer.Advance(32);
+        SHA256.HashData(buffer.WrittenSpan, hashDestination);
+        buffer.Advance(32);
 
 #if NET9_0_OR_GREATER
-       var id = Convert.ToHexStringLower(buffer.WrittenSpan[^32..]);
+        var id = Convert.ToHexStringLower(buffer.WrittenSpan[^32..]);
 #else
        var id = Convert.ToHexString(buffer.WrittenSpan[^32..]).ToLowerInvariant();
 #endif
 
-       return new OperationPlan(id, operation, rootNodes, allNodes);
-   }
+        return new OperationPlan(id, operation, rootNodes, allNodes);
+    }
 }

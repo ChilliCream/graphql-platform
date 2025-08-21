@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
@@ -90,12 +91,12 @@ internal sealed class OperationDefinitionBuilder
             indexBuilder.Register(selectionSet);
             index = indexBuilder;
 
+            selectionPath = selectionPath.AppendField(_lookup.FieldName);
+
             if (!string.IsNullOrEmpty(_lookupTypeRefinement))
             {
                 selectionPath = selectionPath.AppendFragment(_lookupTypeRefinement);
             }
-
-            selectionPath = selectionPath.AppendField(_lookup.FieldName);
         }
 
         var definition = new OperationDefinitionNode(

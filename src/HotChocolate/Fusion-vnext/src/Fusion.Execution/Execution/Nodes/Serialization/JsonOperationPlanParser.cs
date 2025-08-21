@@ -96,7 +96,12 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             }
         }
 
-        return nodeMap.Values.OrderBy(t => t.Id).ToImmutableArray();
+        foreach (var (node, _) in nodes)
+        {
+            node.Seal();
+        }
+
+        return [..nodeMap.Values.OrderBy(t => t.Id)];
     }
 
     public static (OperationExecutionNode, int[]?) ParseOperationNode(JsonElement nodeElement, int id)
@@ -176,8 +181,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 document,
                 hash),
             schemaName,
-            source ?? SelectionPath.Root,
             target ?? SelectionPath.Root,
+            source ?? SelectionPath.Root,
             requirements?.ToArray() ?? [],
             forwardedVariables ?? [],
             responseNames ?? []);
