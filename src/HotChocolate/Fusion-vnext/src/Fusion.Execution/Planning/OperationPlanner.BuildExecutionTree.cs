@@ -30,11 +30,12 @@ public sealed partial class OperationPlanner
         var completedNodes = new Dictionary<int, ExecutionNode>();
         var dependencyLookup = new Dictionary<int, HashSet<int>>();
         var branchesLookup = new Dictionary<int, Dictionary<string, int>>();
+        var fallbackLookup = new Dictionary<int, int>();
         var hasVariables = operationDefinition.VariableDefinitions.Count > 0;
 
-        planSteps = PrepareSteps(planSteps, operationDefinition, dependencyLookup, branchesLookup);
+        planSteps = PrepareSteps(planSteps, operationDefinition, dependencyLookup, branchesLookup, fallbackLookup);
         BuildExecutionNodes(planSteps, completedSteps, completedNodes, dependencyLookup, hasVariables);
-        BuildDependencyStructure(completedNodes, dependencyLookup, branchesLookup);
+        BuildDependencyStructure(completedNodes, dependencyLookup, branchesLookup, fallbackLookup);
 
         var rootNodes = planSteps
             .Where(t => !dependencyLookup.ContainsKey(t.Id))
@@ -67,7 +68,8 @@ public sealed partial class OperationPlanner
         ImmutableList<PlanStep> planSteps,
         OperationDefinitionNode originalOperation,
         Dictionary<int, HashSet<int>> dependencyLookup,
-        Dictionary<int, Dictionary<string, int>> branchesLookup)
+        Dictionary<int, Dictionary<string, int>> branchesLookup,
+        Dictionary<int, int> fallbackLookup)
     {
         var updatedPlanSteps = planSteps;
         var emptySelectionSetContext = new HasEmptySelectionSetVisitor.Context();
@@ -128,6 +130,7 @@ public sealed partial class OperationPlanner
 
                 branchesLookup.Add(nodePlanStep.Id, nodePlanStep.Branches
                     .ToDictionary(x => x.Key, x=> x.Value.Id));
+                fallbackLookup.Add(nodePlanStep.Id, nodePlanStep.FallbackQuery.Id);
             }
         }
 
@@ -263,7 +266,8 @@ public sealed partial class OperationPlanner
     private static void BuildDependencyStructure(
         Dictionary<int, ExecutionNode> completedNodes,
         Dictionary<int, HashSet<int>> dependencyLookup,
-        Dictionary<int, Dictionary<string, int>> branchesLookup)
+        Dictionary<int, Dictionary<string, int>> branchesLookup,
+        Dictionary<int, int> fallbackLookup)
     {
         foreach (var (nodeId, stepDependencies) in dependencyLookup)
         {
@@ -293,16 +297,31 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            foreach (var (typeName, operationNodeId) in branches)
+            foreach (var (typeName, branchNodeId) in branches)
             {
-                if (!completedNodes.TryGetValue(operationNodeId, out var childEntry)
-                    || childEntry is not OperationExecutionNode operationNode)
+                if (!completedNodes.TryGetValue(branchNodeId, out var branchNode))
                 {
                     continue;
                 }
 
-                node.AddBranch(typeName, operationNode);
+                node.AddBranch(typeName, branchNode);
             }
+        }
+
+        foreach (var (nodeId, fallbackNodeId) in fallbackLookup)
+        {
+            if (!completedNodes.TryGetValue(nodeId, out var entry)
+                || entry is not NodeExecutionNode node)
+            {
+                continue;
+            }
+
+            if (!completedNodes.TryGetValue(fallbackNodeId, out var fallbackNode))
+            {
+                continue;
+            }
+
+            node.AddFallbackQuery(fallbackNode);
         }
     }
 

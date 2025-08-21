@@ -17,6 +17,7 @@ public sealed partial class OperationPlanner
     private readonly MergeSelectionSetRewriter _mergeRewriter;
     private readonly SelectionSetPartitioner _partitioner;
     private readonly SelectionSetByTypePartitioner _selectionSetByTypePartitioner;
+    private readonly RootSelectionSetPartitioner _rootSelectionSetPartitioner;
 
     public OperationPlanner(FusionSchemaDefinition schema, OperationCompiler operationCompiler)
     {
@@ -28,6 +29,7 @@ public sealed partial class OperationPlanner
         _mergeRewriter = new MergeSelectionSetRewriter(schema);
         _partitioner = new SelectionSetPartitioner(schema);
         _selectionSetByTypePartitioner = new SelectionSetByTypePartitioner(schema);
+        _rootSelectionSetPartitioner = new RootSelectionSetPartitioner(schema);
     }
 
     public OperationPlan CreatePlan(
@@ -61,15 +63,15 @@ public sealed partial class OperationPlanner
         {
             var possiblePlans = new PriorityQueue<PlanNode, double>();
 
-            foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
-            {
-                possiblePlans.Enqueue(
-                    node with
-                    {
-                        SchemaName = schemaName,
-                        BacklogCost = node.Backlog.Count() + resolutionCost
-                    });
-            }
+            // foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
+            // {
+            //     possiblePlans.Enqueue(
+            //         node with
+            //         {
+            //             SchemaName = schemaName,
+            //             BacklogCost = node.Backlog.Count() + resolutionCost
+            //         });
+            // }
 
             if (possiblePlans.Count < 1)
             {
@@ -104,23 +106,28 @@ public sealed partial class OperationPlanner
         string shortHash,
         ISelectionSetIndex index)
     {
-        // var backlog = node.Backlog;
-        // foreach (var nodeField in _schema.GetNodeFields(selectionSet))
-        // {
-        //     var workItem = new NodeFieldWorkItem(nodeField);
-        //     backlog = backlog.Push(workItem);
-        // }
-        //
-
         var selectionSet = new SelectionSet(
             index.GetId(operationDefinition.SelectionSet),
             operationDefinition.SelectionSet,
             _schema.GetOperationType(operationDefinition.Operation),
             SelectionPath.Root);
 
-        // var workItem = OperationWorkItem.CreateRoot(selectionSet);
+        var input = new RootSelectionSetPartitionerInput { SelectionSet = selectionSet, SelectionSetIndex = index };
+        var result = _rootSelectionSetPartitioner.Partition(input);
 
         var backlog = ImmutableStack<WorkItem>.Empty;
+
+        if (result.SelectionSet is not null)
+        {
+            var workItem = OperationWorkItem.CreateRoot(selectionSet);
+            backlog = backlog.Push(workItem);
+        }
+
+        foreach (var nodeField in result.NodeFields)
+        {
+            var nodeWorkItem = new NodeFieldWorkItem(nodeField);
+            backlog = backlog.Push(nodeWorkItem);
+        }
 
         var node = new PlanNode
         {
@@ -960,6 +967,9 @@ public sealed partial class OperationPlanner
 
         (var fallbackQuery, index, _) = fallbackQueryBuilder.Build(index);
 
+        // TODO: Is this correct?
+        index.ToBuilder().Register(fallbackQuery.SelectionSet);
+
         var fallbackOperationStep = new OperationPlanStep
         {
             Id = stepId + 1, // TODO: Is this safe?
@@ -992,8 +1002,8 @@ public sealed partial class OperationPlanner
             SelectionSetIndex = index,
             Backlog = backlog,
             Steps = current.Steps
-                .Add(fallbackOperationStep)
-                .Add(step),
+                .Add(step)
+                .Add(fallbackOperationStep),
             PathCost = current.PathCost,
             BacklogCost = backlog.Count(),
             LastRequirementId = current.LastRequirementId
@@ -1486,57 +1496,6 @@ file static class Extensions
                             BacklogCost = planNodeTemplate.BacklogCost + 1,
                             Backlog = backlog.Push(workItem with { Lookup = lookup })
                         });
-                }
-            }
-        }
-    }
-
-    public static IEnumerable<FieldNode> GetNodeFields(
-        this FusionSchemaDefinition compositeSchema,
-        SelectionSet selectionSet)
-    {
-        var nodeFields = new List<FieldNode>();
-
-        CollectNodeFields(
-            compositeSchema,
-            selectionSet.Type,
-            selectionSet.Selections,
-            nodeFields);
-
-        return nodeFields;
-
-        static void CollectNodeFields(
-            FusionSchemaDefinition compositeSchema,
-            ITypeDefinition type,
-            IReadOnlyList<ISelectionNode> selections,
-            List<FieldNode> nodeFields)
-        {
-            foreach (var selection in selections)
-            {
-                switch (selection)
-                {
-                    case FieldNode fieldNode:
-                        if (fieldNode.Name.Value == "node")
-                        {
-                            nodeFields.Add(fieldNode);
-                        }
-
-                        break;
-
-                    case InlineFragmentNode inlineFragmentNode:
-                        var typeCondition = type;
-
-                        if (inlineFragmentNode.TypeCondition is not null)
-                        {
-                            typeCondition = compositeSchema.Types[inlineFragmentNode.TypeCondition.Name.Value];
-                        }
-
-                        CollectNodeFields(
-                            compositeSchema,
-                            typeCondition,
-                            inlineFragmentNode.SelectionSet.Selections,
-                            nodeFields);
-                        break;
                 }
             }
         }

@@ -54,7 +54,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         parsedPlanFormatted.MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
 
-    [Fact(Skip = "Doesn't yet work")]
+    [Fact]
     public void Parse_Plan_With_Node()
     {
         // arrange
