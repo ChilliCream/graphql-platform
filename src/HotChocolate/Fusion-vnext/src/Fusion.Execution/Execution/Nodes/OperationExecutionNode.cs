@@ -52,7 +52,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// <summary>
     /// Gets the operation definition that this execution node represents.
     /// </summary>
-    public OperationSourceText Op => _operation;
+    public OperationSourceText Operation => _operation;
 
     /// <summary>
     /// Gets the response names of the <see cref="Target"/> selection set that are fulfilled by this operation.

@@ -137,11 +137,11 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         jsonWriter.WriteString("schema", node.SchemaName);
 
         jsonWriter.WriteStartObject("operation");
-        jsonWriter.WriteString("name", node.Op.Name);
-        jsonWriter.WriteString("type", node.Op.Type.ToString());
-        jsonWriter.WriteString("document", node.Op.SourceText);
-        jsonWriter.WriteString("hash", node.Op.Hash);
-        jsonWriter.WriteString("shortHash", node.Op.Hash[..8]);
+        jsonWriter.WriteString("name", node.Operation.Name);
+        jsonWriter.WriteString("type", node.Operation.Type.ToString());
+        jsonWriter.WriteString("document", node.Operation.SourceText);
+        jsonWriter.WriteString("hash", node.Operation.Hash);
+        jsonWriter.WriteString("shortHash", node.Operation.Hash[..8]);
         jsonWriter.WriteEndObject();
 
         jsonWriter.WriteStartArray("responseNames");
