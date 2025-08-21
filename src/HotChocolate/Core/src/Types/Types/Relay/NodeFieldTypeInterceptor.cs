@@ -1,7 +1,9 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Relay.NodeConstants;
@@ -12,7 +14,7 @@ namespace HotChocolate.Types.Relay;
 /// <summary>
 /// This type interceptor adds the fields `node` and the `nodes` to the query type.
 /// </summary>
-internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
+internal sealed class NodeFieldTypeInterceptor(GlobalObjectIdentificationOptions options) : TypeInterceptor
 {
     private ITypeCompletionContext? _queryContext;
     private ObjectTypeConfiguration? _queryTypeConfig;
@@ -46,20 +48,24 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                 t => t.Name.EqualsOrdinal(IntrospectionFieldNames.TypeName)
                     && t.IsIntrospectionField);
             var index = _queryTypeConfig.Fields.IndexOf(typeNameField);
-            var maxAllowedNodes = _queryContext.DescriptorContext.Options.MaxAllowedNodeBatchSize;
+            var maxAllowedNodes = options.MaxAllowedNodeBatchSize;
 
             CreateNodeField(
                 typeInspector,
                 serializer,
                 _queryTypeConfig.Fields,
-                index + 1);
+                index + 1,
+                options.MarkNodeFieldAsLookup);
 
-            CreateNodesField(
-                typeInspector,
-                serializer,
-                _queryTypeConfig.Fields,
-                index + 2,
-                maxAllowedNodes);
+            if (options.AddNodesField)
+            {
+                CreateNodesField(
+                    typeInspector,
+                    serializer,
+                    _queryTypeConfig.Fields,
+                    index + 2,
+                    maxAllowedNodes);
+            }
         }
     }
 
@@ -67,7 +73,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         ITypeInspector typeInspector,
         INodeIdSerializerAccessor serializerAccessor,
         IList<ObjectFieldConfiguration> fields,
-        int index)
+        int index,
+        bool markNodeFieldAsLookup)
     {
         var node = typeInspector.GetTypeRef(typeof(NodeType));
         var id = typeInspector.GetTypeRef(typeof(NonNullType<IdType>));
@@ -93,6 +100,12 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             },
             Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.GlobalIdNodeField
         };
+
+        if (markNodeFieldAsLookup)
+        {
+            // TODO: This doesn't work
+            field.AddDirective(Lookup.Instance, typeInspector);
+        }
 
         // In the projection interceptor we want to change the context data on this field
         // after the field is completed. We need at least 1 element on the context data to avoid
