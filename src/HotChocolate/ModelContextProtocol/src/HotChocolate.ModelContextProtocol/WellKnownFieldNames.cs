@@ -10,4 +10,5 @@ internal static class WellKnownFieldNames
     public const string Locations = "locations";
     public const string Message = "message";
     public const string Path = "path";
+    public const string TypeName = "__typename";
 }
