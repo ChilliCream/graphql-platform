@@ -10,6 +10,10 @@ using NameNode = HotChocolate.Language.NameNode;
 
 namespace HotChocolate.Fusion.Planning;
 
+// TODO: Insert __typename for all abstract fields and lookups
+// TODO: Insert __typename for empty shared selections
+// TODO: Make root selections work again
+
 public sealed partial class OperationPlanner
 {
     private readonly FusionSchemaDefinition _schema;
@@ -63,15 +67,15 @@ public sealed partial class OperationPlanner
         {
             var possiblePlans = new PriorityQueue<PlanNode, double>();
 
-            // foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
-            // {
-            //     possiblePlans.Enqueue(
-            //         node with
-            //         {
-            //             SchemaName = schemaName,
-            //             BacklogCost = node.Backlog.Count() + resolutionCost
-            //         });
-            // }
+            foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
+            {
+                possiblePlans.Enqueue(
+                    node with
+                    {
+                        SchemaName = schemaName,
+                        BacklogCost = node.Backlog.Count() + resolutionCost
+                    });
+            }
 
             if (possiblePlans.Count < 1)
             {
@@ -1403,6 +1407,7 @@ file static class Extensions
         switch (nextWorkItem)
         {
             case null:
+            case NodeFieldWorkItem:
                 possiblePlans.Enqueue(planNodeTemplate);
                 break;
 
@@ -1418,15 +1423,9 @@ file static class Extensions
                 possiblePlans.EnqueueRequirePlanNodes(planNodeTemplate, wi, compositeSchema);
                 break;
 
-            case NodeFieldWorkItem wi:
-                throw new NotImplementedException();
-
             case NodeFieldLookupWorkItem { Lookup: null } wi:
                 possiblePlans.EnqueueNodeFieldLookupPlanNodes(planNodeTemplate, wi, compositeSchema);
                 break;
-
-            case NodeFieldLookupWorkItem wi:
-                throw new NotImplementedException();
 
             default:
                 throw new NotSupportedException(

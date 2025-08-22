@@ -141,7 +141,12 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     private static (OperationExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseOperationNode(
         JsonElement nodeElement, int id)
     {
-        var schemaName = nodeElement.GetProperty("schema").GetString()!;
+        string? schemaName = null;
+        if (nodeElement.TryGetProperty("schema", out var schemaElement))
+        {
+            schemaName = schemaElement.GetString()!;
+        }
+
         var operationElement = nodeElement.GetProperty("operation");
         var operationName = operationElement.GetProperty("name").GetString()!;
         var operationType = Enum.Parse<OperationType>(operationElement.GetProperty("type").GetString()!);

@@ -1,0 +1,66 @@
+operation:
+  - document: >-
+      query testQuery(
+        $id: ID!
+      ) {
+        node(id: $id) {
+          ... on Votable {
+            viewerCanVote
+          }
+          ... on Discussion {
+            viewerRating
+          }
+        }
+      }
+    name: testQuery
+    hash: 123456789101112
+nodes:
+  - id: 1
+    type: Node
+    idValue: $id
+    responseName: node
+    branches:
+      - Comment: 4
+      - Discussion: 3
+    fallback: 2
+  - id: 2
+    type: Operation
+    operation: >-
+      query testQuery_123456789101112_1(
+        $id: ID!
+      ) {
+        node(id: $id)
+      }
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: a
+    operation: >-
+      query testQuery_123456789101112_3(
+        $id: ID!
+      ) {
+        node(id: $id) {
+          ... on Discussion {
+            viewerCanVote
+            viewerRating
+          }
+        }
+      }
+    dependencies:
+      - id: 1
+  - id: 4
+    type: Operation
+    schema: a
+    operation: >-
+      query testQuery_123456789101112_4(
+        $id: ID!
+      ) {
+        node(id: $id) {
+          ... on Comment {
+            viewerCanVote
+          }
+        }
+      }
+    dependencies:
+      - id: 1

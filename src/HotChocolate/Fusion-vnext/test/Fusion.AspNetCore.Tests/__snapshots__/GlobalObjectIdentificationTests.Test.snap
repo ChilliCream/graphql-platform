@@ -1,0 +1,69 @@
+{
+  "data": {
+    "node": {
+      "__typename": "Discussion",
+      "title": "Discussion 1"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "2641a4e67b9ed11baf6d8d593a6d50735ef6efe0a361b0e8dcb2ca65425e9f69",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n    ... on Discussion {\n      title\n    }\n  }\n}",
+          "id": "8dd012bdffc8bfbdacd5e381dbbf017f",
+          "hash": "8dd012bdffc8bfbdacd5e381dbbf017f",
+          "shortHash": "8dd012bd"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Node",
+            "idValue": "\"RGlzY3Vzc2lvbjox\"",
+            "responseName": "node",
+            "branches": {
+              "Discussion": 3
+            },
+            "fallback": 2
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "operation": {
+              "name": "Op_8dd012bd_1",
+              "type": "Query",
+              "document": "query Op_8dd012bd_1 {\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n  }\n}",
+              "hash": "429e7e2e610bb607749d0a511311e62a42a09f3aafb84fa70ac0b497aa849352",
+              "shortHash": "429e7e2e"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_8dd012bd_3",
+              "type": "Query",
+              "document": "query Op_8dd012bd_3 {\n  node: discussionById(discussionId: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n    title\n  }\n}",
+              "hash": "4f26ada1647f7abcb53b796ee9ca821d80589e75008fb09aba141645bd939d97",
+              "shortHash": "4f26ada1"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
