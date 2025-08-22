@@ -164,11 +164,6 @@ public static class RequestExecutorServiceCollectionExtensions
             services.AddSingleton(new SchemaName(schemaName));
         }
 
-        if (!ISchemaDefinition.DefaultName.Equals(schemaName, StringComparison.OrdinalIgnoreCase))
-        {
-            builder.TryAddTypeInterceptor(_ => new SchemaNameTypeInterceptor(schemaName));
-        }
-
         builder.ConfigureSchemaServices(static s => s.TryAddSingleton<ITimeProvider, DefaultTimeProvider>());
 
         return builder;
