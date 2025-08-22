@@ -7,8 +7,8 @@ using Microsoft.Extensions.Logging;
 
 namespace HotChocolate.Fusion.Aspire;
 
-internal sealed class SchemaCompositionHook(
-    ILogger<SchemaCompositionHook> logger)
+internal sealed class SchemaComposition(
+    ILogger<SchemaComposition> logger)
     : IDistributedApplicationLifecycleHook
 {
     public async Task AfterResourcesCreatedAsync(
@@ -143,9 +143,7 @@ internal sealed class SchemaCompositionHook(
         {
             switch (annotation)
             {
-                // These should be public based on Aspire patterns, but since they are not we
-                // do this little hack here.
-                case var endpointRef when annotation.GetType().Name == "ResourceReferenceAnnotation":
+                case var resRef when annotation.GetType().Name == "ResourceRelationshipAnnotation":
                     var resourceProp = annotation.GetType().GetProperty("Resource");
                     if (resourceProp?.GetValue(annotation) is IResource resource)
                     {
@@ -154,7 +152,7 @@ internal sealed class SchemaCompositionHook(
                     break;
 
                 case var endpointRef when annotation.GetType().Name == "EndpointReferenceAnnotation":
-                    var targetResourceProp = annotation.GetType().GetProperty("TargetResource");
+                    var targetResourceProp = annotation.GetType().GetProperty("Resource"); // Note: might be "Resource" not "TargetResource"
                     if (targetResourceProp?.GetValue(annotation) is IResource targetResource)
                     {
                         referencedResourceNames.Add(targetResource.Name);
