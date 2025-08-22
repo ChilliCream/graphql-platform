@@ -386,7 +386,7 @@ public sealed partial class OperationPlanner
                         new NamedTypeNode(workItem.SelectionSet.Type.Name),
                         [],
                         resolvable);
-                var selectionSetWithTypeRefinement = new SelectionSetNode(null, [typeRefinement]);
+                var selectionSetWithTypeRefinement = new SelectionSetNode(null, [new FieldNode(IntrospectionFieldNames.TypeName), typeRefinement]);
 
                 var indexBuilder = index.ToBuilder();
 
@@ -782,7 +782,7 @@ public sealed partial class OperationPlanner
                     new NamedTypeNode(selectionSetStub.Type.Name),
                     [],
                     selectionSetNode);
-            var selectionSetWithTypeRefinement = new SelectionSetNode(null, [typeRefinement]);
+            var selectionSetWithTypeRefinement = new SelectionSetNode(null, [new FieldNode(IntrospectionFieldNames.TypeName), typeRefinement]);
 
             var indexBuilder = index.ToBuilder();
 
@@ -859,18 +859,21 @@ public sealed partial class OperationPlanner
         backlog = backlog.Push(unresolvable);
         backlog = backlog.Push(fieldsWithRequirements, stepId);
 
-        // var internalOperation = InlineSelections(
-        //     current.InternalOperationDefinition,
-        //     index,
-        //     workItemSelectionSet.Type,
-        //     workItemSelectionSet.Id,
-        //     selectionSet,
-        //     inlineInternal: true);
-
         // ----------------- this was taken from the operationdefinitionbuilder
 
         var selectionSet = resolvable;
         var indexBuilder = index.ToBuilder();
+
+        var internalOperation = InlineSelections(
+            current.InternalOperationDefinition,
+            indexBuilder,
+            workItem.SelectionSet.Type,
+            workItem.SelectionSet.Id,
+            new SelectionSetNode([new FieldNode(IntrospectionFieldNames.TypeName)]),
+            inlineInternal: true);
+
+        selectionSet = selectionSet.WithSelections([new FieldNode(IntrospectionFieldNames.TypeName), ..selectionSet.Selections]);
+        indexBuilder.Register(workItem.SelectionSet.Id, selectionSet);
 
         if (_schema.Types.TryGetType(lookup.FieldType, out var lookupFieldType)
             && lookupFieldType != workItem.SelectionSet.Type
@@ -883,7 +886,7 @@ public sealed partial class OperationPlanner
                     new NamedTypeNode(workItem.SelectionSet.Type.Name),
                     [],
                     resolvable);
-            var selectionSetWithTypeRefinement = new SelectionSetNode(null, [typeRefinement]);
+            var selectionSetWithTypeRefinement = new SelectionSetNode(null, [new FieldNode(IntrospectionFieldNames.TypeName), typeRefinement]);
 
             indexBuilder.Register(resolvable, selectionSetWithTypeRefinement);
 
@@ -953,7 +956,7 @@ public sealed partial class OperationPlanner
         {
             Previous = current,
             OperationDefinition = current.OperationDefinition,
-            InternalOperationDefinition = current.InternalOperationDefinition,
+            InternalOperationDefinition = internalOperation,
             ShortHash = current.ShortHash,
             SchemaName = current.SchemaName,
             SelectionSetIndex = index,
@@ -995,8 +998,13 @@ public sealed partial class OperationPlanner
 
         (var sharedSelectionSet, var selectionSetsByType, index) = _selectionSetByTypePartitioner.Partition(input);
 
-        // TODO: If shared selections are empty, we need to insert __typename as internal field
-        var fallbackQueryField = nodeField.WithSelectionSet(sharedSelectionSet);
+        var fallbackSelectionSet = sharedSelectionSet is null
+            ? new SelectionSetNode([new FieldNode(IntrospectionFieldNames.TypeName)])
+            : new SelectionSetNode([new FieldNode(IntrospectionFieldNames.TypeName), ..sharedSelectionSet.Selections]);
+        var fallbackQueryField = nodeField.WithSelectionSet(fallbackSelectionSet);
+
+        // TODO: Is this correct?
+        index.ToBuilder().Register(fallbackSelectionSet);
 
         var fallbackQueryBuilder =
             OperationDefinitionBuilder

@@ -1,0 +1,70 @@
+{
+  "data": {
+    "abstractType": {
+      "__typename": "Discussion",
+      "id": 1,
+      "title": "Discussion 1",
+      "commentCount": 3
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "f2097d07e7d858df781dee8918db112c87f32ee85d6be0438a2122caf0118653",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n      commentCount\n      id @fusion__requirement\n    }\n  }\n}",
+          "id": "53d248abbf08968ab5d9103df2246b3a",
+          "hash": "53d248abbf08968ab5d9103df2246b3a",
+          "shortHash": "53d248ab"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_53d248ab_1",
+              "type": "Query",
+              "document": "query Op_53d248ab_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n      id\n    }\n  }\n}",
+              "hash": "72139d6ce4a90b2dca636131555e229d08ff458ae09024be47bcafe3da149dbc",
+              "shortHash": "72139d6c"
+            },
+            "responseNames": [
+              "abstractType"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_53d248ab_2",
+              "type": "Query",
+              "document": "query Op_53d248ab_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    commentCount\n  }\n}",
+              "hash": "3b7396cf5963a3aa5dc70967184474517a9718944e68f6ffa4f88ee19120920a",
+              "shortHash": "3b7396cf"
+            },
+            "responseNames": [
+              "commentCount"
+            ],
+            "source": "$.discussionById",
+            "target": "$.abstractType<Discussion>",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "ID!",
+                "path": "$.abstractType<Discussion>",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

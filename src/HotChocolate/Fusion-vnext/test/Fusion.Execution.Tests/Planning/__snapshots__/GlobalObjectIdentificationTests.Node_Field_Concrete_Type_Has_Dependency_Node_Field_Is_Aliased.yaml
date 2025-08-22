@@ -9,6 +9,7 @@ operation:
             name
             commentCount
           }
+          __typename @fusion__requirement
           id @fusion__requirement
         }
         b: node(id: $id2) {
@@ -16,6 +17,7 @@ operation:
           ... on Discussion {
             name
           }
+          __typename @fusion__requirement
         }
       }
     name: testQuery
@@ -35,6 +37,7 @@ nodes:
         $id2: ID!
       ) {
         b: node(id: $id2) {
+          __typename
           id
         }
       }
@@ -48,6 +51,7 @@ nodes:
         $id2: ID!
       ) {
         b: node(id: $id2) {
+          __typename
           ... on Discussion {
             id
             name
@@ -69,7 +73,9 @@ nodes:
       query testQuery_123456789101112_4(
         $id1: ID!
       ) {
-        a: node(id: $id1)
+        a: node(id: $id1) {
+          __typename
+        }
       }
     dependencies:
       - id: 4
@@ -81,6 +87,7 @@ nodes:
         $id1: ID!
       ) {
         a: node(id: $id1) {
+          __typename
           commentCount
           id
         }
@@ -95,6 +102,7 @@ nodes:
         $__fusion_1_id: ID!
       ) {
         node(id: $__fusion_1_id) {
+          __typename
           ... on Discussion {
             name
           }

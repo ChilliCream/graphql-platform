@@ -16,10 +16,10 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "c1fdf5f11e804572bd237ae6cee3394084b67a211cb78d6861a9784c60c384d3",
+        "id": "c336e47d9f7f5df01ecf4057bcef97619264c5af7c0167738540ae8396916b01",
         "operation": {
           "kind": "Query",
-          "document": "{\n  node(id: \"invalid\") {\n    ... on Discussion {\n      title\n    }\n  }\n}",
+          "document": "{\n  node(id: \"invalid\") {\n    ... on Discussion {\n      title\n    }\n    __typename @fusion__requirement\n  }\n}",
           "id": "3e8751806ea5a1885c3b2b109d808fbf",
           "hash": "3e8751806ea5a1885c3b2b109d808fbf",
           "shortHash": "3e875180"
@@ -41,9 +41,9 @@
             "operation": {
               "name": "Op_3e875180_1",
               "type": "Query",
-              "document": "query Op_3e875180_1 {\n  node(id: \"invalid\")\n}",
-              "hash": "938b09e9060e0d38795f8fb9dc9711202594041ccd72f1d61a641e747592559f",
-              "shortHash": "938b09e9"
+              "document": "query Op_3e875180_1 {\n  node(id: \"invalid\") {\n    __typename\n  }\n}",
+              "hash": "bbb457ee73013d4de13954394022f19e05d2558c66a2097f998df53a56cc96eb",
+              "shortHash": "bbb457ee"
             },
             "responseNames": [
               "node"
@@ -59,9 +59,9 @@
             "operation": {
               "name": "Op_3e875180_3",
               "type": "Query",
-              "document": "query Op_3e875180_3 {\n  node: discussionById(discussionId: \"invalid\") {\n    title\n  }\n}",
-              "hash": "42083c91b7e4ba1a24c23bc64b9ebdf402e3ae83fe9015a58db94d610d314b2f",
-              "shortHash": "42083c91"
+              "document": "query Op_3e875180_3 {\n  node: discussionById(discussionId: \"invalid\") {\n    __typename\n    title\n  }\n}",
+              "hash": "7901e85af0caef5ba5cc683cf39b180ccc658746f6939b51fb3185dd8e58d9bc",
+              "shortHash": "7901e85a"
             },
             "responseNames": [
               "node"

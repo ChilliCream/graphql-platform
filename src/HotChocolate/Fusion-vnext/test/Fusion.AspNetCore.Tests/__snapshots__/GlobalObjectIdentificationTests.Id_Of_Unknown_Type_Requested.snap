@@ -16,10 +16,10 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "06ba3a3e7c2b60bc541e2cd2290e9183558c63148a864d285fa6dc29019cb4aa",
+        "id": "84429a7256a75d783eba99d9567e2c08fa7f1131b3acbeb35242ee6b0ec33042",
         "operation": {
           "kind": "Query",
-          "document": "{\n  node(id: \"VXNlcjox\") {\n    ... on Discussion {\n      title\n    }\n  }\n}",
+          "document": "{\n  node(id: \"VXNlcjox\") {\n    ... on Discussion {\n      title\n    }\n    __typename @fusion__requirement\n  }\n}",
           "id": "bcaa1f52d0d50c590e99abdf3c862694",
           "hash": "bcaa1f52d0d50c590e99abdf3c862694",
           "shortHash": "bcaa1f52"
@@ -41,9 +41,9 @@
             "operation": {
               "name": "Op_bcaa1f52_1",
               "type": "Query",
-              "document": "query Op_bcaa1f52_1 {\n  node(id: \"VXNlcjox\")\n}",
-              "hash": "ccfed11f5ca3c0d72eba19e8c6d7df6a932158e8e3c54372672336f913759d25",
-              "shortHash": "ccfed11f"
+              "document": "query Op_bcaa1f52_1 {\n  node(id: \"VXNlcjox\") {\n    __typename\n  }\n}",
+              "hash": "477036b747cecea04d97386d62a524a6580a8e7fe2cfa73e0e54836972daadef",
+              "shortHash": "477036b7"
             },
             "responseNames": [
               "node"
@@ -59,9 +59,9 @@
             "operation": {
               "name": "Op_bcaa1f52_3",
               "type": "Query",
-              "document": "query Op_bcaa1f52_3 {\n  node: discussionById(discussionId: \"VXNlcjox\") {\n    title\n  }\n}",
-              "hash": "711edff9fce6f07af9de35cc17f07273baba2a1a7df41abbd6f02f40a223088d",
-              "shortHash": "711edff9"
+              "document": "query Op_bcaa1f52_3 {\n  node: discussionById(discussionId: \"VXNlcjox\") {\n    __typename\n    title\n  }\n}",
+              "hash": "8ec093fcb96c9f7c365371a3c9bb4629498609ac0b0b35c70f717e85c617fa27",
+              "shortHash": "8ec093fc"
             },
             "responseNames": [
               "node"

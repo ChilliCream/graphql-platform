@@ -14,6 +14,8 @@ operation:
               id @fusion__requirement
             }
           }
+          __typename @fusion__requirement
+          __typename @fusion__requirement
         }
       }
     name: testQuery
@@ -35,6 +37,7 @@ nodes:
       ) {
         node(id: $id) {
           __typename
+          __typename
           id
         }
       }
@@ -48,6 +51,7 @@ nodes:
         $id: ID!
       ) {
         node(id: $id) {
+          __typename
           ... on Item2 {
             __typename
             id
@@ -67,6 +71,7 @@ nodes:
         $__fusion_1_id: ID!
       ) {
         node(id: $__fusion_1_id) {
+          __typename
           ... on Product {
             name
           }
@@ -87,6 +92,7 @@ nodes:
         $id: ID!
       ) {
         node(id: $id) {
+          __typename
           ... on Item1 {
             __typename
             id
@@ -106,6 +112,7 @@ nodes:
         $__fusion_2_id: ID!
       ) {
         node(id: $__fusion_2_id) {
+          __typename
           ... on Product {
             name
           }

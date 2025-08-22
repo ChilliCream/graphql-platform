@@ -1,20 +1,19 @@
 {
   "data": {
     "node": {
-      "__typename": "Product",
       "id": "UHJvZHVjdDox"
     }
   },
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "5ca0cfe55984866c2bc4ada5d45cc577a95e18b6cc2890f1f0b65676da49aeb0",
+        "id": "526c5d1577f2c9c2dd96307782a9d7716d73c50165d66e1bf16bdb001d123578",
         "operation": {
           "kind": "Query",
-          "document": "{\n  node(id: \"UHJvZHVjdDox\") {\n    __typename\n    id\n    ... on Discussion {\n      title\n    }\n  }\n}",
-          "id": "5f737ffd104278e228f124689bfa6cef",
-          "hash": "5f737ffd104278e228f124689bfa6cef",
-          "shortHash": "5f737ffd"
+          "document": "{\n  node(id: \"UHJvZHVjdDox\") {\n    id\n    ... on Discussion {\n      title\n    }\n    __typename @fusion__requirement\n  }\n}",
+          "id": "83aee782bd7072025c2beece59972fee",
+          "hash": "83aee782bd7072025c2beece59972fee",
+          "shortHash": "83aee782"
         },
         "nodes": [
           {
@@ -31,11 +30,11 @@
             "id": 2,
             "type": "Operation",
             "operation": {
-              "name": "Op_5f737ffd_1",
+              "name": "Op_83aee782_1",
               "type": "Query",
-              "document": "query Op_5f737ffd_1 {\n  node(id: \"UHJvZHVjdDox\") {\n    __typename\n    id\n  }\n}",
-              "hash": "47e63410d351be484b4433f1213df36a593c837ee8206acb7b07001957aaa7d6",
-              "shortHash": "47e63410"
+              "document": "query Op_83aee782_1 {\n  node(id: \"UHJvZHVjdDox\") {\n    __typename\n    id\n  }\n}",
+              "hash": "3eee4e7dcdd7a2f91c0d7faa1b355dcb87b0532e91b6a7d5a83c73748b69a61e",
+              "shortHash": "3eee4e7d"
             },
             "responseNames": [
               "node"
@@ -49,11 +48,11 @@
             "type": "Operation",
             "schema": "A",
             "operation": {
-              "name": "Op_5f737ffd_3",
+              "name": "Op_83aee782_3",
               "type": "Query",
-              "document": "query Op_5f737ffd_3 {\n  node: discussionById(discussionId: \"UHJvZHVjdDox\") {\n    __typename\n    id\n    title\n  }\n}",
-              "hash": "ef67d5dc347abea1a9d7ec77c7930affaa4cb292296bae8dce4fd9828078ae45",
-              "shortHash": "ef67d5dc"
+              "document": "query Op_83aee782_3 {\n  node: discussionById(discussionId: \"UHJvZHVjdDox\") {\n    __typename\n    id\n    title\n  }\n}",
+              "hash": "75f13526d7645a0f6a1be34094a53a470ea9b4337cff45c495fb87ba8c08e926",
+              "shortHash": "75f13526"
             },
             "responseNames": [
               "node"

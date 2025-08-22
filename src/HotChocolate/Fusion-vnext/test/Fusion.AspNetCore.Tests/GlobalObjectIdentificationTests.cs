@@ -9,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
-// TODO: Remove __typename for accurate testing
 public class GlobalObjectIdentificationTests : FusionTestBase
 {
     [Fact]
@@ -45,10 +44,57 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             {
               # Discussion:1
               node(id: "RGlzY3Vzc2lvbjox") {
-                __typename
                 ... on Discussion {
                   title
                   commentCount
+                }
+              }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Concrete_Type_Branch_Requested_Abstract_Lookup()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddGlobalObjectIdentification()
+                // TODO: Remove once proper support has been implemented in HC
+                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+                .AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddGlobalObjectIdentification()
+                // TODO: Remove once proper support has been implemented in HC
+                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+                .AddQueryType<SourceSchema2.Query>()
+                .AddType<SourceSchema2.Product>());
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+              # Product:1
+              node(id: "UHJvZHVjdDox") {
+                id
+                ... on Product {
+                  name
                 }
               }
             }
@@ -167,7 +213,8 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             b => b.AddGlobalObjectIdentification()
                 // TODO: Remove once proper support has been implemented in HC
                 .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
-                .AddQueryType<SourceSchema2.Query>());
+                .AddQueryType<SourceSchema2.Query>()
+                .AddType<SourceSchema2.Product>());
 
         // act
         using var gateway = await CreateCompositeSchemaAsync(
@@ -184,7 +231,6 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             {
               # Product:1
               node(id: "UHJvZHVjdDox") {
-                __typename
                 id
                 ... on Discussion {
                   title
@@ -225,11 +271,6 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             [Internal]
             public Discussion? GetDiscussionById([ID] int id)
                 => new Discussion(id, id * 3);
-
-            [Lookup]
-            [Internal]
-            public Product? GetProductById([ID] int id)
-                => new Product(id);
         }
 
         [Node]
@@ -246,6 +287,8 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             [NodeResolver]
             public static Product Get(int id)
                 => new Product(id);
+
+            public string Name => "Product " + Id;
         }
     }
 

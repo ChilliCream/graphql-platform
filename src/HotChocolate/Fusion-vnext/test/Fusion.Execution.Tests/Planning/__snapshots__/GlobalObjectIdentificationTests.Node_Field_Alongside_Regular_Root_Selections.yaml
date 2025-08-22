@@ -11,6 +11,7 @@ operation:
           ... on Discussion {
             title
           }
+          __typename @fusion__requirement
         }
       }
     name: testQuery
@@ -31,6 +32,7 @@ nodes:
       ) {
         node(id: $id) {
           __typename
+          __typename
         }
       }
     dependencies:
@@ -43,6 +45,7 @@ nodes:
         $id: ID!
       ) {
         node(id: $id) {
+          __typename
           ... on Discussion {
             __typename
             title

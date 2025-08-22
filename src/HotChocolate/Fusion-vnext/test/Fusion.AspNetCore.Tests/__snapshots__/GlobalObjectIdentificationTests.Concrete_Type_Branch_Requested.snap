@@ -1,21 +1,20 @@
 {
   "data": {
     "node": {
-      "__typename": "Discussion",
       "title": "Discussion 1",
-      "commentCount": null
+      "commentCount": 3
     }
   },
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "9039127c6883b2a7f9f34f251c7d054eb02e546f9de9a7c812ff6c2bbd6a7ffe",
+        "id": "393fd331bf3cb8233e458f20f7d09073a995d6e263be263dd5d04bb22f109454",
         "operation": {
           "kind": "Query",
-          "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n    ... on Discussion {\n      title\n      commentCount\n    }\n    id @fusion__requirement\n  }\n}",
-          "id": "48688622c49b06867230ad1d42e22c19",
-          "hash": "48688622c49b06867230ad1d42e22c19",
-          "shortHash": "48688622"
+          "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    ... on Discussion {\n      title\n      commentCount\n    }\n    __typename @fusion__requirement\n    id @fusion__requirement\n  }\n}",
+          "id": "e567807ec1ad5128cfb566fad1645abc",
+          "hash": "e567807ec1ad5128cfb566fad1645abc",
+          "shortHash": "e567807e"
         },
         "nodes": [
           {
@@ -32,11 +31,11 @@
             "id": 2,
             "type": "Operation",
             "operation": {
-              "name": "Op_48688622_1",
+              "name": "Op_e567807e_1",
               "type": "Query",
-              "document": "query Op_48688622_1 {\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n  }\n}",
-              "hash": "f0d9a9341e7582a3f3162f67621cabcc227b203d6c9ebfff8841f9a28970fec1",
-              "shortHash": "f0d9a934"
+              "document": "query Op_e567807e_1 {\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n  }\n}",
+              "hash": "bb9d7d80330fdb881c80597441e9b152cb941d3c1d3dab37f01f4118b7c597c2",
+              "shortHash": "bb9d7d80"
             },
             "responseNames": [
               "node"
@@ -50,11 +49,11 @@
             "type": "Operation",
             "schema": "A",
             "operation": {
-              "name": "Op_48688622_3",
+              "name": "Op_e567807e_3",
               "type": "Query",
-              "document": "query Op_48688622_3 {\n  node: discussionById(discussionId: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n    title\n    id\n  }\n}",
-              "hash": "62fe6a46d9b9b2dbda4edcc3d717c04f388a4be7514551caa3c39f5d0f07579c",
-              "shortHash": "62fe6a46"
+              "document": "query Op_e567807e_3 {\n  node: discussionById(discussionId: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n    title\n    id\n  }\n}",
+              "hash": "f4d65f7ce02d10c3ee98737bd4b71dfb3f94e8457ca3551d84e54e31d1ce29c1",
+              "shortHash": "f4d65f7c"
             },
             "responseNames": [
               "node"
@@ -68,11 +67,11 @@
             "type": "Operation",
             "schema": "B",
             "operation": {
-              "name": "Op_48688622_4",
+              "name": "Op_e567807e_4",
               "type": "Query",
-              "document": "query Op_48688622_4(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    ... on Discussion {\n      commentCount\n    }\n  }\n}",
-              "hash": "c4cfd6ffc7438831bba13fb71166d20c46c9ff15145ef18e206bbf595cae145e",
-              "shortHash": "c4cfd6ff"
+              "document": "query Op_e567807e_4(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on Discussion {\n      commentCount\n    }\n  }\n}",
+              "hash": "68f951566f2260d93a4eb67a82d617aee90f8b4c015513f10af0be6d20420a46",
+              "shortHash": "68f95156"
             },
             "responseNames": [],
             "source": "$.node<Discussion>",

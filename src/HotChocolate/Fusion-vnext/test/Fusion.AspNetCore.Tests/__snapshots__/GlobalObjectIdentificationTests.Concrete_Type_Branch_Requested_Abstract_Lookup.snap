@@ -1,0 +1,69 @@
+{
+  "data": {
+    "node": {
+      "id": "UHJvZHVjdDox",
+      "name": "Product 1"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "13b8a07fc9d6a0ecafdba6f9d9f804e7b5edf58d486cb3a75def39111e92378f",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  node(id: \"UHJvZHVjdDox\") {\n    id\n    ... on Product {\n      name\n    }\n    __typename @fusion__requirement\n  }\n}",
+          "id": "f71a6d9ff69b4939ee6e11a250bfa12d",
+          "hash": "f71a6d9ff69b4939ee6e11a250bfa12d",
+          "shortHash": "f71a6d9f"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Node",
+            "idValue": "\"UHJvZHVjdDox\"",
+            "responseName": "node",
+            "branches": {
+              "Product": 3
+            },
+            "fallback": 2
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "operation": {
+              "name": "Op_f71a6d9f_1",
+              "type": "Query",
+              "document": "query Op_f71a6d9f_1 {\n  node(id: \"UHJvZHVjdDox\") {\n    __typename\n    id\n  }\n}",
+              "hash": "efed84e14cbe6816d167e3009aba1db83bfefe36272772b3e9a60f8b77c7232a",
+              "shortHash": "efed84e1"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_f71a6d9f_3",
+              "type": "Query",
+              "document": "query Op_f71a6d9f_3 {\n  node(id: \"UHJvZHVjdDox\") {\n    __typename\n    ... on Product {\n      id\n      name\n    }\n  }\n}",
+              "hash": "a96204633c6ea26baea6bcb08a86938be5d5925fcbe4eb254c04ef373a283539",
+              "shortHash": "a9620463"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

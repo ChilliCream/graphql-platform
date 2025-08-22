@@ -12,6 +12,7 @@ operation:
               id @fusion__requirement
             }
           }
+          __typename @fusion__requirement
         }
       }
     name: testQuery
@@ -30,7 +31,9 @@ nodes:
       query testQuery_123456789101112_1(
         $id: ID!
       ) {
-        node(id: $id)
+        node(id: $id) {
+          __typename
+        }
       }
     dependencies:
       - id: 1
@@ -42,6 +45,7 @@ nodes:
         $id: ID!
       ) {
         node: discussionById(id: $id) {
+          __typename
           id
           viewerRating
           product {
@@ -59,6 +63,7 @@ nodes:
         $__fusion_1_id: ID!
       ) {
         node(id: $__fusion_1_id) {
+          __typename
           ... on Product {
             name
           }

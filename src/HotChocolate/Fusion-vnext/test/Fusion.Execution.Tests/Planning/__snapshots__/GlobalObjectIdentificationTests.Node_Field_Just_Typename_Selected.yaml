@@ -24,6 +24,7 @@ nodes:
       ) {
         node(id: $id) {
           __typename
+          __typename
         }
       }
     dependencies:

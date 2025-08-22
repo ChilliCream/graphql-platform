@@ -270,6 +270,10 @@ internal sealed class ValueCompletion
                 listResult.SetNextValue(item);
                 return true;
             }
+            else if (elementType.IsAbstractType())
+            {
+                return TryCompleteAbstractValue(selection, elementType, item, errorTrieForIndex, depth, listResult);
+            }
             else
             {
                 return TryCompleteObjectValue(selection, elementType, item, errorTrieForIndex, depth, listResult);

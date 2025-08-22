@@ -24,6 +24,7 @@ nodes:
         $id: ID!
       ) {
         node(id: $id) {
+          __typename
           id
           __typename
         }
