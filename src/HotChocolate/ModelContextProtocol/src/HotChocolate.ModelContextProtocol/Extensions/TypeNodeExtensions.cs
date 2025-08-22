@@ -7,20 +7,18 @@ namespace HotChocolate.ModelContextProtocol.Extensions;
 
 internal static class TypeNodeExtensions
 {
-    public static IType GetGraphQLType(
-        this ITypeNode graphQLTypeNode,
-        ISchemaDefinition graphQLSchema)
+    public static IType ToType(this ITypeNode typeNode, ISchemaDefinition schema)
     {
-        var typeName = graphQLTypeNode.NamedType().Name.Value;
+        var typeName = typeNode.NamedType().Name.Value;
 
-        if (graphQLSchema.Types.TryGetType(typeName, out var typeDefinition))
+        if (schema.Types.TryGetType(typeName, out var typeDefinition))
         {
-            return graphQLTypeNode.RewriteToType(typeDefinition);
+            return typeNode.RewriteToType(typeDefinition);
         }
 
         if (s_typeMap.TryGetValue(typeName, out var type))
         {
-            return graphQLTypeNode.RewriteToType(type.AsTypeDefinition());
+            return typeNode.RewriteToType(type.AsTypeDefinition());
         }
 
         throw new NotSupportedException(

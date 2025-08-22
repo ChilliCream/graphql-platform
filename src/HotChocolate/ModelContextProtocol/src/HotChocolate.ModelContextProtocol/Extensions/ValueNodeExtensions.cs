@@ -7,9 +7,9 @@ namespace HotChocolate.ModelContextProtocol.Extensions;
 
 internal static class ValueNodeExtensions
 {
-    public static JsonNode? ToJsonNode(this IValueNode valueNode, IType graphQLType)
+    public static JsonNode? ToJsonNode(this IValueNode valueNode, IType type)
     {
-        var nullableType = graphQLType.NullableType();
+        var nullableType = type.NullableType();
 
         return valueNode switch
         {

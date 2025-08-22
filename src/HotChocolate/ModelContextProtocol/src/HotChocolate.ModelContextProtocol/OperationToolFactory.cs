@@ -48,8 +48,8 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
 
         foreach (var variableNode in operation.VariableDefinitions)
         {
-            var graphQLType = variableNode.Type.GetGraphQLType(schema);
-            var propertyBuilder = graphQLType.ToJsonSchemaBuilder();
+            var type = variableNode.Type.ToType(schema);
+            var propertyBuilder = type.ToJsonSchemaBuilder();
             var variableName = variableNode.Variable.Name.Value;
 
             // Description.
@@ -61,11 +61,11 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
             // Default value.
             if (variableNode.DefaultValue is not null)
             {
-                propertyBuilder.Default(variableNode.DefaultValue.ToJsonNode(graphQLType));
+                propertyBuilder.Default(variableNode.DefaultValue.ToJsonNode(type));
             }
 
             // Required.
-            if (graphQLType.IsNonNullType() && variableNode.DefaultValue is null)
+            if (type.IsNonNullType() && variableNode.DefaultValue is null)
             {
                 requiredProperties.Add(variableName);
             }
