@@ -139,7 +139,11 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         jsonWriter.WriteStartObject();
         jsonWriter.WriteNumber("id", node.Id);
         jsonWriter.WriteString("type", node.Type.ToString());
-        jsonWriter.WriteString("schema", node.SchemaName);
+
+        if (!string.IsNullOrEmpty(node.SchemaName))
+        {
+            jsonWriter.WriteString("schema", node.SchemaName);
+        }
 
         jsonWriter.WriteStartObject("operation");
         jsonWriter.WriteString("name", node.Operation.Name);

@@ -300,8 +300,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             responseName,
             idValue);
 
-        // TODO: We might need the forwarded variables for the inline OperationExecutionNode
-
         return (node, null, branches, fallbackNodeId);
     }
 }

@@ -7,7 +7,7 @@ public sealed record NodeFieldWorkItem(FieldNode NodeField) : WorkItem;
 
 // TODO: Move
 public sealed record NodeFieldLookupWorkItem(
-    Lookup Lookup,
+    Lookup? Lookup,
+    string ResponseName,
     IValueNode IdArgumentValue,
-    SelectionSet SelectionSet,
-    NodePlanStep Parent) : WorkItem;
+    SelectionSet SelectionSet) : WorkItem;

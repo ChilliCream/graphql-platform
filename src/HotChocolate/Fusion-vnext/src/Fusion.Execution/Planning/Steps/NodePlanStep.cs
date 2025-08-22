@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
@@ -10,8 +11,6 @@ public record NodePlanStep : PlanStep
 
     public required OperationPlanStep FallbackQuery { get; init; }
 
-    public Dictionary<string, OperationPlanStep> Branches { get; } = new();
-
-    public void AddBranch(string objectTypeName, OperationPlanStep step)
-        => Branches[objectTypeName] = step;
+    public ImmutableDictionary<string, OperationPlanStep> Branches { get; set; }
+        = ImmutableDictionary<string, OperationPlanStep>.Empty;
 }

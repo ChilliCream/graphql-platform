@@ -272,8 +272,11 @@ public sealed partial class OperationPlanner
                     PlanNodeField(wi, current, possiblePlans, backlog);
                     break;
 
+                case NodeFieldLookupWorkItem { Lookup: null }:
+                    throw new NotImplementedException();
+
                 case NodeFieldLookupWorkItem wi:
-                    PlanNodeFieldLookup(wi, current, possiblePlans, backlog);
+                    PlanNodeFieldLookup(wi, wi.Lookup, current, possiblePlans, backlog);
                     break;
 
                 default:
@@ -826,13 +829,13 @@ public sealed partial class OperationPlanner
 
     private void PlanNodeFieldLookup(
         NodeFieldLookupWorkItem workItem,
+        Lookup lookup,
         PlanNode current,
         PriorityQueue<PlanNode, double> possiblePlans,
         ImmutableStack<WorkItem> backlog)
     {
         var stepId = current.Steps.NextId();
         var index = current.SelectionSetIndex;
-        var lookup = workItem.Lookup;
 
         var input = new SelectionSetPartitionerInput
         {
@@ -852,6 +855,14 @@ public sealed partial class OperationPlanner
 
         backlog = backlog.Push(unresolvable);
         backlog = backlog.Push(fieldsWithRequirements, stepId);
+
+        // var internalOperation = InlineSelections(
+        //     current.InternalOperationDefinition,
+        //     index,
+        //     workItemSelectionSet.Type,
+        //     workItemSelectionSet.Id,
+        //     selectionSet,
+        //     inlineInternal: true);
 
         // ----------------- this was taken from the operationdefinitionbuilder
 
@@ -885,9 +896,10 @@ public sealed partial class OperationPlanner
             new NameNode(lookup.Arguments[0].Name),
             workItem.IdArgumentValue);
 
+        var lookupFieldAlias = lookup.FieldName != workItem.ResponseName ? workItem.ResponseName : null;
         var lookupField = new FieldNode(
             new NameNode(lookup.FieldName),
-            new NameNode(workItem.Parent.ResponseName),
+            lookupFieldAlias is not null ? new NameNode(lookupFieldAlias) : null,
             [],
             [argument],
             selectionSet);
@@ -908,7 +920,7 @@ public sealed partial class OperationPlanner
 
         // ---------------
 
-        var step = new OperationPlanStep
+        var operationPlanStep = new OperationPlanStep
         {
             Id = stepId,
             Definition = definition,
@@ -922,8 +934,17 @@ public sealed partial class OperationPlanner
             Source = SelectionPath.Root
         };
 
-        // TODO: This is mutable / maybe problematic with multiple operations attempted for same type
-        workItem.Parent.AddBranch(workItem.SelectionSet.Type.Name, step);
+        var nodePlanStep = current.Steps.OfType<NodePlanStep>().LastOrDefault()
+            ?? throw new InvalidOperationException($"Expected to find a {nameof(NodePlanStep)} in the existing steps.");
+
+        var steps = current.Steps;
+
+        steps = steps.Replace(nodePlanStep, nodePlanStep with
+        {
+            Branches = nodePlanStep.Branches.SetItem(workItem.SelectionSet.Type.Name, operationPlanStep)
+        });
+
+        steps = steps.Add(operationPlanStep);
 
         var next = new PlanNode
         {
@@ -934,7 +955,7 @@ public sealed partial class OperationPlanner
             SchemaName = current.SchemaName,
             SelectionSetIndex = index,
             Backlog = backlog,
-            Steps = current.Steps.Add(step),
+            Steps = steps,
             PathCost = current.PathCost,
             BacklogCost = backlog.Count(),
             LastRequirementId = current.LastRequirementId
@@ -1008,7 +1029,24 @@ public sealed partial class OperationPlanner
             IdValue = idArgumentValue
         };
 
-        var planTemplate = new PlanNode
+        foreach (var (type, selectionSetNode) in selectionSetsByType)
+        {
+            var nodeSelectionSet = new SelectionSet(
+                index.GetId(selectionSetNode),
+                selectionSetNode,
+                type,
+                selectionPath); // TODO: Is the path correct?
+
+            var newWorkItem = new NodeFieldLookupWorkItem(
+                Lookup: null,
+                responseName,
+                idArgumentValue,
+                nodeSelectionSet);
+
+            backlog = backlog.Push(newWorkItem);
+        }
+
+        var next = new PlanNode
         {
             Previous = current,
             OperationDefinition = current.OperationDefinition,
@@ -1021,45 +1059,11 @@ public sealed partial class OperationPlanner
                 .Add(step)
                 .Add(fallbackOperationStep),
             PathCost = current.PathCost,
-            BacklogCost = backlog.Count(),
+            BacklogCost = backlog.Count(), // TODO: Is this correct?
             LastRequirementId = current.LastRequirementId
         };
 
-        foreach (var (type, selectionSetNode) in selectionSetsByType)
-        {
-            var nodeSelectionSet = new SelectionSet(
-                index.GetId(selectionSetNode),
-                selectionSetNode,
-                type, // TODO: Not sure if correct?
-                selectionPath);
-
-            foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(nodeSelectionSet))
-            {
-                var byIdLookups = type.GetPossibleLookups(schemaName, _schema)
-                    .Where(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }])
-                    .ToArray();
-
-                // If we have multiple by id lookups in a single schema,
-                // we try to choose one that returns the desired type directly
-                // and not an abstract type.
-                var lookup = byIdLookups.FirstOrDefault(byIdLookup => _schema.Types[byIdLookup.FieldType] == type)
-                    ?? byIdLookups[0];
-
-                var newWorkItem = new NodeFieldLookupWorkItem(
-                    lookup,
-                    idArgumentValue,
-                    nodeSelectionSet,
-                    step);
-
-                possiblePlans.Enqueue(
-                    planTemplate with
-                    {
-                        SchemaName = schemaName,
-                        BacklogCost = backlog.Count() + resolutionCost, // TODO: Is this right?
-                        Backlog = backlog.Push(newWorkItem)
-                    });
-            }
-        }
+        possiblePlans.Enqueue(next, _schema);
     }
 
     private SelectionSetNode? ExtractResolvableChildSelections(
@@ -1414,11 +1418,15 @@ file static class Extensions
                 possiblePlans.EnqueueRequirePlanNodes(planNodeTemplate, wi, compositeSchema);
                 break;
 
-            // case NodeFieldWorkItem wi:
-            //     break;
-            //
-            // case NodeFieldLookupWorkItem wi:
-            //     break;
+            case NodeFieldWorkItem wi:
+                throw new NotImplementedException();
+
+            case NodeFieldLookupWorkItem { Lookup: null } wi:
+                possiblePlans.EnqueueNodeFieldLookupPlanNodes(planNodeTemplate, wi, compositeSchema);
+                break;
+
+            case NodeFieldLookupWorkItem wi:
+                throw new NotImplementedException();
 
             default:
                 throw new NotSupportedException(
@@ -1465,6 +1473,45 @@ file static class Extensions
                         Backlog = backlog.Push(workItem with { Lookup = lookup })
                     });
             }
+        }
+    }
+
+    private static void EnqueueNodeFieldLookupPlanNodes(
+        this PriorityQueue<PlanNode, double> possiblePlans,
+        PlanNode planNodeTemplate,
+        NodeFieldLookupWorkItem workItem,
+        FusionSchemaDefinition compositeSchema)
+    {
+        var backlog = planNodeTemplate.Backlog.Pop();
+        var type = workItem.SelectionSet.Type;
+
+        // TODO: What happens if we only select __typename on a concrete type?
+        // TODO: What happens if the matching schema does not have a byId lookup?
+        foreach (var (schemaName, resolutionCost) in compositeSchema.GetPossibleSchemas(workItem.SelectionSet))
+        {
+            var byIdLookups = type.GetPossibleLookups(schemaName, compositeSchema)
+                .Where(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }])
+                .ToArray();
+
+            if (byIdLookups.Length < 1)
+            {
+                throw new NotImplementedException("WIP: Expected to find a lookup");
+            }
+
+            // If we have multiple by id lookups in a single schema,
+            // we try to choose one that returns the desired type directly
+            // and not an abstract type.
+            var lookup = byIdLookups.FirstOrDefault(byIdLookup => compositeSchema.Types[byIdLookup.FieldType] == type)
+                ?? byIdLookups[0];
+
+            possiblePlans.Enqueue(
+                planNodeTemplate with
+                {
+                    SchemaName = schemaName,
+                    PathCost = planNodeTemplate.PathCost + 1, // TODO: Is this correct?
+                    BacklogCost = planNodeTemplate.BacklogCost + resolutionCost + 1,
+                    Backlog = backlog.Push(workItem with { Lookup = lookup })
+                });
         }
     }
 
@@ -1550,6 +1597,11 @@ file static class Extensions
                 switch (selection)
                 {
                     case FieldNode fieldNode:
+                        if (fieldNode.Name.Value == IntrospectionFieldNames.TypeName)
+                        {
+                            continue;
+                        }
+
                         var field = complexType!.Fields[fieldNode.Name.Value];
 
                         if (field is { Name: "node", Type: IInterfaceTypeDefinition { Name: "Node" } })
