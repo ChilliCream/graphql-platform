@@ -15,7 +15,7 @@ internal static class CompositionHelper
         string fusionArchivePath,
         ImmutableArray<SourceSchemaInfo> sourceSchemas,
         string environmentName,
-        ILogger<SchemaCompositionHook> logger,
+        ILogger<SchemaComposition> logger,
         CancellationToken cancellationToken)
     {
         using var archive = File.Exists(fusionArchivePath)

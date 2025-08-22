@@ -3,7 +3,8 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion.Aspire</AssemblyName>
     <RootNamespace>HotChocolate.Fusion.Aspire</RootNamespace>
-    <TargetFrameworks>net10.0;net9.0</TargetFrameworks>
+    <TargetFrameworks>net9.0</TargetFrameworks>
+    <TargetFramework>net9.0</TargetFramework>
     <IsAotCompliant>false</IsAotCompliant>
   </PropertyGroup>
 
