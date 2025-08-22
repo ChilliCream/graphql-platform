@@ -14,19 +14,28 @@ public sealed class NodeExecutionNode(
 
     public override ExecutionNodeType Type => ExecutionNodeType.Node;
 
+    /// <summary>
+    /// Gets the possible type branches for the node field.
+    /// The key is the type name and the value the node to execute for that type.
+    /// </summary>
     public Dictionary<string, ExecutionNode> Branches => _branches;
 
+    /// <summary>
+    /// Get the value passed to the id argument of the node field.
+    /// This can be a <see cref="VariableNode" /> or a <see cref="StringValueNode" />.
+    /// </summary>
     public IValueNode IdValue => idValue;
 
+    /// <summary>
+    /// Gets the response name for the node field.
+    /// </summary>
     public string ResponseName => responseName;
 
+    /// <summary>
+    /// Gets the fallback query for the case that a valid type name was requested,
+    /// but we do not have a branch for that type.
+    /// </summary>
     public ExecutionNode FallbackQuery => _fallbackQuery;
-
-    // TODO: This should be computed at schema generation and placed as metadata on the schema definition
-    private readonly Dictionary<string, string> _typeNameToSchemaLookup = new()
-    {
-        ["Discussion"] = "a"
-    };
 
     protected override ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
@@ -41,11 +50,12 @@ public sealed class NodeExecutionNode(
         };
 
         if (!context.TryParseTypeNameFromId(id, out var typeName)
-            || !_typeNameToSchemaLookup.TryGetValue(typeName, out var schemaName))
+            || !context.TryGetNodeLookupSchemaForType(typeName, out var schemaName))
         {
             // We have an invalid id or a valid id of a type that does not implement the Node interface
             var error = ErrorBuilder.New()
-                .SetMessage("Invalid id") // TODO: Better error
+                .SetMessage("The node ID string has an invalid format.")
+                .SetExtension("originalValue", id)
                 .Build();
 
             context.AddErrors(error, [ResponseName], Path.Root);

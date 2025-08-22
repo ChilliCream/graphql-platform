@@ -1,0 +1,69 @@
+{
+  "data": {
+    "node": {
+      "__typename": "Product",
+      "id": "UHJvZHVjdDox"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "5ca0cfe55984866c2bc4ada5d45cc577a95e18b6cc2890f1f0b65676da49aeb0",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  node(id: \"UHJvZHVjdDox\") {\n    __typename\n    id\n    ... on Discussion {\n      title\n    }\n  }\n}",
+          "id": "5f737ffd104278e228f124689bfa6cef",
+          "hash": "5f737ffd104278e228f124689bfa6cef",
+          "shortHash": "5f737ffd"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Node",
+            "idValue": "\"UHJvZHVjdDox\"",
+            "responseName": "node",
+            "branches": {
+              "Discussion": 3
+            },
+            "fallback": 2
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "operation": {
+              "name": "Op_5f737ffd_1",
+              "type": "Query",
+              "document": "query Op_5f737ffd_1 {\n  node(id: \"UHJvZHVjdDox\") {\n    __typename\n    id\n  }\n}",
+              "hash": "47e63410d351be484b4433f1213df36a593c837ee8206acb7b07001957aaa7d6",
+              "shortHash": "47e63410"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_5f737ffd_3",
+              "type": "Query",
+              "document": "query Op_5f737ffd_3 {\n  node: discussionById(discussionId: \"UHJvZHVjdDox\") {\n    __typename\n    id\n    title\n  }\n}",
+              "hash": "ef67d5dc347abea1a9d7ec77c7930affaa4cb292296bae8dce4fd9828078ae45",
+              "shortHash": "ef67d5dc"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

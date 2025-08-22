@@ -9,6 +9,7 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -112,6 +113,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         => _dynamicSchemaNameByOperationNodeId?[operationNodeId] ??
             throw new InvalidOperationException(
                 $"Expected to find a schema name for dynamic operation node '{operationNodeId}'.");
+
+    internal bool TryGetNodeLookupSchemaForType(string typeName, [NotNullWhen(true)] out string? schemaName)
+        => RequestContext.Schema.Features.Get<NodeLookup>()!.TryGetNodeLookupSchemaForType(typeName, out schemaName);
 
     internal void TrackVariableValueSets(ExecutionNode node, ImmutableArray<VariableValues> variableValueSets)
     {

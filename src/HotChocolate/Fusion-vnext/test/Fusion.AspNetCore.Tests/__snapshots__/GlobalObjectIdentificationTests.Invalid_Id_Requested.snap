@@ -1,0 +1,77 @@
+{
+  "data": {
+    "node": null
+  },
+  "errors": [
+    {
+      "message": "The node ID string has an invalid format.",
+      "path": [
+        "node"
+      ],
+      "extensions": {
+        "originalValue": "invalid"
+      }
+    }
+  ],
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "c1fdf5f11e804572bd237ae6cee3394084b67a211cb78d6861a9784c60c384d3",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  node(id: \"invalid\") {\n    ... on Discussion {\n      title\n    }\n  }\n}",
+          "id": "3e8751806ea5a1885c3b2b109d808fbf",
+          "hash": "3e8751806ea5a1885c3b2b109d808fbf",
+          "shortHash": "3e875180"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Node",
+            "idValue": "\"invalid\"",
+            "responseName": "node",
+            "branches": {
+              "Discussion": 3
+            },
+            "fallback": 2
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "operation": {
+              "name": "Op_3e875180_1",
+              "type": "Query",
+              "document": "query Op_3e875180_1 {\n  node(id: \"invalid\")\n}",
+              "hash": "938b09e9060e0d38795f8fb9dc9711202594041ccd72f1d61a641e747592559f",
+              "shortHash": "938b09e9"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_3e875180_3",
+              "type": "Query",
+              "document": "query Op_3e875180_3 {\n  node: discussionById(discussionId: \"invalid\") {\n    title\n  }\n}",
+              "hash": "42083c91b7e4ba1a24c23bc64b9ebdf402e3ae83fe9015a58db94d610d314b2f",
+              "shortHash": "42083c91"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

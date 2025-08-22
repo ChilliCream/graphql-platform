@@ -17,8 +17,8 @@ nodes:
     idValue: $id
     responseName: node
     branches:
-      - Comment: 4
       - Discussion: 3
+      - Comment: 4
     fallback: 2
   - id: 2
     type: Operation

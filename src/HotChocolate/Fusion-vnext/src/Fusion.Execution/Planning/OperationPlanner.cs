@@ -1461,7 +1461,7 @@ file static class Extensions
 
         foreach (var (schemaName, resolutionCost) in compositeSchema.GetPossibleSchemas(workItem.SelectionSet))
         {
-            foreach (var lookup in workItem.SelectionSet.Type.GetPossibleLookups(schemaName, compositeSchema))
+            foreach (var lookup in compositeSchema.GetPossibleLookups(workItem.SelectionSet.Type, schemaName))
             {
                 possiblePlans.Enqueue(
                     planNodeTemplate with
@@ -1488,7 +1488,7 @@ file static class Extensions
         // TODO: What happens if the matching schema does not have a byId lookup?
         foreach (var (schemaName, resolutionCost) in compositeSchema.GetPossibleSchemas(workItem.SelectionSet))
         {
-            var byIdLookups = type.GetPossibleLookups(schemaName, compositeSchema)
+            var byIdLookups = compositeSchema.GetPossibleLookups(type, schemaName)
                 .Where(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }])
                 .ToArray();
 
@@ -1534,7 +1534,7 @@ file static class Extensions
                         Backlog = backlog.Push(workItem)
                     });
 
-                foreach (var lookup in workItem.Selection.Field.DeclaringType.GetPossibleLookups(schemaName, compositeSchema))
+                foreach (var lookup in compositeSchema.GetPossibleLookups(workItem.Selection.Field.DeclaringType, schemaName))
                 {
                     possiblePlans.Enqueue(
                         planNodeTemplate with
@@ -1548,7 +1548,7 @@ file static class Extensions
             }
             else
             {
-                foreach (var lookup in workItem.Selection.Field.DeclaringType.GetPossibleLookups(schemaName, compositeSchema))
+                foreach (var lookup in compositeSchema.GetPossibleLookups(workItem.Selection.Field.DeclaringType, schemaName))
                 {
                     possiblePlans.Enqueue(
                         planNodeTemplate with
@@ -1644,47 +1644,6 @@ file static class Extensions
                 possibleSchemas[schemaName] = 1;
             }
         }
-    }
-
-    public static IEnumerable<Lookup> GetPossibleLookups(
-        this ITypeDefinition type,
-        string schemaName,
-        FusionSchemaDefinition compositeSchema)
-    {
-        // TODO: Currently we just check that the type exists in the given source schema
-        //       and that there are lookups for itself and / or the abstract types
-        //       it's a part of. However, we don't check that the type is part of the
-        //       abstract type in the given source schema.
-        if (type is FusionComplexTypeDefinition complexType
-            && complexType.Sources.TryGetMember(schemaName, out var source))
-        {
-            var lookups = new List<Lookup>(source.Lookups);
-
-            foreach (var interfaceType in complexType.Implements)
-            {
-                if (interfaceType.Sources.TryGetMember(schemaName, out var interfaceSource))
-                {
-                    lookups.AddRange(interfaceSource.Lookups);
-                }
-            }
-
-            var unionTypes = compositeSchema.Types
-                .OfType<FusionUnionTypeDefinition>()
-                .Where(u => u.Types.Contains(type))
-                .ToArray();
-
-            foreach (var unionType in unionTypes)
-            {
-                if (unionType.Sources.TryGetMember(schemaName, out var unionSource))
-                {
-                    lookups.AddRange(unionSource.Lookups);
-                }
-            }
-
-            return lookups;
-        }
-
-        return [];
     }
 
     public static int NextId(this ImmutableList<PlanStep> steps)

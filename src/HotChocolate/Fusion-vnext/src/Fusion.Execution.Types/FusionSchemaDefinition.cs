@@ -247,9 +247,18 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => SchemaFormatter.FormatAsDocument(this);
 
-    // TODO : Implement
     public IEnumerable<INameProvider> GetAllDefinitions()
-        => throw new NotImplementedException();
+    {
+        foreach (var type in Types)
+        {
+            yield return type;
+        }
+
+        foreach (var directive in DirectiveDefinitions)
+        {
+            yield return directive;
+        }
+    }
 
     private record PossibleTypeLookupContext(
         ITypeDefinition AbstractType,
