@@ -17,13 +17,13 @@ operation:
         }
       }
     name: testQuery
-    hash: 123
+    hash: 123456789101112
 nodes:
   - id: 1
     type: Operation
     schema: a
     operation: >-
-      query testQuery_123_1 {
+      query testQuery_123456789101112_1 {
         posts {
           ... on Photo {
             product {
@@ -41,7 +41,7 @@ nodes:
     type: Operation
     schema: b
     operation: >-
-      query testQuery_123_2(
+      query testQuery_123456789101112_2(
         $__fusion_1_id: ID!
       ) {
         authorById(id: $__fusion_1_id) {
@@ -49,7 +49,7 @@ nodes:
         }
       }
     source: $.authorById
-    target: $.posts.<Discussion>.author
+    target: $.posts<Discussion>.author
     requirements:
       - name: __fusion_1_id
         selectionMap: id
@@ -59,7 +59,7 @@ nodes:
     type: Operation
     schema: b
     operation: >-
-      query testQuery_123_3(
+      query testQuery_123456789101112_3(
         $__fusion_2_id: ID!
       ) {
         productById(id: $__fusion_2_id) {
@@ -67,7 +67,7 @@ nodes:
         }
       }
     source: $.productById
-    target: $.posts.<Photo>.product
+    target: $.posts<Photo>.product
     requirements:
       - name: __fusion_2_id
         selectionMap: id

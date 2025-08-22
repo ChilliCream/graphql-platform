@@ -6,13 +6,13 @@ operation:
           name
         }
       }
-    hash: 123
+    hash: 123456789101112
 nodes:
   - id: 1
     type: Operation
     schema: PRODUCTS
     operation: >-
-      query Op_123_1 {
+      query Op_123456789101112_1 {
         productBySlug(slug: "1") {
           id
           name

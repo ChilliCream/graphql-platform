@@ -81,6 +81,7 @@
     <Project Path="HotChocolate/Core/src/Core/HotChocolate.Core.csproj" />
     <Project Path="HotChocolate/Core/src/Execution.Abstractions/HotChocolate.Execution.Abstractions.csproj" />
     <Project Path="HotChocolate/Core/src/Execution.Configuration.Abstractions/HotChocolate.Execution.Configuration.Abstractions.csproj" />
+    <Project Path="HotChocolate/Core/src/Execution.Operation.Abstractions/HotChocolate.Execution.Operation.Abstractions.csproj" />
     <Project Path="HotChocolate/Core/src/Execution.Pipeline/HotChocolate.Execution.Pipeline.csproj" />
     <Project Path="HotChocolate/Core/src/Execution.Projections/HotChocolate.Execution.Projections.csproj" />
     <Project Path="HotChocolate/Core/src/Execution/HotChocolate.Execution.csproj" />
@@ -108,10 +109,7 @@
     <Project Path="HotChocolate/Core/src/Types.Shared/HotChocolate.Types.Shared.csproj" />
     <Project Path="HotChocolate/Core/src/Types/HotChocolate.Types.csproj" />
     <Project Path="HotChocolate/Core/src/Validation/HotChocolate.Validation.csproj" />
-    <Project Path="HotChocolate/Core/src/Execution.Operation.Abstractions/HotChocolate.Execution.Operation.Abstractions.csproj" />
   </Folder>
-  <Folder Name="/HotChocolate/Core/src/Features/" />
-  <Folder Name="/HotChocolate/Core/src/Types.Abstractions/" />
   <Folder Name="/HotChocolate/Core/test/">
     <Project Path="HotChocolate/Core/test/Abstractions.Tests/HotChocolate.Abstractions.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Authorization.Tests/HotChocolate.Authorization.Tests.csproj" />
@@ -302,11 +300,11 @@
   <Folder Name="/Nitro/CommandLine/" />
   <Folder Name="/Nitro/CommandLine/src/" />
   <Folder Name="/Nitro/CommandLine/src/CommandLine.Cloud/">
-    <Project Path="Nitro/CommandLine/src/CommandLine/Nitro.CommandLine.csproj" />
-    <Project Path="Nitro/CommandLine/src/CommandLine.Core/Nitro.CommandLine.Core.csproj" />
     <Project Path="Nitro/CommandLine/src/CommandLine.Cloud/Nitro.CommandLine.Cloud.csproj" />
-    <Project Path="Nitro/CommandLine/src/CommandLine.Fusion/Nitro.CommandLine.Fusion.csproj" />
+    <Project Path="Nitro/CommandLine/src/CommandLine.Core/Nitro.CommandLine.Core.csproj" />
     <Project Path="Nitro/CommandLine/src/CommandLine.Fusion.Compatibility/Nitro.CommandLine.Fusion.Compatibility.csproj" />
+    <Project Path="Nitro/CommandLine/src/CommandLine.Fusion/Nitro.CommandLine.Fusion.csproj" />
+    <Project Path="Nitro/CommandLine/src/CommandLine/Nitro.CommandLine.csproj" />
   </Folder>
   <Folder Name="/StrawberryShake/" />
   <Folder Name="/StrawberryShake/Client/" />

@@ -9,13 +9,13 @@ operation:
         }
       }
     name: testQuery
-    hash: 123
+    hash: 123456789101112
 nodes:
   - id: 1
     type: Operation
     schema: a
     operation: >-
-      query testQuery_123_1 {
+      query testQuery_123456789101112_1 {
         votable {
           viewerCanVote
           ... on Discussion {
