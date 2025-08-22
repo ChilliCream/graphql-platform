@@ -52,7 +52,7 @@ internal static class CallToolHandler
         var requestBuilder = CreateRequestBuilder(httpContext);
         var request =
             requestBuilder
-                .SetDocument(tool.Operation.Document)
+                .SetDocument(tool.DocumentNode)
                 .SetVariableValues(variableValues)
                 .Build();
         var result = await requestExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);

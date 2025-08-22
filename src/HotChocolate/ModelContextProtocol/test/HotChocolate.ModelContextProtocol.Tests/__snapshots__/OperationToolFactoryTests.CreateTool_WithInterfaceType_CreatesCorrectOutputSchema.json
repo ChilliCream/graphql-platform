@@ -17,18 +17,16 @@
             "name": {
               "type": "string"
             },
-            "isBarking": {
+            "isPurring": {
               "type": "boolean"
             },
-            "isPurring": {
+            "isBarking": {
               "type": "boolean"
             }
           },
           "required": [
             "__typename",
-            "name",
-            "isBarking",
-            "isPurring"
+            "name"
           ],
           "additionalProperties": false
         }

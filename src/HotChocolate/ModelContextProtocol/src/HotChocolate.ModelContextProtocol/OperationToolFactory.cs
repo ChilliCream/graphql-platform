@@ -1,50 +1,44 @@
+using System.Collections.Frozen;
 using CaseConverter;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.ModelContextProtocol.Extensions;
 using HotChocolate.Types;
 using Json.Schema;
 using ModelContextProtocol.Protocol;
-using static HotChocolate.ModelContextProtocol.WellKnownArgumentNames;
-using static HotChocolate.ModelContextProtocol.WellKnownDirectiveNames;
+using static HotChocolate.ModelContextProtocol.WellKnownFieldNames;
 
 namespace HotChocolate.ModelContextProtocol;
 
 internal sealed class OperationToolFactory(ISchemaDefinition schema)
 {
-    public OperationTool CreateTool(string name, DocumentNode document)
+    private static readonly Walker s_walker = new();
+
+    public OperationTool CreateTool(string name, DocumentNode documentNode)
     {
-        var operationNode = document.Definitions.OfType<OperationDefinitionNode>().Single();
+        var operationNode = documentNode.Definitions.OfType<OperationDefinitionNode>().Single();
+        var result = s_walker.Walk(operationNode, documentNode, schema);
         var mcpToolDirective = operationNode.GetMcpToolDirective();
-        var operationCompiler = new OperationCompiler(new InputParser());
-        var operation =
-            operationCompiler.Compile(
-                new OperationCompilerRequest(
-                    operationNode.Name!.Value,
-                    document,
-                    operationNode,
-                    (ObjectType)schema.GetOperationType(operationNode.Operation),
-                    schema));
         var inputSchema = CreateInputSchema(operationNode);
-        var outputSchema = CreateOutputSchema(operation);
+        var outputSchema = CreateOutputSchema(CreateDataSchema(result.Properties, result.RequiredProperties));
 
         var tool = new Tool
         {
             Name = name,
-            Title = mcpToolDirective?.Title ?? operation.Name!.InsertSpaceBeforeUpperCase(),
+            Title = mcpToolDirective?.Title ?? operationNode.Name!.Value.InsertSpaceBeforeUpperCase(),
             Description = operationNode.Description?.Value,
             InputSchema = inputSchema.ToJsonElement(),
             OutputSchema = outputSchema.ToJsonElement(),
             Annotations = new ToolAnnotations
             {
-                DestructiveHint = GetDestructiveHint(operation),
-                IdempotentHint = GetIdempotentHint(operation),
-                OpenWorldHint = GetOpenWorldHint(operation),
+                DestructiveHint = mcpToolDirective?.DestructiveHint ?? result.DestructiveHint,
+                IdempotentHint = mcpToolDirective?.IdempotentHint ?? result.IdempotentHint,
+                OpenWorldHint = mcpToolDirective?.OpenWorldHint ?? result.OpenWorldHint,
                 ReadOnlyHint = operationNode.Operation is not OperationType.Mutation
             }
         };
 
-        return new OperationTool(operation, tool);
+        return new OperationTool(documentNode, tool);
     }
 
     private JsonSchema CreateInputSchema(OperationDefinitionNode operation)
@@ -87,232 +81,28 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
                 .Build();
     }
 
-    private static JsonSchema CreateOutputSchema(IOperation operation)
+    private static JsonSchema CreateOutputSchema(JsonSchema dataSchema)
     {
         return
             new JsonSchemaBuilder()
                 .Type(SchemaValueType.Object)
                 .Properties(
-                    (WellKnownFieldNames.Data, CreateDataSchema(operation)),
-                    (WellKnownFieldNames.Errors, s_errorSchema))
+                    (Data, dataSchema),
+                    (Errors, s_errorSchema))
                 .AdditionalProperties(false)
                 .Build();
     }
 
-    private static JsonSchema CreateDataSchema(IOperation operation)
+    private static JsonSchema CreateDataSchema(
+        Dictionary<string, JsonSchema> properties,
+        List<string> requiredProperties)
     {
-        var properties = new Dictionary<string, JsonSchema>();
-        var requiredProperties = new List<string>();
-
-        foreach (var rootSelection in operation.RootSelectionSet.Selections)
-        {
-            var selectionState = rootSelection.GetSelectionState();
-
-            if (selectionState is SelectionState.Excluded)
-            {
-                continue;
-            }
-
-            properties.Add(
-                rootSelection.ResponseName,
-                CreateOutputSchema(rootSelection, operation));
-
-            if (selectionState is SelectionState.Included)
-            {
-                requiredProperties.Add(rootSelection.ResponseName);
-            }
-        }
-
         return
             new JsonSchemaBuilder()
                 .Type(SchemaValueType.Object | SchemaValueType.Null)
                 .Properties(properties)
                 .AdditionalProperties(false)
-                .Required(requiredProperties)
-                .Build();
-    }
-
-    private static JsonSchema CreateOutputSchema(ISelection selection, IOperation operation)
-    {
-        var schemaBuilder = selection.Field.Type.ToJsonSchemaBuilder();
-
-        if (selection.SelectionSet is not null)
-        {
-            var properties = new Dictionary<string, JsonSchema>();
-            var requiredProperties = new List<string>();
-
-            foreach (var type in operation.GetPossibleTypes(selection))
-            {
-                var selectionSet = operation.GetSelectionSet(selection, type);
-
-                foreach (var subSelection in selectionSet.Selections)
-                {
-                    var selectionState = subSelection.GetSelectionState();
-
-                    if (selectionState is SelectionState.Excluded)
-                    {
-                        continue;
-                    }
-
-                    var propertyAdded =
-                        properties.TryAdd(
-                            subSelection.ResponseName,
-                            CreateOutputSchema(subSelection, operation));
-
-                    if (propertyAdded && selectionState is SelectionState.Included)
-                    {
-                        requiredProperties.Add(subSelection.ResponseName);
-                    }
-                }
-            }
-
-            if (selection.Field.Type.NullableType() is ListType listType)
-            {
-                var itemType = SchemaValueType.Object;
-
-                if (listType.ElementType.IsNullableType())
-                {
-                    itemType |= SchemaValueType.Null;
-                }
-
-                var arrayItemSchemaBuilder
-                    = new JsonSchemaBuilder()
-                        .Type(itemType)
-                        .Properties(properties)
-                        .Required(requiredProperties)
-                        .AdditionalProperties(false);
-
-                schemaBuilder.Items(arrayItemSchemaBuilder);
-            }
-            else
-            {
-                schemaBuilder
-                    .Properties(properties)
-                    .Required(requiredProperties)
-                    .AdditionalProperties(false);
-            }
-        }
-
-        // Description.
-        if (selection.Field.Description is not null)
-        {
-            schemaBuilder.Description(selection.Field.Description);
-        }
-
-        return schemaBuilder.Build();
-    }
-
-    private static bool GetDestructiveHint(IOperation operation)
-    {
-        // @mcpTool operation directive.
-        if (operation.Definition.TryGetMcpToolDirective(out var mcpToolDirective)
-            && mcpToolDirective.DestructiveHint is { } destructiveHint)
-        {
-            return destructiveHint;
-        }
-
-        // @mcpToolAnnotations field directive.
-        var destructiveHints =
-            operation.RootSelectionSet.Selections
-                .Select(
-                    s => s
-                        .Field.Directives[McpToolAnnotations]
-                        .SingleOrDefault()?
-                        .GetArgumentValue<bool?>(DestructiveHint)
-                            // Default to `true` for mutations.
-                            ?? operation.Type is OperationType.Mutation)
-                .ToList();
-
-        // Return `true` if any of the destructive hints are `true`.
-        return destructiveHints.Any(d => d);
-    }
-
-    private static bool GetIdempotentHint(IOperation operation)
-    {
-        // @mcpTool operation directive.
-        if (operation.Definition.TryGetMcpToolDirective(out var mcpToolDirective)
-            && mcpToolDirective.IdempotentHint is { } idempotentHint)
-        {
-            return idempotentHint;
-        }
-
-        // @mcpToolAnnotations field directive.
-        var idempotentHints =
-            operation.RootSelectionSet.Selections
-                .Select(
-                    s => s
-                        .Field.Directives[McpToolAnnotations]
-                        .SingleOrDefault()?
-                        .GetArgumentValue<bool?>(IdempotentHint)
-                            // Default to `true` for queries and subscriptions.
-                            ?? operation.Type is not OperationType.Mutation)
-                .ToList();
-
-        // Return `true` if all the idempotent hints are `true`.
-        return idempotentHints.All(i => i);
-    }
-
-    private static bool GetOpenWorldHint(IOperation operation)
-    {
-        // @mcpTool operation directive.
-        if (operation.Definition.TryGetMcpToolDirective(out var mcpToolDirective)
-            && mcpToolDirective.OpenWorldHint is { } openWorldHint)
-        {
-            return openWorldHint;
-        }
-
-        // @mcpToolAnnotations field directive.
-        List<bool> openWorldHints = [];
-        foreach (var rootSelection in operation.RootSelectionSet.Selections)
-        {
-            var rootOpenWorldHint = GetOpenWorldHint(rootSelection, operation);
-
-            // Default to `true`.
-            openWorldHints.Add(rootOpenWorldHint ?? true);
-        }
-
-        // Return `true` if any of the open world hints are `true`.
-        return openWorldHints.Any(i => i);
-    }
-
-    private static bool? GetOpenWorldHint(
-        ISelection selection,
-        IOperation operation,
-        bool? parentOpenWorldHint = null)
-    {
-        var openWorldHint =
-            selection.Field.Directives[McpToolAnnotations]
-                .SingleOrDefault()?
-                .GetArgumentValue<bool?>(OpenWorldHint) ?? parentOpenWorldHint;
-
-        // Return early if the open world hint is explicitly set to `true`.
-        if (openWorldHint == true)
-        {
-            return openWorldHint;
-        }
-
-        List<bool?> openWorldHints = [openWorldHint];
-
-        if (selection.SelectionSet is not null)
-        {
-            foreach (var type in operation.GetPossibleTypes(selection))
-            {
-                var selectionSet = operation.GetSelectionSet(selection, type);
-
-                foreach (var subSelection in selectionSet.Selections)
-                {
-                    openWorldHints.Add(
-                        GetOpenWorldHint(
-                            subSelection,
-                            operation,
-                            parentOpenWorldHint: openWorldHint));
-                }
-            }
-        }
-
-        return openWorldHints.All(o => o is null)
-            ? null
-            : openWorldHints.Any(o => o == true);
+                .Required(requiredProperties);
     }
 
     private static readonly JsonSchema s_integerSchema =
@@ -328,19 +118,19 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
                     .Type(SchemaValueType.Object)
                     .Properties(
                         (
-                            WellKnownFieldNames.Message,
+                            Message,
                             new JsonSchemaBuilder().Type(SchemaValueType.String)
                         ),
                         (
-                            WellKnownFieldNames.Locations,
+                            Locations,
                             new JsonSchemaBuilder()
                                 .Type(SchemaValueType.Array | SchemaValueType.Null)
                                 .Items(
                                     new JsonSchemaBuilder()
                                         .Type(SchemaValueType.Object)
                                         .Properties(
-                                            (WellKnownFieldNames.Line, s_integerSchema),
-                                            (WellKnownFieldNames.Column, s_integerSchema))
+                                            (Line, s_integerSchema),
+                                            (Column, s_integerSchema))
                                         .AdditionalProperties(false))
                         ),
                         (
@@ -357,8 +147,269 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
                                 .Type(SchemaValueType.Object | SchemaValueType.Null)
                                 .AdditionalProperties(true)
                         ))
-                    .Required(WellKnownFieldNames.Message)
+                    .Required(Message)
                     .AdditionalProperties(false)
                     .Build())
             .Build();
+
+    private sealed class Walker : SyntaxWalker<WalkerContext>
+    {
+        public WalkerResult Walk(
+            OperationDefinitionNode operationNode,
+            DocumentNode documentNode,
+            ISchemaDefinition schema)
+        {
+            var context = new WalkerContext(operationNode.Operation, documentNode, schema);
+            context.Frames.Push(new Frame(schema.GetOperationType(operationNode.Operation), [], []));
+
+            Visit(operationNode.SelectionSet, context);
+
+            var rootFrame = context.Frames.Pop();
+
+            return new WalkerResult(
+                rootFrame.Properties,
+                rootFrame.RequiredProperties,
+                context.DestructiveHint,
+                context.IdempotentHint,
+                context.OpenWorldHint);
+        }
+
+        protected override ISyntaxVisitorAction Enter(ISyntaxNode node, WalkerContext context)
+        {
+            context.Nodes.Push(node);
+            return base.Enter(node, context);
+        }
+
+        protected override ISyntaxVisitorAction Leave(ISyntaxNode node, WalkerContext context)
+        {
+            context.Nodes.Pop();
+            return base.Leave(node, context);
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            FieldNode fieldNode,
+            WalkerContext context)
+        {
+            var type = context.Frames.Peek().Type;
+
+            var field =
+                fieldNode.Name.Value == TypeName
+                    ? context.Schema.QueryType.Fields[TypeName]
+                    : ((IComplexTypeDefinition)type).Fields[fieldNode.Name.Value];
+
+            var parentType =
+                context.PendingFields.Count == 0
+                    ? null
+                    : context.PendingFields.Peek().Field.Type.NamedType();
+
+            var selectionState = fieldNode.GetSelectionState(
+                declaringNode: context.Nodes.ElementAtOrDefault(2),
+                parentType);
+
+            if (selectionState is SelectionState.Excluded)
+            {
+                return Skip;
+            }
+
+            var pushed = false;
+
+            if (field.Type.NamedType().IsCompositeType())
+            {
+                context.Frames.Push(new Frame((IOutputTypeDefinition)field.Type.NamedType(), [], []));
+                pushed = true;
+            }
+
+            var responseName = fieldNode.Alias?.Value ?? fieldNode.Name.Value;
+            context.PendingFields.Push(new PendingField(field, responseName, selectionState, pushed));
+
+            var mcpToolAnnotationsDirective = field.GetMcpToolAnnotationsDirective();
+
+            // Only top-level fields.
+            if (context.PendingFields.Count == 1)
+            {
+                // If the destructive hint still has the default value (false).
+                if (!context.DestructiveHint)
+                {
+                    var destructiveHint = mcpToolAnnotationsDirective?.DestructiveHint;
+
+                    // If the tool is explicitly or implicitly destructive.
+                    if (destructiveHint is true
+                        || (destructiveHint is null && context.OperationType is OperationType.Mutation))
+                    {
+                        context.DestructiveHint = true;
+                    }
+                }
+
+                // If the idempotent hint still has the default value (true).
+                if (context.IdempotentHint)
+                {
+                    var idempotentHint = mcpToolAnnotationsDirective?.IdempotentHint;
+
+                    // If the tool is explicitly or implicitly non-idempotent.
+                    if (idempotentHint is false
+                        || (idempotentHint is null && context.OperationType is OperationType.Mutation))
+                    {
+                        context.IdempotentHint = false;
+                    }
+                }
+            }
+
+            // If the open world hint still has the default value (false).
+            if (!context.OpenWorldHint)
+            {
+                // If the tool is explicitly or implicitly open world.
+                if (mcpToolAnnotationsDirective?.OpenWorldHint is true or null)
+                {
+                    context.OpenWorldHint = true;
+                }
+            }
+
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            FieldNode fieldNode,
+            WalkerContext context)
+        {
+            if (!context.PendingFields.TryPop(out var pendingField))
+            {
+                return Continue;
+            }
+
+            Frame? childFrame = null;
+            if (pendingField.PushedChildFrame)
+            {
+                childFrame = context.Frames.Pop();
+            }
+
+            var (_, properties, requiredProperties) = context.Frames.Peek();
+
+            var propertyJsonSchemaBuilder = pendingField.Field.Type.ToJsonSchemaBuilder();
+
+            if (childFrame is not null)
+            {
+                if (pendingField.Field.Type.NullableType() is ListType listType)
+                {
+                    var itemType = SchemaValueType.Object;
+
+                    if (listType.ElementType.IsNullableType())
+                    {
+                        itemType |= SchemaValueType.Null;
+                    }
+
+                    var arrayItemSchemaBuilder =
+                        new JsonSchemaBuilder()
+                            .Type(itemType)
+                            .Properties(childFrame.Value.Properties)
+                            .Required(childFrame.Value.RequiredProperties)
+                            .AdditionalProperties(false);
+
+                    propertyJsonSchemaBuilder.Items(arrayItemSchemaBuilder);
+                }
+                else
+                {
+                    propertyJsonSchemaBuilder.Properties(childFrame.Value.Properties);
+                    propertyJsonSchemaBuilder.Required(childFrame.Value.RequiredProperties);
+                    propertyJsonSchemaBuilder.AdditionalProperties(false);
+                }
+            }
+
+            if (pendingField.Field.Description is not null)
+            {
+                propertyJsonSchemaBuilder.Description(pendingField.Field.Description);
+            }
+
+            properties.Add(pendingField.ResponseName, propertyJsonSchemaBuilder.Build());
+
+            if (pendingField.SelectionState is SelectionState.Included)
+            {
+                requiredProperties.Add(pendingField.ResponseName);
+            }
+
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            FragmentSpreadNode fragmentSpreadNode,
+            WalkerContext context)
+        {
+            if (context.Fragments.TryGetValue(fragmentSpreadNode.Name.Value, out var fragmentNode))
+            {
+                Visit(fragmentNode.SelectionSet, context);
+            }
+
+            return Skip;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            InlineFragmentNode inlineFragmentNode,
+            WalkerContext context)
+        {
+            // Narrow the type for the duration of this fragment.
+            var parent = context.Frames.Peek();
+            var narrowed = parent.Type;
+
+            if (inlineFragmentNode.TypeCondition is not null)
+            {
+                narrowed = (IOutputTypeDefinition)context.Schema.Types[inlineFragmentNode.TypeCondition.Name.Value];
+            }
+
+            var shadow = parent with { Type = narrowed };
+            context.Frames.Push(shadow);
+
+            return Continue;
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            InlineFragmentNode node,
+            WalkerContext context)
+        {
+            // Pop the shadow frame.
+            context.Frames.Pop();
+            return Continue;
+        }
+    }
+
+    private sealed record WalkerResult(
+        Dictionary<string, JsonSchema> Properties,
+        List<string> RequiredProperties,
+        bool DestructiveHint,
+        bool IdempotentHint,
+        bool OpenWorldHint);
+
+    private sealed class WalkerContext(
+        OperationType operationType,
+        DocumentNode documentNode,
+        ISchemaDefinition schema)
+    {
+        public OperationType OperationType { get; } = operationType;
+
+        public FrozenDictionary<string, FragmentDefinitionNode> Fragments { get; } =
+            documentNode.Definitions.OfType<FragmentDefinitionNode>().ToFrozenDictionary(f => f.Name.Value);
+
+        public ISchemaDefinition Schema { get; } = schema;
+
+        public Stack<ISyntaxNode> Nodes { get; } = [];
+
+        public Stack<Frame> Frames { get; } = [];
+
+        public Stack<PendingField> PendingFields { get; } = [];
+
+        public bool DestructiveHint { get; set; }
+
+        public bool IdempotentHint { get; set; } = true;
+
+        public bool OpenWorldHint { get; set; }
+    }
+
+    private readonly record struct Frame(
+        IOutputTypeDefinition Type,
+        Dictionary<string, JsonSchema> Properties,
+        List<string> RequiredProperties);
+
+    private readonly record struct PendingField(
+        IOutputFieldDefinition Field,
+        string ResponseName,
+        SelectionState SelectionState,
+        bool PushedChildFrame);
 }
