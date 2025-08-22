@@ -10,7 +10,7 @@ namespace HotChocolate.ModelContextProtocol;
 
 internal sealed class ToolStorageObserver : IDisposable
 {
-    private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
     private readonly CancellationTokenSource _cts = new();
     private readonly CancellationToken _ct;
     private readonly ToolRegistry _registry;
@@ -106,7 +106,7 @@ internal sealed class ToolStorageObserver : IDisposable
 
         foreach (var session in _httpHandler.Sessions.Values)
         {
-            session?.Server?.SendNotificationAsync(ToolListChangedNotification, cancellationToken: _ct).FireAndForget();
+            session.Server?.SendNotificationAsync(ToolListChangedNotification, cancellationToken: _ct).FireAndForget();
         }
     }
 

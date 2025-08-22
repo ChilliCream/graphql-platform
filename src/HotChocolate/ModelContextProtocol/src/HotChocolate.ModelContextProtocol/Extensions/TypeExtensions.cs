@@ -8,48 +8,46 @@ namespace HotChocolate.ModelContextProtocol.Extensions;
 
 internal static class TypeExtensions
 {
-    public static JsonSchemaBuilder ToJsonSchemaBuilder(
-        this IType graphQLType,
-        bool isOneOf = false)
+    public static JsonSchemaBuilder ToJsonSchemaBuilder(this IType type, bool isOneOf = false)
     {
         var schemaBuilder = new JsonSchemaBuilder();
 
         // Type.
-        var type = graphQLType.GetJsonSchemaValueType();
+        var jsonType = type.GetJsonSchemaValueType();
 
-        if (!graphQLType.IsNonNullType() && !isOneOf)
+        if (!type.IsNonNullType() && !isOneOf)
         {
             // Nullability.
-            type |= SchemaValueType.Null;
+            jsonType |= SchemaValueType.Null;
         }
 
-        schemaBuilder.Type(type);
+        schemaBuilder.Type(jsonType);
 
         // Format.
-        if (graphQLType.TryGetJsonSchemaFormat(out var format))
+        if (type.TryGetJsonSchemaFormat(out var format))
         {
             schemaBuilder.Format(format);
         }
 
         // Pattern.
-        if (graphQLType.TryGetJsonSchemaPattern(out var pattern))
+        if (type.TryGetJsonSchemaPattern(out var pattern))
         {
             schemaBuilder.Pattern(pattern);
         }
 
         // Minimum.
-        if (graphQLType.TryGetJsonSchemaMinimum(out var minimum))
+        if (type.TryGetJsonSchemaMinimum(out var minimum))
         {
             schemaBuilder.Minimum(minimum);
         }
 
         // Maximum.
-        if (graphQLType.TryGetJsonSchemaMaximum(out var maximum))
+        if (type.TryGetJsonSchemaMaximum(out var maximum))
         {
             schemaBuilder.Maximum(maximum);
         }
 
-        switch (graphQLType.NullableType())
+        switch (type.NullableType())
         {
             case EnumType enumType:
                 // Enum values.
@@ -60,7 +58,7 @@ internal static class TypeExtensions
                     enumValues.Add(JsonValue.Create(enumValue.Name));
                 }
 
-                if (graphQLType.IsNullableType())
+                if (type.IsNullableType())
                 {
                     enumValues.Add(null);
                 }
@@ -121,17 +119,15 @@ internal static class TypeExtensions
         return schemaBuilder;
     }
 
-    private static SchemaValueType GetJsonSchemaValueType(this IType graphQLType)
+    private static SchemaValueType GetJsonSchemaValueType(this IType type)
     {
-        return graphQLType switch
+        return type switch
         {
             EnumType => SchemaValueType.String,
-            InputObjectType => SchemaValueType.Object,
-            InterfaceType => SchemaValueType.Object,
+            InputObjectType or InterfaceType or ObjectType or UnionType => SchemaValueType.Object,
             ListType => SchemaValueType.Array,
-            NonNullType => GetJsonSchemaValueType(graphQLType.NullableType()),
-            ObjectType => SchemaValueType.Object,
-            ScalarType => graphQLType switch
+            NonNullType => GetJsonSchemaValueType(type.NullableType()),
+            ScalarType => type switch
             {
                 AnyType or JsonType =>
                     SchemaValueType.Object
@@ -141,34 +137,28 @@ internal static class TypeExtensions
                     | SchemaValueType.Number
                     | SchemaValueType.Integer,
                 BooleanType => SchemaValueType.Boolean,
-                ByteType => SchemaValueType.Integer,
-                DecimalType => SchemaValueType.Number,
-                FloatType => SchemaValueType.Number,
-                IdType => SchemaValueType.String,
-                IntType => SchemaValueType.Integer,
-                LongType => SchemaValueType.Integer,
-                ShortType => SchemaValueType.Integer,
-                StringType => SchemaValueType.String,
+                ByteType or IntType or LongType or ShortType => SchemaValueType.Integer,
+                DecimalType or FloatType => SchemaValueType.Number,
+                IdType or StringType => SchemaValueType.String,
                 // The following types are serialized as strings:
                 // URL, UUID, ByteArray, DateTime, Date, TimeSpan, LocalDate, LocalDateTime,
                 // LocalTime.
                 // TODO: Treating all unknown scalar types as strings is a temporary solution.
                 _ => SchemaValueType.String
             },
-            UnionType => SchemaValueType.Object,
             _ =>
                 throw new NotSupportedException(
                     string.Format(
                         TypeExtensions_UnableToDetermineJsonSchemaValueType,
-                        graphQLType.GetType().Name))
+                        type.GetType().Name))
         };
     }
 
     private static bool TryGetJsonSchemaFormat(
-        this IType graphQLType,
+        this IType type,
         [NotNullWhen(true)] out Format? format)
     {
-        format = graphQLType.NullableType() switch
+        format = type.NullableType() switch
         {
             DateTimeType => Formats.DateTime,      // Further constrained by pattern.
             DateType => Formats.Date,
@@ -184,10 +174,10 @@ internal static class TypeExtensions
     }
 
     private static bool TryGetJsonSchemaPattern(
-        this IType graphQLType,
+        this IType type,
         [NotNullWhen(true)] out string? pattern)
     {
-        pattern = graphQLType.NullableType() switch
+        pattern = type.NullableType() switch
         {
             ByteArrayType
                 // e.g. dmFsdWU= (Base64-encoded string)
@@ -224,9 +214,9 @@ internal static class TypeExtensions
         return pattern is not null;
     }
 
-    private static bool TryGetJsonSchemaMinimum(this IType graphQLType, out decimal minimum)
+    private static bool TryGetJsonSchemaMinimum(this IType type, out decimal minimum)
     {
-        switch (graphQLType.NullableType())
+        switch (type.NullableType())
         {
             case ByteType byteType when byteType.MinValue != byte.MinValue:
                 minimum = byteType.MinValue;
@@ -257,9 +247,9 @@ internal static class TypeExtensions
         return false;
     }
 
-    private static bool TryGetJsonSchemaMaximum(this IType graphQLType, out decimal maximum)
+    private static bool TryGetJsonSchemaMaximum(this IType type, out decimal maximum)
     {
-        switch (graphQLType.NullableType())
+        switch (type.NullableType())
         {
             case ByteType byteType when byteType.MaxValue != byte.MaxValue:
                 maximum = byteType.MaxValue;

@@ -14,17 +14,15 @@
               "type": "string",
               "description": "The name of the current Object type at runtime."
             },
-            "isBarking": {
+            "isPurring": {
               "type": "boolean"
             },
-            "isPurring": {
+            "isBarking": {
               "type": "boolean"
             }
           },
           "required": [
-            "__typename",
-            "isBarking",
-            "isPurring"
+            "__typename"
           ],
           "additionalProperties": false
         }
