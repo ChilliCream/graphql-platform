@@ -7,6 +7,7 @@ operation:
           username
         }
         node(id: $id) {
+          __typename @fusion__requirement
           __typename
           ... on Discussion {
             title

@@ -8,10 +8,10 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "393fd331bf3cb8233e458f20f7d09073a995d6e263be263dd5d04bb22f109454",
+        "id": "ce0794270800b5f439816a200394375731adaf031aad1fe7a3a83513985b3ffc",
         "operation": {
           "kind": "Query",
-          "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    ... on Discussion {\n      title\n      commentCount\n    }\n    __typename @fusion__requirement\n    id @fusion__requirement\n  }\n}",
+          "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n      commentCount\n    }\n    __typename @fusion__requirement\n    id @fusion__requirement\n  }\n}",
           "id": "e567807ec1ad5128cfb566fad1645abc",
           "hash": "e567807ec1ad5128cfb566fad1645abc",
           "shortHash": "e567807e"

@@ -6,8 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
-// TODO: Remove __typename for realistic results
-// TODO: Fix abstract lookups
 public class AbstractTypeTests : FusionTestBase
 {
     [Fact]
@@ -35,7 +33,6 @@ public class AbstractTypeTests : FusionTestBase
             """
             {
                 abstractType {
-                  __typename
                   id
                   ... on Discussion {
                     title
@@ -85,7 +82,6 @@ public class AbstractTypeTests : FusionTestBase
             """
             {
                 abstractType {
-                  __typename
                   id
                   ... on Discussion {
                     title
@@ -133,7 +129,6 @@ public class AbstractTypeTests : FusionTestBase
             """
             {
                 otherAbstractType {
-                  __typename
                   id
                   ... on Author {
                     name
@@ -218,7 +213,6 @@ public class AbstractTypeTests : FusionTestBase
             """
             {
                 abstractTypes {
-                  __typename
                   id
                   ... on Discussion {
                     title

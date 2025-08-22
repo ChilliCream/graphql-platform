@@ -8,10 +8,10 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "13b8a07fc9d6a0ecafdba6f9d9f804e7b5edf58d486cb3a75def39111e92378f",
+        "id": "6ac8a20ce86fbb99e26f7b54e28e3092ac9cc1718e49f5c1b27776529a7c90bf",
         "operation": {
           "kind": "Query",
-          "document": "{\n  node(id: \"UHJvZHVjdDox\") {\n    id\n    ... on Product {\n      name\n    }\n    __typename @fusion__requirement\n  }\n}",
+          "document": "{\n  node(id: \"UHJvZHVjdDox\") {\n    __typename @fusion__requirement\n    id\n    ... on Product {\n      name\n    }\n    __typename @fusion__requirement\n  }\n}",
           "id": "f71a6d9ff69b4939ee6e11a250bfa12d",
           "hash": "f71a6d9ff69b4939ee6e11a250bfa12d",
           "shortHash": "f71a6d9f"

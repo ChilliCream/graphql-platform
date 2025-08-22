@@ -123,11 +123,17 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             unresolvableSelections = null;
         }
 
+        var resolvableSelections2 = resolvableSelections ?? selectionSetNode.Selections;
+
+        if (type.NamedType().IsAbstractType())
+        {
+            resolvableSelections2 = [new FieldNode(IntrospectionFieldNames.TypeName), ..resolvableSelections2];
+        }
+
         var result =
         (
             Resolvable:
-                selectionSetNode.WithSelections(resolvableSelections
-                    ?? selectionSetNode.Selections),
+                selectionSetNode.WithSelections(resolvableSelections2),
             Unresolvable: unresolvableSelections is not null
                 ? selectionSetNode.WithSelections(unresolvableSelections)
                 : null

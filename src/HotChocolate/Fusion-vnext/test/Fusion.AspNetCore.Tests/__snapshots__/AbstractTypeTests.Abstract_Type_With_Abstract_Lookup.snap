@@ -1,7 +1,6 @@
 {
   "data": {
     "otherAbstractType": {
-      "__typename": "Author",
       "id": 1,
       "name": "Author 1",
       "age": 5
@@ -10,13 +9,13 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "1958c56a09b455151fffad4988a8236e2acc93ee95508b520cf9bab83c04ad3d",
+        "id": "a3e6baa343d20cb141a4312e413fd9f78e0e399acca168a273ed5c05eba7bea1",
         "operation": {
           "kind": "Query",
-          "document": "{\n  otherAbstractType {\n    __typename\n    id\n    ... on Author {\n      name\n      age\n      id @fusion__requirement\n    }\n  }\n}",
-          "id": "1baa6662ec5e8fc03e44b246f07cdb7a",
-          "hash": "1baa6662ec5e8fc03e44b246f07cdb7a",
-          "shortHash": "1baa6662"
+          "document": "{\n  otherAbstractType {\n    __typename @fusion__requirement\n    id\n    ... on Author {\n      name\n      age\n      id @fusion__requirement\n    }\n  }\n}",
+          "id": "ddf05407ab47b77c0b9110265d513627",
+          "hash": "ddf05407ab47b77c0b9110265d513627",
+          "shortHash": "ddf05407"
         },
         "nodes": [
           {
@@ -24,11 +23,11 @@
             "type": "Operation",
             "schema": "A",
             "operation": {
-              "name": "Op_1baa6662_1",
+              "name": "Op_ddf05407_1",
               "type": "Query",
-              "document": "query Op_1baa6662_1 {\n  otherAbstractType {\n    __typename\n    id\n    ... on Author {\n      name\n      id\n    }\n  }\n}",
-              "hash": "f30c16ca91981969744c0e5736c0a1a22cf5407c291c4463eecc795ddd9196d3",
-              "shortHash": "f30c16ca"
+              "document": "query Op_ddf05407_1 {\n  otherAbstractType {\n    __typename\n    id\n    ... on Author {\n      name\n      id\n    }\n  }\n}",
+              "hash": "f672d6d5d7acaaeb35e1e6432c284e79507332892d9b2d9b2c615e752328ab0f",
+              "shortHash": "f672d6d5"
             },
             "responseNames": [
               "otherAbstractType"
@@ -39,11 +38,11 @@
             "type": "Operation",
             "schema": "B",
             "operation": {
-              "name": "Op_1baa6662_2",
+              "name": "Op_ddf05407_2",
               "type": "Query",
-              "document": "query Op_1baa6662_2(\n  $__fusion_1_id: Int!\n) {\n  otherInterface(id: $__fusion_1_id) {\n    __typename\n    ... on Author {\n      age\n    }\n  }\n}",
-              "hash": "7ab3369660d202b4f34e53f868b075f7c7a051b079ded617879b47dbcc950d1d",
-              "shortHash": "7ab33696"
+              "document": "query Op_ddf05407_2(\n  $__fusion_1_id: Int!\n) {\n  otherInterface(id: $__fusion_1_id) {\n    __typename\n    ... on Author {\n      age\n    }\n  }\n}",
+              "hash": "ea05e581a87b416975b5c262538bb986758a733bf05452803d8d087655ba274b",
+              "shortHash": "ea05e581"
             },
             "responseNames": [],
             "source": "$.otherInterface<Author>",

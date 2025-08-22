@@ -1,7 +1,6 @@
 {
   "data": {
     "abstractType": {
-      "__typename": "Discussion",
       "id": 1,
       "title": "Discussion 1",
       "commentCount": 3
@@ -10,13 +9,13 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "f2097d07e7d858df781dee8918db112c87f32ee85d6be0438a2122caf0118653",
+        "id": "f09d36f74738aa591209a22d7e7bf388ac1935f3c9d448e1855a81130e1cf3ea",
         "operation": {
           "kind": "Query",
-          "document": "{\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n      commentCount\n      id @fusion__requirement\n    }\n  }\n}",
-          "id": "53d248abbf08968ab5d9103df2246b3a",
-          "hash": "53d248abbf08968ab5d9103df2246b3a",
-          "shortHash": "53d248ab"
+          "document": "{\n  abstractType {\n    __typename @fusion__requirement\n    id\n    ... on Discussion {\n      title\n      commentCount\n      id @fusion__requirement\n    }\n  }\n}",
+          "id": "bf0deff65ebc6098ea48ca77515a25c9",
+          "hash": "bf0deff65ebc6098ea48ca77515a25c9",
+          "shortHash": "bf0deff6"
         },
         "nodes": [
           {
@@ -24,11 +23,11 @@
             "type": "Operation",
             "schema": "A",
             "operation": {
-              "name": "Op_53d248ab_1",
+              "name": "Op_bf0deff6_1",
               "type": "Query",
-              "document": "query Op_53d248ab_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n      id\n    }\n  }\n}",
-              "hash": "72139d6ce4a90b2dca636131555e229d08ff458ae09024be47bcafe3da149dbc",
-              "shortHash": "72139d6c"
+              "document": "query Op_bf0deff6_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n      id\n    }\n  }\n}",
+              "hash": "fbdf3e142755c8f68d2beaaf88f9422712cc435641b2241fa3ab08ac2d8a96dd",
+              "shortHash": "fbdf3e14"
             },
             "responseNames": [
               "abstractType"
@@ -39,11 +38,11 @@
             "type": "Operation",
             "schema": "B",
             "operation": {
-              "name": "Op_53d248ab_2",
+              "name": "Op_bf0deff6_2",
               "type": "Query",
-              "document": "query Op_53d248ab_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    commentCount\n  }\n}",
-              "hash": "3b7396cf5963a3aa5dc70967184474517a9718944e68f6ffa4f88ee19120920a",
-              "shortHash": "3b7396cf"
+              "document": "query Op_bf0deff6_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    commentCount\n  }\n}",
+              "hash": "dc7822c133bcc3323fae835db78b85eb4ca8715c70722b2513f9ad375a173d6c",
+              "shortHash": "dc7822c1"
             },
             "responseNames": [
               "commentCount"

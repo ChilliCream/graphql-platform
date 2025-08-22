@@ -2,6 +2,7 @@ operation:
   - document: >-
       query testQuery {
         votable {
+          __typename @fusion__requirement
           viewerCanVote
           ... on Discussion {
             author {
@@ -20,6 +21,7 @@ nodes:
     operation: >-
       query testQuery_123456789101112_1 {
         votable {
+          __typename
           viewerCanVote
           ... on Discussion {
             author {

@@ -16,10 +16,10 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "84429a7256a75d783eba99d9567e2c08fa7f1131b3acbeb35242ee6b0ec33042",
+        "id": "b697f78b3c1b470da0ca813bf7f2e08ddde185f2106cd49456a28d86c766c8b9",
         "operation": {
           "kind": "Query",
-          "document": "{\n  node(id: \"VXNlcjox\") {\n    ... on Discussion {\n      title\n    }\n    __typename @fusion__requirement\n  }\n}",
+          "document": "{\n  node(id: \"VXNlcjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n    }\n    __typename @fusion__requirement\n  }\n}",
           "id": "bcaa1f52d0d50c590e99abdf3c862694",
           "hash": "bcaa1f52d0d50c590e99abdf3c862694",
           "shortHash": "bcaa1f52"

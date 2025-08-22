@@ -7,10 +7,10 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "526c5d1577f2c9c2dd96307782a9d7716d73c50165d66e1bf16bdb001d123578",
+        "id": "f5d8c490664a9fc3afc798ea03652f4cd243cded76cba55388b6b03e88ac4a52",
         "operation": {
           "kind": "Query",
-          "document": "{\n  node(id: \"UHJvZHVjdDox\") {\n    id\n    ... on Discussion {\n      title\n    }\n    __typename @fusion__requirement\n  }\n}",
+          "document": "{\n  node(id: \"UHJvZHVjdDox\") {\n    __typename @fusion__requirement\n    id\n    ... on Discussion {\n      title\n    }\n    __typename @fusion__requirement\n  }\n}",
           "id": "83aee782bd7072025c2beece59972fee",
           "hash": "83aee782bd7072025c2beece59972fee",
           "shortHash": "83aee782"

@@ -94,6 +94,10 @@ public sealed partial class OperationPlanner
 
             internalOperationDefinition = plan.Value.InternalOperationDefinition;
             planSteps = plan.Value.Steps;
+
+            internalOperationDefinition = AddTypeNameToAbstractSelections(
+                internalOperationDefinition,
+                _schema.GetOperationType(operationDefinition.Operation));
         }
 
         var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
@@ -1324,6 +1328,68 @@ public sealed partial class OperationPlanner
             directives.Add(new DirectiveNode("fusion__requirement"));
 
             return directives;
+        }
+    }
+
+    private OperationDefinitionNode AddTypeNameToAbstractSelections(
+        OperationDefinitionNode operation,
+        ITypeDefinition rootType)
+    {
+        var rewriter = SyntaxRewriter.Create<Stack<ITypeDefinition>>(
+            (node, path) =>
+            {
+                if (node is not FieldNode fieldNode || fieldNode.SelectionSet is null)
+                {
+                    return node;
+                }
+
+                var type = path.Peek();
+
+                if (type.IsAbstractType())
+                {
+                    var typenameNode = new FieldNode(IntrospectionFieldNames.TypeName)
+                        .WithDirectives([new DirectiveNode("fusion__requirement")]);
+                    return fieldNode.WithSelectionSet(new SelectionSetNode([
+                        typenameNode, ..fieldNode.SelectionSet.Selections
+                    ]));
+                }
+
+                return node;
+            },
+            (node, path) =>
+            {
+                if (node is FieldNode { SelectionSet: not null } fieldNode && path.Peek() is IComplexTypeDefinition complexType)
+                {
+                    var field = complexType.Fields[fieldNode.Name.Value];
+
+                    path.Push(field.Type.AsTypeDefinition());
+                }
+                else if (node is InlineFragmentNode { TypeCondition: { } typeCondition })
+                {
+                    path.Push(_schema.Types[typeCondition.Name.Value]);
+                }
+
+                return path;
+            },
+            (node, path) =>
+            {
+                if (node is FieldNode { SelectionSet: not null } or InlineFragmentNode { TypeCondition: not null })
+                {
+                    path.Pop();
+                }
+            });
+
+        var context = new Stack<ITypeDefinition>();
+        context.Push(rootType);
+
+        try
+        {
+            return (OperationDefinitionNode)rewriter.Rewrite(operation, context)!;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
         }
     }
 }

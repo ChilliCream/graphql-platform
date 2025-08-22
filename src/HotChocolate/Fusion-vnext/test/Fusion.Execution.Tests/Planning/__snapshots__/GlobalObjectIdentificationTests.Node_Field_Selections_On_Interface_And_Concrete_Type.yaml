@@ -4,6 +4,7 @@ operation:
         $id: ID!
       ) {
         node(id: $id) {
+          __typename @fusion__requirement
           ... on Votable {
             viewerCanVote
           }

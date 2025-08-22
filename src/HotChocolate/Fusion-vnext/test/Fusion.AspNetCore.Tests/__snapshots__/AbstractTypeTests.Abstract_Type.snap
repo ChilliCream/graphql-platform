@@ -1,7 +1,6 @@
 {
   "data": {
     "abstractType": {
-      "__typename": "Discussion",
       "id": 1,
       "title": "Discussion 1"
     }
@@ -9,13 +8,13 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "c61876f49251c5a6646ffc7ee65cc21a79d884fb0a7ecaa749c768845ffa0375",
+        "id": "364cb99e92d7763c828eca5bd343d1e34ef99878e699d2515937eb9c27f60687",
         "operation": {
           "kind": "Query",
-          "document": "{\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}",
-          "id": "01e393652c1ddc809a529d6134c56795",
-          "hash": "01e393652c1ddc809a529d6134c56795",
-          "shortHash": "01e39365"
+          "document": "{\n  abstractType {\n    __typename @fusion__requirement\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}",
+          "id": "05500418af4758851fab031f4cd75d38",
+          "hash": "05500418af4758851fab031f4cd75d38",
+          "shortHash": "05500418"
         },
         "nodes": [
           {
@@ -23,11 +22,11 @@
             "type": "Operation",
             "schema": "A",
             "operation": {
-              "name": "Op_01e39365_1",
+              "name": "Op_05500418_1",
               "type": "Query",
-              "document": "query Op_01e39365_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}",
-              "hash": "d0ba0aefc5b66da7f8d03aa26aeb4301f473a2db9e30044e94e6eb55aa83aaf7",
-              "shortHash": "d0ba0aef"
+              "document": "query Op_05500418_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}",
+              "hash": "22196d50502d4ce499b6455b10f237c55888bcb56794e0abe264e23728235b7a",
+              "shortHash": "22196d50"
             },
             "responseNames": [
               "abstractType"

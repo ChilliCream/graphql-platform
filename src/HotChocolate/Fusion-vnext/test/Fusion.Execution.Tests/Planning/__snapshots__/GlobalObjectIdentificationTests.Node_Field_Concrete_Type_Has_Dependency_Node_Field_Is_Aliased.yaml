@@ -5,6 +5,7 @@ operation:
         $id2: ID!
       ) {
         a: node(id: $id1) {
+          __typename @fusion__requirement
           ... on Discussion {
             name
             commentCount
@@ -13,6 +14,7 @@ operation:
           id @fusion__requirement
         }
         b: node(id: $id2) {
+          __typename @fusion__requirement
           id
           ... on Discussion {
             name
