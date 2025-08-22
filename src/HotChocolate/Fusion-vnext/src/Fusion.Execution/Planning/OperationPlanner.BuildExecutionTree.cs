@@ -125,8 +125,16 @@ public sealed partial class OperationPlanner
                         dependencyLookup[dependent.Id] = dependencies;
                     }
 
-                    dependencies.Add(step.Id);
+                    dependencies.Add(nodePlanStep.Id);
                 }
+
+                if (!dependencyLookup.TryGetValue(nodePlanStep.FallbackQuery.Id, out var fallbackDependencies))
+                {
+                    fallbackDependencies = [];
+                    dependencyLookup[nodePlanStep.FallbackQuery.Id] = fallbackDependencies;
+                }
+
+                fallbackDependencies.Add(nodePlanStep.Id);
 
                 branchesLookup.Add(nodePlanStep.Id, nodePlanStep.Branches
                     .ToDictionary(x => x.Key, x=> x.Value.Id));

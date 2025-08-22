@@ -853,17 +853,11 @@ public sealed partial class OperationPlanner
         backlog = backlog.Push(unresolvable);
         backlog = backlog.Push(fieldsWithRequirements, stepId);
 
-        var operationBuilder =
-            OperationDefinitionBuilder
-                .New()
-                .SetType(OperationType.Query)
-                .SetName(current.CreateOperationName(stepId))
-                .SetSelectionSet(resolvable);
+        // ----------------- this was taken from the operationdefinitionbuilder
 
-        var lastRequirementId = current.LastRequirementId;
-        var requirements = ImmutableDictionary<string, OperationRequirement>.Empty;
+        var selectionSet = resolvable;
+        var indexBuilder = index.ToBuilder();
 
-        string? lookupTypeRefinement = null;
         if (_schema.Types.TryGetType(lookup.FieldType, out var lookupFieldType)
             && lookupFieldType != workItem.SelectionSet.Type
             && !resolvable.Selections.All(s => s is InlineFragmentNode inlineFragment
@@ -877,20 +871,42 @@ public sealed partial class OperationPlanner
                     resolvable);
             var selectionSetWithTypeRefinement = new SelectionSetNode(null, [typeRefinement]);
 
-            var indexBuilder = index.ToBuilder();
-
             indexBuilder.Register(resolvable, selectionSetWithTypeRefinement);
 
-            index = indexBuilder;
-
-            operationBuilder.SetSelectionSet(selectionSetWithTypeRefinement);
-
-            lookupTypeRefinement = workItem.SelectionSet.Type.Name;
+            selectionSet = selectionSetWithTypeRefinement;
         }
 
-        operationBuilder.SetLookup(lookup, lookupTypeRefinement, ""); // TODO: Dont use the operation builder
+        if (lookup.Arguments.Length != 1)
+        {
+            throw new InvalidOperationException("Expected exactly one argument on node lookup");
+        }
 
-        (var definition, index, var source) = operationBuilder.Build(index);
+        var argument = new ArgumentNode(
+            new NameNode(lookup.Arguments[0].Name),
+            workItem.IdArgumentValue);
+
+        var lookupField = new FieldNode(
+            new NameNode(lookup.FieldName),
+            new NameNode(workItem.Parent.ResponseName),
+            [],
+            [argument],
+            selectionSet);
+
+        selectionSet = new SelectionSetNode(null, [lookupField]);
+
+        indexBuilder.Register(selectionSet);
+        index = indexBuilder;
+
+        var definition = new OperationDefinitionNode(
+            null,
+            new NameNode(current.CreateOperationName(stepId)),
+            null,
+            OperationType.Query,
+            [],
+            [],
+            selectionSet);
+
+        // ---------------
 
         var step = new OperationPlanStep
         {
@@ -901,9 +917,9 @@ public sealed partial class OperationPlanner
             RootSelectionSetId = index.GetId(resolvable),
             SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, index),
             Dependents = workItem.Dependents,
-            Requirements = requirements,
-            Target = workItem.SelectionSet.Path,
-            Source = source
+            Requirements = ImmutableDictionary<string, OperationRequirement>.Empty,
+            Target = SelectionPath.Root,
+            Source = SelectionPath.Root
         };
 
         // TODO: This is mutable / maybe problematic with multiple operations attempted for same type
@@ -921,7 +937,7 @@ public sealed partial class OperationPlanner
             Steps = current.Steps.Add(step),
             PathCost = current.PathCost,
             BacklogCost = backlog.Count(),
-            LastRequirementId = lastRequirementId
+            LastRequirementId = current.LastRequirementId
         };
 
         possiblePlans.Enqueue(next, _schema);

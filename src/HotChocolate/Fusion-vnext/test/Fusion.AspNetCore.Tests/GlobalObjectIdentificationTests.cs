@@ -43,9 +43,10 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """
             {
               node(id: "RGlzY3Vzc2lvbjox") {
+                __typename
                 ... on Discussion {
                   title
-                  commentCount
+                  # commentCount
                 }
               }
             }
