@@ -12,7 +12,6 @@ namespace HotChocolate.Fusion.Planning;
 
 // TODO: Insert __typename for all abstract fields and lookups
 // TODO: Insert __typename for empty shared selections
-// TODO: Make root selections work again
 
 public sealed partial class OperationPlanner
 {

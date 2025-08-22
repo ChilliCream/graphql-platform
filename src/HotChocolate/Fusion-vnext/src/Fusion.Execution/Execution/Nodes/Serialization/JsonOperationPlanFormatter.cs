@@ -298,7 +298,7 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
 
         jsonWriter.WriteStartObject("branches");
 
-        foreach (var branch in node.Branches)
+        foreach (var branch in node.Branches.OrderBy(kvp => kvp.Key))
         {
             jsonWriter.WriteNumber(branch.Key, branch.Value.Id);
         }

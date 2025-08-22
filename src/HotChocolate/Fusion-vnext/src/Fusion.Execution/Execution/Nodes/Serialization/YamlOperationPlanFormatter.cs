@@ -100,7 +100,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         {
             writer.WriteLine("schema: {0}", node.SchemaName);
         }
-        
+
         writer.WriteLine("operation: >-");
         writer.Indent();
         var reader = new StringReader(node.Operation.SourceText);
@@ -208,7 +208,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("branches:");
         writer.Indent();
-        foreach (var branch in node.Branches)
+        foreach (var branch in node.Branches.OrderBy(kvp => kvp.Key))
         {
             writer.WriteLine("- {0}: {1}", branch.Key, branch.Value.Id);
         }
