@@ -9,12 +9,16 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.AspNetCore;
+using ModelContextProtocol.Server;
 
 namespace HotChocolate.ModelContextProtocol.Extensions;
 
 public static class RequestExecutorBuilderExtensions
 {
-    public static IRequestExecutorBuilder AddMcp(this IRequestExecutorBuilder builder)
+    public static IRequestExecutorBuilder AddMcp(
+        this IRequestExecutorBuilder builder,
+        Action<McpServerOptions>? configureServerOptions = null,
+        Action<IMcpServerBuilder>? configureServer = null)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
@@ -62,16 +66,23 @@ public static class RequestExecutorBuilderExtensions
                             .GetRequiredService<ILoggerFactory>())
                     .AddSingleton<ToolRegistry>();
 
-                services
-                    .AddMcpServer(o => o.Capabilities?.Tools?.ListChanged = true)
-                    .WithHttpTransport()
-                    .WithListToolsHandler(
-                        (context, _) => ValueTask.FromResult(ListToolsHandler.Handle(context)))
-                    .WithCallToolHandler(
-                        async (context, cancellationToken)
-                            => await CallToolHandler
-                                .HandleAsync(context, cancellationToken)
-                                .ConfigureAwait(false));
+                var mcpServerBuilder =
+                    services
+                        .AddMcpServer(o =>
+                        {
+                            configureServerOptions?.Invoke(o);
+                            o.Capabilities?.Tools?.ListChanged = true;
+                        })
+                        .WithHttpTransport()
+                        .WithListToolsHandler(
+                            (context, _) => ValueTask.FromResult(ListToolsHandler.Handle(context)))
+                        .WithCallToolHandler(
+                            async (context, cancellationToken)
+                                => await CallToolHandler
+                                    .HandleAsync(context, cancellationToken)
+                                    .ConfigureAwait(false));
+
+                configureServer?.Invoke(mcpServerBuilder);
             });
 
         // TODO: MST we need to make sure that this directive is hidden in the introspection
