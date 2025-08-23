@@ -143,16 +143,12 @@ internal sealed class SchemaComposition(
         {
             switch (annotation)
             {
-                case var resRef when annotation.GetType().Name == "ResourceRelationshipAnnotation":
-                    var resourceProp = annotation.GetType().GetProperty("Resource");
-                    if (resourceProp?.GetValue(annotation) is IResource resource)
-                    {
-                        referencedResourceNames.Add(resource.Name);
-                    }
+                case ResourceRelationshipAnnotation rel:
+                    referencedResourceNames.Add(rel.Resource.Name);
                     break;
 
                 case var endpointRef when annotation.GetType().Name == "EndpointReferenceAnnotation":
-                    var targetResourceProp = annotation.GetType().GetProperty("Resource"); // Note: might be "Resource" not "TargetResource"
+                    var targetResourceProp = annotation.GetType().GetProperty("Resource");
                     if (targetResourceProp?.GetValue(annotation) is IResource targetResource)
                     {
                         referencedResourceNames.Add(targetResource.Name);
