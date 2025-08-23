@@ -282,6 +282,129 @@ public class BookStoreTests : FusionTestBase
         response.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Fetch_Books_With_Requirements_To_SourceSchema1_Three_Times()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act 1
+        using (var client = GraphQLHttpClient.Create(gateway.CreateClient()))
+        {
+            using var result = await client.PostAsync(
+                """
+                {
+                  books {
+                    nodes {
+                      idAndTitle
+                    }
+                  }
+                }
+                """,
+                new Uri("http://localhost:5000/graphql"));
+
+            // assert 1
+            using var response = await result.ReadAsResultAsync();
+            response.MatchSnapshot();
+        }
+
+        // act 2
+        using (var client = GraphQLHttpClient.Create(gateway.CreateClient()))
+        {
+            using var result = await client.PostAsync(
+                """
+                {
+                  books {
+                    nodes {
+                      idAndTitle
+                    }
+                  }
+                }
+                """,
+                new Uri("http://localhost:5000/graphql"));
+
+            // assert 2
+            using var response = await result.ReadAsResultAsync();
+            response.MatchSnapshot();
+        }
+
+        // act 3
+        using (var client = GraphQLHttpClient.Create(gateway.CreateClient()))
+        {
+            using var result = await client.PostAsync(
+                """
+                {
+                  books {
+                    nodes {
+                      idAndTitle
+                    }
+                  }
+                }
+                """,
+                new Uri("http://localhost:5000/graphql"));
+
+            // assert 3
+            using var response = await result.ReadAsResultAsync();
+            response.MatchSnapshot();
+        }
+    }
+
+    [InlineData(5)]
+    [InlineData(10)]
+    [InlineData(15)]
+    [InlineData(20)]
+    [Theory]
+    public async Task Fetch_Books_With_Requirements_To_SourceSchema1_X_Times(int iterations)
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        for (var i = 0; i < iterations; i++)
+        {
+            // act
+            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+            using var result = await client.PostAsync(
+                """
+                {
+                  books {
+                    nodes {
+                      idAndTitle
+                    }
+                  }
+                }
+                """,
+                new Uri("http://localhost:5000/graphql"));
+
+            // assert
+            using var response = await result.ReadAsResultAsync();
+            response.MatchSnapshot();
+        }
+    }
+
     public static class SourceSchema1
     {
         public record Book(int Id, string Title, Author Author);
