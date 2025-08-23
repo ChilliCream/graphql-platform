@@ -36,9 +36,11 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
+        "id": "6619e54f402f0ec8494bb7dac0a5d1be437fdc77e9370aebd654d01255c2af80",
         "operation": {
           "kind": "Query",
           "document": "{\n  books {\n    nodes {\n      id\n      title\n      author {\n        name\n        id @fusion__requirement\n      }\n    }\n  }\n}",
+          "id": "e1aceb9e9e35ff2ae28cd57aff448023",
           "hash": "e1aceb9e9e35ff2ae28cd57aff448023",
           "shortHash": "e1aceb9e"
         },
@@ -49,6 +51,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_e1aceb9e_1",
+              "type": "Query",
               "document": "query Op_e1aceb9e_1 {\n  books {\n    nodes {\n      id\n      title\n      author {\n        id\n      }\n    }\n  }\n}",
               "hash": "0b2428ea9476f459cc2fec72992880bf55d72e9e7ad5e39616cdd5f7a0668424",
               "shortHash": "0b2428ea"
@@ -63,6 +66,7 @@
             "schema": "B",
             "operation": {
               "name": "Op_e1aceb9e_2",
+              "type": "Query",
               "document": "query Op_e1aceb9e_2(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}",
               "hash": "68b1f4e2f4855a186fe70bbff45a7af35f2672d21506037da6b6108f4e3eb9ce",
               "shortHash": "68b1f4e2"
@@ -75,9 +79,12 @@
             "requirements": [
               {
                 "name": "__fusion_1_id",
+                "type": "Int!",
+                "path": "$.books.nodes.author",
                 "selectionMap": "id"
               }
             ],
+            "forwardedVariables": [],
             "dependencies": [
               1
             ]

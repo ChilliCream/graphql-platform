@@ -2,67 +2,41 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reactive.Disposables;
-using System.Security.Cryptography;
-using System.Text;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Extensions;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed class OperationExecutionNode : ExecutionNode
 {
     private readonly OperationRequirement[] _requirements;
-    private readonly string[] _variables;
+    private readonly string[] _forwardedVariables;
     private readonly string[] _responseNames;
-    private ExecutionNode[] _dependencies = [];
-    private ExecutionNode[] _dependents = [];
-    private int _dependencyCount;
-    private int _dependentCount;
-    private bool _isSealed;
+    private readonly OperationSourceText _operation;
+    private readonly string _schemaName;
+    private readonly SelectionPath _target;
+    private readonly SelectionPath _source;
 
-    public OperationExecutionNode(
+    internal OperationExecutionNode(
         int id,
-        OperationDefinitionNode operation,
+        OperationSourceText operation,
         string schemaName,
         SelectionPath target,
         SelectionPath source,
         OperationRequirement[] requirements,
+        string[] forwardedVariables,
         string[] responseNames)
     {
         Id = id;
-        Operation = operation;
-        SchemaName = schemaName;
-        Target = target;
-        Source = source;
+        _operation = operation;
+        _schemaName = schemaName;
+        _target = target;
+        _source = source;
         _requirements = requirements;
+        _forwardedVariables = forwardedVariables;
         _responseNames = responseNames;
-
-        // We compute the hash of the operation definition when it is set.
-        // This hash can be used within the GraphQL client to identify the operation
-        // and optimize request serialization.
-        var operationBytes = Encoding.UTF8.GetBytes(operation.ToString());
-#if NET9_0_OR_GREATER
-        OperationHash = Convert.ToHexStringLower(SHA256.HashData(operationBytes));
-#else
-        OperationHash = Convert.ToHexString(SHA256.HashData(operationBytes)).ToLowerInvariant();
-#endif
-
-        var variables = new List<string>();
-
-        foreach (var variableDef in operation.VariableDefinitions)
-        {
-            if (requirements.Any(r => r.Key == variableDef.Variable.Name.Value))
-            {
-                continue;
-            }
-
-            variables.Add(variableDef.Variable.Name.Value);
-        }
-
-        _variables = variables.ToArray();
     }
 
     /// <summary>
@@ -71,19 +45,14 @@ public sealed class OperationExecutionNode : ExecutionNode
     public override int Id { get; }
 
     /// <summary>
-    /// Gets the unique identifier of the operation.
+    /// Gets the type of the execution node.
     /// </summary>
-    public string OperationId => OperationHash;
-
-    /// <summary>
-    /// Gets a SHA256 has of the <see cref="Operation"/>.
-    /// </summary>
-    public string OperationHash { get; }
+    public override ExecutionNodeType Type => ExecutionNodeType.Operation;
 
     /// <summary>
     /// Gets the operation definition that this execution node represents.
     /// </summary>
-    public OperationDefinitionNode Operation { get; }
+    public OperationSourceText Operation => _operation;
 
     /// <summary>
     /// Gets the response names of the <see cref="Target"/> selection set that are fulfilled by this operation.
@@ -93,29 +62,18 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// <summary>
     /// Gets the name of the source schema that this operation is executed against.
     /// </summary>
-    public string SchemaName { get; }
+    public string SchemaName => _schemaName;
 
     /// <summary>
     /// Gets the path to the selection set for which this operation fetches data.
     /// </summary>
-    public SelectionPath Target { get; }
+    public SelectionPath Target => _target;
 
     /// <summary>
     /// Gets the path to the local selection set (the selection set within the source schema request)
     /// to extract the data from.
     /// </summary>
-    public SelectionPath Source { get; }
-
-    /// <summary>
-    /// Gets the execution nodes that depend on this operation to be completed
-    /// before they can be executed.
-    /// </summary>
-    public ReadOnlySpan<ExecutionNode> Dependents => _dependents;
-
-    /// <summary>
-    /// Gets the execution nodes that this operation depends on.
-    /// </summary>
-    public override ReadOnlySpan<ExecutionNode> Dependencies => _dependencies;
+    public SelectionPath Source => _source;
 
     /// <summary>
     /// Gets the data requirements that are needed to execute this operation.
@@ -125,41 +83,29 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// <summary>
     /// Gets the variables that are needed to execute this operation.
     /// </summary>
-    public ReadOnlySpan<string> Variables => _variables;
+    public ReadOnlySpan<string> ForwardedVariables => _forwardedVariables;
 
-    public override async Task<ExecutionNodeResult> ExecuteAsync(
+    protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var diagnosticEvents = context.GetDiagnosticEvents();
-        using var scope = diagnosticEvents.ExecuteOperation(context, this);
-        return await ExecuteInternalAsync(context, cancellationToken);
-    }
+        var variables = context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
 
-    private async Task<ExecutionNodeResult> ExecuteInternalAsync(
-        OperationPlanContext context,
-        CancellationToken cancellationToken)
-    {
-        var start = Stopwatch.GetTimestamp();
-        var variables = context.CreateVariableValueSets(Target, Variables, Requirements);
-
-        if (variables.Length == 0 && (Requirements.Length > 0 || Variables.Length > 0))
+        if (variables.Length == 0 && (_requirements.Length > 0 || _forwardedVariables.Length > 0))
         {
-            return new ExecutionNodeResult(
-                Id,
-                Activity.Current,
-                ExecutionStatus.Skipped,
-                Stopwatch.GetElapsedTime(start));
+            return ExecutionStatus.Skipped;
         }
+
+        context.TrackVariableValueSets(this, variables);
 
         var request = new SourceSchemaClientRequest
         {
-            OperationId = OperationId,
-            Operation = Operation,
+            OperationType = _operation.Type,
+            OperationSourceText = _operation.SourceText,
             Variables = variables
         };
 
-        var client = context.GetClient(SchemaName, Operation.Operation);
+        var client = context.GetClient(_schemaName, _operation.Type);
         SourceSchemaClientResponse response;
 
         try
@@ -168,14 +114,8 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
         catch (Exception exception)
         {
-            AddErrors(context, exception, variables, ResponseNames);
-
-            return new ExecutionNodeResult(
-                Id,
-                Activity.Current,
-                ExecutionStatus.Failed,
-                Stopwatch.GetElapsedTime(start),
-                exception);
+            AddErrors(context, exception, variables, _responseNames);
+            return ExecutionStatus.Failed;
         }
 
         var index = 0;
@@ -189,7 +129,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 buffer[index++] = result;
             }
 
-            context.AddPartialResults(Source, buffer.AsSpan(0, index), ResponseNames);
+            context.AddPartialResults(_source, buffer.AsSpan(0, index), _responseNames);
         }
         catch (Exception exception)
         {
@@ -201,14 +141,9 @@ public sealed class OperationExecutionNode : ExecutionNode
                 result?.Dispose();
             }
 
-            AddErrors(context, exception, variables, ResponseNames);
+            AddErrors(context, exception, variables, _responseNames);
 
-            return new ExecutionNodeResult(
-                Id,
-                Activity.Current,
-                ExecutionStatus.Failed,
-                Stopwatch.GetElapsedTime(start),
-                exception);
+            return ExecutionStatus.Failed;
         }
         finally
         {
@@ -216,27 +151,28 @@ public sealed class OperationExecutionNode : ExecutionNode
             ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
         }
 
-        return new ExecutionNodeResult(
-            Id,
-            Activity.Current,
-            ExecutionStatus.Success,
-            Stopwatch.GetElapsedTime(start));
+        return ExecutionStatus.Success;
     }
+
+    protected override IDisposable CreateScope(OperationPlanContext context)
+        => context.GetDiagnosticEvents().ExecuteOperation(context, this);
 
     internal async Task<SubscriptionResult> SubscribeAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var variables = context.CreateVariableValueSets(Target, Variables, Requirements);
+        var variables = context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
+
+        context.TrackVariableValueSets(this, variables);
 
         var request = new SourceSchemaClientRequest
         {
-            OperationId = OperationId,
-            Operation = Operation,
+            OperationType = _operation.Type,
+            OperationSourceText = _operation.SourceText,
             Variables = variables
         };
 
-        var client = context.GetClient(SchemaName, Operation.Operation);
+        var client = context.GetClient(SchemaName, _operation.Type);
 
         try
         {
@@ -253,84 +189,10 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
         catch (Exception exception)
         {
-            AddErrors(context, exception, variables, ResponseNames);
+            AddErrors(context, exception, variables, _responseNames);
 
             return SubscriptionResult.Failed();
         }
-    }
-
-    internal void AddDependency(ExecutionNode node)
-    {
-        if (_isSealed)
-        {
-            throw new InvalidOperationException("The operation execution node is already sealed.");
-        }
-
-        ArgumentNullException.ThrowIfNull(node);
-
-        if (node.Equals(this))
-        {
-            throw new InvalidOperationException("An operation cannot depend on itself.");
-        }
-
-        if (_dependencies.Length == 0)
-        {
-            _dependencies = new ExecutionNode[4];
-        }
-
-        if (_dependencyCount == _dependencies.Length)
-        {
-            Array.Resize(ref _dependencies, _dependencyCount * 2);
-        }
-
-        _dependencies[_dependencyCount++] = node;
-    }
-
-    internal void AddDependent(ExecutionNode node)
-    {
-        if (_isSealed)
-        {
-            throw new InvalidOperationException("The operation execution node is already sealed.");
-        }
-
-        ArgumentNullException.ThrowIfNull(node);
-
-        if (node.Equals(this))
-        {
-            throw new InvalidOperationException("An operation cannot depend on itself.");
-        }
-
-        if (_dependents.Length == 0)
-        {
-            _dependents = new ExecutionNode[4];
-        }
-
-        if (_dependentCount == _dependents.Length)
-        {
-            Array.Resize(ref _dependents, _dependentCount * 2);
-        }
-
-        _dependents[_dependentCount++] = node;
-    }
-
-    protected internal override void Seal()
-    {
-        if (_isSealed)
-        {
-            throw new InvalidOperationException("The operation execution node is already sealed.");
-        }
-
-        if (_dependencies.Length > _dependencyCount)
-        {
-            Array.Resize(ref _dependencies, _dependencyCount);
-        }
-
-        if (_dependents.Length > _dependentCount)
-        {
-            Array.Resize(ref _dependents, _dependentCount);
-        }
-
-        _isSealed = true;
     }
 
     private static void AddErrors(
@@ -452,7 +314,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 if (hasResult)
                 {
                     _resultBuffer[0] = _resultEnumerator.Current;
-                    _context.AddPartialResults(_node.Source, _resultBuffer, _node.ResponseNames);
+                    _context.AddPartialResults(_node._source, _resultBuffer, _node._responseNames);
                 }
             }
             catch (Exception exception)
@@ -466,11 +328,12 @@ public sealed class OperationExecutionNode : ExecutionNode
                     scope ?? Disposable.Empty,
                     start ?? Stopwatch.GetTimestamp(),
                     Stopwatch.GetTimestamp(),
-                    Exception: exception);
+                    Exception: exception,
+                    VariableValueSets: _context.GetVariableValueSets(_node));
 
                 var error = ErrorBuilder.FromException(exception).Build();
 
-                _context.AddErrors(error, _node.ResponseNames, Path.Root);
+                _context.AddErrors(error, _node._responseNames, Path.Root);
 
                 return true;
             }
@@ -480,10 +343,12 @@ public sealed class OperationExecutionNode : ExecutionNode
                 Current = new EventMessageResult(
                     _node.Id,
                     Activity.Current,
-                    ExecutionStatus.Failed,
+                    ExecutionStatus.Success,
                     scope,
                     start.Value,
-                    Stopwatch.GetTimestamp());
+                    Stopwatch.GetTimestamp(),
+                    Exception: null,
+                    VariableValueSets: _context.GetVariableValueSets(_node));
                 return true;
             }
 

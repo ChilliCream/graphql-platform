@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
-using HotChocolate.Caching.Memory;
 using HotChocolate.Language;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
@@ -11,21 +10,17 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 {
     private readonly GraphQLHttpClient _client;
     private readonly SourceSchemaHttpClientConfiguration _configuration;
-    private readonly Cache<string> _operationStringCache;
     private bool _disposed;
 
     public SourceSchemaHttpClient(
         GraphQLHttpClient client,
-        SourceSchemaHttpClientConfiguration configuration,
-        Cache<string> operationStringCache)
+        SourceSchemaHttpClientConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(client);
         ArgumentNullException.ThrowIfNull(configuration);
-        ArgumentNullException.ThrowIfNull(operationStringCache);
 
         _client = client;
         _configuration = configuration;
-        _operationStringCache = operationStringCache;
     }
 
     public async ValueTask<SourceSchemaClientResponse> ExecuteAsync(
@@ -52,34 +47,28 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         };
 
         var httpResponse = await _client.SendAsync(httpRequest, cancellationToken);
-        return new Response(request.Operation.Operation, httpResponse, request.Variables);
+        return new Response(request.OperationType, httpResponse, request.Variables);
     }
 
     private GraphQLHttpRequest CreateHttpRequest(
         SourceSchemaClientRequest originalRequest)
     {
-        var operationSourceText =
-            _operationStringCache.GetOrCreate(
-                originalRequest.OperationId,
-                static (_, o) => o.ToString(),
-                originalRequest.Operation);
-
         switch (originalRequest.Variables.Length)
         {
             case 0:
                 return new GraphQLHttpRequest(
-                    CreateSingleRequest(operationSourceText));
+                    CreateSingleRequest(originalRequest.OperationSourceText));
 
             case 1:
                 return new GraphQLHttpRequest(
                     CreateSingleRequest(
-                        operationSourceText,
+                        originalRequest.OperationSourceText,
                         originalRequest.Variables[0].Values));
 
             default:
                 return new GraphQLHttpRequest(
                     CreateBatchRequest(
-                        operationSourceText,
+                        originalRequest.OperationSourceText,
                         originalRequest));
         }
     }

@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.ModelContextProtocol.Directives;
 
@@ -14,14 +13,5 @@ internal static class OperationDefinitionNodeExtensions
         return mcpToolDirectiveNode is null
             ? null
             : McpToolDirectiveParser.Parse(mcpToolDirectiveNode);
-    }
-
-    public static bool TryGetMcpToolDirective(
-        this OperationDefinitionNode operationNode,
-        [NotNullWhen(true)] out McpToolDirective? mcpToolDirective)
-    {
-        mcpToolDirective = operationNode.GetMcpToolDirective();
-
-        return mcpToolDirective is not null;
     }
 }

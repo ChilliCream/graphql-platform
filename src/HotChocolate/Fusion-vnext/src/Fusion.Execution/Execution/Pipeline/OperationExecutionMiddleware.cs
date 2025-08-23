@@ -46,7 +46,11 @@ internal sealed class OperationExecutionMiddleware
 
                 for (var i = 0; i < variableValues.Length; i++)
                 {
-                    tasks[i] = _planExecutor.ExecuteAsync(context, variableValues[i], operationPlan, cancellationToken);
+                    tasks[i] = _planExecutor.ExecuteAsync(
+                        context,
+                        variableValues[i],
+                        operationPlan,
+                        cancellationToken);
                 }
 
                 var results = await Task.WhenAll(tasks);
@@ -54,7 +58,11 @@ internal sealed class OperationExecutionMiddleware
             }
             else
             {
-                context.Result = await _planExecutor.ExecuteAsync(context, context.VariableValues[0], operationPlan, cancellationToken);
+                context.Result = await _planExecutor.ExecuteAsync(
+                    context,
+                    context.VariableValues[0],
+                    operationPlan,
+                    cancellationToken);
             }
         }
 

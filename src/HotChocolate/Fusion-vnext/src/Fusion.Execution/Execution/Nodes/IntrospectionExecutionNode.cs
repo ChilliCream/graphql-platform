@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using HotChocolate.Fusion.Execution.Extensions;
 using HotChocolate.Types;
 
@@ -25,23 +24,14 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
     public override int Id { get; }
 
+    public override ExecutionNodeType Type => ExecutionNodeType.Introspection;
+
     public ReadOnlySpan<Selection> Selections => _selections;
 
-    public override ReadOnlySpan<ExecutionNode> Dependencies => default;
-
-    public override Task<ExecutionNodeResult> ExecuteAsync(
+    protected override ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var diagnosticEvents = context.GetDiagnosticEvents();
-        using var scope = diagnosticEvents.ExecuteIntrospection(context, this);
-        return Task.FromResult(ExecuteInternalAsync(context));
-    }
-
-    private ExecutionNodeResult ExecuteInternalAsync(
-        OperationPlanContext context)
-    {
-        var start = Stopwatch.GetTimestamp();
         var resultPool = context.ResultPool;
         var backlog = new Stack<(object? Parent, Selection Selection, FieldResult Result)>();
         var root = context.ResultPool.RentObjectResult();
@@ -63,12 +53,11 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         ExecuteSelections(context, backlog);
         context.AddPartialResults(root, _selections);
 
-        return new ExecutionNodeResult(
-            Id,
-            Activity.Current,
-            ExecutionStatus.Success,
-            Stopwatch.GetElapsedTime(start));
+        return new ValueTask<ExecutionStatus>(ExecutionStatus.Success);
     }
+
+    protected override IDisposable CreateScope(OperationPlanContext context)
+        => context.GetDiagnosticEvents().ExecuteIntrospection(context, this);
 
     private static void ExecuteSelections(
         OperationPlanContext context,
@@ -142,9 +131,5 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                 }
             }
         }
-    }
-
-    protected internal override void Seal()
-    {
     }
 }

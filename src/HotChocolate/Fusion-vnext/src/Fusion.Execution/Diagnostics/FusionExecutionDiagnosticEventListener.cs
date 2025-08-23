@@ -60,6 +60,10 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     /// <inheritdoc />
     public virtual void DocumentNotFoundInStorage(RequestContext context, OperationDocumentId documentId) { }
 
+    /// <inheritdoc />
+    public virtual IDisposable PlanOperation(RequestContext context)
+        => EmptyScope;
+
     public virtual IDisposable ExecuteOperation(OperationPlanContext context, OperationExecutionNode node)
         => EmptyScope;
 

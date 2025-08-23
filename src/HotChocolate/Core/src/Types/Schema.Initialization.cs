@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using System.Collections.Immutable;
+using System.Text.RegularExpressions;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -13,6 +14,9 @@ public partial class Schema
     private FrozenDictionary<string, ImmutableArray<ObjectType>> _possibleTypes = null!;
     private Action<ISchemaTypeDescriptor>? _configure;
     private bool _sealed;
+
+    [GeneratedRegex(@"^[A-Za-z_][A-Za-z0-9_-]*$", RegexOptions.Compiled)]
+    private static partial Regex NameValidationRegex();
 
     protected internal Schema()
     {
@@ -35,6 +39,19 @@ public partial class Schema
         context.DescriptorContext.ApplySchemaConfigurations(descriptor);
 
         return descriptor.CreateConfiguration();
+    }
+
+    private protected override string ValidateName(string name)
+    {
+        if (string.IsNullOrEmpty(name) || !NameValidationRegex().IsMatch(name))
+        {
+            throw new ArgumentException(
+                "The schema name must start with a letter or underscore, "
+                + "followed by letters, digits, underscores, or hyphens.",
+                nameof(name));
+        }
+
+        return name;
     }
 
     protected override void OnAfterInitialize(

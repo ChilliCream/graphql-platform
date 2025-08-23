@@ -111,7 +111,8 @@ public abstract class FusionTestBase : IDisposable
 
         var compiler = new OperationCompiler(schema, pool);
         var planner = new OperationPlanner(schema, compiler);
-        return planner.CreatePlan("123", "123", "123", operation);
+        const string id = "123456789101112";
+        return planner.CreatePlan(id, id, id, operation);
     }
 
     protected static void MatchInline(

@@ -139,6 +139,18 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents : IFusionExecutio
         }
     }
 
+    public IDisposable PlanOperation(RequestContext context)
+    {
+        var scopes = new IDisposable[_listeners.Length];
+
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            scopes[i] = _listeners[i].PlanOperation(context);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
     public IDisposable ExecuteOperation(OperationPlanContext context, OperationExecutionNode node)
     {
         var scopes = new IDisposable[_listeners.Length];

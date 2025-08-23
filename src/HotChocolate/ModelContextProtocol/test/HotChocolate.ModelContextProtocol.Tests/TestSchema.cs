@@ -213,10 +213,6 @@ public sealed class TestSchema
         [McpToolAnnotations(OpenWorldHint = false)]
         public ExplicitOpenWorld ExplicitOpenWorldSubfieldQuery() => new();
 
-        // The query field is closed-world, and the subfield is also (implicitly) closed-world.
-        [McpToolAnnotations(OpenWorldHint = false)]
-        public ImplicitClosedWorld ImplicitClosedWorldSubfieldQuery() => new();
-
         // The query field is closed-world, and the subfield is also (explicitly) closed-world.
         [McpToolAnnotations(OpenWorldHint = false)]
         public ExplicitClosedWorld ExplicitClosedWorldSubfieldQuery() => new();

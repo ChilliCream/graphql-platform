@@ -19,7 +19,7 @@ public abstract class ResultData : IResultDataJsonFormatter
     /// <summary>
     /// Gets the index under which this data is stored in the parent result.
     /// </summary>
-    protected internal int ParentIndex { get; private set; }
+    protected internal int ParentIndex { get; private set; } = -1;
 
     /// <summary>
     /// Gets a value indicating if this result data object was invalidated do to an error

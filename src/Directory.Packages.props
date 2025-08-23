@@ -4,11 +4,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="AlterNats.Hosting" Version="1.0.6" />
-    <PackageVersion Include="Aspire.Hosting.AppHost" Version="8.0.0" />
-    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="8.0.0" />
-    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="8.0.0" />
-    <PackageVersion Include="Aspire.Hosting.Redis" Version="8.0.0" />
-    <PackageVersion Include="Aspire.Hosting" Version="8.0.0" />
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.4.1" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="9.4.1" />
+    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="9.4.1" />
+    <PackageVersion Include="Aspire.Hosting.Redis" Version="9.4.1" />
+    <PackageVersion Include="Aspire.Hosting" Version="9.4.1" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.23.0" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net100" Version="1.8.2" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.8.2" />

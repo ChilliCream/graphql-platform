@@ -252,7 +252,7 @@ internal sealed class FetchResultStore : IDisposable
             var current = new List<ObjectResult> { _root };
             var next = new List<ObjectResult>();
 
-            for (var i = selectionSet.Segments.Length - 1; i >= 0; i--)
+            for (var i = 0; i < selectionSet.Segments.Length; i++)
             {
                 var segment = selectionSet.Segments[i];
                 foreach (var result in current)
@@ -431,12 +431,12 @@ internal sealed class FetchResultStore : IDisposable
 
         var current = data;
 
-        for (var i = sourcePath.Segments.Length - 1; i >= 0; i--)
+        for (var i = 0; i < sourcePath.Segments.Length; i++)
         {
             var segment = sourcePath.Segments[i];
             if (current.ValueKind != JsonValueKind.Object || !current.TryGetProperty(segment.Name, out current))
             {
-                return new JsonElement(); // TODO: Is this bad?
+                return default;
             }
         }
 
@@ -452,7 +452,7 @@ internal sealed class FetchResultStore : IDisposable
 
         var current = errors;
 
-        for (var i = sourcePath.Segments.Length - 1; i >= 0; i--)
+        for (var i = 0; i < sourcePath.Segments.Length; i++)
         {
             var segment = sourcePath.Segments[i];
 
