@@ -241,7 +241,7 @@ public class HttpConnection : IHttpConnection
             {
                 case Dictionary<string, object> result:
                     result[currentPath] =
-                        new FileReference(upload.Value.Content, upload.Value.FileName);
+                        new FileReference(upload.Value.Content, upload.Value.FileName, upload.Value.ContentType);
                     break;
 
                 case List<object> array:
@@ -258,7 +258,7 @@ public class HttpConnection : IHttpConnection
                     }
 
                     array[arrayIndex] =
-                        new FileReference(upload.Value.Content, upload.Value.FileName);
+                        new FileReference(upload.Value.Content, upload.Value.FileName, upload.Value.ContentType);
 
                     break;
 
