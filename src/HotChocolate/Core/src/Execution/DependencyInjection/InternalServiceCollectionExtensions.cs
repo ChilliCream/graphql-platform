@@ -243,7 +243,7 @@ internal static class InternalServiceCollectionExtensions
 
             // if work related to the operation context has completed we can
             // reuse the operation context.
-            if (obj.Scheduler.IsCompleted)
+            if (!obj.Scheduler.IsInitialized || obj.Scheduler.IsCompleted)
             {
                 obj.Clean();
                 return true;
