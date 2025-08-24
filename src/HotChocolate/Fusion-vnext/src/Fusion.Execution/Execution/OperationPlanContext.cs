@@ -18,7 +18,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     private readonly ConcurrentDictionary<int, List<ExecutionNode>> _nodesToComplete = new();
     private readonly ConcurrentDictionary<int, ImmutableArray<VariableValues>> _traceDetails = new();
     private readonly FetchResultStore _resultStore;
-    private readonly ExecutionState  _executionState;
+    private readonly ExecutionState _executionState;
     private readonly bool _collectTelemetry;
     private ResultPoolSessionHolder _resultPoolSessionHolder;
     private ISourceSchemaClientScope _clientScope;
@@ -93,8 +93,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     internal ImmutableArray<ExecutionNode> GetDependentsToExecute(ExecutionNode node)
         => _nodesToComplete.TryGetValue(node.Id, out var nodesToComplete)
-            ? [..nodesToComplete]
-            : ImmutableArray<ExecutionNode>.Empty;
+            ? [.. nodesToComplete]
+            : [];
 
     internal void TrackVariableValueSets(ExecutionNode node, ImmutableArray<VariableValues> variableValueSets)
     {

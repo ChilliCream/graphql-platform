@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors.Configurations;
 

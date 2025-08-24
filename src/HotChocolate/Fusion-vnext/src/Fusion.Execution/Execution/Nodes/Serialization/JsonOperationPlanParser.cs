@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Fusion.Language;
-using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
@@ -101,7 +100,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             node.Seal();
         }
 
-        return [..nodeMap.Values.OrderBy(t => t.Id)];
+        return [.. nodeMap.Values.OrderBy(t => t.Id)];
     }
 
     public static (OperationExecutionNode, int[]?) ParseOperationNode(JsonElement nodeElement, int id)

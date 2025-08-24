@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CommandLine.Cloud.Client;
-using ChilliCream.Nitro.CommandLine.Cloud.Results;
 
 namespace ChilliCream.Nitro.CommandLine.Cloud;
 

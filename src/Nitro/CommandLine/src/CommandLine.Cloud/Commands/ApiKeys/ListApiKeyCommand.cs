@@ -84,7 +84,7 @@ internal sealed class ListApiKeyCommand : Command
 
         var endCursor = result.Data?.WorkspaceById?.ApiKeys?.PageInfo.EndCursor;
 
-        var items =  result.Data?.WorkspaceById?.ApiKeys?.Edges?.Select(x =>
+        var items = result.Data?.WorkspaceById?.ApiKeys?.Edges?.Select(x =>
                 ApiKeyDetailPrompt.From(x.Node).ToObject())
             .ToArray() ?? [];
 

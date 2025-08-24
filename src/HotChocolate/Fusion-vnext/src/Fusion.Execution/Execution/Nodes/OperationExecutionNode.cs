@@ -6,7 +6,6 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Extensions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 

@@ -400,7 +400,7 @@ internal sealed class SchemaComposition(
 
         logger.LogDebug("Waiting for service to be ready at {Url}", url);
 
-        for (int i = 0; i < maxRetries; i++)
+        for (var i = 0; i < maxRetries; i++)
         {
             try
             {
