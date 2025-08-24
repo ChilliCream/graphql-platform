@@ -111,9 +111,9 @@ public static class GraphQLResourceBuilderExtensions
 
     internal static IEnumerable<IResourceWithEndpoints> GetGraphQLSchemaResources(
         this DistributedApplicationModel appModel)
-        => appModel.Resources .OfType<IResourceWithEndpoints>().Where(r => r.HasGraphQLSchema());
+        => appModel.Resources.OfType<IResourceWithEndpoints>().Where(r => r.HasGraphQLSchema());
 
     internal static IEnumerable<IResourceWithEndpoints> GetGraphQLCompositionResources(
         this DistributedApplicationModel appModel)
-        => appModel.Resources .OfType<IResourceWithEndpoints>() .Where(r => r.NeedsGraphQLSchemaComposition());
+        => appModel.Resources.OfType<IResourceWithEndpoints>().Where(r => r.NeedsGraphQLSchemaComposition());
 }

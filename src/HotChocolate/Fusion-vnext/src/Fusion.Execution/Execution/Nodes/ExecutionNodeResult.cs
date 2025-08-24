@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
-using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 

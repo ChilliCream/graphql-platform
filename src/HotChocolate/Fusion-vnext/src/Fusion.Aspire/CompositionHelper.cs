@@ -130,7 +130,7 @@ internal static class CompositionHelper
         SourceSchemaConfiguration configuration,
         CancellationToken cancellationToken)
     {
-        await using Stream stream = await configuration.OpenReadSchemaAsync(cancellationToken);
+        await using var stream = await configuration.OpenReadSchemaAsync(cancellationToken);
         using var reader = new StreamReader(stream, Encoding.UTF8);
         return await reader.ReadToEndAsync(cancellationToken);
     }

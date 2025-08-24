@@ -1,6 +1,4 @@
-using HotChocolate.Caching.Memory;
 using HotChocolate.Fusion.Types;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
