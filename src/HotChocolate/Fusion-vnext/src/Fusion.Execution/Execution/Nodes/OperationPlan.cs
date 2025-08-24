@@ -126,7 +126,7 @@ public sealed record OperationPlan
 #if NET9_0_OR_GREATER
         var id = Convert.ToHexStringLower(buffer.WrittenSpan[^32..]);
 #else
-       var id = Convert.ToHexString(buffer.WrittenSpan[^32..]).ToLowerInvariant();
+        var id = Convert.ToHexString(buffer.WrittenSpan[^32..]).ToLowerInvariant();
 #endif
 
         return new OperationPlan(id, operation, rootNodes, allNodes);

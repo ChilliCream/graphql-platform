@@ -74,7 +74,7 @@ internal sealed class OperationPlanExecutor
 
         if (context.CollectTelemetry)
         {
-            context.Traces = [..executionState.Traces];
+            context.Traces = [.. executionState.Traces];
         }
     }
 
@@ -130,7 +130,7 @@ internal sealed class OperationPlanExecutor
 
         if (context.CollectTelemetry)
         {
-            context.Traces = [..executionState.Traces];
+            context.Traces = [.. executionState.Traces];
         }
     }
 

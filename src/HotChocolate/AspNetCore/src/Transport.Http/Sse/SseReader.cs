@@ -155,8 +155,6 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
             return false;
         }
 
-        var commentLine = message[..firstNewline];
-
         // After the ':', it should either be:
         // 1. End of line (just ":\n")
         // 2. A space followed by arbitrary text (": some text\n")

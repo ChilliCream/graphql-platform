@@ -5,7 +5,6 @@ using System.Reactive.Disposables;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Extensions;
-using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
