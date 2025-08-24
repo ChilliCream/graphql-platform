@@ -245,6 +245,97 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         response.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Only_TypeName_Selected_On_Concrete_Type()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddGlobalObjectIdentification()
+                // TODO: Remove once proper support has been implemented in HC
+                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+                .AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddGlobalObjectIdentification()
+                // TODO: Remove once proper support has been implemented in HC
+                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+                .AddQueryType<SourceSchema2.Query>());
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+              # Discussion:1
+              node(id: "RGlzY3Vzc2lvbjox") {
+                ... on Discussion {
+                  __typename
+                }
+              }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task No_By_Id_Lookup_On_Best_Matching_Source_Schema()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema3.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddGlobalObjectIdentification()
+                // TODO: Remove once proper support has been implemented in HC
+                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+                .AddQueryType<SourceSchema1.Query>());
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+              # Discussion:1
+              node(id: "RGlzY3Vzc2lvbjox") {
+                ... on Discussion {
+                  commentCount
+                }
+              }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    // TODO: Add test for all selections point to specific subgraph, but it doesn't have byId resolver
+
     public static class SourceSchema1
     {
         public class Query
@@ -290,6 +381,22 @@ public class GlobalObjectIdentificationTests : FusionTestBase
 
             public string Name => "Product " + Id;
         }
+    }
+
+    public static class SourceSchema3
+    {
+        public class Query
+        {
+            [Lookup]
+            public Discussion? GetDiscussionByName([Is("title")] string title)
+            {
+                var id = int.Parse(title["Discussion ".Length..]);
+
+                return new Discussion(id, title, id * 3);
+            }
+        }
+
+        public record Discussion([property: ID] int Id, string Title, int CommentCount);
     }
 
     private sealed class NodeFieldLookupTypeInterceptor : TypeInterceptor

@@ -66,10 +66,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                         {
                             var field = complexType!.Fields[fieldNode.Name.Value];
 
-                            if (field.IsIntrospectionField
-                                || field is { Name: "node", Type: IInterfaceTypeDefinition { Name: "Node" } })
+                            if (field.IsIntrospectionField)
                             {
-                                // TODO: This is not good
                                 CompleteSelection(fieldNode, null, null, i);
                                 continue;
                             }
@@ -123,7 +121,6 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             unresolvableSelections = null;
         }
 
-        // TODO: Revisit this
         var resolvableSelections2 = resolvableSelections ?? selectionSetNode.Selections;
 
         if (type.NamedType().IsAbstractType())

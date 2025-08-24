@@ -8,202 +8,97 @@ internal sealed class RootSelectionSetPartitioner(FusionSchemaDefinition schema)
 {
     public RootSelectionSetPartitionerResult Partition(RootSelectionSetPartitionerInput input)
     {
-        var context = new Context(input.SelectionSetIndex);
+        var context = new Context();
 
-        var prunedRoot =
-            RewriteRootSelectionSet(
-                type: input.SelectionSet.Type,
-                node: input.SelectionSet.Node,
-                out var nodeFields);
+        var selectionSet = RewriteSelectionSet(input.SelectionSet.Node, context);
 
-        // If nothing but node(...) remained, SelectionSet should be null.
+        if (context.NodeFields is null)
+        {
+            return new RootSelectionSetPartitionerResult(input.SelectionSet, null, input.SelectionSetIndex);
+        }
+
+        var indexBuilder = input.SelectionSetIndex.ToBuilder();
+
         SelectionSet? prunedSelectionSet = null;
-
-        if (prunedRoot?.Selections.Count > 0)
+        if (selectionSet is not null)
         {
-            // Register rewritten node in the index for downstream mappings.
-            context.Register(input.SelectionSet.Node, prunedRoot);
+            indexBuilder.Register(input.SelectionSet.Node, selectionSet);
 
-            var id = context.GetId(prunedRoot);
-            prunedSelectionSet = new SelectionSet(
-                id,
-                prunedRoot,
-                input.SelectionSet.Type,
-                input.SelectionSet.Path);
+            prunedSelectionSet = input.SelectionSet with { Id = indexBuilder.GetId(selectionSet), Node = selectionSet };
         }
 
-        return new RootSelectionSetPartitionerResult(prunedSelectionSet, nodeFields);
+        return new RootSelectionSetPartitionerResult(prunedSelectionSet, context.NodeFields, indexBuilder);
     }
 
-    /// <summary>
-    /// Removes all Query.node(...) fields from the given selection set (including those inside
-    /// inline fragments that wrap the root scope). Preserves structure and directives, and
-    /// drops fragments that become empty. Returns the (possibly) rewritten SelectionSetNode.
-    /// </summary>
-    private SelectionSetNode? RewriteRootSelectionSet(
-        ITypeDefinition type,
-        SelectionSetNode node,
-        out List<FieldNode> nodeFields)
+    private SelectionSetNode? RewriteSelectionSet(SelectionSetNode selectionSet, Context context)
     {
-        nodeFields = new List<FieldNode>();
+        List<ISelectionNode>? selections = null;
 
-        List<ISelectionNode>? kept = null; // null => identical to original so far
-
-        for (var i = 0; i < node.Selections.Count; i++)
+        foreach (var selection in selectionSet.Selections)
         {
-            var sel = node.Selections[i];
-
-            switch (sel)
+            if (selection is FieldNode fieldNode)
             {
-                case FieldNode field:
-                    if (IsQueryNodeField(schema, type, field))
-                    {
-                        // Collect the root-level node field and remove it from the result.
-                        nodeFields.Add(field);
-                        EnsureKeptInitializedUpToOriginal(ref kept, node, i);
-                        continue;
-                    }
-
-                    // Keep non-node fields verbatim (including their nested selection sets).
-                    kept?.Add(field);
-                    break;
-
-                case InlineFragmentNode ifrag:
-                    // Determine fragment scope: either the type condition or the current scope.
-                    var scope = type;
-                    if (ifrag.TypeCondition is not null)
-                    {
-                        scope = schema.Types[ifrag.TypeCondition.Name.Value];
-                    }
-
-                    // Recurse into the fragment selection set (still root scope wrappers).
-                    var rewrittenChild =
-                        RewriteRootSelectionSet(scope, ifrag.SelectionSet, out var childNodeFields);
-
-                    if (childNodeFields.Count > 0)
-                    {
-                        nodeFields.AddRange(childNodeFields);
-                    }
-
-                    // If the fragment became empty, drop it.
-                    if (rewrittenChild is null || rewrittenChild.Selections.Count == 0)
-                    {
-                        EnsureKeptInitializedUpToOriginal(ref kept, node, i);
-                        continue;
-                    }
-
-                    // If anything changed under this fragment, update just its selection set.
-                    if (!ReferenceEquals(rewrittenChild, ifrag.SelectionSet))
-                    {
-                        var newFrag = ifrag.WithSelectionSet(rewrittenChild);
-
-                        EnsureKeptInitializedUpToOriginal(ref kept, node, i);
-                        kept!.Add(newFrag);
-                    }
-                    else
-                    {
-                        kept?.Add(ifrag);
-                    }
-                    break;
-
-                default:
-                    // Fragment spreads (and other selection kinds) at the root are preserved.
-                    kept?.Add(sel);
-                    break;
-            }
-        }
-
-        // If we never changed anything and collected no node fields, return original node.
-        if (kept is null)
-        {
-            return nodeFields.Count == 0 ? node : new SelectionSetNode(System.Array.Empty<ISelectionNode>());
-        }
-
-        // Return the pruned selection set (may still be empty; caller decides whether to build SelectionSet)
-        return new SelectionSetNode(kept);
-    }
-
-    private static bool IsQueryNodeField(
-        FusionSchemaDefinition compositeSchema,
-        ITypeDefinition scopeType,
-        FieldNode fieldNode)
-    {
-        // We only remove Query.node(...) that returns the Node interface.
-        if (!ReferenceEquals(scopeType, compositeSchema.QueryType))
-        {
-            return false;
-        }
-
-        if (fieldNode.Name.Value != "node")
-        {
-            return false;
-        }
-
-        if (scopeType is not FusionComplexTypeDefinition complex)
-        {
-            return true; // fail-open: treat "node" as the target at query scope
-        }
-
-        // Validate the field definition when available.
-        var fieldDef = complex.Fields[fieldNode.Name.Value];
-        var fieldTypeDef = fieldDef.Type.AsTypeDefinition();
-        return fieldTypeDef is IInterfaceTypeDefinition iface && iface.Name == "Node";
-    }
-
-    private static void EnsureKeptInitializedUpToOriginal(
-        ref List<ISelectionNode>? kept,
-        SelectionSetNode original,
-        int upToIndexExclusive)
-    {
-        if (kept is null)
-        {
-            kept = new List<ISelectionNode>(original.Selections.Count);
-            for (var j = 0; j < upToIndexExclusive; j++)
-            {
-                kept.Add(original.Selections[j]);
-            }
-        }
-    }
-
-    private sealed class Context
-    {
-        public Context(ISelectionSetIndex selectionSetIndex)
-        {
-            SelectionSetIndex = selectionSetIndex;
-        }
-
-        public ISelectionSetIndex SelectionSetIndex { get; private set; }
-
-        [field: System.Diagnostics.CodeAnalysis.AllowNull, System.Diagnostics.CodeAnalysis.MaybeNull]
-        public SelectionSetIndexBuilder SelectionSetIndexBuilder
-        {
-            get
-            {
-                if (field is null)
+                if (schema.QueryType.Fields.TryGetField(fieldNode.Name.Value, out var field)
+                    && field is { Name: "node", Type: IInterfaceTypeDefinition { Name: "Node" } })
                 {
-                    field = SelectionSetIndex.ToBuilder();
-                    SelectionSetIndex = field;
+                    var directives = new List<DirectiveNode>(fieldNode.Directives);
+                    foreach (var fragment in context.FragmentPath)
+                    {
+                        directives.AddRange(fragment.Directives);
+                    }
+
+                    context.NodeFields ??= [];
+                    context.NodeFields.Add(fieldNode.WithDirectives(directives));
                 }
-                return field;
+                else
+                {
+                    selections ??= [];
+                    selections.Add(selection);
+                }
+            }
+            else if (selection is InlineFragmentNode inlineFragmentNode)
+            {
+                var hasDirectives = inlineFragmentNode.Directives.Any();
+
+                if (hasDirectives)
+                {
+                    context.FragmentPath.Push(inlineFragmentNode);
+                }
+
+                var fragmentSelectionSet = RewriteSelectionSet(
+                    inlineFragmentNode.SelectionSet,
+                    context);
+
+                if (hasDirectives)
+                {
+                    context.FragmentPath.Pop();
+                }
+
+                if (fragmentSelectionSet is not null)
+                {
+                    selections ??= [];
+                    selections.Add(inlineFragmentNode.WithSelectionSet(fragmentSelectionSet));
+                }
             }
         }
 
-        public uint GetId(SelectionSetNode selectionSetNode)
-            => SelectionSetIndex.GetId(selectionSetNode);
-
-        public void Register(SelectionSetNode original, SelectionSetNode branch)
+        if (selections is null || selections.Count < 1)
         {
-            if (ReferenceEquals(original, branch))
-            {
-                return;
-            }
-
-            if (SelectionSetIndex.IsRegistered(branch))
-            {
-                return;
-            }
-
-            SelectionSetIndexBuilder.Register(original, branch);
+            return null;
         }
+
+        return new SelectionSetNode(selections);
+    }
+
+    private class Context
+    {
+        /// <summary>
+        /// Gets the fragment path.
+        /// This is pushed to whenever we enter an inline fragment with directives,
+        /// in order to preserve those.
+        /// </summary>
+        public Stack<InlineFragmentNode> FragmentPath { get; } = new();
+
+        public List<FieldNode>? NodeFields { get; set; }
     }
 }

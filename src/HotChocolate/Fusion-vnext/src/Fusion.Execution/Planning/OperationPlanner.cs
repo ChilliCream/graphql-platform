@@ -10,9 +10,6 @@ using NameNode = HotChocolate.Language.NameNode;
 
 namespace HotChocolate.Fusion.Planning;
 
-// TODO: Insert __typename for all abstract fields and lookups
-// TODO: Insert __typename for empty shared selections
-
 public sealed partial class OperationPlanner
 {
     private readonly FusionSchemaDefinition _schema;
@@ -54,7 +51,7 @@ public sealed partial class OperationPlanner
         var (node, selectionSet) = operationDefinition.Operation switch
         {
             OperationType.Query => CreateQueryPlanBase(operationDefinition, shortHash, index),
-            OperationType.Mutation => CreateMutationPlanBase(operationDefinition, shortHash, ref index),
+            OperationType.Mutation => CreateMutationPlanBase(operationDefinition, shortHash, index),
             OperationType.Subscription => CreateSubscriptionPlanBase(operationDefinition, shortHash, index),
             _ => throw new ArgumentOutOfRangeException()
         };
@@ -113,6 +110,7 @@ public sealed partial class OperationPlanner
         string shortHash,
         ISelectionSetIndex index)
     {
+        var indexBuilder = index.ToBuilder();
         var selectionSet = new SelectionSet(
             index.GetId(operationDefinition.SelectionSet),
             operationDefinition.SelectionSet,
@@ -126,14 +124,17 @@ public sealed partial class OperationPlanner
 
         if (result.SelectionSet is not null)
         {
-            var workItem = OperationWorkItem.CreateRoot(selectionSet);
+            var workItem = OperationWorkItem.CreateRoot(result.SelectionSet);
             backlog = backlog.Push(workItem);
         }
 
-        foreach (var nodeField in result.NodeFields)
+        if (result.NodeFields is not null)
         {
-            var nodeWorkItem = new NodeWorkItem(nodeField);
-            backlog = backlog.Push(nodeWorkItem);
+            foreach (var nodeField in result.NodeFields)
+            {
+                var nodeWorkItem = new NodeWorkItem(nodeField);
+                backlog = backlog.Push(nodeWorkItem);
+            }
         }
 
         var node = new PlanNode
@@ -142,7 +143,7 @@ public sealed partial class OperationPlanner
             InternalOperationDefinition = operationDefinition,
             ShortHash = shortHash,
             SchemaName = "None",
-            SelectionSetIndex = index,
+            SelectionSetIndex = indexBuilder,
             Backlog = backlog,
             PathCost = 1,
             BacklogCost = backlog.Count()
@@ -154,7 +155,7 @@ public sealed partial class OperationPlanner
     private (PlanNode Node, SelectionSet First) CreateMutationPlanBase(
         OperationDefinitionNode operationDefinition,
         string shortHash,
-        ref ISelectionSetIndex index)
+        ISelectionSetIndex index)
     {
         // todo: we need to do this with a rewriter as in this case we are not
         // dealing with fragments.
@@ -1314,15 +1315,7 @@ public sealed partial class OperationPlanner
         var context = new Stack<ITypeDefinition>();
         context.Push(rootType);
 
-        try
-        {
-            return (OperationDefinitionNode)rewriter.Rewrite(operation, context)!;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
+        return (OperationDefinitionNode)rewriter.Rewrite(operation, context)!;
     }
 }
 
@@ -1488,33 +1481,54 @@ file static class Extensions
     {
         var backlog = planNodeTemplate.Backlog.Pop();
         var type = workItem.SelectionSet.Type;
+        var hasEnqueuedLookup = false;
 
-        // TODO: What happens if we only select __typename on a concrete type?
-        // TODO: What happens if the matching schema does not have a byId lookup?
         foreach (var (schemaName, resolutionCost) in compositeSchema.GetPossibleSchemas(workItem.SelectionSet))
         {
-            var byIdLookups = compositeSchema.GetPossibleLookups(type, schemaName)
-                .Where(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }])
-                .ToArray();
-
-            if (byIdLookups.Length < 1)
-            {
-                throw new NotImplementedException("WIP: Expected to find a lookup");
-            }
-
             // If we have multiple by id lookups in a single schema,
             // we try to choose one that returns the desired type directly
             // and not an abstract type.
-            var lookup = byIdLookups.FirstOrDefault(byIdLookup => byIdLookup.FieldType == type)
-                ?? byIdLookups[0];
+            var byIdLookup = compositeSchema.GetPossibleLookups(type, schemaName)
+                .Where(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }])
+                .OrderByDescending(l => l.FieldType == type)
+                .FirstOrDefault();
+
+            if (byIdLookup is null)
+            {
+                continue;
+            }
 
             possiblePlans.Enqueue(
                 planNodeTemplate with
                 {
                     SchemaName = schemaName,
-                    PathCost = planNodeTemplate.PathCost + 1, // TODO: Is this correct?
+                    PathCost = planNodeTemplate.PathCost + 1,
                     BacklogCost = planNodeTemplate.BacklogCost + resolutionCost + 1,
-                    Backlog = backlog.Push(workItem with { Lookup = lookup })
+                    Backlog = backlog.Push(workItem with { Lookup = byIdLookup })
+                });
+
+            hasEnqueuedLookup = true;
+        }
+
+        // It could be that we didn't find a suitable source schema for the requested selections
+        // that also has a by id resolver.
+        // In this case we enqueue the best matching by id lookup of any source schema.
+        if (!hasEnqueuedLookup)
+        {
+            var byIdLookup = compositeSchema.GetPossibleLookups(type)
+                .Where(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }])
+                .OrderByDescending(l => l.FieldType == type)
+                .FirstOrDefault()
+                    ?? throw new InvalidOperationException(
+                        $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
+
+            possiblePlans.Enqueue(
+                planNodeTemplate with
+                {
+                    SchemaName = byIdLookup.SchemaName,
+                    PathCost = planNodeTemplate.PathCost + 1,
+                    BacklogCost = planNodeTemplate.BacklogCost + 1,
+                    Backlog = backlog.Push(workItem with { Lookup = byIdLookup })
                 });
         }
     }
