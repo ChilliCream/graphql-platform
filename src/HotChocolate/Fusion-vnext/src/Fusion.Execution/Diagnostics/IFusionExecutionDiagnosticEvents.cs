@@ -10,15 +10,16 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
     IDisposable PlanOperation(
         RequestContext context);
 
-    IDisposable ExecuteOperation(
+    IDisposable ExecuteOperationNode(
         OperationPlanContext context,
         OperationExecutionNode node);
 
-    IDisposable ExecuteSubscriptionEvent(
+    IDisposable ExecuteSubscriptionNode(
         OperationPlanContext context,
-        OperationExecutionNode node);
+        OperationExecutionNode node,
+        ulong subscriptionId);
 
-    IDisposable ExecuteIntrospection(
+    IDisposable ExecuteIntrospectionNode(
         OperationPlanContext context,
         IntrospectionExecutionNode node);
 }

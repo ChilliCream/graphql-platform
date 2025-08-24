@@ -2,10 +2,11 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reactive.Disposables;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Extensions;
-using HotChocolate.Fusion.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -155,7 +156,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     }
 
     protected override IDisposable CreateScope(OperationPlanContext context)
-        => context.GetDiagnosticEvents().ExecuteOperation(context, this);
+        => context.GetDiagnosticEvents().ExecuteOperationNode(context, this);
 
     internal async Task<SubscriptionResult> SubscribeAsync(
         OperationPlanContext context,
@@ -264,12 +265,14 @@ public sealed class OperationExecutionNode : ExecutionNode
 
     private sealed class SubscriptionEnumerator : IAsyncEnumerator<EventMessageResult>
     {
+        private readonly ulong _subscriptionId;
         private readonly OperationPlanContext _context;
         private readonly OperationExecutionNode _node;
         private readonly SourceSchemaClientResponse _response;
         private readonly IAsyncEnumerator<SourceSchemaResult> _resultEnumerator;
         private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
         private readonly CancellationToken _cancellationToken;
+        private readonly IDisposable _subscriptionScope;
         private readonly SourceSchemaResult[] _resultBuffer = new SourceSchemaResult[1];
         private bool _completed;
         private bool _disposed;
@@ -282,12 +285,14 @@ public sealed class OperationExecutionNode : ExecutionNode
             IFusionExecutionDiagnosticEvents diagnosticEvents,
             CancellationToken cancellationToken)
         {
+            _subscriptionId = SubscriptionId.Next();
             _context = context;
             _node = node;
             _response = response;
             _resultEnumerator = resultEnumerator;
             _diagnosticEvents = diagnosticEvents;
             _cancellationToken = cancellationToken;
+            _subscriptionScope = diagnosticEvents.ExecuteSubscription(context.RequestContext, _subscriptionId);
         }
 
         public EventMessageResult Current { get; private set; } = null!;
@@ -308,7 +313,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             {
                 hasResult = await _resultEnumerator.MoveNextAsync();
 
-                scope = _diagnosticEvents.ExecuteSubscriptionEvent(_context, _node);
+                scope = _diagnosticEvents.ExecuteSubscriptionNode(_context, _node, _subscriptionId);
                 start = Stopwatch.GetTimestamp();
 
                 if (hasResult)
@@ -334,6 +339,12 @@ public sealed class OperationExecutionNode : ExecutionNode
                 var error = ErrorBuilder.FromException(exception).Build();
 
                 _context.AddErrors(error, _node._responseNames, Path.Root);
+
+                _diagnosticEvents.ExecutionError(
+                    _context.RequestContext,
+                    kind: ErrorKind.SubscriptionEventError,
+                    [error],
+                    state: _subscriptionId);
 
                 return true;
             }
@@ -367,6 +378,14 @@ public sealed class OperationExecutionNode : ExecutionNode
             _disposed = true;
             _response.Dispose();
             await _resultEnumerator.DisposeAsync();
+            _subscriptionScope.Dispose();
         }
+    }
+
+    private static class SubscriptionId
+    {
+        private static ulong s_subscriptionId;
+
+        public static ulong Next() => Interlocked.Increment(ref s_subscriptionId);
     }
 }
