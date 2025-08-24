@@ -3,10 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
 
-public sealed record NodeFieldWorkItem(FieldNode NodeField) : WorkItem;
-
-// TODO: Move
-public sealed record NodeFieldLookupWorkItem(
+public sealed record NodeLookupWorkItem(
     Lookup? Lookup,
     string ResponseName,
     IValueNode IdArgumentValue,

@@ -16,10 +16,10 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "b697f78b3c1b470da0ca813bf7f2e08ddde185f2106cd49456a28d86c766c8b9",
+        "id": "840fe3289a37b285899e320c2c156deaa6114c5acc76e13def1f4c18355bce76",
         "operation": {
           "kind": "Query",
-          "document": "{\n  node(id: \"VXNlcjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n    }\n    __typename @fusion__requirement\n  }\n}",
+          "document": "{\n  node(id: \"VXNlcjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n    }\n  }\n}",
           "id": "bcaa1f52d0d50c590e99abdf3c862694",
           "hash": "bcaa1f52d0d50c590e99abdf3c862694",
           "shortHash": "bcaa1f52"
@@ -39,11 +39,11 @@
             "id": 2,
             "type": "Operation",
             "operation": {
-              "name": "Op_bcaa1f52_1",
+              "name": "Op_bcaa1f52_2",
               "type": "Query",
-              "document": "query Op_bcaa1f52_1 {\n  node(id: \"VXNlcjox\") {\n    __typename\n  }\n}",
-              "hash": "477036b747cecea04d97386d62a524a6580a8e7fe2cfa73e0e54836972daadef",
-              "shortHash": "477036b7"
+              "document": "query Op_bcaa1f52_2 {\n  node(id: \"VXNlcjox\") {\n    __typename\n  }\n}",
+              "hash": "21189cb0c8b027d5aa7fd212356a519463917cbdbcb47fd4588f5e09ad6a21bd",
+              "shortHash": "21189cb0"
             },
             "responseNames": [
               "node"

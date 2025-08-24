@@ -8,10 +8,10 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "ce0794270800b5f439816a200394375731adaf031aad1fe7a3a83513985b3ffc",
+        "id": "28ec9a0d9d4c7cc2ca3f8010abfe3c52340edd0d62d0b6f045808715394eec29",
         "operation": {
           "kind": "Query",
-          "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n      commentCount\n    }\n    __typename @fusion__requirement\n    id @fusion__requirement\n  }\n}",
+          "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n      commentCount\n    }\n    id @fusion__requirement\n  }\n}",
           "id": "e567807ec1ad5128cfb566fad1645abc",
           "hash": "e567807ec1ad5128cfb566fad1645abc",
           "shortHash": "e567807e"
@@ -31,11 +31,11 @@
             "id": 2,
             "type": "Operation",
             "operation": {
-              "name": "Op_e567807e_1",
+              "name": "Op_e567807e_2",
               "type": "Query",
-              "document": "query Op_e567807e_1 {\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n  }\n}",
-              "hash": "bb9d7d80330fdb881c80597441e9b152cb941d3c1d3dab37f01f4118b7c597c2",
-              "shortHash": "bb9d7d80"
+              "document": "query Op_e567807e_2 {\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n  }\n}",
+              "hash": "4a2a025bfea51266b719e0e2d21a7f7f6a811a6fe9044ffdb3ba2b0daf1074ae",
+              "shortHash": "4a2a025b"
             },
             "responseNames": [
               "node"

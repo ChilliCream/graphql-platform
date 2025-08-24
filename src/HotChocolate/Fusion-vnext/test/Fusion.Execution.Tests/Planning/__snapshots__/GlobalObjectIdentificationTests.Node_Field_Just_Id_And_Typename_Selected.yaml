@@ -21,7 +21,7 @@ nodes:
   - id: 2
     type: Operation
     operation: >-
-      query testQuery_123456789101112_1(
+      query testQuery_123456789101112_2(
         $id: ID!
       ) {
         node(id: $id) {

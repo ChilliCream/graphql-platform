@@ -10,7 +10,6 @@ operation:
             name
             commentCount
           }
-          __typename @fusion__requirement
           id @fusion__requirement
         }
         b: node(id: $id2) {
@@ -19,7 +18,6 @@ operation:
           ... on Discussion {
             name
           }
-          __typename @fusion__requirement
         }
       }
     name: testQuery
@@ -35,7 +33,7 @@ nodes:
   - id: 2
     type: Operation
     operation: >-
-      query testQuery_123456789101112_1(
+      query testQuery_123456789101112_2(
         $id2: ID!
       ) {
         b: node(id: $id2) {
@@ -55,6 +53,7 @@ nodes:
         b: node(id: $id2) {
           __typename
           ... on Discussion {
+            __typename
             id
             name
           }
@@ -72,7 +71,7 @@ nodes:
   - id: 5
     type: Operation
     operation: >-
-      query testQuery_123456789101112_4(
+      query testQuery_123456789101112_5(
         $id1: ID!
       ) {
         a: node(id: $id1) {

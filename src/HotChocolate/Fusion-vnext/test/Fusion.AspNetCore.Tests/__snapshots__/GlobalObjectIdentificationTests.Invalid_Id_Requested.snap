@@ -16,10 +16,10 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "19eb9291a5ee023d5ca270533ac2c5b324b58fede3a73449a79017426acbd98c",
+        "id": "b73399d02118a245a2176b8652d9ae064e57b144e77f4003fd9e6d5599f8a273",
         "operation": {
           "kind": "Query",
-          "document": "{\n  node(id: \"invalid\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n    }\n    __typename @fusion__requirement\n  }\n}",
+          "document": "{\n  node(id: \"invalid\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n    }\n  }\n}",
           "id": "3e8751806ea5a1885c3b2b109d808fbf",
           "hash": "3e8751806ea5a1885c3b2b109d808fbf",
           "shortHash": "3e875180"
@@ -39,11 +39,11 @@
             "id": 2,
             "type": "Operation",
             "operation": {
-              "name": "Op_3e875180_1",
+              "name": "Op_3e875180_2",
               "type": "Query",
-              "document": "query Op_3e875180_1 {\n  node(id: \"invalid\") {\n    __typename\n  }\n}",
-              "hash": "bbb457ee73013d4de13954394022f19e05d2558c66a2097f998df53a56cc96eb",
-              "shortHash": "bbb457ee"
+              "document": "query Op_3e875180_2 {\n  node(id: \"invalid\") {\n    __typename\n  }\n}",
+              "hash": "9541936e62ad2c6ea10e5973c6d13aca7578d71d89fa99abfab25b7dae75932d",
+              "shortHash": "9541936e"
             },
             "responseNames": [
               "node"
