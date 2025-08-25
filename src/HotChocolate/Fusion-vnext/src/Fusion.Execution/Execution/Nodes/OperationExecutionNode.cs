@@ -2,10 +2,8 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reactive.Disposables;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
-using HotChocolate.Fusion.Execution.Extensions;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -145,7 +143,6 @@ public sealed class OperationExecutionNode : ExecutionNode
             }
 
             AddErrors(context, exception, variables, _responseNames);
-
             return ExecutionStatus.Failed;
         }
         finally
@@ -158,7 +155,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     }
 
     protected override IDisposable CreateScope(OperationPlanContext context)
-        => context.GetDiagnosticEvents().ExecuteOperationNode(context, this);
+        => context.DiagnosticEvents.ExecuteOperationNode(context, this);
 
     internal async Task<SubscriptionResult> SubscribeAsync(
         OperationPlanContext context,
@@ -188,7 +185,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 this,
                 response,
                 response.ReadAsResultStreamAsync(cancellationToken),
-                context.GetDiagnosticEvents());
+                context.DiagnosticEvents);
 
             return SubscriptionResult.Success(stream);
         }
@@ -341,15 +338,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                     VariableValueSets: _context.GetVariableValueSets(_node));
 
                 var error = ErrorBuilder.FromException(exception).Build();
-
-                _context.AddErrors(error, _node._responseNames, Path.Root);
-
-                _diagnosticEvents.ExecutionError(
-                    _context.RequestContext,
-                    kind: ErrorKind.SubscriptionEventError,
-                    [error],
-                    state: _subscriptionId);
-
+                _context.AddSubscriptionError(error, _node._responseNames, _subscriptionId);
                 return true;
             }
 

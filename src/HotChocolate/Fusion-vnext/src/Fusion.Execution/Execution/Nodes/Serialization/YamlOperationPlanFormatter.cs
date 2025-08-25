@@ -29,7 +29,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
                     WriteIntrospectionNode(introspectionNode, nodeTrace, writer);
                     break;
 
-                case NodeExecutionNode nodeExecutionNode:
+                case NodeFieldExecutionNode nodeExecutionNode:
                     WriteNodeNode(nodeExecutionNode, nodeTrace, writer);
                     break;
             }
@@ -196,25 +196,25 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.Unindent();
     }
 
-    private void WriteNodeNode(NodeExecutionNode node, ExecutionNodeTrace? trace, CodeWriter writer)
+    private void WriteNodeNode(NodeFieldExecutionNode nodeField, ExecutionNodeTrace? trace, CodeWriter writer)
     {
-        writer.WriteLine("- id: {0}", node.Id);
+        writer.WriteLine("- id: {0}", nodeField.Id);
         writer.Indent();
 
-        writer.WriteLine("type: {0}", node.Type.ToString());
+        writer.WriteLine("type: {0}", nodeField.Type.ToString());
 
-        writer.WriteLine("idValue: {0}", node.IdValue.ToString());
-        writer.WriteLine("responseName: {0}", node.ResponseName);
+        writer.WriteLine("idValue: {0}", nodeField.IdValue.ToString());
+        writer.WriteLine("responseName: {0}", nodeField.ResponseName);
 
         writer.WriteLine("branches:");
         writer.Indent();
-        foreach (var branch in node.Branches.OrderBy(kvp => kvp.Key))
+        foreach (var branch in nodeField.Branches.OrderBy(kvp => kvp.Key))
         {
             writer.WriteLine("- {0}: {1}", branch.Key, branch.Value.Id);
         }
         writer.Unindent();
 
-        writer.WriteLine("fallback: {0}", node.FallbackQuery.Id);
+        writer.WriteLine("fallback: {0}", nodeField.FallbackQuery.Id);
 
         if (trace is not null)
         {

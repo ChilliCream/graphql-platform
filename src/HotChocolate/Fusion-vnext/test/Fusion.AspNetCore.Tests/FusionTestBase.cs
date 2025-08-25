@@ -5,6 +5,7 @@ using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using Microsoft.AspNetCore.Builder;
@@ -52,6 +53,7 @@ public abstract class FusionTestBase : IDisposable
         (string SchemaName, TestServer Server)[] sourceSchemaServers,
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
+        Action<IFusionGatewayBuilder>? configureGatewayBuilder = null,
         [StringSyntax("json")] string? schemaSettings = null)
     {
         var sourceSchemas = new List<SourceSchemaText>();
@@ -92,6 +94,7 @@ public abstract class FusionTestBase : IDisposable
         gatewayBuilder.AddInMemoryConfiguration(result.Value.ToSyntaxNode(), settings);
         gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
         gatewayBuilder.ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = false);
+        configureGatewayBuilder?.Invoke(gatewayBuilder);
 
         configureApplication ??=
             app =>

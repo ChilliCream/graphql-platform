@@ -97,7 +97,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 }
             }
 
-            if (node is NodeExecutionNode nodeExecutionNode)
+            if (node is NodeFieldExecutionNode nodeExecutionNode)
             {
                 if (branches is not null)
                 {
@@ -266,7 +266,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         }
     }
 
-    private static (NodeExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseNodeNode(
+    private static (NodeFieldExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseNodeNode(
         JsonElement nodeElement, int id, Operation operation)
     {
         var responseName = nodeElement.GetProperty("responseName").GetString()!;
@@ -300,7 +300,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var fallbackNodeId = nodeElement.GetProperty("fallback").GetInt32();
 
-        var node = new NodeExecutionNode(
+        var node = new NodeFieldExecutionNode(
             id,
             responseName,
             idValue);

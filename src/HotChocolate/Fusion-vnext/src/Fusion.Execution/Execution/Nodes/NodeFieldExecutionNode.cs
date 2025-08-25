@@ -6,14 +6,14 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// Represents an execution node for GraphQL node field queries in a composite schema.
 /// This execution node handles the execution of queries that fetch entities by their global ID.
 /// </summary>
-public sealed class NodeExecutionNode : ExecutionNode
+public sealed class NodeFieldExecutionNode : ExecutionNode
 {
     private readonly Dictionary<string, ExecutionNode> _branches = [];
     private ExecutionNode _fallbackQuery = null!;
     private readonly string _responseName;
     private readonly IValueNode _idValue;
 
-    internal NodeExecutionNode(
+    internal NodeFieldExecutionNode(
         int id,
         string responseName,
         IValueNode idValue)
@@ -105,6 +105,9 @@ public sealed class NodeExecutionNode : ExecutionNode
             return stringValueNode.Value;
         }
     }
+
+    protected override IDisposable? CreateScope(OperationPlanContext context)
+        => context.DiagnosticEvents.ExecuteNodeFieldNode(context, this);
 
     internal void AddBranch(string objectTypeName, ExecutionNode node)
     {
