@@ -73,7 +73,7 @@ public sealed class NodeExecutionNode : ExecutionNode
                 .SetExtension("originalValue", id)
                 .Build();
 
-            context.AddErrors(error, [ResponseName], Path.Root);
+            context.AddErrors(error, [_responseName], Path.Root);
 
             return ValueTask.FromResult(ExecutionStatus.Failed);
         }
@@ -87,9 +87,9 @@ public sealed class NodeExecutionNode : ExecutionNode
         }
 
         // We have a valid type, but no branch, so we execute the fallback query.
-        EnqueueDependentForExecution(context, FallbackQuery);
+        EnqueueDependentForExecution(context, _fallbackQuery);
 
-        context.SetSchemaForOperationNode(FallbackQuery.Id, schemaName);
+        context.SetDynamicSchemaName(_fallbackQuery, schemaName);
 
         return ValueTask.FromResult(ExecutionStatus.Success);
 

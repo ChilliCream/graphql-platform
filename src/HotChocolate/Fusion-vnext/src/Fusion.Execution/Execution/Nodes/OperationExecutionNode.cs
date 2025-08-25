@@ -96,7 +96,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             return ExecutionStatus.Skipped;
         }
 
-        var schemaName = _schemaName ?? context.GetSchemaNameForOperationNode(Id);
+        var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
 
         context.TrackVariableValueSets(this, variables);
 
@@ -165,7 +165,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     {
         var variables = context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
 
-        var schemaName = _schemaName ?? context.GetSchemaNameForOperationNode(Id);
+        var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
 
         context.TrackVariableValueSets(this, variables);
 
