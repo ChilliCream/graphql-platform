@@ -426,7 +426,7 @@ internal static class CompositeSchemaBuilder
         context.Interceptor.OnBeforeCompleteSchema(context, ref features);
         features.Set<ValueSelectionToSelectionSetRewriter>(null);
 
-        var nodeLookup = new NodeLookup();
+        var nodeLookup = new NodeFallbackLookup();
         context.RegisterForCompletion(nodeLookup);
         features.Set(nodeLookup);
 

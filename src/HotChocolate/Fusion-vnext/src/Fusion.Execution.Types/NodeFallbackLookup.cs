@@ -8,13 +8,15 @@ namespace HotChocolate.Fusion.Types;
 
 /// <summary>
 /// Provides lookup functionality on where a `Node` can be resolved from when using the `Query.node` field.
+/// This lookup is only uses for fallback resolution. The `Node` could actually be resolvable from more than
+/// one schema.
 /// </summary>
-internal sealed class NodeLookup : INeedsCompletion
+internal sealed class NodeFallbackLookup : INeedsCompletion
 {
     private FrozenDictionary<string, string> _schemaByType = FrozenDictionary<string, string>.Empty;
 
     /// <summary>
-    /// Tries to determine the possible schemas to do a node lookup for the provided <paramref name="typeName"/>.
+    /// Tries to determine a possible schema to do a node lookup for the provided <paramref name="typeName"/>.
     /// </summary>
     public bool TryGetNodeLookupSchemaForType(string typeName, [NotNullWhen(true)] out string? schemaName)
         => _schemaByType.TryGetValue(typeName, out schemaName);

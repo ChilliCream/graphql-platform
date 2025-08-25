@@ -114,7 +114,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
                 $"Expected to find a schema name for dynamic operation node '{operationNodeId}'.");
 
     internal bool TryGetNodeLookupSchemaForType(string typeName, [NotNullWhen(true)] out string? schemaName)
-        => RequestContext.Schema.Features.GetRequired<NodeLookup>()
+        => RequestContext.Schema.Features.GetRequired<NodeFallbackLookup>()
             .TryGetNodeLookupSchemaForType(typeName, out schemaName);
 
     internal void TrackVariableValueSets(ExecutionNode node, ImmutableArray<VariableValues> variableValueSets)
