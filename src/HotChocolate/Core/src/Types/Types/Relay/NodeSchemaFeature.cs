@@ -1,3 +1,5 @@
+using HotChocolate.Types.Relay;
+
 namespace HotChocolate.Types.Relay;
 
 internal sealed class NodeSchemaFeature

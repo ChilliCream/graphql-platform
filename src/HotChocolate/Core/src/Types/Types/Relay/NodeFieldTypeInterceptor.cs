@@ -4,6 +4,7 @@ using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Relay.NodeConstants;
@@ -18,8 +19,30 @@ internal sealed class NodeFieldTypeInterceptor(GlobalObjectIdentificationOptions
 {
     private ITypeCompletionContext? _queryContext;
     private ObjectTypeConfiguration? _queryTypeConfig;
+    private TypeReference _lookupRef = null!;
+    private bool _registeredLookup;
 
     internal override uint Position => uint.MaxValue - 100;
+
+    internal override void InitializeContext(
+        IDescriptorContext context,
+        TypeInitializer typeInitializer,
+        TypeRegistry typeRegistry,
+        TypeLookup typeLookup,
+        TypeReferenceResolver typeReferenceResolver)
+    {
+        _lookupRef = context.TypeInspector.GetTypeRef(typeof(Lookup));
+    }
+
+    public override IEnumerable<TypeReference> RegisterMoreTypes(
+        IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+    {
+        if (!_registeredLookup && options.MarkNodeFieldAsLookup)
+        {
+            yield return _lookupRef;
+            _registeredLookup = true;
+        }
+    }
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
