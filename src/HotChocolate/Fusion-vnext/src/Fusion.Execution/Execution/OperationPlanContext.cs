@@ -147,9 +147,21 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             return [];
         }
 
-        return _nodeContexts.TryGetValue(node.Id, out var variableValueSets)
-            ? variableValueSets.Variables
+        return _nodeContexts.TryGetValue(node.Id, out var context)
+            ? context.Variables
             : [];
+    }
+
+    internal string? GetSchemaName(ExecutionNode node)
+    {
+        if (!CollectTelemetry)
+        {
+            return null;
+        }
+
+        return _nodeContexts.TryGetValue(node.Id, out var context)
+            ? context.SchemaName
+            : null;
     }
 
     internal void CompleteNode(ExecutionNodeResult result)

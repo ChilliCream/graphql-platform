@@ -57,7 +57,8 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
             Stopwatch.GetElapsedTime(start),
             error,
             context.GetDependentsToExecute(this),
-            context.GetVariableValueSets(this));
+            context.GetVariableValueSets(this),
+            context.GetSchemaName(this));
 
         context.CompleteNode(result);
     }

@@ -12,5 +12,7 @@ public sealed class ExecutionNodeTrace
 
     public required ExecutionStatus Status { get; init; }
 
-    public ImmutableArray<VariableValues> VariableSets { get; init; }
+    public required ImmutableArray<VariableValues> VariableSets { get; init; }
+
+    public required string? SchemaName { get; init; }
 }

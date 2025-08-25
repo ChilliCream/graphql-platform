@@ -186,7 +186,8 @@ internal sealed class OperationPlanExecutor
                             eventArgs.Duration,
                             Exception: null,
                             DependentsToExecute: [],
-                            VariableValueSets: eventArgs.VariableValueSets));
+                            VariableValueSets: eventArgs.VariableValueSets,
+                            SchemaName: null));
 
                     while (!cancellationToken.IsCancellationRequested && executionState.IsProcessing())
                     {
