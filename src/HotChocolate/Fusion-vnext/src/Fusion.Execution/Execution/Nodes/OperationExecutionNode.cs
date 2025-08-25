@@ -117,41 +117,49 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
         catch (Exception exception)
         {
-            AddErrors(context, exception, variables, _responseNames);
+            AddErrors(context, exception, variables);
             return ExecutionStatus.Failed;
         }
 
         var index = 0;
         var bufferLength = Math.Max(variables.Length, 1);
-        var buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
+        var resultBuffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
+        var errorBuffer = ArrayPool<SourceSchemaErrors?>.Shared.Rent(bufferLength);
 
         try
         {
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {
-                buffer[index++] = result;
+                resultBuffer[index] = result;
+                errorBuffer[index] = SourceSchemaErrors.From(result.Errors, context, this);
+
+                index++;
             }
 
-            context.AddPartialResults(_source, buffer.AsSpan(0, index), _responseNames);
+            context.AddPartialResults(
+                _source,
+                resultBuffer.AsSpan(0, index),
+                errorBuffer.AsSpan(0, index),
+                _responseNames);
         }
         catch (Exception exception)
         {
             // if there is an error, we need to make sure that the pooled buffers for the JsonDocuments
             // are returned to the pool.
-            foreach (var result in buffer.AsSpan(0, index))
+            foreach (var result in resultBuffer.AsSpan(0, index))
             {
                 // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
                 result?.Dispose();
             }
 
-            AddErrors(context, exception, variables, _responseNames);
+            AddErrors(context, exception, variables);
 
             return ExecutionStatus.Failed;
         }
         finally
         {
-            buffer.AsSpan(0, index).Clear();
-            ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
+            resultBuffer.AsSpan(0, index).Clear();
+            ArrayPool<SourceSchemaResult>.Shared.Return(resultBuffer);
         }
 
         return ExecutionStatus.Success;
@@ -194,23 +202,29 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
         catch (Exception exception)
         {
-            AddErrors(context, exception, variables, _responseNames);
+            AddErrors(context, exception, variables);
 
             return SubscriptionResult.Failed();
         }
     }
 
-    private static void AddErrors(
+    private void AddErrors(
         OperationPlanContext context,
         Exception exception,
-        ImmutableArray<VariableValues> variables,
-        ReadOnlySpan<string> responseNames)
+        ImmutableArray<VariableValues> variables)
     {
-        var error = ErrorBuilder.FromException(exception).Build();
+        var errorBuilder = ErrorBuilder.FromException(exception);
+
+        if (context.CollectTelemetry)
+        {
+            errorBuilder.SetExtension(WellKnownErrorExtensions.SourceOperationPlanNodeId, Id);
+        }
+
+        var error = errorBuilder.Build();
 
         if (variables.Length == 0)
         {
-            context.AddErrors(error, responseNames, Path.Root);
+            context.AddErrors(error, _responseNames, Path.Root);
         }
         else
         {
@@ -224,7 +238,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                     pathBuffer[i] = variables[i].Path;
                 }
 
-                context.AddErrors(error, responseNames, pathBuffer.AsSpan(0, pathBufferLength));
+                context.AddErrors(error, _responseNames, pathBuffer.AsSpan(0, pathBufferLength));
             }
             finally
             {
@@ -278,6 +292,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         private readonly CancellationToken _cancellationToken;
         private readonly IDisposable _subscriptionScope;
         private readonly SourceSchemaResult[] _resultBuffer = new SourceSchemaResult[1];
+        private readonly SourceSchemaErrors?[] _errorsBuffer = new SourceSchemaErrors[1];
         private bool _completed;
         private bool _disposed;
 
@@ -322,8 +337,10 @@ public sealed class OperationExecutionNode : ExecutionNode
 
                 if (hasResult)
                 {
-                    _resultBuffer[0] = _resultEnumerator.Current;
-                    _context.AddPartialResults(_node._source, _resultBuffer, _node._responseNames);
+                    var result = _resultEnumerator.Current;
+                    _resultBuffer[0] = result;
+                    _errorsBuffer[0] = SourceSchemaErrors.From(result.Errors, _context, _node);
+                    _context.AddPartialResults(_node._source, _resultBuffer, _errorsBuffer, _node._responseNames);
                 }
             }
             catch (Exception exception)
@@ -340,7 +357,14 @@ public sealed class OperationExecutionNode : ExecutionNode
                     Exception: exception,
                     VariableValueSets: _context.GetVariableValueSets(_node));
 
-                var error = ErrorBuilder.FromException(exception).Build();
+                var errorBuilder = ErrorBuilder.FromException(exception);
+
+                if (_context.CollectTelemetry)
+                {
+                    errorBuilder.SetExtension(WellKnownErrorExtensions.SourceOperationPlanNodeId, _node.Id);
+                }
+
+                var error = errorBuilder.Build();
 
                 _context.AddErrors(error, _node._responseNames, Path.Root);
 

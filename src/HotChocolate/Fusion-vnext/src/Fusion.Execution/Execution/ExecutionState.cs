@@ -110,7 +110,8 @@ internal sealed class ExecutionState
                 SpanId = result.Activity?.SpanId.ToHexString(),
                 Status = result.Status,
                 Duration = result.Duration,
-                VariableSets = result.VariableValueSets
+                VariableSets = result.VariableValueSets,
+                SchemaName = result.SchemaName
             });
         }
 

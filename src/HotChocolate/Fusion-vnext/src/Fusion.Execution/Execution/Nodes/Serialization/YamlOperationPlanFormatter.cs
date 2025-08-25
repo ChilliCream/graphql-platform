@@ -96,9 +96,11 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("type: {0}", "Operation");
 
-        if (node.SchemaName is not null)
+        var schemaName = node.SchemaName ?? trace?.SchemaName;
+
+        if (!string.IsNullOrEmpty(schemaName))
         {
-            writer.WriteLine("schema: {0}", node.SchemaName);
+            writer.WriteLine("schema: {0}", schemaName);
         }
 
         writer.WriteLine("operation: >-");
