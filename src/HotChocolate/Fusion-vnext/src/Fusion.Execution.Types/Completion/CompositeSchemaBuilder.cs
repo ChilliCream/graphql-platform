@@ -15,19 +15,19 @@ internal static class CompositeSchemaBuilder
 {
     public static FusionSchemaDefinition Create(
         string name,
-        DocumentNode documentNode,
+        DocumentNode schemaDocument,
         IServiceProvider? services = null,
         IFeatureCollection? features = null)
     {
         services ??= EmptyServiceProvider.Instance;
         var typeInterceptor = CreateTypeInterceptor(services);
-        var context = CreateTypes(name, documentNode, services, features, typeInterceptor);
+        var context = CreateTypes(name, schemaDocument, services, features, typeInterceptor);
         return CompleteTypes(context);
     }
 
     private static CompositeSchemaBuilderContext CreateTypes(
         string name,
-        DocumentNode schema,
+        DocumentNode schemaDocument,
         IServiceProvider services,
         IFeatureCollection? features,
         CompositeTypeInterceptor typeInterceptor)
@@ -42,7 +42,7 @@ internal static class CompositeSchemaBuilder
         var directiveTypes = ImmutableArray.CreateBuilder<FusionDirectiveDefinition>();
         var directiveDefinitions = ImmutableDictionary.CreateBuilder<string, DirectiveDefinitionNode>();
 
-        var schemaDefinition = schema.Definitions.OfType<SchemaDefinitionNode>().FirstOrDefault();
+        var schemaDefinition = schemaDocument.Definitions.OfType<SchemaDefinitionNode>().FirstOrDefault();
         if (schemaDefinition is not null)
         {
             description = schemaDefinition.Description?.Value;
@@ -67,7 +67,7 @@ internal static class CompositeSchemaBuilder
             }
         }
 
-        foreach (var definition in IntrospectionSchema.Document.Definitions.Concat(schema.Definitions))
+        foreach (var definition in IntrospectionSchema.Document.Definitions.Concat(schemaDocument.Definitions))
         {
             if (definition is IHasName namedSyntaxNode
                 && (FusionBuiltIns.IsBuiltInType(namedSyntaxNode.Name.Value)
@@ -132,7 +132,7 @@ internal static class CompositeSchemaBuilder
             typeDefinitions.ToImmutable(),
             directiveTypes.ToImmutable(),
             directiveDefinitions.ToImmutable(),
-            CreateSourceSchemaLookup(schema),
+            CreateSourceSchemaLookup(schemaDocument),
             features,
             typeInterceptor);
     }
@@ -438,9 +438,12 @@ internal static class CompositeSchemaBuilder
             directives,
             new FusionTypeDefinitionCollection(AsArray(context.TypeDefinitions)!),
             new FusionDirectiveDefinitionCollection(AsArray(context.DirectiveDefinitions)!),
-            features.ToReadOnly());
+            features);
 
+        context.Interceptor.OnAfterCompleteSchema(context, schema);
+        schema.Seal();
         context.Complete(schema);
+
         return schema;
     }
 

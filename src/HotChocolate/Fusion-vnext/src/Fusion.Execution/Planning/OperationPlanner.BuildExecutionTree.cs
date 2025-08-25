@@ -24,43 +24,49 @@ public sealed partial class OperationPlanner
 
             var nodes = ImmutableArray.Create<ExecutionNode>(introspectionNode);
 
-            return OperationPlan.Create(operation, nodes, nodes);
+            var plan = OperationPlan.Create(operation, nodes, nodes);
+            OnAfterPlanCompleted(plan);
+            return plan;
         }
-
-        var completedSteps = new HashSet<int>();
-        var completedNodes = new Dictionary<int, ExecutionNode>();
-        var dependencyLookup = new Dictionary<int, HashSet<int>>();
-        var hasVariables = operationDefinition.VariableDefinitions.Count > 0;
-
-        planSteps = PrepareSteps(planSteps, operationDefinition, dependencyLookup);
-        BuildExecutionNodes(planSteps, completedSteps, completedNodes, dependencyLookup, hasVariables);
-        BuildDependencyStructure(completedNodes, dependencyLookup);
-
-        var rootNodes = planSteps
-            .Where(t => !dependencyLookup.ContainsKey(t.Id))
-            .Select(t => completedNodes[t.Id])
-            .ToImmutableArray();
-
-        var allNodes = completedNodes
-            .OrderBy(t => t.Key)
-            .Select(t => t.Value)
-            .ToImmutableArray();
-
-        if (operation.HasIntrospectionFields())
+        else
         {
-            var introspectionNode = new IntrospectionExecutionNode(
-                allNodes.Max(t => t.Id) + 1,
-                operation.GetIntrospectionSelections());
-            rootNodes = rootNodes.Add(introspectionNode);
-            allNodes = allNodes.Add(introspectionNode);
-        }
+            var completedSteps = new HashSet<int>();
+            var completedNodes = new Dictionary<int, ExecutionNode>();
+            var dependencyLookup = new Dictionary<int, HashSet<int>>();
+            var hasVariables = operationDefinition.VariableDefinitions.Count > 0;
 
-        foreach (var node in allNodes)
-        {
-            node.Seal();
-        }
+            planSteps = PrepareSteps(planSteps, operationDefinition, dependencyLookup);
+            BuildExecutionNodes(planSteps, completedSteps, completedNodes, dependencyLookup, hasVariables);
+            BuildDependencyStructure(completedNodes, dependencyLookup);
 
-        return OperationPlan.Create(operation, rootNodes, allNodes);
+            var rootNodes = planSteps
+                .Where(t => !dependencyLookup.ContainsKey(t.Id))
+                .Select(t => completedNodes[t.Id])
+                .ToImmutableArray();
+
+            var allNodes = completedNodes
+                .OrderBy(t => t.Key)
+                .Select(t => t.Value)
+                .ToImmutableArray();
+
+            if (operation.HasIntrospectionFields())
+            {
+                var introspectionNode = new IntrospectionExecutionNode(
+                    allNodes.Max(t => t.Id) + 1,
+                    operation.GetIntrospectionSelections());
+                rootNodes = rootNodes.Add(introspectionNode);
+                allNodes = allNodes.Add(introspectionNode);
+            }
+
+            foreach (var node in allNodes)
+            {
+                node.Seal();
+            }
+
+            var plan = OperationPlan.Create(operation, rootNodes, allNodes);
+            OnAfterPlanCompleted(plan);
+            return plan;
+        }
     }
 
     private static ImmutableList<OperationPlanStep> PrepareSteps(
@@ -338,6 +344,21 @@ public sealed partial class OperationPlanner
         }
 
         return current;
+    }
+
+    private void OnAfterPlanCompleted(OperationPlan plan)
+    {
+        if (_interceptors.Length == 1)
+        {
+            _interceptors[0].OnAfterPlanCompleted(plan);
+        }
+        else if (_interceptors.Length > 1)
+        {
+            foreach (var interceptor in _interceptors)
+            {
+                interceptor.OnAfterPlanCompleted(plan);
+            }
+        }
     }
 }
 

@@ -58,9 +58,15 @@ internal sealed class NoopExecutionDiagnosticEvents
     {
     }
 
-    public IDisposable ExecuteSubscription(RequestContext context) => this;
+    public IDisposable ExecuteSubscription(
+        RequestContext context,
+        ulong subscriptionId)
+        => this;
 
-    public IDisposable OnSubscriptionEvent(RequestContext context) => this;
+    public IDisposable OnSubscriptionEvent(
+        RequestContext context,
+        ulong subscriptionId)
+        => this;
 
     public void ExecutionError(
         RequestContext context,

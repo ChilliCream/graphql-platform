@@ -57,7 +57,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         {
             case 0:
                 return new GraphQLHttpRequest(
-                    CreateSingleRequest(originalRequest.OperationSourceText));
+                    CreateSingleRequest(
+                        originalRequest.OperationSourceText));
 
             case 1:
                 return new GraphQLHttpRequest(

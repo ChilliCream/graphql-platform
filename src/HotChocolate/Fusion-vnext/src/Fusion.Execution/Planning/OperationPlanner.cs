@@ -14,16 +14,22 @@ public sealed partial class OperationPlanner
     private readonly OperationCompiler _operationCompiler;
     private readonly MergeSelectionSetRewriter _mergeRewriter;
     private readonly SelectionSetPartitioner _partitioner;
+    private readonly IOperationPlannerInterceptor[] _interceptors;
 
-    public OperationPlanner(FusionSchemaDefinition schema, OperationCompiler operationCompiler)
+    public OperationPlanner(
+        FusionSchemaDefinition schema,
+        OperationCompiler operationCompiler,
+        IEnumerable<IOperationPlannerInterceptor> interceptors)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(operationCompiler);
+        ArgumentNullException.ThrowIfNull(interceptors);
 
         _schema = schema;
         _operationCompiler = operationCompiler;
         _mergeRewriter = new MergeSelectionSetRewriter(schema);
         _partitioner = new SelectionSetPartitioner(schema);
+        _interceptors = interceptors.ToArray();
     }
 
     public OperationPlan CreatePlan(

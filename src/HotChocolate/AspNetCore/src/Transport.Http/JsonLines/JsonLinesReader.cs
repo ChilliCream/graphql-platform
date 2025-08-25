@@ -77,7 +77,7 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
 
     private static PooledArrayWriter CreateJsonBuffer(ReadOnlySequence<byte> lineBuffer)
     {
-        var jsonBuffer = new PooledArrayWriter();
+        var jsonBuffer = new PooledArrayWriter(4096);
 
         if (lineBuffer.IsSingleSegment)
         {

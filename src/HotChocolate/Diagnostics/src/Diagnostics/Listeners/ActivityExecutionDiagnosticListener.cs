@@ -309,7 +309,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         return activity;
     }
 
-    public override IDisposable OnSubscriptionEvent(RequestContext context)
+    public override IDisposable OnSubscriptionEvent(RequestContext context, ulong subscriptionId)
     {
         var activity = Source.StartActivity();
 

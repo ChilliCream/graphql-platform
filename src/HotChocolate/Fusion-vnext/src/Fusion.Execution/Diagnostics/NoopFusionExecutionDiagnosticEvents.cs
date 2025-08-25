@@ -18,11 +18,13 @@ internal sealed class NoopFusionExecutionDiagnosticEvents : IFusionExecutionDiag
 
     public IDisposable ExecuteOperation(RequestContext context) => this;
 
-    public IDisposable ExecuteSubscription(RequestContext context) => this;
+    public IDisposable ExecuteSubscription(RequestContext context, ulong subscriptionId) => this;
 
-    public IDisposable OnSubscriptionEvent(RequestContext context) => this;
-
-    public void ExecutionError(RequestContext context, ErrorKind kind, IReadOnlyList<IError> errors, object? state = null) { }
+    public void ExecutionError(
+        RequestContext context,
+        ErrorKind kind,
+        IReadOnlyList<IError> errors,
+        object? state = null) { }
 
     public void AddedDocumentToCache(RequestContext context) { }
 
@@ -35,13 +37,19 @@ internal sealed class NoopFusionExecutionDiagnosticEvents : IFusionExecutionDiag
     public IDisposable PlanOperation(RequestContext context)
         => this;
 
-    public IDisposable ExecuteOperation(OperationPlanContext context, OperationExecutionNode node)
+    public IDisposable ExecuteOperationNode(OperationPlanContext context, OperationExecutionNode node)
+        => this;
+
+    public IDisposable ExecuteSubscriptionNode(
+        OperationPlanContext context,
+        OperationExecutionNode node,
+        ulong subscriptionId)
         => this;
 
     public IDisposable ExecuteSubscriptionEvent(OperationPlanContext context, OperationExecutionNode node)
         => this;
 
-    public IDisposable ExecuteIntrospection(OperationPlanContext context, IntrospectionExecutionNode node)
+    public IDisposable ExecuteIntrospectionNode(OperationPlanContext context, IntrospectionExecutionNode node)
         => this;
 
     public void ExecutorCreated(string name, IRequestExecutor executor) { }
