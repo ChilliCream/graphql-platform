@@ -195,7 +195,7 @@ file static class ClientExtensions
         updateResult.EnsureData();
         console.PrintErrorsAndExit(updateResult.Data?.UpdateStages.Errors);
 
-        var items =  updateResult.Data?.UpdateStages.Api?.Stages
+        var items = updateResult.Data?.UpdateStages.Api?.Stages
             .Select(x => StageDetailPrompt.From(x).ToObject())
             .ToArray() ?? [];
 

@@ -175,6 +175,7 @@
   </Folder>
   <Folder Name="/HotChocolate/Fusion-vnext/" />
   <Folder Name="/HotChocolate/Fusion-vnext/src/">
+    <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Aspire/HotChocolate.Fusion.Aspire.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.AspNetCore/HotChocolate.Fusion.AspNetCore.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.CommandLine/HotChocolate.Fusion.CommandLine.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Composition/HotChocolate.Fusion.Composition.csproj" />

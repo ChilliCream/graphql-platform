@@ -166,11 +166,6 @@ public interface IReadOnlySchemaOptions
     bool EnableSemanticNonNull { get; }
 
     /// <summary>
-    /// Enables the @schemaName directive.
-    /// </summary>
-    bool EnableSchemaNameDirective { get; }
-
-    /// <summary>
     /// Specified if the leading I shall be stripped from the interface name.
     /// </summary>
     bool StripLeadingIFromInterface { get; }

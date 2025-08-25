@@ -5,9 +5,9 @@ using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Partitioners;
 
-internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
+internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 {
     public SelectionSetPartitionerResult Partition(
         SelectionSetPartitionerInput input)
@@ -54,14 +54,34 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
             {
                 case FieldNode fieldNode:
                 {
-                    var (resolvable, unresolvable) =
-                        RewriteFieldNode(
-                            context,
-                            complexType!,
-                            fieldNode,
-                            GetProvidedField(fieldNode, providedSelectionSetNode));
+                    // The __typename field is available on all subgraphs, so we always treat it as resolvable.
+                    // We need to check it like this to also handle the union { __typename } case.
+                    if (fieldNode.Name.Value.Equals(IntrospectionFieldNames.TypeName))
+                    {
+                        CompleteSelection(fieldNode, fieldNode, null, i);
+                    }
+                    else
+                    {
+                        if (type == schema.QueryType)
+                        {
+                            var field = complexType!.Fields[fieldNode.Name.Value];
 
-                    CompleteSelection(fieldNode, resolvable, unresolvable, i);
+                            if (field.IsIntrospectionField)
+                            {
+                                CompleteSelection(fieldNode, null, null, i);
+                                continue;
+                            }
+                        }
+
+                        var (resolvable, unresolvable) =
+                            RewriteFieldNode(
+                                context,
+                                complexType!,
+                                fieldNode,
+                                GetProvidedField(fieldNode, providedSelectionSetNode));
+
+                        CompleteSelection(fieldNode, resolvable, unresolvable, i);
+                    }
                     break;
                 }
 
@@ -101,11 +121,17 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
             unresolvableSelections = null;
         }
 
+        var resolvableSelections2 = resolvableSelections ?? selectionSetNode.Selections;
+
+        if (type.NamedType().IsAbstractType())
+        {
+            resolvableSelections2 = [new FieldNode(IntrospectionFieldNames.TypeName), ..resolvableSelections2];
+        }
+
         var result =
         (
             Resolvable:
-                selectionSetNode.WithSelections(resolvableSelections
-                    ?? selectionSetNode.Selections),
+                selectionSetNode.WithSelections(resolvableSelections2),
             Unresolvable: unresolvableSelections is not null
                 ? selectionSetNode.WithSelections(unresolvableSelections)
                 : null
@@ -174,12 +200,6 @@ internal class SelectionSetPartitioner(FusionSchemaDefinition schema)
         FieldNode fieldNode,
         FieldNode? providedFieldNode)
     {
-        // the __typename field is available on all subgraphs
-        if (fieldNode.Name.Value.Equals(IntrospectionFieldNames.TypeName))
-        {
-            return (fieldNode, null);
-        }
-
         var field = complexType.Fields[fieldNode.Name.Value];
 
         if (providedFieldNode is null)

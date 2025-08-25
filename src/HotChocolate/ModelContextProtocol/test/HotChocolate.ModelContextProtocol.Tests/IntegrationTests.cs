@@ -3,10 +3,10 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using CookieCrumble;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.ModelContextProtocol.Extensions;
-using HotChocolate.ModelContextProtocol.Storage;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -15,8 +15,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using ModelContextProtocol.AspNetCore;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
+using ModelContextProtocol.Server;
 
 namespace HotChocolate.ModelContextProtocol;
 
@@ -77,12 +79,21 @@ public sealed class IntegrationTests
                     .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
         var server = new TestServer(builder);
         var mcpClient1 = await CreateMcpClientAsync(server.CreateClient());
-        var listChangedResetEvent = new ManualResetEventSlim(false);
+        var mcpClient2 = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent1 = new ManualResetEventSlim(false);
+        var listChangedResetEvent2 = new ManualResetEventSlim(false);
         mcpClient1.RegisterNotificationHandler(
             NotificationMethods.ToolListChangedNotification,
             async (_, _) =>
             {
-                listChangedResetEvent.Set();
+                listChangedResetEvent1.Set();
+                await ValueTask.CompletedTask;
+            });
+        mcpClient2.RegisterNotificationHandler(
+            NotificationMethods.ToolListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent2.Set();
                 await ValueTask.CompletedTask;
             });
 
@@ -91,11 +102,13 @@ public sealed class IntegrationTests
         typeModule.TriggerChange();
         IList<McpClientTool>? updatedTools = null;
 
-        if (listChangedResetEvent.Wait(TimeSpan.FromSeconds(5)))
+        if (listChangedResetEvent1.Wait(TimeSpan.FromSeconds(5)))
         {
-            var mcpClient2 = await CreateMcpClientAsync(server.CreateClient());
-            updatedTools = await mcpClient2.ListToolsAsync();
+            var mcpClient3 = await CreateMcpClientAsync(server.CreateClient());
+            updatedTools = await mcpClient3.ListToolsAsync();
         }
+
+        var secondClientNotified = listChangedResetEvent2.Wait(TimeSpan.FromSeconds(5));
 
         // assert
         Assert.NotNull(updatedTools);
@@ -113,6 +126,7 @@ public sealed class IntegrationTests
                 s_jsonSerializerOptions)
             .ReplaceLineEndings("\n")
             .MatchSnapshot(extension: ".json");
+        Assert.True(secondClientNotified);
     }
 
     [Fact]
@@ -176,6 +190,27 @@ public sealed class IntegrationTests
                 s_jsonSerializerOptions)
             .ReplaceLineEndings("\n")
             .MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public async Task ListTools_WithCustomTool_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new TestOperationToolStorage();
+        await storage.AddOrUpdateToolAsync(
+            Utf8GraphQLParser.Parse("query GetBooks { books { title } }"));
+        var server =
+            CreateTestServer(
+                configureRequestExecutor: b => b.AddMcpToolStorage(storage),
+                configureMcpServer: b => b.WithTools([typeof(TestTool)]));
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync();
+
+        // assert
+        Assert.Equal("get_books", tools[0].Name);
+        Assert.Equal("test", tools[1].Name);
     }
 
     [Fact]
@@ -411,6 +446,45 @@ public sealed class IntegrationTests
             .MatchSnapshot(extension: ".json");
     }
 
+    [Fact]
+    public async Task CallTool_WithCustomTool_ReturnsExpectedResult()
+    {
+        // arrange
+        var server =
+            CreateTestServer(
+                configureRequestExecutor: b => b.AddMcpToolStorage(new TestOperationToolStorage()),
+                configureMcpServer: b => b.WithTools([typeof(TestTool)]));
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var result = await mcpClient.CallToolAsync(
+            "test",
+            new Dictionary<string, object?>
+            {
+                { "message", "Hello, World!" }
+            });
+
+        // assert
+        Assert.Equal("Hello, World!", ((TextContentBlock)result.Content[0]).Text);
+    }
+
+    [Fact]
+    public async Task AddMcp_WithServerOption_SetsOption()
+    {
+        // arrange & act
+        var server =
+            CreateTestServer(
+                configureRequestExecutor: b => b.AddMcpToolStorage(new TestOperationToolStorage()),
+                configureMcpServerOptions: o => o.InitializationTimeout = TimeSpan.FromSeconds(10));
+        await CreateMcpClientAsync(server.CreateClient());
+        var executor = await server.Services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
+        var handler = executor.Schema.Services.GetRequiredService<StreamableHttpHandler>();
+        var options = handler.Sessions.Values.First().Server!.ServerOptions;
+
+        // assert
+        Assert.Equal(TimeSpan.FromSeconds(10), options.InitializationTimeout);
+    }
+
     private static readonly JsonSerializerOptions s_jsonSerializerOptions =
         new()
         {
@@ -421,7 +495,9 @@ public sealed class IntegrationTests
     private static readonly string[] s_list = ["test"];
 
     private static TestServer CreateTestServer(
-        Action<IRequestExecutorBuilder>? configureRequestExecutor = null)
+        Action<IRequestExecutorBuilder>? configureRequestExecutor = null,
+        Action<McpServerOptions>? configureMcpServerOptions = null,
+        Action<IMcpServerBuilder>? configureMcpServer = null)
     {
         var builder = new WebHostBuilder()
             .ConfigureServices(
@@ -444,7 +520,7 @@ public sealed class IntegrationTests
                             .AddRouting()
                             .AddGraphQL()
                             .AddAuthorization()
-                            .AddMcp()
+                            .AddMcp(configureMcpServerOptions, configureMcpServer)
                             .AddQueryType<TestSchema.Query>()
                             .AddInterfaceType<TestSchema.IPet>()
                             .AddUnionType<TestSchema.IPet>()
@@ -476,6 +552,14 @@ public sealed class IntegrationTests
                         }
                     },
                     httpClient));
+    }
+
+    [McpServerToolType]
+    private static class TestTool
+    {
+        [McpServerTool]
+        // ReSharper disable once UnusedMember.Local
+        public static string Test(string message) => message;
     }
 
     private class TestTypeModule : TypeModule

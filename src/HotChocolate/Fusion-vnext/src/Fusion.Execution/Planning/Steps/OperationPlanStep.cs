@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -16,7 +15,7 @@ public record OperationPlanStep : PlanStep
 
     public required ImmutableHashSet<uint> SelectionSets { get; init; }
 
-    public required string SchemaName { get; init; }
+    public required string? SchemaName { get; init; }
 
     public ImmutableHashSet<int> Dependents { get; init; } = [];
 

@@ -2,6 +2,7 @@ operation:
   - document: >-
       query testQuery {
         votables {
+          __typename @fusion__requirement
           viewerCanVote
         }
       }

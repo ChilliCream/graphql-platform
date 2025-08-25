@@ -3,6 +3,7 @@ operation:
       query testQuery {
         postEdges {
           node {
+            __typename @fusion__requirement
             ... on Photo {
               subgraph2
               id @fusion__requirement
@@ -23,6 +24,7 @@ nodes:
       query testQuery_123456789101112_1 {
         postEdges {
           node {
+            __typename
             ... on Photo {
               id
             }

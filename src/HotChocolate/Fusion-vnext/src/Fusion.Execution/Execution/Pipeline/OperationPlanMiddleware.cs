@@ -1,6 +1,5 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
-using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;

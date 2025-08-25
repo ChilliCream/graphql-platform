@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using HotChocolate.Caching.Memory;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;

@@ -1,13 +1,13 @@
-using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
 using ModelContextProtocol.Protocol;
 
 namespace HotChocolate.ModelContextProtocol;
 
-internal sealed class OperationTool(IOperation operation, Tool tool)
+internal sealed class OperationTool(DocumentNode documentNode, Tool tool)
 {
     public string Name => Tool.Name;
 
-    public IOperation Operation { get; } = operation;
+    public DocumentNode DocumentNode { get; } = documentNode;
 
     public Tool Tool { get; } = tool;
 }

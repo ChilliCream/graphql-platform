@@ -19,7 +19,7 @@ internal sealed class StageDetailPrompt
             Name = _data.Name,
             Conditions = _data.Conditions
                 .OfType<IAfterStageCondition>()
-                .Select(x => new StageCondition { Kind = "AfterStage", Name =  x.AfterStage!.Name })
+                .Select(x => new StageCondition { Kind = "AfterStage", Name = x.AfterStage!.Name })
                 .ToList()
         };
     }

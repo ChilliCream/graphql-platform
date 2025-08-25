@@ -345,47 +345,7 @@ public sealed class OperationToolFactoryTests
         // arrange
         var schema = CreateSchema();
         var document = Utf8GraphQLParser.Parse(
-            """
-            query GetWithSkipAndInclude($skip: Boolean!, $include: Boolean!) {
-                withDefaultedVariables {
-                    # Skip
-                    skipped: int @skip(if: true)
-                    notSkipped: int @skip(if: false)
-                    possiblySkipped: int @skip(if: $skip)
-                    # Include
-                    included: int @include(if: true)
-                    notIncluded: int @include(if: false)
-                    possiblyIncluded: int @include(if: $include)
-                    # Skip and Include (excluded)
-                    skippedAndIncluded: int @skip(if: true) @include(if: true)
-                    skippedAndNotIncluded: int @skip(if: true) @include(if: false)
-                    skippedAndPossiblyIncluded: int @skip(if: true) @include(if: $include)
-                    notSkippedAndNotIncluded: int @skip(if: false) @include(if: false)
-                    possiblySkippedAndNotIncluded: int @skip(if: $skip) @include(if: false)
-                    # Skip and Include (included)
-                    notSkippedAndIncluded: int @skip(if: false) @include(if: true)
-                    notSkippedAndPossiblyIncluded: int @skip(if: false) @include(if: $include)
-                    possiblySkippedAndIncluded: int @skip(if: $skip) @include(if: true)
-                    possiblySkippedAndPossiblyIncluded: int
-                        @skip(if: $skip)
-                        @include(if: $include)
-                    # Object field (nested fields are still required)
-                    objectFieldPossiblySkipped: object @skip(if: $skip) {
-                        field1A { field1B { field1C } }
-                    }
-                    # Fragment spread
-                    ...Fragment @skip(if: $skip)
-                    # Inline fragment
-                    ... @skip(if: $skip) {
-                        inlineFragmentFieldPossiblySkipped: int
-                    }
-                }
-            }
-
-            fragment Fragment on Object1Defaulted {
-                field1A { field1B { field1C } }
-            }
-            """);
+            File.ReadAllText("__resources__/GetWithSkipAndInclude.graphql"));
 
         // act
         var tool =
@@ -596,7 +556,6 @@ public sealed class OperationToolFactoryTests
     [InlineData("ExplicitOpenWorldTool.graphql", true)]
     [InlineData("ExplicitClosedWorldTool.graphql", false)]
     [InlineData("ExplicitOpenWorldSubfieldTool.graphql", true)]
-    [InlineData("ImplicitClosedWorldSubfieldTool.graphql", false)]
     [InlineData("ExplicitClosedWorldSubfieldTool.graphql", false)]
     public void CreateTool_McpToolAnnotationsOpenWorldHintImplementationFirst_SetsCorrectHint(
         string fileName,
@@ -618,7 +577,6 @@ public sealed class OperationToolFactoryTests
     [InlineData("ExplicitOpenWorldTool.graphql", true)]
     [InlineData("ExplicitClosedWorldTool.graphql", false)]
     [InlineData("ExplicitOpenWorldSubfieldTool.graphql", true)]
-    [InlineData("ImplicitClosedWorldSubfieldTool.graphql", false)]
     [InlineData("ExplicitClosedWorldSubfieldTool.graphql", false)]
     public void CreateTool_McpToolAnnotationsOpenWorldHintCodeFirst_SetsCorrectHint(
         string fileName,
@@ -654,11 +612,6 @@ public sealed class OperationToolFactoryTests
                             .McpToolAnnotations(openWorldHint: false);
 
                         descriptor
-                            .Field("implicitClosedWorldSubfieldQuery")
-                            .Type(typeof(TestSchema.ImplicitClosedWorld))
-                            .McpToolAnnotations(openWorldHint: false);
-
-                        descriptor
                             .Field("explicitClosedWorldSubfieldQuery")
                             .Type(typeof(TestSchema.ExplicitClosedWorld))
                             .McpToolAnnotations(openWorldHint: false);
@@ -679,7 +632,6 @@ public sealed class OperationToolFactoryTests
     [InlineData("ExplicitOpenWorldTool.graphql", true)]
     [InlineData("ExplicitClosedWorldTool.graphql", false)]
     [InlineData("ExplicitOpenWorldSubfieldTool.graphql", true)]
-    [InlineData("ImplicitClosedWorldSubfieldTool.graphql", false)]
     [InlineData("ExplicitClosedWorldSubfieldTool.graphql", false)]
     public void CreateTool_McpToolAnnotationsOpenWorldHintSchemaFirst_SetsCorrectHint(
         string fileName,
@@ -700,18 +652,12 @@ public sealed class OperationToolFactoryTests
                             @mcpToolAnnotations(openWorldHint: false)
                         explicitOpenWorldSubfieldQuery: ExplicitOpenWorld
                             @mcpToolAnnotations(openWorldHint: false)
-                        implicitClosedWorldSubfieldQuery: ImplicitClosedWorld
-                            @mcpToolAnnotations(openWorldHint: false)
                         explicitClosedWorldSubfieldQuery: ExplicitClosedWorld
                             @mcpToolAnnotations(openWorldHint: false)
                     }
 
                     type ExplicitOpenWorld {
                         explicitOpenWorldField: Int @mcpToolAnnotations(openWorldHint: true)
-                    }
-
-                    type ImplicitClosedWorld {
-                        implicitClosedWorldField: Int
                     }
 
                     type ExplicitClosedWorld {

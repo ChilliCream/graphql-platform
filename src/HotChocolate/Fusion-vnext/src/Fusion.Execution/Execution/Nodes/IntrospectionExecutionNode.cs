@@ -57,7 +57,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
     }
 
     protected override IDisposable CreateScope(OperationPlanContext context)
-        => context.GetDiagnosticEvents().ExecuteIntrospection(context, this);
+        => context.GetDiagnosticEvents().ExecuteIntrospectionNode(context, this);
 
     private static void ExecuteSelections(
         OperationPlanContext context,

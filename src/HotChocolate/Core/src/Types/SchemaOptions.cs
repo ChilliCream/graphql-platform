@@ -109,9 +109,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableSemanticNonNull"/>
     public bool EnableSemanticNonNull { get; set; }
 
-    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableSchemaNameDirective"/>
-    public bool EnableSchemaNameDirective { get; set; } = true;
-
     /// <inheritdoc cref="IReadOnlySchemaOptions.StripLeadingIFromInterface"/>
     public bool StripLeadingIFromInterface { get; set; }
 
@@ -156,7 +153,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
             SortFieldsByName = options.SortFieldsByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
             EnableOneOf = options.EnableOneOf,
-            EnableSchemaNameDirective = options.EnableSchemaNameDirective,
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,
             EnableStream = options.EnableStream,

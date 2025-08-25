@@ -160,6 +160,7 @@ public class OperationPlannerTests : FusionTestBase
 
             type Query {
               topProduct: Product
+              productById(id: ID!): Product @lookup @internal
             }
 
             type Product {

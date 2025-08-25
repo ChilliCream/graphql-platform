@@ -3,6 +3,7 @@ operation:
       query testQuery {
         users {
           posts {
+            __typename @fusion__requirement
             ... on Photo {
               product {
                 subgraph2
@@ -28,6 +29,7 @@ nodes:
       query testQuery_123456789101112_1 {
         users {
           posts {
+            __typename
             ... on Photo {
               product {
                 id

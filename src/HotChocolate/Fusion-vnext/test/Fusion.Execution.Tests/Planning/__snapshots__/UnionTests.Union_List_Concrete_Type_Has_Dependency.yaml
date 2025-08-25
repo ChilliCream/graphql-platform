@@ -2,6 +2,7 @@ operation:
   - document: >-
       query testQuery {
         posts {
+          __typename @fusion__requirement
           ... on Photo {
             subgraph2
             id @fusion__requirement
@@ -20,6 +21,7 @@ nodes:
     operation: >-
       query testQuery_123456789101112_1 {
         posts {
+          __typename
           ... on Photo {
             id
           }

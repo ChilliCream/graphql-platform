@@ -16,7 +16,7 @@ public sealed class FusionInterfaceTypeDefinition(
     private bool _isEntity;
 
     /// <inheritdoc />
-    public override TypeKind Kind => TypeKind.Object;
+    public override TypeKind Kind => TypeKind.Interface;
 
     /// <summary>
     /// Defines is this interface is an entity.

@@ -8,7 +8,6 @@ using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
-using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -433,10 +432,41 @@ internal sealed class FetchResultStore : IDisposable
 
         for (var i = 0; i < sourcePath.Segments.Length; i++)
         {
-            var segment = sourcePath.Segments[i];
-            if (current.ValueKind != JsonValueKind.Object || !current.TryGetProperty(segment.Name, out current))
+            if (current.ValueKind != JsonValueKind.Object)
             {
                 return default;
+            }
+
+            var segment = sourcePath.Segments[i];
+
+            switch (segment.Kind)
+            {
+                case SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field:
+                    if (!current.TryGetProperty(segment.Name, out current))
+                    {
+                        return default;
+                    }
+
+                    break;
+
+                case SelectionPathSegmentKind.InlineFragment:
+                    if (!current.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeNameProperty)
+                            || typeNameProperty.ValueKind != JsonValueKind.String)
+                    {
+                        return default;
+                    }
+
+                    var typeName = typeNameProperty.GetString()!;
+
+                    if (typeName != segment.Name)
+                    {
+                        return default;
+                    }
+
+                    break;
+
+                default:
+                    throw new NotImplementedException($"Segment kind {segment.Kind} is not supported.");
             }
         }
 

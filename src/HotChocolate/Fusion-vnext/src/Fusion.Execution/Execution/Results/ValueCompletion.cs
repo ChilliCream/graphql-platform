@@ -270,6 +270,10 @@ internal sealed class ValueCompletion
                 listResult.SetNextValue(item);
                 return true;
             }
+            else if (elementType.IsAbstractType())
+            {
+                return TryCompleteAbstractValue(selection, elementType, item, errorTrieForIndex, depth, listResult);
+            }
             else
             {
                 return TryCompleteObjectValue(selection, elementType, item, errorTrieForIndex, depth, listResult);
@@ -306,7 +310,10 @@ internal sealed class ValueCompletion
         var objectResult = _resultPoolSession.RentObjectResult();
 
         objectResult.Initialize(_resultPoolSession, selectionSet, _includeFlags);
-        objectResult.SetParent(parent, parent.ParentIndex);
+
+        // we set the value early so that in the error case we can correctly
+        // traverse along the parent path and propagate errors.
+        parent.SetNextValue(objectResult);
 
         foreach (var field in objectResult.Fields)
         {
@@ -329,7 +336,6 @@ internal sealed class ValueCompletion
             }
         }
 
-        parent.SetNextValue(objectResult);
         return true;
     }
 

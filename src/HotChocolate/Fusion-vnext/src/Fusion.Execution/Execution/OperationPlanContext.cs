@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Features;
@@ -9,16 +10,19 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
+// TODO : make poolable
 public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 {
     private static readonly JsonOperationPlanFormatter s_planFormatter = new();
     private readonly ConcurrentDictionary<int, List<ExecutionNode>> _nodesToComplete = new();
-    private readonly ConcurrentDictionary<int, ImmutableArray<VariableValues>> _traceDetails = new();
+    private readonly ConcurrentDictionary<int, NodeContext> _nodeContexts = new();
     private readonly FetchResultStore _resultStore;
-    private readonly ExecutionState  _executionState;
+    private readonly ExecutionState _executionState;
+    private readonly INodeIdParser _nodeIdParser;
     private readonly bool _collectTelemetry;
     private ResultPoolSessionHolder _resultPoolSessionHolder;
     private ISourceSchemaClientScope _clientScope;
@@ -50,6 +54,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         _resultPoolSessionHolder = requestContext.CreateResultPoolSession();
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope = requestContext.CreateClientScope();
+        _nodeIdParser = requestContext.Schema.Services.GetRequiredService<INodeIdParser>();
 
         _resultStore = new FetchResultStore(
             requestContext.Schema,
@@ -93,8 +98,33 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     internal ImmutableArray<ExecutionNode> GetDependentsToExecute(ExecutionNode node)
         => _nodesToComplete.TryGetValue(node.Id, out var nodesToComplete)
-            ? [..nodesToComplete]
-            : ImmutableArray<ExecutionNode>.Empty;
+            ? [.. nodesToComplete]
+            : [];
+
+    internal void SetDynamicSchemaName(ExecutionNode node, string schemaName)
+    {
+        _nodeContexts.AddOrUpdate(
+            node.Id,
+            static (_, schemaName) => new NodeContext { SchemaName = schemaName },
+            static (_, context, schemaName) => context with { SchemaName = schemaName },
+            schemaName);
+    }
+
+    internal string GetDynamicSchemaName(ExecutionNode node)
+    {
+        if (_nodeContexts.TryGetValue(node.Id, out var context)
+            && !string.IsNullOrEmpty(context.SchemaName))
+        {
+            return context.SchemaName;
+        }
+
+        throw new InvalidOperationException(
+            $"Expected to find a schema name for a dynamic operation node '{node.Id}'.");
+    }
+
+    internal bool TryGetNodeLookupSchemaForType(string typeName, [NotNullWhen(true)] out string? schemaName)
+        => RequestContext.Schema.Features.GetRequired<NodeFallbackLookup>()
+            .TryGetNodeLookupSchemaForType(typeName, out schemaName);
 
     internal void TrackVariableValueSets(ExecutionNode node, ImmutableArray<VariableValues> variableValueSets)
     {
@@ -103,7 +133,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             return;
         }
 
-        _traceDetails.TryAdd(node.Id, variableValueSets);
+        _nodeContexts.AddOrUpdate(
+            node.Id,
+            static (_, variableValueSets) => new NodeContext { Variables = variableValueSets },
+            static (_, context, variableValueSets) => context with { Variables = variableValueSets },
+            variableValueSets);
     }
 
     internal ImmutableArray<VariableValues> GetVariableValueSets(ExecutionNode node)
@@ -113,8 +147,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             return [];
         }
 
-        return _traceDetails.TryGetValue(node.Id, out var variableValueSets)
-            ? variableValueSets
+        return _nodeContexts.TryGetValue(node.Id, out var variableValueSets)
+            ? variableValueSets.Variables
             : [];
     }
 
@@ -249,6 +283,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         return ClientScope.GetClient(schemaName, operationType);
     }
 
+    public bool TryParseTypeNameFromId(string id, [NotNullWhen(true)] out string? typeName)
+        => _nodeIdParser.TryParseTypeName(id, out typeName);
+
     public async ValueTask DisposeAsync()
     {
         if (!_disposed)
@@ -258,6 +295,14 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             _resultStore.Dispose();
             await _clientScope.DisposeAsync();
         }
+    }
+
+    private sealed record NodeContext
+    {
+        public string? SchemaName { get; init; }
+
+        [SuppressMessage("ReSharper", "TypeWithSuspiciousEqualityIsUsedInRecord.Local")]
+        public ImmutableArray<VariableValues> Variables { get; init; } = [];
     }
 }
 

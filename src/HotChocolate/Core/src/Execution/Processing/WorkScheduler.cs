@@ -20,6 +20,11 @@ internal sealed partial class WorkScheduler
     }
 
     /// <summary>
+    /// Defines if the scheduler is initialized.
+    /// </summary>
+    public bool IsInitialized => _isInitialized;
+
+    /// <summary>
     /// Registers work with the task backlog.
     /// </summary>
     public void Register(IExecutionTask task)
