@@ -1,5 +1,5 @@
 schema {
-  query: Query8
+  query: QueryType
 }
 
 "The node interface is implemented by entities that have a global unique identifier."
@@ -7,17 +7,14 @@ interface Node {
   id: ID!
 }
 
-type Foo1 implements Node {
-  id: ID!
-  clearTextId: String
-}
-
-type Query8 {
+type QueryType {
   "Fetches an object given its ID."
   node("ID of the object." id: ID!): Node @lookup
-  "Lookup nodes by a list of IDs."
-  nodes("The list of node IDs." ids: [ID!]!): [Node]!
-  barById(id: ID!): Foo1
+  some: Some
+}
+
+type Some implements Node {
+  id: ID!
 }
 
 """

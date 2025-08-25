@@ -17,16 +17,12 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "A",
-            b => b.AddGlobalObjectIdentification()
-                // TODO: Remove once proper support has been implemented in HC
-                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
                 .AddQueryType<SourceSchema1.Query>());
 
         using var server2 = CreateSourceSchema(
             "B",
-            b => b.AddGlobalObjectIdentification()
-                // TODO: Remove once proper support has been implemented in HC
-                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
                 .AddQueryType<SourceSchema2.Query>());
 
         // act
@@ -64,16 +60,12 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "A",
-            b => b.AddGlobalObjectIdentification()
-                // TODO: Remove once proper support has been implemented in HC
-                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
                 .AddQueryType<SourceSchema1.Query>());
 
         using var server2 = CreateSourceSchema(
             "B",
-            b => b.AddGlobalObjectIdentification()
-                // TODO: Remove once proper support has been implemented in HC
-                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
                 .AddQueryType<SourceSchema2.Query>()
                 .AddType<SourceSchema2.Product>());
 
@@ -112,16 +104,12 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "A",
-            b => b.AddGlobalObjectIdentification()
-                // TODO: Remove once proper support has been implemented in HC
-                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
                 .AddQueryType<SourceSchema1.Query>());
 
         using var server2 = CreateSourceSchema(
             "B",
-            b => b.AddGlobalObjectIdentification()
-                // TODO: Remove once proper support has been implemented in HC
-                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
                 .AddQueryType<SourceSchema2.Query>());
 
         // act
@@ -157,16 +145,12 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "A",
-            b => b.AddGlobalObjectIdentification()
-                // TODO: Remove once proper support has been implemented in HC
-                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
                 .AddQueryType<SourceSchema1.Query>());
 
         using var server2 = CreateSourceSchema(
             "B",
-            b => b.AddGlobalObjectIdentification()
-                // TODO: Remove once proper support has been implemented in HC
-                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
                 .AddQueryType<SourceSchema2.Query>());
 
         // act
@@ -203,16 +187,12 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "A",
-            b => b.AddGlobalObjectIdentification()
-                // TODO: Remove once proper support has been implemented in HC
-                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
                 .AddQueryType<SourceSchema1.Query>());
 
         using var server2 = CreateSourceSchema(
             "B",
-            b => b.AddGlobalObjectIdentification()
-                // TODO: Remove once proper support has been implemented in HC
-                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
                 .AddQueryType<SourceSchema2.Query>()
                 .AddType<SourceSchema2.Product>());
 
@@ -251,16 +231,12 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "A",
-            b => b.AddGlobalObjectIdentification()
-                // TODO: Remove once proper support has been implemented in HC
-                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
                 .AddQueryType<SourceSchema1.Query>());
 
         using var server2 = CreateSourceSchema(
             "B",
-            b => b.AddGlobalObjectIdentification()
-                // TODO: Remove once proper support has been implemented in HC
-                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
                 .AddQueryType<SourceSchema2.Query>());
 
         // act
@@ -301,9 +277,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
 
         using var server2 = CreateSourceSchema(
             "B",
-            b => b.AddGlobalObjectIdentification()
-                // TODO: Remove once proper support has been implemented in HC
-                .TryAddTypeInterceptor<NodeFieldLookupTypeInterceptor>()
+            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
                 .AddQueryType<SourceSchema1.Query>());
 
         // act
@@ -333,8 +307,6 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         using var response = await result.ReadAsResultAsync();
         response.MatchSnapshot();
     }
-
-    // TODO: Add test for all selections point to specific subgraph, but it doesn't have byId resolver
 
     public static class SourceSchema1
     {
@@ -397,32 +369,5 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         }
 
         public record Discussion([property: ID] int Id, string Title, int CommentCount);
-    }
-
-    private sealed class NodeFieldLookupTypeInterceptor : TypeInterceptor
-    {
-        private ITypeCompletionContext? _queryContext;
-
-        public override void OnAfterResolveRootType(ITypeCompletionContext completionContext,
-            ObjectTypeConfiguration configuration,
-            OperationType operationType)
-        {
-            if (operationType is OperationType.Query)
-            {
-                _queryContext = completionContext;
-            }
-        }
-
-        public override void OnBeforeCompleteType(ITypeCompletionContext completionContext,
-            TypeSystemConfiguration configuration)
-        {
-            if (ReferenceEquals(_queryContext, completionContext)
-                && configuration is ObjectTypeConfiguration objectTypeConfiguration)
-            {
-                var nodeField = objectTypeConfiguration.Fields.FirstOrDefault(x => x.Name == "node");
-
-                nodeField?.AddDirective(Lookup.Instance, completionContext.TypeInspector);
-            }
-        }
     }
 }

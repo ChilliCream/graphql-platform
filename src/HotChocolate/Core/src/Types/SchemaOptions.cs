@@ -97,9 +97,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableOneOf"/>
     public bool EnableOneOf { get; set; } = true;
 
-    /// <inheritdoc cref="IReadOnlySchemaOptions.EnsureAllNodesCanBeResolved"/>
-    public bool EnsureAllNodesCanBeResolved { get; set; } = true;
-
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableFlagEnums"/>
     public bool EnableFlagEnums { get; set; }
 
@@ -111,9 +108,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableSemanticNonNull"/>
     public bool EnableSemanticNonNull { get; set; }
-
-    /// <inheritdoc cref="IReadOnlySchemaOptions.MaxAllowedNodeBatchSize"/>
-    public int MaxAllowedNodeBatchSize { get; set; } = 50;
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.StripLeadingIFromInterface"/>
     public bool StripLeadingIFromInterface { get; set; }
@@ -159,13 +153,11 @@ public class SchemaOptions : IReadOnlySchemaOptions
             SortFieldsByName = options.SortFieldsByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
             EnableOneOf = options.EnableOneOf,
-            EnsureAllNodesCanBeResolved = options.EnsureAllNodesCanBeResolved,
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,
             EnableStream = options.EnableStream,
             EnableSemanticNonNull = options.EnableSemanticNonNull,
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
-            MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
