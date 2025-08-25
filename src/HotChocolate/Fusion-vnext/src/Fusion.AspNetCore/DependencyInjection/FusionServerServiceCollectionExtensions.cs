@@ -10,7 +10,6 @@ using HotChocolate.Fusion.AspNetCore;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
