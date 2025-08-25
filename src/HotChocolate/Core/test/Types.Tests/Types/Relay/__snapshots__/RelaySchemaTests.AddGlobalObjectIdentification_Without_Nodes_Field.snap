@@ -9,10 +9,17 @@ interface Node {
 
 type QueryType {
   "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node
+  node("ID of the object." id: ID!): Node @lookup
   some: Some
 }
 
 type Some implements Node {
   id: ID!
 }
+
+"""
+The @lookup directive is used within a source schema to specify output fields
+that can be used by the distributed GraphQL executor to resolve an entity by
+a stable key.
+"""
+directive @lookup on FIELD_DEFINITION
