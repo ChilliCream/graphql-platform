@@ -337,7 +337,8 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton(
             static sp => new OperationPlanner(
                 sp.GetRequiredService<FusionSchemaDefinition>(),
-                sp.GetRequiredService<OperationCompiler>()));
+                sp.GetRequiredService<OperationCompiler>(),
+                sp.GetService<IEnumerable<IOperationPlannerInterceptor>>() ?? []));
     }
 
     private static void AddParserServices(IServiceCollection services)

@@ -13,6 +13,8 @@ namespace HotChocolate.Fusion.Types;
 public sealed class FusionSchemaDefinition : ISchemaDefinition
 {
     private readonly ConcurrentDictionary<string, ImmutableArray<FusionObjectTypeDefinition>> _possibleTypes = new();
+    private IFeatureCollection _features;
+    private bool _sealed;
 
     internal FusionSchemaDefinition(
         string name,
@@ -35,7 +37,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
         Directives = directives;
         Types = types;
         DirectiveDefinitions = directiveDefinitions;
-        Features = features;
+        _features = features;
     }
 
     public static FusionSchemaDefinition Create(
@@ -120,7 +122,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions
         => DirectiveDefinitions;
 
-    public IFeatureCollection Features { get; }
+    public IFeatureCollection Features => _features;
 
     public FusionObjectTypeDefinition GetOperationType(OperationType operation)
     {
@@ -238,6 +240,30 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
         ITypeDefinition abstractType)
         => GetPossibleTypes(abstractType);
 
+    public IEnumerable<INameProvider> GetAllDefinitions()
+    {
+        foreach (var type in Types.AsEnumerable())
+        {
+            yield return type;
+        }
+
+        foreach (var directiveDefinition in DirectiveDefinitions.AsEnumerable())
+        {
+            yield return directiveDefinition;
+        }
+    }
+
+    internal void Seal()
+    {
+        if (_sealed)
+        {
+            return;
+        }
+
+        _sealed = true;
+        _features = _features.ToReadOnly();
+    }
+
     public override string ToString()
         => SchemaFormatter.FormatAsString(this);
 
@@ -246,10 +272,6 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => SchemaFormatter.FormatAsDocument(this);
-
-    // TODO : Implement
-    public IEnumerable<INameProvider> GetAllDefinitions()
-        => throw new NotImplementedException();
 
     private record PossibleTypeLookupContext(
         ITypeDefinition AbstractType,
