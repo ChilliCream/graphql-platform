@@ -22,6 +22,8 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     private readonly ConcurrentDictionary<string, ImmutableArray<FusionObjectTypeDefinition>> _possibleTypes = new();
     private readonly ConcurrentDictionary<(string, string?), ImmutableArray<Lookup>> _possibleLookups = new();
     private ImmutableArray<FusionUnionTypeDefinition>? _unionTypes;
+    private IFeatureCollection _features;
+    private bool _sealed;
 
     internal FusionSchemaDefinition(
         string name,
@@ -44,7 +46,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
         Directives = directives;
         Types = types;
         DirectiveDefinitions = directiveDefinitions;
-        Features = features;
+        _features = features;
     }
 
     public static FusionSchemaDefinition Create(
@@ -129,7 +131,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions
         => DirectiveDefinitions;
 
-    public IFeatureCollection Features { get; }
+    public IFeatureCollection Features => _features;
 
     public FusionObjectTypeDefinition GetOperationType(OperationType operation)
     {
@@ -346,11 +348,35 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
         {
             lock (_lock)
             {
-                _unionTypes ??= [..Types.AsEnumerable().OfType<FusionUnionTypeDefinition>()];
+                _unionTypes ??= [.. Types.AsEnumerable().OfType<FusionUnionTypeDefinition>()];
             }
         }
 
         return _unionTypes.Value;
+    }
+
+    public IEnumerable<INameProvider> GetAllDefinitions()
+    {
+        foreach (var type in Types.AsEnumerable())
+        {
+            yield return type;
+        }
+
+        foreach (var directiveDefinition in DirectiveDefinitions.AsEnumerable())
+        {
+            yield return directiveDefinition;
+        }
+    }
+
+    internal void Seal()
+    {
+        if (_sealed)
+        {
+            return;
+        }
+
+        _sealed = true;
+        _features = _features.ToReadOnly();
     }
 
     public override string ToString()
@@ -361,19 +387,6 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => SchemaFormatter.FormatAsDocument(this);
-
-    public IEnumerable<INameProvider> GetAllDefinitions()
-    {
-        foreach (var type in Types)
-        {
-            yield return type;
-        }
-
-        foreach (var directive in DirectiveDefinitions)
-        {
-            yield return directive;
-        }
-    }
 
     private record PossibleTypeLookupContext(
         ITypeDefinition AbstractType,

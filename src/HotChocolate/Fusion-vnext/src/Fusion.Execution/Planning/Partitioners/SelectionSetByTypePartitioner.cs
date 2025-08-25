@@ -15,7 +15,7 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
 
         CollectSelections(input.SelectionSet.Node, input.SelectionSet.Type, context);
 
-        SelectionSetNode? sharedSelectionSet =
+        var sharedSelectionSet =
             context.SharedSelections?.Count > 0
                 ? new SelectionSetNode(context.SharedSelections)
                 : null;

@@ -40,13 +40,17 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     public virtual IDisposable ExecuteOperation(RequestContext context) => EmptyScope;
 
     /// <inheritdoc />
-    public virtual IDisposable ExecuteSubscription(RequestContext context) => EmptyScope;
+    public virtual IDisposable ExecuteSubscription(RequestContext context, ulong subscriptionId)
+        => EmptyScope;
 
     /// <inheritdoc />
-    public virtual IDisposable OnSubscriptionEvent(RequestContext context) => EmptyScope;
-
-    /// <inheritdoc />
-    public virtual void ExecutionError(RequestContext context, ErrorKind kind, IReadOnlyList<IError> errors, object? state = null) { }
+    public virtual void ExecutionError(
+        RequestContext context,
+        ErrorKind kind,
+        IReadOnlyList<IError> errors,
+        object? state = null)
+    {
+    }
 
     /// <inheritdoc />
     public virtual void AddedDocumentToCache(RequestContext context) { }
@@ -64,13 +68,19 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     public virtual IDisposable PlanOperation(RequestContext context)
         => EmptyScope;
 
-    public virtual IDisposable ExecuteOperation(OperationPlanContext context, OperationExecutionNode node)
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteOperationNode(OperationPlanContext context, OperationExecutionNode node)
         => EmptyScope;
 
-    public virtual IDisposable ExecuteSubscriptionEvent(OperationPlanContext context, OperationExecutionNode node)
+    /// <inheritdoc />
+    public IDisposable ExecuteSubscriptionNode(
+        OperationPlanContext context,
+        OperationExecutionNode node,
+        ulong subscriptionId)
         => EmptyScope;
 
-    public virtual IDisposable ExecuteIntrospection(OperationPlanContext context, IntrospectionExecutionNode node)
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteIntrospectionNode(OperationPlanContext context, IntrospectionExecutionNode node)
         => EmptyScope;
 
     /// <inheritdoc />

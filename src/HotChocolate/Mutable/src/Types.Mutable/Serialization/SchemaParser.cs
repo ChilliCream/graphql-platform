@@ -430,6 +430,7 @@ public static class SchemaParser
             var field = new MutableOutputFieldDefinition(fieldNode.Name.Value);
             field.Description = fieldNode.Description?.Value;
             field.Type = schema.Types.BuildType(fieldNode.Type).ExpectOutputType();
+            field.DeclaringMember = type;
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
 
@@ -451,6 +452,7 @@ public static class SchemaParser
                 argument.Description = argumentNode.Description?.Value;
                 argument.Type = schema.Types.BuildType(argumentNode.Type).ExpectInputType();
                 argument.DefaultValue = argumentNode.DefaultValue;
+                argument.DeclaringMember = field;
 
                 BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
 
@@ -495,6 +497,7 @@ public static class SchemaParser
             field.Description = fieldNode.Description?.Value;
             field.Type = schema.Types.BuildType(fieldNode.Type).ExpectInputType();
             field.DefaultValue = fieldNode.DefaultValue;
+            field.DeclaringMember = type;
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
 
@@ -533,6 +536,7 @@ public static class SchemaParser
 
             var value = new MutableEnumValue(enumValue.Name.Value);
             value.Description = enumValue.Description?.Value;
+            value.DeclaringType = type;
 
             BuildDirectiveCollection(schema, value.Directives, enumValue.Directives);
 
@@ -628,6 +632,7 @@ public static class SchemaParser
             argument.Description = argumentNode.Description?.Value;
             argument.Type = schema.Types.BuildType(argumentNode.Type).ExpectInputType();
             argument.DefaultValue = argumentNode.DefaultValue;
+            argument.DeclaringMember = type;
 
             BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
 

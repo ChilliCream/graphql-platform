@@ -61,7 +61,9 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
-        return OperationPlan.Create(operation, rootNodes, allNodes);
+        var plan = OperationPlan.Create(operation, rootNodes, allNodes);
+        OnAfterPlanCompleted(plan);
+        return plan;
     }
 
     private static ImmutableList<PlanStep> PrepareSteps(
@@ -417,6 +419,21 @@ public sealed partial class OperationPlanner
         }
 
         return current;
+    }
+
+    private void OnAfterPlanCompleted(OperationPlan plan)
+    {
+        if (_interceptors.Length == 1)
+        {
+            _interceptors[0].OnAfterPlanCompleted(plan);
+        }
+        else if (_interceptors.Length > 1)
+        {
+            foreach (var interceptor in _interceptors)
+            {
+                interceptor.OnAfterPlanCompleted(plan);
+            }
+        }
     }
 }
 

@@ -84,12 +84,14 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
 
     /// <inheritdoc />
     public virtual IDisposable ExecuteSubscription(
-        RequestContext context)
+        RequestContext context,
+        ulong subscriptionId)
         => EmptyScope;
 
     /// <inheritdoc />
     public virtual IDisposable OnSubscriptionEvent(
-        RequestContext context)
+        RequestContext context,
+        ulong subscriptionId)
         => EmptyScope;
 
     /// <inheritdoc />

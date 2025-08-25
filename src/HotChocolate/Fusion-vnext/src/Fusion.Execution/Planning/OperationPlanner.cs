@@ -18,11 +18,16 @@ public sealed partial class OperationPlanner
     private readonly SelectionSetPartitioner _partitioner;
     private readonly SelectionSetByTypePartitioner _selectionSetByTypePartitioner;
     private readonly RootSelectionSetPartitioner _rootSelectionSetPartitioner;
+    private readonly IOperationPlannerInterceptor[] _interceptors;
 
-    public OperationPlanner(FusionSchemaDefinition schema, OperationCompiler operationCompiler)
+    public OperationPlanner(
+        FusionSchemaDefinition schema,
+        OperationCompiler operationCompiler,
+        IEnumerable<IOperationPlannerInterceptor> interceptors)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(operationCompiler);
+        ArgumentNullException.ThrowIfNull(interceptors);
 
         _schema = schema;
         _operationCompiler = operationCompiler;
@@ -30,6 +35,7 @@ public sealed partial class OperationPlanner
         _partitioner = new SelectionSetPartitioner(schema);
         _selectionSetByTypePartitioner = new SelectionSetByTypePartitioner(schema);
         _rootSelectionSetPartitioner = new RootSelectionSetPartitioner(schema);
+        _interceptors = interceptors.ToArray();
     }
 
     public OperationPlan CreatePlan(
@@ -280,7 +286,7 @@ public sealed partial class OperationPlanner
                     PlanNode(wi, current, possiblePlans, backlog);
                     break;
 
-                case NodeLookupWorkItem { Lookup: {} lookup } wi:
+                case NodeLookupWorkItem { Lookup: { } lookup } wi:
                     PlanNodeLookup(wi, lookup, current, possiblePlans, backlog);
                     break;
 
@@ -814,7 +820,7 @@ public sealed partial class OperationPlanner
         backlog = backlog.Push(unresolvable);
         backlog = backlog.Push(fieldsWithRequirements, stepId);
 
-        var selectionSetNode =  resolvable
+        var selectionSetNode = resolvable
             .WithSelections([
                 new FieldNode(IntrospectionFieldNames.TypeName),
                 ..resolvable.Selections

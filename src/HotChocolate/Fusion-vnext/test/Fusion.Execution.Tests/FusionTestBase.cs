@@ -102,7 +102,8 @@ public abstract class FusionTestBase : IDisposable
 
     protected static OperationPlan PlanOperation(
         FusionSchemaDefinition schema,
-        [StringSyntax("graphql")] string operationText)
+        [StringSyntax("graphql")] string operationText,
+        params IOperationPlannerInterceptor[]  interceptors)
     {
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
@@ -114,7 +115,7 @@ public abstract class FusionTestBase : IDisposable
         var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
 
         var compiler = new OperationCompiler(schema, pool);
-        var planner = new OperationPlanner(schema, compiler);
+        var planner = new OperationPlanner(schema, compiler, interceptors);
         const string id = "123456789101112";
         return planner.CreatePlan(id, id, id, operation);
     }
