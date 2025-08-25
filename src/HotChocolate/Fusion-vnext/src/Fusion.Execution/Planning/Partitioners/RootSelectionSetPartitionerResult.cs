@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Partitioners;
 
 internal sealed record RootSelectionSetPartitionerResult(
     SelectionSet? SelectionSet,

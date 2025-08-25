@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -1286,6 +1287,12 @@ public sealed partial class OperationPlanner
 
                 if (type.IsAbstractType())
                 {
+                    // we add the __typename field to all seelection sets that have
+                    // an abstract type context as we need the type context for
+                    // runtime decisions.
+                    //
+                    // The __typename field is marked as a requirement to differentiate between a user
+                    // required __typename and a runtime required type information.
                     var typenameNode = new FieldNode(IntrospectionFieldNames.TypeName)
                         .WithDirectives([new DirectiveNode("fusion__requirement")]);
                     return fieldNode.WithSelectionSet(new SelectionSetNode([
@@ -1297,7 +1304,8 @@ public sealed partial class OperationPlanner
             },
             (node, path) =>
             {
-                if (node is FieldNode { SelectionSet: not null } fieldNode && path.Peek() is IComplexTypeDefinition complexType)
+                if (node is FieldNode { SelectionSet: not null } fieldNode
+                    && path.Peek() is IComplexTypeDefinition complexType)
                 {
                     var field = complexType.Fields[fieldNode.Name.Value];
 

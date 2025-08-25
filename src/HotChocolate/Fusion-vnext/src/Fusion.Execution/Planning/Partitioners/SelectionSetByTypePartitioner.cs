@@ -4,8 +4,12 @@ using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Partitioners;
 
+/// <summary>
+/// Partitions a field by type, in essence we take all the  fiel
+/// -- type explosion
+/// </summary>
 internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schema)
 {
     public SelectionSetByTypePartitionerResult Partition(SelectionSetByTypePartitionerInput input)

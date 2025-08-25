@@ -2,8 +2,11 @@ using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Planning.Partitioners;
 
+/// <summary>
+/// Partitions the root selection set int node fields and not node fileds
+/// </summary>
 internal sealed class RootSelectionSetPartitioner(FusionSchemaDefinition schema)
 {
     public RootSelectionSetPartitionerResult Partition(RootSelectionSetPartitionerInput input)

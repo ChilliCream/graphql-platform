@@ -12,8 +12,6 @@ namespace HotChocolate.Fusion.Types;
 
 public sealed class FusionSchemaDefinition : ISchemaDefinition
 {
-    private static readonly ThreadLocal<List<FusionUnionTypeDefinition>> s_threadLocalUnionTypes = new(() => []);
-
 #if NET9_0_OR_GREATER
     private readonly Lock _lock = new();
 #else
@@ -21,7 +19,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
 #endif
     private readonly ConcurrentDictionary<string, ImmutableArray<FusionObjectTypeDefinition>> _possibleTypes = new();
     private readonly ConcurrentDictionary<(string, string?), ImmutableArray<Lookup>> _possibleLookups = new();
-    private ImmutableArray<FusionUnionTypeDefinition>? _unionTypes;
+    private ImmutableArray<FusionUnionTypeDefinition> _unionTypes;
     private IFeatureCollection _features;
     private bool _sealed;
 
@@ -269,22 +267,15 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
         //       abstract type in the given source schema.
         if (type is FusionComplexTypeDefinition complexType)
         {
-            var isObject = complexType.Kind == TypeKind.Object;
-            var unionTypes = s_threadLocalUnionTypes.Value!;
-            unionTypes.Clear();
-
-            if (isObject)
+            FusionUnionTypeDefinition[]? unionTypes = null;
+            if (complexType.Kind == TypeKind.Object)
             {
                 // if we are trying to resolve possible lookups for object types
                 // we need to consider lookups for union types where this object type
                 // is a member type of.
-                foreach (var unionType in GetAllUnionTypes())
-                {
-                    if (unionType.Types.ContainsName(type.Name))
-                    {
-                        unionTypes.Add(unionType);
-                    }
-                }
+                //
+                // we do not care about the allocation here as we cache the outcome of this method.
+                unionTypes = _unionTypes.Where(unionType => unionType.Types.ContainsName(type.Name)).ToArray();
             }
 
             var lookups = ImmutableArray.CreateBuilder<Lookup>();
@@ -302,7 +293,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
                 }
 
                 // we only look at union types if the complex type is an object type.
-                if (isObject)
+                if (unionTypes is not null)
                 {
                     foreach (var unionType in unionTypes)
                     {
@@ -341,20 +332,6 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
         }
     }
 
-    [SuppressMessage("ReSharper", "InconsistentlySynchronizedField")]
-    private ImmutableArray<FusionUnionTypeDefinition> GetAllUnionTypes()
-    {
-        if (!_unionTypes.HasValue)
-        {
-            lock (_lock)
-            {
-                _unionTypes ??= [.. Types.AsEnumerable().OfType<FusionUnionTypeDefinition>()];
-            }
-        }
-
-        return _unionTypes.Value;
-    }
-
     public IEnumerable<INameProvider> GetAllDefinitions()
     {
         foreach (var type in Types.AsEnumerable())
@@ -377,6 +354,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
 
         _sealed = true;
         _features = _features.ToReadOnly();
+        _unionTypes = [.. Types.AsEnumerable().OfType<FusionUnionTypeDefinition>()];
     }
 
     public override string ToString()
