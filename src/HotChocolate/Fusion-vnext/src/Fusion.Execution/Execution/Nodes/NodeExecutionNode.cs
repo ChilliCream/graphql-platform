@@ -68,12 +68,16 @@ public sealed class NodeExecutionNode : ExecutionNode
             || !context.TryGetNodeLookupSchemaForType(typeName, out var schemaName))
         {
             // We have an invalid id or a valid id of a type that does not implement the Node interface
-            var error = ErrorBuilder.New()
+            var errorBuilder = ErrorBuilder.New()
                 .SetMessage("The node ID string has an invalid format.")
-                .SetExtension("originalValue", id)
-                .Build();
+                .SetExtension(WellKnownErrorExtensions.OriginalIdValue, id);
 
-            context.AddErrors(error, [_responseName], Path.Root);
+            if (context.CollectTelemetry)
+            {
+                errorBuilder.SetExtension(WellKnownErrorExtensions.SourceOperationPlanNodeId, Id);
+            }
+
+            context.AddErrors(errorBuilder.Build(), [_responseName], Path.Root);
 
             return ValueTask.FromResult(ExecutionStatus.Failed);
         }

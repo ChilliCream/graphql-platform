@@ -68,6 +68,7 @@ internal sealed class FetchResultStore : IDisposable
     public void AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
+        ReadOnlySpan<SourceSchemaErrors?> errors,
         ReadOnlySpan<string> responseNames)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -88,6 +89,7 @@ internal sealed class FetchResultStore : IDisposable
         try
         {
             ref var result = ref MemoryMarshal.GetReference(results);
+            ref var sourceSchemaError = ref MemoryMarshal.GetReference(errors);
             ref var dataElement = ref MemoryMarshal.GetReference(dataElementsSpan);
             ref var errorTrie = ref MemoryMarshal.GetReference(errorTriesSpan);
             ref var end = ref Unsafe.Add(ref result, results.Length);
@@ -97,15 +99,16 @@ internal sealed class FetchResultStore : IDisposable
                 // we need to track the result objects as they used rented memory.
                 _memory.Push(result);
 
-                if (result.Errors?.RootErrors is { Length: > 0 } rootErrors)
+                if (sourceSchemaError?.RootErrors is { Length: > 0 } rootErrors)
                 {
                     _errors.AddRange(rootErrors);
                 }
 
                 dataElement = GetDataElement(sourcePath, result.Data);
-                errorTrie = GetErrorTrie(sourcePath, result.Errors?.Trie);
+                errorTrie = GetErrorTrie(sourcePath, sourceSchemaError?.Trie);
 
                 result = ref Unsafe.Add(ref result, 1)!;
+                sourceSchemaError = ref Unsafe.Add(ref sourceSchemaError, 1);
                 dataElement = ref Unsafe.Add(ref dataElement, 1);
                 errorTrie = ref Unsafe.Add(ref errorTrie, 1)!;
             }

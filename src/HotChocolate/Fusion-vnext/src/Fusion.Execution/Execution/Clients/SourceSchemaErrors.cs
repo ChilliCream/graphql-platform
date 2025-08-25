@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Text.Json;
+using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -27,6 +28,8 @@ public sealed class SourceSchemaErrors
     /// <param name="json">
     /// A <see cref="JsonElement"/> representing the "errors" array from a GraphQL response.
     /// </param>
+    /// <param name="context"></param>
+    /// <param name="sourceNode"></param>
     /// <returns>
     /// A <see cref="SourceSchemaErrors"/> instance containing the parsed errors, or
     /// <c>null</c> if the JSON is not a valid array format.
@@ -34,7 +37,7 @@ public sealed class SourceSchemaErrors
     /// <exception cref="InvalidOperationException">
     /// Thrown when an error path contains unsupported element types (only strings and integer are supported).
     /// </exception>
-    public static SourceSchemaErrors? From(JsonElement json)
+    public static SourceSchemaErrors? From(JsonElement json, OperationPlanContext context, ExecutionNode sourceNode)
     {
         if (json.ValueKind != JsonValueKind.Array)
         {
@@ -48,12 +51,19 @@ public sealed class SourceSchemaErrors
         {
             var currentTrie = root;
 
-            var error = CreateError(jsonError);
+            var errorBuilder = CreateErrorBuilder(jsonError);
 
-            if (error is null)
+            if (errorBuilder is null)
             {
                 continue;
             }
+
+            if (context.CollectTelemetry)
+            {
+                errorBuilder.SetExtension(WellKnownErrorExtensions.SourceOperationPlanNodeId, sourceNode.Id);
+            }
+
+            var error = errorBuilder.Build();
 
             if (error.Path is null)
             {
@@ -100,7 +110,7 @@ public sealed class SourceSchemaErrors
         return new SourceSchemaErrors { RootErrors = rootErrors?.ToImmutableArray() ?? [], Trie = root };
     }
 
-    private static IError? CreateError(JsonElement jsonError)
+    private static ErrorBuilder? CreateErrorBuilder(JsonElement jsonError)
     {
         if (jsonError.ValueKind is not JsonValueKind.Object)
         {
@@ -133,7 +143,7 @@ public sealed class SourceSchemaErrors
                 }
             }
 
-            return errorBuilder.Build();
+            return errorBuilder;
         }
 
         return null;

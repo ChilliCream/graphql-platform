@@ -20,7 +20,7 @@ public sealed class SourceSchemaResult : IDisposable
         _resource = resource;
         Path = path;
         Data = data;
-        Errors = SourceSchemaErrors.From(errors);
+        Errors = errors;
         Extensions = extensions;
         Final = final;
     }
@@ -29,7 +29,7 @@ public sealed class SourceSchemaResult : IDisposable
 
     public JsonElement Data { get; }
 
-    public SourceSchemaErrors? Errors { get; }
+    public JsonElement Errors { get; }
 
     public JsonElement Extensions { get; }
 
