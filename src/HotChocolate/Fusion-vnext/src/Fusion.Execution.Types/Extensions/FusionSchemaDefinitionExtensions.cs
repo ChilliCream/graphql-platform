@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types;
@@ -19,23 +18,30 @@ public static class FusionSchemaDefinitionExtensions
         ITypeDefinition type,
         string? schemaName = null)
     {
-        var unionTypes = s_threadLocalUnionTypes.Value!;
-        unionTypes.Clear();
-
-        foreach (var unionType in compositeSchema.GetAllUnionTypes())
-        {
-            if (unionType.Types.ContainsName(type.Name))
-            {
-                unionTypes.Add(unionType);
-            }
-        }
-
         // TODO: Currently we just check that the type exists in the given source schema
         //       and that there are lookups for itself and / or the abstract types
         //       it's a part of. However, we don't check that the type is part of the
         //       abstract type in the given source schema.
         if (type is FusionComplexTypeDefinition complexType)
         {
+            var isObject = complexType.Kind == TypeKind.Object;
+            var unionTypes = s_threadLocalUnionTypes.Value!;
+            unionTypes.Clear();
+
+            if (isObject)
+            {
+                // if we are trying to resolve possible lookups for object types
+                // we need to consider lookups for union types where this object type
+                // is a member type of.
+                foreach (var unionType in compositeSchema.GetAllUnionTypes())
+                {
+                    if (unionType.Types.ContainsName(type.Name))
+                    {
+                        unionTypes.Add(unionType);
+                    }
+                }
+            }
+
             var lookups = ImmutableArray.CreateBuilder<Lookup>();
 
             foreach (var source in complexType.Sources)
@@ -50,11 +56,15 @@ public static class FusionSchemaDefinitionExtensions
                     }
                 }
 
-                foreach (var unionType in unionTypes)
+                // we only look at union types if the complex type is an object type.
+                if (isObject)
                 {
-                    if (unionType.Sources.TryGetMember(source.SchemaName, out var unionSource))
+                    foreach (var unionType in unionTypes)
                     {
-                        CollectLookups(schemaName, lookups, unionSource.Lookups);
+                        if (unionType.Sources.TryGetMember(source.SchemaName, out var unionSource))
+                        {
+                            CollectLookups(schemaName, lookups, unionSource.Lookups);
+                        }
                     }
                 }
             }
