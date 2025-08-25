@@ -14,11 +14,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
+// TODO : make poolable
 public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 {
     private static readonly JsonOperationPlanFormatter s_planFormatter = new();
     private readonly ConcurrentDictionary<int, List<ExecutionNode>> _nodesToComplete = new();
     private readonly ConcurrentDictionary<int, ImmutableArray<VariableValues>> _traceDetails = new();
+    private readonly ConcurrentDictionary<int, string> _schemaNameByOperationNodeId = new();
     private readonly FetchResultStore _resultStore;
     private readonly ExecutionState _executionState;
     private readonly INodeIdParser _nodeIdParser;
@@ -28,7 +30,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     private string? _traceId;
     private long _start;
     private bool _disposed;
-    private Dictionary<int, string>? _dynamicSchemaNameByOperationNodeId;
 
     public OperationPlanContext(
         RequestContext requestContext,
@@ -102,16 +103,18 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             : [];
 
     internal void SetSchemaForOperationNode(int operationNodeId, string schemaName)
-    {
-        _dynamicSchemaNameByOperationNodeId ??= new Dictionary<int, string>();
-
-        _dynamicSchemaNameByOperationNodeId.Add(operationNodeId, schemaName);
-    }
+        => _schemaNameByOperationNodeId.TryAdd(operationNodeId, schemaName);
 
     internal string GetSchemaNameForOperationNode(int operationNodeId)
-        => _dynamicSchemaNameByOperationNodeId?[operationNodeId] ??
-            throw new InvalidOperationException(
-                $"Expected to find a schema name for dynamic operation node '{operationNodeId}'.");
+    {
+        if (_schemaNameByOperationNodeId.TryGetValue(operationNodeId, out var schemaName))
+        {
+            return schemaName;
+        }
+
+        throw new InvalidOperationException(
+            $"Expected to find a schema name for a dynamic operation node '{operationNodeId}'.");
+    }
 
     internal bool TryGetNodeLookupSchemaForType(string typeName, [NotNullWhen(true)] out string? schemaName)
         => RequestContext.Schema.Features.GetRequired<NodeFallbackLookup>()
