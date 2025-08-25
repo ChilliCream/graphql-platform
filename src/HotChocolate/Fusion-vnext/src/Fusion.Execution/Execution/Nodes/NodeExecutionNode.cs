@@ -2,6 +2,10 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
+/// <summary>
+/// Represents an execution node for GraphQL node field queries in a composite schema.
+/// This execution node handles the execution of queries that fetch entities by their global ID.
+/// </summary>
 public sealed class NodeExecutionNode(
     int id,
     string responseName,
@@ -10,8 +14,10 @@ public sealed class NodeExecutionNode(
     private readonly Dictionary<string, ExecutionNode> _branches = [];
     private ExecutionNode _fallbackQuery = null!;
 
+    /// <inheritdoc />
     public override int Id { get; } = id;
 
+    /// <inheritdoc />
     public override ExecutionNodeType Type => ExecutionNodeType.Node;
 
     /// <summary>
