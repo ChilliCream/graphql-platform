@@ -1,0 +1,25 @@
+﻿{
+  "Id": "1",
+  "FirstName": "John",
+  "LastName": "Doe",
+  "BestFriend": {
+    "FirstName": "John",
+    "LastName": "Doe",
+    "Age": 42,
+    "Phone": "123-456-7890"
+  },
+  "Friends": [
+    {
+      "Id": "1",
+      "FirstName": "John",
+      "LastName": "Doe",
+      "ZipCode": "12345"
+    },
+    {
+      "Id": "2",
+      "FirstName": "Jane",
+      "LastName": "Smith",
+      "ZipCode": "67890"
+    }
+  ]
+}

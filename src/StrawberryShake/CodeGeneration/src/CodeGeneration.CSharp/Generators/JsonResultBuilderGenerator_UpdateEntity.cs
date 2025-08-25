@@ -51,12 +51,13 @@ public partial class JsonResultBuilderGenerator
         }
         else if (namedTypeDescriptor is ObjectTypeDescriptor objectTypeDescriptor)
         {
-            BuildTryGetEntityIf(
+            methodBuilder.AddCode(
+                BuildTryGetEntityIf(
                     CreateEntityType(
-                        objectTypeDescriptor.Name,
-                        objectTypeDescriptor.RuntimeType.NamespaceWithoutGlobal))
-                .AddCode(CreateEntityConstructorCall(objectTypeDescriptor, false))
-                .AddElse(CreateEntityConstructorCall(objectTypeDescriptor, true));
+                            objectTypeDescriptor.Name,
+                            objectTypeDescriptor.RuntimeType.NamespaceWithoutGlobal))
+                    .AddCode(CreateEntityConstructorCall(objectTypeDescriptor, false))
+                    .AddElse(CreateEntityConstructorCall(objectTypeDescriptor, true)));
 
             methodBuilder.AddEmptyLine();
             methodBuilder.AddCode($"return {EntityId};");
@@ -109,21 +110,75 @@ public partial class JsonResultBuilderGenerator
             }
         }
 
-        var newEntity = MethodCallBuilder
-            .Inline()
-            .SetNew()
-            .SetMethodName(objectType.EntityTypeDescriptor.RuntimeType.ToString());
+        var codeBlock = GenerateArgumentsFromResponse(objectType, propertyLookup, fragments);
+        if (assignDefault)
+        {
+            // Merge: Check whether the same entity was already stored while evaluating an argument
+            // An entity may reference itself but with a different selection set.
+            codeBlock.AddCode(
+                BuildTryGetEntityIf(null)
+                .AddCode(CreateSetEntityMethodCall(objectType, false, propertyLookup, fragments))
+                .AddElse(CreateSetEntityMethodCall(objectType, true, propertyLookup, fragments)));
+        }
+        else
+        {
+            codeBlock.AddCode(
+                CreateSetEntityMethodCall(objectType, assignDefault, propertyLookup, fragments));
+        }
 
+        return codeBlock;
+    }
+
+    private static CodeBlockBuilder GenerateArgumentsFromResponse(
+        ObjectTypeDescriptor objectType,
+        Dictionary<string, PropertyDescriptor> propertyLookup,
+        Dictionary<string, DeferredFragmentDescriptor> fragments)
+    {
+        var codeBlockBuilder = CodeBlockBuilder.New();
+        var argumentIndex = 0;
         foreach (var property in
             objectType.EntityTypeDescriptor.Properties.Values)
         {
             if (propertyLookup.TryGetValue(property.Name, out var prop))
             {
-                newEntity.AddArgument(BuildUpdateMethodCall(prop));
+                codeBlockBuilder.AddCode(
+                    AssignmentBuilder
+                        .New()
+                        .SetLeftHandSide($"var arg{argumentIndex++}")
+                        .SetRightHandSide(BuildUpdateMethodCall(prop)));
             }
             else if (fragments.TryGetValue(property.Name, out var frag))
             {
-                newEntity.AddArgument(BuildFragmentMethodCall(frag));
+                codeBlockBuilder.AddCode(
+                    AssignmentBuilder
+                        .New()
+                        .SetLeftHandSide($"var arg{argumentIndex++}")
+                        .SetRightHandSide(BuildFragmentMethodCall(frag)));
+            }
+        }
+
+        return codeBlockBuilder;
+    }
+
+    private static MethodCallBuilder CreateSetEntityMethodCall(
+        ObjectTypeDescriptor objectType,
+        bool assignDefault,
+        Dictionary<string, PropertyDescriptor> propertyLookup,
+        Dictionary<string, DeferredFragmentDescriptor> fragments)
+    {
+        var newEntity = MethodCallBuilder
+            .Inline()
+            .SetNew()
+            .SetMethodName(objectType.EntityTypeDescriptor.RuntimeType.ToString());
+
+        var argumentIndex = 0;
+        foreach (var property in
+            objectType.EntityTypeDescriptor.Properties.Values)
+        {
+            if (propertyLookup.ContainsKey(property.Name)
+                || fragments.ContainsKey(property.Name))
+            {
+                newEntity.AddArgument($"arg{argumentIndex++}");
             }
             else if (assignDefault)
             {
@@ -142,7 +197,7 @@ public partial class JsonResultBuilderGenerator
             .AddArgument(newEntity);
     }
 
-    private static IfBuilder BuildTryGetEntityIf(RuntimeTypeInfo entityType)
+    private static IfBuilder BuildTryGetEntityIf(RuntimeTypeInfo? entityType)
     {
         return IfBuilder
             .New()
@@ -150,7 +205,7 @@ public partial class JsonResultBuilderGenerator
                 .Inline()
                 .SetMethodName(Session, "CurrentSnapshot", "TryGetEntity")
                 .AddArgument(EntityId)
-                .AddOutArgument(Entity, entityType.ToString()));
+                .AddOutArgument(Entity, entityType?.ToString()));
     }
 
     private static PropertyDescriptor EnsureDeferredFieldIsNullable(PropertyDescriptor property)

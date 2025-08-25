@@ -941,11 +941,32 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.ExpenseEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.ExpenseEntity(Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableDecimal(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "amount")), Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "date")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "description")), Deserialize_NonNullableExpenseCategory(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "category")), Deserialize_NonNullablePaymentMethod(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "paymentMethod")), Deserialize_IAllExpenses_Expense_TagsArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "tags"))));
+                    var arg0 = Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableDecimal(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "amount"));
+                    var arg2 = Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "date"));
+                    var arg3 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "description"));
+                    var arg4 = Deserialize_NonNullableExpenseCategory(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "category"));
+                    var arg5 = Deserialize_NonNullablePaymentMethod(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "paymentMethod"));
+                    var arg6 = Deserialize_IAllExpenses_Expense_TagsArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "tags"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.ExpenseEntity(arg0, arg1, arg2, arg3, arg4, arg5, arg6));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.ExpenseEntity(Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableDecimal(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "amount")), Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "date")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "description")), Deserialize_NonNullableExpenseCategory(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "category")), Deserialize_NonNullablePaymentMethod(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "paymentMethod")), Deserialize_IAllExpenses_Expense_TagsArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "tags"))));
+                    var arg0 = Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableDecimal(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "amount"));
+                    var arg2 = Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "date"));
+                    var arg3 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "description"));
+                    var arg4 = Deserialize_NonNullableExpenseCategory(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "category"));
+                    var arg5 = Deserialize_NonNullablePaymentMethod(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "paymentMethod"));
+                    var arg6 = Deserialize_IAllExpenses_Expense_TagsArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "tags"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.ExpenseEntity(arg0, arg1, arg2, arg3, arg4, arg5, arg6));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.ExpenseEntity(arg0, arg1, arg2, arg3, arg4, arg5, arg6));
+                    }
                 }
 
                 return entityId;
