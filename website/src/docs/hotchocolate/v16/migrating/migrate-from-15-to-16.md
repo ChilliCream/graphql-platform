@@ -28,7 +28,7 @@ builder.Services.AddGraphQLServer()
 **After**
 
 ```csharp
-cbuilder.Services.AddGraphQLServer()
+builder.Services.AddGraphQLServer()
     .AddGlobalObjectIdentification(options =>
     {
         options.MaxAllowedNodeBatchSize = 100;
