@@ -35,7 +35,7 @@ public static class FusionServerServiceCollectionExtensions
         this IFusionGatewayBuilder builder,
         int maxAllowedRequestSize = ServerDefaults.MaxAllowedRequestSize)
     {
-        builder.ConfigureSchemaServices((root, sc) =>
+        builder.ConfigureSchemaServices((_, sc) =>
         {
             sc.TryAddSingleton<ITimeProvider, DefaultTimeProvider>();
 
