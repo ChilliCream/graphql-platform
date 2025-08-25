@@ -110,6 +110,22 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         }
     }
 
+    public void AddedOperationPlanToCache(RequestContext context, string operationPlanId)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].AddedOperationPlanToCache(context, operationPlanId);
+        }
+    }
+
+    public void RetrievedOperationPlanFromCache(RequestContext context, string operationPlanId)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].RetrievedOperationPlanFromCache(context, operationPlanId);
+        }
+    }
+
     public void RetrievedDocumentFromStorage(RequestContext context)
     {
         for (var i = 0; i < listeners.Length; i++)
@@ -126,13 +142,25 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         }
     }
 
-    public IDisposable PlanOperation(RequestContext context)
+    public IDisposable PlanOperation(RequestContext context, string operationPlanId)
     {
         var scopes = new IDisposable[listeners.Length];
 
         for (var i = 0; i < listeners.Length; i++)
         {
-            scopes[i] = listeners[i].PlanOperation(context);
+            scopes[i] = listeners[i].PlanOperation(context, operationPlanId);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public IDisposable ExecuteNodeFieldNode(OperationPlanContext context, NodeFieldExecutionNode node)
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].ExecuteNodeFieldNode(context, node);
         }
 
         return new AggregateActivityScope(scopes);

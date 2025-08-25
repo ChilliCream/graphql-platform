@@ -19,16 +19,13 @@ public sealed partial class OperationPlanner
     private readonly SelectionSetPartitioner _partitioner;
     private readonly SelectionSetByTypePartitioner _selectionSetByTypePartitioner;
     private readonly NodeFieldSelectionSetPartitioner _nodeFieldSelectionSetPartitioner;
-    private readonly IOperationPlannerInterceptor[] _interceptors;
 
     public OperationPlanner(
         FusionSchemaDefinition schema,
-        OperationCompiler operationCompiler,
-        IEnumerable<IOperationPlannerInterceptor> interceptors)
+        OperationCompiler operationCompiler)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(operationCompiler);
-        ArgumentNullException.ThrowIfNull(interceptors);
 
         _schema = schema;
         _operationCompiler = operationCompiler;
@@ -36,7 +33,6 @@ public sealed partial class OperationPlanner
         _partitioner = new SelectionSetPartitioner(schema);
         _selectionSetByTypePartitioner = new SelectionSetByTypePartitioner(schema);
         _nodeFieldSelectionSetPartitioner = new NodeFieldSelectionSetPartitioner(schema);
-        _interceptors = interceptors.ToArray();
     }
 
     public OperationPlan CreatePlan(

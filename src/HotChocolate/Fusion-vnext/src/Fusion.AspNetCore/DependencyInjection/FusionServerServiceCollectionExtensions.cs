@@ -10,6 +10,7 @@ using HotChocolate.Fusion.AspNetCore;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -34,7 +35,7 @@ public static class FusionServerServiceCollectionExtensions
         this IFusionGatewayBuilder builder,
         int maxAllowedRequestSize = ServerDefaults.MaxAllowedRequestSize)
     {
-        builder.ConfigureSchemaServices((_, sc) =>
+        builder.ConfigureSchemaServices((root, sc) =>
         {
             sc.TryAddSingleton<ITimeProvider, DefaultTimeProvider>();
 

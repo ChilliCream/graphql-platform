@@ -1,4 +1,3 @@
-using HotChocolate.Fusion.Execution.Extensions;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -57,7 +56,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
     }
 
     protected override IDisposable CreateScope(OperationPlanContext context)
-        => context.GetDiagnosticEvents().ExecuteIntrospectionNode(context, this);
+        => context.DiagnosticEvents.ExecuteIntrospectionNode(context, this);
 
     private static void ExecuteSelections(
         OperationPlanContext context,

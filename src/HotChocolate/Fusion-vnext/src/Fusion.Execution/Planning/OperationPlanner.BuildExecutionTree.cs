@@ -61,9 +61,7 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
-        var plan = OperationPlan.Create(operation, rootNodes, allNodes);
-        OnAfterPlanCompleted(plan);
-        return plan;
+        return OperationPlan.Create(operation, rootNodes, allNodes);
     }
 
     private static ImmutableList<PlanStep> PrepareSteps(
@@ -139,7 +137,7 @@ public sealed partial class OperationPlanner
                 fallbackDependencies.Add(nodePlanStep.Id);
 
                 branchesLookup.Add(nodePlanStep.Id, nodePlanStep.Branches
-                    .ToDictionary(x => x.Key, x=> x.Value.Id));
+                    .ToDictionary(x => x.Key, x => x.Value.Id));
                 fallbackLookup.Add(nodePlanStep.Id, nodePlanStep.FallbackQuery.Id);
             }
         }
@@ -246,7 +244,7 @@ public sealed partial class OperationPlanner
                 }
                 else if (step is NodePlanStep nodeStep)
                 {
-                    var node = new NodeExecutionNode(
+                    var node = new NodeFieldExecutionNode(
                         nodeStep.Id,
                         nodeStep.ResponseName,
                         nodeStep.IdValue);
@@ -281,7 +279,8 @@ public sealed partial class OperationPlanner
     {
         foreach (var (nodeId, stepDependencies) in dependencyLookup)
         {
-            if (!completedNodes.TryGetValue(nodeId, out var entry) || entry is not OperationExecutionNode node)
+            if (!completedNodes.TryGetValue(nodeId, out var entry)
+                || entry is not OperationExecutionNode node)
             {
                 continue;
             }
@@ -289,7 +288,7 @@ public sealed partial class OperationPlanner
             foreach (var dependencyId in stepDependencies)
             {
                 if (!completedNodes.TryGetValue(dependencyId, out var childEntry)
-                    || entry is not OperationExecutionNode or NodeExecutionNode)
+                    || entry is not OperationExecutionNode or NodeFieldExecutionNode)
                 {
                     continue;
                 }
@@ -301,8 +300,7 @@ public sealed partial class OperationPlanner
 
         foreach (var (nodeId, branches) in branchesLookup)
         {
-            if (!completedNodes.TryGetValue(nodeId, out var entry)
-                || entry is not NodeExecutionNode node)
+            if (!completedNodes.TryGetValue(nodeId, out var entry) || entry is not NodeFieldExecutionNode node)
             {
                 continue;
             }
@@ -320,8 +318,7 @@ public sealed partial class OperationPlanner
 
         foreach (var (nodeId, fallbackNodeId) in fallbackLookup)
         {
-            if (!completedNodes.TryGetValue(nodeId, out var entry)
-                || entry is not NodeExecutionNode node)
+            if (!completedNodes.TryGetValue(nodeId, out var entry) || entry is not NodeFieldExecutionNode node)
             {
                 continue;
             }
@@ -363,6 +360,7 @@ public sealed partial class OperationPlanner
                     {
                         stack.Push(child);
                     }
+
                     break;
             }
         }
@@ -419,21 +417,6 @@ public sealed partial class OperationPlanner
         }
 
         return current;
-    }
-
-    private void OnAfterPlanCompleted(OperationPlan plan)
-    {
-        if (_interceptors.Length == 1)
-        {
-            _interceptors[0].OnAfterPlanCompleted(plan);
-        }
-        else if (_interceptors.Length > 1)
-        {
-            foreach (var interceptor in _interceptors)
-            {
-                interceptor.OnAfterPlanCompleted(plan);
-            }
-        }
     }
 }
 

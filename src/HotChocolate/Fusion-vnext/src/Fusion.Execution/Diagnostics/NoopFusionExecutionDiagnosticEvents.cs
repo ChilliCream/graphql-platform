@@ -30,11 +30,18 @@ internal sealed class NoopFusionExecutionDiagnosticEvents : IFusionExecutionDiag
 
     public void RetrievedDocumentFromCache(RequestContext context) { }
 
+    public void AddedOperationPlanToCache(RequestContext context, string operationId) { }
+
+    public void RetrievedOperationPlanFromCache(RequestContext context, string operationId) { }
+
     public void RetrievedDocumentFromStorage(RequestContext context) { }
 
     public void DocumentNotFoundInStorage(RequestContext context, OperationDocumentId documentId) { }
 
-    public IDisposable PlanOperation(RequestContext context)
+    public IDisposable PlanOperation(RequestContext context, string operationId)
+        => this;
+
+    public IDisposable ExecuteNodeFieldNode(OperationPlanContext context, NodeFieldExecutionNode node)
         => this;
 
     public IDisposable ExecuteOperationNode(OperationPlanContext context, OperationExecutionNode node)

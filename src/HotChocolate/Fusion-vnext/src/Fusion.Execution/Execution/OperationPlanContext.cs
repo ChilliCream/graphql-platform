@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Features;
+using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
@@ -20,6 +22,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     private static readonly JsonOperationPlanFormatter s_planFormatter = new();
     private readonly ConcurrentDictionary<int, List<ExecutionNode>> _nodesToComplete = new();
     private readonly ConcurrentDictionary<int, NodeContext> _nodeContexts = new();
+    private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
     private readonly FetchResultStore _resultStore;
     private readonly ExecutionState _executionState;
     private readonly INodeIdParser _nodeIdParser;
@@ -55,6 +58,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope = requestContext.CreateClientScope();
         _nodeIdParser = requestContext.Schema.Services.GetRequiredService<INodeIdParser>();
+        _diagnosticEvents = requestContext.Schema.Services.GetRequiredService<IFusionExecutionDiagnosticEvents>();
 
         _resultStore = new FetchResultStore(
             requestContext.Schema,
@@ -86,6 +90,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     public IFeatureCollection Features => RequestContext.Features;
 
     public ImmutableArray<ExecutionNodeTrace> Traces { get; internal set; } = [];
+
+    public IFusionExecutionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 
     internal void EnqueueForExecution(ExecutionNode node, ExecutionNode dependentNode)
     {
@@ -188,8 +194,29 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     internal void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
         => _resultStore.AddPartialResults(result, selections);
 
+    internal void AddSubscriptionError(
+        IError error,
+        ReadOnlySpan<string> responseNames,
+        ulong subscriptionId)
+    {
+        _diagnosticEvents.ExecutionError(
+            RequestContext,
+            kind: ErrorKind.SubscriptionEventError,
+            [error],
+            state: subscriptionId);
+
+        _resultStore.AddErrors(error, responseNames, Path.Root);
+    }
+
     internal void AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
-        => _resultStore.AddErrors(error, responseNames, paths);
+    {
+        _diagnosticEvents.ExecutionError(
+            RequestContext,
+            kind: ErrorKind.FieldError,
+            [error]);
+
+        _resultStore.AddErrors(error, responseNames, paths);
+    }
 
     internal PooledArrayWriter CreateRentedBuffer()
         => _resultStore.CreateRentedBuffer();
