@@ -1,9 +1,8 @@
 using System.Reflection;
-using HotChocolate.ModelContextProtocol.Directives;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.ModelContextProtocol.Attributes;
+namespace HotChocolate.ModelContextProtocol.Directives;
 
 /// <summary>
 /// Additional properties describing a Tool to clients.

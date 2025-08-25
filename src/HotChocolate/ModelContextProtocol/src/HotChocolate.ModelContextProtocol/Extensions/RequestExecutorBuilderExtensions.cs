@@ -1,9 +1,9 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.ModelContextProtocol.Directives;
 using HotChocolate.ModelContextProtocol.Handlers;
 using HotChocolate.ModelContextProtocol.Proxies;
 using HotChocolate.ModelContextProtocol.Storage;
-using HotChocolate.ModelContextProtocol.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;

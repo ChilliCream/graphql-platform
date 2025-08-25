@@ -63,7 +63,7 @@ internal static class ValueNodeExtensions
 
         foreach (var field in valueNode.Fields)
         {
-            var graphQLFieldType = objectType is InputObjectType inputObjectType
+            var graphQLFieldType = objectType is IInputObjectTypeDefinition inputObjectType
                 ? inputObjectType.Fields[field.Name.Value].Type
                 : new AnyType(); // Types like JsonType or AnyType have no schema.
 

@@ -49,7 +49,7 @@ internal static class TypeExtensions
 
         switch (type.NullableType())
         {
-            case EnumType enumType:
+            case IEnumTypeDefinition enumType:
                 // Enum values.
                 List<JsonValue?> enumValues = [];
 
@@ -66,7 +66,7 @@ internal static class TypeExtensions
                 schemaBuilder.Enum(enumValues);
                 break;
 
-            case InputObjectType inputObjectType:
+            case IInputObjectTypeDefinition inputObjectType:
                 // Object properties.
                 var objectProperties = new Dictionary<string, JsonSchema>();
                 var requiredObjectProperties = new List<string>();
@@ -123,11 +123,12 @@ internal static class TypeExtensions
     {
         return type switch
         {
-            EnumType => SchemaValueType.String,
-            InputObjectType or InterfaceType or ObjectType or UnionType => SchemaValueType.Object,
+            IEnumTypeDefinition => SchemaValueType.String,
+            IInputObjectTypeDefinition or IInterfaceTypeDefinition or IObjectTypeDefinition or IUnionTypeDefinition
+                => SchemaValueType.Object,
             ListType => SchemaValueType.Array,
             NonNullType => GetJsonSchemaValueType(type.NullableType()),
-            ScalarType => type switch
+            IScalarTypeDefinition => type switch
             {
                 AnyType or JsonType =>
                     SchemaValueType.Object
