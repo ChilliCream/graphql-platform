@@ -24,6 +24,15 @@ public static class RelaySchemaBuilderExtensions
     /// </summary>
     public static ISchemaBuilder AddGlobalObjectIdentification(
         this ISchemaBuilder schemaBuilder,
+        bool registerNodeInterface)
+        => AddGlobalObjectIdentification(schemaBuilder, o => o.RegisterNodeInterface = registerNodeInterface);
+
+    /// <summary>
+    /// Adds a <c>node</c> field to the root query according to the
+    /// Global Object Identification specification.
+    /// </summary>
+    public static ISchemaBuilder AddGlobalObjectIdentification(
+        this ISchemaBuilder schemaBuilder,
         Action<GlobalObjectIdentificationOptions>? configure)
     {
         ArgumentNullException.ThrowIfNull(schemaBuilder);
