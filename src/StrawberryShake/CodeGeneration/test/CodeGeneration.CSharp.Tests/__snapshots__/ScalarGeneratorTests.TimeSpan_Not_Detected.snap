@@ -770,11 +770,20 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.SessionEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.SessionEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "title"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "title"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.SessionEntity(arg0));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.SessionEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "title"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "title"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.SessionEntity(arg0));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.SessionEntity(arg0));
+                    }
                 }
 
                 return entityId;

@@ -761,11 +761,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.State.DroidEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.State.DroidEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "__typename"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "__typename"));
+                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.State.DroidEntity(arg0));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.State.DroidEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "__typename"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "__typename"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.State.DroidEntity(arg0));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.State.DroidEntity(arg0));
+                    }
                 }
 
                 return entityId;
@@ -775,11 +784,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.State.HumanEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.State.HumanEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "__typename"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "__typename"));
+                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.State.HumanEntity(arg0));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.State.HumanEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "__typename"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "__typename"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.State.HumanEntity(arg0));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.State.HumanEntity(arg0));
+                    }
                 }
 
                 return entityId;

@@ -1088,11 +1088,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
                 {
                     if (session.CurrentSnapshot.TryGetEntity(entityId, out global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.BazEntity? entity))
                     {
-                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.BazEntity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"))));
+                        var arg0 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.BazEntity(arg0));
                     }
                     else
                     {
-                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.BazEntity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"))));
+                        var arg0 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                        if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                        {
+                            session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.BazEntity(arg0));
+                        }
+                        else
+                        {
+                            session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.BazEntity(arg0));
+                        }
                     }
 
                     return new global::StrawberryShake.EntityIdOrData(entityId);
@@ -1111,11 +1120,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
                 {
                     if (session.CurrentSnapshot.TryGetEntity(entityId, out global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.Baz2Entity? entity))
                     {
-                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.Baz2Entity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"))));
+                        var arg0 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.Baz2Entity(arg0));
                     }
                     else
                     {
-                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.Baz2Entity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"))));
+                        var arg0 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                        if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                        {
+                            session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.Baz2Entity(arg0));
+                        }
+                        else
+                        {
+                            session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.Baz2Entity(arg0));
+                        }
                     }
 
                     return new global::StrawberryShake.EntityIdOrData(entityId);
