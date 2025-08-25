@@ -5,9 +5,13 @@ using HotChocolate.Types;
 namespace HotChocolate.Fusion.Planning.Partitioners;
 
 /// <summary>
-/// Partitions the root selection set int node fields and not node fileds
+/// Partitions a root selection set by separating `node` fields from regular fields.
+/// This enables the operation planner to handle node-based queries separately from
+/// the standard field resolution, which is essential for proper operation planning.
+/// Node fields are collected with their associated fragment directives preserved
+/// for correct execution context.
 /// </summary>
-internal sealed class RootSelectionSetPartitioner(FusionSchemaDefinition schema)
+internal sealed class NodeFieldSelectionSetPartitioner(FusionSchemaDefinition schema)
 {
     public RootSelectionSetPartitionerResult Partition(RootSelectionSetPartitionerInput input)
     {
@@ -27,7 +31,11 @@ internal sealed class RootSelectionSetPartitioner(FusionSchemaDefinition schema)
         {
             indexBuilder.Register(input.SelectionSet.Node, selectionSet);
 
-            prunedSelectionSet = input.SelectionSet with { Id = indexBuilder.GetId(selectionSet), Node = selectionSet };
+            prunedSelectionSet = input.SelectionSet with
+            {
+                Id = indexBuilder.GetId(selectionSet),
+                Node = selectionSet
+            };
         }
 
         return new RootSelectionSetPartitionerResult(prunedSelectionSet, context.NodeFields, indexBuilder);
@@ -39,11 +47,10 @@ internal sealed class RootSelectionSetPartitioner(FusionSchemaDefinition schema)
 
         foreach (var selection in selectionSet.Selections)
         {
-            if (selection is FieldNode fieldNode)
+            switch (selection)
             {
-                if (schema.QueryType.Fields.TryGetField(fieldNode.Name.Value, out var field)
-                    && field is { Name: "node", Type: IInterfaceTypeDefinition { Name: "Node" } })
-                {
+                case FieldNode fieldNode when schema.QueryType.Fields.TryGetField(fieldNode.Name.Value, out var field)
+                    && field is { Name: "node", Type: IInterfaceTypeDefinition { Name: "Node" } }:
                     var directives = new List<DirectiveNode>(fieldNode.Directives);
                     foreach (var fragment in context.FragmentPath)
                     {
@@ -52,36 +59,37 @@ internal sealed class RootSelectionSetPartitioner(FusionSchemaDefinition schema)
 
                     context.NodeFields ??= [];
                     context.NodeFields.Add(fieldNode.WithDirectives(directives));
-                }
-                else
-                {
+                    break;
+
+                case FieldNode:
                     selections ??= [];
                     selections.Add(selection);
-                }
-            }
-            else if (selection is InlineFragmentNode inlineFragmentNode)
-            {
-                var hasDirectives = inlineFragmentNode.Directives.Any();
+                    break;
 
-                if (hasDirectives)
-                {
-                    context.FragmentPath.Push(inlineFragmentNode);
-                }
+                case InlineFragmentNode inlineFragmentNode:
+                    var hasDirectives = inlineFragmentNode.Directives.Any();
 
-                var fragmentSelectionSet = RewriteSelectionSet(
-                    inlineFragmentNode.SelectionSet,
-                    context);
+                    if (hasDirectives)
+                    {
+                        context.FragmentPath.Push(inlineFragmentNode);
+                    }
 
-                if (hasDirectives)
-                {
-                    context.FragmentPath.Pop();
-                }
+                    var fragmentSelectionSet = RewriteSelectionSet(
+                        inlineFragmentNode.SelectionSet,
+                        context);
 
-                if (fragmentSelectionSet is not null)
-                {
-                    selections ??= [];
-                    selections.Add(inlineFragmentNode.WithSelectionSet(fragmentSelectionSet));
-                }
+                    if (hasDirectives)
+                    {
+                        context.FragmentPath.Pop();
+                    }
+
+                    if (fragmentSelectionSet is not null)
+                    {
+                        selections ??= [];
+                        selections.Add(inlineFragmentNode.WithSelectionSet(fragmentSelectionSet));
+                    }
+
+                    break;
             }
         }
 
@@ -100,7 +108,7 @@ internal sealed class RootSelectionSetPartitioner(FusionSchemaDefinition schema)
         /// This is pushed to whenever we enter an inline fragment with directives,
         /// in order to preserve those.
         /// </summary>
-        public Stack<InlineFragmentNode> FragmentPath { get; } = new();
+        public List<InlineFragmentNode> FragmentPath { get; } = [];
 
         public List<FieldNode>? NodeFields { get; set; }
     }

@@ -18,7 +18,7 @@ public sealed partial class OperationPlanner
     private readonly MergeSelectionSetRewriter _mergeRewriter;
     private readonly SelectionSetPartitioner _partitioner;
     private readonly SelectionSetByTypePartitioner _selectionSetByTypePartitioner;
-    private readonly RootSelectionSetPartitioner _rootSelectionSetPartitioner;
+    private readonly NodeFieldSelectionSetPartitioner _nodeFieldSelectionSetPartitioner;
     private readonly IOperationPlannerInterceptor[] _interceptors;
 
     public OperationPlanner(
@@ -35,7 +35,7 @@ public sealed partial class OperationPlanner
         _mergeRewriter = new MergeSelectionSetRewriter(schema);
         _partitioner = new SelectionSetPartitioner(schema);
         _selectionSetByTypePartitioner = new SelectionSetByTypePartitioner(schema);
-        _rootSelectionSetPartitioner = new RootSelectionSetPartitioner(schema);
+        _nodeFieldSelectionSetPartitioner = new NodeFieldSelectionSetPartitioner(schema);
         _interceptors = interceptors.ToArray();
     }
 
@@ -125,7 +125,7 @@ public sealed partial class OperationPlanner
             SelectionPath.Root);
 
         var input = new RootSelectionSetPartitionerInput { SelectionSet = selectionSet, SelectionSetIndex = index };
-        var result = _rootSelectionSetPartitioner.Partition(input);
+        var result = _nodeFieldSelectionSetPartitioner.Partition(input);
 
         var backlog = ImmutableStack<WorkItem>.Empty;
 

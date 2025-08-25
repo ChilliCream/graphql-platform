@@ -7,8 +7,11 @@ using HotChocolate.Types;
 namespace HotChocolate.Fusion.Planning.Partitioners;
 
 /// <summary>
-/// Partitions a field by type, in essence we take all the  fiel
-/// -- type explosion
+/// Partitions a selection set by grouping selections according to their target types.
+/// Creates a shared selection set containing fields that apply to the base type, and separate
+/// selection sets for each concrete type that include both shared selections and type-specific selections.
+/// This enables efficient query planning by allowing the planner to generate optimized requests
+/// for each concrete type while preserving fragment directives and type conditions.
 /// </summary>
 internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schema)
 {
@@ -32,7 +35,8 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
         var selectionSetByType = ImmutableArray.CreateBuilder<SelectionSetByType>(context.SelectionsByType.Count);
         foreach (var (type, selections) in context.SelectionsByType.OrderBy(x => x.Key))
         {
-            var selectionSetNode = new SelectionSetNode([
+            var selectionSetNode = new SelectionSetNode(
+            [
                 ..context.SharedSelections ?? [],
                 ..selections
             ]);
@@ -54,67 +58,72 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
 
         foreach (var selection in selectionSet.Selections)
         {
-            if (selection is FieldNode fieldNode)
+            switch (selection)
             {
-                selections ??= [];
-                selections.Add(fieldNode);
-            }
-            else if (selection is InlineFragmentNode inlineFragmentNode)
-            {
-                var typeCondition = type;
+                case FieldNode fieldNode:
+                    selections ??= [];
+                    selections.Add(fieldNode);
+                    break;
 
-                if (inlineFragmentNode.TypeCondition is { Name.Value: { } name })
-                {
-                    typeCondition = schema.Types[name].AsTypeDefinition();
-                }
+                case InlineFragmentNode inlineFragmentNode:
+                    var typeCondition = type;
 
-                var hasDirectives = inlineFragmentNode.Directives.Any();
+                    if (inlineFragmentNode.TypeCondition is { Name.Value: { } name })
+                    {
+                        typeCondition = schema.Types[name].AsTypeDefinition();
+                    }
 
-                if (hasDirectives)
-                {
-                    context.FragmentPath.Push(inlineFragmentNode.WithTypeCondition(null));
-                }
+                    var hasDirectives = inlineFragmentNode.Directives.Any();
 
-                context.TypePath.Push(typeCondition);
+                    if (hasDirectives)
+                    {
+                        context.FragmentPath.Push(inlineFragmentNode.WithTypeCondition(null));
+                    }
 
-                CollectSelections(inlineFragmentNode.SelectionSet, typeCondition, context);
+                    context.TypePath.Push(typeCondition);
 
-                context.TypePath.Pop();
+                    CollectSelections(inlineFragmentNode.SelectionSet, typeCondition, context);
 
-                if (hasDirectives)
-                {
-                    context.FragmentPath.Pop();
-                }
+                    context.TypePath.Pop();
+
+                    if (hasDirectives)
+                    {
+                        context.FragmentPath.Pop();
+                    }
+
+                    break;
             }
         }
 
-        if (selections is not null)
+        if (selections is null)
         {
-            var selectionsWithPath = GetSelectionsWithPath(context.FragmentPath, selections);
+            return;
+        }
 
-            if (type == context.SharedType)
-            {
-                context.SharedSelections ??= [];
-                context.SharedSelections.AddRange(selectionsWithPath);
-            }
-            else if (type.IsInterfaceType())
-            {
-                if (context.TryGetParentConcreteType(out var objectType))
-                {
-                    AddSelectionsForConcreteType(context, objectType, selectionsWithPath);
-                }
-                else
-                {
-                    foreach (var possibleType in schema.GetPossibleTypes(type))
-                    {
-                        AddSelectionsForConcreteType(context, possibleType, selectionsWithPath);
-                    }
-                }
-            }
-            else if (type is FusionObjectTypeDefinition objectType)
+        var selectionsWithPath = GetSelectionsWithPath(context.FragmentPath, selections);
+
+        if (type == context.SharedType)
+        {
+            context.SharedSelections ??= [];
+            context.SharedSelections.AddRange(selectionsWithPath);
+        }
+        else if (type.IsInterfaceType())
+        {
+            if (context.TryGetParentConcreteType(out var objectType))
             {
                 AddSelectionsForConcreteType(context, objectType, selectionsWithPath);
             }
+            else
+            {
+                foreach (var possibleType in schema.GetPossibleTypes(type))
+                {
+                    AddSelectionsForConcreteType(context, possibleType, selectionsWithPath);
+                }
+            }
+        }
+        else if (type is FusionObjectTypeDefinition objectType)
+        {
+            AddSelectionsForConcreteType(context, objectType, selectionsWithPath);
         }
     }
 
@@ -132,7 +141,7 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
         typeSelections.AddRange(selections);
     }
 
-    private List<ISelectionNode> GetSelectionsWithPath(
+    private static List<ISelectionNode> GetSelectionsWithPath(
         Stack<InlineFragmentNode> fragmentPath,
         List<ISelectionNode> selections)
     {
