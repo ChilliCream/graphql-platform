@@ -300,6 +300,7 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton<IRequestExecutor>(sp => sp.GetRequiredService<FusionRequestExecutor>());
         services.AddSingleton(static sp => sp.GetRequiredService<ISchemaDefinition>().GetRequestOptions());
         services.AddSingleton<IErrorHandler>(static sp => new DefaultErrorHandler(sp.GetServices<IErrorFilter>()));
+        services.TryAddSingleton<INodeIdParser, DefaultNodeIdParser>();
 
         services.AddSingleton(static _ => new SchemaDefinitionAccessor());
         services.AddSingleton(static sp => sp.GetRequiredService<SchemaDefinitionAccessor>().Schema);

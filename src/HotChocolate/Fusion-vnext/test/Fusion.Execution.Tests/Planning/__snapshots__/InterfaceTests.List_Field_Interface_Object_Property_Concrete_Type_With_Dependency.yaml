@@ -3,6 +3,7 @@ operation:
       query testQuery {
         wrappers {
           votable {
+            __typename @fusion__requirement
             viewerCanVote
             ... on Discussion {
               viewerRating
@@ -21,6 +22,7 @@ nodes:
       query testQuery_123456789101112_1 {
         wrappers {
           votable {
+            __typename
             viewerCanVote
             ... on Discussion {
               id

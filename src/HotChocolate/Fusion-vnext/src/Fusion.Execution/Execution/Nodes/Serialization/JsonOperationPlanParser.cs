@@ -53,7 +53,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
     private ImmutableArray<ExecutionNode> ParseNodes(JsonElement nodesElement, Operation operation)
     {
-        var nodes = new List<(ExecutionNode, int[]?)>();
+        var nodes = new List<(ExecutionNode, int[]?, Dictionary<string, int>?, int?)>();
 
         foreach (var nodeElement in nodesElement.EnumerateArray())
         {
@@ -68,6 +68,9 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 case "Introspection":
                     nodes.Add(ParseIntrospectionNode(nodeElement, id, operation));
                     break;
+                case "Node":
+                    nodes.Add(ParseNodeNode(nodeElement, id, operation));
+                    break;
                 default:
                     throw new NotSupportedException($"Unsupported node type: {nodeType}");
             }
@@ -75,7 +78,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var nodeMap = nodes.ToDictionary(n => n.Item1.Id, n => n.Item1);
 
-        foreach (var (node, dependencies) in nodes)
+        foreach (var (node, dependencies, branches, fallback) in nodes)
         {
             if (dependencies is not null)
             {
@@ -93,9 +96,41 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     }
                 }
             }
+
+            if (node is NodeExecutionNode nodeExecutionNode)
+            {
+                if (branches is not null)
+                {
+                    foreach (var (typeName, nodeId) in branches)
+                    {
+                        if (nodeMap.TryGetValue(nodeId, out var branchNode))
+                        {
+                            nodeExecutionNode.AddBranch(typeName, branchNode);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException(
+                                $"Branch node with ID {nodeId} not found for node {node.Id}.");
+                        }
+                    }
+                }
+
+                if (fallback.HasValue)
+                {
+                    if (nodeMap.TryGetValue(fallback.Value, out var fallbackNode))
+                    {
+                        nodeExecutionNode.AddFallbackQuery(fallbackNode);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            $"Fallback node with ID {fallback} not found for node {node.Id}.");
+                    }
+                }
+            }
         }
 
-        foreach (var (node, _) in nodes)
+        foreach (var (node, _, _, _) in nodes)
         {
             node.Seal();
         }
@@ -103,9 +138,15 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         return [.. nodeMap.Values.OrderBy(t => t.Id)];
     }
 
-    public static (OperationExecutionNode, int[]?) ParseOperationNode(JsonElement nodeElement, int id)
+    private static (OperationExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseOperationNode(
+        JsonElement nodeElement, int id)
     {
-        var schemaName = nodeElement.GetProperty("schema").GetString()!;
+        string? schemaName = null;
+        if (nodeElement.TryGetProperty("schema", out var schemaElement))
+        {
+            schemaName = schemaElement.GetString()!;
+        }
+
         var operationElement = nodeElement.GetProperty("operation");
         var operationName = operationElement.GetProperty("name").GetString()!;
         var operationType = Enum.Parse<OperationType>(operationElement.GetProperty("type").GetString()!);
@@ -186,10 +227,10 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             forwardedVariables ?? [],
             responseNames ?? []);
 
-        return (node, dependencies);
+        return (node, dependencies, null, null);
     }
 
-    private static (IntrospectionExecutionNode, int[]?) ParseIntrospectionNode(
+    private static (IntrospectionExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseIntrospectionNode(
         JsonElement nodeElement,
         int id,
         Operation operation)
@@ -208,7 +249,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             id,
             selections.ToArray());
 
-        return (node, null);
+        return (node, null, null, null);
 
         Selection GetRootSelection(string responseName)
         {
@@ -223,5 +264,47 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             throw new InvalidOperationException(
                 $"Root selection with response name '{responseName}' not found in operation '{operation.Id}'.");
         }
+    }
+
+    private static (NodeExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseNodeNode(
+        JsonElement nodeElement, int id, Operation operation)
+    {
+        var responseName = nodeElement.GetProperty("responseName").GetString()!;
+
+        var idValueProperty = nodeElement.GetProperty("idValue").GetString()!;
+        var idValue = Utf8GraphQLParser.Syntax.ParseValueLiteral(idValueProperty, false);
+
+        if (idValue is VariableNode variableNode)
+        {
+            if (!operation.Definition.VariableDefinitions.Any(v => v.Variable.Equals(variableNode)))
+            {
+                throw new InvalidOperationException(
+                    $"'idValue' references non-existent '{variableNode.Name}' variable.");
+            }
+        }
+        else if (idValue is not StringValueNode)
+        {
+            throw new InvalidOperationException(
+                $"Expected 'idValue' to be a {nameof(VariableNode)} or {nameof(StringValueNode)}.");
+        }
+
+        var branchesElement = nodeElement.GetProperty("branches");
+        var branches = new Dictionary<string, int>();
+
+        foreach (var branch in branchesElement.EnumerateObject())
+        {
+            var nodeId = branch.Value.GetInt32();
+
+            branches.Add(branch.Name, nodeId);
+        }
+
+        var fallbackNodeId = nodeElement.GetProperty("fallback").GetInt32();
+
+        var node = new NodeExecutionNode(
+            id,
+            responseName,
+            idValue);
+
+        return (node, null, branches, fallbackNodeId);
     }
 }

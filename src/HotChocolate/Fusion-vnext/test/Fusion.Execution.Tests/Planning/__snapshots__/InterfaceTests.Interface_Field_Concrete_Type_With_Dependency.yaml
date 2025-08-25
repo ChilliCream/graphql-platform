@@ -2,6 +2,7 @@ operation:
   - document: >-
       query testQuery {
         votable {
+          __typename @fusion__requirement
           viewerCanVote
           ... on Discussion {
             viewerRating
@@ -18,6 +19,7 @@ nodes:
     operation: >-
       query testQuery_123456789101112_1 {
         votable {
+          __typename
           viewerCanVote
           ... on Discussion {
             id

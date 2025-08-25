@@ -1,4 +1,6 @@
+using System.Collections.Frozen;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Rewriters;
@@ -423,6 +425,10 @@ internal static class CompositeSchemaBuilder
 
         context.Interceptor.OnBeforeCompleteSchema(context, ref features);
         features.Set<ValueSelectionToSelectionSetRewriter>(null);
+
+        var nodeFallbackLookup = new NodeFallbackLookup();
+        context.RegisterForCompletion(nodeFallbackLookup);
+        features.Set(nodeFallbackLookup);
 
         var schema = new FusionSchemaDefinition(
             context.Name,
