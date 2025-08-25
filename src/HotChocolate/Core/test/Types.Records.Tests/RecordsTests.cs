@@ -62,7 +62,7 @@ public class RecordsTests
         (
             @"{ person { id name } }",
             b => b.AddQueryType<Query>()
-                .AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false)
+                .AddGlobalObjectIdentification(false)
         )
         .MatchSnapshotAsync();
     }

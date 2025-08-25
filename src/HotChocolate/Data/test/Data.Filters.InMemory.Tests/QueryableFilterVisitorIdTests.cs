@@ -46,7 +46,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // arrange
         var tester = _cache.CreateSchema<Foo, FooFilterInput>(
             s_fooEntities,
-            configure: sb => sb.AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false));
+            configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -79,7 +79,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // arrange
         var tester = _cache.CreateSchema<Foo, FooFilterInput>(
             s_fooEntities,
-            configure: sb => sb.AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false));
+            configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -112,7 +112,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // arrange
         var tester = _cache.CreateSchema<Foo, FooFilterInput>(
             s_fooEntities,
-            configure: sb => sb.AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false));
+            configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -154,7 +154,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // arrange
         var tester = _cache.CreateSchema<Foo, FooFilterInput>(
             s_fooEntities,
-            configure: sb => sb.AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false));
+            configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -196,7 +196,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             s_fooNullableEntities,
-            configure: sb => sb.AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false));
+            configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -229,7 +229,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             s_fooNullableEntities,
-            configure: sb => sb.AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false));
+            configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -262,7 +262,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             s_fooNullableEntities,
-            configure: sb => sb.AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false));
+            configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         // assert
@@ -305,7 +305,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // arrange
         var tester = _cache.CreateSchema<FooNullable, FooNullableFilterInput>(
             s_fooNullableEntities,
-            configure: sb => sb.AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false));
+            configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         // assert
@@ -350,7 +350,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // arrange
         var tester = _cache.CreateSchema<FooShort, FooShortFilterInput>(
             s_fooShortEntities,
-            configure: sb => sb.AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false));
+            configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -383,7 +383,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // arrange
         var tester = _cache.CreateSchema<FooShort, FooShortFilterInput>(
             s_fooShortEntities,
-            configure: sb => sb.AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false));
+            configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -417,7 +417,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         var tester =
             _cache.CreateSchema<FooShortNullable, FooShortNullableFilterInput>(
                 s_fooShortNullableEntities,
-                configure: sb => sb.AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false));
+                configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -451,7 +451,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         var tester =
             _cache.CreateSchema<FooShortNullable, FooShortNullableFilterInput>(
                 s_fooShortNullableEntities,
-                configure: sb => sb.AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false));
+                configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -484,7 +484,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // arrange
         var tester = _cache.CreateSchema<FooShort, FooShortFilterInput>(
             s_fooShortEntities,
-            configure: sb => sb.AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false));
+            configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -535,7 +535,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // arrange
         var tester = _cache.CreateSchema<FooShort, FooShortFilterInput>(
             s_fooShortEntities,
-            configure: sb => sb.AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false));
+            configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -581,7 +581,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         var tester =
             _cache.CreateSchema<FooShortNullable, FooShortNullableFilterInput>(
                 s_fooShortNullableEntities,
-                configure: sb => sb.AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false));
+                configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -633,7 +633,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         var tester =
             _cache.CreateSchema<FooShortNullable, FooShortNullableFilterInput>(
                 s_fooShortNullableEntities,
-                configure: sb => sb.AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false));
+                configure: sb => sb.AddGlobalObjectIdentification(false));
 
         // act
         var res1 = await tester.ExecuteAsync(

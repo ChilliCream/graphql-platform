@@ -12,7 +12,7 @@ public class IdMiddlewareTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<SomeQuery>()
-                .AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false)
+                .AddGlobalObjectIdentification(false)
                 .ExecuteRequestAsync("{ id string }");
 
         result.MatchSnapshot();
@@ -26,7 +26,7 @@ public class IdMiddlewareTests
             .AddGraphQLServer()
             .AddQueryType<SomeQuery>()
             .AddMutationType<Mutation>()
-            .AddGlobalObjectIdentification(o => o.RegisterNodeInterface = false)
+            .AddGlobalObjectIdentification(false)
             .AddMutationConventions()
             .BuildRequestExecutorAsync();
 
