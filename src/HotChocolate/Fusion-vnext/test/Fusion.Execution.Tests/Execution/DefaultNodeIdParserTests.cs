@@ -16,7 +16,7 @@ public class DefaultNodeIdParserTests
         var encodedId = Convert.ToBase64String(Encoding.UTF8.GetBytes(unencodedId));
 
         // act
-        var success = parser.TryParseTypeNameFromId(encodedId, out var parsedTypeName);
+        var success = parser.TryParseTypeName(encodedId, out var parsedTypeName);
 
         // assert
         Assert.True(success);
@@ -33,7 +33,7 @@ public class DefaultNodeIdParserTests
         var parser = new DefaultNodeIdParser();
 
         // act
-        var success = parser.TryParseTypeNameFromId(rawId, out _);
+        var success = parser.TryParseTypeName(rawId, out _);
 
         // assert
         Assert.False(success);

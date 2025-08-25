@@ -11,7 +11,7 @@ internal sealed class DefaultNodeIdParser : INodeIdParser
     private readonly Encoding _utf8 = Encoding.UTF8;
     private readonly ArrayPool<byte> _arrayPool = ArrayPool<byte>.Shared;
 
-    public bool TryParseTypeNameFromId(string id, [NotNullWhen(true)] out string? typeName)
+    public bool TryParseTypeName(string id, [NotNullWhen(true)] out string? typeName)
     {
         var size = id.Length;
         byte[]? buffer = null;

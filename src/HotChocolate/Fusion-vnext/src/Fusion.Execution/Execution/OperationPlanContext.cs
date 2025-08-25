@@ -284,7 +284,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     }
 
     public bool TryParseTypeNameFromId(string id, [NotNullWhen(true)] out string? typeName)
-        => _nodeIdParser.TryParseTypeNameFromId(id, out typeName);
+        => _nodeIdParser.TryParseTypeName(id, out typeName);
 
     public async ValueTask DisposeAsync()
     {
