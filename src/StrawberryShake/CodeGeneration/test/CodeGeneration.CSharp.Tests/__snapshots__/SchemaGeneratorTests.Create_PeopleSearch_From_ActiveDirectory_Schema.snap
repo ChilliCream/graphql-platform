@@ -1,4 +1,4 @@
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
 // ReSharper disable InconsistentNaming
@@ -1871,11 +1871,34 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.PersonEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableInt64(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "key")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "displayName")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isActive")), Update_IPeopleSearch_People_Items_DepartmentEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "department"), entityIds), Deserialize_Uri(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "image")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "title")), Update_IPeopleSearch_People_Items_ManagerEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "manager"), entityIds)));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableInt64(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "key"));
+                    var arg2 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "displayName"));
+                    var arg3 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isActive"));
+                    var arg4 = Update_IPeopleSearch_People_Items_DepartmentEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "department"), entityIds);
+                    var arg5 = Deserialize_Uri(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "image"));
+                    var arg6 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "title"));
+                    var arg7 = Update_IPeopleSearch_People_Items_ManagerEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "manager"), entityIds);
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableInt64(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "key")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "displayName")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isActive")), Update_IPeopleSearch_People_Items_DepartmentEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "department"), entityIds), Deserialize_Uri(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "image")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "title")), Update_IPeopleSearch_People_Items_ManagerEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "manager"), entityIds)));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableInt64(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "key"));
+                    var arg2 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "displayName"));
+                    var arg3 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isActive"));
+                    var arg4 = Update_IPeopleSearch_People_Items_DepartmentEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "department"), entityIds);
+                    var arg5 = Deserialize_Uri(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "image"));
+                    var arg6 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "title"));
+                    var arg7 = Update_IPeopleSearch_People_Items_ManagerEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "manager"), entityIds);
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7));
+                    }
                 }
 
                 return entityId;
@@ -1947,11 +1970,22 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.DepartmentEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.DepartmentEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.DepartmentEntity(arg0, arg1));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.DepartmentEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.DepartmentEntity(arg0, arg1));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.DepartmentEntity(arg0, arg1));
+                    }
                 }
 
                 return entityId;
@@ -1993,11 +2027,24 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.PersonEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableInt64(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "key")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "displayName")), entity.IsActive, entity.Department, entity.Image, entity.Title, entity.Manager));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableInt64(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "key"));
+                    var arg2 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "displayName"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.IsActive, entity.Department, entity.Image, entity.Title, entity.Manager));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableInt64(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "key")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "displayName")), default !, default !, default !, default !, default !));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableInt64(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "key"));
+                    var arg2 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "displayName"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.IsActive, entity.Department, entity.Image, entity.Title, entity.Manager));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, default !, default !, default !, default !, default !));
+                    }
                 }
 
                 return entityId;

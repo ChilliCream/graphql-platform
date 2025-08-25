@@ -1,4 +1,4 @@
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
 // ReSharper disable InconsistentNaming
@@ -4091,11 +4091,28 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.FeatEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.FeatEntity(Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableInt32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "level")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "canBeLearnedMoreThanOnce")), Update_NonNullableIGetFeatsPage_Feats_Items_DetailsEntityNonNullableArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "details"), entityIds), entity.Special, entity.Trigger, entity.ActionType));
+                    var arg0 = Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg2 = Deserialize_NonNullableInt32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "level"));
+                    var arg3 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "canBeLearnedMoreThanOnce"));
+                    var arg4 = Update_NonNullableIGetFeatsPage_Feats_Items_DetailsEntityNonNullableArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "details"), entityIds);
+                    session.SetEntity(entityId, new global::Foo.Bar.State.FeatEntity(arg0, arg1, arg2, arg3, arg4, entity.Special, entity.Trigger, entity.ActionType));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.FeatEntity(Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableInt32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "level")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "canBeLearnedMoreThanOnce")), Update_NonNullableIGetFeatsPage_Feats_Items_DetailsEntityNonNullableArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "details"), entityIds), default !, default !, default !));
+                    var arg0 = Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg2 = Deserialize_NonNullableInt32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "level"));
+                    var arg3 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "canBeLearnedMoreThanOnce"));
+                    var arg4 = Update_NonNullableIGetFeatsPage_Feats_Items_DetailsEntityNonNullableArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "details"), entityIds);
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.FeatEntity(arg0, arg1, arg2, arg3, arg4, entity.Special, entity.Trigger, entity.ActionType));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.FeatEntity(arg0, arg1, arg2, arg3, arg4, default !, default !, default !));
+                    }
                 }
 
                 return entityId;
@@ -4188,11 +4205,20 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.FeatDetailsBlockEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.FeatDetailsBlockEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.FeatDetailsBlockEntity(arg0));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.FeatDetailsBlockEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.FeatDetailsBlockEntity(arg0));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.FeatDetailsBlockEntity(arg0));
+                    }
                 }
 
                 return entityId;
@@ -4296,11 +4322,32 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.FeatEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.FeatEntity(Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableInt32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "level")), entity.CanBeLearnedMoreThanOnce, Update_NonNullableIGetFeatById_Feats_Items_DetailsEntityNonNullableArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "details"), entityIds), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "special")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "trigger")), Update_NonNullableIGetFeatById_Feats_Items_ActionTypeEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "actionType"), entityIds)));
+                    var arg0 = Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg2 = Deserialize_NonNullableInt32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "level"));
+                    var arg3 = Update_NonNullableIGetFeatById_Feats_Items_DetailsEntityNonNullableArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "details"), entityIds);
+                    var arg4 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "special"));
+                    var arg5 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "trigger"));
+                    var arg6 = Update_NonNullableIGetFeatById_Feats_Items_ActionTypeEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "actionType"), entityIds);
+                    session.SetEntity(entityId, new global::Foo.Bar.State.FeatEntity(arg0, arg1, arg2, entity.CanBeLearnedMoreThanOnce, arg3, arg4, arg5, arg6));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.FeatEntity(Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableInt32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "level")), default !, Update_NonNullableIGetFeatById_Feats_Items_DetailsEntityNonNullableArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "details"), entityIds), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "special")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "trigger")), Update_NonNullableIGetFeatById_Feats_Items_ActionTypeEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "actionType"), entityIds)));
+                    var arg0 = Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg2 = Deserialize_NonNullableInt32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "level"));
+                    var arg3 = Update_NonNullableIGetFeatById_Feats_Items_DetailsEntityNonNullableArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "details"), entityIds);
+                    var arg4 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "special"));
+                    var arg5 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "trigger"));
+                    var arg6 = Update_NonNullableIGetFeatById_Feats_Items_ActionTypeEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "actionType"), entityIds);
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.FeatEntity(arg0, arg1, arg2, entity.CanBeLearnedMoreThanOnce, arg3, arg4, arg5, arg6));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.FeatEntity(arg0, arg1, arg2, default !, arg3, arg4, arg5, arg6));
+                    }
                 }
 
                 return entityId;
@@ -4408,11 +4455,20 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.FeatDetailsBlockEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.FeatDetailsBlockEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.FeatDetailsBlockEntity(arg0));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.FeatDetailsBlockEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.FeatDetailsBlockEntity(arg0));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.FeatDetailsBlockEntity(arg0));
+                    }
                 }
 
                 return entityId;
@@ -4439,11 +4495,20 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.ActionTypeEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.ActionTypeEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.ActionTypeEntity(arg0));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.ActionTypeEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.ActionTypeEntity(arg0));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.ActionTypeEntity(arg0));
+                    }
                 }
 
                 return entityId;

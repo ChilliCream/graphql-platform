@@ -1,4 +1,4 @@
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
 // ReSharper disable InconsistentNaming
@@ -1336,11 +1336,26 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.VehicleMakeEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.VehicleMakeEntity(Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "make")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "makeCode")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isDisabled"))));
+                    var arg0 = Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "make"));
+                    var arg2 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "makeCode"));
+                    var arg3 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isDisabled"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.VehicleMakeEntity(arg0, arg1, arg2, arg3));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.VehicleMakeEntity(Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "make")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "makeCode")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isDisabled"))));
+                    var arg0 = Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "make"));
+                    var arg2 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "makeCode"));
+                    var arg3 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isDisabled"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.VehicleMakeEntity(arg0, arg1, arg2, arg3));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.VehicleMakeEntity(arg0, arg1, arg2, arg3));
+                    }
                 }
 
                 return entityId;
@@ -1397,11 +1412,30 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.VehicleModelEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.VehicleModelEntity(Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "model")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "modelCode")), Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "vehicleMakeId")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isDisabled")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "modelType"))));
+                    var arg0 = Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "model"));
+                    var arg2 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "modelCode"));
+                    var arg3 = Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "vehicleMakeId"));
+                    var arg4 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isDisabled"));
+                    var arg5 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "modelType"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.VehicleModelEntity(arg0, arg1, arg2, arg3, arg4, arg5));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.VehicleModelEntity(Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "model")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "modelCode")), Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "vehicleMakeId")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isDisabled")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "modelType"))));
+                    var arg0 = Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "model"));
+                    var arg2 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "modelCode"));
+                    var arg3 = Deserialize_NonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "vehicleMakeId"));
+                    var arg4 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isDisabled"));
+                    var arg5 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "modelType"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.VehicleModelEntity(arg0, arg1, arg2, arg3, arg4, arg5));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.VehicleModelEntity(arg0, arg1, arg2, arg3, arg4, arg5));
+                    }
                 }
 
                 return entityId;

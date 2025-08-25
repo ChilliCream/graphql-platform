@@ -1,4 +1,4 @@
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
 // ReSharper disable InconsistentNaming
@@ -4565,11 +4565,44 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.bwr_TimeSeriesEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.bwr_TimeSeriesEntity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "inventoryId")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "area")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "source")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "type")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "category")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "specification")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "commodity")), Deserialize_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "resolution")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "unit")), Update_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteriaEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "validationCriteria"), entityIds), Update_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecificationEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "importSpecification"), entityIds), Deserialize_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPointsNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "_dataPoints"))));
+                    var arg0 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "inventoryId"));
+                    var arg1 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "area"));
+                    var arg2 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "source"));
+                    var arg3 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "type"));
+                    var arg4 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg5 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "category"));
+                    var arg6 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "specification"));
+                    var arg7 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "commodity"));
+                    var arg8 = Deserialize_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "resolution"));
+                    var arg9 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "unit"));
+                    var arg10 = Update_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteriaEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "validationCriteria"), entityIds);
+                    var arg11 = Update_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecificationEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "importSpecification"), entityIds);
+                    var arg12 = Deserialize_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPointsNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "_dataPoints"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.bwr_TimeSeriesEntity(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.bwr_TimeSeriesEntity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "inventoryId")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "area")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "source")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "type")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "category")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "specification")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "commodity")), Deserialize_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "resolution")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "unit")), Update_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteriaEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "validationCriteria"), entityIds), Update_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecificationEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "importSpecification"), entityIds), Deserialize_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPointsNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "_dataPoints"))));
+                    var arg0 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "inventoryId"));
+                    var arg1 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "area"));
+                    var arg2 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "source"));
+                    var arg3 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "type"));
+                    var arg4 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg5 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "category"));
+                    var arg6 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "specification"));
+                    var arg7 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "commodity"));
+                    var arg8 = Deserialize_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "resolution"));
+                    var arg9 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "unit"));
+                    var arg10 = Update_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteriaEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "validationCriteria"), entityIds);
+                    var arg11 = Update_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecificationEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "importSpecification"), entityIds);
+                    var arg12 = Deserialize_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPointsNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "_dataPoints"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.bwr_TimeSeriesEntity(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.bwr_TimeSeriesEntity(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12));
+                    }
                 }
 
                 return entityId;
@@ -4662,11 +4695,28 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.bwr_ValidationCriteriaEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.bwr_ValidationCriteriaEntity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "_inventoryItemId")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "completeness")), Deserialize_Decimal(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "lowerBound")), Deserialize_Decimal(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "upperBound"))));
+                    var arg0 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "_inventoryItemId"));
+                    var arg1 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg2 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "completeness"));
+                    var arg3 = Deserialize_Decimal(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "lowerBound"));
+                    var arg4 = Deserialize_Decimal(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "upperBound"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.bwr_ValidationCriteriaEntity(arg0, arg1, arg2, arg3, arg4));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.bwr_ValidationCriteriaEntity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "_inventoryItemId")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "completeness")), Deserialize_Decimal(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "lowerBound")), Deserialize_Decimal(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "upperBound"))));
+                    var arg0 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "_inventoryItemId"));
+                    var arg1 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg2 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "completeness"));
+                    var arg3 = Deserialize_Decimal(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "lowerBound"));
+                    var arg4 = Deserialize_Decimal(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "upperBound"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.bwr_ValidationCriteriaEntity(arg0, arg1, arg2, arg3, arg4));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.bwr_ValidationCriteriaEntity(arg0, arg1, arg2, arg3, arg4));
+                    }
                 }
 
                 return entityId;
@@ -4708,11 +4758,22 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.bwr_ImportSpecificationEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.bwr_ImportSpecificationEntity(Deserialize_Int32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "fromPeriod")), Deserialize_Int32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "toPeriod"))));
+                    var arg0 = Deserialize_Int32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "fromPeriod"));
+                    var arg1 = Deserialize_Int32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "toPeriod"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.bwr_ImportSpecificationEntity(arg0, arg1));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.bwr_ImportSpecificationEntity(Deserialize_Int32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "fromPeriod")), Deserialize_Int32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "toPeriod"))));
+                    var arg0 = Deserialize_Int32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "fromPeriod"));
+                    var arg1 = Deserialize_Int32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "toPeriod"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.bwr_ImportSpecificationEntity(arg0, arg1));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.bwr_ImportSpecificationEntity(arg0, arg1));
+                    }
                 }
 
                 return entityId;

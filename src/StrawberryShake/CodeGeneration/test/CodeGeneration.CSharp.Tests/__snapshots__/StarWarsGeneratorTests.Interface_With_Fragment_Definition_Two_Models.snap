@@ -1,4 +1,4 @@
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
 // ReSharper disable InconsistentNaming
@@ -1300,11 +1300,24 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.DroidEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.DroidEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "primaryFunction")), Deserialize_IGetHero_Hero_Friends(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"), entityIds)));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "primaryFunction"));
+                    var arg2 = Deserialize_IGetHero_Hero_Friends(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"), entityIds);
+                    session.SetEntity(entityId, new global::Foo.Bar.State.DroidEntity(arg0, arg1, arg2));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.DroidEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "primaryFunction")), Deserialize_IGetHero_Hero_Friends(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"), entityIds)));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "primaryFunction"));
+                    var arg2 = Deserialize_IGetHero_Hero_Friends(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"), entityIds);
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.DroidEntity(arg0, arg1, arg2));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.DroidEntity(arg0, arg1, arg2));
+                    }
                 }
 
                 return entityId;
@@ -1314,11 +1327,24 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.HumanEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "homePlanet")), Deserialize_IGetHero_Hero_Friends(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"), entityIds)));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "homePlanet"));
+                    var arg2 = Deserialize_IGetHero_Hero_Friends(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"), entityIds);
+                    session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(arg0, arg1, arg2));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "homePlanet")), Deserialize_IGetHero_Hero_Friends(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"), entityIds)));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "homePlanet"));
+                    var arg2 = Deserialize_IGetHero_Hero_Friends(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"), entityIds);
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(arg0, arg1, arg2));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(arg0, arg1, arg2));
+                    }
                 }
 
                 return entityId;
@@ -1417,11 +1443,20 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.DroidEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.DroidEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), entity.PrimaryFunction, entity.Friends));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.DroidEntity(arg0, entity.PrimaryFunction, entity.Friends));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.DroidEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), default !, default !));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.DroidEntity(arg0, entity.PrimaryFunction, entity.Friends));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.DroidEntity(arg0, default !, default !));
+                    }
                 }
 
                 return entityId;
@@ -1431,11 +1466,20 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.HumanEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), entity.HomePlanet, entity.Friends));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(arg0, entity.HomePlanet, entity.Friends));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), default !, default !));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(arg0, entity.HomePlanet, entity.Friends));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(arg0, default !, default !));
+                    }
                 }
 
                 return entityId;
