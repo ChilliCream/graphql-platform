@@ -52,7 +52,7 @@ public class RequestExecutorProxyTests
 
         // act
         var a = await proxy.GetExecutorAsync(CancellationToken.None);
-        resolver.EvictRequestExecutor();
+        resolver.EvictExecutor();
         executorUpdatedResetEvent.Wait(cts.Token);
         var b = await proxy.GetExecutorAsync(CancellationToken.None);
 
