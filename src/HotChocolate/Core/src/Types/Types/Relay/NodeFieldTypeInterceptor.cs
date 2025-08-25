@@ -141,7 +141,6 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 
         if (markNodeFieldAsLookup)
         {
-            // TODO: This doesn't work
             field.AddDirective(Lookup.Instance, typeInspector);
         }
 

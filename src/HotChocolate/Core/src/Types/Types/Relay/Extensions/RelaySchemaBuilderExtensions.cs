@@ -15,7 +15,7 @@ public static class RelaySchemaBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(schemaBuilder);
 
-        return AddGlobalObjectIdentification(schemaBuilder, null);
+        return AddGlobalObjectIdentification(schemaBuilder, o => o.RegisterNodeInterface = true);
     }
 
     /// <summary>

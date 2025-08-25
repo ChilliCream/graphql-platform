@@ -61,8 +61,7 @@ public class RecordsTests
         await ExpectValid
         (
             @"{ person { id name } }",
-            b => b.AddQueryType<Query>()
-                .AddGlobalObjectIdentification(false)
+            b => b.AddQueryType<Query>().AddGlobalObjectIdentification(false)
         )
         .MatchSnapshotAsync();
     }
