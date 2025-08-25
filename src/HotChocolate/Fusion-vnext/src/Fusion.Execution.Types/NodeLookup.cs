@@ -6,14 +6,20 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types;
 
+/// <summary>
+/// Provides lookup functionality on where a `Node` can be resolved from when using the `Query.node` field.
+/// </summary>
 internal sealed class NodeLookup : INeedsCompletion
 {
     private FrozenDictionary<string, string> _schemaByType = FrozenDictionary<string, string>.Empty;
 
+    /// <summary>
+    /// Tries to determine the possible schemas to do a node lookup for the provided <paramref name="typeName"/>.
+    /// </summary>
     public bool TryGetNodeLookupSchemaForType(string typeName, [NotNullWhen(true)] out string? schemaName)
         => _schemaByType.TryGetValue(typeName, out schemaName);
 
-    public void Complete(FusionSchemaDefinition schema, CompositeSchemaBuilderContext context)
+    void INeedsCompletion.Complete(FusionSchemaDefinition schema, CompositeSchemaBuilderContext context)
     {
         if (!schema.Types.TryGetType<IInterfaceTypeDefinition>("Node", out var nodeType)
             || !schema.QueryType.Fields.TryGetField("node", out var nodeField)
@@ -25,9 +31,11 @@ internal sealed class NodeLookup : INeedsCompletion
         var lookup = new Dictionary<string, string>();
         foreach (var possibleType in schema.GetPossibleTypes(nodeType))
         {
-            var nodeLookup = schema.GetPossibleLookups(possibleType)
+            var nodeLookup = schema
+                .GetPossibleLookups(possibleType)
                 .FirstOrDefault(
-                    l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && l.FieldName == "node");
+                    l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }]
+                        && l.FieldName == "node");
 
             if (nodeLookup is null)
             {
