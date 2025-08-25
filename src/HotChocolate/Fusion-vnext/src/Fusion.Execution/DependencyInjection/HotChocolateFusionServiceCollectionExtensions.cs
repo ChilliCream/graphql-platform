@@ -28,8 +28,6 @@ public static class HotChocolateFusionServiceCollectionExtensions
         AddSourceSchemaScope(services);
         AddResultObjectPools(services, options.Clone());
 
-        services.TryAddSingleton<INodeIdParser, DefaultNodeIdParser>();
-
         return CreateBuilder(services, name);
     }
 

@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Introspection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -24,8 +25,13 @@ public static partial class CoreFusionGatewayBuilderExtensions
         this IFusionGatewayBuilder builder)
         where T : class, INodeIdParser
     {
-        builder.Services.RemoveAll<INodeIdParser>();
-        builder.Services.AddSingleton<INodeIdParser, T>();
+        ConfigureSchemaServices(
+            builder,
+            static (_, sc) =>
+            {
+                sc.RemoveAll<INodeIdParser>();
+                sc.AddSingleton<INodeIdParser, T>();
+            });
 
         return builder;
     }

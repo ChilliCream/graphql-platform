@@ -54,7 +54,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         _resultPoolSessionHolder = requestContext.CreateResultPoolSession();
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope = requestContext.CreateClientScope();
-        _nodeIdParser = requestContext.RequestServices.GetRequiredService<INodeIdParser>();
+        _nodeIdParser = requestContext.Schema.Services.GetRequiredService<INodeIdParser>();
 
         _resultStore = new FetchResultStore(
             requestContext.Schema,
