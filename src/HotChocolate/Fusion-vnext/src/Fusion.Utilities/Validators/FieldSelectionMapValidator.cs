@@ -306,7 +306,7 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
     }
 
     protected override ISyntaxVisitorAction Leave(
-        ObjectValueSelectionNode node,
+        ObjectFieldSelectionNode node,
         FieldSelectionMapValidatorContext context)
     {
         context.InputTypes.Pop();
