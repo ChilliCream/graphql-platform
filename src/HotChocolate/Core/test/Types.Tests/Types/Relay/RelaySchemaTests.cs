@@ -41,6 +41,17 @@ public class RelaySchemaTests
     }
 
     [Fact]
+    public async Task AddGlobalObjectIdentification_Do_Not_Mark_Node_Field_As_Lookup()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task AddQueryFieldToMutationPayloads_QueryField_On_MutationPayload_Exists()
     {
         await new ServiceCollection()

@@ -63,5 +63,5 @@ public sealed class GlobalObjectIdentificationOptions
     /// across source schemas. The <c>@lookup</c> directive tells the gateway that this field
     /// can be used to resolve entities by their global ID.
     /// </remarks>
-    public bool MarkNodeFieldAsLookup { get; set; }
+    public bool MarkNodeFieldAsLookup { get; set; } = true;
 }

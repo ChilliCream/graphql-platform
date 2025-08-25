@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
@@ -15,14 +16,22 @@ namespace HotChocolate.Types.Relay;
 /// <summary>
 /// This type interceptor adds the fields `node` and the `nodes` to the query type.
 /// </summary>
-internal sealed class NodeFieldTypeInterceptor(GlobalObjectIdentificationOptions options) : TypeInterceptor
+internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 {
     private ITypeCompletionContext? _queryContext;
     private ObjectTypeConfiguration? _queryTypeConfig;
+    private TypeReference _nodeType = null!;
     private TypeReference _lookupRef = null!;
-    private bool _registeredLookup;
+    private bool _registeredTypes;
+    private GlobalObjectIdentificationOptions _options = null!;
 
     internal override uint Position => uint.MaxValue - 100;
+
+    public override bool IsEnabled(IDescriptorContext context)
+    {
+        var feature = context.Features.Get<NodeSchemaFeature>();
+        return feature?.Options.RegisterNodeInterface ?? false;
+    }
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -31,16 +40,24 @@ internal sealed class NodeFieldTypeInterceptor(GlobalObjectIdentificationOptions
         TypeLookup typeLookup,
         TypeReferenceResolver typeReferenceResolver)
     {
+        _nodeType = context.TypeInspector.GetTypeRef(typeof(NodeType));
         _lookupRef = context.TypeInspector.GetTypeRef(typeof(Lookup));
+        _options = context.Features.GetRequired<NodeSchemaFeature>().Options;
     }
 
     public override IEnumerable<TypeReference> RegisterMoreTypes(
         IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
     {
-        if (!_registeredLookup && options.MarkNodeFieldAsLookup)
+        if (!_registeredTypes)
         {
-            yield return _lookupRef;
-            _registeredLookup = true;
+            yield return _nodeType;
+
+            if (_options.MarkNodeFieldAsLookup)
+            {
+                yield return _lookupRef;
+            }
+
+            _registeredTypes = true;
         }
     }
 
@@ -67,20 +84,19 @@ internal sealed class NodeFieldTypeInterceptor(GlobalObjectIdentificationOptions
             // the nodes fields shall be chained in after the introspection fields,
             // so we first get the index of the last introspection field,
             // which is __typename
-            var typeNameField = _queryTypeConfig.Fields.First(
-                t => t.Name.EqualsOrdinal(IntrospectionFieldNames.TypeName)
-                    && t.IsIntrospectionField);
+            var typeNameField = _queryTypeConfig.Fields.First(t =>
+                t.Name.EqualsOrdinal(IntrospectionFieldNames.TypeName) && t.IsIntrospectionField);
             var index = _queryTypeConfig.Fields.IndexOf(typeNameField);
-            var maxAllowedNodes = options.MaxAllowedNodeBatchSize;
+            var maxAllowedNodes = _options.MaxAllowedNodeBatchSize;
 
             CreateNodeField(
                 typeInspector,
                 serializer,
                 _queryTypeConfig.Fields,
                 index + 1,
-                options.MarkNodeFieldAsLookup);
+                _options.MarkNodeFieldAsLookup);
 
-            if (options.AddNodesField)
+            if (_options.AddNodesField)
             {
                 CreateNodesField(
                     typeInspector,
@@ -110,16 +126,15 @@ internal sealed class NodeFieldTypeInterceptor(GlobalObjectIdentificationOptions
             Arguments = { new ArgumentConfiguration(Id, Relay_NodeField_Id_Description, id) },
             MiddlewareConfigurations =
             {
-                new FieldMiddlewareConfiguration(
-                    _ =>
+                new FieldMiddlewareConfiguration(_ =>
+                {
+                    INodeIdSerializer? serializer = null;
+                    return async context =>
                     {
-                        INodeIdSerializer? serializer = null;
-                        return async context =>
-                        {
-                            serializer ??= serializerAccessor.Serializer;
-                            await ResolveSingleNodeAsync(context, serializer).ConfigureAwait(false);
-                        };
-                    })
+                        serializer ??= serializerAccessor.Serializer;
+                        await ResolveSingleNodeAsync(context, serializer).ConfigureAwait(false);
+                    };
+                })
             },
             Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.GlobalIdNodeField
         };
@@ -156,16 +171,15 @@ internal sealed class NodeFieldTypeInterceptor(GlobalObjectIdentificationOptions
             Arguments = { new ArgumentConfiguration(Ids, Relay_NodesField_Ids_Description, ids) },
             MiddlewareConfigurations =
             {
-                new FieldMiddlewareConfiguration(
-                    _ =>
+                new FieldMiddlewareConfiguration(_ =>
+                {
+                    INodeIdSerializer? serializer = null;
+                    return async context =>
                     {
-                        INodeIdSerializer? serializer = null;
-                        return async context =>
-                        {
-                            serializer ??= serializerAccessor.Serializer;
-                            await ResolveManyNodeAsync(context, serializer, maxAllowedNodes).ConfigureAwait(false);
-                        };
-                    })
+                        serializer ??= serializerAccessor.Serializer;
+                        await ResolveManyNodeAsync(context, serializer, maxAllowedNodes).ConfigureAwait(false);
+                    };
+                })
             },
             Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.GlobalIdNodesField
         };

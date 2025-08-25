@@ -29,16 +29,13 @@ public static class RelaySchemaBuilderExtensions
         ArgumentNullException.ThrowIfNull(schemaBuilder);
 
         var feature = schemaBuilder.Features.GetOrSet(new NodeSchemaFeature());
+        configure?.Invoke(feature.Options);
 
         schemaBuilder.TryAddTypeInterceptor<NodeIdSerializerTypeInterceptor>();
 
-        configure?.Invoke(feature.Options);
-
-        // TODO: Move this and only do if RegisterNodeInterface is true
         schemaBuilder
-            .TryAddTypeInterceptor(new NodeFieldTypeInterceptor(feature.Options))
-            .TryAddTypeInterceptor<NodeResolverTypeInterceptor>()
-            .AddType<NodeType>();
+            .TryAddTypeInterceptor<NodeFieldTypeInterceptor>()
+            .TryAddTypeInterceptor<NodeResolverTypeInterceptor>();
 
         return schemaBuilder;
     }
