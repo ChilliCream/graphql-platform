@@ -12,7 +12,13 @@ namespace HotChocolate.Fusion.Types;
 
 public sealed class FusionSchemaDefinition : ISchemaDefinition
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
+    private readonly object _lock = new();
+#endif
     private readonly ConcurrentDictionary<string, ImmutableArray<FusionObjectTypeDefinition>> _possibleTypes = new();
+    private ImmutableArray<FusionUnionTypeDefinition>? _unionTypes;
 
     internal FusionSchemaDefinition(
         string name,
@@ -197,10 +203,10 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
 
         return _possibleTypes.GetOrAdd(
             abstractType.Name,
-            static (_, context) => GetPossibleTypes(context.AbstractType, context.Types),
+            static (_, context) => BuildPossibleTypes(context.AbstractType, context.Types),
             new PossibleTypeLookupContext(abstractType, Types));
 
-        static ImmutableArray<FusionObjectTypeDefinition> GetPossibleTypes(
+        static ImmutableArray<FusionObjectTypeDefinition> BuildPossibleTypes(
             ITypeDefinition abstractType,
             FusionTypeDefinitionCollection types)
         {
@@ -237,6 +243,20 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     IEnumerable<IObjectTypeDefinition> ISchemaDefinition.GetPossibleTypes(
         ITypeDefinition abstractType)
         => GetPossibleTypes(abstractType);
+
+    [SuppressMessage("ReSharper", "InconsistentlySynchronizedField")]
+    public ImmutableArray<FusionUnionTypeDefinition> GetAllUnionTypes()
+    {
+        if (!_unionTypes.HasValue)
+        {
+            lock (_lock)
+            {
+                _unionTypes ??= [..Types.AsEnumerable().OfType<FusionUnionTypeDefinition>()];
+            }
+        }
+
+        return _unionTypes.Value;
+    }
 
     public override string ToString()
         => SchemaFormatter.FormatAsString(this);

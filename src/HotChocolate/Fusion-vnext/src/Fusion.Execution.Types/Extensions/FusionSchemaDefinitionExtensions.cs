@@ -22,14 +22,8 @@ public static class FusionSchemaDefinitionExtensions
         var unionTypes = s_threadLocalUnionTypes.Value!;
         unionTypes.Clear();
 
-        foreach (var possibleUnionType in compositeSchema.Types)
+        foreach (var unionType in compositeSchema.GetAllUnionTypes())
         {
-            if (possibleUnionType.Kind is not TypeKind.Union)
-            {
-                continue;
-            }
-
-            var unionType = Unsafe.As<FusionUnionTypeDefinition>(possibleUnionType);
             if (unionType.Types.ContainsName(type.Name))
             {
                 unionTypes.Add(unionType);
