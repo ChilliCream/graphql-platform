@@ -6,16 +6,25 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// Represents an execution node for GraphQL node field queries in a composite schema.
 /// This execution node handles the execution of queries that fetch entities by their global ID.
 /// </summary>
-public sealed class NodeExecutionNode(
-    int id,
-    string responseName,
-    IValueNode idValue) : ExecutionNode
+public sealed class NodeExecutionNode : ExecutionNode
 {
     private readonly Dictionary<string, ExecutionNode> _branches = [];
     private ExecutionNode _fallbackQuery = null!;
+    private readonly string _responseName;
+    private readonly IValueNode _idValue;
+
+    internal NodeExecutionNode(
+        int id,
+        string responseName,
+        IValueNode idValue)
+    {
+        _responseName = responseName;
+        _idValue = idValue;
+        Id = id;
+    }
 
     /// <inheritdoc />
-    public override int Id { get; } = id;
+    public override int Id { get; }
 
     /// <inheritdoc />
     public override ExecutionNodeType Type => ExecutionNodeType.Node;
@@ -30,12 +39,12 @@ public sealed class NodeExecutionNode(
     /// Get the value passed to the id argument of the node field.
     /// This can be a <see cref="VariableNode" /> or a <see cref="StringValueNode" />.
     /// </summary>
-    public IValueNode IdValue => idValue;
+    public IValueNode IdValue => _idValue;
 
     /// <summary>
     /// Gets the response name for the node field.
     /// </summary>
-    public string ResponseName => responseName;
+    public string ResponseName => _responseName;
 
     /// <summary>
     /// Gets the fallback query for the case that a valid type name was requested,
