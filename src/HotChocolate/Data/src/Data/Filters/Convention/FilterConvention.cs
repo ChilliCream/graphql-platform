@@ -319,7 +319,7 @@ public class FilterConvention
 
         if (runtimeType.IsArrayOrList)
         {
-            if (runtimeType.ElementType is { }
+            if (runtimeType.ElementType is not null
                 && TryCreateFilterType(runtimeType.ElementType, out var elementType))
             {
                 type = typeof(ListFilterInputType<>).MakeGenericType(elementType);
