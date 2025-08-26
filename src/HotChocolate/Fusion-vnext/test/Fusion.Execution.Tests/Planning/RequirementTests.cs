@@ -106,4 +106,73 @@ public class RequirementTests : FusionTestBase
         // assert
         MatchSnapshot(plan);
     }
+
+    [Fact]
+    public void Requirement_SelectionMap_Object()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """"
+            schema {
+              query: Query
+            }
+
+            type Brand {
+              id: Int!
+              name: String!
+            }
+
+            type Product {
+              id: Int!
+              name: String!
+              brand: Brand
+            }
+
+            type Query {
+              products: [Product]
+            }
+            """",
+            """"
+            schema {
+              query: Query
+            }
+
+            type Product {
+              nameAndId(
+                input: NameInput
+                  @require(field:
+                    """
+                    {
+                      name
+                      brandName: brand.Name
+                    }
+                    """)): String!
+              id: Int!
+            }
+
+            type Query {
+              productById(id: Int!): Product! @lookup @internal
+            }
+
+            input NameInput {
+              name: String!
+              brandName: String
+            }
+            """");
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                brand { name }
+                nameAndId
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
 }
