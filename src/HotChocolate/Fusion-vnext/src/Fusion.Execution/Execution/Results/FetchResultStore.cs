@@ -169,13 +169,17 @@ internal sealed class FetchResultStore : IDisposable
 
                 var objectResult = path.IsRoot ? _root : GetStartObjectResult(path);
 
-                if (objectResult.IsInvalidated)
+#pragma warning disable RCS1146
+                // disabled warning for readability of the condition.
+                if (objectResult is null || objectResult.IsInvalidated)
                 {
-                    continue;
+                    goto AddErrors_Next;
                 }
+#pragma warning restore RCS1146
 
                 _valueCompletion.BuildErrorResult(objectResult, responseNames, error, path);
 
+                AddErrors_Next:
                 path = ref Unsafe.Add(ref path, 1)!;
             }
         }
@@ -207,16 +211,19 @@ internal sealed class FetchResultStore : IDisposable
                     return;
                 }
 
+#pragma warning disable RCS1146
+                // disabled warning for readability of the condition
                 var objectResult = result.Path.IsRoot ? _root : GetStartObjectResult(result.Path);
-                var selectionSet = result.Path.IsRoot ? _operation.RootSelectionSet : objectResult.SelectionSet;
-
-                if (objectResult.IsInvalidated)
+                if (objectResult is null || objectResult.IsInvalidated)
                 {
-                    continue;
+                    goto SaveSafe_Next;
                 }
+#pragma warning restore RCS1146
 
+                var selectionSet = result.Path.IsRoot ? _operation.RootSelectionSet : objectResult.SelectionSet;
                 _valueCompletion.BuildResult(selectionSet, data, errorTrie, responseNames, objectResult);
 
+                SaveSafe_Next:
                 result = ref Unsafe.Add(ref result, 1)!;
                 data = ref Unsafe.Add(ref data, 1);
                 errorTrie = ref Unsafe.Add(ref errorTrie, 1)!;
@@ -495,7 +502,7 @@ internal sealed class FetchResultStore : IDisposable
         return current;
     }
 
-    private ObjectResult GetStartObjectResult(Path path)
+    private ObjectResult? GetStartObjectResult(Path path)
     {
         var result = GetStartResult(path);
 
@@ -504,8 +511,7 @@ internal sealed class FetchResultStore : IDisposable
             return objectResult;
         }
 
-        throw new InvalidOperationException(
-            $"The path segment '{path}' does not exist in the data.");
+        return null;
     }
 
     private ResultData? GetStartResult(Path path)
@@ -517,6 +523,11 @@ internal sealed class FetchResultStore : IDisposable
 
         var parent = path.Parent;
         var result = GetStartResult(parent);
+
+        if (result is null)
+        {
+            return null;
+        }
 
         if (result is ObjectResult objectResult && path is NamePathSegment nameSegment)
         {
@@ -555,6 +566,9 @@ internal sealed class FetchResultStore : IDisposable
                     }
 
                     return listResult.Items[indexSegment.Index];
+
+                case null:
+                    return null;
             }
         }
 
