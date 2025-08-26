@@ -427,7 +427,8 @@ public sealed partial class OperationPlanner
         var steps = current.Steps;
         var index = current.SelectionSetIndex.ToBuilder();
         var selectionSet = lookup.Requirements;
-        index.Register(workItemSelectionSet, selectionSet);
+
+        index.Register(workItemSelectionSet.Id, selectionSet);
 
         var internalOperation = InlineSelections(
             current.InternalOperationDefinition,
@@ -659,8 +660,15 @@ public sealed partial class OperationPlanner
                 ref backlog,
                 ref steps);
 
+        // if we have requirements that we could not inline into existing
+        // nodes of the operation plan we will put it on the backlog to be
+        // planned as another lookup.
         if (leftoverRequirements is not null)
         {
+            indexBuilder.Register(
+                workItem.Selection.SelectionSetId,
+                leftoverRequirements);
+
             backlog = backlog.Push(
                 new OperationWorkItem(
                     OperationWorkItemKind.Lookup,
@@ -1067,6 +1075,10 @@ public sealed partial class OperationPlanner
         // is used on different parts of the operation.
         var requirements = fieldSource.Requirements!.Requirements;
 
+        index.Register(
+            workItem.Selection.SelectionSetId,
+            requirements);
+
         var internalOperation =
             InlineSelections(
                 current.InternalOperationDefinition,
@@ -1185,6 +1197,8 @@ public sealed partial class OperationPlanner
         SelectionSetNode selectionsToInline,
         bool inlineInternal = false)
     {
+        List<SelectionSetNode>? backlog = null;
+
         var rewriter = SyntaxRewriter.Create<Stack<ISyntaxNode>>(
             (node, path) =>
             {
@@ -1222,10 +1236,12 @@ public sealed partial class OperationPlanner
                         {
                             case FieldNode field:
                                 selections.Add(field.WithDirectives(directives));
+                                IndexInternalSelections(field.SelectionSet, index, ref backlog);
                                 break;
 
                             case InlineFragmentNode inlineFragment:
                                 selections.Add(inlineFragment.WithDirectives(directives));
+                                IndexInternalSelections(inlineFragment.SelectionSet, index, ref backlog);
                                 break;
                         }
                     }
@@ -1265,6 +1281,47 @@ public sealed partial class OperationPlanner
             directives.Add(new DirectiveNode("fusion__requirement"));
 
             return directives;
+        }
+
+        // when we inline selections into the internal operation definition
+        // we inline them as separate non-mergeable. This is so we can better
+        // keep track of what is data and what is requirement.
+        //
+        static void IndexInternalSelections(
+            SelectionSetNode? selectionSet,
+            SelectionSetIndexBuilder index,
+            ref List<SelectionSetNode>? backlog)
+        {
+            if (selectionSet is null)
+            {
+                return;
+            }
+
+            backlog ??= [];
+            backlog.Clear();
+            backlog.Push(selectionSet);
+
+            while (backlog.TryPop(out var current))
+            {
+                if (!index.IsRegistered(selectionSet))
+                {
+                    index.Register(selectionSet);
+                }
+
+                foreach (var selection in selectionSet.Selections)
+                {
+                    switch (selection)
+                    {
+                        case FieldNode  { SelectionSet: { } fieldSelectionSet }:
+                            backlog.Push(fieldSelectionSet);
+                            break;
+
+                        case InlineFragmentNode { SelectionSet: { } fragmentSelectionSet }:
+                            backlog.Push(fragmentSelectionSet);
+                            break;
+                    }
+                }
+            }
         }
     }
 
