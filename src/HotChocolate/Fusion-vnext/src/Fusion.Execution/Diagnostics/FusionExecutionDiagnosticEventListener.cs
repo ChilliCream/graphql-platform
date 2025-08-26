@@ -75,7 +75,7 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
         => EmptyScope;
 
     /// <inheritdoc />
-    public IDisposable ExecuteNodeFieldNode(OperationPlanContext context, NodeFieldExecutionNode node)
+    public virtual IDisposable ExecuteNodeFieldNode(OperationPlanContext context, NodeFieldExecutionNode node)
         => EmptyScope;
 
     /// <inheritdoc />
@@ -83,7 +83,7 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
         => EmptyScope;
 
     /// <inheritdoc />
-    public IDisposable ExecuteSubscriptionNode(
+    public virtual IDisposable ExecuteSubscriptionNode(
         OperationPlanContext context,
         OperationExecutionNode node,
         ulong subscriptionId)
