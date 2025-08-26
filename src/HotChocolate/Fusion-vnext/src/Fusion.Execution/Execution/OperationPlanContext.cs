@@ -163,24 +163,24 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     internal ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
-        ReadOnlySpan<string> requiredVariables,
+        ReadOnlySpan<string> forwardedVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
     {
         ArgumentNullException.ThrowIfNull(selectionSet);
 
         if (requiredData.Length == 0)
         {
-            if (requiredVariables.Length == 0)
+            if (forwardedVariables.Length == 0)
             {
                 return [];
             }
 
-            var variableValues = GetPathThroughVariables(requiredVariables);
+            var variableValues = GetPathThroughVariables(forwardedVariables);
             return [new VariableValues(Path.Root, new ObjectValueNode(variableValues))];
         }
         else
         {
-            var variableValues = GetPathThroughVariables(requiredVariables);
+            var variableValues = GetPathThroughVariables(forwardedVariables);
             return _resultStore.CreateVariableValueSets(selectionSet, variableValues, requiredData);
         }
     }
@@ -278,25 +278,33 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     }
 
     private List<ObjectFieldNode> GetPathThroughVariables(
-        ReadOnlySpan<string> requiredVariables)
+        ReadOnlySpan<string> forwardedVariables)
     {
-        if (Variables.IsEmpty || requiredVariables.Length == 0)
+        if (Variables.IsEmpty || forwardedVariables.Length == 0)
         {
             return [];
         }
 
         var variables = new List<ObjectFieldNode>();
 
-        foreach (var variableName in requiredVariables)
+        foreach (var variableName in forwardedVariables)
         {
+            // we pass through the required pass through variables,
+            // if they were not omitted.
+            //
+            // it is valid for the GraphQL request to omit nullable variables.
+            //
+            // if they were not nullable we would not get here as the
+            // GraphQL validation would reject such a request.
+            //
+            // but even if the validation failed we do not need to
+            // guard against it and can just pass this to the
+            // source schema which would in any case validate
+            // any request and would reject it if a required
+            // variable was missing.
             if (Variables.TryGetValue<IValueNode>(variableName, out var variableValue))
             {
                 variables.Add(new ObjectFieldNode(variableName, variableValue));
-            }
-            else
-            {
-                throw new InvalidOperationException(
-                    $"The variable '{variableName}' is not defined.");
             }
         }
 
