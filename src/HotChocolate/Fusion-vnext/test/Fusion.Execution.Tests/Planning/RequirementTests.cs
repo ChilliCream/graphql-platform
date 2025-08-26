@@ -144,7 +144,7 @@ public class RequirementTests : FusionTestBase
                     """
                     {
                       name
-                      brandName: brand.Name
+                      brandName: brand.name
                     }
                     """)): String!
               id: Int!
