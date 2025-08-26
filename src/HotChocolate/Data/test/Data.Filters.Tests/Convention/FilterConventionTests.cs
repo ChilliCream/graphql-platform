@@ -404,7 +404,32 @@ public class FilterConventionTests
             .AddQueryType(
                 x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
 
-        //act
+        // act
+        var schema = await builder.BuildSchemaAsync();
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task FilterConvention_Should_Support_OpenGeneric_RuntimeType_Binding()
+    {
+        // arrange
+        var convention = new FilterConvention(
+            descriptor =>
+            {
+                descriptor.AddDefaults();
+                descriptor.BindRuntimeType(typeof(GenericFoo<>), typeof(GenericFooOperationFilterInput));
+            });
+
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddConvention<IFilterConvention>(convention)
+            .AddFiltering()
+            .AddQueryType(
+                x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<UsingGenericFoo>()));
+
+        // act
         var schema = await builder.BuildSchemaAsync();
 
         // assert
@@ -503,11 +528,19 @@ public class FilterConventionTests
         public string Bar { get; set; } = null!;
     }
 
-    public class FooFilterInput
-        : FilterInputType<Foo>
+    public class GenericFoo<T>
     {
-        protected override void Configure(
-            IFilterInputTypeDescriptor<Foo> descriptor)
+        public string Bar { get; set; } = null!;
+    }
+
+    public class UsingGenericFoo
+    {
+        public GenericFoo<Foo> Bar { get; set; } = null!;
+    }
+
+    public class FooFilterInput : FilterInputType<Foo>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
         {
             descriptor.Field(t => t.Bar);
             descriptor.AllowAnd(false).AllowOr(false);
@@ -515,4 +548,13 @@ public class FilterConventionTests
     }
 
     public class CustomFooFilterInput : FilterInputType<Foo>;
+
+    public class GenericFooOperationFilterInput : StringOperationFilterInputType
+    {
+        protected override void Configure(IFilterInputTypeDescriptor descriptor)
+        {
+            descriptor.Operation(DefaultFilterOperations.Equals).Type<StringType>();
+            descriptor.AllowAnd(false).AllowOr(false);
+        }
+    }
 }
