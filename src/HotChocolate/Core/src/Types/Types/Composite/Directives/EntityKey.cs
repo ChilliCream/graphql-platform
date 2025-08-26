@@ -26,10 +26,10 @@ namespace HotChocolate.Types.Composite;
     which identifies how to uniquely reference an instance of
     an entity across different source schemas.
     """)]
-public sealed class Key
+public sealed class EntityKey
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="Key"/> class.
+    /// Initializes a new instance of the <see cref="EntityKey"/> class.
     /// </summary>
     /// <param name="fields">
     /// The fields that are used to identify an entity.
@@ -37,14 +37,14 @@ public sealed class Key
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="fields"/> is <c>null</c>.
     /// </exception>
-    public Key(SelectionSetNode fields)
+    public EntityKey(SelectionSetNode fields)
     {
         ArgumentNullException.ThrowIfNull(fields);
         Fields = fields;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Key"/> class.
+    /// Initializes a new instance of the <see cref="EntityKey"/> class.
     /// </summary>
     /// <param name="fields">
     /// The fields that are used to identify an entity.
@@ -55,7 +55,7 @@ public sealed class Key
     /// <exception cref="SyntaxException">
     /// The syntax used in the <paramref name="fields"/> parameter is invalid.
     /// </exception>
-    public Key(string fields)
+    public EntityKey(string fields)
     {
         ArgumentNullException.ThrowIfNull(fields);
         fields = $"{{ {fields.Trim('{', '}')} }}";

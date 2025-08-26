@@ -3,11 +3,13 @@ using System.Text.Json;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Lifecycle;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace HotChocolate.Fusion.Aspire;
 
 internal sealed class SchemaComposition(
+    IHostApplicationLifetime lifetime,
     ILogger<SchemaComposition> logger)
     : IDistributedApplicationLifecycleHook
 {
@@ -15,34 +17,44 @@ internal sealed class SchemaComposition(
         DistributedApplicationModel appModel,
         CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Starting GraphQL schema composition...");
+        var compositionFailed = false;
 
         try
         {
             // Find all resources that need schema composition
             var compositionResources = appModel.GetGraphQLCompositionResources().ToList();
 
-            if (!compositionResources.Any())
+            if (compositionResources.Count == 0)
             {
                 logger.LogDebug("No resources found that need GraphQL schema composition");
                 return;
             }
 
+            logger.LogInformation("Starting GraphQL schema composition...");
+
             // Process each composition resource
             foreach (var compositionResource in compositionResources)
             {
-                await ComposeSchemaAsync(compositionResource, appModel, cancellationToken);
+                if (!await ComposeSchemaAsync(compositionResource, appModel, cancellationToken))
+                {
+                    compositionFailed = true;
+                }
             }
-
-            logger.LogInformation("GraphQL schema composition completed successfully!");
         }
-        catch (Exception ex)
+        catch
         {
-            logger.LogError(ex, "Failed to complete GraphQL schema composition");
+            compositionFailed = true;
+        }
+
+        if (compositionFailed)
+        {
+            logger.LogCritical("GraphQL schema composition failed - stopping application");
+            lifetime.StopApplication();
+            throw new InvalidOperationException("GraphQL schema composition failed");
         }
     }
 
-    private async Task ComposeSchemaAsync(
+    private async Task<bool> ComposeSchemaAsync(
         IResourceWithEndpoints compositionResource,
         DistributedApplicationModel appModel,
         CancellationToken cancellationToken)
@@ -51,7 +63,7 @@ internal sealed class SchemaComposition(
 
         if (settings is null)
         {
-            return;
+            return true;
         }
 
         logger.LogInformation(
@@ -67,12 +79,12 @@ internal sealed class SchemaComposition(
                 logger.LogWarning(
                     "{ResourceName} has no source schemas.",
                     compositionResource.Name);
-                return;
+                return true;
             }
 
             var gatewayDirectory = GetProjectPath(compositionResource)!;
             var archivePath = Path.Combine(Path.GetDirectoryName(gatewayDirectory)!, settings.OutputFileName);
-            await ComposeSchemaAsync(archivePath, sourceSchemas, cancellationToken);
+            return await ComposeSchemaAsync(archivePath, sourceSchemas, cancellationToken);
         }
         catch (OperationCanceledException)
         {
@@ -86,6 +98,8 @@ internal sealed class SchemaComposition(
                 compositionResource.Name,
                 ex.Message);
         }
+
+        return false;
     }
 
     private async Task<List<SourceSchemaInfo>> DiscoverReferencedSourceSchemasAsync(
@@ -445,7 +459,7 @@ internal sealed class SchemaComposition(
         return false;
     }
 
-    private async Task ComposeSchemaAsync(
+    private async Task<bool> ComposeSchemaAsync(
         string archivePath,
         List<SourceSchemaInfo> sourceSchemas,
         CancellationToken cancellationToken)
@@ -467,6 +481,7 @@ internal sealed class SchemaComposition(
                 cancellationToken))
             {
                 File.Copy(tempArchivePath, archivePath, true);
+                return true;
             }
         }
         finally
@@ -476,5 +491,7 @@ internal sealed class SchemaComposition(
                 File.Delete(tempArchivePath);
             }
         }
+
+        return false;
     }
 }

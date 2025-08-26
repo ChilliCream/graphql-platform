@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Composite;
 /// Provides extension methods to <see cref="IObjectFieldDescriptor"/> and <see cref="IInterfaceFieldDescriptor"/>
 /// to apply the @key directive.
 /// </summary>
-public static class KeyDescriptorExtensions
+public static class EntityKeyDescriptorExtensions
 {
     /// <summary>
     /// <para>
@@ -28,7 +28,7 @@ public static class KeyDescriptorExtensions
     /// <exception cref="SyntaxException">
     /// The syntax used in the <paramref name="fields"/> parameter is invalid.
     /// </exception>
-    public static IObjectTypeDescriptor Key(
+    public static IObjectTypeDescriptor EntityKey(
         this IObjectTypeDescriptor descriptor,
         string fields)
     {
@@ -53,7 +53,7 @@ public static class KeyDescriptorExtensions
             return descriptor;
         }
 
-        return descriptor.Directive(new Key(selectionSet));
+        return descriptor.Directive(new EntityKey(selectionSet));
     }
 
     /// <summary>
@@ -76,7 +76,7 @@ public static class KeyDescriptorExtensions
     /// <exception cref="SyntaxException">
     /// The syntax used in the <paramref name="fields"/> parameter is invalid.
     /// </exception>
-    public static IInterfaceTypeDescriptor Key(
+    public static IInterfaceTypeDescriptor EntityKey(
         this IInterfaceTypeDescriptor descriptor,
         string fields)
     {
@@ -101,6 +101,6 @@ public static class KeyDescriptorExtensions
             return descriptor;
         }
 
-        return descriptor.Directive(new Key(selectionSet));
+        return descriptor.Directive(new EntityKey(selectionSet));
     }
 }

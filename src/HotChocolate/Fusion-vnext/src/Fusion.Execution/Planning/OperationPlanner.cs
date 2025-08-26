@@ -617,7 +617,8 @@ public sealed partial class OperationPlanner
             Backlog = backlog,
             Steps = steps,
             PathCost = current.PathCost,
-            BacklogCost = backlog.Count()
+            BacklogCost = backlog.Count(),
+            LastRequirementId = requirementId
         };
 
         possiblePlans.Enqueue(next, _schema);
