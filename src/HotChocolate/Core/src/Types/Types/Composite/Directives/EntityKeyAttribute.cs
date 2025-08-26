@@ -40,9 +40,9 @@ namespace HotChocolate.Types.Composite;
     | AttributeTargets.Interface
     | AttributeTargets.Struct,
     AllowMultiple = true)]
-public class KeyAttribute : DescriptorAttribute
+public class EntityKeyAttribute : DescriptorAttribute
 {
-    public KeyAttribute(string fields)
+    public EntityKeyAttribute(string fields)
     {
         ArgumentNullException.ThrowIfNull(fields);
         Fields = fields;
@@ -62,11 +62,11 @@ public class KeyAttribute : DescriptorAttribute
         switch (descriptor)
         {
             case IObjectTypeDescriptor objectTypeDescriptor:
-                objectTypeDescriptor.Key(Fields);
+                objectTypeDescriptor.EntityKey(Fields);
                 break;
 
             case IInterfaceTypeDescriptor interfaceTypeDescriptor:
-                interfaceTypeDescriptor.Key(Fields);
+                interfaceTypeDescriptor.EntityKey(Fields);
                 break;
 
             default:
