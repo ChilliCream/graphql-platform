@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.CommandLine.Tests" />
+    <InternalsVisibleTo Include="ChilliCream.Nitro.CommandLine.Cloud" />
   </ItemGroup>
 
   <ItemGroup>
