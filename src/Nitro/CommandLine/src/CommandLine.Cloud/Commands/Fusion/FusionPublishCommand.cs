@@ -5,6 +5,7 @@ using ChilliCream.Nitro.CommandLine.Cloud.Option;
 using HotChocolate.Fusion.CommandLine;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
+using static HotChocolate.Fusion.Properties.CommandLineResources;
 
 namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Fusion;
 
@@ -12,11 +13,11 @@ internal sealed class FusionPublishCommand : Command
 {
     public FusionPublishCommand() : base("publish")
     {
-        Description = "TODO";
+        Description = "Publishes one or more source schemas as a new fusion configuration to Nitro.";
 
         var workingDirectoryOption = new Option<string>("--working-directory")
         {
-            // Description = ComposeCommand_WorkingDirectory_Description
+            Description = ComposeCommand_WorkingDirectory_Description
         };
         workingDirectoryOption.AddAlias("-w");
         workingDirectoryOption.AddValidator(result =>
@@ -25,11 +26,10 @@ internal sealed class FusionPublishCommand : Command
 
             if (!Directory.Exists(workingDirectory))
             {
-                result.ErrorMessage = "Working directory doesn't exist";
-                // result.ErrorMessage =
-                //     string.Format(
-                //         ComposeCommand_Error_WorkingDirectoryDoesNotExist,
-                //         workingDirectory);
+                result.ErrorMessage =
+                    string.Format(
+                        ComposeCommand_Error_WorkingDirectoryDoesNotExist,
+                        workingDirectory);
             }
         });
         workingDirectoryOption.SetDefaultValueFactory(Directory.GetCurrentDirectory);
@@ -37,7 +37,7 @@ internal sealed class FusionPublishCommand : Command
 
         var sourceSchemaFileOption = new Option<List<string>>("--source-schema-file")
         {
-            // Description = ComposeCommand_SourceSchemaFile_Description
+            Description = ComposeCommand_SourceSchemaFile_Description
         };
         sourceSchemaFileOption.AddAlias("-s");
         sourceSchemaFileOption.LegalFilePathsOnly();
@@ -105,7 +105,7 @@ internal sealed class FusionPublishCommand : Command
                     .SpinnerStyle(Style.Parse("green bold"))
                     .StartAsync(
                         "Claiming deployment slot...",
-                        async _ => await ClaimDeploymentSlotAsync(requestId));
+                        async _ => await ClaimDeploymentSlotAsync());
 
                 // download
                 Stream? existingConfigurationStream = null;
@@ -140,7 +140,7 @@ internal sealed class FusionPublishCommand : Command
                     .SpinnerStyle(Style.Parse("green bold"))
                     .StartAsync(
                         $"Uploading new configuration to '{stageName}'...",
-                        async context => await UploadConfigurationAsync(requestId, archiveStream, context));
+                        async context => await UploadConfigurationAsync(archiveStream, context));
             }
             else
             {
@@ -150,7 +150,7 @@ internal sealed class FusionPublishCommand : Command
 
                 // start
                 console.WriteLine("Claiming deployment slot...");
-                await ClaimDeploymentSlotAsync(requestId);
+                await ClaimDeploymentSlotAsync();
 
                 // download
                 console.WriteLine($"Downloading existing configuration from '{stageName}'...");
@@ -174,12 +174,11 @@ internal sealed class FusionPublishCommand : Command
 
                 // commit
                 console.WriteLine($"Uploading new configuration to '{stageName}'...");
-                await UploadConfigurationAsync(requestId, archiveStream, null);
+                await UploadConfigurationAsync(archiveStream, null);
             }
         }
         catch (Exception exception)
         {
-            // TODO: Use stderr
             console.Error(exception.Message);
 
             if (!string.IsNullOrEmpty(requestId))
@@ -200,9 +199,10 @@ internal sealed class FusionPublishCommand : Command
                 apiId,
                 stageName,
                 tag,
-                // As we could be publishing multiple subgraphs, we do not associate this publish with a specific one.
+                // As we could be publishing multiple source schemas,
+                // we do not associate this publish with a specific subgraph.
                 null,
-                "TEMP", // TODO: Get rid of this as soon as the Backend is updated
+                null,
                 false,
                 statusContext,
                 console,
@@ -210,7 +210,7 @@ internal sealed class FusionPublishCommand : Command
                 cancellationToken);
         }
 
-        async Task ClaimDeploymentSlotAsync(string requestId)
+        async Task ClaimDeploymentSlotAsync()
         {
             await FusionConfigurationPublishHelpers.ClaimDeploymentSlot(
                 requestId,
@@ -290,7 +290,7 @@ internal sealed class FusionPublishCommand : Command
                 sourceSchemaFiles,
                 archive,
                 null,
-                true, // TODO: This should come from the existing gateway file
+                false,
                 cancellationToken);
 
             ComposeCommand.WriteCompositionLog(
@@ -302,7 +302,6 @@ internal sealed class FusionPublishCommand : Command
             {
                 foreach (var error in result.Errors)
                 {
-                    // TODO: Use stderr
                     console.Error(error.Message);
                 }
 
@@ -314,7 +313,7 @@ internal sealed class FusionPublishCommand : Command
             return true;
         }
 
-        async Task UploadConfigurationAsync(string requestId, Stream stream, StatusContext? statusContext)
+        async Task UploadConfigurationAsync(Stream stream, StatusContext? statusContext)
         {
             var success = await FusionConfigurationPublishHelpers.UploadConfigurationAsync(
                 requestId,

@@ -104,11 +104,13 @@ public static class ConsoleHelpers
         console.MarkupLine(Glyphs.ExclamationMark.Space() + message);
     }
 
+    // TODO: This should write to stderr, but AnsiConsole can't easily do that atm.
     public static void Error(this IAnsiConsole console, string message)
     {
         console.MarkupLine($"[red bold]{message}[/]");
     }
 
+    // TODO: This should write to stderr, but AnsiConsole can't easily do that atm.
     public static void PrintError(this IAnsiConsole console, string message, string? code = null)
     {
         if (code is not null)
