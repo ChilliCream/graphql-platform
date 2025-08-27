@@ -68,8 +68,8 @@ public sealed class DataLoaderFileBuilder : IDisposable
             kind is DataLoaderKind.Group
                 ? ": global::GreenDonut.IDataLoader<{0}, {1}[]>"
                 : ": global::GreenDonut.IDataLoader<{0}, {1}>",
-            key.ToFullyQualified(),
-            value.ToFullyQualified());
+            key.ToFullyQualifiedWithNullRefQualifier(),
+            value.ToFullyQualifiedWithNullRefQualifier());
 
         _writer.DecreaseIndent();
         _writer.WriteIndentedLine("{");
@@ -97,8 +97,8 @@ public sealed class DataLoaderFileBuilder : IDisposable
             kind is DataLoaderKind.Group
                 ? ": global::GreenDonut.DataLoaderBase<{0}, {1}[]>"
                 : ": global::GreenDonut.DataLoaderBase<{0}, {1}>",
-            key.ToFullyQualified(),
-            value.ToFullyQualified());
+            key.ToFullyQualifiedWithNullRefQualifier(),
+            value.ToFullyQualifiedWithNullRefQualifier());
         if (withInterface)
         {
             _writer.WriteIndentedLine(", {0}", interfaceName);
@@ -174,23 +174,20 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         if (lookup.IsTransform)
                         {
                             _writer.WriteIndentedLine(
-                                ".Create<{0}, {1}{2}, {3}{4}>({5}.{6}, this)",
-                                keyType.ToFullyQualified(),
-                                valueType.ToFullyQualified(),
-                                valueType.PrintNullRefQualifier(),
-                                lookup.Method.Parameters[0].Type.ToFullyQualified(),
-                                lookup.Method.Parameters[0].Type.PrintNullRefQualifier(),
-                                lookup.Method.ContainingType.ToFullyQualified(),
+                                ".Create<{0}, {1}, {2}>({3}.{4}, this)",
+                                keyType.ToFullyQualifiedWithNullRefQualifier(),
+                                valueType.ToFullyQualifiedWithNullRefQualifier(),
+                                lookup.Method.Parameters[0].Type.ToFullyQualifiedWithNullRefQualifier(),
+                                lookup.Method.ContainingType.ToFullyQualifiedWithNullRefQualifier(),
                                 lookup.Method.Name);
                         }
                         else
                         {
                             _writer.WriteIndentedLine(
-                                ".Create<{0}, {1}{2}>({3}.{4}, this)",
-                                keyType.ToFullyQualified(),
-                                valueType.ToFullyQualified(),
-                                valueType.PrintNullRefQualifier(),
-                                lookup.Method.ContainingType.ToFullyQualified(),
+                                ".Create<{0}, {1}>({2}.{3}, this)",
+                                keyType.ToFullyQualifiedWithNullRefQualifier(),
+                                valueType.ToFullyQualifiedWithNullRefQualifier(),
+                                lookup.Method.ContainingType.ToFullyQualifiedWithNullRefQualifier(),
                                 lookup.Method.Name);
                         }
 
@@ -221,18 +218,18 @@ public sealed class DataLoaderFileBuilder : IDisposable
             _writer.WriteIndentedLine(
                 "global::{0}<{1}> keys,",
                 WellKnownTypes.ReadOnlyList,
-                key.ToFullyQualified());
+                key.ToFullyQualifiedWithNullRefQualifier());
             _writer.WriteIndentedLine(
-                "global::{0}<{1}<{2}{3}{4}>> results,",
+                "global::{0}<{1}<{2}>> results,",
                 WellKnownTypes.Memory,
                 WellKnownTypes.Result,
-                value.ToFullyQualified(),
-                kind is DataLoaderKind.Group ? "[]" : string.Empty,
-                value.IsValueType ? string.Empty : "?");
+                kind is DataLoaderKind.Group
+                    ? $"{value.ToClassNonNullableFullyQualifiedWithNullRefQualifier()}[]?"
+                    : value.ToNullableFullyQualifiedWithNullRefQualifier());
             _writer.WriteIndentedLine(
                 "global::{0}<{1}{2}> context,",
                 WellKnownTypes.DataLoaderFetchContext,
-                value.ToFullyQualified(),
+                value.ToFullyQualifiedWithNullRefQualifier(),
                 kind is DataLoaderKind.Group ? "[]" : string.Empty);
             _writer.WriteIndentedLine(
                 "global::{0} ct)",
@@ -256,14 +253,14 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         "var {0} = {1}.GetRequiredService<{2}>();",
                         parameter.VariableName,
                         isScoped ? "scope.ServiceProvider" : "_services",
-                        parameter.Type.ToFullyQualified());
+                        parameter.Type.ToFullyQualifiedWithNullRefQualifier());
                 }
                 else if (parameter.Kind is DataLoaderParameterKind.SelectorBuilder)
                 {
                     _writer.WriteIndentedLine(
                         "var {0} = context.GetState<{1}>(\"{2}\")",
                         parameter.VariableName,
-                        parameter.Type.ToFullyQualified(),
+                        parameter.Type.ToFullyQualifiedWithNullRefQualifier(),
                         parameter.StateKey);
                     _writer.IncreaseIndent();
                     _writer.WriteIndentedLine(
@@ -275,7 +272,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                     _writer.WriteIndentedLine(
                         "var {0} = context.GetState<{1}>(\"{2}\")",
                         parameter.VariableName,
-                        parameter.Type.ToFullyQualified(),
+                        parameter.Type.ToFullyQualifiedWithNullRefQualifier(),
                         parameter.StateKey);
                     _writer.IncreaseIndent();
                     _writer.WriteIndentedLine(
@@ -287,12 +284,12 @@ public sealed class DataLoaderFileBuilder : IDisposable
                     _writer.WriteIndentedLine(
                         "var {0} = context.GetState<{1}>(\"{2}\")",
                         parameter.VariableName,
-                        parameter.Type.ToFullyQualified(),
+                        parameter.Type.ToFullyQualifiedWithNullRefQualifier(),
                         parameter.StateKey);
                     _writer.IncreaseIndent();
                     _writer.WriteIndentedLine(
                         "?? {0}.Empty;",
-                        parameter.Type.ToFullyQualified());
+                        parameter.Type.ToFullyQualifiedWithNullRefQualifier());
                     _writer.DecreaseIndent();
                 }
                 else if (parameter.Kind is DataLoaderParameterKind.QueryContext)
@@ -302,18 +299,18 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         parameter.VariableName,
                         WellKnownTypes.SelectorBuilder,
                         DataLoaderInfo.Selector,
-                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified());
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualifiedWithNullRefQualifier());
                     _writer.WriteIndentedLine(
                         "var {0}_predicate = context.GetState<global::{1}>(\"{2}\")?.TryCompile<{3}>();",
                         parameter.VariableName,
                         WellKnownTypes.PredicateBuilder,
                         DataLoaderInfo.Predicate,
-                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified());
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualifiedWithNullRefQualifier());
                     _writer.WriteIndentedLine(
                         "var {0}_sortDefinition = context.GetState<global::{1}<{2}>>(\"{3}\");",
                         parameter.VariableName,
                         WellKnownTypes.SortDefinition,
-                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified(),
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualifiedWithNullRefQualifier(),
                         DataLoaderInfo.Sorting);
                     _writer.WriteLine();
 
@@ -321,7 +318,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         "var {0} = global::{1}<{2}>.Empty;",
                         parameter.VariableName,
                         WellKnownTypes.QueryContext,
-                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified());
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualifiedWithNullRefQualifier());
                     _writer.WriteIndentedLine(
                         "if({0}_selector is not null || {0}_predicate is not null || {0}_sortDefinition is not null)",
                         parameter.VariableName);
@@ -332,7 +329,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         "{0}_predicate, {0}_sortDefinition);",
                         parameter.VariableName,
                         WellKnownTypes.QueryContext,
-                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified());
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualifiedWithNullRefQualifier());
                     _writer.DecreaseIndent();
                     _writer.WriteIndentedLine("}");
                 }
@@ -341,7 +338,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                     _writer.WriteIndentedLine(
                         "var {0} = context.GetRequiredState<{1}>(\"{2}\");",
                         parameter.VariableName,
-                        parameter.Type.ToFullyQualified(),
+                        parameter.Type.ToFullyQualifiedWithNullRefQualifier(),
                         parameter.StateKey);
                 }
                 else if (parameter.Kind is DataLoaderParameterKind.ContextData)
@@ -352,20 +349,18 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
 
                         _writer.WriteIndentedLine(
-                            "var {0} = context.GetStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                            "var {0} = context.GetStateOrDefault<{1}>(\"{2}\", {3});",
                             parameter.VariableName,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Type.PrintNullRefQualifier(),
+                            parameter.Type.ToFullyQualifiedWithNullRefQualifier(),
                             parameter.StateKey,
                             defaultValueString);
                     }
                     else if (parameter.Type.IsNullableType())
                     {
                         _writer.WriteIndentedLine(
-                            "var {0} = context.GetState<{1}{2}>(\"{3}\");",
+                            "var {0} = context.GetState<{1}>(\"{2}\");",
                             parameter.VariableName,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Type.PrintNullRefQualifier(),
+                            parameter.Type.ToFullyQualifiedWithNullRefQualifier(),
                             parameter.StateKey);
                     }
                     else
@@ -373,7 +368,7 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         _writer.WriteIndentedLine(
                             "var {0} = context.GetRequiredState<{1}>(\"{2}\");",
                             parameter.VariableName,
-                            parameter.Type.ToFullyQualified(),
+                            parameter.Type.ToFullyQualifiedWithNullRefQualifier(),
                             parameter.StateKey);
                     }
                 }
@@ -395,9 +390,8 @@ public sealed class DataLoaderFileBuilder : IDisposable
                         _writer.WriteIndented("var value = ");
                         WriteFetchCall(method, containingType, kind, parameters);
                         _writer.WriteIndentedLine(
-                            "results.Span[i] = Result<{0}{1}>.Resolve(value);",
-                            value.ToFullyQualified(),
-                            value.IsValueType ? string.Empty : "?");
+                            "results.Span[i] = Result<{0}>.Resolve(value);",
+                            value.ToNullableFullyQualifiedWithNullRefQualifier());
                     }
 
                     _writer.WriteIndentedLine("}");
@@ -407,9 +401,8 @@ public sealed class DataLoaderFileBuilder : IDisposable
                     using (_writer.IncreaseIndent())
                     {
                         _writer.WriteIndentedLine(
-                            "results.Span[i] = Result<{0}{1}>.Reject(ex);",
-                            value.ToFullyQualified(),
-                            value.IsValueType ? string.Empty : "?");
+                            "results.Span[i] = Result<{0}>.Reject(ex);",
+                            value.ToNullableFullyQualifiedWithNullRefQualifier());
                     }
 
                     _writer.WriteIndentedLine("}");
@@ -439,14 +432,14 @@ public sealed class DataLoaderFileBuilder : IDisposable
             _writer.WriteIndentedLine(
                 "global::{0}<{1}> keys,",
                 WellKnownTypes.ReadOnlyList,
-                key.ToFullyQualified());
+                key.ToFullyQualifiedWithNullRefQualifier());
             _writer.WriteIndentedLine(
-                "global::{0}<{1}<{2}{3}{4}>> results,",
+                "global::{0}<{1}<{2}>> results,",
                 WellKnownTypes.Span,
                 WellKnownTypes.Result,
-                value.ToFullyQualified(),
-                kind is DataLoaderKind.Group ? "[]" : string.Empty,
-                value.IsValueType ? string.Empty : "?");
+                kind is DataLoaderKind.Group
+                    ? $"{value.ToClassNonNullableFullyQualifiedWithNullRefQualifier()}[]?"
+                    : value.ToNullableFullyQualifiedWithNullRefQualifier());
             _writer.WriteIndentedLine(
                 "{0} resultMap)",
                 ExtractMapType(method.ReturnType).ToFullyQualifiedWithNullRefQualifier());
@@ -501,10 +494,9 @@ public sealed class DataLoaderFileBuilder : IDisposable
                     using (_writer.IncreaseIndent())
                     {
                         _writer.WriteIndentedLine(
-                            "results[i] = global::{0}<{1}{2}>.Resolve(value);",
+                            "results[i] = global::{0}<{1}>.Resolve(value);",
                             WellKnownTypes.Result,
-                            value.ToFullyQualified(),
-                            value.IsValueType ? string.Empty : "?");
+                            value.ToNullableFullyQualifiedWithNullRefQualifier());
                     }
 
                     _writer.WriteIndentedLine("}");
@@ -514,11 +506,12 @@ public sealed class DataLoaderFileBuilder : IDisposable
                     using (_writer.IncreaseIndent())
                     {
                         _writer.WriteIndentedLine(
-                            "results[i] = global::{0}<{1}{2}>.Resolve(default({3}));",
+                            "results[i] = global::{0}<{1}>.Resolve(default({2}));",
                             WellKnownTypes.Result,
-                            value.ToFullyQualified(),
-                            value.IsValueType ? string.Empty : "?",
-                            value.ToFullyQualified());
+                            value.ToNullableFullyQualifiedWithNullRefQualifier(),
+                            value.IsValueType
+                                ? value.ToNullableFullyQualifiedWithNullRefQualifier()
+                                : value.ToFullyQualified());
                     }
 
                     _writer.WriteIndentedLine("}");
