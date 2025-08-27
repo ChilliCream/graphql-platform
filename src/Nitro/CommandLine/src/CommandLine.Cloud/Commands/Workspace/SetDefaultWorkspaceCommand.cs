@@ -14,15 +14,16 @@ internal sealed class SetDefaultWorkspaceCommand : Command
         Description =
             "Use this command to select a workspace and set it as your default workspace";
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.SetHandler(context => ExecuteAsync(
+            true,
+            context.BindingContext.GetRequiredService<IAnsiConsole>(),
+            context.BindingContext.GetRequiredService<IApiClient>(),
+            context.BindingContext.GetRequiredService<ISessionService>(),
+            context.BindingContext.GetRequiredService<CancellationToken>()));
     }
 
     public static async Task<int> ExecuteAsync(
+        bool forceSelection,
         IAnsiConsole console,
         IApiClient client,
         ISessionService sessionService,
@@ -42,22 +43,38 @@ internal sealed class SetDefaultWorkspaceCommand : Command
                 $"You do not have any workspaces. Run {"nitro launch".AsCommand()} and create one.");
         }
 
-        var selectedWorkspace = await PagedSelectionPrompt
-            .New(paginationContainer)
-            .Title(message.AsQuestion())
-            .UseConverter(x => x.Node.Name)
-            .RenderAsync(console, cancellationToken);
+        Workspace? workspace;
+        var wasPrompted = false;
 
-        if (selectedWorkspace is null)
+        if (current.Count == 1 && !forceSelection)
         {
-            throw Exit("No workspaces was selected as default");
+            var firstWorkspace = current[0].Node;
+            workspace = new Workspace(firstWorkspace.Id, firstWorkspace.Name);
         }
+        else
+        {
+             var selectedWorkspace = await PagedSelectionPrompt
+                .New(paginationContainer)
+                .Title(message.AsQuestion())
+                .UseConverter(x => x.Node.Name)
+                .RenderAsync(console, cancellationToken);
 
-        var workspace = new Workspace(selectedWorkspace.Node.Id, selectedWorkspace.Node.Name);
+             if (selectedWorkspace is null)
+             {
+                 throw Exit("No workspaces was selected as default");
+             }
+
+             workspace = new Workspace(selectedWorkspace.Node.Id, selectedWorkspace.Node.Name);
+
+            wasPrompted = true;
+        }
 
         await sessionService.SelectWorkspaceAsync(workspace, cancellationToken);
 
-        console.OkQuestion(message, workspace.Name);
+        if (wasPrompted)
+        {
+            console.OkQuestion(message, workspace.Name);
+        }
 
         return ExitCodes.Success;
     }
