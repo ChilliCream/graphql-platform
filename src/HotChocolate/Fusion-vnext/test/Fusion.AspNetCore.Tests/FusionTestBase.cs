@@ -104,7 +104,11 @@ public abstract class FusionTestBase : IDisposable
 
         gatewayBuilder.AddInMemoryConfiguration(result.Value.ToSyntaxNode(), settings);
         gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
-        gatewayBuilder.ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = false);
+        gatewayBuilder.ModifyRequestOptions(o =>
+        {
+            o.AllowOperationPlanRequests = true;
+            o.CollectOperationPlanTelemetry = false;
+        });
         configureGatewayBuilder?.Invoke(gatewayBuilder);
 
         configureApplication ??=
@@ -163,7 +167,7 @@ public abstract class FusionTestBase : IDisposable
             OperationRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
-            requestBuilder.TryAddGlobalState(ExecutionContextData.IncludeQueryPlan, true);
+            requestBuilder.TryAddGlobalState(ExecutionContextData.IncludeOperationPlan, true);
             return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
         }
     }

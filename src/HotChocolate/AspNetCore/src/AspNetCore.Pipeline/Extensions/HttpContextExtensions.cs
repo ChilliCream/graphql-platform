@@ -14,12 +14,12 @@ internal static class HttpContextExtensions
     public static GraphQLSocketOptions? GetGraphQLSocketOptions(this HttpContext context)
         => GetGraphQLServerOptions(context)?.Sockets;
 
-    public static bool IncludeQueryPlan(this HttpContext context)
+    public static bool IncludeOperationPlan(this HttpContext context)
     {
         var headers = context.Request.Headers;
 
-        if (headers.TryGetValue(HttpHeaderKeys.QueryPlan, out var values)
-            && values.Any(v => v == HttpHeaderValues.IncludeQueryPlan))
+        if (headers.TryGetValue(HttpHeaderKeys.OperationPlan, out var values)
+            && values.Any(v => v == HttpHeaderValues.IncludeOperationPlan))
         {
             return true;
         }

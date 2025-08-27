@@ -252,7 +252,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
         var resultBuilder = OperationResultBuilder.New();
 
-        if (_allowOperationPlanRequests && RequestContext.ContextData.ContainsKey(ExecutionContextData.IncludeQueryPlan))
+        if (_allowOperationPlanRequests && RequestContext.ContextData.ContainsKey(ExecutionContextData.IncludeOperationPlan))
         {
             var writer = new PooledArrayWriter();
             s_planFormatter.Format(writer, OperationPlan, trace);

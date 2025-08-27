@@ -106,7 +106,7 @@ public sealed class FusionRequestOptions : ICloneable
     }
 
     /// <summary>
-    /// Gets or sets whether the operation plan can be requested via the <c>GraphQL-Query-Plan</c> header.
+    /// Gets or sets whether the operation plan can be requested via the <c>Fusion-Operation-Plan</c> header.
     /// <c>false</c> by default.
     /// </summary>
     public bool AllowOperationPlanRequests
