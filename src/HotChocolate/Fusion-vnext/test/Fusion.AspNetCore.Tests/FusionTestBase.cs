@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
@@ -13,12 +14,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Xunit.Sdk;
 
 namespace HotChocolate.Fusion;
 
 public abstract class FusionTestBase : IDisposable
 {
-    internal readonly TestServerSession _testServerSession = new();
+    private readonly TestServerSession _testServerSession = new();
     private bool _disposed;
 
     public TestServer CreateSourceSchema(
@@ -81,7 +83,16 @@ public abstract class FusionTestBase : IDisposable
 
         if (!result.IsSuccess)
         {
-            throw new InvalidOperationException(result.Errors[0].Message);
+            var sb = new StringBuilder();
+            sb.Append(result.Errors[0].Message);
+
+            foreach (var entry in compositionLog)
+            {
+                sb.AppendLine();
+                sb.Append(entry.Message);
+            }
+
+            throw new XunitException(sb.ToString());
         }
 
         JsonDocumentOwner? settings = null;

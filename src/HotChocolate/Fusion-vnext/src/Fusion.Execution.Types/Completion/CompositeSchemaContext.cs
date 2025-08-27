@@ -144,7 +144,8 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
         {
             if (!IsSpecScalarType(typeName))
             {
-                throw new InvalidOperationException("The specified type does not exist.");
+                throw new InvalidOperationException(
+                    $"The specified type `{typeName}` does not exist.");
             }
 
             type = CreateSpecScalar(typeName);

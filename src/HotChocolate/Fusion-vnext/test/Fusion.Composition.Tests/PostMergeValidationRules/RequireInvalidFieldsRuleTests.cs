@@ -110,6 +110,24 @@ public sealed class RequireInvalidFieldsRuleTests
                     }
                     """
                 ]
+            },
+            // In the following example, the @require directive’s "field" argument references a field with a list type.
+            {
+                [
+                    """
+                    type CartDiscount {
+                        channels(channelIds: [ID!]! @require(field: "channelIds")): ChannelConnection!
+                        id: ID!
+                    }
+                    """,
+                    """
+                    type CartDiscount {
+                       id: ID!
+                       name: String!
+                       channelIds: [ID!]!
+                    }
+                    """
+                ]
             }
         };
     }
