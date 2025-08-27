@@ -64,12 +64,7 @@ internal sealed class RedisPubSub : DefaultPubSub
             DiagnosticEvents);
 
     private string GetPrefixedTopic(string topic)
-    {
-        if (string.IsNullOrWhiteSpace(_topicPrefix))
-        {
-            return topic;
-        }
-
-        return $"{_topicPrefix}{topic}";
-    }
+        => string.IsNullOrWhiteSpace(_topicPrefix)
+            ? topic
+            : _topicPrefix + topic;
 }
