@@ -2,11 +2,17 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using static Microsoft.CodeAnalysis.SymbolDisplayFormat;
+using static Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions;
 
 namespace HotChocolate.Types.Analyzers.Helpers;
 
 public static class SymbolExtensions
 {
+    private static readonly SymbolDisplayFormat s_format =
+        FullyQualifiedFormat.AddMiscellaneousOptions(
+            IncludeNullableReferenceTypeModifier);
+
     public static bool IsNullableType(this ITypeSymbol typeSymbol)
         => typeSymbol.IsNullableRefType() || typeSymbol.IsNullableValueType();
 
@@ -25,18 +31,26 @@ public static class SymbolExtensions
         };
 
     public static string PrintNullRefQualifier(this ITypeSymbol typeSymbol)
-    {
-        return typeSymbol.IsNullableRefType() ? "?" : string.Empty;
-    }
+        => typeSymbol.IsNullableRefType() ? "?" : string.Empty;
 
     public static string ToFullyQualified(this ITypeSymbol typeSymbol)
-        => typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        => typeSymbol.ToDisplayString(FullyQualifiedFormat);
 
     public static string ToFullyQualifiedWithNullRefQualifier(this ITypeSymbol typeSymbol)
+        => typeSymbol.ToDisplayString(s_format);
+
+    public static string ToNullableFullyQualifiedWithNullRefQualifier(this ITypeSymbol typeSymbol)
     {
-        var format = SymbolDisplayFormat.FullyQualifiedFormat
-            .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
-        return typeSymbol.ToDisplayString(format);
+        var value = typeSymbol.ToFullyQualifiedWithNullRefQualifier();
+        return value[value.Length - 1] != '?' ? value + "?" : value;
+    }
+
+    public static string ToClassNonNullableFullyQualifiedWithNullRefQualifier(this ITypeSymbol typeSymbol)
+    {
+        var value = typeSymbol.ToFullyQualifiedWithNullRefQualifier();
+        return !typeSymbol.IsValueType && value[value.Length - 1] == '?'
+            ? value.Substring(0, value.Length - 1)
+            : value;
     }
 
     public static bool IsParent(this IParameterSymbol parameter)
@@ -78,17 +92,13 @@ public static class SymbolExtensions
 
     public static bool IsSetState(this IParameterSymbol parameter, [NotNullWhen(true)] out string? stateTypeName)
     {
-        if (parameter.Type is INamedTypeSymbol namedTypeSymbol)
+        if (parameter.Type is INamedTypeSymbol namedTypeSymbol
+            && namedTypeSymbol is { IsGenericType: true, TypeArguments.Length: 1 }
+            && namedTypeSymbol.Name == "SetState"
+            && namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate")
         {
-            if (namedTypeSymbol is { IsGenericType: true, TypeArguments.Length: 1 })
-            {
-                if (namedTypeSymbol.Name == "SetState"
-                    && namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate")
-                {
-                    stateTypeName = namedTypeSymbol.TypeArguments[0].ToDisplayString();
-                    return true;
-                }
-            }
+            stateTypeName = namedTypeSymbol.TypeArguments[0].ToDisplayString();
+            return true;
         }
 
         stateTypeName = null;
@@ -96,44 +106,19 @@ public static class SymbolExtensions
     }
 
     public static bool IsSetState(this IParameterSymbol parameter)
-    {
-        if (parameter.Type is INamedTypeSymbol namedTypeSymbol)
-        {
-            if (namedTypeSymbol is { IsGenericType: true, TypeArguments.Length: 1 })
-            {
-                if (namedTypeSymbol.Name == "SetState"
-                    && namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate")
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
+        => parameter.Type is INamedTypeSymbol namedTypeSymbol
+            && namedTypeSymbol is { IsGenericType: true, TypeArguments.Length: 1 }
+            && namedTypeSymbol.Name == "SetState"
+            && namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate";
 
     public static bool IsQueryContext(this IParameterSymbol parameter)
-    {
-        if (parameter.Type is INamedTypeSymbol namedTypeSymbol
+        => parameter.Type is INamedTypeSymbol namedTypeSymbol
             && namedTypeSymbol is { IsGenericType: true, TypeArguments.Length: 1 }
-            && namedTypeSymbol.ToDisplayString().StartsWith(WellKnownTypes.QueryContextGeneric))
-        {
-            return true;
-        }
-
-        return false;
-    }
+            && namedTypeSymbol.ToDisplayString().StartsWith(WellKnownTypes.QueryContextGeneric);
 
     public static bool IsPagingArguments(this IParameterSymbol parameter)
-    {
-        if (parameter.Type is INamedTypeSymbol namedTypeSymbol
-            && namedTypeSymbol.ToDisplayString().StartsWith(WellKnownTypes.PagingArguments))
-        {
-            return true;
-        }
-
-        return false;
-    }
+        => parameter.Type is INamedTypeSymbol namedTypeSymbol
+            && namedTypeSymbol.ToDisplayString().StartsWith(WellKnownTypes.PagingArguments);
 
     public static bool IsGlobalState(
         this IParameterSymbol parameter,
@@ -155,7 +140,7 @@ public static class SymbolExtensions
 
                 foreach (var namedArg in attributeData.NamedArguments)
                 {
-                    if (namedArg.Key == "Key" && namedArg.Value.Value is string namedKeyValue)
+                    if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
                     {
                         key = namedKeyValue;
                         return true;
@@ -225,7 +210,7 @@ public static class SymbolExtensions
 
                 foreach (var namedArg in attributeData.NamedArguments)
                 {
-                    if (namedArg.Key == "Key" && namedArg.Value.Value is string namedKeyValue)
+                    if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
                     {
                         key = namedKeyValue;
                         return true;
