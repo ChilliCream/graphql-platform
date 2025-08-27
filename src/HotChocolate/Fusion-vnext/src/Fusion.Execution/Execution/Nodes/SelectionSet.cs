@@ -1,8 +1,9 @@
+using HotChocolate.Execution;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public sealed class SelectionSet
+public sealed class SelectionSet : ISelectionSet
 {
     private readonly Selection[] _selections;
     private bool _isSealed;
@@ -42,10 +43,14 @@ public sealed class SelectionSet
     /// </summary>
     public ReadOnlySpan<Selection> Selections => _selections;
 
+    IEnumerable<ISelection> ISelectionSet.GetSelections() => _selections;
+
     /// <summary>
     /// Gets the declaring operation.
     /// </summary>
     public Operation DeclaringOperation { get; private set; } = null!;
+
+    IOperation ISelectionSet.DeclaringOperation => DeclaringOperation;
 
     internal void Seal(Operation operation)
     {

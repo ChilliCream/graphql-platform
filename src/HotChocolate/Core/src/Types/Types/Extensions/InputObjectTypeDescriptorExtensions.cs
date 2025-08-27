@@ -30,7 +30,7 @@ public static class InputObjectTypeDescriptorExtensions
     /// </exception>
     public static IInputObjectTypeDescriptor<T> Ignore<T>(
         this IInputObjectTypeDescriptor<T> descriptor,
-        Expression<Func<T, object>> property)
+        Expression<Func<T, object?>> property)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(property);

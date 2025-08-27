@@ -72,6 +72,15 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
         target._fieldMap[fieldName] = field;
     }
 
+    /// <inheritdoc />
+    public override bool TrySetValueNull(int index)
+    {
+        var field = _fields[index];
+        field.SetNextValueNull();
+
+        return !field.Selection.Type.IsNonNullType();
+    }
+
     /// <summary>
     /// Writes the object result to the specified JSON writer.
     /// </summary>

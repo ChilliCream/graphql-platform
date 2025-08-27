@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
+using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
@@ -28,6 +29,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
         ImmutableDictionary<string, ITypeDefinitionNode> typeDefinitionNodeLookup,
         ImmutableArray<FusionDirectiveDefinition> directiveDefinitions,
         ImmutableDictionary<string, DirectiveDefinitionNode> directiveDefinitionNodeLookup,
+        ImmutableDictionary<string, SourceSchemaInfo> sourceSchemaLookup,
         IFeatureCollection features,
         CompositeTypeInterceptor interceptor)
     {
@@ -45,6 +47,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
         Directives = directives;
         TypeDefinitions = typeDefinitions;
         DirectiveDefinitions = directiveDefinitions;
+        SourceSchemaLookup = sourceSchemaLookup;
         Features = features;
         Interceptor = interceptor;
 
@@ -70,6 +73,8 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
     public ImmutableArray<DirectiveNode> Directives { get; }
 
     public ImmutableArray<FusionDirectiveDefinition> DirectiveDefinitions { get; private set; }
+
+    public ImmutableDictionary<string, SourceSchemaInfo> SourceSchemaLookup { get; }
 
     public IFeatureCollection Features { get; }
 
@@ -139,7 +144,8 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
         {
             if (!IsSpecScalarType(typeName))
             {
-                throw new InvalidOperationException("The specified type does not exist.");
+                throw new InvalidOperationException(
+                    $"The specified type `{typeName}` does not exist.");
             }
 
             type = CreateSpecScalar(typeName);
@@ -185,6 +191,9 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
 
         throw new InvalidOperationException();
     }
+
+    public string GetSchemaName(SchemaKey schemaKey)
+        => SourceSchemaLookup[schemaKey.Value].Name;
 
     private void AddSpecDirectives()
     {

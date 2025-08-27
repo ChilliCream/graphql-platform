@@ -1,24 +1,27 @@
 operation:
   - document: >-
-    query testQuery {
-      wrappers {
-        votable {
-          viewerCanVote
-          ... on Discussion {
-            title
+      query testQuery {
+        wrappers {
+          votable {
+            __typename @fusion__requirement
+            viewerCanVote
+            ... on Discussion {
+              title
+            }
           }
         }
       }
-    }
     name: testQuery
-    hash: 123
+    hash: 123456789101112
 nodes:
   - id: 1
-    schema: SUBGRAPH_1
+    type: Operation
+    schema: a
     operation: >-
-      query testQuery_123_1 {
+      query testQuery_123456789101112_1 {
         wrappers {
           votable {
+            __typename
             viewerCanVote
             ... on Discussion {
               title

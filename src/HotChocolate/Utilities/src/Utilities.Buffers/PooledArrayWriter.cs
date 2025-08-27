@@ -28,6 +28,19 @@ public sealed class PooledArrayWriter : IWritableMemory
     }
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="PooledArrayWriter"/> class.
+    /// </summary>
+    /// <param name="initialBufferSize">
+    /// The initial buffer size.
+    /// </param>
+    public PooledArrayWriter(int initialBufferSize)
+    {
+        _buffer = ArrayPool<byte>.Shared.Rent(initialBufferSize);
+        _capacity = _buffer.Length;
+        _start = 0;
+    }
+
+    /// <summary>
     /// Gets the number of bytes written to the buffer.
     /// </summary>
     public int Length => _start;

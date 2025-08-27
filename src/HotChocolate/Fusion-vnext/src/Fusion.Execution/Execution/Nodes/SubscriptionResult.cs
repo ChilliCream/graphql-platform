@@ -1,4 +1,4 @@
-using HotChocolate.Fusion.Execution.Nodes;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed class SubscriptionResult
 {

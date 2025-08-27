@@ -249,8 +249,7 @@ public class NodeTypeTests : TypeTestBase
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query9>()
-            .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
-            .AddGlobalObjectIdentification()
+            .AddGlobalObjectIdentification(o => o.EnsureAllNodesCanBeResolved = false)
             .BuildSchemaAsync();
 
         Assert.NotNull(schema);

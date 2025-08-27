@@ -12,7 +12,7 @@ directive @fusion__requires(
 ) repeatable on FIELD_DEFINITION
 */
 internal class RequireDirective(
-    string schemaName,
+    SchemaKey schemaKey,
     SelectionSetNode requirements,
     FieldDefinitionNode field,
     ImmutableArray<string?> map)
@@ -20,9 +20,11 @@ internal class RequireDirective(
     /// <summary>
     /// Gets the name of the source schema that has requirements. for a field.
     /// </summary>
-    public string SchemaName { get; } = schemaName;
+    public SchemaKey SchemaKey { get; } = schemaKey;
 
-    /// <summary>Gets the requirements for a field.</summary>
+    /// <summary>
+    /// Gets the requirements for a field.
+    /// </summary>
     public SelectionSetNode Requirements { get; } = requirements;
 
     /// <summary>

@@ -9,7 +9,6 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Interceptors;
-#nullable enable
 
 public class FlagsEnumInterceptor : TypeInterceptor
 {
