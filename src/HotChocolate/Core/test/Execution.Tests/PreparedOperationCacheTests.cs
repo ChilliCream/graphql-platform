@@ -10,7 +10,7 @@ public class PreparedOperationCacheTests
     public async Task Operation_Cache_Should_Have_Configured_Capacity()
     {
         // arrange
-        var operationCacheCapacity = 517;
+        const int operationCacheCapacity = 517;
         var services = new ServiceCollection();
         services.AddOperationCache(operationCacheCapacity);
         services
@@ -25,6 +25,6 @@ public class PreparedOperationCacheTests
             .GetRequiredService<IPreparedOperationCache>();
 
         // assert
-        Assert.Equal(operationCache.Capacity, operationCacheCapacity);
+        Assert.Equal(operationCacheCapacity, operationCache.Capacity);
     }
 }

@@ -6,7 +6,7 @@ public class TypeFactoryTests : TypeTestBase
     public void CreateObjectType()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 type Simple {
                     a: String
                     b: [String]
@@ -32,7 +32,7 @@ public class TypeFactoryTests : TypeTestBase
     public void ObjectFieldDeprecationReason()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 type Simple {
                     a: String @deprecated(reason: ""reason123"")
                 }
@@ -52,7 +52,7 @@ public class TypeFactoryTests : TypeTestBase
     public void CreateObjectTypeDescriptions()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 ""SimpleDesc""
                 type Simple {
                     ""ADesc""
@@ -74,7 +74,7 @@ public class TypeFactoryTests : TypeTestBase
     public void CreateInterfaceType()
     {
         // arrange
-        var source = "interface Simple { a: String b: [String] }";
+        const string source = "interface Simple { a: String b: [String] }";
 
         // act
         var schema = SchemaBuilder.New()
@@ -108,7 +108,7 @@ public class TypeFactoryTests : TypeTestBase
     public void InterfaceFieldDeprecationReason()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface Simple {
                     a: String @deprecated(reason: ""reason123"")
                 }";
@@ -133,7 +133,7 @@ public class TypeFactoryTests : TypeTestBase
     public void InterfaceFieldDeprecationWithoutReason()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 interface Simple {
                     a: String @deprecated
                 }";
@@ -172,7 +172,7 @@ public class TypeFactoryTests : TypeTestBase
             .Type<StringType>()
             .Resolve("b"));
 
-        var source = "union X = A | B";
+        const string source = "union X = A | B";
 
         // act
         var schema = SchemaBuilder.New()
@@ -195,7 +195,7 @@ public class TypeFactoryTests : TypeTestBase
     public void CreateEnum()
     {
         // arrange
-        var source = "enum Abc { A B C }";
+        const string source = "enum Abc { A B C }";
 
         // act
         var schema = SchemaBuilder.New()
@@ -217,7 +217,7 @@ public class TypeFactoryTests : TypeTestBase
     public void EnumValueDeprecationReason()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 enum Abc {
                     A
                     B @deprecated(reason: ""reason123"")
@@ -243,7 +243,7 @@ public class TypeFactoryTests : TypeTestBase
     public void CreateInputObjectType()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 input Simple {
                     a: String @bind(to: ""Name"")
                     b: [String] @bind(to: ""Friends"")
@@ -279,7 +279,7 @@ public class TypeFactoryTests : TypeTestBase
     public void CreateDirectiveType()
     {
         // arrange
-        var source = "directive @foo(a:String) on QUERY";
+        const string source = "directive @foo(a:String) on QUERY";
 
         // act
         var schema = SchemaBuilder.New()
@@ -310,7 +310,7 @@ public class TypeFactoryTests : TypeTestBase
     public void CreateRepeatableDirectiveType()
     {
         // arrange
-        var source = "directive @foo(a:String) repeatable on QUERY";
+        const string source = "directive @foo(a:String) repeatable on QUERY";
 
         // act
         var schema = SchemaBuilder.New()

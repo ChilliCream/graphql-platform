@@ -25,9 +25,9 @@ public class QueryableListAnyOperationHandler
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration)
     {
-        return context.Type is IListFilterInputType &&
-            fieldConfiguration is FilterOperationFieldConfiguration operationField &&
-            operationField.Id == DefaultFilterOperations.Any;
+        return context.Type is IListFilterInputType
+            && fieldConfiguration is FilterOperationFieldConfiguration operationField
+            && operationField.Id == DefaultFilterOperations.Any;
     }
 
     public override Expression HandleOperation(
@@ -36,9 +36,9 @@ public class QueryableListAnyOperationHandler
         IValueNode value,
         object? parsedValue)
     {
-        if (context.RuntimeTypes.Count > 0 &&
-            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args &&
-            parsedValue is bool parsedBool)
+        if (context.RuntimeTypes.Count > 0
+            && context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args
+            && parsedValue is bool parsedBool)
         {
             var property = context.GetInstance();
 

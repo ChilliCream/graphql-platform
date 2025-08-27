@@ -1,5 +1,7 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Diagnostics;
@@ -16,19 +18,46 @@ internal sealed class NoopFusionExecutionDiagnosticEvents : IFusionExecutionDiag
 
     public IDisposable ExecuteOperation(RequestContext context) => this;
 
-    public IDisposable ExecuteSubscription(RequestContext context) => this;
+    public IDisposable ExecuteSubscription(RequestContext context, ulong subscriptionId) => this;
 
-    public IDisposable OnSubscriptionEvent(RequestContext context) => this;
-
-    public void ExecutionError(RequestContext context, ErrorKind kind, IReadOnlyList<IError> errors, object? state = null) { }
+    public void ExecutionError(
+        RequestContext context,
+        ErrorKind kind,
+        IReadOnlyList<IError> errors,
+        object? state = null) { }
 
     public void AddedDocumentToCache(RequestContext context) { }
 
     public void RetrievedDocumentFromCache(RequestContext context) { }
 
+    public void AddedOperationPlanToCache(RequestContext context, string operationId) { }
+
+    public void RetrievedOperationPlanFromCache(RequestContext context, string operationId) { }
+
     public void RetrievedDocumentFromStorage(RequestContext context) { }
 
     public void DocumentNotFoundInStorage(RequestContext context, OperationDocumentId documentId) { }
+
+    public IDisposable PlanOperation(RequestContext context, string operationId)
+        => this;
+
+    public IDisposable ExecuteNodeFieldNode(OperationPlanContext context, NodeFieldExecutionNode node)
+        => this;
+
+    public IDisposable ExecuteOperationNode(OperationPlanContext context, OperationExecutionNode node)
+        => this;
+
+    public IDisposable ExecuteSubscriptionNode(
+        OperationPlanContext context,
+        OperationExecutionNode node,
+        ulong subscriptionId)
+        => this;
+
+    public IDisposable ExecuteSubscriptionEvent(OperationPlanContext context, OperationExecutionNode node)
+        => this;
+
+    public IDisposable ExecuteIntrospectionNode(OperationPlanContext context, IntrospectionExecutionNode node)
+        => this;
 
     public void ExecutorCreated(string name, IRequestExecutor executor) { }
 

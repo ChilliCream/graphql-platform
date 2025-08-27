@@ -1,4 +1,4 @@
-﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
 // ReSharper disable InconsistentNaming
@@ -205,13 +205,13 @@ namespace Foo.Bar
     public partial class GetField1Query : global::Foo.Bar.IGetField1Query
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetField1Result> _operationExecutor;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetField1Query(global::StrawberryShake.IOperationExecutor<IGetField1Result> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        private GetField1Query(global::StrawberryShake.IOperationExecutor<IGetField1Result> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        private GetField1Query(global::StrawberryShake.IOperationExecutor<IGetField1Result> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;

@@ -32,11 +32,11 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
         if (_options.SkipExecuteRequest)
         {
-            if (!_options.SkipExecuteHttpRequest &&
-                context.ContextData.TryGetValue(nameof(HttpContext), out var value) &&
-                value is HttpContext httpContext &&
-                httpContext.Items.TryGetValue(HttpRequestActivity, out value) &&
-                value is not null)
+            if (!_options.SkipExecuteHttpRequest
+                && context.ContextData.TryGetValue(nameof(HttpContext), out var value)
+                && value is HttpContext httpContext
+                && httpContext.Items.TryGetValue(HttpRequestActivity, out value)
+                && value is not null)
             {
                 activity = (Activity)value;
             }
@@ -309,7 +309,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         return activity;
     }
 
-    public override IDisposable OnSubscriptionEvent(RequestContext context)
+    public override IDisposable OnSubscriptionEvent(RequestContext context, ulong subscriptionId)
     {
         var activity = Source.StartActivity();
 

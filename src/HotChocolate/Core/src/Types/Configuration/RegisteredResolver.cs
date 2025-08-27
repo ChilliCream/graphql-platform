@@ -1,7 +1,5 @@
 using HotChocolate.Resolvers;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class RegisteredResolver

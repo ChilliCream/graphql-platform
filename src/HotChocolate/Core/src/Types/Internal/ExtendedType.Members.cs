@@ -1,8 +1,6 @@
 using System.Reflection;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 internal sealed partial class ExtendedType
@@ -79,8 +77,8 @@ internal sealed partial class ExtendedType
 
             ExtendedType? elementType = null;
             var isList =
-                !extendedType.IsArray &&
-                Helper.IsListType(extendedType.Type);
+                !extendedType.IsArray
+                && Helper.IsListType(extendedType.Type);
 
             if (isList)
             {
@@ -95,7 +93,7 @@ internal sealed partial class ExtendedType
                     }
                 }
 
-                elementType ??= ExtendedType.FromType(itemType, cache);
+                elementType ??= FromType(itemType, cache);
             }
 
             if (extendedType.IsArray && elementType is null)
@@ -173,8 +171,8 @@ internal sealed partial class ExtendedType
                     type,
                     ExtendedTypeKind.Extended,
                     typeArguments: new[] { elementType },
-                    elementType: elementType,
                     source: type,
+                    elementType: elementType,
                     isNullable: state ?? false);
             }
 

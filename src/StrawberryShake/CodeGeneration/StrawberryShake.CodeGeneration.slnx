@@ -5,6 +5,7 @@
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/CodeGeneration.CSharp.Tests/StrawberryShake.CodeGeneration.CSharp.Tests.csproj" />
+    <Project Path="test/CodeGeneration.Razor.Tests/StrawberryShake.CodeGeneration.Razor.Tests.csproj" />
     <Project Path="test/CodeGeneration.Tests/StrawberryShake.CodeGeneration.Tests.csproj" />
   </Folder>
 </Solution>

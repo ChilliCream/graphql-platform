@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 
@@ -10,14 +11,18 @@ public sealed class FieldSelectionMapValidatorTests
     [Theory]
     [MemberData(nameof(ValidExamplesData))]
     public void Examples_Valid(
-        string inputTypeName,
-        string outputTypeName,
+        string inputTypeReference,
+        string outputTypeReference,
         string fieldSelectionMap)
     {
         // arrange
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
-        var inputType = s_schema1.Types[inputTypeName];
-        var outputType = s_schema1.Types[outputTypeName];
+        var inputTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(inputTypeReference);
+        var inputTypeDefinition = s_schema1.Types[inputTypeNode.NamedType().Name.Value];
+        var inputType = inputTypeNode.RewriteToType(inputTypeDefinition);
+        var outputTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(outputTypeReference);
+        var outputTypeDefinition = s_schema1.Types[outputTypeNode.NamedType().Name.Value];
+        var outputType = outputTypeNode.RewriteToType(outputTypeDefinition);
 
         // act
         var errors =
@@ -33,15 +38,19 @@ public sealed class FieldSelectionMapValidatorTests
     [Theory]
     [MemberData(nameof(InvalidExamplesData))]
     public void Examples_Invalid(
-        string inputTypeName,
-        string outputTypeName,
+        string inputTypeReference,
+        string outputTypeReference,
         string fieldSelectionMap,
         string[] errorMessages)
     {
         // arrange
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
-        var inputType = s_schema1.Types[inputTypeName];
-        var outputType = s_schema1.Types[outputTypeName];
+        var inputTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(inputTypeReference);
+        var inputTypeDefinition = s_schema1.Types[inputTypeNode.NamedType().Name.Value];
+        var inputType = inputTypeNode.RewriteToType(inputTypeDefinition);
+        var outputTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(outputTypeReference);
+        var outputTypeDefinition = s_schema1.Types[outputTypeNode.NamedType().Name.Value];
+        var outputType = outputTypeNode.RewriteToType(outputTypeDefinition);
 
         // act
         var errors =
@@ -76,8 +85,8 @@ public sealed class FieldSelectionMapValidatorTests
             """);
         const string fieldSelectionMap = "mediaById.id";
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
-        var inputType = schema.Types["ID"];
-        var outputType = schema.Types["Query"];
+        var inputType = schema.QueryType!.Fields["mediaById"].Arguments["id"].Type;
+        var outputType = schema.QueryType;
 
         // act
         var errors =
@@ -113,8 +122,8 @@ public sealed class FieldSelectionMapValidatorTests
             """);
         var fieldSelectionMap = GetFieldSelectionMap(schema, "Query", "userById", "user", "is");
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
-        var inputType = schema.Types["UserInput"];
-        var outputType = schema.Types["User"];
+        var inputType = schema.QueryType!.Fields["userById"].Arguments["user"].Type;
+        var outputType = schema.QueryType!.Fields["userById"].Type;
 
         // act
         var errors =
@@ -150,8 +159,8 @@ public sealed class FieldSelectionMapValidatorTests
             """);
         var fieldSelectionMap = GetFieldSelectionMap(schema, "Query", "findUser", "input", "is");
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
-        var inputType = schema.Types["UserInput"];
-        var outputType = schema.Types["User"];
+        var inputType = schema.QueryType!.Fields["findUser"].Arguments["input"].Type;
+        var outputType = schema.QueryType!.Fields["findUser"].Type;
 
         // act
         var errors =
@@ -184,8 +193,8 @@ public sealed class FieldSelectionMapValidatorTests
             """);
         var fieldSelectionMap = GetFieldSelectionMap(schema, "Query", "findUser", "input", "is");
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
-        var inputType = schema.Types["UserInput"];
-        var outputType = schema.Types["User"];
+        var inputType = schema.QueryType!.Fields["findUser"].Arguments["input"].Type;
+        var outputType = schema.QueryType!.Fields["findUser"].Type;
 
         // act
         var errors =
@@ -209,7 +218,7 @@ public sealed class FieldSelectionMapValidatorTests
             "The selection on one-of input type 'PersonByInput' must include a single field."
         })]
     [InlineData(
-        "{ id name }",
+        "{ id, name }",
         new[]
         {
             "The selection on one-of input type 'PersonByInput' must include a single field."
@@ -242,8 +251,8 @@ public sealed class FieldSelectionMapValidatorTests
             }
             """);
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
-        var inputType = schema.Types["PersonByInput"];
-        var outputType = schema.Types["Person"];
+        var inputType = schema.QueryType!.Fields["person"].Arguments["by"].Type;
+        var outputType = schema.QueryType!.Fields["person"].Type;
 
         // act
         var errors =
@@ -268,7 +277,7 @@ public sealed class FieldSelectionMapValidatorTests
             { "FindMediaInput", "Media", "{ bookId: <Book>.id } | { movieId: <Movie>.id }" },
             { "Nested", "Media", "{ nested: { bookId: <Book>.id } | { movieId: <Movie>.id } }" },
             // Other tests.
-            { "String", "Book", "{ id title }" },
+            { "String", "Book", "{ id, title }" },
             { "ID", "Query", "mediaById<Book>.author.id | mediaById<Movie>.id" },
             { "ID", "Media", "{ bookId: <Book>.author.id } | { movieId: <Movie>.id }" }
         };
@@ -298,8 +307,8 @@ public sealed class FieldSelectionMapValidatorTests
                 "Book",
                 "title.something",
                 [
-                    "The field 'title' does not return a composite type and cannot have " +
-                    "subselections."
+                    "The field 'title' does not return a composite type and cannot have "
+                    + "subselections."
                 ]
             },
             // Invalid Path where non-leaf fields do not have further selections.
@@ -323,7 +332,7 @@ public sealed class FieldSelectionMapValidatorTests
             {
                 "String",
                 "Book",
-                "{ id unknownField1 unknownField2 }",
+                "{ id, unknownField1, unknownField2 }",
                 [
                     "The field 'unknownField1' does not exist on the type 'Book'.",
                     "The field 'unknownField2' does not exist on the type 'Book'."
@@ -334,8 +343,8 @@ public sealed class FieldSelectionMapValidatorTests
                 "Media",
                 "<MissingType>.movieId",
                 [
-                    "The type condition in path '<MissingType>.movieId' is invalid. Type " +
-                    "'MissingType' does not exist."
+                    "The type condition in path '<MissingType>.movieId' is invalid. Type "
+                    + "'MissingType' does not exist."
                 ]
             },
             {
@@ -343,8 +352,8 @@ public sealed class FieldSelectionMapValidatorTests
                 "Query",
                 "mediaById<MissingType>.movieId",
                 [
-                    "The type condition in path 'mediaById<MissingType>.movieId' is invalid. " +
-                    "Type 'MissingType' does not exist."
+                    "The type condition in path 'mediaById<MissingType>.movieId' is invalid. "
+                    + "Type 'MissingType' does not exist."
                 ]
             },
             {

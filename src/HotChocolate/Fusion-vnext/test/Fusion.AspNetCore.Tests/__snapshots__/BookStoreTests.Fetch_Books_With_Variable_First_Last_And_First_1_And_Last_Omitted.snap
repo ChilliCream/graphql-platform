@@ -1,0 +1,76 @@
+{
+  "data": {
+    "books": {
+      "nodes": [
+        {
+          "id": 1,
+          "title": "C# in Depth",
+          "author": {
+            "name": "Jon Skeet"
+          }
+        }
+      ]
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "b7ebef371188ac1b8e94f209239d026e8c43153742f786e896055eb8afbe884d",
+        "operation": {
+          "name": "GetBooks",
+          "kind": "Query",
+          "document": "query GetBooks(\n  $first: Int\n  $last: Int\n) {\n  books(first: $first, last: $last) {\n    nodes {\n      id\n      title\n      author {\n        name\n        id @fusion__requirement\n      }\n    }\n  }\n}",
+          "id": "938ff9c055f12c1e277010b7756339fa",
+          "hash": "938ff9c055f12c1e277010b7756339fa",
+          "shortHash": "938ff9c0"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "GetBooks_938ff9c0_1",
+              "type": "Query",
+              "document": "query GetBooks_938ff9c0_1(\n  $first: Int\n  $last: Int\n) {\n  books(first: $first, last: $last) {\n    nodes {\n      id\n      title\n      author {\n        id\n      }\n    }\n  }\n}",
+              "hash": "f7a1e037efde48a7a307cfd09902e55a8055db3feb1a16b6056f725be4515934",
+              "shortHash": "f7a1e037"
+            },
+            "responseNames": [
+              "books"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "GetBooks_938ff9c0_2",
+              "type": "Query",
+              "document": "query GetBooks_938ff9c0_2(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}",
+              "hash": "8cd0f1894efe9efd6d0fe929722c5773471ad71f0e5f137a0886e7662a56fd28",
+              "shortHash": "8cd0f189"
+            },
+            "responseNames": [
+              "name"
+            ],
+            "source": "$.authorById",
+            "target": "$.books.nodes.author",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "Int!",
+                "path": "$.books.nodes.author",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

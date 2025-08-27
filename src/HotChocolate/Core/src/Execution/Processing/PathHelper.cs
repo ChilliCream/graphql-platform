@@ -108,7 +108,6 @@ internal static class PathHelper
             switch (p)
             {
                 case ObjectResult o:
-                {
                     var field = o[i];
 
                     if (!field.IsInitialized)
@@ -119,7 +118,6 @@ internal static class PathHelper
                     segments[segment++] = field.Name;
                     current = o;
                     break;
-                }
 
                 case ListResult l:
                     segments[segment++] = i;

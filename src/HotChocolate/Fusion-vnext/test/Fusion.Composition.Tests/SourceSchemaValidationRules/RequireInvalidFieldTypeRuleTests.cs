@@ -89,8 +89,8 @@ public sealed class RequireInvalidFieldTypeRuleTests
                     """
                 ],
                 [
-                    "The @require directive on argument 'User.profile(name:)' in schema 'A' must " +
-                    "specify a string value for the 'field' argument."
+                    "The @require directive on argument 'User.profile(name:)' in schema 'A' must "
+                    + "specify a string value for the 'field' argument."
                 ]
             }
         };

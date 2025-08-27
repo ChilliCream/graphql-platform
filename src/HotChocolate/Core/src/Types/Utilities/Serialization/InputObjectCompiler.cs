@@ -5,8 +5,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Utilities.Serialization.InputObjectConstructorResolver;
 
-#nullable enable
-
 namespace HotChocolate.Utilities.Serialization;
 
 internal static class InputObjectCompiler

@@ -4,8 +4,6 @@ using HotChocolate.Execution;
 using HotChocolate.Resolvers.Expressions;
 using static System.Linq.Expressions.Expression;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers;
 
 internal static class SubscribeResultHelper
@@ -227,8 +225,8 @@ internal static class SubscribeResultHelper
         }
 
         throw new NotSupportedException(
-            "The specified return type is not supported for a " +
-            $"subscribe method `{resultType.FullName}`.");
+            "The specified return type is not supported for a "
+            + $"subscribe method `{resultType.FullName}`.");
     }
 
     private static MethodCallExpression AwaitTaskSourceStream(

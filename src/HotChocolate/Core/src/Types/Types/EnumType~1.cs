@@ -3,8 +3,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -53,8 +51,8 @@ public class EnumType<T> : EnumType
     /// <inheritdoc />
     public bool TryGetRuntimeValue(string name, [NotNullWhen(true)] out T runtimeValue)
     {
-        if (base.TryGetRuntimeValue(name, out var rv) &&
-            rv is T casted)
+        if (base.TryGetRuntimeValue(name, out var rv)
+            && rv is T casted)
         {
             runtimeValue = casted;
             return true;

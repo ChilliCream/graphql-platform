@@ -1,0 +1,39 @@
+{
+  "data": {
+    "bookById": {
+      "id": 1,
+      "title": "C# in Depth"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "f010cc32d562316e88f113adecc1d0d87624da0abc925e4a33526d01441a295d",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  bookById(id: 1) {\n    id\n    title\n  }\n}",
+          "id": "da31ef9bfb0a7c42de9b1578b454d0af",
+          "hash": "da31ef9bfb0a7c42de9b1578b454d0af",
+          "shortHash": "da31ef9b"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_da31ef9b_1",
+              "type": "Query",
+              "document": "query Op_da31ef9b_1 {\n  bookById(id: 1) {\n    id\n    title\n  }\n}",
+              "hash": "435ceaaaa1b0f701c486c3a5eab603b30a5be84224fd3a039d4ae960a2a0ec85",
+              "shortHash": "435ceaaa"
+            },
+            "responseNames": [
+              "bookById"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

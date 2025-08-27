@@ -6,8 +6,6 @@ using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public partial class SchemaErrorBuilder
@@ -32,10 +30,14 @@ public partial class SchemaErrorBuilder
 
         IReadOnlyCollection<ISyntaxNode> ISchemaError.SyntaxNodes => SyntaxNodes;
 
-        public ImmutableDictionary<string, object> Extensions { get; set; }
-            = ImmutableDictionary<string, object>.Empty;
+        public ImmutableDictionary<string, object?> Extensions { get; set; }
+#if NET10_0_OR_GREATER
+            = [];
+#else
+            = ImmutableDictionary<string, object?>.Empty;
+#endif
 
-        IReadOnlyDictionary<string, object> ISchemaError.Extensions => Extensions;
+        IReadOnlyDictionary<string, object?> ISchemaError.Extensions => Extensions;
 
         public Exception? Exception { get; set; }
 
@@ -51,7 +53,7 @@ public partial class SchemaErrorBuilder
 
             writer.Flush();
 
-            fixed (byte* b = buffer.GetInternalBuffer())
+            fixed (byte* b = PooledArrayWriterMarshal.GetUnderlyingBuffer(buffer))
             {
                 return Encoding.UTF8.GetString(b, buffer.Length);
             }

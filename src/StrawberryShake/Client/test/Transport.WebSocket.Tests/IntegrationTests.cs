@@ -295,7 +295,7 @@ public class IntegrationTests : ServerTestBase
             IOperationMessagePayload connectionInitMessage,
             CancellationToken cancellationToken = default)
         {
-            InitializeConnectionMessage = connectionInitMessage.As<Dictionary<string, string>>();
+            InitializeConnectionMessage = connectionInitMessage.Payload?.Deserialize<Dictionary<string, string>>();
             return base.OnConnectAsync(session, connectionInitMessage, cancellationToken);
         }
 

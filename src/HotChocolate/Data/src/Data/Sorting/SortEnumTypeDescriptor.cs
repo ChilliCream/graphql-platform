@@ -80,10 +80,7 @@ public class SortEnumTypeDescriptor
     public ISortEnumValueDescriptor Operation(int operation)
     {
         var descriptor = Values
-            .FirstOrDefault(
-                t =>
-                    t.Configuration.RuntimeValue is not null &&
-                    t.Configuration.RuntimeValue.Equals(operation));
+            .FirstOrDefault(t => t.Configuration.RuntimeValue?.Equals(operation) == true);
 
         if (descriptor is not null)
         {

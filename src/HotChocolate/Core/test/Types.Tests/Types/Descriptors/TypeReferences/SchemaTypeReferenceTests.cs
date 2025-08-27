@@ -91,15 +91,12 @@ public class SchemaTypeReferenceTests
         var type = await CreateTypeAsync<StringType>();
         var x = TypeReference.Create(type, scope: "abc");
         var y = TypeReference.Create(type, scope: "def");
-        var z = TypeReference.Create(type, scope: "abc");
 
         // act
         var xy = x.Equals(y);
-        var xz = x.Equals(y);
 
         // assert
         Assert.False(xy);
-        Assert.False(xz);
     }
 
     [Fact]
@@ -151,15 +148,12 @@ public class SchemaTypeReferenceTests
         var type = await CreateTypeAsync<StringType>();
         var x = TypeReference.Create(type, scope: "abc");
         var y = TypeReference.Create(type, scope: "def");
-        var z = TypeReference.Create(type, scope: "abc");
 
         // act
         var xy = x.Equals((TypeReference)y);
-        var xz = x.Equals((TypeReference)y);
 
         // assert
         Assert.False(xy);
-        Assert.False(xz);
     }
 
     [Fact]
@@ -211,15 +205,12 @@ public class SchemaTypeReferenceTests
         var type = await CreateTypeAsync<StringType>();
         var x = TypeReference.Create(type, scope: "abc");
         var y = TypeReference.Create(type, scope: "def");
-        var z = TypeReference.Create(type, scope: "abc");
 
         // act
         var xy = x.Equals((object)y);
-        var xz = x.Equals((object)y);
 
         // assert
         Assert.False(xy);
-        Assert.False(xz);
     }
 
     [Fact]

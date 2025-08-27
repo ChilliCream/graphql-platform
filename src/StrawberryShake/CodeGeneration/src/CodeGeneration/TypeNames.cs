@@ -121,11 +121,11 @@ public static class TypeNames
     public const string IInMemoryClientFactory =
         StrawberryShakeNamespace + "Transport.InMemory.IInMemoryClientFactory";
 
-    public const string AddProtocol = GlobalDependencyInjectionNamespace +
-                                      "WebSocketClientFactoryServiceCollectionExtensions.AddProtocol";
+    public const string AddProtocol = GlobalDependencyInjectionNamespace
+        + "WebSocketClientFactoryServiceCollectionExtensions.AddProtocol";
 
-    public const string GraphQLWebSocketProtocolFactory = StrawberryShakeNamespace +
-                                                          "Transport.WebSockets.Protocol.GraphQLWebSocketProtocolFactory";
+    public const string GraphQLWebSocketProtocolFactory = StrawberryShakeNamespace
+        + "Transport.WebSockets.Protocol.GraphQLWebSocketProtocolFactory";
 
     public const string SequenceEqual =
         StrawberryShakeNamespace + "Internal.ComparisonHelper.SequenceEqual";
@@ -203,16 +203,16 @@ public static class TypeNames
         GlobalDependencyInjectionNamespace + "ServiceCollection";
 
     public const string GetRequiredService =
-        GlobalDependencyInjectionNamespace +
-        "ServiceProviderServiceExtensions.GetRequiredService";
+        GlobalDependencyInjectionNamespace
+        + "ServiceProviderServiceExtensions.GetRequiredService";
 
     public const string AddSingleton =
-        GlobalDependencyInjectionNamespace +
-        "ServiceCollectionServiceExtensions.AddSingleton";
+        GlobalDependencyInjectionNamespace
+        + "ServiceCollectionServiceExtensions.AddSingleton";
 
     public const string BuildServiceProvider =
-        GlobalDependencyInjectionNamespace +
-        "ServiceCollectionContainerBuilderExtensions.BuildServiceProvider";
+        GlobalDependencyInjectionNamespace
+        + "ServiceCollectionContainerBuilderExtensions.BuildServiceProvider";
 
     public const string InjectAttribute =
         "global::Microsoft.AspNetCore.Components.InjectAttribute";
@@ -234,8 +234,8 @@ public static class TypeNames
         "Microsoft.Extensions.DependencyInjection";
 
     public const string DependencyInjectionExtensions =
-        GlobalDependencyInjectionNamespace +
-        "Extensions.ServiceCollectionDescriptorExtensions.";
+        GlobalDependencyInjectionNamespace
+        + "Extensions.ServiceCollectionDescriptorExtensions.";
 
     public const string UseQuery = StrawberryShakeNamespace + "Razor." + nameof(UseQuery);
 

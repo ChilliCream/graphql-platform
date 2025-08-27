@@ -24,7 +24,7 @@ public abstract class SortProviderExtensions<TContext>
 
     void ISortProviderConvention.Initialize(IConventionContext context, ISortConvention convention)
     {
-        base.Initialize(context);
+        Initialize(context);
     }
 
     void ISortProviderConvention.Complete(IConventionContext context)

@@ -6,7 +6,7 @@ public class SyntaxPrinterTests
     public void Serialize_ShortHandQueryNoIndentation_InOutShouldBeTheSame()
     {
         // arrange
-        var query = "{ foo(s: \"String\") { bar @foo { baz @foo @bar } } }";
+        const string query = "{ foo(s: \"String\") { bar @foo { baz @foo @bar } } }";
 
         // act
         var printed = Utf8GraphQLParser.Parse(query).Print(false);
@@ -19,7 +19,7 @@ public class SyntaxPrinterTests
     public void Serialize_ShortHandQueryWithIndentation_OutputIsFormatted()
     {
         // arrange
-        var query = "{ foo(s: \"String\") { bar @foo { baz @foo @bar } } }";
+        const string query = "{ foo(s: \"String\") { bar @foo { baz @foo @bar } } }";
 
         // act
         var printed = Utf8GraphQLParser.Parse(query).Print(true);
@@ -32,7 +32,7 @@ public class SyntaxPrinterTests
     public void Serialize_ShortHandQueryWithIndentation_LineBetweenFields()
     {
         // arrange
-        var query = "{ foo { foo bar { foo @foo @bar bar @bar baz } } }";
+        const string query = "{ foo { foo bar { foo @foo @bar bar @bar baz } } }";
 
         // act
         var printed = Utf8GraphQLParser.Parse(query).Print(true);
@@ -101,9 +101,9 @@ public class SyntaxPrinterTests
     public void Serialize_QueryWithVarDeclaration_InOutShouldBeTheSame()
     {
         // arrange
-        var query =
-            "query Foo($bar: [String!]!) { foo(s: \"String\") " +
-            "{ bar @foo { baz @foo @bar } } }";
+        const string query =
+            "query Foo($bar: [String!]!) { foo(s: \"String\") "
+            + "{ bar @foo { baz @foo @bar } } }";
 
         var queryDocument = Utf8GraphQLParser.Parse(query);
 
@@ -118,7 +118,7 @@ public class SyntaxPrinterTests
     public void Serialize_FragmentWithVariableDefs_InOutShouldBeTheSame()
     {
         // arrange
-        var query = "fragment Foo ($bar: [String!]!) on Bar { baz }";
+        const string query = "fragment Foo ($bar: [String!]!) on Bar { baz }";
 
         var queryDocument = Utf8GraphQLParser.Parse(query,
             new ParserOptions(allowFragmentVariables: true));

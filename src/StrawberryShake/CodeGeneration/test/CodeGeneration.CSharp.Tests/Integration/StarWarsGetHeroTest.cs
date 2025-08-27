@@ -103,10 +103,7 @@ public class StarWarsGetHeroTest : ServerTestBase
         var session =
             client.GetHero
                 .Watch(ExecutionStrategy.CacheFirst)
-                .Subscribe(result =>
-                {
-                    name = result.Data?.Hero?.Name;
-                });
+                .Subscribe(result => name = result.Data?.Hero?.Name);
 
         while (name is null && !ct.IsCancellationRequested)
         {
@@ -280,10 +277,7 @@ public class StarWarsGetHeroTest : ServerTestBase
                 string? name = null;
                 client.GetHero
                     .Watch(ExecutionStrategy.CacheFirst)
-                    .Subscribe(result =>
-                    {
-                        name = result.Data!.Hero!.Name;
-                    });
+                    .Subscribe(result => name = result.Data!.Hero!.Name);
 
                 while (name is null && !cts.Token.IsCancellationRequested)
                 {
@@ -331,10 +325,7 @@ public class StarWarsGetHeroTest : ServerTestBase
         using var session =
             client.GetHero
                 .Watch(ExecutionStrategy.CacheAndNetwork)
-                .Subscribe(_ =>
-                {
-                    count++;
-                });
+                .Subscribe(_ => count++);
 
         await Task.Delay(1000, ct);
 
@@ -367,10 +358,7 @@ public class StarWarsGetHeroTest : ServerTestBase
         using var session =
             client.GetHero
                 .Watch(ExecutionStrategy.CacheAndNetwork)
-                .Subscribe(_ =>
-                {
-                    count++;
-                });
+                .Subscribe(_ => count++);
 
         await Task.Delay(1000, ct);
 

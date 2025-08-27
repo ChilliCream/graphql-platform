@@ -7,7 +7,7 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        var ofDirective = false;
+        const bool ofDirective = false;
         var name = new NameNode("Foo");
         var memberName = new NameNode("bar");
         var argumentName = new NameNode("baz");
@@ -30,7 +30,7 @@ public class SchemaCoordinateTests
     public void CreateSchemaCoordinateWithoutLocation()
     {
         // arrange
-        var ofDirective = false;
+        const bool ofDirective = false;
         var name = new NameNode("Foo");
         var memberName = new NameNode("bar");
         var argumentName = new NameNode("baz");
@@ -54,7 +54,7 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        var ofDirective = false;
+        const bool ofDirective = false;
         var name = new NameNode("Foo");
         var memberName = new NameNode("bar");
 
@@ -77,7 +77,7 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        var ofDirective = false;
+        const bool ofDirective = false;
         var name = new NameNode("Foo");
 
         // act
@@ -99,7 +99,7 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        var ofDirective = true;
+        const bool ofDirective = true;
         var name = new NameNode("Foo");
         var argumentName = new NameNode("baz");
 
@@ -122,7 +122,7 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        var ofDirective = true;
+        const bool ofDirective = true;
         var name = new NameNode("Foo");
 
         // act
@@ -144,15 +144,14 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        var ofDirective = true;
+        const bool ofDirective = true;
         var name = new NameNode("Foo");
         var memberName = new NameNode("Foo");
 
         // act
-        var ex = Record.Exception(() =>
-        {
-            new SchemaCoordinateNode(location, ofDirective, name, memberName, null);
-        });
+        var ex =
+            Record.Exception(
+                () => new SchemaCoordinateNode(location, ofDirective, name, memberName, null));
 
         // assert
         Assert.IsType<ArgumentException>(ex);
@@ -163,15 +162,14 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        var ofDirective = false;
+        const bool ofDirective = false;
         var name = new NameNode("Foo");
         var argumentName = new NameNode("baz");
 
         // act
-        var ex = Record.Exception(() =>
-        {
-            new SchemaCoordinateNode(location, ofDirective, name, null, argumentName);
-        });
+        var ex =
+            Record.Exception(
+                () => new SchemaCoordinateNode(location, ofDirective, name, null, argumentName));
 
         // assert
         Assert.IsType<ArgumentException>(ex);
@@ -182,13 +180,12 @@ public class SchemaCoordinateTests
     {
         // arrange
         var location = new Location(0, 0, 0, 0);
-        var ofDirective = false;
+        const bool ofDirective = false;
 
         // act
-        var ex = Record.Exception(() =>
-        {
-            new SchemaCoordinateNode(location, ofDirective, null!, null, null);
-        });
+        var ex =
+            Record.Exception(
+                () => new SchemaCoordinateNode(location, ofDirective, null!, null, null));
 
         // assert
         Assert.IsType<ArgumentNullException>(ex);

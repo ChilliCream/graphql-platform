@@ -19,4 +19,9 @@ public static class ContentType
     /// Gets the text/event-stream content type.
     /// </summary>
     public const string EventStream = "text/event-stream";
+
+    /// <summary>
+    /// Gets the application/graphql-response+jsonl content type.
+    /// </summary>
+    public const string GraphQLJsonLine = "application/graphql-response+jsonl";
 }

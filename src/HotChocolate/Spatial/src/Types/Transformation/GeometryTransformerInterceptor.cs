@@ -21,8 +21,8 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
         TypeSystemConfiguration configuration)
     {
         var convention = completionContext.GetSpatialConvention();
-        if (convention.TransformerFactory.HasCoordinateSystems() &&
-            convention.DefaultSrid > 0)
+        if (convention.TransformerFactory.HasCoordinateSystems()
+            && convention.DefaultSrid > 0)
         {
             if (!convention.TransformerFactory.ContainsCoordinateSystem(convention.DefaultSrid))
             {
@@ -51,8 +51,8 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
     {
         foreach (var field in definition.Fields)
         {
-            if (field.Type is not null &&
-                completionContext.IsNamedType<IGeoJsonInputType>(field.Type))
+            if (field.Type is not null
+                && completionContext.IsNamedType<IGeoJsonInputType>(field.Type))
             {
                 field.Formatters.Add(
                     new GeometryTransformerInputFormatter(
@@ -69,8 +69,8 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
     {
         foreach (var arg in definition.Arguments)
         {
-            if (arg.Type is not null &&
-                completionContext.IsNamedType<IGeoJsonInputType>(arg.Type))
+            if (arg.Type is not null
+                && completionContext.IsNamedType<IGeoJsonInputType>(arg.Type))
             {
                 arg.Formatters.Add(
                     new GeometryTransformerInputFormatter(
@@ -89,8 +89,8 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
         {
             foreach (var arg in field.Arguments)
             {
-                if (arg.Type is not null &&
-                    completionContext.IsNamedType<IGeoJsonInputType>(arg.Type))
+                if (arg.Type is not null
+                    && completionContext.IsNamedType<IGeoJsonInputType>(arg.Type))
                 {
                     arg.Formatters.Add(
                         new GeometryTransformerInputFormatter(
@@ -99,8 +99,8 @@ internal class GeometryTransformerInterceptor : TypeInterceptor
                 }
             }
 
-            if (field.Type is not null &&
-                completionContext.IsNamedType<IGeoJsonObjectType>(field.Type))
+            if (field.Type is not null
+                && completionContext.IsNamedType<IGeoJsonObjectType>(field.Type))
             {
                 var argument =
                     ArgumentDescriptor.New(

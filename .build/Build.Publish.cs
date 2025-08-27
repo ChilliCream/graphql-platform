@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using Nuke.Common;
 using Nuke.Common.IO;
@@ -16,6 +18,12 @@ partial class Build
     [Parameter("NuGet Api Key")] readonly string NuGetApiKey;
     [Parameter("NuGet Source for Packages")] readonly string MyGetSource = "https://www.myget.org/F/hotchocolate/api/v3/index.json";
     [Parameter("MyGet Api Key")] readonly string MyGetApiKey;
+
+    [NuGetPackage(
+        packageId: "ChilliCream.Nitro.CLI",
+        packageExecutable: "ChilliCream.Nitro.CLI.dll",
+        Framework = "net8.0")]
+    readonly Tool NitroCli;
 
     Target Pack => _ => _
         .DependsOn(PackLocal)
@@ -53,12 +61,6 @@ partial class Build
             projFile = File.ReadAllText(Gateway13Proj);
             File.WriteAllText(Gateway13Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
 
-            projFile = File.ReadAllText(GatewayManaged13Proj);
-            File.WriteAllText(GatewayManaged13Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
-
-            projFile = File.ReadAllText(GatewayAspire13Proj);
-            File.WriteAllText(GatewayAspire13Proj, projFile.Replace("14.0.0-preview.build.0", SemVersion));
-
             DotNetBuildSonarSolution(
                 PackSolutionFile,
                 include: file =>
@@ -74,7 +76,10 @@ partial class Build
                 .SetInformationalVersion(SemVersion)
                 .SetFileVersion(Version)
                 .SetAssemblyVersion(Version)
-                .SetVersion(SemVersion));
+                .SetVersion(SemVersion)
+                .SetProperty("NitroApiClientId", NitroApiClientId)
+                .SetProperty("NitroIdentityClientId", NitroIdentityClientId)
+                .SetProperty("NitroIdentityScopes", NitroIdentityScopes));
 
             DotNetPack(c => c
                 .SetNoRestore(true)
@@ -113,5 +118,44 @@ partial class Build
                         (_, v) => _.SetTargetPath(v)),
                 degreeOfParallelism: 2,
                 completeOnFailure: true);
+        });
+
+    Target UploadNitroClient => _ => _
+        .Requires(() => NitroApiKey)
+        .Requires(() => NitroApiClientId)
+        .Requires(() => SemVersion)
+        .Executes(() =>
+        {
+            NitroCli(
+                arguments: "client upload",
+                environmentVariables: new Dictionary<string, string>
+                {
+                    ["NITRO_CLIENT_ID"] = NitroApiClientId,
+                    ["NITRO_TAG"] = SemVersion,
+                    ["NITRO_OPERATIONS_FILE"] = NitroCommandLineOperations,
+                    ["NITRO_API_KEY"] = NitroApiKey
+                });
+        });
+
+    Target PublishNitroClient => _ => _
+        .Requires(() => NitroApiKey)
+        .Requires(() => NitroApiClientId)
+        .Requires(() => SemVersion)
+        .Executes(() =>
+        {
+            string[] environments = ["Dev", "Prod"];
+
+            foreach (var environment in environments)
+            {
+                NitroCli(
+                    arguments: "client publish --force",
+                    environmentVariables: new Dictionary<string, string>
+                    {
+                        ["NITRO_CLIENT_ID"] = NitroApiClientId,
+                        ["NITRO_TAG"] = SemVersion,
+                        ["NITRO_STAGE"] = environment,
+                        ["NITRO_API_KEY"] = NitroApiKey
+                    });
+            }
         });
 }

@@ -44,9 +44,9 @@ public class LoneAnonymousOperationRuleTests
             }
             """,
             t => Assert.Equal(
-                "GraphQL allows a short‐hand form for defining query " +
-                "operations when only that one operation exists in the " +
-                "document.", t.Message));
+                "GraphQL allows a short‐hand form for defining query "
+                + "operations when only that one operation exists in the "
+                + "document.", t.Message));
     }
 
     [Fact]
@@ -67,9 +67,9 @@ public class LoneAnonymousOperationRuleTests
             }
             """,
             t => Assert.Equal(
-                "GraphQL allows a short‐hand form for defining query " +
-                "operations when only that one operation exists in the " +
-                "document.", t.Message));
+                "GraphQL allows a short‐hand form for defining query "
+                + "operations when only that one operation exists in the "
+                + "document.", t.Message));
     }
 
     [Fact]

@@ -147,8 +147,8 @@ public sealed class ImplementedByInaccessibleRuleTests
                     """
                 ],
                 [
-                    "The field 'User.id' implementing interface field 'Node.id' is inaccessible " +
-                    "in the composed schema."
+                    "The field 'User.id' implementing interface field 'Node.id' is inaccessible "
+                    + "in the composed schema."
                 ]
             },
             // Same as above, for an interface type.
@@ -166,8 +166,8 @@ public sealed class ImplementedByInaccessibleRuleTests
                     """
                 ],
                 [
-                    "The field 'User.id' implementing interface field 'Node.id' is inaccessible " +
-                    "in the composed schema."
+                    "The field 'User.id' implementing interface field 'Node.id' is inaccessible "
+                    + "in the composed schema."
                 ]
             }
         };

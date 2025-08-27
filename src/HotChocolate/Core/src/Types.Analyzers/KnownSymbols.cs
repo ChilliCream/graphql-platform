@@ -71,8 +71,8 @@ public static class KnownSymbols
                 continue;
             }
 
-            if (attributeData.ConstructorArguments.Length > 0 &&
-                attributeData.ConstructorArguments[0].Value is string attributeValue)
+            if (attributeData.ConstructorArguments.Length > 0
+                && attributeData.ConstructorArguments[0].Value is string attributeValue)
             {
                 name = attributeValue;
                 return true;
@@ -117,8 +117,8 @@ public static class KnownSymbols
             var taskSymbol = compilation.GetTaskSymbol();
             var valueTaskSymbol = compilation.GetValueTaskSymbol();
 
-            if (SymbolEqualityComparer.Default.Equals(namedType.ConstructedFrom, taskSymbol) ||
-                SymbolEqualityComparer.Default.Equals(namedType.ConstructedFrom, valueTaskSymbol))
+            if (SymbolEqualityComparer.Default.Equals(namedType.ConstructedFrom, taskSymbol)
+                || SymbolEqualityComparer.Default.Equals(namedType.ConstructedFrom, valueTaskSymbol))
             {
                 innerType = namedType.TypeArguments[0];
                 return true;

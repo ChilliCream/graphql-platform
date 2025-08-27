@@ -9,8 +9,6 @@ namespace HotChocolate.Transport.Http;
 /// </summary>
 public sealed class GraphQLHttpResponse : IDisposable
 {
-    private static readonly OperationResult s_transportError = CreateTransportError();
-
     private readonly HttpResponseMessage _message;
 
     /// <summary>
@@ -157,7 +155,12 @@ public sealed class GraphQLHttpResponse : IDisposable
 
         if (contentType?.MediaType?.Equals(ContentType.EventStream, StringComparison.Ordinal) ?? false)
         {
-            return new GraphQLHttpEventStreamEnumerable(_message);
+            return new SseReader(_message);
+        }
+
+        if (contentType?.MediaType?.Equals(ContentType.GraphQLJsonLine, StringComparison.Ordinal) ?? false)
+        {
+            return new JsonLinesReader(_message);
         }
 
         // The server supports the newer graphql-response+json media type, and users are free
@@ -177,20 +180,10 @@ public sealed class GraphQLHttpResponse : IDisposable
                 ct => ReadAsResultInternalAsync(contentType.CharSet, ct));
         }
 
-        return SingleResult(new ValueTask<OperationResult>(s_transportError));
-    }
+        _message.EnsureSuccessStatusCode();
 
-    private static async IAsyncEnumerable<OperationResult> SingleResult(ValueTask<OperationResult> result)
-    {
-        yield return await result.ConfigureAwait(false);
+        throw new InvalidOperationException("Received a successful response with an unexpected content type.");
     }
-
-    private static OperationResult CreateTransportError()
-        => new OperationResult(
-            errors: JsonDocument.Parse(
-                """
-                [{"message": "Internal Execution Error"}]
-                """).RootElement);
 
     /// <summary>
     /// Disposes the underlying <see cref="HttpResponseMessage"/>.

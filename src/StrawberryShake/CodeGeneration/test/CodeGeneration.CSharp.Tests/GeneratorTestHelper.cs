@@ -160,11 +160,11 @@ public static class GeneratorTestHelper
 
         if (diagnostics.Any())
         {
-            Assert.Fail("Diagnostic Errors: \n" +
-                diagnostics
+            Assert.Fail("Diagnostic Errors: \n"
+                + diagnostics
                     .Select(x =>
-                        $"{x.GetMessage()}" +
-                        $" (Line: {x.Location.GetLineSpan().StartLinePosition.Line})")
+                        $"{x.GetMessage()}"
+                        + $" (Line: {x.Location.GetLineSpan().StartLinePosition.Line})")
                     .Aggregate((acc, val) => acc + "\n" + val));
         }
     }

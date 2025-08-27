@@ -5,8 +5,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
 
-#nullable enable
-
 namespace HotChocolate.Utilities;
 
 internal static class ErrorHelper

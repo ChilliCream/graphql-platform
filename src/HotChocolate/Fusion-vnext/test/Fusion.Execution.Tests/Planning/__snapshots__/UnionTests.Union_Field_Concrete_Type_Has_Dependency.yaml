@@ -1,0 +1,50 @@
+operation:
+  - document: >-
+      query testQuery {
+        post {
+          __typename @fusion__requirement
+          ... on Photo {
+            subgraph2
+            id @fusion__requirement
+          }
+          ... on Discussion {
+            subgraph1
+          }
+        }
+      }
+    name: testQuery
+    hash: 123456789101112
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: >-
+      query testQuery_123456789101112_1 {
+        post {
+          __typename
+          ... on Photo {
+            id
+          }
+          ... on Discussion {
+            subgraph1
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: b
+    operation: >-
+      query testQuery_123456789101112_2(
+        $__fusion_1_id: ID!
+      ) {
+        photoById(id: $__fusion_1_id) {
+          subgraph2
+        }
+      }
+    source: $.photoById
+    target: $.post<Photo>
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: id
+    dependencies:
+      - id: 1
