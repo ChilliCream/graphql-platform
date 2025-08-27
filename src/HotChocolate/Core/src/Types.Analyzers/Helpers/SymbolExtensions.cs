@@ -41,6 +41,11 @@ public static class SymbolExtensions
 
     public static string ToNullableFullyQualifiedWithNullRefQualifier(this ITypeSymbol typeSymbol)
     {
+        if (typeSymbol.IsValueType)
+        {
+            return typeSymbol.ToFullyQualifiedWithNullRefQualifier();
+        }
+
         var value = typeSymbol.ToFullyQualifiedWithNullRefQualifier();
         return value[value.Length - 1] != '?' ? value + "?" : value;
     }
