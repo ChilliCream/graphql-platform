@@ -437,7 +437,9 @@ public sealed class DataLoaderFileBuilder : IDisposable
                 "global::{0}<{1}<{2}>> results,",
                 WellKnownTypes.Span,
                 WellKnownTypes.Result,
-                kind is DataLoaderKind.Group ? $"{value.ToClassNonNullableFullyQualifiedWithNullRefQualifier()}[]?" : value.ToNullableFullyQualifiedWithNullRefQualifier());
+                kind is DataLoaderKind.Group
+                    ? $"{value.ToClassNonNullableFullyQualifiedWithNullRefQualifier()}[]?"
+                    : value.ToNullableFullyQualifiedWithNullRefQualifier());
             _writer.WriteIndentedLine(
                 "{0} resultMap)",
                 ExtractMapType(method.ReturnType).ToFullyQualifiedWithNullRefQualifier());
@@ -507,7 +509,9 @@ public sealed class DataLoaderFileBuilder : IDisposable
                             "results[i] = global::{0}<{1}>.Resolve(default({2}));",
                             WellKnownTypes.Result,
                             value.ToNullableFullyQualifiedWithNullRefQualifier(),
-                            value.IsValueType ? value.ToNullableFullyQualifiedWithNullRefQualifier() : value.ToFullyQualified());
+                            value.IsValueType
+                                ? value.ToNullableFullyQualifiedWithNullRefQualifier()
+                                : value.ToFullyQualified());
                     }
 
                     _writer.WriteIndentedLine("}");
