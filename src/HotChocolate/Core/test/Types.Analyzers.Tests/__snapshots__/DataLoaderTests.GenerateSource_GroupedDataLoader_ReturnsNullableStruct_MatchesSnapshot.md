@@ -1,4 +1,4 @@
-# GenerateSource_BatchDataLoader_With_Required_State_MatchesSnapshot
+# GenerateSource_GroupedDataLoader_ReturnsNullableStruct_MatchesSnapshot
 
 ## GreenDonutDataLoader.735550c.g.cs
 
@@ -15,18 +15,18 @@ using GreenDonut;
 
 namespace TestNamespace
 {
-    public interface IEntityByIdDataLoader
-        : global::GreenDonut.IDataLoader<int, string?>
+    public interface IEntitiesByIdDataLoader
+        : global::GreenDonut.IDataLoader<int, global::TestNamespace.Entity?[]>
     {
     }
 
-    public sealed partial class EntityByIdDataLoader
-        : global::GreenDonut.DataLoaderBase<int, string?>
-        , IEntityByIdDataLoader
+    public sealed partial class EntitiesByIdDataLoader
+        : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.Entity?[]>
+        , IEntitiesByIdDataLoader
     {
         private readonly global::System.IServiceProvider _services;
 
-        public EntityByIdDataLoader(
+        public EntitiesByIdDataLoader(
             global::System.IServiceProvider services,
             global::GreenDonut.IBatchScheduler batchScheduler,
             global::GreenDonut.DataLoaderOptions options)
@@ -38,30 +38,30 @@ namespace TestNamespace
 
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Memory<GreenDonut.Result<string?>> results,
-            global::GreenDonut.DataLoaderFetchContext<string?> context,
+            global::System.Memory<GreenDonut.Result<global::TestNamespace.Entity?[]?>> results,
+            global::GreenDonut.DataLoaderFetchContext<global::TestNamespace.Entity?[]> context,
             global::System.Threading.CancellationToken ct)
         {
-            var p1 = context.GetRequiredState<string>("key");
-            var temp = await global::TestNamespace.TestClass.GetEntityByIdAsync(keys, p1, ct).ConfigureAwait(false);
+            var temp = await global::TestNamespace.TestClass.GetEntitiesByIdAsync(keys, ct).ConfigureAwait(false);
             CopyResults(keys, results.Span, temp);
         }
 
         private void CopyResults(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Span<GreenDonut.Result<string?>> results,
-            global::System.Collections.Generic.Dictionary<int, string?> resultMap)
+            global::System.Span<GreenDonut.Result<global::TestNamespace.Entity?[]?>> results,
+            global::System.Linq.ILookup<int, global::TestNamespace.Entity?> resultMap)
         {
             for (var i = 0; i < keys.Count; i++)
             {
                 var key = keys[i];
-                if (resultMap.TryGetValue(key, out var value))
+                if (resultMap.Contains(key))
                 {
-                    results[i] = global::GreenDonut.Result<string?>.Resolve(value);
+                    var items = resultMap[key];
+                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity?[]?>.Resolve(global::System.Linq.Enumerable.ToArray(items));
                 }
                 else
                 {
-                    results[i] = global::GreenDonut.Result<string?>.Resolve(default(string));
+                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity?[]?>.Resolve(global::System.Array.Empty<global::TestNamespace.Entity?>());
                 }
             }
         }
@@ -91,7 +91,7 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IRequestExecutorBuilder AddTestsTypes(this IRequestExecutorBuilder builder)
         {
-            builder.AddDataLoader<global::TestNamespace.IEntityByIdDataLoader, global::TestNamespace.EntityByIdDataLoader>();
+            builder.AddDataLoader<global::TestNamespace.IEntitiesByIdDataLoader, global::TestNamespace.EntitiesByIdDataLoader>();
             return builder;
         }
     }
