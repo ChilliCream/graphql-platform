@@ -81,4 +81,20 @@ public static class DataLoaders
         PagingArguments paging,
         CancellationToken ct)
         => await Task.FromResult(query.ToDictionary(t => t.Id));
+
+    [DataLoader]
+    public static Task<IDictionary<long, long>> GetLongValuesByLong(
+        IReadOnlyList<long> keys,
+        IQueryable<Author> query,
+        PagingArguments paging,
+        CancellationToken ct)
+        => default!;
+
+    [DataLoader]
+    public static Task<IDictionary<long, long?>> GetNullableLongValuesByLong(
+        IReadOnlyList<long> keys,
+        IQueryable<Author> query,
+        PagingArguments paging,
+        CancellationToken ct)
+        => default!;
 }
