@@ -13,19 +13,19 @@ namespace HotChocolate.Data.MongoDb.Sorting;
 
 public class MongoDbFindFluentTests : IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { Bar = true },
         new() { Bar = false }
     ];
 
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
         new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
     ];
 
-    private static readonly Baz[] _bazEntities =
+    private static readonly Baz[] s_bazEntities =
     [
         new() { Bar = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero), Qux = 1 },
         new() { Bar = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero), Qux = 0 },
@@ -49,7 +49,7 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 var collection =
                     _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
 
-                collection.InsertMany(_fooEntities);
+                collection.InsertMany(s_fooEntities);
                 return collection.Find(FilterDefinition<Foo>.Empty).AsExecutable();
             });
 
@@ -87,7 +87,7 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 var collection =
                     _resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
 
-                collection.InsertMany(_barEntities);
+                collection.InsertMany(s_barEntities);
                 return collection.Find(FilterDefinition<Bar>.Empty).AsExecutable();
             });
 
@@ -120,7 +120,7 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                 var collection =
                     _resource.CreateCollection<Baz>("data_" + Guid.NewGuid().ToString("N"));
 
-                collection.InsertMany(_bazEntities);
+                collection.InsertMany(s_bazEntities);
 
                 return collection
                     .Find(x => x.Bar > new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero))
@@ -202,7 +202,7 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                         })
                     .UseSorting<SortInputType<TEntity>>())
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
@@ -217,8 +217,8 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync()
             .GetAwaiter()
             .GetResult();
     }

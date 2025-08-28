@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
 // ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -2884,16 +2885,43 @@ namespace Foo.Bar
     public partial class GetPeopleQuery : global::Foo.Bar.IGetPeopleQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetPeopleResult> _operationExecutor;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetPeopleQuery(global::StrawberryShake.IOperationExecutor<IGetPeopleResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
+        private GetPeopleQuery(global::StrawberryShake.IOperationExecutor<IGetPeopleResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetPeopleResult);
+
+        public global::Foo.Bar.IGetPeopleQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.GetPeopleQuery(_operationExecutor, _configure.Add(configure));
+        }
+
+        public global::Foo.Bar.IGetPeopleQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IGetPeopleQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPeopleResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -2952,6 +2980,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetPeopleQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IGetPeopleQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IGetPeopleQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IGetPeopleQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPeopleResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetPeopleResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -2960,7 +2991,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetMessages GraphQL operation
     /// <code>
-    /// query GetMessages($email: String!) {
+    /// query GetMessages(
+    ///   $email: String!
+    /// ) {
     ///   personByEmail(email: $email) {
     ///     __typename
     ///     messages(order_by: { sent: ASC }) {
@@ -3473,7 +3506,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetMessages GraphQL operation
     /// <code>
-    /// query GetMessages($email: String!) {
+    /// query GetMessages(
+    ///   $email: String!
+    /// ) {
     ///   personByEmail(email: $email) {
     ///     __typename
     ///     messages(order_by: { sent: ASC }) {
@@ -3525,17 +3560,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetMessagesResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetMessagesQuery(global::StrawberryShake.IOperationExecutor<IGetMessagesResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
         }
 
+        private GetMessagesQuery(global::StrawberryShake.IOperationExecutor<IGetMessagesResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _stringFormatter = @stringFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetMessagesResult);
+
+        public global::Foo.Bar.IGetMessagesQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.GetMessagesQuery(_operationExecutor, _configure.Add(configure), _stringFormatter);
+        }
+
+        public global::Foo.Bar.IGetMessagesQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IGetMessagesQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetMessagesResult>> ExecuteAsync(global::System.String email, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(email);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -3577,7 +3640,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetMessages GraphQL operation
     /// <code>
-    /// query GetMessages($email: String!) {
+    /// query GetMessages(
+    ///   $email: String!
+    /// ) {
     ///   personByEmail(email: $email) {
     ///     __typename
     ///     messages(order_by: { sent: ASC }) {
@@ -3627,6 +3692,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetMessagesQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IGetMessagesQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IGetMessagesQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IGetMessagesQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetMessagesResult>> ExecuteAsync(global::System.String email, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetMessagesResult>> Watch(global::System.String email, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -3635,7 +3703,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageInput GraphQL operation
     /// <code>
-    /// mutation SendMessageInput($input: SendMessageInput!) {
+    /// mutation SendMessageInput(
+    ///   $input: SendMessageInput!
+    /// ) {
     ///   sendMessage(input: $input) {
     ///     __typename
     ///     message {
@@ -4090,7 +4160,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageInput GraphQL operation
     /// <code>
-    /// mutation SendMessageInput($input: SendMessageInput!) {
+    /// mutation SendMessageInput(
+    ///   $input: SendMessageInput!
+    /// ) {
     ///   sendMessage(input: $input) {
     ///     __typename
     ///     message {
@@ -4136,17 +4208,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<ISendMessageInputResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _sendMessageInputFormatter;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public SendMessageInputMutation(global::StrawberryShake.IOperationExecutor<ISendMessageInputResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _sendMessageInputFormatter = serializerResolver.GetInputValueFormatter("SendMessageInput");
         }
 
+        private SendMessageInputMutation(global::StrawberryShake.IOperationExecutor<ISendMessageInputResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter sendMessageInputFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _sendMessageInputFormatter = sendMessageInputFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ISendMessageInputResult);
+
+        public global::Foo.Bar.ISendMessageInputMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.SendMessageInputMutation(_operationExecutor, _configure.Add(configure), _sendMessageInputFormatter);
+        }
+
+        public global::Foo.Bar.ISendMessageInputMutation WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.ISendMessageInputMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISendMessageInputResult>> ExecuteAsync(global::Foo.Bar.SendMessageInput input, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(input);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -4188,7 +4288,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageInput GraphQL operation
     /// <code>
-    /// mutation SendMessageInput($input: SendMessageInput!) {
+    /// mutation SendMessageInput(
+    ///   $input: SendMessageInput!
+    /// ) {
     ///   sendMessage(input: $input) {
     ///     __typename
     ///     message {
@@ -4232,6 +4334,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ISendMessageInputMutation : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.ISendMessageInputMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.ISendMessageInputMutation WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.ISendMessageInputMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISendMessageInputResult>> ExecuteAsync(global::Foo.Bar.SendMessageInput input, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ISendMessageInputResult>> Watch(global::Foo.Bar.SendMessageInput input, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -4240,7 +4345,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageMut GraphQL operation
     /// <code>
-    /// mutation SendMessageMut($email: String!, $text: String!) {
+    /// mutation SendMessageMut(
+    ///   $email: String!
+    ///   $text: String!
+    /// ) {
     ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
     ///     __typename
     ///     message {
@@ -4732,7 +4840,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageMut GraphQL operation
     /// <code>
-    /// mutation SendMessageMut($email: String!, $text: String!) {
+    /// mutation SendMessageMut(
+    ///   $email: String!
+    ///   $text: String!
+    /// ) {
     ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
     ///     __typename
     ///     message {
@@ -4778,17 +4889,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<ISendMessageMutResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public SendMessageMutMutation(global::StrawberryShake.IOperationExecutor<ISendMessageMutResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
         }
 
+        private SendMessageMutMutation(global::StrawberryShake.IOperationExecutor<ISendMessageMutResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _stringFormatter = @stringFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ISendMessageMutResult);
+
+        public global::Foo.Bar.ISendMessageMutMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.SendMessageMutMutation(_operationExecutor, _configure.Add(configure), _stringFormatter);
+        }
+
+        public global::Foo.Bar.ISendMessageMutMutation WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.ISendMessageMutMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISendMessageMutResult>> ExecuteAsync(global::System.String email, global::System.String text, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(email, text);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -4841,7 +4980,10 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SendMessageMut GraphQL operation
     /// <code>
-    /// mutation SendMessageMut($email: String!, $text: String!) {
+    /// mutation SendMessageMut(
+    ///   $email: String!
+    ///   $text: String!
+    /// ) {
     ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
     ///     __typename
     ///     message {
@@ -4885,6 +5027,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ISendMessageMutMutation : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.ISendMessageMutMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.ISendMessageMutMutation WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.ISendMessageMutMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISendMessageMutResult>> ExecuteAsync(global::System.String email, global::System.String text, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ISendMessageMutResult>> Watch(global::System.String email, global::System.String text, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -5559,7 +5704,7 @@ namespace Foo.Bar.State
             }
 
             IGetPeople_People returnValue = default !;
-            if (data?.__typename.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PersonConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetPeople_People_PersonConnection(MapIGetPeople_People_NodesArray(data.Nodes, snapshot));
             }
@@ -7163,7 +7308,7 @@ namespace Foo.Bar.State
             }
 
             IGetMessages_PersonByEmail_Messages returnValue = default !;
-            if (data?.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetMessages_PersonByEmail_Messages_MessageConnection(MapIGetMessages_PersonByEmail_Messages_NodesArray(data.Nodes, snapshot));
             }

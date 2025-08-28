@@ -1,8 +1,8 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.DirectiveLocationUtils;
+using HotChocolate.Types.Descriptors.Configurations;
+using static HotChocolate.Types.DirectiveLocationUtils;
 
 namespace HotChocolate.Types.Factories;
 

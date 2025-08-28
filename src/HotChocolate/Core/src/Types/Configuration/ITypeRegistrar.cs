@@ -1,8 +1,6 @@
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal interface ITypeRegistrar
@@ -10,7 +8,7 @@ internal interface ITypeRegistrar
     ISet<string> Scalars { get; }
 
     void Register(
-        TypeSystemObjectBase obj,
+        TypeSystemObject obj,
         string? scope,
         bool inferred = false,
         Action<RegisteredType>? configure = null);
@@ -21,7 +19,7 @@ internal interface ITypeRegistrar
 
     bool IsResolved(TypeReference typeReference);
 
-    TypeSystemObjectBase CreateInstance(Type namedSchemaType);
+    TypeSystemObject CreateInstance(Type namedSchemaType);
 
     IReadOnlyCollection<TypeReference> Unresolved { get; }
 

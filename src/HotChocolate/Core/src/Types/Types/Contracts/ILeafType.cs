@@ -1,15 +1,12 @@
 using HotChocolate.Language;
 
-#nullable enable
-
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Represents a GraphQL leaf-type e.g. scalar or enum.
+/// Represents a GraphQL leaf-type e.g., scalar or enum.
 /// </summary>
-public interface ILeafType
-    : INamedOutputType
-    , INamedInputType
+public interface ILeafType : IInputTypeDefinition, IOutputTypeDefinition
 {
     /// <summary>
     /// Defines if the given <paramref name="valueSyntax"/> is possibly of this type.
@@ -99,5 +96,17 @@ public interface ILeafType
     /// </returns>
     object? Deserialize(object? resultValue);
 
+    /// <summary>
+    /// Deserializes a result value of this type to the runtime value format.
+    /// </summary>
+    /// <param name="resultValue">
+    /// A result value representation of this type.
+    /// </param>
+    /// <param name="runtimeValue">
+    /// The runtime value representation of this type.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the deserialization was successful; otherwise, <c>false</c>.
+    /// </returns>
     bool TryDeserialize(object? resultValue, out object? runtimeValue);
 }

@@ -11,14 +11,14 @@ internal static class TypeDirectiveParser
 
     public static TypeDirective Parse(DirectiveNode directiveNode)
     {
-        string? schemaName = null;
+        string? schemaKey = null;
 
         foreach (var argument in directiveNode.Arguments)
         {
             switch (argument.Name.Value)
             {
                 case "schema":
-                    schemaName = ((EnumValueNode)argument.Value).Value;
+                    schemaKey = ((EnumValueNode)argument.Value).Value;
                     break;
 
                 default:
@@ -27,13 +27,13 @@ internal static class TypeDirectiveParser
             }
         }
 
-        if (string.IsNullOrEmpty(schemaName))
+        if (string.IsNullOrEmpty(schemaKey))
         {
             throw new DirectiveParserException(
                 "The `schema` argument is required on the @type directive.");
         }
 
-        return new TypeDirective(schemaName);
+        return new TypeDirective(new SchemaKey(schemaKey));
     }
 
     public static ImmutableArray<TypeDirective> Parse(
@@ -51,7 +51,7 @@ internal static class TypeDirectiveParser
             }
         }
 
-        return temp?.ToImmutable() ?? ImmutableArray<TypeDirective>.Empty;
+        return temp?.ToImmutable() ?? [];
     }
 
     public static bool TryParse(

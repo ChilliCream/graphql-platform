@@ -1,7 +1,5 @@
 using HotChocolate.Types.Relay;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -19,7 +17,7 @@ namespace HotChocolate.Types;
 /// </remarks>
 /// <example>
 /// <para>
-/// A field can be rewritten to a id by adding <c>[ID]</c> to the resolver.
+/// A field can be rewritten to an ID by adding <c>[ID]</c> to the resolver.
 /// </para>
 /// <code>
 /// public class User
@@ -67,12 +65,9 @@ public static class RelayIdFieldExtensions
     /// </param>
     public static IInputFieldDescriptor ID(
         this IInputFieldDescriptor descriptor,
-        string? typeName = default)
+        string? typeName = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
 
@@ -86,10 +81,7 @@ public static class RelayIdFieldExtensions
     /// </typeparam>
     public static IInputFieldDescriptor ID<T>(this IInputFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeof(T).Name);
 
@@ -103,12 +95,9 @@ public static class RelayIdFieldExtensions
     /// </param>
     public static IArgumentDescriptor ID(
         this IArgumentDescriptor descriptor,
-        string? typeName = default)
+        string? typeName = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
 
@@ -122,10 +111,7 @@ public static class RelayIdFieldExtensions
     /// </typeparam>
     public static IArgumentDescriptor ID<T>(this IArgumentDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeof(T).Name);
 
@@ -139,12 +125,9 @@ public static class RelayIdFieldExtensions
     /// </param>
     public static IObjectFieldDescriptor ID(
         this IObjectFieldDescriptor descriptor,
-        string? typeName = default)
+        string? typeName = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
 
@@ -158,10 +141,7 @@ public static class RelayIdFieldExtensions
     /// </typeparam>
     public static IObjectFieldDescriptor ID<T>(this IObjectFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor, typeof(T).Name);
 
@@ -172,10 +152,7 @@ public static class RelayIdFieldExtensions
     /// <param name="descriptor">the descriptor</param>
     public static IInterfaceFieldDescriptor ID(this IInterfaceFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         RelayIdFieldHelpers.ApplyIdToField(descriptor);
 

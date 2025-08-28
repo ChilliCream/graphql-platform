@@ -16,7 +16,7 @@ public abstract class SortProviderExtensions<TContext>
         _configure = Configure;
     }
 
-    public SortProviderExtensions(Action<ISortProviderDescriptor<TContext>> configure)
+    protected SortProviderExtensions(Action<ISortProviderDescriptor<TContext>> configure)
     {
         _configure = configure ??
             throw new ArgumentNullException(nameof(configure));
@@ -24,7 +24,7 @@ public abstract class SortProviderExtensions<TContext>
 
     void ISortProviderConvention.Initialize(IConventionContext context, ISortConvention convention)
     {
-        base.Initialize(context);
+        Initialize(context);
     }
 
     void ISortProviderConvention.Complete(IConventionContext context)

@@ -4,8 +4,6 @@ using System.Reflection;
 using HotChocolate.Internal;
 using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class CancellationTokenParameterExpressionBuilder
@@ -13,12 +11,12 @@ internal sealed class CancellationTokenParameterExpressionBuilder
     , IParameterBindingFactory
     , IParameterBinding
 {
-    private static readonly PropertyInfo _cancellationToken =
+    private static readonly PropertyInfo s_cancellationToken =
         ContextType.GetProperty(nameof(IResolverContext.RequestAborted))!;
 
     static CancellationTokenParameterExpressionBuilder()
     {
-        Debug.Assert(_cancellationToken is not null, "RequestAborted property is missing.");
+        Debug.Assert(s_cancellationToken is not null, "RequestAborted property is missing.");
     }
 
     public ArgumentKind Kind => ArgumentKind.CancellationToken;
@@ -31,7 +29,7 @@ internal sealed class CancellationTokenParameterExpressionBuilder
         => typeof(CancellationToken) == parameter.ParameterType;
 
     public Expression Build(ParameterExpressionBuilderContext context)
-        => Expression.Property(context.ResolverContext, _cancellationToken);
+        => Expression.Property(context.ResolverContext, s_cancellationToken);
 
     public IParameterBinding Create(ParameterBindingContext context)
         => this;

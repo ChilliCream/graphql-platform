@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
 // ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -300,7 +301,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetHero GraphQL operation
     /// <code>
-    /// query GetHero($episode: Episode) {
+    /// query GetHero(
+    ///   $episode: Episode
+    /// ) {
     ///   hero(episode: $episode) {
     ///     __typename
     ///     name
@@ -427,7 +430,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetHero GraphQL operation
     /// <code>
-    /// query GetHero($episode: Episode) {
+    /// query GetHero(
+    ///   $episode: Episode
+    /// ) {
     ///   hero(episode: $episode) {
     ///     __typename
     ///     name
@@ -441,17 +446,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _episodeFormatter;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _episodeFormatter = serializerResolver.GetInputValueFormatter("Episode");
         }
 
+        private GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter episodeFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _episodeFormatter = episodeFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetHeroResult);
+
+        public global::Foo.Bar.IGetHeroQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.GetHeroQuery(_operationExecutor, _configure.Add(configure), _episodeFormatter);
+        }
+
+        public global::Foo.Bar.IGetHeroQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IGetHeroQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::Foo.Bar.Episode? episode, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(episode);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -495,7 +528,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetHero GraphQL operation
     /// <code>
-    /// query GetHero($episode: Episode) {
+    /// query GetHero(
+    ///   $episode: Episode
+    /// ) {
     ///   hero(episode: $episode) {
     ///     __typename
     ///     name
@@ -507,6 +542,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHeroQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IGetHeroQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IGetHeroQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IGetHeroQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::Foo.Bar.Episode? episode, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHeroResult>> Watch(global::Foo.Bar.Episode? episode, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

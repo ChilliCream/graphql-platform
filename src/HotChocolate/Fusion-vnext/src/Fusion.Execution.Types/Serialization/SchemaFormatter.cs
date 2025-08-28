@@ -1,16 +1,14 @@
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
-using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Serialization;
 
 public static class SchemaFormatter
 {
-    private static readonly SchemaFormatterVisitor _visitor = new();
-    private static readonly SyntaxSerializerOptions _options =
+    private static readonly SchemaFormatterVisitor s_visitor = new();
+    private static readonly SyntaxSerializerOptions s_options =
         new()
         {
             Indented = true,
@@ -28,14 +26,14 @@ public static class SchemaFormatter
             PrintSpecScalars = options.PrintSpecScalars ?? false,
             PrintSpecDirectives = options.PrintSpecDirectives ?? false
         };
-        _visitor.VisitSchema(schema, context);
+        s_visitor.VisitSchema(schema, context);
 
         if (!options.Indented ?? true)
         {
             ((DocumentNode)context.Result!).ToString(false);
         }
 
-        return ((DocumentNode)context.Result!).ToString(_options);
+        return ((DocumentNode)context.Result!).ToString(s_options);
     }
 
     public static DocumentNode FormatAsDocument(
@@ -49,7 +47,7 @@ public static class SchemaFormatter
             PrintSpecScalars = options.PrintSpecScalars ?? false,
             PrintSpecDirectives = options.PrintSpecDirectives ?? false
         };
-        _visitor.VisitSchema(schema, context);
+        s_visitor.VisitSchema(schema, context);
         return (DocumentNode)context.Result!;
     }
 
@@ -65,48 +63,37 @@ public static class SchemaFormatter
 
             var definitions = new List<IDefinitionNode>();
 
-            if (schema.QueryType is not null ||
-                schema.MutationType is not null ||
-                schema.SubscriptionType is not null)
+            var operationTypes = new List<OperationTypeDefinitionNode>
             {
-                var operationTypes = new List<OperationTypeDefinitionNode>();
+                new(null, OperationType.Query, new NamedTypeNode(schema.QueryType.Name))
+            };
 
-                if (schema.QueryType is not null)
-                {
-                    operationTypes.Add(
-                        new OperationTypeDefinitionNode(
-                            null,
-                            OperationType.Query,
-                            new NamedTypeNode(schema.QueryType.Name)));
-                }
-
-                if (schema.MutationType is not null)
-                {
-                    operationTypes.Add(
-                        new OperationTypeDefinitionNode(
-                            null,
-                            OperationType.Mutation,
-                            new NamedTypeNode(schema.MutationType.Name)));
-                }
-
-                if (schema.SubscriptionType is not null)
-                {
-                    operationTypes.Add(
-                        new OperationTypeDefinitionNode(
-                            null,
-                            OperationType.Subscription,
-                            new NamedTypeNode(schema.SubscriptionType.Name)));
-                }
-
-                VisitDirectives(schema.Directives, context);
-
-                var schemaDefinition = new SchemaDefinitionNode(
-                    null,
-                    CreateDescription(schema.Description),
-                    (IReadOnlyList<DirectiveNode>)context.Result!,
-                    operationTypes);
-                definitions.Add(schemaDefinition);
+            if (schema.MutationType is not null)
+            {
+                operationTypes.Add(
+                    new OperationTypeDefinitionNode(
+                        null,
+                        OperationType.Mutation,
+                        new NamedTypeNode(schema.MutationType.Name)));
             }
+
+            if (schema.SubscriptionType is not null)
+            {
+                operationTypes.Add(
+                    new OperationTypeDefinitionNode(
+                        null,
+                        OperationType.Subscription,
+                        new NamedTypeNode(schema.SubscriptionType.Name)));
+            }
+
+            VisitDirectives(schema.Directives, context);
+
+            var schemaDefinition = new SchemaDefinitionNode(
+                null,
+                CreateDescription(schema.Description),
+                (IReadOnlyList<DirectiveNode>)context.Result!,
+                operationTypes);
+            definitions.Add(schemaDefinition);
 
             if (context.OrderByName)
             {
@@ -166,11 +153,8 @@ public static class SchemaFormatter
         {
             var definitionNodes = new List<IDefinitionNode>();
 
-            if (context.Schema.QueryType is not null)
-            {
-                VisitType(context.Schema.QueryType, context);
-                definitionNodes.Add((IDefinitionNode)context.Result!);
-            }
+            VisitType(context.Schema.QueryType, context);
+            definitionNodes.Add((IDefinitionNode)context.Result!);
 
             if (context.Schema.MutationType is not null)
             {
@@ -186,11 +170,12 @@ public static class SchemaFormatter
 
             foreach (var type in typesDefinition
                 .OfType<IObjectTypeDefinition>()
+                .Where(t => !t.IsIntrospectionType)
                 .OrderBy(t => t.Name))
             {
-                if (context.Schema?.QueryType == type ||
-                   context.Schema?.MutationType == type ||
-                   context.Schema?.SubscriptionType == type)
+                if (context.Schema?.QueryType == type
+                    || context.Schema?.MutationType == type
+                    || context.Schema?.SubscriptionType == type)
                 {
                     continue;
                 }
@@ -201,6 +186,7 @@ public static class SchemaFormatter
 
             foreach (var type in typesDefinition
                 .OfType<IInterfaceTypeDefinition>()
+                .Where(t => !t.IsIntrospectionType)
                 .OrderBy(t => t.Name))
             {
                 VisitType(type, context);
@@ -209,6 +195,7 @@ public static class SchemaFormatter
 
             foreach (var type in typesDefinition
                 .OfType<IUnionTypeDefinition>()
+                .Where(t => !t.IsIntrospectionType)
                 .OrderBy(t => t.Name))
             {
                 VisitType(type, context);
@@ -217,6 +204,7 @@ public static class SchemaFormatter
 
             foreach (var type in typesDefinition
                 .OfType<IInputObjectTypeDefinition>()
+                .Where(t => !t.IsIntrospectionType)
                 .OrderBy(t => t.Name))
             {
                 VisitType(type, context);
@@ -225,6 +213,7 @@ public static class SchemaFormatter
 
             foreach (var type in typesDefinition
                 .OfType<IEnumTypeDefinition>()
+                .Where(t => !t.IsIntrospectionType)
                 .OrderBy(t => t.Name))
             {
                 VisitType(type, context);
@@ -233,6 +222,7 @@ public static class SchemaFormatter
 
             foreach (var type in typesDefinition
                 .OfType<IScalarTypeDefinition>()
+                .Where(t => !t.IsIntrospectionType)
                 .OrderBy(t => t.Name))
             {
                 if (!context.PrintSpecScalars
@@ -418,6 +408,11 @@ public static class SchemaFormatter
 
             foreach (var field in fields.AsEnumerable().OrderBy(t => t.Name, context.OrderByName))
             {
+                if (field.IsIntrospectionField)
+                {
+                    continue;
+                }
+
                 VisitOutputField(field, context);
                 fieldNodes.Add((FieldDefinitionNode)context.Result!);
             }
@@ -592,7 +587,7 @@ file static class Extensions
             ITypeDefinition namedType => new NamedTypeNode(namedType.Name),
             ListType listType => new ListTypeNode(ToTypeNode(listType.ElementType)),
             NonNullType nonNullType => new NonNullTypeNode((INullableTypeNode)ToTypeNode(nonNullType.NullableType)),
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
 
     public static IEnumerable<T> OrderBy<T, TKey>(

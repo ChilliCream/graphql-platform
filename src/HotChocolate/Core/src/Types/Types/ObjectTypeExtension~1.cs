@@ -1,8 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -21,7 +19,7 @@ public class ObjectTypeExtension<T> : ObjectTypeExtension
     private Action<IObjectTypeDescriptor<T>>? _configure;
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="ObjectTypeExtension{T}"/>.
+    /// Initializes a new instance of <see cref="ObjectTypeExtension{T}"/>.
     /// </summary>
     public ObjectTypeExtension(Action<IObjectTypeDescriptor<T>> configure)
     {
@@ -30,7 +28,7 @@ public class ObjectTypeExtension<T> : ObjectTypeExtension
     }
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="ObjectType{T}"/>.
+    /// Initializes a new instance of <see cref="ObjectType{T}"/>.
     /// </summary>
     [ActivatorUtilitiesConstructor]
     public ObjectTypeExtension()
@@ -60,7 +58,5 @@ public class ObjectTypeExtension<T> : ObjectTypeExtension
     }
 
     protected sealed override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        throw new NotSupportedException();
-    }
+        => throw new NotSupportedException();
 }

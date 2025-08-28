@@ -16,18 +16,18 @@ public class FilterConvention
     : Convention<FilterConventionConfiguration>
         , IFilterConvention
 {
-    private const string _inputPostFix = "FilterInput";
-    private const string _inputTypePostFix = "FilterInputType";
+    private const string InputPostFix = "FilterInput";
+    private const string InputTypePostFix = "FilterInputType";
 
     private Action<IFilterConventionDescriptor>? _configure;
-    private INamingConventions _namingConventions = default!;
-    private IReadOnlyDictionary<int, FilterOperation> _operations = default!;
-    private IDictionary<Type, Type> _bindings = default!;
-    private IDictionary<TypeReference, List<ConfigureFilterInputType>> _configs = default!;
+    private INamingConventions _namingConventions = null!;
+    private IReadOnlyDictionary<int, FilterOperation> _operations = null!;
+    private IDictionary<Type, Type> _bindings = null!;
+    private IDictionary<TypeReference, List<ConfigureFilterInputType>> _configs = null!;
 
-    private string _argumentName = default!;
-    private IFilterProvider _provider = default!;
-    private ITypeInspector _typeInspector = default!;
+    private string _argumentName = null!;
+    private IFilterProvider _provider = null!;
+    private ITypeInspector _typeInspector = null!;
     private bool _useAnd;
     private bool _useOr;
 
@@ -122,32 +122,29 @@ public class FilterConvention
     /// <inheritdoc />
     public virtual string GetTypeName(Type runtimeType)
     {
-        if (runtimeType is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeType));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeType);
 
-        if (typeof(IEnumOperationFilterInputType).IsAssignableFrom(runtimeType) &&
-            runtimeType.GenericTypeArguments.Length == 1 &&
-            runtimeType.GetGenericTypeDefinition() == typeof(EnumOperationFilterInputType<>))
+        if (typeof(IEnumOperationFilterInputType).IsAssignableFrom(runtimeType)
+            && runtimeType.GenericTypeArguments.Length == 1
+            && runtimeType.GetGenericTypeDefinition() == typeof(EnumOperationFilterInputType<>))
         {
             var genericName = _namingConventions.GetTypeName(runtimeType.GenericTypeArguments[0]);
 
             return genericName + "OperationFilterInput";
         }
 
-        if (typeof(IComparableOperationFilterInputType).IsAssignableFrom(runtimeType) &&
-            runtimeType.GenericTypeArguments.Length == 1 &&
-            runtimeType.GetGenericTypeDefinition() ==
-            typeof(ComparableOperationFilterInputType<>))
+        if (typeof(IComparableOperationFilterInputType).IsAssignableFrom(runtimeType)
+            && runtimeType.GenericTypeArguments.Length == 1
+            && runtimeType.GetGenericTypeDefinition()
+            == typeof(ComparableOperationFilterInputType<>))
         {
             var genericName = _namingConventions.GetTypeName(runtimeType.GenericTypeArguments[0]);
 
             return $"Comparable{genericName}OperationFilterInput";
         }
 
-        if (typeof(IListFilterInputType).IsAssignableFrom(runtimeType) &&
-            runtimeType.GenericTypeArguments.Length == 1)
+        if (typeof(IListFilterInputType).IsAssignableFrom(runtimeType)
+            && runtimeType.GenericTypeArguments.Length == 1)
         {
             var genericType = runtimeType.GenericTypeArguments[0];
 
@@ -161,22 +158,22 @@ public class FilterConvention
         var name = _namingConventions.GetTypeName(runtimeType);
 
         var isInputObjectType = typeof(FilterInputType).IsAssignableFrom(runtimeType);
-        var isEndingInput = name.EndsWith(_inputPostFix, StringComparison.Ordinal);
-        var isEndingInputType = name.EndsWith(_inputTypePostFix, StringComparison.Ordinal);
+        var isEndingInput = name.EndsWith(InputPostFix, StringComparison.Ordinal);
+        var isEndingInputType = name.EndsWith(InputTypePostFix, StringComparison.Ordinal);
 
         if (isInputObjectType && isEndingInputType)
         {
-            return name.Substring(0, name.Length - 4);
+            return name[..^4];
         }
 
         if (isInputObjectType && !isEndingInput && !isEndingInputType)
         {
-            return name + _inputPostFix;
+            return name + InputPostFix;
         }
 
         if (!isInputObjectType && !isEndingInput)
         {
-            return name + _inputPostFix;
+            return name + InputPostFix;
         }
 
         return name;
@@ -197,10 +194,7 @@ public class FilterConvention
     /// <inheritdoc />
     public virtual ExtendedTypeReference GetFieldType(MemberInfo member)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
+        ArgumentNullException.ThrowIfNull(member);
 
         if (TryCreateFilterType(_typeInspector.GetReturnType(member, true), out var rt))
         {
@@ -305,8 +299,8 @@ public class FilterConvention
 
         if (runtimeType.IsArrayOrList)
         {
-            if (runtimeType.ElementType is { } &&
-                TryCreateFilterType(runtimeType.ElementType, out var elementType))
+            if (runtimeType.ElementType is { }
+                && TryCreateFilterType(runtimeType.ElementType, out var elementType))
             {
                 type = typeof(ListFilterInputType<>).MakeGenericType(elementType);
 
@@ -321,7 +315,7 @@ public class FilterConvention
             return true;
         }
 
-        if (runtimeType.Type is { IsValueType: true, IsPrimitive: false, })
+        if (runtimeType.Type is { IsValueType: true, IsPrimitive: false })
         {
             type = typeof(FilterInputType<>).MakeGenericType(runtimeType.Type);
 

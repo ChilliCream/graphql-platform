@@ -23,5 +23,5 @@ public enum ExecutionTaskStatus
     /// <summary>
     /// The task completed and is in a faulted state.
     /// </summary>
-    Faulted,
+    Faulted
 }

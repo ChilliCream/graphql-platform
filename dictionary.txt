@@ -1,6 +1,7 @@
 -Lsfo
 ABCEGHJKLMNPRSTVWXYZ
 ABCEGHJKLMNPRSTVXY
+accessibilities
 agrc
 Alderaan
 Andi
@@ -65,6 +66,7 @@ Hasura
 HCXXXX
 hhmm
 HHmmssfffffff
+Hmac
 hotchocolate
 Includable
 inheritdocs
@@ -84,6 +86,7 @@ mercurius
 mergeable
 meros
 Misordered
+modelcontextprotocol
 msbuild
 msdata
 namespacing
@@ -118,6 +121,7 @@ pageable
 Partitioner
 pipefail
 PKCE
+Pkcs
 pkey
 Postgraphile
 preconfigured
@@ -133,6 +137,7 @@ reencode
 refetched
 relayjs
 reprojected
+resharper
 resheader
 resmimetype
 resx
@@ -145,6 +150,7 @@ runbooks
 Satisfiability
 Senn
 shoooe
+Silmarillion
 Skywalker
 snapshooter
 snupkg
@@ -168,6 +174,7 @@ SYSLIB
 Tarkin
 Tatooine
 Tengler
+Testcontainers
 Toub
 TOWGS
 Trimmable

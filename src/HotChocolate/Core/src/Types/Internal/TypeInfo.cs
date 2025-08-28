@@ -1,8 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 internal sealed partial class TypeInfo
@@ -65,34 +63,34 @@ internal sealed partial class TypeInfo
     public bool IsValid { get; }
 
     /// <summary>
-    /// If this type is a schema type then this method defines if it is an input type.
+    /// If this type is a schema type, then this method defines if it is an input type.
     /// </summary>
-    public bool IsInputType() =>
-        IsSchemaType &&
-        typeof(INamedInputType).IsAssignableFrom(NamedType);
+    public bool IsInputType()
+        => IsSchemaType
+            && typeof(IInputTypeDefinition).IsAssignableFrom(NamedType);
 
     /// <summary>
-    /// If this type is a schema type then this method defines if it is an output type.
+    /// If this type is a schema type, then this method defines if it is an output type.
     /// </summary>
-    public bool IsOutputType() =>
-        IsSchemaType &&
-        typeof(INamedOutputType).IsAssignableFrom(NamedType);
+    public bool IsOutputType()
+        => IsSchemaType
+            && typeof(IOutputTypeDefinition).IsAssignableFrom(NamedType);
 
     /// <summary>
-    /// Creates a type structure with the <paramref name="namedType"/>.
+    /// Creates a type structure with the <paramref name="typeDefinition"/>.
     /// </summary>
-    /// <param name="namedType">The named type component.</param>
+    /// <param name="typeDefinition">The named type component.</param>
     /// <returns>
     /// Returns a GraphQL type structure.
     /// </returns>
-    public IType CreateType(INamedType namedType)
+    public IType CreateType(ITypeDefinition typeDefinition)
     {
         if (Components.Count == 1)
         {
-            return namedType;
+            return typeDefinition;
         }
 
-        IType current = namedType;
+        IType current = typeDefinition;
 
         for (var i = Components.Count - 2; i >= 0; i--)
         {
@@ -130,10 +128,7 @@ internal sealed partial class TypeInfo
         TypeCache cache,
         [NotNullWhen(true)] out TypeInfo? typeInfo)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         typeInfo = cache.GetOrCreateTypeInfo(
             type,

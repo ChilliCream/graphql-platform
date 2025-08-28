@@ -6,9 +6,7 @@ using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
-#nullable enable
-
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// The <see cref="ObjectFieldConfiguration"/> contains the settings
@@ -158,16 +156,16 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     /// </summary>
     public bool IsIntrospectionField
     {
-        get => (Flags & FieldFlags.Introspection) == FieldFlags.Introspection;
+        get => (Flags & CoreFieldFlags.Introspection) == CoreFieldFlags.Introspection;
         internal set
         {
             if (value)
             {
-                Flags |= FieldFlags.Introspection;
+                Flags |= CoreFieldFlags.Introspection;
             }
             else
             {
-                Flags &= ~FieldFlags.Introspection;
+                Flags &= ~CoreFieldFlags.Introspection;
             }
         }
     }
@@ -177,16 +175,16 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     /// </summary>
     public bool IsParallelExecutable
     {
-        get => (Flags & FieldFlags.ParallelExecutable) == FieldFlags.ParallelExecutable;
+        get => (Flags & CoreFieldFlags.ParallelExecutable) == CoreFieldFlags.ParallelExecutable;
         set
         {
             if (value)
             {
-                Flags |= FieldFlags.ParallelExecutable;
+                Flags |= CoreFieldFlags.ParallelExecutable;
             }
             else
             {
-                Flags &= ~FieldFlags.ParallelExecutable;
+                Flags &= ~CoreFieldFlags.ParallelExecutable;
             }
         }
     }
@@ -202,16 +200,16 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     /// </summary>
     public bool HasStreamResult
     {
-        get => (Flags & FieldFlags.Stream) == FieldFlags.Stream;
+        get => (Flags & CoreFieldFlags.Stream) == CoreFieldFlags.Stream;
         set
         {
             if (value)
             {
-                Flags |= FieldFlags.Stream;
+                Flags |= CoreFieldFlags.Stream;
             }
             else
             {
-                Flags &= ~FieldFlags.Stream;
+                Flags &= ~CoreFieldFlags.Stream;
             }
         }
     }
@@ -269,19 +267,19 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
 
         if (_middlewareDefinitions is { Count: > 0 })
         {
-            target._middlewareDefinitions = [.._middlewareDefinitions];
+            target._middlewareDefinitions = [.. _middlewareDefinitions];
             _middlewareDefinitionsCleaned = false;
         }
 
         if (_resultConverters is { Count: > 0 })
         {
-            target._resultConverters = [.._resultConverters];
+            target._resultConverters = [.. _resultConverters];
             _resultConvertersCleaned = false;
         }
 
         if (_expressionBuilders is { Count: > 0 })
         {
-            target._expressionBuilders = [.._expressionBuilders];
+            target._expressionBuilders = [.. _expressionBuilders];
         }
 
         target.SourceType = SourceType;
@@ -330,7 +328,7 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
             target.IsParallelExecutable = false;
         }
 
-        if(DependencyInjectionScope.HasValue)
+        if (DependencyInjectionScope.HasValue)
         {
             target.DependencyInjectionScope = DependencyInjectionScope;
         }
@@ -400,19 +398,19 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
                 definitionsCleaned = true;
             }
 
-            if (count == 3 &&
-                definitions[0].IsRepeatable &&
-                definitions[1].IsRepeatable &&
-                definitions[2].IsRepeatable)
+            if (count == 3
+                && definitions[0].IsRepeatable
+                && definitions[1].IsRepeatable
+                && definitions[2].IsRepeatable)
             {
                 definitionsCleaned = true;
             }
 
-            if (count == 4 &&
-                definitions[0].IsRepeatable &&
-                definitions[1].IsRepeatable &&
-                definitions[2].IsRepeatable &&
-                definitions[3].IsRepeatable)
+            if (count == 4
+                && definitions[0].IsRepeatable
+                && definitions[1].IsRepeatable
+                && definitions[2].IsRepeatable
+                && definitions[3].IsRepeatable)
             {
                 definitionsCleaned = true;
             }
@@ -434,7 +432,7 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
                     var keys = ArrayPool<string>.Shared.Rent(nonRepeatable);
 
                     // we clear the section of the array we need before we are using it.
-                    keys.AsSpan().Slice(0, nonRepeatable).Clear();
+                    keys.AsSpan()[..nonRepeatable].Clear();
                     int i = 0, ki = 0;
 
                     do

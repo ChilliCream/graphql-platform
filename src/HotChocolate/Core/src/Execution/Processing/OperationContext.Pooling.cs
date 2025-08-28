@@ -15,23 +15,24 @@ internal sealed partial class OperationContext
 {
     private readonly IFactory<ResolverTask> _resolverTaskFactory;
     private readonly WorkScheduler _workScheduler;
+    private WorkScheduler _currentWorkScheduler;
     private readonly DeferredWorkScheduler _deferredWorkScheduler;
     private readonly ResultBuilder _resultBuilder;
     private readonly AggregateServiceScopeInitializer _serviceScopeInitializer;
-    private IRequestContext _requestContext = default!;
-    private ISchema _schema = default!;
-    private IErrorHandler _errorHandler = default!;
-    private ResolverProvider _resolvers = default!;
-    private IExecutionDiagnosticEvents _diagnosticEvents = default!;
-    private IDictionary<string, object?> _contextData = default!;
+    private RequestContext _requestContext = null!;
+    private Schema _schema = null!;
+    private IErrorHandler _errorHandler = null!;
+    private ResolverProvider _resolvers = null!;
+    private IExecutionDiagnosticEvents _diagnosticEvents = null!;
+    private IDictionary<string, object?> _contextData = null!;
     private CancellationToken _requestAborted;
-    private IOperation _operation = default!;
-    private IVariableValueCollection _variables = default!;
-    private IServiceProvider _services = default!;
-    private Func<object?> _resolveQueryRootValue = default!;
-    private IBatchDispatcher _batchDispatcher = default!;
-    private InputParser _inputParser = default!;
-    private int? _variableIndex;
+    private IOperation _operation = null!;
+    private IVariableValueCollection _variables = null!;
+    private IServiceProvider _services = null!;
+    private Func<object?> _resolveQueryRootValue = null!;
+    private IBatchDispatcher _batchDispatcher = null!;
+    private InputParser _inputParser = null!;
+    private int _variableIndex;
     private object? _rootValue;
     private bool _isInitialized;
 
@@ -43,6 +44,7 @@ internal sealed partial class OperationContext
     {
         _resolverTaskFactory = resolverTaskFactory;
         _workScheduler = new WorkScheduler(this);
+        _currentWorkScheduler = _workScheduler;
         _deferredWorkScheduler = new DeferredWorkScheduler();
         _resultBuilder = resultBuilder;
         _serviceScopeInitializer = serviceScopeInitializer;
@@ -52,20 +54,20 @@ internal sealed partial class OperationContext
     public bool IsInitialized => _isInitialized;
 
     public void Initialize(
-        IRequestContext requestContext,
+        RequestContext requestContext,
         IServiceProvider scopedServices,
         IBatchDispatcher batchDispatcher,
         IOperation operation,
         IVariableValueCollection variables,
         object? rootValue,
         Func<object?> resolveQueryRootValue,
-        int? variableIndex = null)
+        int variableIndex = -1)
     {
         _requestContext = requestContext;
-        _schema = requestContext.Schema;
-        _errorHandler = requestContext.ErrorHandler;
+        _schema = Unsafe.As<Schema>(requestContext.Schema);
+        _errorHandler = _schema.Services.GetRequiredService<IErrorHandler>();
         _resolvers = scopedServices.GetRequiredService<ResolverProvider>();
-        _diagnosticEvents = requestContext.DiagnosticEvents;
+        _diagnosticEvents = _schema.Services.GetRequiredService<IExecutionDiagnosticEvents>();
         _contextData = requestContext.ContextData;
         _requestAborted = requestContext.RequestAborted;
         _operation = operation;
@@ -83,15 +85,17 @@ internal sealed partial class OperationContext
         _deferredWorkScheduler.Initialize(this);
         _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
 
-        if (requestContext.RequestIndex.HasValue)
+        if (requestContext.RequestIndex != -1)
         {
-            _resultBuilder.SetRequestIndex(requestContext.RequestIndex.Value);
+            _resultBuilder.SetRequestIndex(requestContext.RequestIndex);
         }
 
-        if (variableIndex.HasValue)
+        if (variableIndex != -1)
         {
-            _resultBuilder.SetVariableIndex(variableIndex.Value);
+            _resultBuilder.SetVariableIndex(variableIndex);
         }
+
+        _currentWorkScheduler = _workScheduler;
     }
 
     public void InitializeFrom(OperationContext context)
@@ -117,36 +121,39 @@ internal sealed partial class OperationContext
         _deferredWorkScheduler.InitializeFrom(this, context._deferredWorkScheduler);
         _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
 
-        if (context._requestContext.RequestIndex.HasValue)
+        if (context._requestContext.RequestIndex != -1)
         {
-            _resultBuilder.SetRequestIndex(context._requestContext.RequestIndex.Value);
+            _resultBuilder.SetRequestIndex(context._requestContext.RequestIndex);
         }
 
-        if (context._variableIndex.HasValue)
+        if (context._variableIndex != -1)
         {
-            _resultBuilder.SetVariableIndex(context._variableIndex.Value);
+            _resultBuilder.SetVariableIndex(context._variableIndex);
         }
+
+        _currentWorkScheduler = _workScheduler;
     }
 
     public void Clean()
     {
         if (_isInitialized)
         {
+            _currentWorkScheduler = _workScheduler;
             _workScheduler.Clear();
             _resultBuilder.Clear();
             _deferredWorkScheduler.Clear();
-            _requestContext = default!;
-            _schema = default!;
-            _errorHandler = default!;
-            _resolvers = default!;
-            _diagnosticEvents = default!;
-            _contextData = default!;
-            _operation = default!;
-            _variables = default!;
-            _services = default!;
+            _requestContext = null!;
+            _schema = null!;
+            _errorHandler = null!;
+            _resolvers = null!;
+            _diagnosticEvents = null!;
+            _contextData = null!;
+            _operation = null!;
+            _variables = null!;
+            _services = null!;
             _rootValue = null;
-            _resolveQueryRootValue = default!;
-            _batchDispatcher = default!;
+            _resolveQueryRootValue = null!;
+            _batchDispatcher = null!;
             _isInitialized = false;
         }
     }

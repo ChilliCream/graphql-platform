@@ -1,14 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
-using static HotChocolate.WellKnownContextData;
 using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
-
-#nullable enable
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -17,35 +15,32 @@ namespace HotChocolate.Types.Descriptors;
 /// The descriptor context is passed around during the schema creation and
 /// allows access to conventions and context data.
 /// </para>
-/// <para>Essentially this is the schema building context.</para>
+/// <para>
+/// Essentially, this is the schema building context.
+/// </para>
 /// </summary>
 public sealed partial class DescriptorContext : IDescriptorContext
 {
-    private readonly Dictionary<(Type, string?), IConvention> _conventionInstances = new();
-    private readonly IReadOnlyDictionary<(Type, string?), List<CreateConvention>> _conventions;
-    private readonly Dictionary<string, ISchemaDirective> _schemaDirectives = new();
-    private readonly IServiceProvider _schemaServices;
+    private readonly Dictionary<(Type, string?), IConvention> _conventionInstances = [];
     private readonly ServiceHelper _serviceHelper;
     private readonly Func<IReadOnlySchemaOptions> _options;
-
+    private FeatureReference<TypeSystemFeature> _typeSystemFeature = FeatureReference<TypeSystemFeature>.Default;
     private TypeDiscoveryHandler[]? _typeDiscoveryHandlers;
     private INamingConventions? _naming;
     private ITypeInspector? _inspector;
 
     private DescriptorContext(
         Func<IReadOnlySchemaOptions> options,
-        IReadOnlyDictionary<(Type, string?), List<CreateConvention>> conventions,
         IServiceProvider schemaServices,
-        IDictionary<string, object?> contextData,
+        IFeatureCollection features,
         SchemaBuilder.LazySchema schema,
         TypeInterceptor typeInterceptor)
     {
         _options = options;
         Schema = schema;
-        _conventions = conventions;
-        _schemaServices = schemaServices;
-        _serviceHelper = new ServiceHelper(_schemaServices);
-        ContextData = contextData;
+        Services = schemaServices;
+        _serviceHelper = new ServiceHelper(Services);
+        Features = features;
         TypeInterceptor = typeInterceptor;
         ResolverCompiler = new DefaultResolverCompiler(
             schemaServices,
@@ -59,7 +54,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
     internal SchemaBuilder.LazySchema Schema { get; }
 
     /// <inheritdoc />
-    public IServiceProvider Services => _schemaServices;
+    public IServiceProvider Services { get; }
 
     /// <inheritdoc />
     public IReadOnlySchemaOptions Options => _options();
@@ -69,18 +64,14 @@ public sealed partial class DescriptorContext : IDescriptorContext
     {
         get
         {
-            if (_naming is null)
-            {
-                _naming = GetConventionOrDefault<INamingConventions>(
-                    () => Options.UseXmlDocumentation
-                        ? new DefaultNamingConventions(
-                            new XmlDocumentationProvider(
-                                new XmlDocumentationFileResolver(
-                                    Options.ResolveXmlDocumentationFileName),
-                                _serviceHelper.GetStringBuilderPool()))
-                        : new DefaultNamingConventions(
-                            new NoopDocumentationProvider()));
-            }
+            _naming ??= GetConventionOrDefault<INamingConventions>(() => Options.UseXmlDocumentation
+                ? new DefaultNamingConventions(
+                    new XmlDocumentationProvider(
+                        new XmlDocumentationFileResolver(
+                            Options.ResolveXmlDocumentationFileName),
+                        _serviceHelper.GetStringBuilderPool()))
+                : new DefaultNamingConventions(
+                    new NoopDocumentationProvider()));
 
             return _naming;
         }
@@ -91,11 +82,8 @@ public sealed partial class DescriptorContext : IDescriptorContext
     {
         get
         {
-            if (_inspector is null)
-            {
-                _inspector = this.GetConventionOrDefault<ITypeInspector>(
-                    new DefaultTypeInspector());
-            }
+            _inspector ??= this.GetConventionOrDefault<ITypeInspector>(
+                new DefaultTypeInspector());
 
             return _inspector;
         }
@@ -117,79 +105,74 @@ public sealed partial class DescriptorContext : IDescriptorContext
     public InputFormatter InputFormatter { get; }
 
     /// <inheritdoc />
-    public IList<IDescriptor> Descriptors { get; } = new List<IDescriptor>();
+    public IList<IDescriptor> Descriptors { get; } = [];
 
     /// <inheritdoc />
     public INodeIdSerializerAccessor NodeIdSerializerAccessor
-        => _schemaServices.GetRequiredService<INodeIdSerializerAccessor>();
+        => Services.GetRequiredService<INodeIdSerializerAccessor>();
 
     /// <inheritdoc />
     public IParameterBindingResolver ParameterBindingResolver
-        => Services.GetRequiredService<IApplicationServiceProvider>().GetRequiredService<IParameterBindingResolver>();
+        => Services.GetRequiredService<IRootServiceProviderAccessor>()
+            .ServiceProvider.GetRequiredService<IParameterBindingResolver>();
 
     /// <inheritdoc />
-    public IDictionary<string, object?> ContextData { get; }
+    public IFeatureCollection Features { get; }
 
     /// <inheritdoc />
     public TypeConfigurationContainer TypeConfiguration { get; } = new();
 
     /// <inheritdoc />
     public ReadOnlySpan<TypeDiscoveryHandler> GetTypeDiscoveryHandlers()
-        => _typeDiscoveryHandlers ??= CreateTypeDiscoveryHandlers(this);
+        => _typeDiscoveryHandlers ??= CreateTypeDiscoveryHandlers();
 
     /// <inheritdoc />
     public bool TryGetSchemaDirective(
         DirectiveNode directiveNode,
         [NotNullWhen(true)] out ISchemaDirective? directive)
     {
-        if (ContextData.TryGetValue(SchemaDirectives, out var value) &&
-            value is IReadOnlyList<ISchemaDirective> directives)
-        {
-            foreach (var sd in directives)
-            {
-                _schemaDirectives[sd.Name] = sd;
-            }
+        var feature = _typeSystemFeature.Fetch(Features);
 
-            ContextData.Remove(SchemaDirectives);
+        if (feature is null)
+        {
+            directive = null;
+            return false;
         }
 
-        return _schemaDirectives.TryGetValue(directiveNode.Name.Value, out directive);
+        return feature.SchemaDirectives.TryGetValue(directiveNode.Name.Value, out directive);
     }
 
     /// <inheritdoc />
     public T GetConventionOrDefault<T>(
-        Func<T> defaultConvention,
+        Func<T> factory,
         string? scope = null)
         where T : class, IConvention
     {
-        if (defaultConvention is null)
-        {
-            throw new ArgumentNullException(nameof(defaultConvention));
-        }
+        ArgumentNullException.ThrowIfNull(factory);
 
         var key = (typeof(T), scope);
 
-        if (_conventionInstances.TryGetValue(key, out var convention) &&
-            convention is T castedConvention)
+        if (_conventionInstances.TryGetValue(key, out var convention)
+            && convention is T castedConvention)
         {
             return castedConvention;
         }
 
-        CreateConventions<T>(scope, out var createdConvention, out var extensions);
+        CreateConventions<T>(scope, out convention, out var extensions);
 
-        createdConvention ??= createdConvention as T;
-        createdConvention ??= _serviceHelper.GetService<T>();
-        createdConvention ??= defaultConvention();
+        convention ??= convention as T;
+        convention ??= _serviceHelper.GetService<T>();
+        convention ??= factory();
 
-        if (createdConvention is Convention init)
+        if (convention is Convention init)
         {
-            var conventionContext = ConventionContext.Create(scope, _schemaServices, this);
+            var conventionContext = ConventionContext.Create(scope, Services, this);
             init.Initialize(conventionContext);
             MergeExtensions(conventionContext, init, extensions);
             init.Complete(conventionContext);
         }
 
-        if (createdConvention is T createdConventionOfT)
+        if (convention is T createdConventionOfT)
         {
             _conventionInstances[key] = createdConventionOfT;
             return createdConventionOfT;
@@ -198,38 +181,42 @@ public sealed partial class DescriptorContext : IDescriptorContext
         throw ThrowHelper.Convention_ConventionCouldNotBeCreated(typeof(T), scope);
     }
 
-    public void OnSchemaCreated(Action<ISchema> callback)
+    public void OnSchemaCreated(Action<Schema> callback)
         => Schema.OnSchemaCreated(callback);
 
     private void CreateConventions<T>(
         string? scope,
-        out IConvention? createdConvention,
-        out IList<IConventionExtension> extensions)
+        out IConvention? convention,
+        out List<IConventionExtension>? extensions)
     {
-        createdConvention = null;
-        extensions = new List<IConventionExtension>();
+        convention = null;
+        extensions = null;
 
-        if (_conventions.TryGetValue((typeof(T), scope), out var factories))
+        var feature = Features.Get<TypeSystemConventionFeature>();
+        var key = new ConventionKey(typeof(T), scope);
+
+        if (feature is not null
+            && feature.Conventions.TryGetValue(key, out var registrations))
         {
-            for (var i = 0; i < factories.Count; i++)
+            foreach (var registration in registrations)
             {
-                var convention = factories[i](_schemaServices);
-                if (convention is IConventionExtension extension)
+                var instance = registration.Factory(Services);
+                if (instance is IConventionExtension extension)
                 {
+                    extensions ??= [];
                     extensions.Add(extension);
                 }
                 else
                 {
-                    if (createdConvention is not null)
+                    if (convention is not null)
                     {
                         throw ThrowHelper.Convention_TwoConventionsRegisteredForScope(
                             typeof(T),
-                            createdConvention,
                             convention,
+                            instance,
                             scope);
                     }
-
-                    createdConvention = convention;
+                    convention = instance;
                 }
             }
         }
@@ -238,8 +225,13 @@ public sealed partial class DescriptorContext : IDescriptorContext
     private static void MergeExtensions(
         IConventionContext context,
         Convention convention,
-        IList<IConventionExtension> extensions)
+        List<IConventionExtension>? extensions)
     {
+        if (extensions is null)
+        {
+            return;
+        }
+
         foreach (var extension in extensions)
         {
             if (extension is Convention extensionConvention)
@@ -251,32 +243,31 @@ public sealed partial class DescriptorContext : IDescriptorContext
         }
     }
 
-    private static TypeDiscoveryHandler[] CreateTypeDiscoveryHandlers(
-        IDescriptorContext self)
+    private TypeDiscoveryHandler[] CreateTypeDiscoveryHandlers()
     {
-        TypeDiscoveryHandler[] array;
+        var feature = _typeSystemFeature.Fetch(Features);
 
-        if (self.ContextData.TryGetValue(TypeDiscoveryHandlers, out var value) &&
-            value is IReadOnlyList<Func<IDescriptorContext, TypeDiscoveryHandler>> { Count: > 0 } h)
+        if (feature?.TypeDiscoveryHandlers.Count > 0)
         {
-            array = new TypeDiscoveryHandler[h.Count + 2];
+            var handlers = new TypeDiscoveryHandler[feature.TypeDiscoveryHandlers.Count + 2];
 
-            for (var i = 0; i < h.Count; i++)
+            for (var i = 0; i < feature.TypeDiscoveryHandlers.Count; i++)
             {
-                array[i] = h[i](self);
+                handlers[i] = feature.TypeDiscoveryHandlers[i](this);
             }
 
-            array[h.Count] = new ScalarTypeDiscoveryHandler(self.TypeInspector);
-            array[h.Count + 1] = new DefaultTypeDiscoveryHandler(self.TypeInspector);
+            handlers[feature.TypeDiscoveryHandlers.Count] = new ScalarTypeDiscoveryHandler(TypeInspector);
+            handlers[feature.TypeDiscoveryHandlers.Count + 1] = new DefaultTypeDiscoveryHandler(TypeInspector);
+
+            return handlers;
         }
         else
         {
-            array = new TypeDiscoveryHandler[2];
-            array[0] = new ScalarTypeDiscoveryHandler(self.TypeInspector);
-            array[1] = new DefaultTypeDiscoveryHandler(self.TypeInspector);
+            var handlers = new TypeDiscoveryHandler[2];
+            handlers[0] = new ScalarTypeDiscoveryHandler(TypeInspector);
+            handlers[1] = new DefaultTypeDiscoveryHandler(TypeInspector);
+            return handlers;
         }
-
-        return array;
     }
 
     public void Dispose() => ResolverCompiler.Dispose();
@@ -284,30 +275,26 @@ public sealed partial class DescriptorContext : IDescriptorContext
     internal static DescriptorContext Create(
         IReadOnlySchemaOptions? options = null,
         IServiceProvider? services = null,
-        IReadOnlyDictionary<(Type, string?), List<CreateConvention>>? conventions = null,
-        IDictionary<string, object?>? contextData = null,
+        IFeatureCollection? features = null,
         SchemaBuilder.LazySchema? schema = null,
         TypeInterceptor? typeInterceptor = null)
         => new DescriptorContext(
-            () => (options ??= new SchemaOptions()),
-            conventions ?? new Dictionary<(Type, string?), List<CreateConvention>>(),
+            () => options ??= new SchemaOptions(),
             services ?? EmptyServiceProvider.Instance,
-            contextData ?? new Dictionary<string, object?>(),
+            features ?? new FeatureCollection(),
             schema ?? new SchemaBuilder.LazySchema(),
             typeInterceptor ?? new AggregateTypeInterceptor());
 
     internal static DescriptorContext Create(
         Func<IReadOnlySchemaOptions> options,
         IServiceProvider services,
-        IReadOnlyDictionary<(Type, string?), List<CreateConvention>>? conventions = null,
-        IDictionary<string, object?>? contextData = null,
+        IFeatureCollection? features = null,
         SchemaBuilder.LazySchema? schema = null,
         TypeInterceptor? typeInterceptor = null)
         => new DescriptorContext(
             options,
-            conventions ?? new Dictionary<(Type, string?), List<CreateConvention>>(),
             services,
-            contextData ?? new Dictionary<string, object?>(),
+            features ?? new FeatureCollection(),
             schema ?? new SchemaBuilder.LazySchema(),
             typeInterceptor ?? new AggregateTypeInterceptor());
 }

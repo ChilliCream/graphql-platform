@@ -1,3 +1,5 @@
+#nullable disable
+
 using HotChocolate.Language;
 using System.Diagnostics.CodeAnalysis;
 
@@ -31,15 +33,8 @@ public static class DirectiveArgumentDescriptorExtensions
         this IDirectiveArgumentDescriptor descriptor,
         [StringSyntax("graphql")] string syntax)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (syntax is null)
-        {
-            throw new ArgumentNullException(nameof(syntax));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(syntax);
 
         var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(syntax);
         return descriptor.DefaultValue(value);

@@ -21,6 +21,7 @@ public class TypeConverterTests
                         number
                     }
                 }",
+                configure: c => c.AddQueryType<Query>(),
                 request: r => r.SetVariableValues(
                     new Dictionary<string, object?>
                     {
@@ -30,11 +31,10 @@ public class TypeConverterTests
                             {
                                 { "id", "934b987bc0d842bbabfd8a3b3f8b476e" },
                                 { "time", "2018-05-29T01:00:00Z" },
-                                { "number", (byte)123 },
+                                { "number", (byte)123 }
                             }
                         }
-                    }),
-                configure: c => c.AddQueryType<Query>())
+                    }))
             .MatchSnapshotAsync();
     }
 
@@ -46,9 +46,9 @@ public class TypeConverterTests
                 query foo($time: DateTime) {
                     time(time: $time)
                 }",
+                configure: c => c.AddQueryType<QueryType>(),
                 request: r => r.SetVariableValues(
-                    new Dictionary<string, object?> { { "time", "2018-05-29T01:00:00Z" }, }),
-                configure: c => c.AddQueryType<QueryType>())
+                    new Dictionary<string, object?> { { "time", "2018-05-29T01:00:00Z" } }))
             .MatchSnapshotAsync();
     }
 
@@ -61,8 +61,8 @@ public class TypeConverterTests
                 query foo($time: DateTime) {
                     time(time: $time)
                 }",
-                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "time", time }, }),
-                configure: c => c.AddQueryType<QueryType>())
+                configure: c => c.AddQueryType<QueryType>(),
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "time", time } }))
             .MatchSnapshotAsync();
     }
 
@@ -78,6 +78,7 @@ public class TypeConverterTests
                         number
                     }
                 }",
+                configure: c => c.AddQueryType<QueryType>(),
                 request: r => r.SetVariableValues(
                     new Dictionary<string, object?>
                     {
@@ -87,11 +88,10 @@ public class TypeConverterTests
                             {
                                 { "id", "934b987bc0d842bbabfd8a3b3f8b476e" },
                                 { "time", "2018-05-29T01:00:00Z" },
-                                { "number", (byte)123 },
+                                { "number", (byte)123 }
                             }
-                        },
-                    }),
-                configure: c => c.AddQueryType<QueryType>())
+                        }
+                    }))
             .MatchSnapshotAsync();
     }
 
@@ -209,7 +209,7 @@ public class TypeConverterTests
         protected override void Configure(
             IObjectTypeDescriptor<Query> descriptor)
         {
-            descriptor.Field(t => t.GetTime(default))
+            descriptor.Field(t => t.GetTime(null))
                 .Argument("time", a => a.Type<DateTimeType>())
                 .Type<DateTimeType>();
         }

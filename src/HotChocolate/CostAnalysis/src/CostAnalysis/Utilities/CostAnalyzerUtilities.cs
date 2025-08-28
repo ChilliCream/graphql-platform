@@ -1,18 +1,15 @@
 using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using IHasDirectives = HotChocolate.Types.IHasDirectives;
 
 namespace HotChocolate.CostAnalysis.Utilities;
 
 internal static class CostAnalyzerUtilities
 {
-    public static double GetFieldWeight(this IOutputField field)
+    public static double GetFieldWeight(this IOutputFieldDefinition field)
     {
         // Use weight from @cost directive.
-        var costDirective = field.Directives
-            .FirstOrDefault<CostDirective>()
-            ?.AsValue<CostDirective>();
+        var costDirective = field.Directives.FirstOrDefaultValue<CostDirective>();
 
         if (costDirective is not null)
         {
@@ -25,12 +22,10 @@ internal static class CostAnalyzerUtilities
         return field.Type.NamedType().IsCompositeType() || field.Type.IsListType() ? 1.0 : 0.0;
     }
 
-    public static double GetFieldWeight(this IInputField field)
+    public static double GetFieldWeight(this IInputValueDefinition field)
     {
         // Use weight from @cost directive.
-        var costDirective = field.Directives
-            .FirstOrDefault<CostDirective>()
-            ?.AsValue<CostDirective>();
+        var costDirective = field.Directives.FirstOrDefaultValue<CostDirective>();
 
         if (costDirective is not null)
         {
@@ -43,20 +38,14 @@ internal static class CostAnalyzerUtilities
         return field.Type.NamedType().IsInputObjectType() ? 1.0 : 0.0;
     }
 
-    public static double GetTypeWeight(this IOutputField field)
+    public static double GetTypeWeight(this IOutputFieldDefinition field)
     {
         var namedType = field.Type.NamedType();
+        var costDirective = namedType.Directives.FirstOrDefaultValue<CostDirective>();
 
-        if (namedType is IHasDirectives directiveProvider)
+        if (costDirective is not null)
         {
-            var costDirective = directiveProvider.Directives
-                .FirstOrDefault<CostDirective>()
-                ?.AsValue<CostDirective>();
-
-            if (costDirective is not null)
-            {
-                return costDirective.Weight;
-            }
+            return costDirective.Weight;
         }
 
         // https://ibm.github.io/graphql-specs/cost-spec.html#sec-weight
@@ -67,17 +56,11 @@ internal static class CostAnalyzerUtilities
     public static double GetTypeWeight(this IType type)
     {
         var namedType = type.NamedType();
+        var costDirective = namedType.Directives.FirstOrDefaultValue<CostDirective>();
 
-        if (namedType is IHasDirectives directiveProvider)
+        if (costDirective is not null)
         {
-            var costDirective = directiveProvider.Directives
-                .FirstOrDefault<CostDirective>()
-                ?.AsValue<CostDirective>();
-
-            if (costDirective is not null)
-            {
-                return costDirective.Weight;
-            }
+            return costDirective.Weight;
         }
 
         // https://ibm.github.io/graphql-specs/cost-spec.html#sec-weight
@@ -86,7 +69,7 @@ internal static class CostAnalyzerUtilities
     }
 
     public static double GetListSize(
-        this IOutputField field,
+        this IOutputFieldDefinition field,
         IReadOnlyList<ArgumentNode> arguments,
         ListSizeDirective? listSizeDirective)
     {
@@ -177,23 +160,23 @@ internal static class CostAnalyzerUtilities
             {
                 if (listSizeDirective.SlicingArguments.Contains(argumentNode.Name.Value))
                 {
-                    if(argumentNode.Value.Kind == SyntaxKind.NullValue)
+                    if (argumentNode.Value.Kind == SyntaxKind.NullValue)
                     {
                         continue;
                     }
 
                     argumentCount++;
 
-                    if(argumentNode.Value.Kind == SyntaxKind.Variable)
+                    if (argumentNode.Value.Kind == SyntaxKind.Variable)
                     {
                         variableCount++;
                     }
                 }
             }
 
-            if(argumentCount > 0 &&
-                argumentCount == variableCount &&
-                argumentCount <= listSizeDirective.SlicingArguments.Length)
+            if (argumentCount > 0
+                && argumentCount == variableCount
+                && argumentCount <= listSizeDirective.SlicingArguments.Length)
             {
                 return;
             }

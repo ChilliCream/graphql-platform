@@ -2,36 +2,35 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
-using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.FusionUtilitiesResources;
 using static HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.Validators;
 
-public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
+public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
     : FieldSelectionMapSyntaxVisitor<FieldSelectionMapValidatorContext>(Continue)
 {
     public ImmutableArray<string> Validate(
-        SelectedValueNode selectedValue,
-        ITypeDefinition inputType,
-        ITypeDefinition outputType)
+        IValueSelectionNode choiceValueSelection,
+        IType inputType,
+        IType outputType)
     {
         var context = new FieldSelectionMapValidatorContext(inputType, outputType);
 
-        Visit(selectedValue, context);
+        Visit(choiceValueSelection, context);
 
         return [.. context.Errors];
     }
 
     public ImmutableArray<string> Validate(
-        SelectedValueNode selectedValue,
-        ITypeDefinition inputType,
-        ITypeDefinition outputType,
-        out ImmutableHashSet<MutableOutputFieldDefinition> selectedFields)
+        IValueSelectionNode choiceValueSelection,
+        IType inputType,
+        IType outputType,
+        out ImmutableHashSet<IOutputFieldDefinition> selectedFields)
     {
         var context = new FieldSelectionMapValidatorContext(inputType, outputType);
 
-        Visit(selectedValue, context);
+        Visit(choiceValueSelection, context);
 
         selectedFields = [.. context.SelectedFields];
 
@@ -57,7 +56,7 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
 
             var type = context.OutputTypes.Peek();
 
-            if (schema.GetPossibleTypes(type).Contains(concreteType))
+            if (schema.GetPossibleTypes(type.AsTypeDefinition()).Contains(concreteType))
             {
                 context.OutputTypes.Push(concreteType);
             }
@@ -67,7 +66,7 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
                     string.Format(
                         FieldSelectionMapValidator_InvalidTypeCondition,
                         concreteType.Name,
-                        type.Name));
+                        type.AsTypeDefinition().Name));
 
                 return Break;
             }
@@ -92,7 +91,7 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
         PathSegmentNode node,
         FieldSelectionMapValidatorContext context)
     {
-        if (context.OutputTypes.Peek() is MutableComplexTypeDefinition complexType)
+        if (context.OutputTypes.Peek().NullableType() is IComplexTypeDefinition complexType)
         {
             if (!complexType.Fields.TryGetField(node.FieldName.Value, out var field))
             {
@@ -109,7 +108,7 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
 
             var fieldType = field.Type.NullableType();
 
-            if (fieldType is MutableComplexTypeDefinition or MutableUnionTypeDefinition)
+            if (fieldType is IComplexTypeDefinition or IUnionTypeDefinition)
             {
                 if (node.PathSegment is null)
                 {
@@ -121,7 +120,7 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
                     return Break;
                 }
 
-                if (fieldType is MutableUnionTypeDefinition && node.TypeName is null)
+                if (fieldType is IUnionTypeDefinition && node.TypeName is null)
                 {
                     context.Errors.Add(
                         string.Format(
@@ -131,7 +130,7 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
                     return Break;
                 }
 
-                context.OutputTypes.Push(fieldType.AsTypeDefinition());
+                context.OutputTypes.Push(field.Type);
             }
             else
             {
@@ -154,7 +153,7 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
                         return Break;
                     }
 
-                    context.OutputTypes.Push(fieldType.AsTypeDefinition());
+                    context.OutputTypes.Push(field.Type);
                 }
                 else
                 {
@@ -183,7 +182,7 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
 
             var type = context.OutputTypes.Peek();
 
-            if (schema.GetPossibleTypes(type).Contains(concreteType))
+            if (schema.GetPossibleTypes(type.AsTypeDefinition()).Contains(concreteType))
             {
                 context.OutputTypes.Pop();
                 context.OutputTypes.Push(concreteType);
@@ -194,7 +193,7 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
                     string.Format(
                         FieldSelectionMapValidator_InvalidTypeCondition,
                         concreteType.Name,
-                        type.Name));
+                        type.AsTypeDefinition().Name));
 
                 return Break;
             }
@@ -213,10 +212,10 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
     }
 
     protected override ISyntaxVisitorAction Enter(
-        SelectedObjectValueNode node,
+        ObjectValueSelectionNode selectionNode,
         FieldSelectionMapValidatorContext context)
     {
-        if (context.InputTypes.Peek() is not MutableInputObjectTypeDefinition inputType)
+        if (context.InputTypes.Peek().NullableType() is not IInputObjectTypeDefinition inputType)
         {
             return Continue;
         }
@@ -228,7 +227,7 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
                 .Select(f => f.Name)
                 .ToHashSet();
 
-        var selectedFieldNames = node.Fields.Select(f => f.Name.Value).ToImmutableHashSet();
+        var selectedFieldNames = selectionNode.Fields.Select(f => f.Name.Value).ToImmutableHashSet();
 
         // For an input type with the @oneOf directive, we need to ensure that exactly one of the
         // required fields is selected.
@@ -259,16 +258,16 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
     }
 
     protected override ISyntaxVisitorAction Enter(
-        SelectedObjectFieldNode node,
+        ObjectFieldSelectionNode node,
         FieldSelectionMapValidatorContext context)
     {
         var currentInputType = context.InputTypes.Peek();
 
-        if (currentInputType is MutableInputObjectTypeDefinition inputType)
+        if (currentInputType.NullableType() is IInputObjectTypeDefinition inputType)
         {
             if (inputType.Fields.TryGetField(node.Name.Value, out var inputField))
             {
-                context.InputTypes.Push(inputField.Type.AsTypeDefinition());
+                context.InputTypes.Push(inputField.Type);
             }
             else
             {
@@ -286,8 +285,8 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
             context.InputTypes.Push(currentInputType);
         }
 
-        if (node.SelectedValue is null
-            && context.OutputTypes.Peek() is MutableComplexTypeDefinition complexType)
+        if (node.ValueSelection is null
+            && context.OutputTypes.Peek().NullableType() is IComplexTypeDefinition complexType)
         {
             if (!complexType.Fields.TryGetField(node.Name.Value, out var field))
             {
@@ -307,7 +306,7 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
     }
 
     protected override ISyntaxVisitorAction Leave(
-        SelectedObjectFieldNode node,
+        ObjectFieldSelectionNode node,
         FieldSelectionMapValidatorContext context)
     {
         context.InputTypes.Pop();
@@ -318,17 +317,17 @@ public sealed class FieldSelectionMapValidator(MutableSchemaDefinition schema)
 
 public sealed class FieldSelectionMapValidatorContext
 {
-    public FieldSelectionMapValidatorContext(ITypeDefinition inputType, ITypeDefinition outputType)
+    public FieldSelectionMapValidatorContext(IType inputType, IType outputType)
     {
         InputTypes.Push(inputType);
         OutputTypes.Push(outputType);
     }
 
-    public Stack<ITypeDefinition> InputTypes { get; } = [];
+    public Stack<IType> InputTypes { get; } = [];
 
-    public Stack<ITypeDefinition> OutputTypes { get; } = [];
+    public Stack<IType> OutputTypes { get; } = [];
 
-    public HashSet<MutableOutputFieldDefinition> SelectedFields { get; } = [];
+    public HashSet<IOutputFieldDefinition> SelectedFields { get; } = [];
 
     public List<string> Errors { get; } = [];
 }

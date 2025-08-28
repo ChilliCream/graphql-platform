@@ -15,14 +15,11 @@ public class SourceObjectTypeCollection(IEnumerable<SourceObjectType> members)
         => Members;
 
     ImmutableArray<ISourceComplexType> ISourceComplexTypeCollection<ISourceComplexType>.Types
-        => [..Members];
+        => [.. Members];
 
-    public bool TryGetType(string schemaName, [NotNullWhen(true)] out SourceObjectType? type)
-        => TryGetMember(schemaName, out type);
-
-    public bool TryGetType(string schemaName, [NotNullWhen(true)] out ISourceComplexType? type)
+    public bool TryGetMember(string schemaName, [NotNullWhen(true)] out ISourceComplexType? type)
     {
-        if(TryGetMember(schemaName, out var member))
+        if (base.TryGetMember(schemaName, out var member))
         {
             type = member;
             return true;

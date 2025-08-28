@@ -9,6 +9,7 @@
   <ItemGroup>
     <Using Include="CookieCrumble" />
     <Using Include="CookieCrumble.Xunit" />
+    <Using Include="Xunit" />
   </ItemGroup>
 
   <ItemGroup>

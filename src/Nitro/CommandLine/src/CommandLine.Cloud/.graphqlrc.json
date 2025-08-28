@@ -1,0 +1,26 @@
+{
+  "name": "ChilliCream.Nitro.CommandLine.Cloud.Client",
+  "schema": "./schema.graphql",
+  "documents": "**/*.graphql",
+  "extensions": {
+    "strawberryShake": {
+      "name": "ApiClient",
+      "namespace": "ChilliCream.Nitro.CommandLine.Cloud.Client",
+      "url": "https://api.chillicream.cloud/graphql/",
+      "dependencyInjection": true,
+      "emitGeneratedCode": true,
+      "noStore": true,
+      "records": {
+        "inputs": true,
+        "entities": true
+      },
+      "transportProfiles": [
+        {
+          "name": "Default",
+          "default": "HTTP",
+          "subscription": "HTTP"
+        }
+      ]
+    }
+  }
+}

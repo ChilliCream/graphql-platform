@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// A list that also exposes the binding behavior.

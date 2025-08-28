@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Logging.Contracts;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.PostMergeValidationRules;
 using HotChocolate.Fusion.PreMergeValidationRules;
 using HotChocolate.Fusion.Results;
@@ -8,13 +9,25 @@ using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositionLog log)
+public sealed class SchemaComposer
 {
-    private readonly IEnumerable<string> _sourceSchemas = sourceSchemas
-        ?? throw new ArgumentNullException(nameof(sourceSchemas));
+    private readonly IEnumerable<SourceSchemaText> _sourceSchemas;
+    private readonly SchemaComposerOptions _schemaComposerOptions;
+    private readonly ICompositionLog _log;
 
-    private readonly ICompositionLog _log = log
-        ?? throw new ArgumentNullException(nameof(log));
+    public SchemaComposer(
+        IEnumerable<SourceSchemaText> sourceSchemas,
+        SchemaComposerOptions schemaComposerOptions,
+        ICompositionLog log)
+    {
+        ArgumentNullException.ThrowIfNull(sourceSchemas);
+        ArgumentNullException.ThrowIfNull(schemaComposerOptions);
+        ArgumentNullException.ThrowIfNull(log);
+
+        _sourceSchemas = sourceSchemas;
+        _schemaComposerOptions = schemaComposerOptions;
+        _log = log;
+    }
 
     public CompositionResult<MutableSchemaDefinition> Compose()
     {
@@ -46,8 +59,12 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         }
 
         // Merge Source Schemas
+        var sourceSchemaMergerOptions = new SourceSchemaMergerOptions
+        {
+            EnableGlobalObjectIdentification = _schemaComposerOptions.EnableGlobalObjectIdentification
+        };
         var (_, isMergeFailure, mergedSchema, mergeErrors) =
-            new SourceSchemaMerger(schemas).Merge();
+            new SourceSchemaMerger(schemas, sourceSchemaMergerOptions).Merge();
 
         if (isMergeFailure)
         {
@@ -64,7 +81,7 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         }
 
         // Validate Satisfiability
-        var satisfiabilityResult = new SatisfiabilityValidator(mergedSchema).Validate();
+        var satisfiabilityResult = new SatisfiabilityValidator(mergedSchema, _log).Validate();
 
         if (satisfiabilityResult.IsFailure)
         {

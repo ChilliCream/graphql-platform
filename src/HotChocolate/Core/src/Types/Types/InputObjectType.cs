@@ -1,6 +1,6 @@
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Configurations;
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Types;
 
@@ -20,10 +20,10 @@ namespace HotChocolate.Types;
 /// </summary>
 public partial class InputObjectType
     : NamedTypeBase<InputObjectTypeConfiguration>
-    , IInputObjectType
+    , IInputObjectTypeDefinition
 {
     /// <summary>
-    /// Initializes a new  instance of <see cref="InputObjectType"/>.
+    /// Initializes a new instance of <see cref="InputObjectType"/>.
     /// </summary>
     protected InputObjectType()
     {
@@ -31,7 +31,7 @@ public partial class InputObjectType
     }
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="InputObjectType"/>.
+    /// Initializes a new instance of <see cref="InputObjectType"/>.
     /// </summary>
     /// <param name="configure">
     /// A delegate to specify the properties of this type.
@@ -68,9 +68,10 @@ public partial class InputObjectType
     /// <summary>
     /// Gets the fields of this type.
     /// </summary>
-    public FieldCollection<InputField> Fields { get; private set; } = default!;
+    public InputFieldCollection Fields { get; private set; } = null!;
 
-    IFieldCollection<IInputField> IInputObjectType.Fields => Fields;
+    IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IInputObjectTypeDefinition.Fields
+        => Fields.AsReadOnlyFieldDefinitionCollection();
 
     internal object CreateInstance(object?[] fieldValues)
         => _createInstance(fieldValues);
@@ -87,4 +88,17 @@ public partial class InputObjectType
     protected virtual void Configure(IInputObjectTypeDescriptor descriptor)
     {
     }
+
+    /// <summary>
+    /// Creates a <see cref="InputObjectTypeDefinitionNode"/> that represents the input object type.
+    /// </summary>
+    /// <returns>
+    /// The GraphQL syntax node that represents the input object type.
+    /// </returns>
+    public new InputObjectTypeDefinitionNode ToSyntaxNode()
+        => Format(this);
+
+    /// <inheritdoc />
+    protected override ITypeDefinitionNode FormatType()
+        => Format(this);
 }

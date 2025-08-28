@@ -1,20 +1,26 @@
 using System.Collections.Immutable;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
+using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
-public sealed class CompositeSchemaContext
+internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderContext
 {
     private readonly Dictionary<ITypeNode, IType> _compositeTypes = new(SyntaxComparer.BySyntax);
     private readonly Dictionary<string, ITypeDefinition> _typeDefinitionLookup;
     private ImmutableDictionary<string, ITypeDefinitionNode> _typeDefinitionNodeLookup;
     private readonly Dictionary<string, FusionDirectiveDefinition> _directiveDefinitionLookup;
     private ImmutableDictionary<string, DirectiveDefinitionNode> _directiveDefinitionNodeLookup;
+    private readonly List<INeedsCompletion> _completions = [];
 
-    public CompositeSchemaContext(
+    public CompositeSchemaBuilderContext(
+        string name,
+        string? description,
+        IServiceProvider services,
         string queryType,
         string? mutationType,
         string? subscriptionType,
@@ -22,22 +28,39 @@ public sealed class CompositeSchemaContext
         ImmutableArray<ITypeDefinition> typeDefinitions,
         ImmutableDictionary<string, ITypeDefinitionNode> typeDefinitionNodeLookup,
         ImmutableArray<FusionDirectiveDefinition> directiveDefinitions,
-        ImmutableDictionary<string, DirectiveDefinitionNode> directiveDefinitionNodeLookup)
+        ImmutableDictionary<string, DirectiveDefinitionNode> directiveDefinitionNodeLookup,
+        ImmutableDictionary<string, SourceSchemaInfo> sourceSchemaLookup,
+        IFeatureCollection features,
+        CompositeTypeInterceptor interceptor)
     {
         _typeDefinitionLookup = typeDefinitions.ToDictionary(t => t.Name);
         _directiveDefinitionLookup = directiveDefinitions.ToDictionary(t => t.Name);
         _typeDefinitionNodeLookup = typeDefinitionNodeLookup;
         _directiveDefinitionNodeLookup = directiveDefinitionNodeLookup;
 
+        Name = name;
+        Description = description;
+        Services = services;
         QueryType = queryType;
         MutationType = mutationType;
         SubscriptionType = subscriptionType;
         Directives = directives;
         TypeDefinitions = typeDefinitions;
         DirectiveDefinitions = directiveDefinitions;
+        SourceSchemaLookup = sourceSchemaLookup;
+        Features = features;
+        Interceptor = interceptor;
 
         AddSpecDirectives();
     }
+
+    public string Name { get; }
+
+    public string? Description { get; }
+
+    public IServiceProvider Services { get; }
+
+    public CompositeTypeInterceptor Interceptor { get; }
 
     public string QueryType { get; }
 
@@ -50,6 +73,24 @@ public sealed class CompositeSchemaContext
     public ImmutableArray<DirectiveNode> Directives { get; }
 
     public ImmutableArray<FusionDirectiveDefinition> DirectiveDefinitions { get; private set; }
+
+    public ImmutableDictionary<string, SourceSchemaInfo> SourceSchemaLookup { get; }
+
+    public IFeatureCollection Features { get; }
+
+    public void RegisterForCompletion(INeedsCompletion completion)
+        => _completions.Add(completion);
+
+    public void RegisterForCompletionRange(IEnumerable<INeedsCompletion> completion)
+        => _completions.AddRange(completion);
+
+    public void Complete(FusionSchemaDefinition schema)
+    {
+        foreach (var completion in _completions)
+        {
+            completion.Complete(schema, this);
+        }
+    }
 
     public T GetTypeDefinition<T>(string typeName)
         where T : ITypeDefinitionNode
@@ -103,7 +144,8 @@ public sealed class CompositeSchemaContext
         {
             if (!IsSpecScalarType(typeName))
             {
-                throw new InvalidOperationException("The specified type does not exist.");
+                throw new InvalidOperationException(
+                    $"The specified type `{typeName}` does not exist.");
             }
 
             type = CreateSpecScalar(typeName);
@@ -116,8 +158,8 @@ public sealed class CompositeSchemaContext
     private FusionScalarTypeDefinition CreateSpecScalar(string name)
     {
         var type = new FusionScalarTypeDefinition(name, null);
-        var typeDef = new ScalarTypeDefinitionNode(null, new NameNode(name), null, Array.Empty<DirectiveNode>());
-        type.Complete(new CompositeScalarTypeCompletionContext(FusionDirectiveCollection.Empty));
+        var typeDef = new ScalarTypeDefinitionNode(null, new NameNode(name), null, []);
+        type.Complete(new CompositeScalarTypeCompletionContext(default, FusionDirectiveCollection.Empty, null));
 
         _typeDefinitionNodeLookup = _typeDefinitionNodeLookup.SetItem(name, typeDef);
         TypeDefinitions = TypeDefinitions.Add(type);
@@ -149,6 +191,9 @@ public sealed class CompositeSchemaContext
 
         throw new InvalidOperationException();
     }
+
+    public string GetSchemaName(SchemaKey schemaKey)
+        => SourceSchemaLookup[schemaKey.Value].Name;
 
     private void AddSpecDirectives()
     {
@@ -189,12 +234,12 @@ public sealed class CompositeSchemaContext
                     new StringValueNode("Skips this field or fragment when the condition is true."),
                     new NonNullTypeNode(new NamedTypeNode(new NameNode("Boolean"))),
                     null,
-                    Array.Empty<DirectiveNode>())
+                    [])
             ],
             [
-                new NameNode(Language.DirectiveLocation.Field.Value),
-                new NameNode(Language.DirectiveLocation.FragmentSpread.Value),
-                new NameNode(Language.DirectiveLocation.InlineFragment.Value)
+                new NameNode(HotChocolate.Language.DirectiveLocation.Field.Value),
+                new NameNode(HotChocolate.Language.DirectiveLocation.FragmentSpread.Value),
+                new NameNode(HotChocolate.Language.DirectiveLocation.InlineFragment.Value)
             ]);
 
         _directiveDefinitionNodeLookup = _directiveDefinitionNodeLookup.SetItem("skip", skipDirectiveDef);
@@ -233,9 +278,9 @@ public sealed class CompositeSchemaContext
                     Array.Empty<DirectiveNode>())
             ],
             [
-                new NameNode(Language.DirectiveLocation.Field.Value),
-                new NameNode(Language.DirectiveLocation.FragmentSpread.Value),
-                new NameNode(Language.DirectiveLocation.InlineFragment.Value)
+                new NameNode(HotChocolate.Language.DirectiveLocation.Field.Value),
+                new NameNode(HotChocolate.Language.DirectiveLocation.FragmentSpread.Value),
+                new NameNode(HotChocolate.Language.DirectiveLocation.InlineFragment.Value)
             ]);
 
         _directiveDefinitionNodeLookup = _directiveDefinitionNodeLookup.Add("include", includeDirectiveDef);

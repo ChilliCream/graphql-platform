@@ -13,7 +13,11 @@ internal sealed partial class OperationContext
         get
         {
             AssertInitialized();
-            return _workScheduler;
+            return _currentWorkScheduler;
+        }
+        internal set
+        {
+            _currentWorkScheduler = value;
         }
     }
 
@@ -39,6 +43,15 @@ internal sealed partial class OperationContext
         {
             AssertInitialized();
             return _resultBuilder;
+        }
+    }
+
+    public RequestContext RequestContext
+    {
+        get
+        {
+            AssertInitialized();
+            return _requestContext;
         }
     }
 

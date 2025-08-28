@@ -14,7 +14,7 @@ public class LocalTimeTypeTests
         // arrange
         var localTimeType = new LocalTimeType();
         var timeOnly = new TimeOnly(8, 46, 14);
-        var expectedValue = "08:46:14";
+        const string expectedValue = "08:46:14";
 
         // act
         var serializedValue = (string)localTimeType.Serialize(timeOnly);
@@ -29,7 +29,7 @@ public class LocalTimeTypeTests
         // arrange
         var localTimeType = new LocalTimeType();
         var dateTime = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-        var expectedValue = "08:46:14";
+        const string expectedValue = "08:46:14";
 
         // act
         var serializedValue = (string)localTimeType.Serialize(dateTime);
@@ -46,7 +46,7 @@ public class LocalTimeTypeTests
         var dateTime = new DateTimeOffset(
             new DateTime(2018, 6, 11, 2, 46, 14),
             new TimeSpan(4, 0, 0));
-        var expectedValue = "02:46:14";
+        const string expectedValue = "02:46:14";
 
         // act
         var serializedValue = (string)localTimeType.Serialize(dateTime);
@@ -273,7 +273,7 @@ public class LocalTimeTypeTests
         // arrange
         var localTimeType = new LocalTimeType();
         var timeOnly = new TimeOnly(8, 46, 14);
-        var expectedLiteralValue = "08:46:14";
+        const string expectedLiteralValue = "08:46:14";
 
         // act
         var stringLiteral =
@@ -302,7 +302,7 @@ public class LocalTimeTypeTests
         // arrange
         var localTimeType = new LocalTimeType();
         var resultValue = new TimeOnly(8, 46, 14);
-        var expectedLiteralValue = "08:46:14";
+        const string expectedLiteralValue = "08:46:14";
 
         // act
         var literal = localTimeType.ParseResult(resultValue);
@@ -318,7 +318,7 @@ public class LocalTimeTypeTests
         // arrange
         var localTimeType = new LocalTimeType();
         var resultValue = new DateTime(2023, 6, 19, 11, 24, 0, DateTimeKind.Utc);
-        var expectedLiteralValue = "11:24:00";
+        const string expectedLiteralValue = "11:24:00";
 
         // act
         var literal = localTimeType.ParseResult(resultValue);
@@ -334,7 +334,7 @@ public class LocalTimeTypeTests
         // arrange
         var localTimeType = new LocalTimeType();
         var resultValue = new DateTimeOffset(2023, 6, 19, 11, 24, 0, new TimeSpan(6, 0, 0));
-        var expectedLiteralValue = "11:24:00";
+        const string expectedLiteralValue = "11:24:00";
 
         // act
         var literal = localTimeType.ParseResult(resultValue);
@@ -349,8 +349,8 @@ public class LocalTimeTypeTests
     {
         // arrange
         var localTimeType = new LocalTimeType();
-        var resultValue = "11:24:00";
-        var expectedLiteralValue = "11:24:00";
+        const string resultValue = "11:24:00";
+        const string expectedLiteralValue = "11:24:00";
 
         // act
         var literal = localTimeType.ParseResult(resultValue);
@@ -378,7 +378,7 @@ public class LocalTimeTypeTests
     {
         // arrange
         var localTimeType = new LocalTimeType();
-        var resultValue = 1;
+        const int resultValue = 1;
 
         // act
         var exception = Record.Exception(() => localTimeType.ParseResult(resultValue));

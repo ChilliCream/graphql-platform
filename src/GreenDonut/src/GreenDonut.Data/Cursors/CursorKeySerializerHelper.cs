@@ -42,7 +42,7 @@ internal static class CursorKeySerializerHelper
             ? stackalloc byte[formattedKey.Length]
             : rented = ArrayPool<byte>.Shared.Rent(formattedKey.Length);
 
-        formattedKey.Slice(0, start).CopyTo(buffer);
+        formattedKey[..start].CopyTo(buffer);
 
         var i = start;
         var j = start;
@@ -62,7 +62,7 @@ internal static class CursorKeySerializerHelper
             }
         }
 
-        var key = serializer.Parse(buffer.Slice(0, i));
+        var key = serializer.Parse(buffer[..i]);
 
         if (rented != null)
         {
@@ -115,7 +115,7 @@ internal static class CursorKeySerializerHelper
             ? stackalloc byte[original.Length]
             : rented = ArrayPool<byte>.Shared.Rent(original.Length);
 
-        original.Slice(0, start).CopyTo(buffer);
+        original[..start].CopyTo(buffer);
 
         var i = start;
         var j = start;
@@ -145,7 +145,7 @@ internal static class CursorKeySerializerHelper
             }
         }
 
-        buffer.Slice(0, i).CopyTo(original);
+        buffer[..i].CopyTo(original);
         written = i;
 
         if (rented != null)

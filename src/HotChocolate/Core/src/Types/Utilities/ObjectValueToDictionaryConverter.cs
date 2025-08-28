@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -8,10 +10,7 @@ public class ObjectValueToDictionaryConverter : SyntaxWalker<Action<object>>
 {
     public Dictionary<string, object> Convert(ObjectValueNode objectValue)
     {
-        if (objectValue is null)
-        {
-            throw new ArgumentNullException(nameof(objectValue));
-        }
+        ArgumentNullException.ThrowIfNull(objectValue);
 
         Dictionary<string, object> dictionary = null;
 
@@ -24,10 +23,7 @@ public class ObjectValueToDictionaryConverter : SyntaxWalker<Action<object>>
 
     public List<object> Convert(ListValueNode listValue)
     {
-        if (listValue is null)
-        {
-            throw new ArgumentNullException(nameof(listValue));
-        }
+        ArgumentNullException.ThrowIfNull(listValue);
 
         List<object> list = null;
 

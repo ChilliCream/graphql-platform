@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
@@ -18,20 +19,21 @@ public sealed class FusionObjectTypeDefinition(
 
     public override bool IsEntity => _isEntity;
 
-    public new ISourceComplexTypeCollection<SourceObjectType> Sources { get; private set; } = null!;
+    public new ISourceComplexTypeCollection<SourceObjectType> Sources
+        => Unsafe.As<ISourceComplexTypeCollection<SourceObjectType>>(base.Sources);
 
     internal void Complete(CompositeObjectTypeCompletionContext context)
     {
         Directives = context.Directives;
         Implements = context.Interfaces;
-        Sources = context.Sources;
         base.Sources = context.Sources;
+        Features = context.Features;
         _isEntity = Sources.Any(t => t.Lookups.Length > 0);
 
         Complete();
     }
 
-     /// <inheritdoc />
+    /// <inheritdoc />
     public override bool Equals(IType? other, TypeComparison comparison)
     {
         if (comparison is TypeComparison.Reference)
@@ -46,10 +48,7 @@ public sealed class FusionObjectTypeDefinition(
     /// <inheritdoc />
     public override bool IsAssignableFrom(ITypeDefinition type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.Kind == TypeKind.Object)
         {

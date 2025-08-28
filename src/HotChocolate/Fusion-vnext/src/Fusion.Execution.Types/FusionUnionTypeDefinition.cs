@@ -1,44 +1,98 @@
+using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
+using static HotChocolate.Fusion.Types.ThrowHelper;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class FusionUnionTypeDefinition(
-    string name,
-    string? description)
-    : IUnionTypeDefinition
+public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition
 {
-    private FusionObjectTypeDefinitionCollection _types = default!;
-    private FusionDirectiveCollection _directives = default!;
     private bool _completed;
 
-    public string Name { get; } = name;
+    public FusionUnionTypeDefinition(string name, string? description)
+    {
+        Name = name;
+        Description = description;
 
-    public string? Description { get; } = description;
+        // these properties are initialized
+        // in the type complete step.
+        Types = null!;
+        Directives = null!;
+        Features = null!;
+    }
 
-    public FusionDirectiveCollection Directives => _directives;
+    public string Name { get; }
+
+    public string? Description { get; }
 
     public TypeKind Kind => TypeKind.Union;
 
-    public FusionObjectTypeDefinitionCollection Types => _types;
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
-    IReadOnlyObjectTypeDefinitionCollection IUnionTypeDefinition.Types => _types;
+    /// <summary>
+    /// Gets the source type definition of this type.
+    /// </summary>
+    /// <value>
+    /// The source type definition of this type.
+    /// </value>
+    public SourceUnionTypeCollection Sources
+    {
+        get;
+        private set
+        {
+            EnsureNotSealed(_completed);
 
-    IReadOnlyDirectiveCollection IDirectivesProvider.Directives => Directives;
+            field = value;
+        }
+    } = null!;
+
+    public FusionObjectTypeDefinitionCollection Types
+    {
+        get;
+        private set
+        {
+            EnsureNotSealed(_completed);
+            field = value;
+        }
+    }
+
+    IReadOnlyObjectTypeDefinitionCollection IUnionTypeDefinition.Types => Types;
+
+    public FusionDirectiveCollection Directives
+    {
+        get;
+        private set
+        {
+            EnsureNotSealed(_completed);
+            field = value;
+        }
+    }
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => Directives;
+
+    public IFeatureCollection Features
+    {
+        get;
+        private set
+        {
+            EnsureNotSealed(_completed);
+            field = value;
+        }
+    }
 
     internal void Complete(CompositeUnionTypeCompletionContext context)
     {
-        if (_completed)
-        {
-            throw new NotSupportedException(
-                "The type definition is sealed and cannot be modified.");
-        }
+        EnsureNotSealed(_completed);
 
-        _directives = new FusionDirectiveCollection(context.Directives);
-        _types = new FusionObjectTypeDefinitionCollection(context.Types);
+        Directives = context.Directives;
+        Types = context.Types;
+        Sources = context.Sources;
+        Features = context.Features;
+
         _completed = true;
     }
 
@@ -54,8 +108,7 @@ public sealed class FusionUnionTypeDefinition(
             return ReferenceEquals(this, other);
         }
 
-        return other is FusionUnionTypeDefinition otherUnion
-            && otherUnion.Name.Equals(Name, StringComparison.Ordinal);
+        return other is FusionUnionTypeDefinition otherUnion && otherUnion.Name.Equals(Name, StringComparison.Ordinal);
     }
 
     public bool IsAssignableFrom(ITypeDefinition type)
@@ -66,14 +119,14 @@ public sealed class FusionUnionTypeDefinition(
                 return ReferenceEquals(type, this);
 
             case TypeKind.Object:
-                return _types.ContainsName(((FusionObjectTypeDefinition)type).Name);
+                return Types.ContainsName(((FusionObjectTypeDefinition)type).Name);
 
             default:
                 return false;
         }
     }
 
-     /// <summary>
+    /// <summary>
     /// Get the string representation of the union type definition.
     /// </summary>
     /// <returns>

@@ -3,12 +3,10 @@ schema @schemaName(value: "Schema2") {
 }
 
 type Query {
-  userByUsername(username: String!): User! @lookup # Warning: LOOKUP_RETURNS_NON_NULLABLE_TYPE
+  userById(id: ID!): User! @lookup # Warning: LOOKUP_RETURNS_NON_NULLABLE_TYPE
 }
 
 type User {
+  id: ID!
   username: String!
 }
-
-directive @schemaName(value: String!) on SCHEMA
-directive @lookup on FIELD_DEFINITION

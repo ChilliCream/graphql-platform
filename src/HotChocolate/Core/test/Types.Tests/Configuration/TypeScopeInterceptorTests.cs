@@ -1,7 +1,7 @@
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Configuration;
 
@@ -16,11 +16,11 @@ public class TypeScopeInterceptorTests
             .AddQueryType<Foo>()
             .TryAddTypeInterceptor(new TypeScopeInterceptor(types))
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
 
         Assert.Collection(
-            types.OfType<INamedType>().Select(t => t.Name).OrderBy(t => t),
+            types.OfType<ITypeDefinition>().Select(t => t.Name).OrderBy(t => t),
             name => Assert.Equal("A_Bar", name),
             name => Assert.Equal("B_Bar", name),
             name => Assert.Equal("C_Baz", name));
@@ -60,10 +60,7 @@ public class TypeScopeInterceptorTests
         {
             descriptor
                 .Extend()
-                .OnBeforeCreate(d =>
-                {
-                    d.Type = ((ExtendedTypeReference)d.Type).WithScope(Scope);
-                });
+                .OnBeforeCreate(d => d.Type = ((ExtendedTypeReference)d.Type).WithScope(Scope));
         }
     }
 
@@ -81,7 +78,7 @@ public class TypeScopeInterceptorTests
             ITypeDiscoveryContext discoveryContext,
             TypeSystemConfiguration configuration)
         {
-            if (discoveryContext is { Scope: { }, } && configuration is ObjectTypeConfiguration def)
+            if (discoveryContext is { Scope: { } } && configuration is ObjectTypeConfiguration def)
             {
                 _contexts.Add(discoveryContext);
 
@@ -99,7 +96,7 @@ public class TypeScopeInterceptorTests
             ITypeCompletionContext completionContext,
             TypeSystemConfiguration configuration)
         {
-            if (completionContext is { Scope: { }, })
+            if (completionContext is { Scope: { } })
             {
                 configuration.Name = completionContext.Scope + "_" + configuration.Name;
             }

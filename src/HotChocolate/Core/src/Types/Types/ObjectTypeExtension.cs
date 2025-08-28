@@ -2,10 +2,8 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
@@ -24,7 +22,7 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeConfiguratio
     private Action<IObjectTypeDescriptor>? _configure;
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="ObjectType"/>.
+    /// Initializes a new instance of <see cref="ObjectType"/>.
     /// </summary>
     protected ObjectTypeExtension()
     {
@@ -32,7 +30,7 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeConfiguratio
     }
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="ObjectType"/>.
+    /// Initializes a new instance of <see cref="ObjectType"/>.
     /// </summary>
     /// <param name="configure">
     /// A delegate to specify the properties of this type.
@@ -46,7 +44,7 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeConfiguratio
     }
 
     /// <summary>
-    /// Create a object type from a type definition.
+    /// Create an object type from a type definition.
     /// </summary>
     /// <param name="definition">
     /// The object type definition that specifies the properties of the
@@ -92,7 +90,7 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeConfiguratio
 
     protected override void Merge(
         ITypeCompletionContext context,
-        INamedType type)
+        ITypeDefinition type)
     {
         if (type is ObjectType objectType)
         {
@@ -139,8 +137,8 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeConfiguratio
 
                     case ObjectFieldBindingType.Property:
                         if (typeDef.Fields.FirstOrDefault(
-                            t => t.Member != null &&
-                                binding.Name.EqualsOrdinal(t.Member.Name)) is { } p)
+                            t => t.Member != null
+                                && binding.Name.EqualsOrdinal(t.Member.Name)) is { } p)
                         {
                             fields.Add(p);
                         }

@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
+using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Directives;
-using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -12,11 +12,11 @@ internal static class CompletionTools
 {
     public static FusionDirectiveCollection CreateDirectiveCollection(
         IReadOnlyList<DirectiveNode> directives,
-        CompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         directives = DirectiveTools.GetUserDirectives(directives);
 
-        if(directives.Count == 0)
+        if (directives.Count == 0)
         {
             return FusionDirectiveCollection.Empty;
         }
@@ -39,7 +39,7 @@ internal static class CompletionTools
     private static ArgumentAssignment[] CreateArgumentAssignments(
         IReadOnlyList<ArgumentNode> arguments)
     {
-        if(arguments.Count == 0)
+        if (arguments.Count == 0)
         {
             return [];
         }
@@ -60,9 +60,9 @@ internal static class CompletionTools
 
     public static FusionInterfaceTypeDefinitionCollection CreateInterfaceTypeCollection(
         IReadOnlyList<NamedTypeNode> interfaceTypes,
-        CompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
-        if(interfaceTypes.Count == 0)
+        if (interfaceTypes.Count == 0)
         {
             return FusionInterfaceTypeDefinitionCollection.Empty;
         }
@@ -77,21 +77,39 @@ internal static class CompletionTools
         return new FusionInterfaceTypeDefinitionCollection(temp);
     }
 
+    public static FusionObjectTypeDefinitionCollection CreateObjectTypeCollection(
+        IReadOnlyList<NamedTypeNode> types,
+        CompositeSchemaBuilderContext context)
+    {
+        var temp = new FusionObjectTypeDefinition[types.Count];
+
+        for (var i = 0; i < types.Count; i++)
+        {
+            temp[i] = (FusionObjectTypeDefinition)context.GetType(types[i]);
+        }
+
+        return new FusionObjectTypeDefinitionCollection(temp);
+    }
+
     public static SourceObjectTypeCollection CreateSourceObjectTypeCollection(
         ObjectTypeDefinitionNode typeDef,
-        CompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         var types = TypeDirectiveParser.Parse(typeDef.Directives);
-        var lookups = LookupDirectiveParser.Parse(typeDef.Directives);
+        var lookupDirectives = LookupDirectiveParser.Parse(typeDef.Directives);
         var temp = new SourceObjectType[types.Length];
 
         for (var i = 0; i < types.Length; i++)
         {
             var type = types[i];
+            var schemaName = context.GetSchemaName(type.SchemaKey);
+            var lookups = GetLookupBySchema(lookupDirectives, schemaName, typeDef.Name.Value, context);
+            context.RegisterForCompletionRange(lookups);
+
             temp[i] = new SourceObjectType(
                 typeDef.Name.Value,
-                type.SchemaName,
-                GetLookupBySchema(lookups, type.SchemaName));
+                schemaName,
+                lookups);
         }
 
         return new SourceObjectTypeCollection(temp);
@@ -99,33 +117,65 @@ internal static class CompletionTools
 
     public static SourceInterfaceTypeCollection CreateSourceInterfaceTypeCollection(
         InterfaceTypeDefinitionNode typeDef,
-        CompositeSchemaContext context)
+        CompositeSchemaBuilderContext context)
     {
         var types = TypeDirectiveParser.Parse(typeDef.Directives);
-        var lookups = LookupDirectiveParser.Parse(typeDef.Directives);
+        var lookupDirectives = LookupDirectiveParser.Parse(typeDef.Directives);
         var temp = new SourceInterfaceType[types.Length];
 
         for (var i = 0; i < types.Length; i++)
         {
             var type = types[i];
+            var schemaName = context.GetSchemaName(type.SchemaKey);
+            var lookups = GetLookupBySchema(lookupDirectives, schemaName, typeDef.Name.Value, context);
+            context.RegisterForCompletionRange(lookups);
+
             temp[i] = new SourceInterfaceType(
                 typeDef.Name.Value,
-                type.SchemaName,
-                GetLookupBySchema(lookups, type.SchemaName));
+                schemaName,
+                lookups);
         }
 
         return new SourceInterfaceTypeCollection(temp);
     }
 
+    public static SourceUnionTypeCollection CreateSourceUnionTypeCollection(
+        UnionTypeDefinitionNode typeDef,
+        CompositeSchemaBuilderContext context)
+    {
+        var types = TypeDirectiveParser.Parse(typeDef.Directives);
+        var lookupDirectives = LookupDirectiveParser.Parse(typeDef.Directives);
+        var temp = new SourceUnionType[types.Length];
+
+        for (var i = 0; i < types.Length; i++)
+        {
+            var type = types[i];
+            var schemaName = context.GetSchemaName(type.SchemaKey);
+            var lookups = GetLookupBySchema(lookupDirectives, schemaName, typeDef.Name.Value, context);
+            context.RegisterForCompletionRange(lookups);
+
+            temp[i] = new SourceUnionType(
+                typeDef.Name.Value,
+                schemaName,
+                lookups);
+        }
+
+        return new SourceUnionTypeCollection(temp);
+    }
+
     private static ImmutableArray<Lookup> GetLookupBySchema(
         ImmutableArray<LookupDirective> allLookups,
-        string schemaName)
+        string schemaName,
+        string declaringTypeName,
+        CompositeSchemaBuilderContext context)
     {
         var lookups = ImmutableArray.CreateBuilder<Lookup>();
 
         foreach (var lookup in allLookups)
         {
-            if (lookup.SchemaName.Equals(schemaName, StringComparison.Ordinal))
+            var lookupSchemaName = context.GetSchemaName(lookup.SchemaKey);
+
+            if (lookupSchemaName.Equals(schemaName, StringComparison.Ordinal))
             {
                 var arguments = ImmutableArray.CreateBuilder<LookupArgument>(lookup.Field.Arguments.Count);
 
@@ -134,23 +184,24 @@ internal static class CompletionTools
                     arguments.Add(new LookupArgument(argument.Name.Value, argument.Type));
                 }
 
-                var fieldsBuilder = ImmutableArray.CreateBuilder<FieldPath>();
+                var fieldsBuilder = ImmutableArray.CreateBuilder<IValueSelectionNode>();
 
                 foreach (var field in lookup.Map)
                 {
-                    fieldsBuilder.Add(FieldPath.Parse(field));
+                    var parser = new FieldSelectionMapParser(field);
+                    fieldsBuilder.Add(parser.Parse());
                 }
 
                 var fields = fieldsBuilder.ToImmutable();
-                var selectionSet = fields.ToSelectionSetNode();
 
                 lookups.Add(
                     new Lookup(
-                        lookup.SchemaName,
+                        lookupSchemaName,
+                        declaringTypeName,
                         lookup.Field.Name.Value,
+                        lookup.Field.Type.NamedType().Name.Value,
                         arguments.ToImmutable(),
-                        fields,
-                        selectionSet));
+                        fields));
             }
         }
 

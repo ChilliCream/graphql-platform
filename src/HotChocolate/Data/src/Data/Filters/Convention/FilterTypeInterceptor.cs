@@ -2,7 +2,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Relay;
 using static HotChocolate.Data.Filters.FilterInputTypeDescriptor;
 using static HotChocolate.Data.ThrowHelper;
@@ -11,13 +11,13 @@ namespace HotChocolate.Data.Filters;
 
 public sealed class FilterTypeInterceptor : TypeInterceptor
 {
-    private readonly Dictionary<string, IFilterConvention> _conventions = new();
+    private readonly Dictionary<string, IFilterConvention> _conventions = [];
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
         TypeSystemConfiguration configuration)
     {
-        if (configuration is not FilterInputTypeConfiguration { EntityType: { }, } def)
+        if (configuration is not FilterInputTypeConfiguration { EntityType: { } } def)
         {
             return;
         }
@@ -71,7 +71,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if (configuration is not FilterInputTypeConfiguration { EntityType: { }, } def)
+        if (configuration is not FilterInputTypeConfiguration { EntityType: { } } def)
         {
             return;
         }
@@ -127,11 +127,11 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
     {
         foreach (var field in definition.Fields)
         {
-            if (field is FilterFieldConfiguration filterFieldDefinition &&
-                field.Type is not null &&
-                filterFieldDefinition.Type is { } filterFieldType &&
-                discoveryContext.TryPredictTypeKind(filterFieldType, out var kind) &&
-                kind is not TypeKind.Scalar and not TypeKind.Enum)
+            if (field is FilterFieldConfiguration filterFieldDefinition
+                && field.Type is not null
+                && filterFieldDefinition.Type is { } filterFieldType
+                && discoveryContext.TryPredictTypeKind(filterFieldType, out var kind)
+                && kind is not TypeKind.Scalar and not TypeKind.Enum)
             {
                 field.Type = field.Type.With(scope: discoveryContext.Scope);
             }
@@ -172,8 +172,8 @@ file static class Extensions
                 return true;
             }
 
-            if (attribute.AttributeType.IsGenericType &&
-                attribute.AttributeType.GetGenericTypeDefinition() == typeof(IDAttribute<>))
+            if (attribute.AttributeType.IsGenericType
+                && attribute.AttributeType.GetGenericTypeDefinition() == typeof(IDAttribute<>))
             {
                 return true;
             }

@@ -4,7 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate;
 
@@ -31,7 +31,7 @@ public class SchemaFirstTests
     public async Task Interfaces_Impl_Interfaces_Are_Correctly_Exposed_Through_Introspection()
     {
         // arrange
-        var source = @"
+        const string source = @"
                 type Query {
                     c: C
                 }
@@ -66,7 +66,7 @@ public class SchemaFirstTests
     [Fact]
     public async Task Execute_Against_Schema_With_Interface_Schema()
     {
-        var source = @"
+        const string source = @"
                 type Query {
                     pet: Pet
                 }
@@ -97,7 +97,7 @@ public class SchemaFirstTests
     [Fact]
     public async Task Execute_Against_Schema_With_Interface_Execute()
     {
-        var source = @"
+        const string source = @"
                 type Query {
                     pet: Pet
                 }
@@ -129,10 +129,10 @@ public class SchemaFirstTests
     public async Task SchemaDescription()
     {
         // arrange
-        var sourceText = "\"\"\"\nMy Schema Description\n\"\"\"" +
-            "schema" +
-            "{ query: Foo }" +
-            "type Foo { bar: String }";
+        const string sourceText = "\"\"\"\nMy Schema Description\n\"\"\""
+            + "schema"
+            + "{ query: Foo }"
+            + "type Foo { bar: String }";
 
         // act
         var schema = SchemaBuilder.New()
@@ -151,12 +151,12 @@ public class SchemaFirstTests
     public async Task SchemaBuilder_BindType()
     {
         // arrange
-        var sourceText = "type Query { hello: String }";
+        const string sourceText = "type Query { hello: String }";
 
         // act
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(sourceText)
-            .AddRootResolver(new { Query = new Query(), })
+            .AddRootResolver(new { Query = new Query() })
             .Create();
 
         // assert
@@ -170,7 +170,7 @@ public class SchemaFirstTests
     public async Task SchemaBuilder_AddResolver()
     {
         // arrange
-        var sourceText = "type Query { hello: String }";
+        const string sourceText = "type Query { hello: String }";
 
         // act
         var schema = SchemaBuilder.New()
@@ -189,7 +189,7 @@ public class SchemaFirstTests
     public void BuiltInScalarsAreRecognized()
     {
         // arrange
-        var sourceText = @"
+        const string sourceText = @"
                 type Query {
                     string_field: String
                     string_non_null_field: String!
@@ -215,7 +215,7 @@ public class SchemaFirstTests
     public void BuiltInScalarsAreRecognized2()
     {
         // arrange
-        var sourceText = @"
+        const string sourceText = @"
                 type Query {
                     foo: Foo
                 }
@@ -246,7 +246,7 @@ public class SchemaFirstTests
     public void ListTypesAreRecognized()
     {
         // arrange
-        var sourceText = @"
+        const string sourceText = @"
                 type Query {
                     foo: Foo
                 }
@@ -275,7 +275,7 @@ public class SchemaFirstTests
     public async Task SchemaBuilder_AnyType()
     {
         // arrange
-        var sourceText = "type Query { hello: Any }";
+        const string sourceText = "type Query { hello: Any }";
 
         // act
         var schema = SchemaBuilder.New()
@@ -293,7 +293,7 @@ public class SchemaFirstTests
     public async Task SchemaFirst_Cursor_Paging()
     {
         // arrange
-        var sdl = "type Query { items: [String!] }";
+        const string sdl = "type Query { items: [String!] }";
 
         // act
         var schema =
@@ -304,14 +304,14 @@ public class SchemaFirstTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
     public async Task SchemaFirst_Cursor_OffsetPaging()
     {
         // arrange
-        var sdl = "type Query { items: [String!] }";
+        const string sdl = "type Query { items: [String!] }";
 
         // act
         var schema =
@@ -322,14 +322,14 @@ public class SchemaFirstTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
     public async Task SchemaFirst_Cursor_Paging_With_Objects()
     {
         // arrange
-        var sdl = "type Query { items: [Person!] } type Person { name: String }";
+        const string sdl = "type Query { items: [Person!] } type Person { name: String }";
 
         // act
         var schema =
@@ -340,14 +340,14 @@ public class SchemaFirstTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
     public async Task SchemaFirst_Cursor_Paging_Execute()
     {
         // arrange
-        var sdl = "type Query { items: [String!] }";
+        const string sdl = "type Query { items: [String!] }";
 
         // act
         var result =
@@ -365,7 +365,7 @@ public class SchemaFirstTests
     public async Task SchemaFirst_Cursor_Paging_With_Objects_Execute()
     {
         // arrange
-        var sdl = "type Query { items: [Person!] } type Person { name: String }";
+        const string sdl = "type Query { items: [Person!] } type Person { name: String }";
 
         // act
         var result =
@@ -383,7 +383,7 @@ public class SchemaFirstTests
     public async Task SchemaFirst_Cursor_Paging_With_Resolver()
     {
         // arrange
-        var sdl = "type Query { items: [String!] }";
+        const string sdl = "type Query { items: [String!] }";
 
         // act
         var schema =
@@ -394,14 +394,14 @@ public class SchemaFirstTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
     public async Task Reference_Schema_First_Types_From_Code_First_Models()
     {
         // arrange
-        var sdl = "type Person { name: String! }";
+        const string sdl = "type Person { name: String! }";
 
         // act
         var schema =
@@ -413,14 +413,14 @@ public class SchemaFirstTests
                 .BuildSchemaAsync();
 
         // assert
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
     public async Task Apply_Schema_Building_Directive()
     {
         // arrange
-        var sdl = "type Person { name: String! @desc(value: \"abc\") }";
+        const string sdl = "type Person { name: String! @desc(value: \"abc\") }";
 
         // act
         var schema =
@@ -435,7 +435,7 @@ public class SchemaFirstTests
         // assert
         Assert.Equal(
             "abc",
-            schema.GetType<ObjectType>("Person")?.Fields["name"].Description);
+            schema.Types.GetType<ObjectType>("Person").Fields["name"].Description);
     }
 
     [Fact]
@@ -460,13 +460,16 @@ public class SchemaFirstTests
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddDocumentFromString(@"
-                    type Query {
-                        book(input: Foo): String
-                    }
+            .AddDocumentFromString(
+                """
+                type Query {
+                   book(input: Foo): String
+                }
 
-                    input Foo { bar: String = ""baz"" }")
+                input Foo { bar: String = "baz" }
+                """)
             .AddResolver<QueryWithFooInput>("Query")
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .ExecuteRequestAsync("{ book(input: { }) }")
             .MatchSnapshotAsync();
     }
@@ -512,31 +515,31 @@ public class SchemaFirstTests
     public class QueryWithItems
     {
         [UsePaging]
-        public string[] GetItems() => ["a", "b",];
+        public string[] GetItems() => ["a", "b"];
     }
 
     public class QueryWithOffsetItems
     {
         [UseOffsetPaging]
-        public string[] GetItems() => ["a", "b",];
+        public string[] GetItems() => ["a", "b"];
     }
 
     public class QueryWithPersons
     {
         [UsePaging]
-        public Person[] GetItems() => [new Person { Name = "Foo", },];
+        public Person[] GetItems() => [new Person { Name = "Foo" }];
     }
 
     public class QueryWithOffsetPersons
     {
         [UseOffsetPaging]
-        public Person[] GetItems() => [new Person { Name = "Foo", },];
+        public Person[] GetItems() => [new Person { Name = "Foo" }];
     }
 
     public class QueryCodeFirst
     {
         [GraphQLType("Person!")]
-        public object GetPerson() => new Person { Name = "Hello", };
+        public object GetPerson() => new Person { Name = "Hello" };
     }
 
     public class Person
@@ -571,24 +574,14 @@ public class SchemaFirstTests
         string Name { get; }
     }
 
-    public class Cat : IPet
+    public class Cat(string name) : IPet
     {
-        public Cat(string name)
-        {
-            Name = name;
-        }
-
-        public string Name { get; }
+        public string Name { get; } = name;
     }
 
-    public class Dog : IPet
+    public class Dog(string name) : IPet
     {
-        public Dog(string name)
-        {
-            Name = name;
-        }
-
-        public string Name { get; }
+        public string Name { get; } = name;
     }
 }
 
@@ -602,12 +595,12 @@ public class QueryEnumExample
 
 public enum TestEnum
 {
-    FooBar,
+    FooBar
 }
 
 public enum TestEnumInput
 {
-    FooBarInput,
+    FooBarInput
 }
 
 public class QueryWithFooInput
@@ -615,12 +608,7 @@ public class QueryWithFooInput
     public string GetBook(Foo input) => input.Bar;
 }
 
-public class Foo
+public class Foo(string bar)
 {
-    public Foo(string bar)
-    {
-        Bar = bar;
-    }
-
-    public string Bar { get; }
+    public string Bar { get; } = bar;
 }

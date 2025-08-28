@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Fetching;
@@ -10,30 +11,33 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     private readonly object _sync = new();
     private readonly WorkQueue _work = new();
     private readonly WorkQueue _serial = new();
-    private readonly ProcessingPause _pause = new();
+    private readonly AsyncManualResetEvent _signal = new();
 
-    private IRequestContext _requestContext = default!;
-    private IBatchDispatcher _batchDispatcher = default!;
-    private IErrorHandler _errorHandler = default!;
-    private ResultBuilder _result = default!;
-    private IExecutionDiagnosticEvents _diagnosticEvents = default!;
+    private RequestContext _requestContext = null!;
+    private IBatchDispatcher _batchDispatcher = null!;
+    private IDisposable _batchDispatcherSession = null!;
+    private IErrorHandler _errorHandler = null!;
+    private ResultBuilder _result = null!;
+    private IExecutionDiagnosticEvents _diagnosticEvents = null!;
+    private readonly ConcurrentDictionary<uint, bool> _completed = new();
+    private uint _nextId = 1;
     private CancellationToken _ct;
 
-    private bool _hasBatches;
+    private int _hasBatches;
     private bool _isCompleted;
     private bool _isInitialized;
 
     public void Initialize(IBatchDispatcher batchDispatcher)
     {
         _batchDispatcher = batchDispatcher;
-        _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
+        _batchDispatcherSession = _batchDispatcher.Subscribe(this);
 
         _errorHandler = operationContext.ErrorHandler;
         _result = operationContext.Result;
         _diagnosticEvents = operationContext.DiagnosticEvents;
         _ct = operationContext.RequestAborted;
 
-        _hasBatches = false;
+        _hasBatches = 0;
         _isCompleted = false;
         _isInitialized = true;
     }
@@ -49,18 +53,21 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     {
         _work.Clear();
         _serial.Clear();
-        _pause.Reset();
+        _completed.Clear();
+        _signal.Reset();
 
-        _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
-        _batchDispatcher = default!;
+        _batchDispatcherSession.Dispose();
+        _batchDispatcherSession = null!;
+        _batchDispatcher = null!;
 
-        _requestContext = default!;
-        _errorHandler = default!;
-        _result = default!;
-        _diagnosticEvents = default!;
-        _ct = default;
+        _nextId = 1;
+        _requestContext = null!;
+        _errorHandler = null!;
+        _result = null!;
+        _diagnosticEvents = null!;
+        _ct = CancellationToken.None;
 
-        _hasBatches = false;
+        _hasBatches = 0;
         _isCompleted = false;
         _isInitialized = false;
     }

@@ -1,8 +1,10 @@
+#nullable disable
+
 // ReSharper disable VirtualMemberCallInConstructor
 
 using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -33,10 +35,7 @@ public class ArgumentDescriptor
         Type argumentType)
         : this(context, argumentName)
     {
-        if (argumentType is null)
-        {
-            throw new ArgumentNullException(nameof(argumentType));
-        }
+        ArgumentNullException.ThrowIfNull(argumentType);
 
         Configuration.Type = context.TypeInspector.GetTypeRef(argumentType, TypeContext.Input);
     }

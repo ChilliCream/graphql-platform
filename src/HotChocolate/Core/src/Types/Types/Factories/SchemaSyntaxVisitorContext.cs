@@ -1,19 +1,21 @@
+using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types.Factories;
 
-internal class SchemaSyntaxVisitorContext(
-    IDescriptorContext descriptorContext,
-    Dictionary<string, IReadOnlyList<DirectiveNode>> scalarDirectives)
+internal class SchemaSyntaxVisitorContext(IDescriptorContext descriptorContext)
 {
     public List<TypeReference> Types { get; } = [];
 
     public IReadOnlyCollection<DirectiveNode>? Directives { get; set; }
 
-    public Dictionary<string, IReadOnlyList<DirectiveNode>> ScalarDirectives => scalarDirectives;
+    public ImmutableDictionary<string, IReadOnlyList<DirectiveNode>> ScalarDirectives { get; set; } =
+#if NET10_0_OR_GREATER
+        [];
+#else
+        ImmutableDictionary<string, IReadOnlyList<DirectiveNode>>.Empty;
+#endif
 
     public string? QueryTypeName { get; set; }
 

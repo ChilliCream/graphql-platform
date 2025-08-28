@@ -45,10 +45,10 @@ public abstract class SortVisitorBase<TContext, T>
     {
         base.Enter(node, context);
 
-        if (node is not NullValueNode &&
-            context.Fields.Peek() is ISortField field &&
-            field.Type is SortEnumType sortType &&
-            node is EnumValueNode enumValueNode)
+        if (node is not NullValueNode
+            && context.Fields.Peek() is ISortField field
+            && field.Type is SortEnumType sortType
+            && node is EnumValueNode enumValueNode)
         {
             return OnOperationEnter(
                 context,
@@ -80,8 +80,8 @@ public abstract class SortVisitorBase<TContext, T>
         ListValueNode node,
         TContext context)
     {
-        if (context.Fields.Count > 0 &&
-            context.Fields.Peek() is ISortField sortField)
+        if (context.Fields.Count > 0
+            && context.Fields.Peek() is ISortField sortField)
         {
             context.ReportError(ErrorHelper.SortingVisitor_ListValues(sortField, node));
         }
@@ -97,8 +97,8 @@ public abstract class SortVisitorBase<TContext, T>
         ListValueNode node,
         TContext context)
     {
-        if (context.Fields.Count > 0 &&
-            context.Fields.Peek() is ISortField sortField)
+        if (context.Fields.Count > 0
+            && context.Fields.Peek() is ISortField sortField)
         {
             context.ReportError(ErrorHelper.SortingVisitor_ListValues(sortField, node));
         }

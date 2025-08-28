@@ -15,16 +15,16 @@ public sealed class SelectionIncludeCondition
             throw new ArgumentException("Either skip or include have to be set.");
         }
 
-        if (skip != null &&
-            skip.Kind != SyntaxKind.Variable &&
-            skip.Kind != SyntaxKind.BooleanValue)
+        if (skip != null
+            && skip.Kind != SyntaxKind.Variable
+            && skip.Kind != SyntaxKind.BooleanValue)
         {
             throw new ArgumentException("skip must be a variable or a boolean value");
         }
 
-        if (include != null &&
-            include.Kind != SyntaxKind.Variable &&
-            include.Kind != SyntaxKind.BooleanValue)
+        if (include != null
+            && include.Kind != SyntaxKind.Variable
+            && include.Kind != SyntaxKind.BooleanValue)
         {
             throw new ArgumentException("skip must be a variable or a boolean value");
         }
@@ -42,7 +42,7 @@ public sealed class SelectionIncludeCondition
 
     public bool IsTrue(IVariableValueCollection variables)
     {
-        if (Parent != null && !Parent.IsTrue(variables))
+        if (Parent?.IsTrue(variables) == false)
         {
             return false;
         }
@@ -66,7 +66,7 @@ public sealed class SelectionIncludeCondition
 
         if (value is VariableNode v)
         {
-            return variables.GetVariable<bool>(v.Name.Value);
+            return variables.GetValue<BooleanValueNode>(v.Name.Value).Value;
         }
 
         throw FieldVisibility_ValueNotSupported(value);
@@ -88,6 +88,6 @@ public sealed class SelectionIncludeCondition
     }
 
     public bool Equals(IValueNode? skip, IValueNode? include)
-        => SyntaxComparer.BySyntax.Equals(skip, Skip) &&
-            SyntaxComparer.BySyntax.Equals(include, Include);
+        => SyntaxComparer.BySyntax.Equals(skip, Skip)
+            && SyntaxComparer.BySyntax.Equals(include, Include);
 }

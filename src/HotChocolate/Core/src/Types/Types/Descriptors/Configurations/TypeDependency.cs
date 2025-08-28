@@ -1,9 +1,7 @@
 using HotChocolate.Internal;
 using HotChocolate.Properties;
 
-#nullable enable
-
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 public sealed class TypeDependency
 {
@@ -26,10 +24,7 @@ public sealed class TypeDependency
         IExtendedType type,
         TypeDependencyFulfilled fulfilled = TypeDependencyFulfilled.Default)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (!type.IsSchemaType)
         {

@@ -149,11 +149,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 "var pagingOptions = global::{0}.GetPagingOptions(c.Context, null);",
                 WellKnownTypes.PagingHelper);
             Writer.WriteIndentedLine(
-                "c.Configuration.State = c.Configuration.State.SetItem("
-                + "HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);");
-            Writer.WriteIndentedLine(
-                "c.Configuration.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = "
-                + "pagingOptions;");
+                "c.Configuration.Features.Set(pagingOptions);");
         }
 
         Writer.WriteIndentedLine(
@@ -702,19 +698,19 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     break;
 
                 case ResolverParameterKind.GetGlobalState when parameter.Parameter.HasExplicitDefaultValue:
-                    {
-                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+                {
+                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                        Writer.WriteIndentedLine(
-                            "var args{0} = context.GetGlobalStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                            parameter.Key,
-                            defaultValueString);
-                        break;
-                    }
+                    Writer.WriteIndentedLine(
+                        "var args{0} = context.GetGlobalStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                        parameter.Key,
+                        defaultValueString);
+                    break;
+                }
 
                 case ResolverParameterKind.GetGlobalState when !parameter.IsNullable:
                     Writer.WriteIndentedLine(
@@ -742,19 +738,19 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     break;
 
                 case ResolverParameterKind.GetScopedState when parameter.Parameter.HasExplicitDefaultValue:
-                    {
-                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+                {
+                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                        Writer.WriteIndentedLine(
-                            "var args{0} = context.GetScopedStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                            parameter.Key,
-                            defaultValueString);
-                        break;
-                    }
+                    Writer.WriteIndentedLine(
+                        "var args{0} = context.GetScopedStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                        parameter.Key,
+                        defaultValueString);
+                    break;
+                }
 
                 case ResolverParameterKind.GetScopedState when !parameter.IsNullable:
                     Writer.WriteIndentedLine(
@@ -782,19 +778,19 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     break;
 
                 case ResolverParameterKind.GetLocalState when parameter.Parameter.HasExplicitDefaultValue:
-                    {
-                        var defaultValue = parameter.Parameter.ExplicitDefaultValue;
-                        var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
+                {
+                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                    var defaultValueString = GeneratorUtils.ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                        Writer.WriteIndentedLine(
-                            "var args{0} = context.GetLocalStateOrDefault<{1}{2}>(\"{3}\", {4});",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            parameter.Type.IsNullableRefType() ? "?" : string.Empty,
-                            parameter.Key,
-                            defaultValueString);
-                        break;
-                    }
+                    Writer.WriteIndentedLine(
+                        "var args{0} = context.GetLocalStateOrDefault<{1}{2}>(\"{3}\", {4});",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Type.IsNullableRefType() ? "?" : string.Empty,
+                        parameter.Key,
+                        defaultValueString);
+                    break;
+                }
 
                 case ResolverParameterKind.GetLocalState when !parameter.IsNullable:
                     Writer.WriteIndentedLine(
@@ -970,7 +966,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         resolver.Member.Name,
                         bindingIndex++,
                         ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup));
-                        break;
+                    break;
 
                 default:
                     throw new ArgumentOutOfRangeException();

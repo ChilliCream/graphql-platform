@@ -1,12 +1,8 @@
-using System.Collections.Frozen;
-using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Types;
-using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 using static HotChocolate.Fusion.Properties.CompositionResources;
-using static HotChocolate.Fusion.WellKnownTypeNames;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
@@ -26,28 +22,28 @@ internal sealed class TypeDefinitionInvalidRule : IEventHandler<SchemaEvent>
     {
         var schema = @event.Schema;
 
-        // Types.
-        if (schema.Types.TryGetType(FieldSelectionMap, out var fieldSelectionMapType)
-            && fieldSelectionMapType.Kind != TypeKind.Scalar)
+        // Scalars.
+        foreach (var builtInScalar in FusionBuiltIns.SourceSchemaScalars)
         {
-            context.Log.Write(TypeDefinitionInvalid(fieldSelectionMapType, schema));
-        }
-
-        if (schema.Types.TryGetType(FieldSelectionSet, out var fieldSelectionSetType)
-            && fieldSelectionSetType.Kind != TypeKind.Scalar)
-        {
-            context.Log.Write(TypeDefinitionInvalid(fieldSelectionSetType, schema));
+            if (schema.Types.TryGetType(builtInScalar.Name, out var type)
+                && type.Kind != TypeKind.Scalar)
+            {
+                context.Log.Write(TypeDefinitionInvalid(type, schema));
+            }
         }
 
         // Directives.
-        foreach (var (name, definition) in _builtInDirectives)
+        foreach (var builtInDirective in FusionBuiltIns.SourceSchemaDirectives)
         {
-            if (!schema.DirectiveDefinitions.TryGetDirective(name, out var directive))
+            if (
+                !schema.DirectiveDefinitions.TryGetDirective(
+                    builtInDirective.Name,
+                    out var directive))
             {
                 continue;
             }
 
-            foreach (var expectedArgument in definition.Arguments)
+            foreach (var expectedArgument in builtInDirective.Arguments)
             {
                 var argumentName = expectedArgument.Name;
 
@@ -78,31 +74,5 @@ internal sealed class TypeDefinitionInvalidRule : IEventHandler<SchemaEvent>
                 }
             }
         }
-    }
-
-    private readonly FrozenDictionary<string, MutableDirectiveDefinition> _builtInDirectives =
-        CreateBuiltInDirectiveDefinitions();
-
-    private static FrozenDictionary<string, MutableDirectiveDefinition>
-        CreateBuiltInDirectiveDefinitions()
-    {
-        var fieldSelectionMapType = MutableScalarTypeDefinition.Create(FieldSelectionMap);
-        var fieldSelectionSetType = MutableScalarTypeDefinition.Create(FieldSelectionSet);
-        var stringType = BuiltIns.String.Create();
-
-        return new Dictionary<string, MutableDirectiveDefinition>()
-        {
-            { "external", new ExternalMutableDirectiveDefinition() },
-            { "inaccessible", new InaccessibleMutableDirectiveDefinition() },
-            { "internal", new InternalMutableDirectiveDefinition() },
-            { "is", new IsMutableDirectiveDefinition(fieldSelectionMapType) },
-            { "key", new KeyMutableDirectiveDefinition(fieldSelectionSetType) },
-            { "lookup", new LookupMutableDirectiveDefinition() },
-            { "override", new OverrideMutableDirectiveDefinition(stringType) },
-            { "provides", new ProvidesMutableDirectiveDefinition(fieldSelectionSetType) },
-            { "require", new RequireMutableDirectiveDefinition(fieldSelectionMapType) },
-            { "schemaName", new SchemaNameMutableDirectiveDefinition(stringType) },
-            { "shareable", new ShareableMutableDirectiveDefinition() }
-        }.ToFrozenDictionary();
     }
 }

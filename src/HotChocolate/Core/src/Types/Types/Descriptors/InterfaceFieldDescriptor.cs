@@ -1,11 +1,9 @@
-#nullable enable
-
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
@@ -164,10 +162,7 @@ public class InterfaceFieldDescriptor
 
     public IInterfaceFieldDescriptor Resolve(FieldResolverDelegate fieldResolver)
     {
-        if (fieldResolver is null)
-        {
-            throw new ArgumentNullException(nameof(fieldResolver));
-        }
+        ArgumentNullException.ThrowIfNull(fieldResolver);
 
         Configuration.Resolver = fieldResolver;
         return this;
@@ -177,10 +172,7 @@ public class InterfaceFieldDescriptor
         FieldResolverDelegate fieldResolver,
         Type? resultType)
     {
-        if (fieldResolver is null)
-        {
-            throw new ArgumentNullException(nameof(fieldResolver));
-        }
+        ArgumentNullException.ThrowIfNull(fieldResolver);
 
         Configuration.Resolver = fieldResolver;
 
@@ -211,20 +203,14 @@ public class InterfaceFieldDescriptor
     public IInterfaceFieldDescriptor ResolveWith<TResolver>(
         Expression<Func<TResolver, object>> propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         return ResolveWithInternal(propertyOrMethod.ExtractMember(), typeof(TResolver));
     }
 
     public IInterfaceFieldDescriptor ResolveWith(MemberInfo propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         return ResolveWithInternal(propertyOrMethod, propertyOrMethod.DeclaringType);
     }
@@ -269,10 +255,7 @@ public class InterfaceFieldDescriptor
 
     public IInterfaceFieldDescriptor Use(FieldMiddleware middleware)
     {
-        if (middleware is null)
-        {
-            throw new ArgumentNullException(nameof(middleware));
-        }
+        ArgumentNullException.ThrowIfNull(middleware);
 
         Configuration.MiddlewareDefinitions.Add(new(middleware));
         return this;

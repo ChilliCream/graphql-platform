@@ -1,6 +1,4 @@
-#nullable  enable
-
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// A definition that represents a type.
@@ -70,7 +68,7 @@ public abstract class TypeConfiguration : TypeSystemConfiguration, ITypeConfigur
 
         if (_directives is { Count: > 0 })
         {
-            target._directives = [.._directives];
+            target._directives = [.. _directives];
         }
     }
 

@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
 // ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -355,7 +356,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetSomething GraphQL operation
     /// <code>
-    /// query GetSomething($bar: Bar) {
+    /// query GetSomething(
+    ///   $bar: Bar
+    /// ) {
     ///   foo(bar: $bar)
     /// }
     /// </code>
@@ -436,7 +439,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetSomething GraphQL operation
     /// <code>
-    /// query GetSomething($bar: Bar) {
+    /// query GetSomething(
+    ///   $bar: Bar
+    /// ) {
     ///   foo(bar: $bar)
     /// }
     /// </code>
@@ -446,17 +451,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetSomethingResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _barFormatter;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetSomethingQuery(global::StrawberryShake.IOperationExecutor<IGetSomethingResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _barFormatter = serializerResolver.GetInputValueFormatter("Bar");
         }
 
+        private GetSomethingQuery(global::StrawberryShake.IOperationExecutor<IGetSomethingResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter barFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _barFormatter = barFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetSomethingResult);
+
+        public global::Foo.Bar.IGetSomethingQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.GetSomethingQuery(_operationExecutor, _configure.Add(configure), _barFormatter);
+        }
+
+        public global::Foo.Bar.IGetSomethingQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IGetSomethingQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetSomethingResult>> ExecuteAsync(global::Foo.Bar.Bar? bar, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(bar);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -500,7 +533,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetSomething GraphQL operation
     /// <code>
-    /// query GetSomething($bar: Bar) {
+    /// query GetSomething(
+    ///   $bar: Bar
+    /// ) {
     ///   foo(bar: $bar)
     /// }
     /// </code>
@@ -508,6 +543,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetSomethingQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IGetSomethingQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IGetSomethingQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IGetSomethingQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetSomethingResult>> ExecuteAsync(global::Foo.Bar.Bar? bar, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetSomethingResult>> Watch(global::Foo.Bar.Bar? bar, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

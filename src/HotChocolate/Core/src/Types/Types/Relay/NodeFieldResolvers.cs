@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
@@ -15,7 +13,7 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal static class NodeFieldResolvers
 {
-    private static readonly Task<object?> _nullTask = Task.FromResult<object?>(null);
+    private static readonly Task<object?> s_nullTask = Task.FromResult<object?>(null);
 
     /// <summary>
     /// This is the resolver of the node field.
@@ -25,18 +23,16 @@ internal static class NodeFieldResolvers
         INodeIdSerializer serializer)
     {
         var nodeId = context.ArgumentLiteral<StringValueNode>(Id);
-        var deserializedId = serializer.Parse(nodeId.Value, context.Schema);
+        var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(context.Schema));
         var typeName = deserializedId.TypeName;
 
-        // if the type has a registered node resolver we will execute it.
-        if (context.Schema.TryGetType<ObjectType>(typeName, out var type) &&
-            type.ContextData.TryGetValue(NodeResolver, out var o) &&
-            o is NodeResolverInfo nodeResolverInfo)
+        // if the type has a registered node resolver, we will execute it.
+        if (context.Schema.Types.TryGetType<ObjectType>(typeName, out var type)
+            && type.Features.Get<NodeTypeFeature>() is { NodeResolver: not null } feature)
         {
             SetLocalContext(context, nodeId, deserializedId, type);
-            TryReplaceArguments(context, nodeResolverInfo, Id, nodeId);
-
-            await nodeResolverInfo.Pipeline.Invoke(context);
+            TryReplaceArguments(context, feature.NodeResolver, Id, nodeId);
+            await feature.NodeResolver.Pipeline.Invoke(context);
         }
         else
         {
@@ -51,7 +47,7 @@ internal static class NodeFieldResolvers
     }
 
     /// <summary>
-    /// This is the resolver of the nodes field.
+    /// This is the resolver of the `nodes` field.
     /// </summary>
     public static async ValueTask ResolveManyNodeAsync(
         IMiddlewareContext context,
@@ -76,7 +72,7 @@ internal static class NodeFieldResolvers
             }
 
             var tasks = ArrayPool<Task<object?>>.Shared.Rent(list.Items.Count);
-            var result = new object?[list.Items.Count];
+            var results = new object?[list.Items.Count];
             var ct = context.RequestAborted;
 
             for (var i = 0; i < list.Items.Count; i++)
@@ -84,24 +80,21 @@ internal static class NodeFieldResolvers
                 ct.ThrowIfCancellationRequested();
 
                 var nodeId = (StringValueNode)list.Items[i];
-                var deserializedId = serializer.Parse(nodeId.Value, context.Schema);
+                var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(context.Schema));
                 var typeName = deserializedId.TypeName;
 
-                // if the type has a registered node resolver we will execute it.
-                if (schema.TryGetType<ObjectType>(typeName, out var type) &&
-                    type.ContextData.TryGetValue(NodeResolver, out var o) &&
-                    o is NodeResolverInfo nodeResolverInfo)
+                // if the type has a registered node resolver, we will execute it.
+                if (schema.Types.TryGetType<ObjectType>(typeName, out var type)
+                    && type.Features.Get<NodeTypeFeature>() is { NodeResolver: not null } feature)
                 {
                     var nodeContext = context.Clone();
-
                     SetLocalContext(nodeContext, nodeId, deserializedId, type);
-                    TryReplaceArguments(nodeContext, nodeResolverInfo, Ids, nodeId);
-
-                    tasks[i] = ExecutePipelineAsync(nodeContext, nodeResolverInfo);
+                    TryReplaceArguments(nodeContext, feature.NodeResolver, Ids, nodeId);
+                    tasks[i] = ExecutePipelineAsync(nodeContext, feature.NodeResolver);
                 }
                 else
                 {
-                    tasks[i] = _nullTask;
+                    tasks[i] = s_nullTask;
 
                     context.ReportError(
                         ErrorHelper.Relay_NoNodeResolver(
@@ -121,11 +114,19 @@ internal static class NodeFieldResolvers
                 {
                     if (task.Exception is null)
                     {
-                        result[i] = task.Result;
+                        if (task.Result is IError error)
+                        {
+                            results[i] = null;
+                            context.ReportError(error.WithPath(context.Path.Append(i)));
+                        }
+                        else
+                        {
+                            results[i] = task.Result;
+                        }
                     }
                     else
                     {
-                        result[i] = null;
+                        results[i] = null;
                         ReportError(context, i, task.Exception);
                     }
                 }
@@ -133,41 +134,50 @@ internal static class NodeFieldResolvers
                 {
                     try
                     {
-                        result[i] = await task;
+                        results[i] = await task;
                     }
                     catch (Exception ex)
                     {
-                        result[i] = null;
+                        results[i] = null;
                         ReportError(context, i, ex);
                     }
                 }
             }
 
-            context.Result = result;
+            context.Result = results;
             ArrayPool<Task<object?>>.Shared.Return(tasks, true);
         }
         else
         {
-            var result = new object?[1];
+            var results = new object?[1];
             var nodeId = context.ArgumentLiteral<StringValueNode>(Ids);
-            var deserializedId = serializer.Parse(nodeId.Value, context.Schema);
+            var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(context.Schema));
             var typeName = deserializedId.TypeName;
 
-            // if the type has a registered node resolver we will execute it.
-            if (schema.TryGetType<ObjectType>(typeName, out var type) &&
-                type.ContextData.TryGetValue(NodeResolver, out var o) &&
-                o is NodeResolverInfo nodeResolverInfo)
+            // if the type has a registered node resolver, we will execute it.
+            if (schema.Types.TryGetType<ObjectType>(typeName, out var type)
+                && type.Features.Get<NodeTypeFeature>() is { NodeResolver: not null } feature)
             {
                 var nodeContext = context.Clone();
 
                 SetLocalContext(nodeContext, nodeId, deserializedId, type);
-                TryReplaceArguments(nodeContext, nodeResolverInfo, Ids, nodeId);
+                TryReplaceArguments(nodeContext, feature.NodeResolver, Ids, nodeId);
 
-                result[0] = await ExecutePipelineAsync(nodeContext, nodeResolverInfo);
+                var result = await ExecutePipelineAsync(nodeContext, feature.NodeResolver);
+
+                if (result is IError error)
+                {
+                    results[0] = null;
+                    context.ReportError(error.WithPath(context.Path.Append(0)));
+                }
+                else
+                {
+                    results[0] = result;
+                }
             }
             else
             {
-                result[0] = null;
+                results[0] = null;
 
                 context.ReportError(
                     ErrorHelper.Relay_NoNodeResolver(
@@ -176,7 +186,7 @@ internal static class NodeFieldResolvers
                         context.Selection.SyntaxNodes));
             }
 
-            context.Result = result;
+            context.Result = results;
         }
         return;
 
@@ -212,7 +222,7 @@ internal static class NodeFieldResolvers
     {
         if (nodeResolverInfo.Id is not null)
         {
-            // If the node resolver is a mapped from an actual field resolver,
+            // If the node resolver is mapped from an actual field resolver,
             // we will create a new argument value since the field resolvers argument could
             // have a different type and argument name.
             var idArg = new ArgumentValue(
@@ -226,7 +236,7 @@ internal static class NodeFieldResolvers
             // Note that in standard middleware we should restore the original
             // argument after we have invoked the next pipeline element.
             // However, the node field is under our control, and we can guarantee
-            // that there are no other middleware involved and allowed,
+            // that there is no other middleware involved and allowed,
             // meaning we skip the restore.
             context.ReplaceArgument(argumentName, idArg);
         }

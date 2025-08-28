@@ -48,11 +48,6 @@ dotnet_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion
 
-# Prefer "var" everywhere
-csharp_style_var_for_built_in_types = true:suggestion
-csharp_style_var_when_type_is_apparent = true:suggestion
-csharp_style_var_elsewhere = true:suggestion
-
 # Prefer method-like constructs to have a block body
 csharp_style_expression_bodied_methods = false:none
 csharp_style_expression_bodied_constructors = false:none
@@ -91,6 +86,7 @@ csharp_new_line_before_members_in_object_initializers = true
 csharp_indent_case_contents = true
 csharp_indent_switch_labels = true
 csharp_indent_labels = flush_left
+csharp_indent_case_contents_when_block = false
 
 # Spacing options
 csharp_space_after_cast = false
@@ -116,6 +112,7 @@ resharper_braces_for_ifelse = required
 resharper_braces_for_while = required
 
 # ReSharper inspection severities
+resharper_condition_is_always_true_or_false_according_to_nullable_api_contract_highlighting = error
 resharper_enforce_do_while_statement_braces_highlighting = error
 resharper_enforce_fixed_statement_braces_highlighting = error
 resharper_enforce_foreach_statement_braces_highlighting = error
@@ -139,3 +136,157 @@ resharper_csharp_braces_for_while = required
 resharper_csharp_braces_for_using = required
 resharper_csharp_braces_for_lock = required
 resharper_csharp_braces_for_fixed = required
+
+# Name all constant fields using PascalCase
+dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = warning
+dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols = constant_fields
+dotnet_naming_rule.constant_fields_should_be_pascal_case.style = pascal_case_style
+dotnet_naming_symbols.constant_fields.applicable_kinds = field
+dotnet_naming_symbols.constant_fields.required_modifiers = const
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+# Static fields should have s_ prefix
+dotnet_naming_rule.static_fields_should_have_prefix.severity = warning
+dotnet_naming_rule.static_fields_should_have_prefix.symbols = static_fields
+dotnet_naming_rule.static_fields_should_have_prefix.style = static_prefix_style
+dotnet_naming_symbols.static_fields.applicable_kinds = field
+dotnet_naming_symbols.static_fields.required_modifiers = static
+dotnet_naming_symbols.static_fields.applicable_accessibilities = private, internal, private_protected
+dotnet_naming_style.static_prefix_style.required_prefix = s_
+dotnet_naming_style.static_prefix_style.capitalization = camel_case
+
+# Internal and private fields should be _camelCase
+dotnet_naming_rule.camel_case_for_private_internal_fields.severity = warning
+dotnet_naming_rule.camel_case_for_private_internal_fields.symbols = private_internal_fields
+dotnet_naming_rule.camel_case_for_private_internal_fields.style = camel_case_underscore_style
+dotnet_naming_symbols.private_internal_fields.applicable_kinds = field
+dotnet_naming_symbols.private_internal_fields.applicable_accessibilities = private, internal
+dotnet_naming_style.camel_case_underscore_style.required_prefix = _
+dotnet_naming_style.camel_case_underscore_style.capitalization = camel_case
+
+# Name all local variables using camelCase
+dotnet_naming_rule.local_variables_should_be_camel_case.severity = warning
+dotnet_naming_rule.local_variables_should_be_camel_case.symbols = local_variables
+dotnet_naming_rule.local_variables_should_be_camel_case.style = camel_case_style
+dotnet_naming_symbols.local_variables.applicable_kinds = local
+dotnet_naming_style.camel_case_style.capitalization = camel_case
+
+# Use ArgumentNullException throw helper.
+dotnet_diagnostic.CA1510.severity = warning
+# Use ArgumentException throw helper.
+dotnet_diagnostic.CA1511.severity = warning
+# Use ArgumentOutOfRangeException throw helper.
+dotnet_diagnostic.CA1512.severity = warning
+# Use ObjectDisposedException throw helper.
+dotnet_diagnostic.CA1513.severity = warning
+# Do not initialize unnecessarily.
+dotnet_diagnostic.CA1805.severity = warning
+dotnet_diagnostic.RCS1129.severity = none
+# Simplify name.
+dotnet_diagnostic.IDE0001.severity = warning
+# Simplify member access.
+dotnet_diagnostic.IDE0002.severity = warning
+# Remove unnecessary cast.
+dotnet_diagnostic.IDE0004.severity = warning
+# Remove unnecessary using directives.
+dotnet_diagnostic.IDE0005.severity = warning
+# Use `var` instead of explicit type.
+dotnet_diagnostic.IDE0007.severity = warning
+csharp_style_var_for_built_in_types = true
+csharp_style_var_when_type_is_apparent = true
+csharp_style_var_elsewhere = true
+dotnet_diagnostic.RCS1264.severity = none
+# Use collection initializers or expressions.
+dotnet_diagnostic.IDE0028.severity = warning
+# Order modifiers.
+dotnet_diagnostic.IDE0036.severity = warning
+# Use inferred member names.
+dotnet_diagnostic.IDE0037.severity = warning
+# Add readonly modifier.
+dotnet_diagnostic.IDE0044.severity = warning
+dotnet_diagnostic.RCS1169.severity = none
+# Remove unused private member.
+dotnet_diagnostic.IDE0051.severity = warning
+dotnet_diagnostic.RCS1213.severity = none
+# Remove unread private member.
+dotnet_diagnostic.IDE0052.severity = warning
+# Use compound assignment.
+dotnet_diagnostic.IDE0054.severity = warning
+# Formatting rule.
+dotnet_diagnostic.IDE0055.severity = warning
+# Use range operator.
+dotnet_diagnostic.IDE0057.severity = warning
+# Remove unnecessary value assignment.
+dotnet_diagnostic.IDE0059.severity = warning
+# Use compound assignment.
+dotnet_diagnostic.IDE0074.severity = warning
+# Remove unnecessary suppression.
+dotnet_diagnostic.IDE0079.severity = warning
+# See https://github.com/dotnet/roslyn/issues/75887
+dotnet_remove_unnecessary_suppression_exclusions = CA1822, InconsistentNaming, RCS1102, xUnit1044
+# Use pattern matching (not operator).
+dotnet_diagnostic.IDE0083.severity = warning
+# Remove unnecessary lambda expression.
+dotnet_diagnostic.IDE0200.severity = warning
+# Struct can be made 'readonly'.
+dotnet_diagnostic.IDE0250.severity = warning
+# Use collection expression for array.
+dotnet_diagnostic.IDE0300.severity = warning
+# Use collection expression for empty.
+dotnet_diagnostic.IDE0301.severity = warning
+# Use collection expression for stackalloc.
+dotnet_diagnostic.IDE0302.severity = warning
+# Use collection expression for Create().
+dotnet_diagnostic.IDE0303.severity = warning
+# Use collection expression for builder.
+dotnet_diagnostic.IDE0304.severity = warning
+# Use collection expression for fluent.
+dotnet_diagnostic.IDE0305.severity = silent # see https://github.com/dotnet/roslyn/issues/70833
+# Use collection expression for new.
+dotnet_diagnostic.IDE0306.severity = warning
+dotnet_style_prefer_collection_expression = when_types_exactly_match
+# Place new line after/before binary operator.
+dotnet_diagnostic.RCS0027.severity = warning
+roslynator_binary_operator_new_line = before
+# Normalize whitespace at the end of a file.
+dotnet_diagnostic.RCS0058.severity = warning
+roslynator_new_line_at_end_of_file = true
+# Remove unnecessary blank line.
+dotnet_diagnostic.RCS0063.severity = warning
+# Convert lambda expression body to expression body.
+dotnet_diagnostic.RCS1021.severity = warning
+dotnet_diagnostic.IDE0053.severity = none # see https://github.com/dotnet/roslyn/issues/79246
+# Remove unnecessary braces in switch section.
+dotnet_diagnostic.RCS1031.severity = warning
+# Remove redundant 'ToString' call.
+dotnet_diagnostic.RCS1097.severity = warning
+# Mark local variable as const.
+dotnet_diagnostic.RCS1118.severity = warning
+# Use conditional access.
+dotnet_diagnostic.RCS1146.severity = warning
+dotnet_diagnostic.IDE0031.severity = none
+# Abstract type should not have public constructors.
+dotnet_diagnostic.RCS1160.severity = warning
+# Use constant instead of field.
+dotnet_diagnostic.RCS1187.severity = warning
+# Order named arguments according to the order of parameters.
+dotnet_diagnostic.RCS1205.severity = warning
+# Convert interpolated string to concatenation.
+dotnet_diagnostic.RCS1217.severity = warning
+# Unnecessary null-forgiving operator.
+dotnet_diagnostic.RCS1249.severity = warning
+# Remove unnecessary braces.
+dotnet_diagnostic.RCS1251.severity = warning
+# Add/remove trailing comma.
+dotnet_diagnostic.RCS1260.severity = warning
+roslynator_trailing_comma_style = omit
+# Unnecessary conditional access.
+dotnet_diagnostic.RCS9003.severity = warning
+
+# netstandard2.0
+[src/HotChocolate/{Core/src/Types.Analyzers,Language}/**/*.cs]
+dotnet_diagnostic.CA1510.severity = none
+dotnet_diagnostic.CA1511.severity = none
+dotnet_diagnostic.CA1512.severity = none
+dotnet_diagnostic.CA1513.severity = none
+dotnet_diagnostic.IDE0057.severity = none

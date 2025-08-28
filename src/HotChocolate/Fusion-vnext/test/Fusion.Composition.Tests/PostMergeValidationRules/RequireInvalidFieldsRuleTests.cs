@@ -110,6 +110,24 @@ public sealed class RequireInvalidFieldsRuleTests
                     }
                     """
                 ]
+            },
+            // In the following example, the @require directive’s "field" argument references a field with a list type.
+            {
+                [
+                    """
+                    type CartDiscount {
+                        channels(channelIds: [ID!]! @require(field: "channelIds")): ChannelConnection!
+                        id: ID!
+                    }
+                    """,
+                    """
+                    type CartDiscount {
+                       id: ID!
+                       name: String!
+                       channelIds: [ID!]!
+                    }
+                    """
+                ]
             }
         };
     }
@@ -130,8 +148,8 @@ public sealed class RequireInvalidFieldsRuleTests
                     """
                 ],
                 [
-                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' " +
-                    "specifies an invalid field selection against the composed schema."
+                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' "
+                    + "specifies an invalid field selection against the composed schema."
                 ]
             },
             // In the following example, the @require directive references a field from itself
@@ -147,8 +165,8 @@ public sealed class RequireInvalidFieldsRuleTests
                     """
                 ],
                 [
-                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' " +
-                    "specifies an invalid field selection against the composed schema."
+                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' "
+                    + "specifies an invalid field selection against the composed schema."
                 ]
             },
             // Referencing a field that exists in both the current schema and another schema.
@@ -169,8 +187,8 @@ public sealed class RequireInvalidFieldsRuleTests
                     """
                 ],
                 [
-                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' " +
-                    "specifies an invalid field selection against the composed schema."
+                    "The @require directive on argument 'Book.pages(pageSize:)' in schema 'A' "
+                    + "specifies an invalid field selection against the composed schema."
                 ]
             }
         };

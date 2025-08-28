@@ -3,13 +3,11 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
@@ -66,7 +64,7 @@ public partial class DirectiveType
 
         _inputParser = context.DescriptorContext.InputParser;
 
-        Locations =  configuration.Locations;
+        Locations = configuration.Locations;
         Arguments = OnCompleteFields(context, configuration);
         IsPublic = configuration.IsPublic;
         Middleware = OnCompleteMiddleware(context, configuration);
@@ -121,11 +119,16 @@ public partial class DirectiveType
         }
     }
 
-    protected virtual FieldCollection<DirectiveArgument> OnCompleteFields(
+    protected virtual DirectiveArgumentCollection OnCompleteFields(
         ITypeCompletionContext context,
         DirectiveTypeConfiguration definition)
     {
-        return CompleteFields(context, this, definition.GetArguments(), CreateArgument);
+        return new DirectiveArgumentCollection(
+            CompleteFields(
+                context,
+                this,
+                definition.GetArguments(),
+                CreateArgument));
         static DirectiveArgument CreateArgument(DirectiveArgumentConfiguration argDef, int index)
             => new(argDef, index);
     }
@@ -144,7 +147,7 @@ public partial class DirectiveType
             return CreateDictionaryInstance;
         }
 
-        return  CompileFactory(this);
+        return CompileFactory(this);
     }
 
     protected virtual Action<object, object?[]> OnCompleteGetFieldValues(

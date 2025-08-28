@@ -19,6 +19,39 @@ public class RelaySchemaTests
     }
 
     [Fact]
+    public async Task AddGlobalObjectIdentification_Without_Nodes_Field()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddGlobalObjectIdentification(o => o.AddNodesField = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task AddGlobalObjectIdentification_Mark_Node_Field_As_Lookup()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task AddGlobalObjectIdentification_Do_Not_Mark_Node_Field_As_Lookup()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task AddQueryFieldToMutationPayloads_QueryField_On_MutationPayload_Exists()
     {
         await new ServiceCollection()
@@ -62,10 +95,8 @@ public class RelaySchemaTests
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation2>()
-            .AddQueryFieldToMutationPayloads(o =>
-            {
-                o.MutationPayloadPredicate = type => type.Name.EndsWith("Result");
-            })
+            .AddQueryFieldToMutationPayloads(
+                o => o.MutationPayloadPredicate = type => type.Name.EndsWith("Result"))
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -104,7 +135,7 @@ public class RelaySchemaTests
             .AddQueryType(d => d
                 .Field("user")
                 .Type<UserType>()
-                .Resolve(_ => new User { Name = "TEST", }))
+                .Resolve(_ => new User { Name = "TEST" }))
             .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("query { user { id name } } ")
             .MatchSnapshotAsync();
@@ -129,7 +160,7 @@ public class RelaySchemaTests
 
         private Task<User> ResolveNode(IResolverContext context, string id)
         {
-            return Task.FromResult(new User { Name = "TEST", });
+            return Task.FromResult(new User { Name = "TEST" });
         }
     }
 
@@ -191,16 +222,12 @@ public class RelaySchemaTests
         public FooPayload Foo() => new();
     }
 
-    public class FooPayload
-    {
-    }
+    public class FooPayload;
 
     public class BazPayload
     {
         public string Some { get; set; }
     }
 
-    public class BarResult
-    {
-    }
+    public class BarResult;
 }

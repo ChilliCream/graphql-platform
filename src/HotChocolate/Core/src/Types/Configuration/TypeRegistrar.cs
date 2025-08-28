@@ -3,8 +3,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed partial class TypeRegistrar : ITypeRegistrar
@@ -33,7 +31,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
         _interceptor = typeInterceptor ??
             throw new ArgumentNullException(nameof(typeInterceptor));
         _schemaServices = context.Services;
-        _applicationServices = context.Services.GetService<IApplicationServiceProvider>();
+        _applicationServices = context.Services.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
 
         _combinedServices = _applicationServices is null
             ? _schemaServices
@@ -43,15 +41,12 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
     public ISet<string> Scalars { get; } = new HashSet<string>();
 
     public void Register(
-        TypeSystemObjectBase obj,
+        TypeSystemObject obj,
         string? scope,
         bool inferred = false,
         Action<RegisteredType>? configure = null)
     {
-        if (obj is null)
-        {
-            throw new ArgumentNullException(nameof(obj));
-        }
+        ArgumentNullException.ThrowIfNull(obj);
 
         if (obj is ScalarType scalar)
         {
@@ -69,8 +64,8 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
 
         RegisterTypeAndResolveReferences(registeredType);
 
-        if (obj is not IHasRuntimeType hasRuntimeType ||
-            hasRuntimeType.RuntimeType == typeof(object))
+        if (obj is not IHasRuntimeType hasRuntimeType
+            || hasRuntimeType.RuntimeType == typeof(object))
         {
             return;
         }
@@ -104,30 +99,21 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
 
     public void MarkUnresolved(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         _unresolved.Add(typeReference);
     }
 
     public void MarkResolved(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         _unresolved.Remove(typeReference);
     }
 
     public bool IsResolved(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         return _typeRegistry.IsRegistered(typeReference);
     }
@@ -158,7 +144,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
     }
 
     private RegisteredType InitializeType(
-        TypeSystemObjectBase typeSystemObject,
+        TypeSystemObject typeSystemObject,
         string? scope,
         bool isInferred)
     {
@@ -205,7 +191,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
                         scope));
             }
 
-            if (typeSystemObject is IHasTypeIdentity { TypeIdentity: { } typeIdentity })
+            if (typeSystemObject is ITypeIdentityProvider { TypeIdentity: { } typeIdentity })
             {
                 var reference =
                     _context.TypeInspector.GetTypeRef(

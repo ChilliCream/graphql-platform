@@ -3,8 +3,6 @@ using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -13,7 +11,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
 {
-    private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss";
+    private const string LocalFormat = "yyyy-MM-ddTHH\\:mm\\:ss";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalDateTimeType"/> class.
@@ -111,7 +109,7 @@ public class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
 
     private static string Serialize(IFormattable value)
     {
-        return value.ToString(_localFormat, CultureInfo.InvariantCulture);
+        return value.ToString(LocalFormat, CultureInfo.InvariantCulture);
     }
 
     private static bool TryDeserializeFromString(
@@ -121,7 +119,7 @@ public class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
         if (serialized is not null
             && DateTime.TryParseExact(
                 serialized,
-                _localFormat,
+                LocalFormat,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.None,
                 out var dateTime))

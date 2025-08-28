@@ -4,53 +4,53 @@ namespace HotChocolate.Data.Filters;
 
 public class QueryableFilterVisitorListTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "a", },
-                new FooNested { Bar = "a", },
-                new FooNested { Bar = "a", },
-            },
+                new FooNested { Bar = "a" },
+                new FooNested { Bar = "a" },
+                new FooNested { Bar = "a" }
+            }
         },
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c", },
-                new FooNested { Bar = "a", },
-                new FooNested { Bar = "a", },
-            },
+                new FooNested { Bar = "c" },
+                new FooNested { Bar = "a" },
+                new FooNested { Bar = "a" }
+            }
         },
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "a", },
-                new FooNested { Bar = "d", },
-                new FooNested { Bar = "b", },
-            },
+                new FooNested { Bar = "a" },
+                new FooNested { Bar = "d" },
+                new FooNested { Bar = "b" }
+            }
         },
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c", },
-                new FooNested { Bar = "d", },
-                new FooNested { Bar = "b", },
-            },
+                new FooNested { Bar = "c" },
+                new FooNested { Bar = "d" },
+                new FooNested { Bar = "b" }
+            }
         },
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = null, },
-                new FooNested { Bar = "d", },
-                new FooNested { Bar = "b", },
-            },
-        },
+                new FooNested { Bar = null },
+                new FooNested { Bar = "d" },
+                new FooNested { Bar = "b" }
+            }
+        }
     ];
 
     private readonly SchemaCache _cache = new();
@@ -59,7 +59,7 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArraySomeObjectStringEqualWithNull_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -96,7 +96,10 @@ public class QueryableFilterVisitorListTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "a")
             .AddResult(res2, "d")
             .AddResult(res3, "null")
@@ -107,7 +110,7 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArrayNoneObjectStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -130,7 +133,10 @@ public class QueryableFilterVisitorListTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "a")
             .AddResult(res2, "d")
             .AddResult(res3, "null")
@@ -141,7 +147,7 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArrayAllObjectStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -164,7 +170,10 @@ public class QueryableFilterVisitorListTests
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "a")
             .AddResult(res2, "d")
             .AddResult(res3, "null")
@@ -175,7 +184,7 @@ public class QueryableFilterVisitorListTests
     public async Task Create_ArrayAnyObjectStringEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = _cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Fetching.Properties;
@@ -68,17 +67,14 @@ internal sealed class ExecutionDataLoaderScope(
 
         public object? GetService(Type serviceType)
         {
-            if (serviceType is null)
-            {
-                throw new ArgumentNullException(nameof(serviceType));
-            }
+            ArgumentNullException.ThrowIfNull(serviceType);
 
             if (serviceType == typeof(IServiceProviderIsService))
             {
                 return _serviceInspector;
             }
 
-            if(serviceType == typeof(IBatchScheduler))
+            if (serviceType == typeof(IBatchScheduler))
             {
                 return _batchScheduler;
             }
@@ -91,8 +87,8 @@ internal sealed class ExecutionDataLoaderScope(
             : IServiceProviderIsService
         {
             public bool IsService(Type serviceType)
-                => typeof(IBatchDispatcher) == serviceType ||
-                    innerIsServiceInspector.IsService(serviceType);
+                => typeof(IBatchDispatcher) == serviceType
+                    || innerIsServiceInspector.IsService(serviceType);
         }
     }
 }

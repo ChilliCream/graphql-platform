@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Utilities;
@@ -6,23 +8,20 @@ namespace HotChocolate.Resolvers;
 
 public static class FieldClassMiddlewareFactory
 {
-    private static readonly MethodInfo _createGeneric =
+    private static readonly MethodInfo s_createGeneric =
         typeof(FieldClassMiddlewareFactory)
         .GetTypeInfo().DeclaredMethods.First(t =>
-            t.Name.EqualsOrdinal(nameof(Create)) &&
-            t.IsGenericMethod);
+            t.Name.EqualsOrdinal(nameof(Create))
+            && t.IsGenericMethod);
 
-    private static readonly PropertyInfo _services =
+    private static readonly PropertyInfo s_services =
         typeof(IResolverContext).GetProperty(nameof(IResolverContext.Services));
 
     public static FieldMiddleware Create<TMiddleware>(
         params (Type Service, object Instance)[] services)
         where TMiddleware : class
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         return next =>
         {
@@ -51,7 +50,7 @@ public static class FieldClassMiddlewareFactory
         Type middlewareType,
         params (Type Service, object Instance)[] services)
     {
-        return (FieldMiddleware)_createGeneric
+        return (FieldMiddleware)s_createGeneric
             .MakeGenericMethod(middlewareType)
             .Invoke(null, [services]);
     }
@@ -60,10 +59,7 @@ public static class FieldClassMiddlewareFactory
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
     {
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(factory);
 
         return next => CreateDelegate(factory, next);
     }
@@ -80,7 +76,7 @@ public static class FieldClassMiddlewareFactory
             MiddlewareCompiler<TMiddleware>.CompileDelegate<IMiddlewareContext>(
                 (context, _) => new List<IParameterHandler>
                 {
-                    new ServiceParameterHandler(Expression.Property(context, _services))
+                    new ServiceParameterHandler(Expression.Property(context, s_services))
                 });
 
         return context =>

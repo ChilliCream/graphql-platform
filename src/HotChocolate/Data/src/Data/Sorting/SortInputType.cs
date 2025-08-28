@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Internal.FieldInitHelper;
 
 namespace HotChocolate.Data.Sorting;
@@ -22,7 +22,7 @@ public class SortInputType
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
-    public IExtendedType EntityType { get; private set; } = default!;
+    public IExtendedType EntityType { get; private set; } = null!;
 
     protected override InputObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
@@ -51,7 +51,7 @@ public class SortInputType
         InputObjectTypeConfiguration configuration)
     {
         base.OnRegisterDependencies(context, configuration);
-        if (configuration is SortInputTypeConfiguration {EntityType: { }, } sortDefinition)
+        if (configuration is SortInputTypeConfiguration { EntityType: { } } sortDefinition)
         {
             SetTypeIdentity(
                 typeof(SortInputType<>).MakeGenericType(sortDefinition.EntityType));
@@ -64,22 +64,22 @@ public class SortInputType
     {
         base.OnCompleteType(context, configuration);
 
-        if (configuration is SortInputTypeConfiguration { EntityType: not null, } ft)
+        if (configuration is SortInputTypeConfiguration { EntityType: not null } ft)
         {
             EntityType = context.TypeInspector.GetType(ft.EntityType);
         }
     }
 
-    protected override FieldCollection<InputField> OnCompleteFields(
+    protected override InputFieldCollection OnCompleteFields(
         ITypeCompletionContext context,
-        InputObjectTypeConfiguration definition)
+        InputObjectTypeConfiguration configuration)
     {
-        var fields = new InputField[definition.Fields.Count];
+        var fields = new InputField[configuration.Fields.Count];
         var index = 0;
 
-        foreach (var fieldDefinition in definition.Fields)
+        foreach (var fieldDefinition in configuration.Fields)
         {
-            if (fieldDefinition is SortFieldConfiguration {Ignore: false, } field)
+            if (fieldDefinition is SortFieldConfiguration { Ignore: false } field)
             {
                 fields[index] = new SortField(field, index);
                 index++;
@@ -91,7 +91,7 @@ public class SortInputType
             Array.Resize(ref fields, index);
         }
 
-        return CompleteFields(context, this, fields);
+        return new InputFieldCollection(CompleteFields(context, this, fields));
     }
 
     // we are disabling the default configure method so

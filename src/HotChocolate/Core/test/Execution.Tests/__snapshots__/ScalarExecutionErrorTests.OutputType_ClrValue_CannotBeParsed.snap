@@ -1,4 +1,4 @@
-﻿{
+{
   "errors": [
     {
       "message": "Foo cannot serialize the given value.",
@@ -12,9 +12,9 @@
         "stringToFoo"
       ],
       "extensions": {
+        "code": "EXEC_INVALID_LEAF_VALUE",
         "actualValue": "  ",
-        "actualType": "System.String",
-        "code": "EXEC_INVALID_LEAF_VALUE"
+        "actualType": "System.String"
       }
     }
   ],

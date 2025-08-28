@@ -159,7 +159,7 @@ public sealed class Page<T> : IEnumerable<T>
     /// <summary>
     /// An empty page.
     /// </summary>
-    public static Page<T> Empty => new(ImmutableArray<T>.Empty, false, false, _ => string.Empty);
+    public static Page<T> Empty => new([], false, false, _ => string.Empty);
 
     /// <summary>
     /// Gets the enumerator for the items of this page.

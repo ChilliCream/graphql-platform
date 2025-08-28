@@ -9,36 +9,36 @@ namespace HotChocolate.Data.Raven;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableProjectionInterfaceTypeTests
 {
-    private static readonly AbstractType[] _barEntities =
+    private static readonly AbstractType[] s_barEntities =
     [
-        new Bar { Name = "Bar", BarProp = "BarProp", },
-        new Foo { Name = "Foo", FooProp = "FooProp", },
+        new Bar { Name = "Bar", BarProp = "BarProp" },
+        new Foo { Name = "Foo", FooProp = "FooProp" }
     ];
 
-    private static readonly NestedObject[] _barNestedEntities =
+    private static readonly NestedObject[] s_barNestedEntities =
     [
-        new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp", }, },
-        new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp", }, },
+        new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp" } },
+        new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp" } }
     ];
 
-    private static readonly NestedList[] _barListEntities =
+    private static readonly NestedList[] s_barListEntities =
     [
         new()
         {
             List =
             [
-                new Foo { Name = "Foo", FooProp = "FooProp", },
-                new Bar { Name = "Bar", BarProp = "BarProp", },
-            ],
+                new Foo { Name = "Foo", FooProp = "FooProp" },
+                new Bar { Name = "Bar", BarProp = "BarProp" }
+            ]
         },
         new()
         {
             List =
             [
-                new Bar { Name = "Bar", BarProp = "BarProp", },
-                new Foo { Name = "Foo", FooProp = "FooProp", },
-            ],
-        },
+                new Bar { Name = "Bar", BarProp = "BarProp" },
+                new Foo { Name = "Foo", FooProp = "FooProp" }
+            ]
+        }
     ];
 
     private readonly SchemaCache _cache;
@@ -53,7 +53,7 @@ public class QueryableProjectionInterfaceTypeTests
     {
         // arrange
         var tester =
-            _cache.CreateSchema(_barEntities, configure: ConfigureSchema);
+            _cache.CreateSchema(s_barEntities, configure: ConfigureSchema);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -85,7 +85,7 @@ public class QueryableProjectionInterfaceTypeTests
     {
         // arrange
         var tester =
-            _cache.CreateSchema(_barEntities,
+            _cache.CreateSchema(s_barEntities,
                 configure: x =>
                 {
                     ConfigureSchema(x);
@@ -133,7 +133,7 @@ public class QueryableProjectionInterfaceTypeTests
     {
         // arrange
         var tester = _cache
-            .CreateSchema(_barNestedEntities, configure: ConfigureSchema);
+            .CreateSchema(s_barNestedEntities, configure: ConfigureSchema);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -167,7 +167,7 @@ public class QueryableProjectionInterfaceTypeTests
     {
         // arrange
         var tester = _cache
-            .CreateSchema(_barListEntities, configure: ConfigureSchema);
+            .CreateSchema(s_barListEntities, configure: ConfigureSchema);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -202,10 +202,10 @@ public class QueryableProjectionInterfaceTypeTests
         // arrange
         var tester = _cache
             .CreateSchema(
-                _barEntities,
+                s_barEntities,
+                usePaging: true,
                 configure: ConfigureSchema,
-                schemaType: typeof(InterfaceType<AbstractType>),
-                usePaging: true);
+                schemaType: typeof(InterfaceType<AbstractType>));
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -240,10 +240,10 @@ public class QueryableProjectionInterfaceTypeTests
         // arrange
         var tester = _cache
             .CreateSchema(
-                _barEntities,
+                s_barEntities,
+                useOffsetPaging: true,
                 configure: ConfigureSchema,
-                schemaType: typeof(InterfaceType<AbstractType>),
-                useOffsetPaging: true);
+                schemaType: typeof(InterfaceType<AbstractType>));
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -277,7 +277,7 @@ public class QueryableProjectionInterfaceTypeTests
     {
         // arrange
         var tester =
-            _cache.CreateSchema(_barEntities, configure: ConfigureSchema);
+            _cache.CreateSchema(s_barEntities, configure: ConfigureSchema);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -310,21 +310,21 @@ public class QueryableProjectionInterfaceTypeTests
     {
         public string? Id { get; set; }
 
-        public List<AbstractType> List { get; set; } = default!;
+        public List<AbstractType> List { get; set; } = null!;
     }
 
     public class NestedObject
     {
         public string? Id { get; set; }
 
-        public AbstractType Nested { get; set; } = default!;
+        public AbstractType Nested { get; set; } = null!;
     }
 
     public class Foo : AbstractType
     {
         public new string? Id { get; set; }
 
-        public string FooProp { get; set; } = default!;
+        public string FooProp { get; set; } = null!;
     }
 
     [InterfaceType]
@@ -332,7 +332,7 @@ public class QueryableProjectionInterfaceTypeTests
     {
         public string? Id { get; set; }
 
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 
     public class Bar : AbstractType

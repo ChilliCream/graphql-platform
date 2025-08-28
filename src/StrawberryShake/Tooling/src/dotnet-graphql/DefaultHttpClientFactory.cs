@@ -18,7 +18,7 @@ public class DefaultHttpClientFactory
             new ProductInfoHeaderValue(
                 new ProductHeaderValue(
                     "StrawberryShake",
-                    typeof(InitCommand).Assembly!.GetName()!.Version!.ToString())));
+                    typeof(InitCommand).Assembly.GetName().Version!.ToString())));
 
         if (token is not null)
         {
@@ -34,14 +34,11 @@ public class DefaultHttpClientFactory
             }
         }
 
-        if (customHeaders is not null)
+        foreach (var headerKey in customHeaders.Keys)
         {
-            foreach (var headerKey in customHeaders.Keys)
-            {
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation(
-                    headerKey,
-                    customHeaders[headerKey]);
-            }
+            httpClient.DefaultRequestHeaders.TryAddWithoutValidation(
+                headerKey,
+                customHeaders[headerKey]);
         }
 
         return httpClient;

@@ -1,6 +1,6 @@
 namespace HotChocolate.Subscriptions.Postgres;
 
-public class AsyncAutoResetEventTests
+public class AsyncManualResetEventTests
 {
     [Fact]
     public async Task Set_Should_SetResult_When_Called()
@@ -25,7 +25,7 @@ public class AsyncAutoResetEventTests
         autoResetEvent.Dispose();
 
         // Act & Assert
-        Assert.Throws<ObjectDisposedException>(() => autoResetEvent.Set());
+        Assert.Throws<ObjectDisposedException>(autoResetEvent.Set);
     }
 
     [Fact]

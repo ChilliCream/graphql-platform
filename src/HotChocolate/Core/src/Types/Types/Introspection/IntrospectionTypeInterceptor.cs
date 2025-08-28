@@ -1,9 +1,7 @@
-#nullable enable
-
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.Introspection.IntrospectionFields;
 
 namespace HotChocolate.Types.Introspection;
@@ -11,7 +9,7 @@ namespace HotChocolate.Types.Introspection;
 internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
 {
     private readonly List<ObjectTypeConfiguration> _objectTypeConfigurations = [];
-    private IDescriptorContext _context = default!;
+    private IDescriptorContext _context = null!;
     private ObjectTypeConfiguration? _queryTypeConfiguration;
 
     internal override uint Position => uint.MaxValue - 200;
@@ -30,7 +28,7 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
-        if(completionContext.Type is ObjectType && configuration is ObjectTypeConfiguration typeDef)
+        if (completionContext.Type is ObjectType && configuration is ObjectTypeConfiguration typeDef)
         {
             _objectTypeConfigurations.Add(typeDef);
         }

@@ -23,7 +23,7 @@ public static class TestServerExtensions
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound, };
+            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
         }
 
         var json = await response.Content.ReadAsStringAsync();
@@ -46,7 +46,7 @@ public static class TestServerExtensions
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new[] { new ClientQueryResult { StatusCode = HttpStatusCode.NotFound, }, };
+            return new[] { new ClientQueryResult { StatusCode = HttpStatusCode.NotFound } };
         }
 
         var stream = await response.Content.ReadAsStreamAsync();
@@ -94,7 +94,7 @@ public static class TestServerExtensions
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new[] { new ClientQueryResult { StatusCode = HttpStatusCode.NotFound, }, };
+            return new[] { new ClientQueryResult { StatusCode = HttpStatusCode.NotFound } };
         }
 
         var json = await response.Content.ReadAsStringAsync();
@@ -134,7 +134,7 @@ public static class TestServerExtensions
             var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
             result.StatusCode = response.StatusCode;
             result.ContentType = response.Content.Headers.ContentType?.ToString();
-            return new[] { result, };
+            return new[] { result };
         }
     }
 
@@ -151,7 +151,7 @@ public static class TestServerExtensions
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound, };
+            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
         }
 
         var json = await response.Content.ReadAsStringAsync();
@@ -174,7 +174,7 @@ public static class TestServerExtensions
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound, };
+            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
         }
 
         var json = await response.Content.ReadAsStringAsync();
@@ -197,14 +197,14 @@ public static class TestServerExtensions
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new ClientRawResult { StatusCode = HttpStatusCode.NotFound, };
+            return new ClientRawResult { StatusCode = HttpStatusCode.NotFound };
         }
 
         return new ClientRawResult
         {
             StatusCode = response.StatusCode,
             ContentType = response.Content.Headers.ContentType!.ToString(),
-            Content = await response.Content.ReadAsStringAsync(),
+            Content = await response.Content.ReadAsStringAsync()
         };
     }
 
@@ -231,7 +231,7 @@ public static class TestServerExtensions
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound, };
+            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
         }
 
         var json = await response.Content.ReadAsStringAsync();
@@ -255,7 +255,7 @@ public static class TestServerExtensions
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound, };
+            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
         }
 
         var json = await response.Content.ReadAsStringAsync();
@@ -275,14 +275,14 @@ public static class TestServerExtensions
         var response =
             await SendGetRequestAsync(
                 testServer,
-                $"query={query}&" +
-                "extensions={\"persistedQuery\":{\"version\":1," +
-                $"\"{hashName}\":\"{hash}\"}}}}",
+                $"query={query}&"
+                + "extensions={\"persistedQuery\":{\"version\":1,"
+                + $"\"{hashName}\":\"{hash}\"}}}}",
                 path);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound, };
+            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
         }
 
         var json = await response.Content.ReadAsStringAsync();

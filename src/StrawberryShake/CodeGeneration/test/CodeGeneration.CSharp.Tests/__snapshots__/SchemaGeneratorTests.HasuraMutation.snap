@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
 // ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -3543,7 +3544,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the InsertPeople GraphQL operation
     /// <code>
-    /// mutation InsertPeople($people: [people_insert_input!]!) {
+    /// mutation InsertPeople(
+    ///   $people: [people_insert_input!]!
+    /// ) {
     ///   insert_people(objects: $people) {
     ///     __typename
     ///     affected_rows
@@ -3699,7 +3702,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the InsertPeople GraphQL operation
     /// <code>
-    /// mutation InsertPeople($people: [people_insert_input!]!) {
+    /// mutation InsertPeople(
+    ///   $people: [people_insert_input!]!
+    /// ) {
     ///   insert_people(objects: $people) {
     ///     __typename
     ///     affected_rows
@@ -3712,17 +3717,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IInsertPeopleResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _people_Insert_InputFormatter;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public InsertPeopleMutation(global::StrawberryShake.IOperationExecutor<IInsertPeopleResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _people_Insert_InputFormatter = serializerResolver.GetInputValueFormatter("people_insert_input");
         }
 
+        private InsertPeopleMutation(global::StrawberryShake.IOperationExecutor<IInsertPeopleResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter people_Insert_InputFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _people_Insert_InputFormatter = people_Insert_InputFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IInsertPeopleResult);
+
+        public global::Foo.Bar.IInsertPeopleMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.InsertPeopleMutation(_operationExecutor, _configure.Add(configure), _people_Insert_InputFormatter);
+        }
+
+        public global::Foo.Bar.IInsertPeopleMutation WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IInsertPeopleMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> ExecuteAsync(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(people);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -3775,7 +3808,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the InsertPeople GraphQL operation
     /// <code>
-    /// mutation InsertPeople($people: [people_insert_input!]!) {
+    /// mutation InsertPeople(
+    ///   $people: [people_insert_input!]!
+    /// ) {
     ///   insert_people(objects: $people) {
     ///     __typename
     ///     affected_rows
@@ -3786,6 +3821,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IInsertPeopleMutation : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IInsertPeopleMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IInsertPeopleMutation WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IInsertPeopleMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> ExecuteAsync(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> Watch(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -3855,7 +3893,7 @@ namespace Foo.Bar.State
             }
 
             IInsertPeople_Insert_people returnValue = default !;
-            if (data?.__typename.Equals("people_mutation_response", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("people_mutation_response", global::System.StringComparison.Ordinal))
             {
                 returnValue = new InsertPeople_Insert_people_people_mutation_response(data.Affected_rows ?? throw new global::System.ArgumentNullException());
             }

@@ -13,15 +13,15 @@ public static class SpatialOperationHandlerHelper
         InputParser inputParser,
         [NotNullWhen(true)] out T fieldNode)
     {
-        if (parentField.Type is InputObjectType inputType &&
-            node is ObjectValueNode objectValueNode)
+        if (parentField.Type is InputObjectType inputType
+            && node is ObjectValueNode objectValueNode)
         {
             for (var i = 0; i < objectValueNode.Fields.Count; i++)
             {
                 if (objectValueNode.Fields[i].Name.Value == fieldName)
                 {
                     var fieldValue = objectValueNode.Fields[i];
-                    IInputField field = inputType.Fields[fieldName];
+                    var field = inputType.Fields[fieldName];
 
                     if (inputParser.ParseLiteral(fieldValue.Value, field) is T val)
                     {

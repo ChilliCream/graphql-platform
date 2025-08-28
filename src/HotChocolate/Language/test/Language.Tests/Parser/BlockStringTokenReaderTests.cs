@@ -1,12 +1,11 @@
 using System.Text;
-using Xunit;
 
 namespace HotChocolate.Language;
 
 public class BlockStringTokenReaderTests
 {
     [Fact]
-    private void ReadToken()
+    public void ReadToken()
     {
         // arrange
         var source = Encoding.UTF8.GetBytes(
@@ -33,7 +32,7 @@ public class BlockStringTokenReaderTests
     }
 
     [Fact]
-    private void ReadToken_WithEscapedTrippleQuote1_EscapeIsReplacedWithActualQuotes()
+    public void ReadToken_WithEscapedTrippleQuote1_EscapeIsReplacedWithActualQuotes()
     {
         // arrange
         var source = Encoding.UTF8.GetBytes(
@@ -56,7 +55,7 @@ public class BlockStringTokenReaderTests
     }
 
     [Fact]
-    private void ReadToken_WithEscapedTrippleQuote2_EscapeIsReplacedWithActualQuotes()
+    public void ReadToken_WithEscapedTrippleQuote2_EscapeIsReplacedWithActualQuotes()
     {
         // arrange
         var source = Encoding.UTF8.GetBytes(
@@ -79,12 +78,12 @@ public class BlockStringTokenReaderTests
     }
 
     [Fact]
-    private void ReadToken_WithLeadingBlanks_BlanksAreRemoved()
+    public void ReadToken_WithLeadingBlanks_BlanksAreRemoved()
     {
         // arrange
         var source = Encoding.UTF8.GetBytes(
-            "\"\"\"\r\n\t\r\n\t\r\n\thelloWorld_123" +
-            "\r\n\t\tfoo\r\n\tbar\"\"\"");
+            "\"\"\"\r\n\t\r\n\t\r\n\thelloWorld_123"
+            + "\r\n\t\tfoo\r\n\tbar\"\"\"");
         var reader = new Utf8GraphQLReader(source);
 
         // act
@@ -103,12 +102,12 @@ public class BlockStringTokenReaderTests
     }
 
     [Fact]
-    private void ReadToken_WithTrailingBlanks_BlanksAreRemoved()
+    public void ReadToken_WithTrailingBlanks_BlanksAreRemoved()
     {
         // arrange
         var source = Encoding.UTF8.GetBytes(
-            "\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar" +
-            "\r\n\t\r\n\t\r\n\t\r\n\t\"\"\"");
+            "\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar"
+            + "\r\n\t\r\n\t\r\n\t\r\n\t\"\"\"");
         var reader = new Utf8GraphQLReader(source);
 
         // act
@@ -127,7 +126,7 @@ public class BlockStringTokenReaderTests
     }
 
     [Fact]
-    private void ReadToken_SingleLine_ParsesCorrectly()
+    public void ReadToken_SingleLine_ParsesCorrectly()
     {
         // arrange
         var source = Encoding.UTF8.GetBytes(
@@ -147,7 +146,7 @@ public class BlockStringTokenReaderTests
     }
 
     [Fact]
-    private void UnescapeEmpty()
+    public void UnescapeEmpty()
     {
         // arrange
         var source = Encoding.UTF8.GetBytes("\"\"");
@@ -164,7 +163,7 @@ public class BlockStringTokenReaderTests
     }
 
     [Fact]
-    private void UnescapeString()
+    public void UnescapeString()
     {
         // arrange
         var source = Encoding.UTF8.GetBytes("\"abc\"");
@@ -182,10 +181,10 @@ public class BlockStringTokenReaderTests
     }
 
     [Fact]
-    private void UnexpectedSyntaxException()
+    public void UnexpectedSyntaxException()
     {
         // arrange
-        var source = new byte[] { 187, };
+        var source = new byte[] { 187 };
         var reader = new Utf8GraphQLReader(source);
         var raised = false;
 
@@ -205,7 +204,7 @@ public class BlockStringTokenReaderTests
     }
 
     [Fact]
-    private void NoDigitAfterZeroException()
+    public void NoDigitAfterZeroException()
     {
         // arrange
         var source = Encoding.UTF8.GetBytes("01");
@@ -228,7 +227,7 @@ public class BlockStringTokenReaderTests
     }
 
     [Fact]
-    private void InvalidDigit()
+    public void InvalidDigit()
     {
         // arrange
         var source = Encoding.UTF8.GetBytes("123.F");
@@ -251,7 +250,7 @@ public class BlockStringTokenReaderTests
     }
 
     [Fact]
-    private void Zero()
+    public void Zero()
     {
         // arrange
         var source = Encoding.UTF8.GetBytes("0 ");

@@ -34,10 +34,7 @@ public static class GreenDonutPageExtensions
     /// </remarks>
     public static ImmutableArray<PageCursor> CreateRelativeBackwardCursors<T>(this Page<T> page, int maxCursors = 5)
     {
-        if (page == null)
-        {
-            throw new ArgumentNullException(nameof(page));
-        }
+        ArgumentNullException.ThrowIfNull(page);
 
         if (maxCursors < 0)
         {
@@ -95,10 +92,7 @@ public static class GreenDonutPageExtensions
     /// </remarks>
     public static ImmutableArray<PageCursor> CreateRelativeForwardCursors<T>(this Page<T> page, int maxCursors = 5)
     {
-        if (page == null)
-        {
-            throw new ArgumentNullException(nameof(page));
-        }
+        ArgumentNullException.ThrowIfNull(page);
 
         if (maxCursors < 0)
         {
@@ -112,7 +106,7 @@ public static class GreenDonutPageExtensions
             return [];
         }
 
-        var totalPages = (page.TotalCount ?? 0) / (page.RequestedSize ?? 10);
+        var totalPages = Math.Ceiling((double)(page.TotalCount ?? 0) / (page.RequestedSize ?? 10));
 
         if (page.Index >= totalPages)
         {
@@ -122,7 +116,7 @@ public static class GreenDonutPageExtensions
         var cursors = ImmutableArray.CreateBuilder<PageCursor>();
         cursors.Add(new PageCursor(page.CreateCursor(page.Last, 0), page.Index.Value + 1));
 
-        for (int i = 1; i < maxCursors && page.Index + i < totalPages; i++)
+        for (var i = 1; i < maxCursors && page.Index + i < totalPages; i++)
         {
             cursors.Add(
                 new PageCursor(

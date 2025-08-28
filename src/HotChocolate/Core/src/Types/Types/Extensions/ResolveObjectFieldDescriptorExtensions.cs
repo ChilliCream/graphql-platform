@@ -1,7 +1,5 @@
 using HotChocolate.Resolvers;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public static class ResolveObjectFieldDescriptorExtensions
@@ -12,15 +10,8 @@ public static class ResolveObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Func<IResolverContext, object?> resolver)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return descriptor.Resolve(ctx => new ValueTask<object?>(resolver(ctx)));
     }
@@ -29,15 +20,8 @@ public static class ResolveObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Func<IResolverContext, Task<object?>?> resolver)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return descriptor.Resolve(async ctx =>
         {
@@ -45,7 +29,7 @@ public static class ResolveObjectFieldDescriptorExtensions
 
             if (resolverTask is null)
             {
-                return default;
+                return null;
             }
 
             return await resolverTask.ConfigureAwait(false);
@@ -56,15 +40,8 @@ public static class ResolveObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Func<IResolverContext, TResult> resolver)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return descriptor
             .Type<NativeType<TResult>>()
@@ -77,15 +54,8 @@ public static class ResolveObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Func<IResolverContext, Task<TResult>?> resolver)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return descriptor.Resolve(
             async ctx =>
@@ -93,7 +63,7 @@ public static class ResolveObjectFieldDescriptorExtensions
                 var resolverTask = resolver(ctx);
                 if (resolverTask is null)
                 {
-                    return default;
+                    return null;
                 }
 
                 return await resolverTask.ConfigureAwait(false);
@@ -107,15 +77,8 @@ public static class ResolveObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Func<object?> resolver)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return descriptor.Resolve(_ => new ValueTask<object?>(resolver()));
     }
@@ -124,15 +87,8 @@ public static class ResolveObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Func<Task<object?>> resolver)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return descriptor.Resolve(async _ => await resolver().ConfigureAwait(false));
     }
@@ -141,15 +97,8 @@ public static class ResolveObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Func<TResult> resolver)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return descriptor.Resolve(
             _ => new ValueTask<object?>(resolver()),
@@ -160,15 +109,8 @@ public static class ResolveObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Func<Task<TResult>?> resolver)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return descriptor.Resolve(
             async _ =>
@@ -177,7 +119,7 @@ public static class ResolveObjectFieldDescriptorExtensions
 
                 if (resolverTask is null)
                 {
-                    return default;
+                    return null;
                 }
 
                 return await resolverTask.ConfigureAwait(false);
@@ -191,15 +133,8 @@ public static class ResolveObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Func<IResolverContext, CancellationToken, object?> resolver)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return descriptor.Resolve(
             ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)));
@@ -209,15 +144,8 @@ public static class ResolveObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Func<IResolverContext, CancellationToken, TResult> resolver)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return descriptor.Resolve(
             ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)),
@@ -228,15 +156,8 @@ public static class ResolveObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Func<IResolverContext, CancellationToken, Task<TResult>?> resolver)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(resolver);
 
         return descriptor.Resolve(
             async ctx =>
@@ -245,7 +166,7 @@ public static class ResolveObjectFieldDescriptorExtensions
 
                 if (resolverTask is null)
                 {
-                    return default;
+                    return null;
                 }
 
                 return await resolverTask.ConfigureAwait(false);
@@ -259,10 +180,7 @@ public static class ResolveObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         object constantResult)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Resolve(
             _ => new ValueTask<object?>(constantResult));
@@ -272,10 +190,7 @@ public static class ResolveObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         TResult constantResult)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Resolve(
             _ => new ValueTask<object?>(constantResult),

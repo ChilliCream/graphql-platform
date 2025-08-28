@@ -1,8 +1,6 @@
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Configuration;
 
@@ -13,7 +11,7 @@ internal sealed partial class RegisteredType : IHasRuntimeType
     private List<TypeDependency>? _conditionals;
 
     public RegisteredType(
-        TypeSystemObjectBase type,
+        TypeSystemObject type,
         bool isInferred,
         TypeRegistry typeRegistry,
         TypeLookup typeLookup,
@@ -27,15 +25,15 @@ internal sealed partial class RegisteredType : IHasRuntimeType
         IsInferred = isInferred;
         DescriptorContext = descriptorContext;
         TypeInterceptor = typeInterceptor;
-        IsExtension = Type is INamedTypeExtensionMerger;
-        IsSchema = Type is ISchema;
+        IsExtension = Type is ITypeDefinitionExtension;
+        IsSchema = Type is Schema;
         Scope = scope;
 
-        if (type is INamedType nt)
+        if (type is ITypeDefinition typeDefinition)
         {
             IsNamedType = true;
-            IsIntrospectionType = nt.IsIntrospectionType();
-            Kind = nt.Kind;
+            IsIntrospectionType = typeDefinition.IsIntrospectionType();
+            Kind = typeDefinition.Kind;
         }
         else if (type is DirectiveType)
         {
@@ -44,7 +42,7 @@ internal sealed partial class RegisteredType : IHasRuntimeType
         }
     }
 
-    public TypeSystemObjectBase Type { get; }
+    public TypeSystemObject Type { get; }
 
     public TypeKind? Kind { get; }
 
@@ -94,7 +92,7 @@ internal sealed partial class RegisteredType : IHasRuntimeType
             return "Schema";
         }
 
-        if (Type is IHasName { Name: { Length: > 0 } name })
+        if (Type is INameProvider { Name: { Length: > 0 } name })
         {
             return IsDirective ? $"@{name}" : name;
         }

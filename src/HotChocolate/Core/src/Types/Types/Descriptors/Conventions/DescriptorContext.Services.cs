@@ -3,8 +3,6 @@ using HotChocolate.Internal;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.ObjectPool;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 public sealed partial class DescriptorContext
@@ -18,7 +16,7 @@ public sealed partial class DescriptorContext
         {
             _schemaServices = schemaServices ??
                 throw new ArgumentNullException(nameof(schemaServices));
-            _appServices = _schemaServices.GetService<IApplicationServiceProvider>();
+            _appServices = _schemaServices.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
         }
 
         public IReadOnlyList<IParameterExpressionBuilder> GetParameterExpressionBuilders()

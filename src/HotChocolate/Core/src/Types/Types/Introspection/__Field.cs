@@ -1,18 +1,17 @@
 #pragma warning disable IDE1006 // Naming Styles
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.Descriptors.TypeReference;
-
-#nullable enable
 
 namespace HotChocolate.Types.Introspection;
 
-[Introspection]
 // ReSharper disable once InconsistentNaming
-internal sealed class __Field : ObjectType<IOutputField>
+[Introspection]
+internal sealed class __Field : ObjectType<IOutputFieldDefinition>
 {
     protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
@@ -26,7 +25,7 @@ internal sealed class __Field : ObjectType<IOutputField>
         var def = new ObjectTypeConfiguration(
             Names.__Field,
             TypeResources.Field_Description,
-            typeof(IOutputField))
+            typeof(IOutputFieldDefinition))
         {
             Fields =
             {
@@ -66,33 +65,33 @@ internal sealed class __Field : ObjectType<IOutputField>
     private static class Resolvers
     {
         public static string Name(IResolverContext context)
-            => context.Parent<IOutputField>().Name;
+            => context.Parent<IOutputFieldDefinition>().Name;
 
         public static string? Description(IResolverContext context)
-            => context.Parent<IOutputField>().Description;
+            => context.Parent<IOutputFieldDefinition>().Description;
 
         public static object Arguments(IResolverContext context)
         {
-            var field = context.Parent<IOutputField>();
+            var field = context.Parent<IOutputFieldDefinition>();
             return context.ArgumentValue<bool>(Names.IncludeDeprecated)
                 ? field.Arguments
                 : field.Arguments.Where(t => !t.IsDeprecated);
         }
 
         public static IType Type(IResolverContext context)
-            => context.Parent<IOutputField>().Type;
+            => context.Parent<IOutputFieldDefinition>().Type;
 
         public static object IsDeprecated(IResolverContext context)
-            => context.Parent<IOutputField>().IsDeprecated;
+            => context.Parent<IOutputFieldDefinition>().IsDeprecated;
 
         public static string? DeprecationReason(IResolverContext context)
-            => context.Parent<IOutputField>().DeprecationReason;
+            => context.Parent<IOutputFieldDefinition>().DeprecationReason;
 
         public static object AppliedDirectives(IResolverContext context) =>
-            context.Parent<IOutputField>()
+            context.Parent<IOutputFieldDefinition>()
                 .Directives
-                .Where(t => t.Type.IsPublic)
-                .Select(d => d.AsSyntaxNode());
+                .Where(t => Unsafe.As<DirectiveType>(t.Definition).IsPublic)
+                .Select(d => d.ToSyntaxNode());
     }
 
     public static class Names

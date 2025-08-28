@@ -281,17 +281,11 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="SchemaBuilderExtensions_MustBeDirectiveType" xml:space="preserve">
     <value>A directive type must inherit from `DirectiveType` or `DirectiveType&lt;T&gt;`.</value>
   </data>
-  <data name="SchemaBuilderExtensions_SchemaIsEmpty" xml:space="preserve">
-    <value>The schema string cannot be null or empty.</value>
-  </data>
   <data name="SchemaBuilder_Binding_CannotBeHandled" xml:space="preserve">
     <value>There is no handler registered that can handle the specified schema binding.</value>
   </data>
   <data name="SchemaBuilder_Binding_Invalid" xml:space="preserve">
     <value>The schema binding is not valid.</value>
-  </data>
-  <data name="SchemaBuilder_ISchemaNotTso" xml:space="preserve">
-    <value>The given schema has to inherit from TypeSystemObjectBase in order to be initializable.</value>
   </data>
   <data name="SchemaBuilder_NoQueryType" xml:space="preserve">
     <value>The schema builder was unable to identify the query type of the schema. Either specify which type is the query type or set the schema builder to non-strict validation mode.</value>
@@ -307,9 +301,6 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   </data>
   <data name="SchemaBuilder_SchemaTypeInvalid" xml:space="preserve">
     <value>The given schema has to inherit from `Schema` in order to be initializable.</value>
-  </data>
-  <data name="SchemaErrorBuilder_MessageIsNull" xml:space="preserve">
-    <value>The error message mustn't be null or empty.</value>
   </data>
   <data name="SchemaField_Description" xml:space="preserve">
     <value>Access the current type schema of this server.</value>
@@ -352,12 +343,6 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   </data>
   <data name="TypeDependency_MustBeSchemaType" xml:space="preserve">
     <value>The specified type is not a schema type.</value>
-  </data>
-  <data name="TypeExtensions_InvalidStructure" xml:space="preserve">
-    <value>The type structure is invalid.</value>
-  </data>
-  <data name="TypeExtensions_KindIsNotSupported" xml:space="preserve">
-    <value>The specified type kind is not supported.</value>
   </data>
   <data name="TypeExtensions_NoListType" xml:space="preserve">
     <value>The specified type is not a valid list type.</value>
@@ -413,16 +398,13 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="TypeNameHelper_OnlyTypeSystemObjectsAreAllowed" xml:space="preserve">
     <value>Only type system objects are allowed as dependency.</value>
   </data>
-  <data name="TypeResourceHelper_TypeNameEmptyOrNull" xml:space="preserve">
-    <value>The typeName mustn't be null or empty.</value>
-  </data>
   <data name="Type_Description" xml:space="preserve">
     <value>The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
 
 Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.</value>
   </data>
   <data name="UnionTypeExtension_CannotMerge" xml:space="preserve">
-    <value>The union type extension can only be merged with an union type.</value>
+    <value>The union type extension can only be merged with a union type.</value>
   </data>
   <data name="VariableValueBuilder_InputType" xml:space="preserve">
     <value>Variable `{0}` of type `{1}` must be an input type.</value>
@@ -591,9 +573,6 @@ Type: `{0}`</value>
   <data name="ThrowHelper_UsePagingAttribute_NodeTypeUnknown" xml:space="preserve">
     <value>Unable to infer the element type from the current resolver. This often happens if the resolver is not an iterable type like IEnumerable, IQueryable, IList etc. Ensure that you either explicitly specify the element type or that the return type of your resolver is an iterable type.</value>
   </data>
-  <data name="Schema_GetDirectiveType_DoesNotExist" xml:space="preserve">
-    <value>The specified type `{0}` does not exist.</value>
-  </data>
   <data name="ErrorHelper_ObjectField_HasNoResolver" xml:space="preserve">
     <value>The field `{0}.{1}` has no resolver.</value>
   </data>
@@ -721,11 +700,7 @@ Type: `{0}`</value>
     <value>The fieldName cannot be null or empty.</value>
   </data>
   <data name="OneOfDirectiveType_Description" xml:space="preserve">
-    <value>The `@oneOf` directive is used within the type system definition language
- to indicate:
-
- - an Input Object is a Oneof Input Object, or
- - an Object Type's Field is a Oneof Field.</value>
+    <value>The `@oneOf` directive is used within the type system definition language to indicate that an input object is a oneof input object.</value>
   </data>
   <data name="ThrowHelper_OneOfNoFieldSet" xml:space="preserve">
     <value>The Oneof Input Objects `{0}` require that exactly one field must be supplied and that field must not be `null`. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.</value>
@@ -883,6 +858,9 @@ Type: `{0}`</value>
   <data name="ErrorHelper_NotTransitivelyImplemented" xml:space="preserve">
     <value>The {0} type must also declare all interfaces declared by implemented interfaces.</value>
   </data>
+  <data name="ErrorHelper_InvalidFieldDeprecation" xml:space="preserve">
+    <value>Interface field {0}.{1} is not deprecated, so implementation field {2}.{3} must not be deprecated.</value>
+  </data>
   <data name="ErrorHelper_InvalidFieldType" xml:space="preserve">
     <value>Field `{0}` must return a type which is equal to or a subtype of (covariant) the return type `{1}` of the interface field.</value>
   </data>
@@ -977,7 +955,7 @@ Type: `{0}`</value>
     <value>The specified type `{0}` is expected to be an output type.</value>
   </data>
   <data name="TagDirective_Name_NotValid" xml:space="preserve">
-    <value>The tag name must follow the GraphQL type name rules.</value>
+    <value>Tag names may only include alphanumeric characters (a-z, A-Z, 0-9), hyphens, and underscores.</value>
   </data>
   <data name="TagDirective_Descriptor_NotSupported" xml:space="preserve">
     <value>Tag is not supported on the specified descriptor.</value>
@@ -1004,12 +982,15 @@ Type: `{0}`</value>
     <value>The `LocalDateTime` scalar type is a local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss`.</value>
   </data>
   <data name="LocalDateType_Description" xml:space="preserve">
-    <value>The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339</value>
+    <value>The `LocalDate` scalar type represents an ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339</value>
   </data>
   <data name="LocalTimeType_Description" xml:space="preserve">
     <value>The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss.</value>
   </data>
   <data name="SchemaBuilder_BindRuntimeType_ObjectNotAllowed" xml:space="preserve">
     <value>The type `System.Object` cannot be implicitly bound to a schema type.</value>
+  </data>
+  <data name="TypeExtensions_KindIsNotSupported" xml:space="preserve">
+    <value>The specified type kind is not supported.</value>
   </data>
 </root>

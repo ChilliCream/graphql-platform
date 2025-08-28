@@ -11,8 +11,7 @@ namespace HotChocolate.Types.Mutable;
 /// </summary>
 public class MutableEnumValue
     : INamedTypeSystemMemberDefinition<MutableEnumValue>
-    , IEnumValue
-    , IFeatureProvider
+        , IEnumValue
 {
     private bool _isDeprecated;
     private DirectiveCollection? _directives;
@@ -24,6 +23,15 @@ public class MutableEnumValue
     {
         Name = name;
     }
+
+    /// <summary>
+    /// Gets the declaring type of the enum value.
+    /// </summary>
+    public MutableEnumTypeDefinition? DeclaringType { get; set; }
+
+    IEnumTypeDefinition IEnumValue.DeclaringType
+        => DeclaringType ?? throw new InvalidOperationException(
+            "The declaring type of the enum value is not set.");
 
     /// <inheritdoc cref="INameProvider.Name" />
     public string Name
@@ -62,6 +70,20 @@ public class MutableEnumValue
             {
                 _isDeprecated = true;
             }
+        }
+    }
+
+    public SchemaCoordinate Coordinate
+    {
+        get
+        {
+            if (DeclaringType is null)
+            {
+                throw new InvalidOperationException(
+                    "The declaring type of the enum value is not set.");
+            }
+
+            return new SchemaCoordinate(DeclaringType.Name, Name, ofDirective: false);
         }
     }
 

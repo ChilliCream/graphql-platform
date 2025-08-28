@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
 // ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -401,7 +402,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the ChangeHomePlanet GraphQL operation
     /// <code>
-    /// mutation ChangeHomePlanet($input: ChangeHomePlanetInput!) {
+    /// mutation ChangeHomePlanet(
+    ///   $input: ChangeHomePlanetInput!
+    /// ) {
     ///   changeHomePlanet(input: $input) {
     ///     __typename
     ///     human {
@@ -603,7 +606,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the ChangeHomePlanet GraphQL operation
     /// <code>
-    /// mutation ChangeHomePlanet($input: ChangeHomePlanetInput!) {
+    /// mutation ChangeHomePlanet(
+    ///   $input: ChangeHomePlanetInput!
+    /// ) {
     ///   changeHomePlanet(input: $input) {
     ///     __typename
     ///     human {
@@ -622,17 +627,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IChangeHomePlanetResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _changeHomePlanetInputFormatter;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public ChangeHomePlanetMutation(global::StrawberryShake.IOperationExecutor<IChangeHomePlanetResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _changeHomePlanetInputFormatter = serializerResolver.GetInputValueFormatter("ChangeHomePlanetInput");
         }
 
+        private ChangeHomePlanetMutation(global::StrawberryShake.IOperationExecutor<IChangeHomePlanetResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter changeHomePlanetInputFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _changeHomePlanetInputFormatter = changeHomePlanetInputFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IChangeHomePlanetResult);
+
+        public global::Foo.Bar.IChangeHomePlanetMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.ChangeHomePlanetMutation(_operationExecutor, _configure.Add(configure), _changeHomePlanetInputFormatter);
+        }
+
+        public global::Foo.Bar.IChangeHomePlanetMutation WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IChangeHomePlanetMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IChangeHomePlanetResult>> ExecuteAsync(global::Foo.Bar.ChangeHomePlanetInput input, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(input);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -674,7 +707,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the ChangeHomePlanet GraphQL operation
     /// <code>
-    /// mutation ChangeHomePlanet($input: ChangeHomePlanetInput!) {
+    /// mutation ChangeHomePlanet(
+    ///   $input: ChangeHomePlanetInput!
+    /// ) {
     ///   changeHomePlanet(input: $input) {
     ///     __typename
     ///     human {
@@ -691,6 +726,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IChangeHomePlanetMutation : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IChangeHomePlanetMutation With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IChangeHomePlanetMutation WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IChangeHomePlanetMutation WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IChangeHomePlanetResult>> ExecuteAsync(global::Foo.Bar.ChangeHomePlanetInput input, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IChangeHomePlanetResult>> Watch(global::Foo.Bar.ChangeHomePlanetInput input, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

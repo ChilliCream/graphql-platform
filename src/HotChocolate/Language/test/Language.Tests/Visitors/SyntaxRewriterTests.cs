@@ -1,5 +1,4 @@
 using HotChocolate.Language.Utilities;
-using Xunit;
 using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Language.Visitors;
@@ -17,8 +16,8 @@ public class SyntaxRewriterTests
             SyntaxRewriter.CreateWithNavigator(
                 (node, context) =>
                 {
-                    if (node.Kind is SyntaxKind.FieldDefinition &&
-                        "Foo".Equals(
+                    if (node.Kind is SyntaxKind.FieldDefinition
+                        && "Foo".Equals(
                             context.Navigator.GetAncestor<ObjectTypeDefinitionNode>()?.Name.Value))
                     {
                         var field = (FieldDefinitionNode)node;
@@ -65,7 +64,7 @@ public class SyntaxRewriterTests
                         && ((FieldDefinitionNode)node).Name.Value.Equals("two", StringComparison.Ordinal)
                         && "Foo".Equals(context.Navigator.GetAncestor<ObjectTypeDefinitionNode>()?.Name.Value))
                     {
-                        return default;
+                        return null;
                     }
 
                     return node;
@@ -94,7 +93,7 @@ public class SyntaxRewriterTests
                     if (node.Kind is SyntaxKind.Name
                         && "Foo".Equals(context.Navigator.GetAncestor<ObjectTypeDefinitionNode>()?.Name.Value))
                     {
-                        return default;
+                        return null;
                     }
 
                     return node;

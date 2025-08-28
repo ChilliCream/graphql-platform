@@ -22,8 +22,8 @@ public class NodeTypeTests : TypeTestBase
             nodeInterface.Name);
 
         Assert.Equal(
-            "The node interface is implemented by entities that have " +
-            "a global unique identifier.",
+            "The node interface is implemented by entities that have "
+            + "a global unique identifier.",
             nodeInterface.Description);
 
         Assert.Collection(
@@ -169,7 +169,7 @@ public class NodeTypeTests : TypeTestBase
                                 }
                             }
                         }")
-                    .SetVariableValues(new Dictionary<string, object> { { "id", id }, })
+                    .SetVariableValues(new Dictionary<string, object> { { "id", id } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -224,7 +224,7 @@ public class NodeTypeTests : TypeTestBase
                                 }
                             }
                         }")
-                    .SetVariableValues(new Dictionary<string, object> { { "id", id }, })
+                    .SetVariableValues(new Dictionary<string, object> { { "id", id } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -249,8 +249,7 @@ public class NodeTypeTests : TypeTestBase
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query9>()
-            .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
-            .AddGlobalObjectIdentification()
+            .AddGlobalObjectIdentification(o => o.EnsureAllNodesCanBeResolved = false)
             .BuildSchemaAsync();
 
         Assert.NotNull(schema);

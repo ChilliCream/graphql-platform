@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using HotChocolate.Types;
@@ -18,10 +16,7 @@ public readonly ref struct TypeDiscoveryInfo
     /// </summary>
     public TypeDiscoveryInfo(TypeReference typeReference)
     {
-        if (typeReference is null)
-        {
-            throw new ArgumentNullException(nameof(typeReference));
-        }
+        ArgumentNullException.ThrowIfNull(typeReference);
 
         IExtendedType extendedType;
 
@@ -134,13 +129,13 @@ public readonly ref struct TypeDiscoveryInfo
         bool isPublic)
     {
         var isComplexClass =
-            isPublic &&
-            unresolvedType.Type.IsClass &&
-            unresolvedType.Type != typeof(string);
+            isPublic
+            && unresolvedType.Type.IsClass
+            && unresolvedType.Type != typeof(string);
 
         var isComplexValueType =
-            isPublic &&
-            unresolvedType.Type is
+            isPublic
+            && unresolvedType.Type is
             {
                 IsValueType: true,
                 IsPrimitive: false,

@@ -1,7 +1,7 @@
 using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Helpers;
 
@@ -9,24 +9,13 @@ public static class TypeNameHelper
 {
     public static void AddNameFunction<TDefinition>(
         IDescriptor<TDefinition> descriptor,
-        Func<INamedType, string> createName,
+        Func<ITypeDefinition, string> createName,
         Type dependency)
         where TDefinition : TypeSystemConfiguration, ITypeConfiguration
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (createName is null)
-        {
-            throw new ArgumentNullException(nameof(createName));
-        }
-
-        if (dependency is null)
-        {
-            throw new ArgumentNullException(nameof(dependency));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(createName);
+        ArgumentNullException.ThrowIfNull(dependency);
 
         if (!typeof(ITypeSystemMember).IsAssignableFrom(dependency))
         {
@@ -57,24 +46,13 @@ public static class TypeNameHelper
 
     public static void AddNameFunction<TDefinition>(
         IDescriptor<TDefinition> descriptor,
-        Func<INamedType, string> createName,
+        Func<ITypeDefinition, string> createName,
         TypeReference dependency)
         where TDefinition : TypeSystemConfiguration, ITypeConfiguration
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (createName is null)
-        {
-            throw new ArgumentNullException(nameof(createName));
-        }
-
-        if (dependency is null)
-        {
-            throw new ArgumentNullException(nameof(dependency));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(createName);
+        ArgumentNullException.ThrowIfNull(dependency);
 
         descriptor.Extend().Configuration.NeedsNameCompletion = true;
 

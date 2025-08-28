@@ -1,0 +1,75 @@
+operation:
+  - document: >-
+      query testQuery {
+        authorable {
+          __typename @fusion__requirement
+          author {
+            id
+            displayName
+            id @fusion__requirement
+          }
+          ... on Discussion {
+            author {
+              id
+              displayName
+              id @fusion__requirement
+            }
+          }
+        }
+      }
+    name: testQuery
+    hash: 123456789101112
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: >-
+      query testQuery_123456789101112_1 {
+        authorable {
+          __typename
+          author {
+            id
+          }
+          ... on Discussion {
+            author {
+              id
+            }
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: b
+    operation: >-
+      query testQuery_123456789101112_2(
+        $__fusion_1_id: ID!
+      ) {
+        authorById(id: $__fusion_1_id) {
+          displayName
+        }
+      }
+    source: $.authorById
+    target: $.authorable<Discussion>.author
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: b
+    operation: >-
+      query testQuery_123456789101112_3(
+        $__fusion_2_id: ID!
+      ) {
+        authorById(id: $__fusion_2_id) {
+          displayName
+        }
+      }
+    source: $.authorById
+    target: $.authorable.author
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: id
+    dependencies:
+      - id: 1

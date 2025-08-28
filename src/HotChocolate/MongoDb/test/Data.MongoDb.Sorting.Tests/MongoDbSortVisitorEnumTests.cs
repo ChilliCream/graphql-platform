@@ -10,7 +10,7 @@ public class MongoDbSortVisitorEnumTests
     : SchemaCache,
       IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new() { BarEnum = FooEnum.BAR },
         new() { BarEnum = FooEnum.BAZ },
@@ -18,7 +18,7 @@ public class MongoDbSortVisitorEnumTests
         new() { BarEnum = FooEnum.QUX }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
         new() { BarEnum = FooEnum.BAR },
         new() { BarEnum = FooEnum.BAZ },
@@ -36,7 +36,7 @@ public class MongoDbSortVisitorEnumTests
     public async Task Create_Enum_OrderBy()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooSortType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -62,7 +62,7 @@ public class MongoDbSortVisitorEnumTests
     {
         // arrange
         var tester = CreateSchema<FooNullable, FooNullableSortType>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -109,11 +109,7 @@ public class MongoDbSortVisitorEnumTests
         QUX
     }
 
-    public class FooSortType : SortInputType<Foo>
-    {
-    }
+    public class FooSortType : SortInputType<Foo>;
 
-    public class FooNullableSortType : SortInputType<FooNullable>
-    {
-    }
+    public class FooNullableSortType : SortInputType<FooNullable>;
 }

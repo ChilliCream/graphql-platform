@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Types.Mutable/HotChocolate.Types.Mutable.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Types.Mutable.Tests/HotChocolate.Types.Mutable.Tests.csproj" />
+  </Folder>
+</Solution>

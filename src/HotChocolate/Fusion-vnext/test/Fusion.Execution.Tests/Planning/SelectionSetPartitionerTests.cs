@@ -1,8 +1,7 @@
-using System.Collections.Immutable;
-using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
@@ -14,7 +13,7 @@ public class SelectionSetPartitionerTests
     {
         // arrange
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
-        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        var compositeSchema = FusionSchemaDefinition.Create(compositeSchemaDoc);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -59,7 +58,7 @@ public class SelectionSetPartitionerTests
             SelectionSetIndex = index
         };
         var rewriter = new SelectionSetPartitioner(compositeSchema);
-        var (resolvable, unresolvable, fields, _) = rewriter.Partition(input);
+        var (resolvable, unresolvable, _, _) = rewriter.Partition(input);
 
         // assert
         resolvable.MatchInlineSnapshot(
@@ -79,7 +78,7 @@ public class SelectionSetPartitionerTests
     {
         // arrange
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
-        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        var compositeSchema = FusionSchemaDefinition.Create(compositeSchemaDoc);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -131,7 +130,7 @@ public class SelectionSetPartitionerTests
             SelectionSetIndex = index
         };
         var rewriter = new SelectionSetPartitioner(compositeSchema);
-        var (resolvable, unresolvable, fields, _) = rewriter.Partition(input);
+        var (resolvable, unresolvable, _, _) = rewriter.Partition(input);
 
         // assert
         resolvable.MatchInlineSnapshot(

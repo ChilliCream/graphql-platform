@@ -1,0 +1,25 @@
+query ListApiKeyCommandQuery($workspaceId: ID!, $after: String, $first: Int) {
+  workspaceById(workspaceId: $workspaceId) {
+    apiKeys(after: $after, first: $first) {
+      edges {
+        ...ListApiKeyCommand_ApiKeyEdge
+      }
+      pageInfo {
+        ...PageInfo
+      }
+    }
+  }
+}
+
+fragment ListApiKeyCommand_ApiKeyEdge on ApiKeysEdge {
+  cursor
+  node {
+    ...ListApiKeyCommand_ApiKey
+  }
+}
+
+fragment ListApiKeyCommand_ApiKey on ApiKey {
+  id
+  name
+  ...ApiKeyDetailPrompt_ApiKey
+}

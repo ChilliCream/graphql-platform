@@ -1,10 +1,8 @@
 using System.Reflection;
 using System.Linq.Expressions;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
-
-#nullable enable
 
 namespace HotChocolate.Types.Relay.Descriptors;
 
@@ -89,10 +87,7 @@ public class NodeDescriptor
     /// <inheritdoc cref="INodeDescriptor.IdField(MemberInfo)"/>
     public INodeDescriptor IdField(MemberInfo propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         if (propertyOrMethod is PropertyInfo or MethodInfo)
         {

@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
 // ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // FooClient
 
@@ -389,7 +390,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Readonly GraphQL operation
     /// <code>
-    /// query Readonly($input: abstract!) {
+    /// query Readonly(
+    ///   $input: abstract!
+    /// ) {
     ///   readonly(readonly: $input) {
     ///     __typename
     ///     abstract
@@ -592,7 +595,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Readonly GraphQL operation
     /// <code>
-    /// query Readonly($input: abstract!) {
+    /// query Readonly(
+    ///   $input: abstract!
+    /// ) {
     ///   readonly(readonly: $input) {
     ///     __typename
     ///     abstract
@@ -613,17 +618,45 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IReadonlyResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _abstractFormatter;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public ReadonlyQuery(global::StrawberryShake.IOperationExecutor<IReadonlyResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _abstractFormatter = serializerResolver.GetInputValueFormatter("abstract");
         }
 
+        private ReadonlyQuery(global::StrawberryShake.IOperationExecutor<IReadonlyResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter @abstractFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _abstractFormatter = @abstractFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IReadonlyResult);
+
+        public global::Foo.Bar.IReadonlyQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::Foo.Bar.ReadonlyQuery(_operationExecutor, _configure.Add(configure), _abstractFormatter);
+        }
+
+        public global::Foo.Bar.IReadonlyQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::Foo.Bar.IReadonlyQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IReadonlyResult>> ExecuteAsync(global::Foo.Bar.@abstract input, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(input);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -665,7 +698,9 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the Readonly GraphQL operation
     /// <code>
-    /// query Readonly($input: abstract!) {
+    /// query Readonly(
+    ///   $input: abstract!
+    /// ) {
     ///   readonly(readonly: $input) {
     ///     __typename
     ///     abstract
@@ -684,6 +719,9 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IReadonlyQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::Foo.Bar.IReadonlyQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::Foo.Bar.IReadonlyQuery WithRequestUri(global::System.Uri requestUri);
+        global::Foo.Bar.IReadonlyQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IReadonlyResult>> ExecuteAsync(global::Foo.Bar.@abstract input, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IReadonlyResult>> Watch(global::Foo.Bar.@abstract input, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -769,7 +807,7 @@ namespace Foo.Bar.State
             }
 
             IReadonly_Readonly returnValue = default !;
-            if (data?.__typename.Equals("readonly", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("readonly", global::System.StringComparison.Ordinal))
             {
                 returnValue = new Readonly_Readonly_readonly(data.Abstract);
             }

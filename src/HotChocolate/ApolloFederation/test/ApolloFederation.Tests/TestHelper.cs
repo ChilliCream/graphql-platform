@@ -3,6 +3,7 @@ using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Moq;
 
 namespace HotChocolate.ApolloFederation;
@@ -10,7 +11,7 @@ namespace HotChocolate.ApolloFederation;
 public static class TestHelper
 {
     public static IResolverContext CreateResolverContext(
-        ISchema schema,
+        Schema schema,
         ObjectType? type = null,
         Action<Mock<IResolverContext>>? additionalMockSetup = null)
     {
@@ -24,6 +25,7 @@ public static class TestHelper
         mock.Setup(c => c.Parent<_Service>()).Returns(new _Service());
         mock.Setup(c => c.Clone()).Returns(mock.Object);
         mock.SetupGet(c => c.Schema).Returns(schema);
+        mock.Setup(c => c.Service<ITypeConverter>()).Returns(new DefaultTypeConverter());
 
         if (type is not null)
         {
@@ -56,7 +58,7 @@ public static class TestHelper
                     string s => new ObjectFieldNode(p.Name, s),
                     int i => new ObjectFieldNode(p.Name, i),
                     bool b => new ObjectFieldNode(p.Name, b),
-                    _ => throw new NotSupportedException($"Type {p.PropertyType} is not supported"),
+                    _ => throw new NotSupportedException($"Type {p.PropertyType} is not supported")
                 };
                 return result;
             })

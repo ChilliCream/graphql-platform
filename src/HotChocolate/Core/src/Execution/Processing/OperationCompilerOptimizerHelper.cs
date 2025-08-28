@@ -1,45 +1,40 @@
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Features;
+using HotChocolate.Types;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>
-/// This helper class allows to add optimizers to context data or retrieve optimizers from context data.
+/// This helper class allows adding optimizers to context data or retrieve optimizers from context data.
 /// </summary>
 internal static class OperationCompilerOptimizerHelper
 {
-    private const string _key = "HotChocolate.Execution.Utilities.SelectionSetOptimizer";
+    public static void RegisterOptimizer(
+        ObjectFieldConfiguration configuration,
+        ISelectionSetOptimizer optimizer)
+        => RegisterOptimizerInternal(configuration, optimizer);
 
     public static void RegisterOptimizer(
-        IDictionary<string, object?> contextData,
+        ObjectField field,
+        ISelectionSetOptimizer optimizer)
+        => RegisterOptimizerInternal(field, optimizer);
+
+    private static void RegisterOptimizerInternal(
+        IFeatureProvider featureProvider,
         ISelectionSetOptimizer optimizer)
     {
-        if (contextData.TryGetValue(_key, out var value)
-            && value is ImmutableArray<ISelectionSetOptimizer> optimizers)
-        {
-            if (!optimizers.Contains(optimizer))
-            {
-                optimizers = optimizers.Add(optimizer);
-                contextData[_key] = optimizers;
-            }
-            return;
-        }
+        var optimizers = featureProvider.Features.GetOrSet(ImmutableArray<ISelectionSetOptimizer>.Empty);
 
-        contextData[_key] = ImmutableArray.Create(optimizer);
+        if (!optimizers.Contains(optimizer))
+        {
+            optimizers = optimizers.Add(optimizer);
+            featureProvider.Features.Set(optimizers);
+        }
     }
 
     public static bool TryGetOptimizers(
-        IReadOnlyDictionary<string, object?> contextData,
-        [NotNullWhen(true)] out ImmutableArray<ISelectionSetOptimizer>? optimizers)
-    {
-        if (contextData.TryGetValue(_key, out var value)
-            && value is ImmutableArray<ISelectionSetOptimizer> o)
-        {
-            optimizers = o;
-            return true;
-        }
-
-        optimizers = null;
-        return false;
-    }
+        IFeatureProvider featureProvider,
+        out ImmutableArray<ISelectionSetOptimizer> optimizers)
+        => featureProvider.Features.TryGet(out optimizers);
 }

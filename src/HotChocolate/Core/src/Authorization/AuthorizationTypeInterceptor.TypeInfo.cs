@@ -1,5 +1,5 @@
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Authorization;
 
@@ -33,8 +33,8 @@ internal sealed partial class AuthorizationTypeInterceptor
         }
 
         public override bool Equals(object? obj)
-            => ReferenceEquals(this, obj) ||
-                (obj is ObjectTypeInfo other && Equals(other));
+            => ReferenceEquals(this, obj)
+                || (obj is ObjectTypeInfo other && Equals(other));
 
         public override int GetHashCode()
             => TypeDef.GetHashCode();

@@ -1,12 +1,12 @@
-#nullable enable
+using HotChocolate.Features;
 
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// A type system configuration is used in the type initialization
 /// as a mutable object to define the types properties.
 /// </summary>
-public interface ITypeSystemConfiguration
+public interface ITypeSystemConfiguration : IFeatureProvider
 {
     /// <summary>
     /// Gets or sets the name of the type system member.
@@ -27,12 +27,6 @@ public interface ITypeSystemConfiguration
     /// Defines whether descriptor attributes are applied or not.
     /// </summary>
     bool AttributesAreApplied { get; set; }
-
-    /// <summary>
-    /// Get access to context data that are copied to the type
-    /// and can be used for customizations.
-    /// </summary>
-    ExtensionData ContextData { get; }
 
     /// <summary>
     /// Gets access to additional type dependencies.

@@ -24,6 +24,9 @@
   <data name="ErrorHelper_PreMergeValidationFailed" xml:space="preserve">
     <value>Pre-merge validation failed.</value>
   </data>
+  <data name="ErrorHelper_SatisfiabilityValidationFailed" xml:space="preserve">
+    <value>Satisfiability validation failed.</value>
+  </data>
   <data name="ErrorHelper_SourceSchemaParsingFailed" xml:space="preserve">
     <value>Source schema parsing failed.</value>
   </data>
@@ -38,6 +41,9 @@
   </data>
   <data name="FusionEnumValueMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @fusion__enumValue directive specifies which source schema provides an enum value.</value>
+  </data>
+  <data name="FusionFieldDefinitionMutableScalarTypeDefinition_Description" xml:space="preserve">
+    <value>The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec.</value>
   </data>
   <data name="FusionFieldMutableDirectiveDefinition_Argument_Partial_Description" xml:space="preserve">
     <value>Indicates that this field is only partially provided and must be combined with `provides`.</value>
@@ -54,6 +60,15 @@
   <data name="FusionFieldMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @fusion__field directive specifies which source schema provides a field in a composite type and what execution behavior it has.</value>
   </data>
+  <data name="FusionFieldSelectionMapMutableScalarTypeDefinition_Description" xml:space="preserve">
+    <value>The fusion__FieldSelectionMap scalar is used to represent the FieldSelectionMap type specified in the GraphQL Composite Schemas Spec.</value>
+  </data>
+  <data name="FusionFieldSelectionPathMutableScalarTypeDefinition_Description" xml:space="preserve">
+    <value>The fusion__FieldSelectionPath scalar is used to represent a path of field names relative to the Query type.</value>
+  </data>
+  <data name="FusionFieldSelectionSetMutableScalarTypeDefinition_Description" xml:space="preserve">
+    <value>The fusion__FieldSelectionSet scalar is used to represent a GraphQL selection set. To simplify the syntax, the outermost selection set is not wrapped in curly braces.</value>
+  </data>
   <data name="FusionImplementsMutableDirectiveDefinition_Argument_Interface_Description" xml:space="preserve">
     <value>The name of the interface type.</value>
   </data>
@@ -62,6 +77,9 @@
   </data>
   <data name="FusionImplementsMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @fusion__implements directive specifies on which source schema an interface is implemented by an object or interface type.</value>
+  </data>
+  <data name="FusionInaccessibleMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas.</value>
   </data>
   <data name="FusionInputFieldMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
     <value>The name of the source schema that originally provided this input field.</value>
@@ -104,6 +122,15 @@
   </data>
   <data name="FusionRequiresMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @fusion__requires directive specifies if a field has requirements on a source schema.</value>
+  </data>
+  <data name="FusionSchemaMetadataMutableDirectiveDefinition_Argument_Name_Description" xml:space="preserve">
+    <value>The name of the source schema.</value>
+  </data>
+  <data name="FusionSchemaMetadataMutableDirectiveDefinition_Description" xml:space="preserve">
+    <value>The @fusion__schema_metadata directive is used to provide additional metadata for a source schema.</value>
+  </data>
+  <data name="FusionSchemaMutableEnumTypeDefinition_Description" xml:space="preserve">
+    <value>The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner.</value>
   </data>
   <data name="FusionTypeMutableDirectiveDefinition_Argument_Schema_Description" xml:space="preserve">
     <value>The name of the source schema that originally provided part of the annotated type.</value>
@@ -327,11 +354,56 @@
   <data name="ProvidesMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @provides directive indicates that a field can provide certain subfields of its return type from the same source schema, without requiring an additional resolution step elsewhere.</value>
   </data>
+  <data name="RequirementsValidator_CycleDetected" xml:space="preserve">
+    <value>Cycle detected in requirement: {0} -&gt; {1}.</value>
+  </data>
+  <data name="RequirementsValidator_FieldDoesNotExistOnType" xml:space="preserve">
+    <value>The field '{0}' does not exist on the type '{1}'.</value>
+  </data>
+  <data name="RequirementsValidator_NoLookupsFoundForType" xml:space="preserve">
+    <value>No lookups found for type '{0}' in schema '{1}'.</value>
+  </data>
+  <data name="RequirementsValidator_NoOtherSchemasContainField" xml:space="preserve">
+    <value>No other schemas contain the field '{0}.{1}'.</value>
+  </data>
+  <data name="RequirementsValidator_UnableToAccessFieldOnPath" xml:space="preserve">
+    <value>Unable to access the required field '{0}.{1}' on path '{2}'.</value>
+  </data>
+  <data name="RequirementsValidator_UnableToSatisfyRequirement" xml:space="preserve">
+    <value>Unable to satisfy the requirement '{0}'.</value>
+  </data>
+  <data name="RequirementsValidator_UnableToSatisfyRequirementForLookup" xml:space="preserve">
+    <value>Unable to satisfy the requirement '{0}' for lookup '{1}' in schema '{2}'.</value>
+  </data>
+  <data name="RequirementsValidator_UnableToTransitionBetweenSchemas" xml:space="preserve">
+    <value>Unable to transition between schemas '{0}' and '{1}' for access to required field '{2}'.</value>
+  </data>
   <data name="RequireMutableDirectiveDefinition_Argument_Field_Description" xml:space="preserve">
     <value>Represents a selection path map syntax.</value>
   </data>
   <data name="RequireMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @require directive is used to express data requirements with other source schemas.</value>
+  </data>
+  <data name="SatisfiabilityValidator_CycleDetected" xml:space="preserve">
+    <value>Cycle detected: {0} -&gt; {1}.</value>
+  </data>
+  <data name="SatisfiabilityValidator_NodeTypeHasNoNodeLookup" xml:space="preserve">
+    <value>Type '{0}' implements the 'Node' interface, but no source schema provides a 'Query.node&lt;Node&gt;' lookup field for this type.</value>
+  </data>
+  <data name="SatisfiabilityValidator_NoLookupsFoundForType" xml:space="preserve">
+    <value>No lookups found for type '{0}' in schema '{1}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToAccessFieldOnPath" xml:space="preserve">
+    <value>Unable to access the field '{0}.{1}' on path '{2}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToSatisfyRequirement" xml:space="preserve">
+    <value>Unable to satisfy the requirement '{0}' on field '{1}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToSatisfyRequirementForLookup" xml:space="preserve">
+    <value>Unable to satisfy the requirement '{0}' for lookup '{1}' in schema '{2}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToTransitionBetweenSchemas" xml:space="preserve">
+    <value>Unable to transition between schemas '{0}' and '{1}' for access to field '{2}'.</value>
   </data>
   <data name="SchemaNameMutableDirectiveDefinition_Argument_Value_Description" xml:space="preserve">
     <value>The name of the source schema.</value>
@@ -341,6 +413,9 @@
   </data>
   <data name="ShareableMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked.</value>
+  </data>
+  <data name="TypeDefinitionExtensions_TheSpecifiedTypeIsNotAnAbstractType" xml:space="preserve">
+    <value>The specified type is not an abstract type.</value>
   </data>
   <data name="TypeDefinitionInvalidRule_ArgumentMissing" xml:space="preserve">
     <value>The argument '{0}' is missing.</value>

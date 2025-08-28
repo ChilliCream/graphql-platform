@@ -2,8 +2,6 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -11,7 +9,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public static class Scalars
 {
-    private static readonly Dictionary<Type, Type> _lookup = new()
+    private static readonly Dictionary<Type, Type> s_lookup = new()
     {
         { typeof(string), typeof(StringType) },
         { typeof(bool), typeof(BooleanType) },
@@ -36,7 +34,7 @@ public static class Scalars
         { typeof(JsonElement), typeof(JsonType) }
     };
 
-    private static readonly Dictionary<string, Type> _nameLookup = new()
+    private static readonly Dictionary<string, Type> s_nameLookup = new()
     {
         { ScalarNames.String, typeof(StringType) },
         { ScalarNames.ID, typeof(IdType) },
@@ -63,7 +61,7 @@ public static class Scalars
         { ScalarNames.JSON, typeof(JsonType) }
     };
 
-    private static readonly Dictionary<Type, ValueKind> _scalarKinds = new()
+    private static readonly Dictionary<Type, ValueKind> s_scalarKinds = new()
     {
         { typeof(string), ValueKind.String },
         { typeof(long), ValueKind.Integer },
@@ -92,7 +90,7 @@ public static class Scalars
         { typeof(bool?), ValueKind.Float }
     };
 
-    private static readonly HashSet<string> _specScalars =
+    private static readonly HashSet<string> s_specScalars =
     [
         ScalarNames.ID,
         ScalarNames.String,
@@ -104,7 +102,7 @@ public static class Scalars
     internal static bool TryGetScalar(
         Type runtimeType,
         [NotNullWhen(true)] out Type? schemaType) =>
-        _lookup.TryGetValue(
+        s_lookup.TryGetValue(
             runtimeType ?? throw new ArgumentNullException(nameof(runtimeType)),
             out schemaType);
 
@@ -112,12 +110,9 @@ public static class Scalars
         string typeName,
         [NotNullWhen(true)] out Type? schemaType)
     {
-        if (string.IsNullOrEmpty(typeName))
-        {
-            throw new ArgumentNullException(nameof(typeName));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
 
-        return _nameLookup.TryGetValue(typeName, out schemaType);
+        return s_nameLookup.TryGetValue(typeName, out schemaType);
     }
 
     /// <summary>
@@ -131,8 +126,8 @@ public static class Scalars
     /// otherwise, <c>false</c>.
     /// </returns>
     public static bool IsBuiltIn(string typeName)
-        => !string.IsNullOrEmpty(typeName) &&
-            _nameLookup.ContainsKey(typeName);
+        => !string.IsNullOrEmpty(typeName)
+            && s_nameLookup.ContainsKey(typeName);
 
     /// <summary>
     /// Tries to infer the GraphQL literal kind from a runtime value.
@@ -162,7 +157,7 @@ public static class Scalars
             return true;
         }
 
-        if (_scalarKinds.TryGetValue(valueType, out kind))
+        if (s_scalarKinds.TryGetValue(valueType, out kind))
         {
             return true;
         }
@@ -184,5 +179,5 @@ public static class Scalars
     }
 
     internal static bool IsSpec(string typeName)
-        => _specScalars.Contains(typeName);
+        => s_specScalars.Contains(typeName);
 }

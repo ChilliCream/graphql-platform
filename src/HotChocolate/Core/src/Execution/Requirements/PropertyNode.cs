@@ -69,7 +69,6 @@ internal sealed class PropertyNode : TypeContainer
         return new PropertyNode(Property, nodes, IsArray, IsCollection, ElementType);
     }
 
-
     private static Type? GetCollectionType(Type type)
     {
         if (type.IsGenericType

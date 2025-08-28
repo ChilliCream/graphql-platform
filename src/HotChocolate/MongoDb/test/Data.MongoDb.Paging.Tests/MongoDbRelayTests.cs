@@ -130,7 +130,7 @@ public class MongoDbRelayTests
 
     public class Query
     {
-        public Foo GetFoo() => new() { Id = ObjectId.Parse("507f191e810c19729de860ea"), };
+        public Foo GetFoo() => new() { Id = ObjectId.Parse("507f191e810c19729de860ea") };
     }
 
     public class FooType : ObjectType<Foo>
@@ -140,7 +140,7 @@ public class MongoDbRelayTests
             descriptor
                 .ImplementsNode()
                 .IdField(x => x.Id)
-                .ResolveNode((_, objectId) => Task.FromResult<Foo?>(new Foo { Id = objectId, }));
+                .ResolveNode((_, objectId) => Task.FromResult<Foo?>(new Foo { Id = objectId }));
         }
     }
 

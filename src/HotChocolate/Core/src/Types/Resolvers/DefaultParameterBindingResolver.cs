@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions.Parameters;
@@ -59,7 +57,7 @@ public sealed class DefaultParameterBindingResolver : IParameterBindingResolver
         bindingFactories.Add(new PathParameterExpressionBuilder());
         bindingFactories.Add(new ConnectionFlagsParameterExpressionBuilder());
 
-         if (customBindingFactories is not null)
+        if (customBindingFactories is not null)
         {
             bindingFactories.AddRange(
                 customBindingFactories

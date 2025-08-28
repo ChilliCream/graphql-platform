@@ -1,0 +1,68 @@
+{
+  "data": {
+    "node": {
+      "__typename": "Discussion"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "b761ad72f69f964d9632f306ecb9b7eb98f0199f36807cb8045777864b2e8307",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      __typename\n    }\n  }\n}",
+          "id": "72167d7d7ed0d1df427c3f70d87aa054",
+          "hash": "72167d7d7ed0d1df427c3f70d87aa054",
+          "shortHash": "72167d7d"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Node",
+            "idValue": "\"RGlzY3Vzc2lvbjox\"",
+            "responseName": "node",
+            "branches": {
+              "Discussion": 3
+            },
+            "fallback": 2
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "operation": {
+              "name": "Op_72167d7d_2",
+              "type": "Query",
+              "document": "query Op_72167d7d_2 {\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n  }\n}",
+              "hash": "8c2df8d78bf1ef49a145eba270617e933935f53d21bc01af4085b0c0cdd00807",
+              "shortHash": "8c2df8d7"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_72167d7d_3",
+              "type": "Query",
+              "document": "query Op_72167d7d_3 {\n  node: discussionById(discussionId: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n    __typename\n  }\n}",
+              "hash": "1a577bbb61a345b7eb4307da4f0a5fe835b9b58331bc96c0685594381b0c31df",
+              "shortHash": "1a577bbb"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

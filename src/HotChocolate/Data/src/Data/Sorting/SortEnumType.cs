@@ -3,7 +3,7 @@ using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -57,21 +57,18 @@ public class SortEnumType : EnumType
 
     public SortEnumValue? ParseSortLiteral(IValueNode valueSyntax)
     {
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
-        if (valueSyntax is EnumValueNode evn &&
-            ValueLookup.TryGetValue(evn.Value, out var ev) &&
-            ev is SortEnumValue sortEnumValue)
+        if (valueSyntax is EnumValueNode evn
+            && ValueLookup.TryGetValue(evn.Value, out var ev)
+            && ev is SortEnumValue sortEnumValue)
         {
             return sortEnumValue;
         }
 
-        if (valueSyntax is StringValueNode svn &&
-            NameLookup.TryGetValue(svn.Value, out ev) &&
-            ev is SortEnumValue sortEnumValueOfString)
+        if (valueSyntax is StringValueNode svn
+            && Values.TryGetValue(svn.Value, out ev)
+            && ev is SortEnumValue sortEnumValueOfString)
         {
             return sortEnumValueOfString;
         }

@@ -10,17 +10,17 @@ public class MongoDbFilterVisitorBooleanTests
     : SchemaCache
     , IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = null, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = null },
+        new() { Bar = false }
     ];
 
     public MongoDbFilterVisitorBooleanTests(MongoResource resource)
@@ -32,7 +32,7 @@ public class MongoDbFilterVisitorBooleanTests
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         // assert
@@ -58,7 +58,7 @@ public class MongoDbFilterVisitorBooleanTests
     public async Task Create_BooleanNotEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         // assert
@@ -85,7 +85,7 @@ public class MongoDbFilterVisitorBooleanTests
     {
         // arrange
         var tester = CreateSchema<FooNullable, FooNullableFilterType>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -117,7 +117,7 @@ public class MongoDbFilterVisitorBooleanTests
     {
         // arrange
         var tester = CreateSchema<FooNullable, FooNullableFilterType>(
-            _fooNullableEntities);
+            s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -163,12 +163,8 @@ public class MongoDbFilterVisitorBooleanTests
     }
 
     public class FooFilterType
-        : FilterInputType<Foo>
-    {
-    }
+        : FilterInputType<Foo>;
 
     public class FooNullableFilterType
-        : FilterInputType<FooNullable>
-    {
-    }
+        : FilterInputType<FooNullable>;
 }

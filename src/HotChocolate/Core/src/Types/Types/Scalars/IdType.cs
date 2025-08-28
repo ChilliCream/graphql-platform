@@ -1,8 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -39,10 +37,7 @@ public class IdType : ScalarType<string>
 
     public override bool IsInstanceOfType(IValueNode literal)
     {
-        if (literal is null)
-        {
-            throw new ArgumentNullException(nameof(literal));
-        }
+        ArgumentNullException.ThrowIfNull(literal);
 
         return literal is StringValueNode
             || literal is IntValueNode
@@ -51,10 +46,7 @@ public class IdType : ScalarType<string>
 
     public override object? ParseLiteral(IValueNode literal)
     {
-        if (literal is null)
-        {
-            throw new ArgumentNullException(nameof(literal));
-        }
+        ArgumentNullException.ThrowIfNull(literal);
 
         if (literal is StringValueNode stringLiteral)
         {

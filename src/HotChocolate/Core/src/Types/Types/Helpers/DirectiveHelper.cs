@@ -6,7 +6,7 @@ internal static class DirectiveHelper
     {
         return source switch
         {
-            ISchema => DirectiveLocation.Schema,
+            Schema => DirectiveLocation.Schema,
             ScalarType => DirectiveLocation.Scalar,
             ObjectType => DirectiveLocation.Object,
             InterfaceType => DirectiveLocation.Interface,
@@ -14,7 +14,7 @@ internal static class DirectiveHelper
             InputObjectType => DirectiveLocation.InputObject,
             EnumType => DirectiveLocation.Enum,
             EnumValue => DirectiveLocation.EnumValue,
-            IOutputField => DirectiveLocation.FieldDefinition,
+            IOutputFieldDefinition => DirectiveLocation.FieldDefinition,
             InputField => DirectiveLocation.InputFieldDefinition,
             Argument => DirectiveLocation.ArgumentDefinition,
             _ => throw new NotSupportedException()

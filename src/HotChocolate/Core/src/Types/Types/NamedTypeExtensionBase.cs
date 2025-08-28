@@ -1,33 +1,42 @@
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
 /// <summary>
 /// This is not a full type and is used to split the type configuration into multiple part.
-/// Any type extension instance is will not survive the initialization and instead is
+/// Any type extension instance will not survive the initialization and instead is
 /// merged into the target type.
 /// </summary>
-public abstract class NamedTypeExtensionBase<TDefinition>
-    : TypeSystemObjectBase<TDefinition>
-    , INamedTypeExtensionMerger
-    where TDefinition : TypeSystemConfiguration, ITypeConfiguration
+public abstract class NamedTypeExtensionBase<TConfiguration>
+    : TypeSystemObject<TConfiguration>
+    , ITypeDefinition
+    , ITypeDefinitionExtensionMerger
+    where TConfiguration : TypeSystemConfiguration, ITypeConfiguration
 {
     /// <inheritdoc />
     public abstract TypeKind Kind { get; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the type extended by this type extension.
+    /// </summary>
     public Type? ExtendsType { get; private set; }
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => throw new NotSupportedException();
+
+    SchemaCoordinate ISchemaCoordinateProvider.Coordinate
+        => throw new NotSupportedException();
 
     protected abstract void Merge(
         ITypeCompletionContext context,
-        INamedType type);
+        ITypeDefinition type);
 
-    void INamedTypeExtensionMerger.Merge(
+    void ITypeDefinitionExtensionMerger.Merge(
         ITypeCompletionContext context,
-        INamedType type) => Merge(context, type);
+        ITypeDefinition type)
+        => Merge(context, type);
 
     protected override void OnAfterCompleteName(
         ITypeCompletionContext context,
@@ -36,4 +45,11 @@ public abstract class NamedTypeExtensionBase<TDefinition>
         ExtendsType = Configuration?.ExtendsType;
         base.OnAfterCompleteName(context, configuration);
     }
+
+    public bool Equals(IType? other)
+        => ReferenceEquals(this, other);
+
+    public bool IsAssignableFrom(ITypeDefinition type) => throw new NotSupportedException();
+
+    public ISyntaxNode ToSyntaxNode() => throw new NotSupportedException();
 }

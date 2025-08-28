@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -12,7 +12,7 @@ public class SortEnumValueDescriptor
         IDescriptorContext context,
         string? scope,
         int value)
-        : base(context, new SortEnumValueConfiguration { Operation = value, })
+        : base(context, new SortEnumValueConfiguration { Operation = value })
     {
         var convention = context.GetSortConvention(scope);
         Configuration.Name = convention.GetOperationName(value);

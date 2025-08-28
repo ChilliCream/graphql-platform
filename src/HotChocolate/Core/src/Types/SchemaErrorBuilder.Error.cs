@@ -2,11 +2,9 @@ using System.Collections.Immutable;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
-
-#nullable enable
 
 namespace HotChocolate;
 
@@ -14,37 +12,40 @@ public partial class SchemaErrorBuilder
 {
     private sealed class Error : ISchemaError
     {
-        private static readonly JsonWriterOptions _serializationOptions = new()
+        private static readonly JsonWriterOptions s_serializationOptions = new()
         {
             Indented = true,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
-        public string Message { get; set; } = default!;
+        public string Message { get; set; } = null!;
 
         public string? Code { get; set; }
 
-        public ITypeSystemObject? TypeSystemObject { get; set; }
+        public TypeSystemObject? TypeSystemObject { get; set; }
 
         public IReadOnlyCollection<object>? Path { get; set; }
 
-        public ImmutableList<ISyntaxNode> SyntaxNodes { get; set; } =
-            ImmutableList<ISyntaxNode>.Empty;
+        public ImmutableList<ISyntaxNode> SyntaxNodes { get; set; } = [];
 
         IReadOnlyCollection<ISyntaxNode> ISchemaError.SyntaxNodes => SyntaxNodes;
 
-        public ImmutableDictionary<string, object> Extensions { get; set; }
-            = ImmutableDictionary<string, object>.Empty;
+        public ImmutableDictionary<string, object?> Extensions { get; set; }
+#if NET10_0_OR_GREATER
+            = [];
+#else
+            = ImmutableDictionary<string, object?>.Empty;
+#endif
 
-        IReadOnlyDictionary<string, object> ISchemaError.Extensions => Extensions;
+        IReadOnlyDictionary<string, object?> ISchemaError.Extensions => Extensions;
 
         public Exception? Exception { get; set; }
 
         public override unsafe string ToString()
         {
-            using var buffer = new ArrayWriter();
+            using var buffer = new PooledArrayWriter();
 
-            using var writer = new Utf8JsonWriter(buffer, _serializationOptions);
+            using var writer = new Utf8JsonWriter(buffer, s_serializationOptions);
 
             writer.WriteStartObject();
             Serialize(writer);
@@ -52,7 +53,7 @@ public partial class SchemaErrorBuilder
 
             writer.Flush();
 
-            fixed (byte* b = buffer.GetInternalBuffer())
+            fixed (byte* b = PooledArrayWriterMarshal.GetUnderlyingBuffer(buffer))
             {
                 return Encoding.UTF8.GetString(b, buffer.Length);
             }
@@ -67,9 +68,9 @@ public partial class SchemaErrorBuilder
                 writer.WriteString("code", Code);
             }
 
-            if (TypeSystemObject is INamedType namedType)
+            if (TypeSystemObject is ITypeDefinition typeDefinition)
             {
-                writer.WriteString("type", namedType.Name);
+                writer.WriteString("type", typeDefinition.Name);
             }
 
             if (Path is { })
@@ -96,11 +97,11 @@ public partial class SchemaErrorBuilder
                 {
                     writer.WriteNullValue();
                 }
-                else if (item.Value is IField f)
+                else if (item.Value is IFieldDefinition f)
                 {
                     writer.WriteStringValue(f.Name);
                 }
-                else if (item.Value is INamedType n)
+                else if (item.Value is ITypeDefinition n)
                 {
                     writer.WriteStringValue(n.Name ?? n.GetType().FullName);
                 }

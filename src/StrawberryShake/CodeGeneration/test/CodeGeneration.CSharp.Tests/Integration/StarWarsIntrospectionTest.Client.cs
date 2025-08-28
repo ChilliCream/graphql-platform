@@ -1,13 +1,14 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
 
 // StarWarsIntrospectionClient
 
@@ -3998,16 +3999,43 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial class IntrospectionQueryQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IIntrospectionQueryResult> _operationExecutor;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public IntrospectionQueryQuery(global::StrawberryShake.IOperationExecutor<IIntrospectionQueryResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
+        private IntrospectionQueryQuery(global::StrawberryShake.IOperationExecutor<IIntrospectionQueryResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IIntrospectionQueryResult);
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IntrospectionQueryQuery(_operationExecutor, _configure.Add(configure));
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IIntrospectionQueryResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -4145,6 +4173,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IIntrospectionQueryQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryQuery WithRequestUri(global::System.Uri requestUri);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IIntrospectionQueryResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IIntrospectionQueryResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -4244,7 +4275,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             IIntrospectionQuery___schema_MutationType returnValue = default !;
-            if (data?.__typename.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("__Type", global::System.StringComparison.Ordinal))
             {
                 returnValue = new IntrospectionQuery___schema_MutationType___Type(data.Name);
             }
@@ -4264,7 +4295,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             IIntrospectionQuery___schema_SubscriptionType returnValue = default !;
-            if (data?.__typename.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("__Type", global::System.StringComparison.Ordinal))
             {
                 returnValue = new IntrospectionQuery___schema_SubscriptionType___Type(data.Name);
             }
@@ -4392,7 +4423,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             IIntrospectionQuery___schema_Types_Interfaces_OfType returnValue = default !;
-            if (data?.__typename.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("__Type", global::System.StringComparison.Ordinal))
             {
                 returnValue = new IntrospectionQuery___schema_Types_Interfaces_OfType___Type(data.Kind ?? throw new global::System.ArgumentNullException(), data.Name, MapIIntrospectionQuery___schema_Types_Interfaces_OfType_OfType(data.OfType, snapshot));
             }
@@ -4412,7 +4443,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType returnValue = default !;
-            if (data?.__typename.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("__Type", global::System.StringComparison.Ordinal))
             {
                 returnValue = new IntrospectionQuery___schema_Types_Interfaces_OfType_OfType___Type(data.Kind ?? throw new global::System.ArgumentNullException(), data.Name, MapIIntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType(data.OfType, snapshot));
             }
@@ -4432,7 +4463,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             }
 
             IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType returnValue = default !;
-            if (data?.__typename.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("__Type", global::System.StringComparison.Ordinal))
             {
                 returnValue = new IntrospectionQuery___schema_Types_Interfaces_OfType_OfType_OfType___Type(data.Kind ?? throw new global::System.ArgumentNullException(), data.Name);
             }

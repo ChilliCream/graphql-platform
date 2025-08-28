@@ -1,5 +1,5 @@
+using System.Collections.Immutable;
 using System.Text;
-using HotChocolate.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Mutable.Serialization;
@@ -16,23 +16,52 @@ public static class SchemaParser
         return schema;
     }
 
-    public static void Parse(MutableSchemaDefinition schema, string sourceText)
-        => Parse(schema, Encoding.UTF8.GetBytes(sourceText));
+    public static void Parse(
+        MutableSchemaDefinition schema,
+        string sourceText,
+        SchemaParserOptions options = default)
+        => Parse(schema, Encoding.UTF8.GetBytes(sourceText), options);
 
-    public static void Parse(MutableSchemaDefinition schema, ReadOnlySpan<byte> sourceText)
+    public static void Parse(
+        MutableSchemaDefinition schema,
+        ReadOnlySpan<byte> sourceText,
+        SchemaParserOptions options = default)
     {
         var document = Utf8GraphQLParser.Parse(sourceText);
-
-        DiscoverTypesAndDirectives(schema, document);
-        DiscoverExtensions(schema, document);
-
-        BuildTypes(schema, document);
-        ExtendTypes(schema, document);
-        BuildDirectiveTypes(schema, document);
-        BuildAndExtendSchema(schema, document);
+        Parse(schema, document, options);
     }
 
-    private static void DiscoverTypesAndDirectives(MutableSchemaDefinition schema, DocumentNode document)
+    public static void Parse(
+        MutableSchemaDefinition schema,
+        DocumentNode document,
+        SchemaParserOptions options = default)
+    {
+        var existingTypeNames = schema.Types.Select(t => t.Name);
+        var existingDirectiveNames = schema.DirectiveDefinitions.AsEnumerable().Select(d => d.Name);
+        var skippedNodes = new HashSet<ISyntaxNode>();
+
+        DiscoverTypesAndDirectives(
+            schema,
+            document,
+            [.. existingTypeNames],
+            [.. existingDirectiveNames],
+            skippedNodes,
+            options);
+        DiscoverExtensions(schema, document);
+
+        BuildTypes(schema, document, skippedNodes);
+        ExtendTypes(schema, document, skippedNodes);
+        BuildDirectiveTypes(schema, document, skippedNodes);
+        BuildAndExtendSchema(schema, document, skippedNodes);
+    }
+
+    private static void DiscoverTypesAndDirectives(
+        MutableSchemaDefinition schema,
+        DocumentNode document,
+        ImmutableArray<string> existingTypeNames,
+        ImmutableArray<string> existingDirectiveNames,
+        HashSet<ISyntaxNode> skip,
+        SchemaParserOptions options)
     {
         foreach (var definition in document.Definitions)
         {
@@ -40,6 +69,13 @@ public static class SchemaParser
             {
                 if (schema.Types.ContainsName(typeDef.Name.Value))
                 {
+                    if (options.IgnoreExistingTypes
+                        && existingTypeNames.Contains(typeDef.Name.Value))
+                    {
+                        skip.Add(typeDef);
+                        continue;
+                    }
+
                     // TODO : parsing error
                     throw new Exception("duplicate");
                 }
@@ -84,6 +120,13 @@ public static class SchemaParser
             {
                 if (schema.DirectiveDefinitions.ContainsName(directiveDef.Name.Value))
                 {
+                    if (options.IgnoreExistingDirectives
+                        && existingDirectiveNames.Contains(directiveDef.Name.Value))
+                    {
+                        skip.Add(directiveDef);
+                        continue;
+                    }
+
                     // TODO : parsing error
                     throw new Exception("duplicate");
                 }
@@ -101,8 +144,8 @@ public static class SchemaParser
     {
         foreach (var definition in document.Definitions)
         {
-            if (definition is ITypeExtensionNode typeExt &&
-                !schema.Types.ContainsName(typeExt.Name.Value))
+            if (definition is ITypeExtensionNode typeExt
+                && !schema.Types.ContainsName(typeExt.Name.Value))
             {
                 switch (definition)
                 {
@@ -150,10 +193,15 @@ public static class SchemaParser
         }
     }
 
-    private static void BuildTypes(MutableSchemaDefinition schema, DocumentNode document)
+    private static void BuildTypes(MutableSchemaDefinition schema, DocumentNode document, HashSet<ISyntaxNode> skip)
     {
         foreach (var definition in document.Definitions)
         {
+            if (skip.Contains(definition))
+            {
+                continue;
+            }
+
             if (definition is ITypeDefinitionNode)
             {
                 switch (definition)
@@ -208,10 +256,15 @@ public static class SchemaParser
         }
     }
 
-    private static void ExtendTypes(MutableSchemaDefinition schema, DocumentNode document)
+    private static void ExtendTypes(MutableSchemaDefinition schema, DocumentNode document, HashSet<ISyntaxNode> skip)
     {
         foreach (var definition in document.Definitions)
         {
+            if (skip.Contains(definition))
+            {
+                continue;
+            }
+
             if (definition is ITypeExtensionNode)
             {
                 switch (definition)
@@ -266,12 +319,20 @@ public static class SchemaParser
         }
     }
 
-    private static void BuildAndExtendSchema(MutableSchemaDefinition schema, DocumentNode document)
+    private static void BuildAndExtendSchema(
+        MutableSchemaDefinition schema,
+        DocumentNode document,
+        HashSet<ISyntaxNode> skip)
     {
         var hasDefinition = false;
 
         foreach (var definition in document.Definitions)
         {
+            if (skip.Contains(definition))
+            {
+                continue;
+            }
+
             if (definition is SchemaDefinitionNode node)
             {
                 BuildSchema(schema, node);
@@ -282,6 +343,11 @@ public static class SchemaParser
 
         foreach (var definition in document.Definitions)
         {
+            if (skip.Contains(definition))
+            {
+                continue;
+            }
+
             if (definition is SchemaExtensionNode node)
             {
                 ExtendSchema(schema, node);
@@ -291,20 +357,20 @@ public static class SchemaParser
         // if we did not find a schema definition we will infer the root types.
         if (!hasDefinition)
         {
-            if (schema.QueryType is null &&
-                schema.Types.TryGetType<MutableObjectTypeDefinition>("Query", out var queryType))
+            if (schema.QueryType is null
+                && schema.Types.TryGetType<MutableObjectTypeDefinition>("Query", out var queryType))
             {
                 schema.QueryType = queryType;
             }
 
-            if (schema.MutationType is null &&
-                schema.Types.TryGetType<MutableObjectTypeDefinition>("Mutation", out var mutationType))
+            if (schema.MutationType is null
+                && schema.Types.TryGetType<MutableObjectTypeDefinition>("Mutation", out var mutationType))
             {
                 schema.MutationType = mutationType;
             }
 
-            if (schema.SubscriptionType is null &&
-                schema.Types.TryGetType<MutableObjectTypeDefinition>("Subscription", out var subscriptionType))
+            if (schema.SubscriptionType is null
+                && schema.Types.TryGetType<MutableObjectTypeDefinition>("Subscription", out var subscriptionType))
             {
                 schema.SubscriptionType = subscriptionType;
             }
@@ -350,7 +416,7 @@ public static class SchemaParser
 
         foreach (var interfaceRef in node.Interfaces)
         {
-            type.Implements.Add(schema.Types.ResolveType<MutableInterfaceTypeDefinition>(interfaceRef));
+            type.Implements.Add(schema.Types.BuildType<MutableInterfaceTypeDefinition>(interfaceRef));
         }
 
         foreach (var fieldNode in node.Fields)
@@ -363,7 +429,8 @@ public static class SchemaParser
 
             var field = new MutableOutputFieldDefinition(fieldNode.Name.Value);
             field.Description = fieldNode.Description?.Value;
-            field.Type = schema.Types.ResolveType(fieldNode.Type);
+            field.Type = schema.Types.BuildType(fieldNode.Type).ExpectOutputType();
+            field.DeclaringMember = type;
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
 
@@ -383,8 +450,9 @@ public static class SchemaParser
 
                 var argument = new MutableInputFieldDefinition(argumentNode.Name.Value);
                 argument.Description = argumentNode.Description?.Value;
-                argument.Type = schema.Types.ResolveType(argumentNode.Type);
+                argument.Type = schema.Types.BuildType(argumentNode.Type).ExpectInputType();
                 argument.DefaultValue = argumentNode.DefaultValue;
+                argument.DeclaringMember = field;
 
                 BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
 
@@ -427,8 +495,9 @@ public static class SchemaParser
 
             var field = new MutableInputFieldDefinition(fieldNode.Name.Value);
             field.Description = fieldNode.Description?.Value;
-            field.Type = schema.Types.ResolveType(fieldNode.Type);
+            field.Type = schema.Types.BuildType(fieldNode.Type).ExpectInputType();
             field.DefaultValue = fieldNode.DefaultValue;
+            field.DeclaringMember = type;
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
 
@@ -467,6 +536,7 @@ public static class SchemaParser
 
             var value = new MutableEnumValue(enumValue.Name.Value);
             value.Description = enumValue.Description?.Value;
+            value.DeclaringType = type;
 
             BuildDirectiveCollection(schema, value.Directives, enumValue.Directives);
 
@@ -526,10 +596,18 @@ public static class SchemaParser
         BuildDirectiveCollection(schema, type.Directives, node.Directives);
     }
 
-    private static void BuildDirectiveTypes(MutableSchemaDefinition schema, DocumentNode document)
+    private static void BuildDirectiveTypes(
+        MutableSchemaDefinition schema,
+        DocumentNode document,
+        HashSet<ISyntaxNode> skip)
     {
         foreach (var definition in document.Definitions)
         {
+            if (skip.Contains(definition))
+            {
+                continue;
+            }
+
             if (definition is DirectiveDefinitionNode directiveDef)
             {
                 BuildDirectiveType(
@@ -552,8 +630,9 @@ public static class SchemaParser
         {
             var argument = new MutableInputFieldDefinition(argumentNode.Name.Value);
             argument.Description = argumentNode.Description?.Value;
-            argument.Type = schema.Types.ResolveType(argumentNode.Type);
+            argument.Type = schema.Types.BuildType(argumentNode.Type).ExpectInputType();
             argument.DefaultValue = argumentNode.DefaultValue;
+            argument.DeclaringMember = type;
 
             BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
 
@@ -677,19 +756,19 @@ public static class SchemaParser
 
 file static class SchemaParserExtensions
 {
-    public static T ResolveType<T>(this TypeDefinitionCollection typesDefinition, ITypeNode typeRef)
+    public static T BuildType<T>(this TypeDefinitionCollection typesDefinition, ITypeNode typeRef)
         where T : IType
-        => (T)ResolveType(typesDefinition, typeRef);
+        => (T)BuildType(typesDefinition, typeRef);
 
-    public static IType ResolveType(this TypeDefinitionCollection typesDefinition, ITypeNode typeRef)
+    public static IType BuildType(this TypeDefinitionCollection typesDefinition, ITypeNode typeRef)
     {
         switch (typeRef)
         {
             case NonNullTypeNode nonNullTypeRef:
-                return new NonNullType(ResolveType(typesDefinition, nonNullTypeRef.Type));
+                return new NonNullType(BuildType(typesDefinition, nonNullTypeRef.Type));
 
             case ListTypeNode listTypeRef:
-                return new ListType(ResolveType(typesDefinition, listTypeRef.Type));
+                return new ListType(BuildType(typesDefinition, listTypeRef.Type));
 
             case NamedTypeNode namedTypeRef:
                 if (typesDefinition.TryGetType(namedTypeRef.Name.Value, out var type))
@@ -699,7 +778,7 @@ file static class SchemaParserExtensions
 
                 if (BuiltIns.IsBuiltInScalar(namedTypeRef.Name.Value))
                 {
-                    var scalar = new MutableScalarTypeDefinition(namedTypeRef.Name.Value) { IsSpecScalar = true, };
+                    var scalar = new MutableScalarTypeDefinition(namedTypeRef.Name.Value) { IsSpecScalar = true };
                     typesDefinition.Add(scalar);
                     return scalar;
                 }

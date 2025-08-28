@@ -4,7 +4,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Types.UnwrapFieldMiddlewareHelper;
 
@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 
 public static class FilterObjectFieldDescriptorExtensions
 {
-    private static readonly MethodInfo _factoryTemplate =
+    private static readonly MethodInfo s_factoryTemplate =
         typeof(FilterObjectFieldDescriptorExtensions)
             .GetMethod(nameof(CreateMiddleware), BindingFlags.Static | BindingFlags.NonPublic)!;
 
@@ -27,10 +27,7 @@ public static class FilterObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return UseFiltering(descriptor, null, null, scope);
     }
@@ -47,10 +44,7 @@ public static class FilterObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         var filterType =
             typeof(IFilterInputType).IsAssignableFrom(typeof(T))
@@ -74,15 +68,8 @@ public static class FilterObjectFieldDescriptorExtensions
         Action<IFilterInputTypeDescriptor<T>> configure,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(configure);
 
         var filterType = new FilterInputType<T>(configure);
         return UseFiltering(descriptor, filterType.GetType(), filterType, scope);
@@ -101,15 +88,8 @@ public static class FilterObjectFieldDescriptorExtensions
         Type type,
         string? scope = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(type);
 
         var filterType =
             typeof(IFilterInputType).IsAssignableFrom(type)
@@ -147,9 +127,9 @@ public static class FilterObjectFieldDescriptorExtensions
                     {
                         var convention = c.GetFilterConvention(scope);
 
-                        if (definition.ResultType is null ||
-                            definition.ResultType == typeof(object) ||
-                            !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
+                        if (definition.ResultType is null
+                            || definition.ResultType == typeof(object)
+                            || !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
                         {
                             throw new ArgumentException(
                                 FilterObjectFieldDescriptorExtensions_UseFiltering_CannotHandleType,
@@ -170,7 +150,7 @@ public static class FilterObjectFieldDescriptorExtensions
                     {
                         Name = argumentPlaceholder,
                         Type = argumentTypeReference,
-                        Flags = FieldFlags.FilterArgument
+                        Flags = CoreFieldFlags.FilterArgument
                     };
 
                     definition.Arguments.Add(argumentDefinition);
@@ -214,8 +194,8 @@ public static class FilterObjectFieldDescriptorExtensions
         var fieldDescriptor = ObjectFieldDescriptor.From(context.DescriptorContext, definition);
         convention.ConfigureField(fieldDescriptor);
 
-        var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
+        var factory = s_factoryTemplate.MakeGenericMethod(type.EntityType.Source);
+        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention])!);
 
         var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
         definition.MiddlewareConfigurations[index] = new(middleware, key: WellKnownMiddleware.Filtering);

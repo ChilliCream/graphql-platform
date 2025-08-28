@@ -1,12 +1,10 @@
 using System.Collections;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
-using static HotChocolate.WellKnownContextData;
-
-#nullable enable
 
 namespace HotChocolate.Types.Relay;
 
@@ -27,10 +25,7 @@ internal static class RelayIdFieldHelpers
         IDescriptor<ArgumentConfiguration> descriptor,
         string? typeName = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         var extend = descriptor.Extend();
 
@@ -38,7 +33,7 @@ internal static class RelayIdFieldHelpers
         extend.OnBeforeCreate(RewriteConfiguration);
 
         // add serializer if globalID support is enabled.
-        if (extend.Context.ContextData.ContainsKey(GlobalIdSupportEnabled))
+        if (extend.Context.Features.Get<NodeSchemaFeature>()?.IsEnabled == true)
         {
             extend.OnBeforeCompletion((c, d) => AddSerializerToInputField(c, d, typeName));
         }
@@ -65,7 +60,7 @@ internal static class RelayIdFieldHelpers
             var extend = objectFieldDescriptor.Extend();
 
             // add serializer if globalID support is enabled.
-            if (extend.Context.ContextData.ContainsKey(GlobalIdSupportEnabled))
+            if (extend.Context.Features.Get<NodeSchemaFeature>()?.IsEnabled == true)
             {
                 ApplyIdToField(extend.Configuration, typeName);
             }
@@ -281,13 +276,7 @@ internal static class RelayIdFieldHelpers
             return;
         }
 
-        if (!context.ContextData.TryGetValue(SerializerTypes, out var obj))
-        {
-            obj = new Dictionary<string, Type>();
-            context.ContextData[SerializerTypes] = obj;
-        }
-
-        var mappings = (Dictionary<string, Type>)obj!;
-        mappings.TryAdd(typeName, runtimeTypeInfo.NamedType);
+        var feature = context.Features.GetOrSet<NodeSchemaFeature>();
+        feature.NodeIdTypes.TryAdd(typeName, runtimeTypeInfo.NamedType);
     }
 }

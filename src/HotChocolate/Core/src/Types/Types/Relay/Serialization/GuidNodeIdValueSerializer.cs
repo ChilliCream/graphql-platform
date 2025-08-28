@@ -1,4 +1,3 @@
-#nullable enable
 using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
@@ -15,7 +14,7 @@ internal sealed class GuidNodeIdValueSerializer(bool compress = true) : INodeIdV
         {
             if (compress)
             {
-                if(buffer.Length < 16)
+                if (buffer.Length < 16)
                 {
                     written = 0;
                     return NodeIdFormatterResult.BufferTooSmall;
@@ -41,7 +40,7 @@ internal sealed class GuidNodeIdValueSerializer(bool compress = true) : INodeIdV
 
     public bool TryParse(ReadOnlySpan<byte> buffer, [NotNullWhen(true)] out object? value)
     {
-        if(compress && buffer.Length == 16)
+        if (compress && buffer.Length == 16)
         {
             value = new Guid(buffer);
             return true;

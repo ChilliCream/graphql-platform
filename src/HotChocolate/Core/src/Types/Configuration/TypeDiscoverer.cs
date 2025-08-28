@@ -3,8 +3,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Introspection;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class TypeDiscoverer
@@ -26,30 +24,11 @@ internal sealed class TypeDiscoverer
         TypeInterceptor interceptor,
         bool includeSystemTypes = true)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (typeRegistry is null)
-        {
-            throw new ArgumentNullException(nameof(typeRegistry));
-        }
-
-        if (typeLookup is null)
-        {
-            throw new ArgumentNullException(nameof(typeLookup));
-        }
-
-        if (initialTypes is null)
-        {
-            throw new ArgumentNullException(nameof(initialTypes));
-        }
-
-        if (interceptor is null)
-        {
-            throw new ArgumentNullException(nameof(interceptor));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(typeRegistry);
+        ArgumentNullException.ThrowIfNull(typeLookup);
+        ArgumentNullException.ThrowIfNull(initialTypes);
+        ArgumentNullException.ThrowIfNull(interceptor);
 
         _context = context;
         _typeRegistry = typeRegistry;
@@ -125,7 +104,7 @@ internal sealed class TypeDiscoverer
         const int max = 1000;
         var processed = new HashSet<TypeReference>();
 
-        DISCOVER:
+DISCOVER:
         var tries = 0;
         var resolved = false;
 

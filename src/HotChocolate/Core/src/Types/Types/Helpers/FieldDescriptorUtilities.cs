@@ -1,9 +1,7 @@
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Helpers;
 
@@ -80,10 +78,10 @@ public static class FieldDescriptorUtilities
                 {
                     var fieldDefinition = createdFieldDefinition(member);
 
-                    if (!string.IsNullOrEmpty(fieldDefinition.Name) &&
-                        !handledMembers.Contains(member) &&
-                        !fields.ContainsKey(fieldDefinition.Name) &&
-                        (includeIgnoredMembers || !fieldDefinition.Ignore))
+                    if (!string.IsNullOrEmpty(fieldDefinition.Name)
+                        && !handledMembers.Contains(member)
+                        && !fields.ContainsKey(fieldDefinition.Name)
+                        && (includeIgnoredMembers || !fieldDefinition.Ignore))
                     {
                         handledMembers.Add(member);
                         fields[fieldDefinition.Name] = fieldDefinition;
@@ -100,10 +98,7 @@ public static class FieldDescriptorUtilities
         ParameterInfo[] parameters,
         IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders)
     {
-        if (arguments is null)
-        {
-            throw new ArgumentNullException(nameof(arguments));
-        }
+        ArgumentNullException.ThrowIfNull(arguments);
 
         if (member is MethodInfo)
         {
@@ -129,8 +124,8 @@ public static class FieldDescriptorUtilities
                             .New(context, parameter)
                             .CreateConfiguration();
 
-                    if (!string.IsNullOrEmpty(argumentDefinition.Name) &&
-                        processedNames.Add(argumentDefinition.Name))
+                    if (!string.IsNullOrEmpty(argumentDefinition.Name)
+                        && processedNames.Add(argumentDefinition.Name))
                     {
                         arguments.Add(argumentDefinition);
                     }

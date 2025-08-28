@@ -17,9 +17,10 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>();
@@ -63,9 +64,10 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -90,9 +92,10 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>();
@@ -118,9 +121,10 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>();
@@ -153,9 +157,10 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 null,
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>();
@@ -181,14 +186,15 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
         {
-            {"abc", new StringValueNode("xyz")},
+            {"abc", new StringValueNode("xyz")}
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -220,14 +226,15 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
         {
-            {"abc", "xyz"},
+            {"abc", "xyz"}
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -259,14 +266,15 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
         {
-            {"abc", NullValueNode.Default},
+            {"abc", NullValueNode.Default}
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -297,14 +305,15 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
         {
-            {"abc", null},
+            {"abc", null}
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -335,14 +344,15 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("ReviewInput"),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
         {
-            {"abc", new ObjectValueNode(new ObjectFieldNode("stars", 5))},
+            {"abc", new ObjectValueNode(new ObjectFieldNode("stars", 5))}
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -373,14 +383,15 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("ReviewInput"),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
         {
-            {"abc", new Dictionary<string, object> { {"stars", 5}, }},
+            {"abc", new Dictionary<string, object> { {"stars", 5} }}
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -411,14 +422,15 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("ReviewInput"),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
         {
-            { "abc", new Review(stars: 5) },
+            { "abc", new Review(stars: 5) }
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -449,14 +461,15 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NonNullTypeNode(new NamedTypeNode("String")),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
         {
-            {"abc", NullValueNode.Default},
+            {"abc", NullValueNode.Default}
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -481,14 +494,15 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NonNullTypeNode(new NamedTypeNode("String")),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
         {
-            {"abc", null},
+            {"abc", null}
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -513,14 +527,15 @@ public class VariableCoercionHelperTests
             new VariableDefinitionNode(
                 null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
         {
-            {"abc", new IntValueNode(1)},
+            {"abc", new IntValueNode(1)}
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -547,14 +562,15 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
         {
-            { "abc", 1 },
+            { "abc", 1 }
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -578,14 +594,15 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("Human"),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
         {
-            { "abc", 1 },
+            { "abc", 1 }
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -609,14 +626,15 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("ReviewInput"),
                 new StringValueNode("def"),
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
         {
-            { "abc", new ObjectValueNode(new ObjectFieldNode("abc", "def")) },
+            { "abc", new ObjectValueNode(new ObjectFieldNode("abc", "def")) }
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -659,9 +677,10 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new ListTypeNode(new NamedTypeNode("FooInput")),
                 null,
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
@@ -673,7 +692,7 @@ public class VariableCoercionHelperTests
                         new ObjectFieldNode("enum", "Foo")),
                     new ObjectValueNode(
                         new ObjectFieldNode("enum", "Bar")))
-            },
+            }
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -720,9 +739,10 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new ListTypeNode(new NamedTypeNode("FooInput")),
                 null,
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
@@ -734,7 +754,7 @@ public class VariableCoercionHelperTests
                         new ObjectFieldNode("enum", "Foo")),
                     new ObjectValueNode(
                         new ObjectFieldNode("enum", "Bar")))
-            },
+            }
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -782,9 +802,10 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("FooInput"),
                 null,
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
@@ -794,7 +815,7 @@ public class VariableCoercionHelperTests
                 new ObjectValueNode(
                     new ObjectFieldNode("enum", "Foo"),
                     new ObjectFieldNode("enum2", "Bar"))
-            },
+            }
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -840,9 +861,10 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("FooInput"),
                 null,
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>
@@ -852,7 +874,7 @@ public class VariableCoercionHelperTests
                 new ObjectValueNode(
                     new ObjectFieldNode("enum", "Foo"),
                     new ObjectFieldNode("enum2", "Bar"))
-            },
+            }
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -898,9 +920,10 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("FooInput"),
                 null,
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var expectToBeUnchanged = new ObjectFieldNode("value_a", "Foo");
@@ -913,7 +936,7 @@ public class VariableCoercionHelperTests
                 new ObjectValueNode(
                     expectToBeUnchanged,
                     expectToBeRewritten)
-            },
+            }
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -965,9 +988,10 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new ListTypeNode(new NamedTypeNode("FooInput")),
                 null,
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var expectToBeUnchanged = new ObjectValueNode(new ObjectFieldNode("value_a", "Foo"));
@@ -978,7 +1002,7 @@ public class VariableCoercionHelperTests
             {
                 "abc",
                 new ListValueNode(expectToBeUnchanged, expectToBeRewritten)
-            },
+            }
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -1013,9 +1037,10 @@ public class VariableCoercionHelperTests
         {
             new(null,
                 new VariableNode("abc"),
+                description: null,
                 new NamedTypeNode("String"),
                 null,
-                Array.Empty<DirectiveNode>()),
+                Array.Empty<DirectiveNode>())
         };
 
         var variableValues = new Dictionary<string, object?>();

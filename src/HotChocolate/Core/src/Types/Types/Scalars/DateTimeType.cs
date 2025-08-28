@@ -4,8 +4,6 @@ using System.Text.RegularExpressions;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -16,11 +14,11 @@ namespace HotChocolate.Types;
 /// </summary>
 public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
 {
-    private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
-    private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
-    private const string _specifiedBy = "https://www.graphql-scalars.com/date-time";
+    private const string UtcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
+    private const string LocalFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
+    private const string SpecifiedByUri = "https://www.graphql-scalars.com/date-time";
 
-    private static readonly Regex DateTimeScalarRegex = new(
+    private static readonly Regex s_dateTimeScalarRegex = new(
         @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?(Z|[+-][0-9]{2}:[0-9]{2})$",
         RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 
@@ -37,7 +35,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         : base(name, bind)
     {
         Description = description;
-        SpecifiedBy = new Uri(_specifiedBy);
+        SpecifiedBy = new Uri(SpecifiedByUri);
         _enforceSpecFormat = !disableFormatCheck;
     }
 
@@ -171,12 +169,12 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         if (value.Offset == TimeSpan.Zero)
         {
             return value.ToString(
-                _utcFormat,
+                UtcFormat,
                 CultureInfo.InvariantCulture);
         }
 
         return value.ToString(
-            _localFormat,
+            LocalFormat,
             CultureInfo.InvariantCulture);
     }
 
@@ -191,7 +189,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         }
 
         // Check format.
-        if (_enforceSpecFormat && !DateTimeScalarRegex.IsMatch(serialized))
+        if (_enforceSpecFormat && !s_dateTimeScalarRegex.IsMatch(serialized))
         {
             value = null;
             return false;
