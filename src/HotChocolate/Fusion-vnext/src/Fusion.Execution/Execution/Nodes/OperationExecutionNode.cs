@@ -113,6 +113,15 @@ public sealed class OperationExecutionNode : ExecutionNode
         {
             response = await client.ExecuteAsync(context, request, cancellationToken);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // If the execution of the node was cancelled, either the entire request was cancelled
+            // or the execution was halted. In both cases we do not want to produce any errors
+            // and just exit the node as quickly as possible.
+
+            // TODO: Probably we just want to rethrow here
+            return ExecutionStatus.Failed;
+        }
         catch (Exception exception)
         {
             AddErrors(context, exception, variables, _responseNames);
@@ -131,6 +140,15 @@ public sealed class OperationExecutionNode : ExecutionNode
             }
 
             context.AddPartialResults(_source, buffer.AsSpan(0, index), _responseNames);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // If the execution of the node was cancelled, either the entire request was cancelled
+            // or the execution was halted. In both cases we do not want to produce any errors
+            // and just exit the node as quickly as possible.
+
+            // TODO: Probably we just want to rethrow here
+            return ExecutionStatus.Failed;
         }
         catch (Exception exception)
         {

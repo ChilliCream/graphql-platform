@@ -44,7 +44,7 @@ public static class ExecutionContextData
     public const string IncludeOperationPlan = "HotChocolate.Execution.EmitOperationPlan";
 
     /// <summary>
-    /// TODO
+    /// An override for the error handling mode.
     /// </summary>
     public const string ErrorHandlingMode = "HotChocolate.Execution.ErrorHandlingMode";
 
