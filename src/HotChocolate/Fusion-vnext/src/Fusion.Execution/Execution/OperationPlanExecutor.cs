@@ -13,7 +13,9 @@ internal sealed class OperationPlanExecutor
         OperationPlan operationPlan,
         CancellationToken cancellationToken)
     {
-        var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        // We create a new CancellationTokenSource that can be used to halt the execution engine,
+        // without also cancelling the entire request pipeline.
+        using var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
         var context = new OperationPlanContext(requestContext, variables, operationPlan, executionCts);
         context.Begin();
@@ -32,10 +34,15 @@ internal sealed class OperationPlanExecutor
                 throw new InvalidOperationException("Only queries and mutations can be executed.");
         }
 
+        // If the original CancellationToken of the request was cancelled,
+        // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
+        // so we throw here to properly cancel the request execution.
+        cancellationToken.ThrowIfCancellationRequested();
+
         return context.Complete();
     }
 
-    public Task<IExecutionResult> SubscribeAsync(
+    public async Task<IExecutionResult> SubscribeAsync(
         RequestContext requestContext,
         OperationPlan operationPlan,
         CancellationToken cancellationToken)
@@ -51,11 +58,12 @@ internal sealed class OperationPlanExecutor
             throw new InvalidOperationException("The specified operation plan is not supported.");
         }
 
-        var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        using var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
         var context = new OperationPlanContext(requestContext, operationPlan, executionCts);
 
-        return ExecuteSubscriptionAsync(
+        // TODO: We need to differentiate between request cancellations and haltings for individual messages
+        return await ExecuteSubscriptionAsync(
             context,
             subscriptionNode,
             executionCts.Token);
@@ -194,6 +202,8 @@ internal sealed class OperationPlanExecutor
 
                 try
                 {
+                    // CTS needs to be reset here as well
+
                     context.Begin(eventArgs.StartTimestamp, eventArgs.Activity?.TraceId.ToHexString());
 
                     executionState.Reset();

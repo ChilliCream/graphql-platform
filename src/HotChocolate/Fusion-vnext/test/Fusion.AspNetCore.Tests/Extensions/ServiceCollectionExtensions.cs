@@ -11,10 +11,11 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         string name,
         TestServer server,
-        bool isOffline = false)
+        bool isOffline = false,
+        bool isTimeouting = false)
     {
         services.TryAddSingleton<IHttpClientFactory, Factory>();
-        return services.AddSingleton(new TestServerRegistration(name, server, isOffline));
+        return services.AddSingleton(new TestServerRegistration(name, server, isOffline, isTimeouting));
     }
 
     private class Factory : IHttpClientFactory
@@ -30,9 +31,20 @@ public static class ServiceCollectionExtensions
         {
             if (_registrations.TryGetValue(name, out var registration))
             {
-                var client = registration.IsOffline
-                    ? new HttpClient(new ErrorHandler())
-                    : registration.Server.CreateClient();
+                HttpClient client;
+
+                if (registration.IsOffline)
+                {
+                    client = new HttpClient(new ErrorHandler());
+                }
+                else if (registration.IsTimeouting)
+                {
+                    client = new HttpClient(new TimeoutHandler());
+                }
+                else
+                {
+                    client = registration.Server.CreateClient();
+                }
 
                 client.DefaultRequestHeaders.AddGraphQLPreflight();
 
@@ -50,7 +62,23 @@ public static class ServiceCollectionExtensions
                 CancellationToken cancellationToken)
                 => Task.FromResult(new HttpResponseMessage(HttpStatusCode.InternalServerError));
         }
+
+        private class TimeoutHandler : HttpClientHandler
+        {
+            protected override async Task<HttpResponseMessage> SendAsync(
+                HttpRequestMessage request,
+                CancellationToken cancellationToken)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(30), cancellationToken);
+
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+        }
     }
 
-    private record TestServerRegistration(string Name, TestServer Server, bool IsOffline = false);
+    private record TestServerRegistration(
+        string Name,
+        TestServer Server,
+        bool IsOffline = false,
+        bool IsTimeouting = false);
 }

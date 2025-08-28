@@ -252,7 +252,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    // TODO: What to do here in case the request was cancelled?
     internal IOperationResult Complete()
     {
         var environment = Schema.TryGetEnvironment();

@@ -28,7 +28,8 @@ public abstract class FusionTestBase : IDisposable
         Action<IRequestExecutorBuilder> configureBuilder,
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
-        bool isOffline = false)
+        bool isOffline = false,
+        bool isTimeouting = false)
     {
         configureApplication ??=
             app =>
@@ -46,7 +47,11 @@ public abstract class FusionTestBase : IDisposable
                 configureBuilder(builder);
                 configureServices?.Invoke(services);
 
-                services.Configure<SourceSchemaOptions>(opt => opt.IsOffline = isOffline);
+                services.Configure<SourceSchemaOptions>(opt =>
+                {
+                    opt.IsOffline = isOffline;
+                    opt.IsTimeouting = isTimeouting;
+                });
             },
             configureApplication);
     }
@@ -68,7 +73,11 @@ public abstract class FusionTestBase : IDisposable
             sourceSchemas.Add(new SourceSchemaText(name, schemaDocument.ToString()));
 
             var subgraphOptions = server.Services.GetRequiredService<IOptions<SourceSchemaOptions>>().Value;
-            gatewayServices.AddHttpClient(name, server, subgraphOptions.IsOffline);
+            gatewayServices.AddHttpClient(
+                name,
+                server,
+                subgraphOptions.IsOffline,
+                subgraphOptions.IsTimeouting);
 
             if (schemaSettings is null)
             {
@@ -157,6 +166,8 @@ public abstract class FusionTestBase : IDisposable
     private sealed class SourceSchemaOptions
     {
         public bool IsOffline { get; set; }
+
+        public bool IsTimeouting { get; set; }
     }
 
     private sealed class OperationPlanHttpRequestInterceptor : DefaultHttpRequestInterceptor

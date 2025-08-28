@@ -118,8 +118,6 @@ public sealed class OperationExecutionNode : ExecutionNode
             // If the execution of the node was cancelled, either the entire request was cancelled
             // or the execution was halted. In both cases we do not want to produce any errors
             // and just exit the node as quickly as possible.
-
-            // TODO: Probably we just want to rethrow here
             return ExecutionStatus.Failed;
         }
         catch (Exception exception)
@@ -146,8 +144,6 @@ public sealed class OperationExecutionNode : ExecutionNode
             // If the execution of the node was cancelled, either the entire request was cancelled
             // or the execution was halted. In both cases we do not want to produce any errors
             // and just exit the node as quickly as possible.
-
-            // TODO: Probably we just want to rethrow here
             return ExecutionStatus.Failed;
         }
         catch (Exception exception)
