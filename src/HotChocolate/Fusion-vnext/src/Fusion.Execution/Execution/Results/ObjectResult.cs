@@ -14,8 +14,9 @@ namespace HotChocolate.Fusion.Execution;
 /// </summary>
 public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, object?>
 {
+    private int _maxAllowedCapacity = 512;
     private readonly Dictionary<string, FieldResult> _fieldMap = [];
-    private FieldResult[] _buffer = new FieldResult[128];
+    private FieldResult[] _fields = [];
 
     /// <summary>
     /// Gets the selection set represents the structure of this object result.
@@ -30,7 +31,7 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
     /// <summary>
     /// Gets the fields of the object result.
     /// </summary>
-    public ReadOnlySpan<FieldResult> Fields => _buffer.AsSpan(0, _fieldMap.Count);
+    public ReadOnlySpan<FieldResult> Fields => _fields.AsSpan(0, _fieldMap.Count);
 
     /// <summary>
     /// Gets the number of fields in the object result.
@@ -63,6 +64,23 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
     public bool TryGetValue(string responseName, [MaybeNullWhen(false)] out FieldResult value)
         => _fieldMap.TryGetValue(responseName, out value);
 
+    internal void MoveFieldTo(string fieldName, ObjectResult target)
+    {
+        var field = _fieldMap[fieldName];
+        field.SetParent(target, field.ParentIndex);
+        target._fields[field.ParentIndex] = field;
+        target._fieldMap[fieldName] = field;
+    }
+
+    /// <inheritdoc />
+    public override bool TrySetValueNull(int index)
+    {
+        var field = _fields[index];
+        field.SetNextValueNull();
+
+        return !field.Selection.Type.IsNonNullType();
+    }
+
     /// <summary>
     /// Writes the object result to the specified JSON writer.
     /// </summary>
@@ -83,7 +101,7 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
     {
         writer.WriteStartObject();
 
-        var fields = _buffer.AsSpan(0, _fieldMap.Count);
+        var fields = _fields.AsSpan(0, _fieldMap.Count);
         ref var field = ref MemoryMarshal.GetReference(fields);
         ref var end = ref Unsafe.Add(ref field, fields.Length);
 
@@ -111,19 +129,30 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
     /// <param name="selectionSet">
     /// The selection set.
     /// </param>
-    /// <param name="includeFlags"></param>
-    public void Initialize(ResultPoolSession resultPoolSession, SelectionSet selectionSet, ulong includeFlags)
+    /// <param name="includeFlags">
+    /// The include flags.
+    /// </param>
+    /// <param name="rawLeafFields">
+    /// Leaf fields will be stored as raw memory.
+    /// </param>
+    public void Initialize(
+        ResultPoolSession resultPoolSession,
+        SelectionSet selectionSet,
+        ulong includeFlags,
+        bool rawLeafFields = false)
     {
         ArgumentNullException.ThrowIfNull(resultPoolSession);
         ArgumentNullException.ThrowIfNull(selectionSet);
 
         SelectionSet = selectionSet;
 
-        if (_buffer.Length < selectionSet.Selections.Length)
+        if (_fields.Length < selectionSet.Selections.Length)
         {
-            Array.Resize(ref _buffer, selectionSet.Selections.Length);
+            _fieldMap.EnsureCapacity(selectionSet.Selections.Length);
+            _fields = new FieldResult[selectionSet.Selections.Length];
         }
 
+        var insertIndex = 0;
         for (var i = 0; i < selectionSet.Selections.Length; i++)
         {
             var selection = selectionSet.Selections[i];
@@ -133,12 +162,18 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
                 continue;
             }
 
-            var field = CreateFieldResult(resultPoolSession, selection);
-            _buffer[i] = field;
+            var ii = insertIndex++;
+            var field = CreateFieldResult(this, ii, resultPoolSession, selection, rawLeafFields);
+            _fields[ii] = field;
             _fieldMap.Add(selection.ResponseName, field);
         }
 
-        static FieldResult CreateFieldResult(ResultPoolSession resultPoolSession, Selection selection)
+        static FieldResult CreateFieldResult(
+            ResultData parent,
+            int parentIndex,
+            ResultPoolSession resultPoolSession,
+            Selection selection,
+            bool rawLeafFields)
         {
             FieldResult field;
 
@@ -146,19 +181,38 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
             {
                 field = resultPoolSession.RentListFieldResult();
             }
-            else if (selection.Field.Type.NamedType().IsLeafType())
+            else if (selection.IsLeaf)
             {
-                field = resultPoolSession.RentLeafFieldResult();
+                if (rawLeafFields)
+                {
+                    // TODO : shall we pool these as well?
+                    field = new RawFieldResult();
+                }
+                else
+                {
+                    field = resultPoolSession.RentLeafFieldResult();
+                }
             }
             else
             {
                 field = resultPoolSession.RentObjectFieldResult();
             }
 
-            field.Initialize(selection);
+            field.Initialize(parent, parentIndex, selection);
 
             return field;
         }
+    }
+
+    internal override void SetCapacity(int capacity, int maxAllowedCapacity)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 8);
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxAllowedCapacity, 16);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(capacity, maxAllowedCapacity);
+
+        _maxAllowedCapacity = maxAllowedCapacity;
+        _fieldMap.EnsureCapacity(capacity);
+        _fields = new FieldResult[capacity];
     }
 
     /// <summary>
@@ -171,16 +225,21 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
     {
         SelectionSet = null!;
 
-        for (var i = 0; i < _buffer.Length; i++)
+        if (_fieldMap.Count > _fields.Length)
         {
-            _buffer[i] = null!;
+            return false;
+        }
+
+        for (var i = 0; i < _fieldMap.Count; i++)
+        {
+            _fields[i] = null!;
         }
 
 #if NET9_0_OR_GREATER
         _fieldMap.Clear();
-        return base.Reset() && _fieldMap.Capacity <= 512;
+        return base.Reset() && _fieldMap.Capacity < _maxAllowedCapacity;
 #else
-        var retainResult = _fieldMap.Count <= 512;
+        var retainResult = _fieldMap.Count < _maxAllowedCapacity;
         _fieldMap.Clear();
         return base.Reset() && retainResult;
 #endif
@@ -211,7 +270,7 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
     {
         for (var i = 0; i < _fieldMap.Count; i++)
         {
-            yield return _buffer[i].AsKeyValuePair();
+            yield return _fields[i].AsKeyValuePair();
         }
     }
 
@@ -219,7 +278,7 @@ public sealed class ObjectResult : ResultData, IReadOnlyDictionary<string, objec
     {
         for (var i = 0; i < _fieldMap.Count; i++)
         {
-            yield return _buffer[i].AsKeyValuePair();
+            yield return _fields[i].AsKeyValuePair();
         }
     }
 }

@@ -55,8 +55,8 @@ public sealed class InterfaceTypeInfo
         => obj is ObjectTypeInfo other && Equals(other);
 
     private bool Equals(ObjectTypeInfo other)
-        => string.Equals(SchemaTypeFullName, other.SchemaTypeFullName, StringComparison.Ordinal) &&
-            ClassDeclaration.SyntaxTree.IsEquivalentTo(
+        => string.Equals(SchemaTypeFullName, other.SchemaTypeFullName, StringComparison.Ordinal)
+            && ClassDeclaration.SyntaxTree.IsEquivalentTo(
                 other.ClassDeclaration.SyntaxTree);
 
     public override int GetHashCode()

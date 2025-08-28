@@ -46,9 +46,9 @@ internal sealed class CacheControlTypeInterceptor(
             return;
         }
 
-        if (type.IsIntrospectionType ||
-            type.IsSubscriptionType == true ||
-            type.IsMutationType == true)
+        if (type.IsIntrospectionType
+            || type.IsSubscriptionType == true
+            || type.IsMutationType == true)
         {
             return;
         }
@@ -125,14 +125,14 @@ internal sealed class CacheControlTypeInterceptor(
 
     private static bool IsCacheControlDirective(DirectiveConfiguration directive)
     {
-        if (directive.Type is NameDirectiveReference directiveReference &&
-            directiveReference.Name.EqualsOrdinal(CacheControlDirectiveType.Names.DirectiveName))
+        if (directive.Type is NameDirectiveReference directiveReference
+            && directiveReference.Name.EqualsOrdinal(CacheControlDirectiveType.Names.DirectiveName))
         {
             return true;
         }
 
-        if (directive.Type is ExtendedTypeDirectiveReference { Type.Type: { } type } &&
-            type == typeof(CacheControlDirective))
+        if (directive.Type is ExtendedTypeDirectiveReference { Type.Type: { } type }
+            && type == typeof(CacheControlDirective))
         {
             return true;
         }
@@ -159,15 +159,15 @@ internal sealed class CacheControlTypeInterceptor(
 
         if (resolver is MethodInfo method)
         {
-            if (typeof(Task).IsAssignableFrom(method.ReturnType) ||
-                typeof(IQueryable).IsAssignableFrom(method.ReturnType) ||
-                typeof(IExecutable).IsAssignableFrom(method.ReturnType))
+            if (typeof(Task).IsAssignableFrom(method.ReturnType)
+                || typeof(IQueryable).IsAssignableFrom(method.ReturnType)
+                || typeof(IExecutable).IsAssignableFrom(method.ReturnType))
             {
                 return true;
             }
 
-            if (method.ReturnType.IsGenericType &&
-                method.ReturnType.GetGenericTypeDefinition() == typeof(ValueTask<>))
+            if (method.ReturnType.IsGenericType
+                && method.ReturnType.GetGenericTypeDefinition() == typeof(ValueTask<>))
             {
                 return true;
             }

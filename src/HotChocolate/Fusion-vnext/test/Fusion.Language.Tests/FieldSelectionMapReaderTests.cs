@@ -127,7 +127,7 @@ public sealed class FieldSelectionMapReaderTests
     public void Read_SelectedObjectValueMultipleFieldsNoSelectedValue_MatchesSnapshot()
     {
         // arrange
-        var reader = new FieldSelectionMapReader("{ field1 field2 }");
+        var reader = new FieldSelectionMapReader("{ field1, field2 }");
         List<SyntaxTokenInfo> readTokens = [];
 
         // act
@@ -145,6 +145,23 @@ public sealed class FieldSelectionMapReaderTests
     {
         // arrange
         var reader = new FieldSelectionMapReader("field1<Type1>.field2 | field1<Type2>.field2");
+        List<SyntaxTokenInfo> readTokens = [];
+
+        // act
+        while (reader.Read())
+        {
+            readTokens.Add(SyntaxTokenInfo.FromReader(reader));
+        }
+
+        // assert
+        readTokens.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Read_WithoutComma_MatchesSnapshot()
+    {
+        // arrange
+        var reader = new FieldSelectionMapReader("{ field1 field2 }");
         List<SyntaxTokenInfo> readTokens = [];
 
         // act

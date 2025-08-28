@@ -98,8 +98,8 @@ public sealed class IsInvalidFieldRuleTests
                     """
                 ],
                 [
-                    "The @is directive on argument 'Query.personById(id:)' in schema 'A' " +
-                    "specifies an invalid field selection against the composed schema."
+                    "The @is directive on argument 'Query.personById(id:)' in schema 'A' "
+                    + "specifies an invalid field selection against the composed schema."
                 ]
             }
         };

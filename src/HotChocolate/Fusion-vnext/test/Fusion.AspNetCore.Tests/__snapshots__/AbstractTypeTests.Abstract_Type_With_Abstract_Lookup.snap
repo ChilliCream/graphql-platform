@@ -1,0 +1,67 @@
+{
+  "data": {
+    "otherAbstractType": {
+      "id": 1,
+      "name": "Author 1",
+      "age": 5
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "a3e6baa343d20cb141a4312e413fd9f78e0e399acca168a273ed5c05eba7bea1",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  otherAbstractType {\n    __typename @fusion__requirement\n    id\n    ... on Author {\n      name\n      age\n      id @fusion__requirement\n    }\n  }\n}",
+          "id": "ddf05407ab47b77c0b9110265d513627",
+          "hash": "ddf05407ab47b77c0b9110265d513627",
+          "shortHash": "ddf05407"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_ddf05407_1",
+              "type": "Query",
+              "document": "query Op_ddf05407_1 {\n  otherAbstractType {\n    __typename\n    id\n    ... on Author {\n      name\n      id\n    }\n  }\n}",
+              "hash": "f672d6d5d7acaaeb35e1e6432c284e79507332892d9b2d9b2c615e752328ab0f",
+              "shortHash": "f672d6d5"
+            },
+            "responseNames": [
+              "otherAbstractType"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_ddf05407_2",
+              "type": "Query",
+              "document": "query Op_ddf05407_2(\n  $__fusion_1_id: Int!\n) {\n  otherInterface(id: $__fusion_1_id) {\n    __typename\n    ... on Author {\n      age\n    }\n  }\n}",
+              "hash": "ea05e581a87b416975b5c262538bb986758a733bf05452803d8d087655ba274b",
+              "shortHash": "ea05e581"
+            },
+            "responseNames": [],
+            "source": "$.otherInterface<Author>",
+            "target": "$.otherAbstractType<Author>",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "Int!",
+                "path": "$.otherAbstractType<Author>",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

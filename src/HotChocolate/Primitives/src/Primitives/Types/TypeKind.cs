@@ -125,7 +125,7 @@ public enum TypeKind
     /// <summary>
     /// <para>
     /// GraphQL Enum types, like Scalar types, also represent leaf values in a GraphQL type system.
-    /// However Enum types describe the set of possible values.
+    /// However, Enum types describe the set of possible values.
     /// </para>
     /// <para>
     /// Enums are not references for a numeric value, but are unique values in their own right.

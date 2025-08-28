@@ -52,9 +52,9 @@ public class SortConventionExtension
 
     public override void Merge(IConventionContext context, Convention convention)
     {
-        if (convention is SortConvention sortConvention &&
-            Configuration is not null &&
-            sortConvention.Configuration is not null)
+        if (convention is SortConvention sortConvention
+            && Configuration is not null
+            && sortConvention.Configuration is not null)
         {
             ExtensionHelpers.MergeDictionary(
                 Configuration.Bindings,

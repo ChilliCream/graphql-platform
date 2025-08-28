@@ -41,7 +41,7 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
             result => commentary = result.Data?.OnReview.Commentary,
             () => completionTriggered = true);
 
-        var topic = Episode.NewHope;
+        const Episode topic = Episode.NewHope;
 
         // try to send message 10 times
         // make sure the subscription connection is successful
@@ -100,7 +100,7 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
             result => commentary = result.Data?.OnReview.Commentary,
             () => completionTriggered = true);
 
-        var topic = Episode.NewHope;
+        const Episode topic = Episode.NewHope;
 
         // try to send message 10 times
         // make sure the subscription connection is successful

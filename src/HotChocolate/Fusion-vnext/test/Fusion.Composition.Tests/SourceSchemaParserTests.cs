@@ -9,7 +9,7 @@ public sealed class SourceSchemaParserTests
     public void Parse_SourceSchemasInvalidGraphQL_ReturnsError()
     {
         // arrange
-        var schemas = ImmutableArray.Create("type Query {");
+        var schemas = ImmutableArray.Create(new SourceSchemaText("A", "type Query {"));
         var log = new CompositionLog();
         var parser = new SourceSchemaParser(schemas, log);
 
@@ -22,8 +22,8 @@ public sealed class SourceSchemaParserTests
         Assert.Equal("Source schema parsing failed.", result.Errors[0].Message);
         Assert.Single(log);
         Assert.Equal(
-            "Invalid GraphQL in source schema. Exception message: Expected a `Name`-token, but " +
-            "found a `EndOfFile`-token..",
+            "Invalid GraphQL in source schema. Exception message: Expected a `Name`-token, but "
+            + "found a `EndOfFile`-token..",
             log.First().Message);
     }
 
@@ -31,7 +31,7 @@ public sealed class SourceSchemaParserTests
     public void Parse_SourceSchemasWithSchemaNameDirective_SetsSchemaName()
     {
         // arrange
-        var schemas = ImmutableArray.Create("""schema @schemaName(value: "Example") { }""");
+        var schemas = ImmutableArray.Create(new SourceSchemaText("A", """schema { }"""));
         var log = new CompositionLog();
         var parser = new SourceSchemaParser(schemas, log);
 
@@ -40,6 +40,6 @@ public sealed class SourceSchemaParserTests
 
         // assert
         Assert.True(result.IsSuccess);
-        Assert.Equal("Example", result.Value[0].Name);
+        Assert.Equal("A", result.Value[0].Name);
     }
 }

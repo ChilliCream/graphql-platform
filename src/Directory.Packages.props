@@ -4,22 +4,26 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="AlterNats.Hosting" Version="1.0.6" />
-    <PackageVersion Include="Aspire.Hosting" Version="8.0.0" />
-    <PackageVersion Include="Aspire.Hosting.AppHost" Version="8.0.0" />
-    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="8.0.0" />
-    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="8.0.0" />
-    <PackageVersion Include="Aspire.Hosting.Redis" Version="8.0.0" />
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.4.1" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="9.4.1" />
+    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="9.4.1" />
+    <PackageVersion Include="Aspire.Hosting.Redis" Version="9.4.1" />
+    <PackageVersion Include="Aspire.Hosting" Version="9.4.1" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.23.0" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net100" Version="1.8.2" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.8.2" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net90" Version="1.8.2" />
-    <PackageVersion Include="Basic.Reference.Assemblies.Net100" Version="1.8.2" />
+    <PackageVersion Include="CaseConverter" Version="2.0.1" />
+    <PackageVersion Include="ChilliCream.ModelContextProtocol.AspNetCore" Version="0.0.1-p.2" />
     <PackageVersion Include="ChilliCream.Nitro.App" Version="$(NitroVersion)" />
     <PackageVersion Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="DiffPlex" Version="1.8.0" />
+    <PackageVersion Include="Duende.IdentityModel.OidcClient" Version="6.0.1" />
     <PackageVersion Include="Glob" Version="1.1.9" />
     <PackageVersion Include="IdentityModel" Version="4.1.1" />
     <PackageVersion Include="JsonPointer.Net" Version="5.0.0" />
+    <PackageVersion Include="JsonSchema.Net" Version="7.3.4" />
     <PackageVersion Include="Marten" Version="7.33.0" />
     <PackageVersion Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
     <PackageVersion Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
@@ -27,12 +31,12 @@
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Abstractions" Version="1.1.0" />
     <PackageVersion Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.13.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
     <PackageVersion Include="Microsoft.Extensions.Identity.Core" Version="7.0.3" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-    <PackageVersion Include="Microsoft.OpenApi" Version="1.6.14" />
     <PackageVersion Include="Microsoft.OpenApi.Readers" Version="1.6.14" />
+    <PackageVersion Include="Microsoft.OpenApi" Version="1.6.14" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
     <PackageVersion Include="MongoDB.Driver" Version="3.0.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
@@ -45,31 +49,36 @@
     <PackageVersion Include="RabbitMQ.Client" Version="6.4.0" />
     <PackageVersion Include="RavenDB.Client" Version="6.0.104" />
     <PackageVersion Include="Snapshooter.Xunit" Version="0.5.4" />
+    <PackageVersion Include="Spectre.Console.Json" Version="0.50.0" />
+    <PackageVersion Include="Spectre.Console" Version="0.50.0" />
     <PackageVersion Include="sqlite-net-pcl" Version="1.9.172" />
-    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />
+    <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
+    <PackageVersion Include="Squadron.AzureStorage" Version="0.25.0-preview.2" />
     <PackageVersion Include="Squadron.Mongo" Version="0.25.0-preview.2" />
     <PackageVersion Include="Squadron.Nats" Version="0.25.0-preview.2" />
     <PackageVersion Include="Squadron.PostgreSql" Version="0.25.0-preview.2" />
     <PackageVersion Include="Squadron.RabbitMQ" Version="0.25.0-preview.2" />
     <PackageVersion Include="Squadron.RavenDB" Version="0.25.0-preview.2" />
     <PackageVersion Include="Squadron.Redis" Version="0.25.0-preview.2" />
-    <PackageVersion Include="Squadron.AzureStorage" Version="0.25.0-preview.2" />
     <PackageVersion Include="StackExchange.Redis" Version="2.6.80" />
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.13.1" />
+    <PackageVersion Include="System.Linq.Async" Version="6.0.3" />
     <PackageVersion Include="System.Reactive" Version="6.0.0" />
     <PackageVersion Include="Testcontainers" Version="4.6.0" />
-    <PackageVersion Include="TUnit" Version="0.13.20" />
-    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="TUnit" Version="0.25.21" />
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.extensibility.core" Version="2.9.3" />
     <PackageVersion Include="xunit.extensibility.execution" Version="2.9.3" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.1" />
-    <PackageVersion Include="xunit.v3" Version="1.1.0" />
-    <PackageVersion Include="xunit.v3.assert" Version="1.1.0" />
-    <PackageVersion Include="xunit.v3.extensibility.core" Version="1.1.0" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageVersion Include="xunit.v3.assert" Version="3.0.1" />
+    <PackageVersion Include="xunit.v3.extensibility.core" Version="3.0.1" />
+    <PackageVersion Include="xunit.v3" Version="3.0.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0-preview.5.25277.114" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0-preview.5.25277.114" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.0-preview.5.25277.114" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.0-preview.5.25277.114" />
@@ -91,8 +100,11 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0-preview.5" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="10.0.0-preview.5" />
     <PackageVersion Include="System.IO.Hashing" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="System.IO.Packaging" Version="10.0.0-preview.5.25277.114" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.0-preview.6.25358.103" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="9.0.2" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="9.0.2" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.2" />
@@ -114,8 +126,11 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="9.0.3" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="9.0.3" />
     <PackageVersion Include="System.IO.Hashing" Version="9.0.6" />
+    <PackageVersion Include="System.IO.Packaging" Version="9.0.6" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="9.0.8" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="8.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="8.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.0" />
@@ -137,16 +152,19 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="8.0.10" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="8.0.10" />
     <PackageVersion Include="System.IO.Pipelines" Version="8.0.0" />
+    <PackageVersion Include="System.IO.Packaging" Version="8.0.1" />
     <PackageVersion Include="System.IO.Hashing" Version="8.0.0" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="6.0.0" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'debug'">
-    <PackageVersion Include="Roslynator.Analyzers" Version="4.13.1" />
-    <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="4.13.1" />
-    <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="4.13.1" />
+    <PackageVersion Include="Roslynator.Analyzers" Version="4.14.0" />
+    <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="4.14.0" />
+    <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="4.14.0" />
   </ItemGroup>
 </Project>

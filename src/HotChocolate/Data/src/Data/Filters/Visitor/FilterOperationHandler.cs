@@ -20,8 +20,8 @@ public abstract class FilterOperationHandler<TContext, T>
         ObjectFieldNode node,
         [NotNullWhen(true)] out ISyntaxVisitorAction? action)
     {
-        if (field is IFilterOperationField filterOperationField &&
-            TryHandleOperation(context, filterOperationField, node, out var result))
+        if (field is IFilterOperationField filterOperationField
+            && TryHandleOperation(context, filterOperationField, node, out var result))
         {
             context.GetLevel().Enqueue(result);
             action = SyntaxVisitor.SkipAndLeave;

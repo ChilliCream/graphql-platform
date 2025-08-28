@@ -16,8 +16,8 @@ public abstract class SortInputTypeDescriptorAttribute
         IDescriptor descriptor,
         ICustomAttributeProvider element)
     {
-        if (descriptor is ISortInputTypeDescriptor d &&
-            element is Type t)
+        if (descriptor is ISortInputTypeDescriptor d
+            && element is Type t)
         {
             OnConfigure(context, d, t);
         }

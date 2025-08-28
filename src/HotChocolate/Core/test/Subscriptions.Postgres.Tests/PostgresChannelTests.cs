@@ -33,7 +33,7 @@ public class PostgresChannelTests
     public async Task Subscribe_Should_ReceiveMessage_When_MessageIsSent()
     {
         // Arrange
-        var topicName = "test";
+        const string topicName = "test";
         var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
 
@@ -77,7 +77,7 @@ public class PostgresChannelTests
     public async Task Subscribe_Should_ReceiveManySequential_Messages()
     {
         // Arrange
-        var topicName = "test";
+        const string topicName = "test";
         const int messageCount = 20;
         var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
@@ -107,7 +107,7 @@ public class PostgresChannelTests
     public async Task Subscribe_Should_ReceiveManyConcurrentMessages_From_ManyConnections()
     {
         // Arrange
-        var topicName = "test";
+        const string topicName = "test";
 
         var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
@@ -139,7 +139,7 @@ public class PostgresChannelTests
     public async Task Subscribe_Should_ReceiveManyConcurrentMessages_From_SinlgeConnections()
     {
         // Arrange
-        var topicName = "test";
+        const string topicName = "test";
 
         var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
@@ -172,7 +172,7 @@ public class PostgresChannelTests
     public async Task SendAsync_Should_SendAndReceive()
     {
         // Arrange
-        var topicName = "test";
+        const string topicName = "test";
         var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
 
@@ -195,7 +195,7 @@ public class PostgresChannelTests
     public async Task SendAsync_Should_SendAllMessages_When_CalledConcurrently()
     {
         // Arrange
-        var topicName = "test";
+        const string topicName = "test";
 
         var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
@@ -226,7 +226,7 @@ public class PostgresChannelTests
     public async Task Subscribe_Should_AllowForManySubscribers()
     {
         // Arrange
-        var topicName = "test";
+        const string topicName = "test";
 
         var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
@@ -252,7 +252,7 @@ public class PostgresChannelTests
     public async Task Usubscribe_Should_StopListeningToMessages()
     {
         // Arrange
-        var topicName = "test";
+        const string topicName = "test";
 
         var channel = new PostgresChannel(_events, _options);
         await channel.EnsureInitialized(CancellationToken.None);
@@ -278,7 +278,7 @@ public class PostgresChannelTests
     public async Task Observable_Should_StayIntact_When_ReconnectAfterConnectionDrop()
     {
         // Arrange
-        var topicName = "test";
+        const string topicName = "test";
         var reconnected = false;
         NpgsqlConnection? connection = null;
         var options = new PostgresSubscriptionOptions()
@@ -330,7 +330,7 @@ public class PostgresChannelTests
     public async Task Observable_Should_StayIntact_When_ReconnectAfterConnectionDropMultipleTries()
     {
         // Arrange
-        var topicName = "test";
+        const string topicName = "test";
         var reconnected = false;
         var tries = 0;
         NpgsqlConnection? connection = null;

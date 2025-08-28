@@ -58,7 +58,7 @@ public class ScalarsTests
     public void Decimal_Is_Float()
     {
         // arrange
-        var d = 123.123M;
+        const decimal d = 123.123M;
 
         // act
         var isScalar = Scalars.TryGetKind(d, out var kind);

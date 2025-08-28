@@ -9,7 +9,7 @@ public class SchemaParserTests
     public void Parse_Single_Object_Type()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             type Foo {
                 field: String
@@ -48,7 +48,7 @@ public class SchemaParserTests
     public void Parse_Single_Object_With_Missing_Field_Type()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             type Foo {
                 field: Bar
@@ -85,7 +85,7 @@ public class SchemaParserTests
     public void Parse_Single_Object_Extension_With_Missing_Field_Type()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             extend type Foo {
                 field: Bar
@@ -123,7 +123,7 @@ public class SchemaParserTests
     public void Parse_With_Custom_BuiltIn_Scalar_Type()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             "Custom description"
             scalar String @custom
@@ -142,7 +142,7 @@ public class SchemaParserTests
     public void Parse_With_Custom_BuiltIn_Directive()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             "Custom description"
             directive @skip("Custom argument description" ifCustom: String! @custom) on ENUM_VALUE
@@ -165,7 +165,7 @@ public class SchemaParserTests
     public void Parse_Input_Object_With_Default_Value()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             input BookFilter {
                 genre: Genre = FANTASY
@@ -202,7 +202,7 @@ public class SchemaParserTests
     public void Parse_Input_Object_With_Multiple_Default_Values()
     {
         // arrange
-        var sdl =
+        const string sdl =
             """
             input BookFilter {
                 genre: Genre = FANTASY

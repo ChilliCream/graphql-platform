@@ -35,10 +35,7 @@ public static class PolicyDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddPolicies(policies, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddPolicies(policies, def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -71,9 +68,7 @@ public static class PolicyDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -86,10 +81,7 @@ public static class PolicyDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddPolicies(policies, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddPolicies(policies, def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -103,9 +95,7 @@ public static class PolicyDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -118,10 +108,7 @@ public static class PolicyDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddPolicies(policies, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddPolicies(policies, def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -135,9 +122,7 @@ public static class PolicyDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -150,10 +135,7 @@ public static class PolicyDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddPolicies(policies, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddPolicies(policies, def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -167,9 +149,7 @@ public static class PolicyDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -182,10 +162,7 @@ public static class PolicyDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Extend().OnBeforeCreate(
-            (ctx, def) =>
-            {
-                AddPolicies(policies, def, ctx.TypeInspector);
-            });
+            (ctx, def) => AddPolicies(policies, def, ctx.TypeInspector));
 
         return descriptor;
     }
@@ -199,9 +176,7 @@ public static class PolicyDescriptorExtensions
 
         descriptor.Extend().OnBeforeCreate(
             (ctx, def) =>
-            {
-                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector);
-            });
+                AddPolicies(policies.Select(p => new Policy(p)).ToArray(), def, ctx.TypeInspector));
 
         return descriptor;
     }

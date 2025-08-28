@@ -26,7 +26,7 @@ public class SchemaCache
         (Type, Type, T?[] entites) key = (typeof(T), typeof(TType), entities);
         return _cache.GetOrAdd(
             key,
-            k => base.CreateSchema<T, TType>(entities, _resource));
+            k => CreateSchema<T, TType>(entities, _resource));
     }
 
     public void Dispose()

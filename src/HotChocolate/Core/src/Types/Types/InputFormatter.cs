@@ -3,8 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public sealed class InputFormatter(ITypeConverter converter)
@@ -105,7 +103,7 @@ public sealed class InputFormatter(ITypeConverter converter)
         if (runtimeValue is IEnumerable enumerable)
         {
             var items = new List<IValueNode>();
-            var i = 0;
+            const int i = 0;
 
             foreach (var item in enumerable)
             {
@@ -261,8 +259,8 @@ public sealed class InputFormatter(ITypeConverter converter)
             return node;
         }
 
-        if (type.RuntimeType != typeof(object) &&
-            type.RuntimeType.IsInstanceOfType(resultValue))
+        if (type.RuntimeType != typeof(object)
+            && type.RuntimeType.IsInstanceOfType(resultValue))
         {
             return FormatValueObject(resultValue, type, path);
         }

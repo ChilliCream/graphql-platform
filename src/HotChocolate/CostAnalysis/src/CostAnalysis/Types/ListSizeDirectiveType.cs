@@ -25,9 +25,9 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
         descriptor
             .Name(DirectiveName)
             .Description(
-                "The purpose of the `@listSize` directive is to either inform the static " +
-                "analysis about the size of returned lists (if that information is statically " +
-                "available), or to point the analysis to where to find that information.")
+                "The purpose of the `@listSize` directive is to either inform the static "
+                + "analysis about the size of returned lists (if that information is statically "
+                + "available), or to point the analysis to where to find that information.")
             .Location(DirectiveLocation.FieldDefinition);
 
         descriptor
@@ -35,36 +35,36 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
             .Name(AssumedSize)
             .Type<IntType>()
             .Description(
-                "The `assumedSize` argument can be used to statically define the maximum length " +
-                "of a list returned by a field.");
+                "The `assumedSize` argument can be used to statically define the maximum length "
+                + "of a list returned by a field.");
 
         descriptor
             .Argument(t => t.SlicingArguments)
             .Name(SlicingArguments)
             .Type<ListType<NonNullType<StringType>>>()
             .Description(
-                "The `slicingArguments` argument can be used to define which of the field's " +
-                "arguments with numeric type are slicing arguments, so that their value " +
-                "determines the size of the list returned by that field. It may specify a list " +
-                "of multiple slicing arguments.");
+                "The `slicingArguments` argument can be used to define which of the field's "
+                + "arguments with numeric type are slicing arguments, so that their value "
+                + "determines the size of the list returned by that field. It may specify a list "
+                + "of multiple slicing arguments.");
 
         descriptor
             .Argument(t => t.SlicingArgumentDefaultValue)
             .Name(SlicingArgumentDefaultValue)
             .Type<IntType>()
             .Description(
-                "The `slicingArgumentDefaultValue` argument can be used to define a default value " +
-                "for a slicing argument, which is used if the argument is not present in a query.");
+                "The `slicingArgumentDefaultValue` argument can be used to define a default value "
+                + "for a slicing argument, which is used if the argument is not present in a query.");
 
         descriptor
             .Argument(t => t.SizedFields)
             .Name(SizedFields)
             .Type<ListType<NonNullType<StringType>>>()
             .Description(
-                "The `sizedFields` argument can be used to define that the value of the " +
-                "`assumedSize` argument or of a slicing argument does not affect the size of a " +
-                "list returned by a field itself, but that of a list returned by one of its " +
-                "sub-fields.");
+                "The `sizedFields` argument can be used to define that the value of the "
+                + "`assumedSize` argument or of a slicing argument does not affect the size of a "
+                + "list returned by a field itself, but that of a list returned by one of its "
+                + "sub-fields.");
 
         descriptor
             .Argument(t => t.RequireOneSlicingArgument)
@@ -72,10 +72,10 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
             .Type<NonNullType<BooleanType>>()
             .DefaultValue(true)
             .Description(
-                "The `requireOneSlicingArgument` argument can be used to inform the static " +
-                "analysis that it should expect that exactly one of the defined slicing " +
-                "arguments is present in a query. If that is not the case (i.e., if none or " +
-                "multiple slicing arguments are present), the static analysis may throw an error.");
+                "The `requireOneSlicingArgument` argument can be used to inform the static "
+                + "analysis that it should expect that exactly one of the defined slicing "
+                + "arguments is present in a query. If that is not the case (i.e., if none or "
+                + "multiple slicing arguments are present), the static analysis may throw an error.");
     }
 
     protected override Func<DirectiveNode, object> OnCompleteParse(

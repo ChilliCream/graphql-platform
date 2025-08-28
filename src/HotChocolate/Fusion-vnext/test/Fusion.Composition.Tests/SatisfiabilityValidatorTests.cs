@@ -792,7 +792,7 @@ public sealed class SatisfiabilityValidatorTests
                 # Schema B
                 type Query { # Added
                     productListByProductsIdAndPid(
-                        key: [ProductIdAndPidInput!]! @is(field: "products[{id pid}]")
+                        key: [ProductIdAndPidInput!]! @is(field: "products[{ id, pid }]")
                     ): ProductList @lookup @inaccessible
                     productByIdAndPid(id: String!, pid: String): Product @lookup @inaccessible
                 }
@@ -818,13 +818,13 @@ public sealed class SatisfiabilityValidatorTests
                 type Query { # Added
                     productListByProductsIdAndPidAndCategoryAndSelected(
                         products: [ProductIdAndPidAndCategoryInput!]!
-                            @is(field: "products[{ id pid category: category.{ id tag } }]")
+                            @is(field: "products[{ id, pid, category: category.{ id, tag } }]")
                         selectedId: String! @is(field: "selected.id")
                     ): ProductList @lookup @inaccessible
                     productByIdAndPidAndCategory(
                         id: String!
                         pid: String
-                        category: CategoryIdAndTagInput! @is(field: "category.{ id tag }")
+                        category: CategoryIdAndTagInput! @is(field: "category.{ id, tag }")
                     ): Product @lookup @inaccessible
                     categoryByIdAndTag(id: String!, tag: String): Category @lookup @inaccessible
                 }
@@ -1791,7 +1791,7 @@ public sealed class SatisfiabilityValidatorTests
 
                 type Product {
                     id: ID!
-                    title(description: String @require(field: "{ name price }")): String
+                    title(description: String @require(field: "{ name, price }")): String
                 }
                 """,
                 """
@@ -1853,7 +1853,7 @@ public sealed class SatisfiabilityValidatorTests
                 type Product {
                     id: ID!
                     title(
-                        input: String @require(field: "{ a: category.name b: section.name }")
+                        input: String @require(field: "{ a: category.name, b: section.name }")
                     ): String
                 }
                 """,
@@ -1937,5 +1937,468 @@ public sealed class SatisfiabilityValidatorTests
                       Unable to transition between schemas 'B' and 'C' for access to required field 'C:Section.name<String>'.
                         No lookups found for type 'Section' in schema 'C'.
             """);
+    }
+
+    [Fact]
+    public void Type_Without_Lookup_But_Shared_Path()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    firstName: String!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    lastName: String!
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    middleName: String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.False(result.IsFailure);
+    }
+
+    [Fact]
+    public void Type_Without_Lookup_But_Shared_Path_With_Requirement()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    firstName: String!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    fullName(firstName: String! @require(field: "{ firstName }")): String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.False(result.IsFailure);
+    }
+
+    [Fact]
+    public void Type_Without_Lookup_Not_All_Schemas_Share_Path()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    firstName: String!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    other: Viewer
+                }
+
+                type Viewer {
+                    lastName: String!
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    middleName: String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsFailure);
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Viewer.lastName' on path 'A:Query.viewer<Viewer>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Viewer.lastName<String>'.
+                No lookups found for type 'Viewer' in schema 'B'.
+
+            Unable to access the field 'Viewer.lastName' on path 'C:Query.viewer<Viewer>'.
+              Unable to transition between schemas 'C' and 'B' for access to field 'B:Viewer.lastName<String>'.
+                No lookups found for type 'Viewer' in schema 'B'.
+
+            Unable to access the field 'Viewer.firstName' on path 'B:Query.other<Viewer>'.
+              Unable to transition between schemas 'B' and 'A' for access to field 'A:Viewer.firstName<String>'.
+                No lookups found for type 'Viewer' in schema 'A'.
+
+            Unable to access the field 'Viewer.middleName' on path 'B:Query.other<Viewer>'.
+              Unable to transition between schemas 'B' and 'C' for access to field 'C:Viewer.middleName<String>'.
+                No lookups found for type 'Viewer' in schema 'C'.
+            """);
+    }
+
+    [Fact]
+    public void Type_Without_Lookup_Not_All_Schemas_Share_Path_With_Requirement()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    fullName(firstName: String! @require(field: "{ firstName }")): String!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    other: Viewer
+                }
+
+                type Viewer {
+                    firstName: String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsFailure);
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Viewer.fullName' on path 'A:Query.viewer<Viewer>'.
+              Unable to satisfy the requirement '{ firstName }' on field 'A:Viewer.fullName<String>'.
+                Unable to satisfy the requirement 'firstName'.
+                  Unable to access the required field 'Viewer.firstName' on path 'A:Query.viewer<Viewer>'.
+                    Unable to transition between schemas 'A' and 'B' for access to required field 'B:Viewer.firstName<String>'.
+                      No lookups found for type 'Viewer' in schema 'B'.
+
+            Unable to access the field 'Viewer.firstName' on path 'A:Query.viewer<Viewer>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Viewer.firstName<String>'.
+                No lookups found for type 'Viewer' in schema 'B'.
+
+            Unable to access the field 'Viewer.fullName' on path 'B:Query.other<Viewer>'.
+              Unable to transition between schemas 'B' and 'A' for access to field 'A:Viewer.fullName<String>'.
+                No lookups found for type 'Viewer' in schema 'A'.
+            """);
+    }
+
+    [Theory]
+    [MemberData(nameof(GlobalObjectIdentificationExamplesData))]
+    public void GlobalObjectIdentification_Examples(string[] sdl, bool success, string? logs = null)
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(sdl),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false, EnableGlobalObjectIdentification = true });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.Equal(success, result.IsSuccess);
+
+        if (!success)
+        {
+            string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(logs!);
+        }
+    }
+
+    public static TheoryData<string[], bool, string?> GlobalObjectIdentificationExamplesData()
+    {
+        return new TheoryData<string[], bool, string?>
+        {
+            // A source schema doesn't have any lookup for a type implementing Node
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        myCat: Cat
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                        name: String!
+                    }
+                    """
+                ],
+                false,
+                "Type 'Cat' implements the 'Node' interface, but no source schema provides a 'Query.node<Node>' lookup field for this type."
+            },
+            // A source schema has a lookup but not by ID for a type implementing Node
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        catByName(name: String!): Cat @lookup
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                        name: String!
+                    }
+                    """
+                ],
+                false,
+                "Type 'Cat' implements the 'Node' interface, but no source schema provides a 'Query.node<Node>' lookup field for this type."
+            },
+            // A source schema has a lookup by ID but not the Query.node field for a type implementing Node
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        catById(id: ID!): Cat @lookup
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                        name: String!
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Query {
+                        node(id: ID!): Node @lookup
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Dog implements Node {
+                        id: ID!
+                        age: Int!
+                    }
+                    """
+                ],
+                false,
+                "Type 'Cat' implements the 'Node' interface, but no source schema provides a 'Query.node<Node>' lookup field for this type."
+            },
+            // A source schema is missing a lookup for an exclusive field
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        node(id: ID!): Node @lookup @inaccessible
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Cat {
+                        name: String!
+                    }
+                    """
+                ],
+                false,
+                """
+                Unable to access the field 'Cat.name' on path '*:Query.node<Node> -> A:Query.node<Node>'.
+                  Unable to transition between schemas 'A' and 'B' for access to field 'B:Cat.name<String>'.
+                    No lookups found for type 'Cat' in schema 'B'.
+                """
+            },
+            // A source schema can't transition to another one
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        catByName(name: String!): Cat @lookup
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                        name: String!
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Query {
+                        node(id: ID!): Node @lookup
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                        age: Int!
+                    }
+                    """
+                ],
+                false,
+                """
+                Unable to access the field 'Cat.name' on path '*:Query.node<Node> -> B:Query.node<Node>'.
+                  Unable to transition between schemas 'B' and 'A' for access to field 'A:Cat.name<String>'.
+                    Unable to satisfy the requirement '{ name }' for lookup 'catByName' in schema 'A'.
+                      Unable to satisfy the requirement 'name'.
+                        Unable to access the required field 'Cat.name' on path 'B:Query.node<Node>'.
+                          No other schemas contain the field 'Cat.name'.
+                """
+            },
+            // A source schema is missing a lookup, but the fields it's contributing aren't exclusive
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        node(id: ID!): Node @lookup @inaccessible
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                        name: String!
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Cat {
+                        id: ID!
+                    }
+                    """
+                ],
+                true,
+                null
+            },
+            // Same case as above, just the order of schemas is different
+            {
+                [
+                    """
+                    # Schema A
+                    type Cat {
+                        id: ID!
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Query {
+                        node(id: ID!): Node @lookup @inaccessible
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                        name: String!
+                    }
+                    """
+                ],
+                true,
+                null
+            }
+        };
     }
 }

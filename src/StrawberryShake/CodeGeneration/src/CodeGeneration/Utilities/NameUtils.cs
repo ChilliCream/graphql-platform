@@ -138,8 +138,8 @@ public static class NameUtils
             {
                 value.Append(char.ToLower(parameterName[i], CultureInfo.InvariantCulture));
 
-                if (i + 1 < parameterName.Length &&
-                    char.IsLetter(parameterName[i + 1]))
+                if (i + 1 < parameterName.Length
+                    && char.IsLetter(parameterName[i + 1]))
                 {
                     value.Append(first
                         ? char.ToLower(parameterName[++i], CultureInfo.InvariantCulture)

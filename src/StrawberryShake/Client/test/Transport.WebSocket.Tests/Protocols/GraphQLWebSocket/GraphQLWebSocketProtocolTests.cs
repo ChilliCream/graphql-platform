@@ -147,7 +147,7 @@ public class GraphQLWebSocketProtocolTests
         // arrange
         var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
-        var operationId = "b1b416a5-8d1b-4855-b186-6de39809caea";
+        const string operationId = "b1b416a5-8d1b-4855-b186-6de39809caea";
 
         // act
         await protocol.StartOperationAsync(
@@ -169,7 +169,7 @@ public class GraphQLWebSocketProtocolTests
         // arrange
         var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
-        var operationId = "b1b416a5-8d1b-4855-b186-6de39809caea";
+        const string operationId = "b1b416a5-8d1b-4855-b186-6de39809caea";
 
         // act
         await protocol.StopOperationAsync(operationId, CancellationToken.None);
@@ -185,7 +185,7 @@ public class GraphQLWebSocketProtocolTests
         // arrange
         var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
-        var operationId = "b1b416a5-8d1b-4855-b186-6de39809caea";
+        const string operationId = "b1b416a5-8d1b-4855-b186-6de39809caea";
 
         // act
         socketClient.IsClosed = true;
@@ -200,7 +200,7 @@ public class GraphQLWebSocketProtocolTests
     public async Task ProcessAsync_ParseError_CloseSocket()
     {
         // arrange
-        var message = @"{""type:""}";
+        const string message = @"{""type:""}";
         var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         socketClient.MessagesReceive.Enqueue(message);
@@ -219,7 +219,7 @@ public class GraphQLWebSocketProtocolTests
     public async Task ProcessAsync_InvalidMessageType_CloseSocket()
     {
         // arrange
-        var message = @"{""type"":""Start""}";
+        const string message = @"{""type"":""Start""}";
         var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         socketClient.MessagesReceive.Enqueue(message);
@@ -238,7 +238,7 @@ public class GraphQLWebSocketProtocolTests
     public async Task ProcessAsync_NotifyFailed_CloseSocket()
     {
         // arrange
-        var message = @"{""type"":""Start""}";
+        const string message = @"{""type"":""Start""}";
         var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         socketClient.MessagesReceive.Enqueue(message);
@@ -261,7 +261,7 @@ public class GraphQLWebSocketProtocolTests
         SemaphoreSlim semaphoreSlim = new(0);
         string? id = null;
         string? payload = null;
-        var message = @"{""type"":""data"", ""payload"":""Foo"", ""id"":""123""}";
+        const string message = @"{""type"":""data"", ""payload"":""Foo"", ""id"":""123""}";
         var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         protocol.Subscribe((operationId, operationMessage, _) =>
@@ -292,7 +292,7 @@ public class GraphQLWebSocketProtocolTests
         // arrange
         SemaphoreSlim semaphoreSlim = new(0);
         var received = false;
-        var message = @"{""type"":""complete"", ""id"":""123""}";
+        const string message = @"{""type"":""complete"", ""id"":""123""}";
         var socketClient = new SocketClientStub { IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         protocol.Subscribe((_, operationMessage, _) =>
@@ -321,7 +321,7 @@ public class GraphQLWebSocketProtocolTests
         // arrange
         SemaphoreSlim semaphoreSlim = new(0);
         string? error = null;
-        var message = @"{
+        const string message = @"{
             ""type"": ""error"",
             ""id"": ""123"",
             ""payload"": {
@@ -356,7 +356,7 @@ public class GraphQLWebSocketProtocolTests
         // arrange
         SemaphoreSlim semaphoreSlim = new(0);
         string? error = null;
-        var message = @"{""type"":""connection_error"", ""id"":""123""}";
+        const string message = @"{""type"":""connection_error"", ""id"":""123""}";
         var socketClient = new SocketClientStub { KeepOpen = true, IsClosed = false };
         var protocol = new GraphQLWebSocketProtocol(socketClient);
         protocol.Subscribe((_, operationMessage, _) =>

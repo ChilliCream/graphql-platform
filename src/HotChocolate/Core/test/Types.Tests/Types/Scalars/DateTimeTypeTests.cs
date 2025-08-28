@@ -21,7 +21,7 @@ public class DateTimeTypeTests
             14,
             DateTimeKind.Utc);
 
-        var expectedValue = "2018-06-11T08:46:14.000Z";
+        const string expectedValue = "2018-06-11T08:46:14.000Z";
 
         // act
         var serializedValue = (string)dateTimeType.Serialize(dateTime);
@@ -38,7 +38,7 @@ public class DateTimeTypeTests
         var dateTime = new DateTimeOffset(
             new DateTime(2018, 6, 11, 8, 46, 14),
             new TimeSpan(4, 0, 0));
-        var expectedValue = "2018-06-11T08:46:14.000+04:00";
+        const string expectedValue = "2018-06-11T08:46:14.000+04:00";
 
         // act
         var serializedValue = (string)dateTimeType.Serialize(dateTime);
@@ -340,7 +340,7 @@ public class DateTimeTypeTests
         var dateTime = new DateTimeOffset(
             new DateTime(2018, 6, 11, 8, 46, 14),
             new TimeSpan(4, 0, 0));
-        var expectedLiteralValue = "2018-06-11T08:46:14.000+04:00";
+        const string expectedLiteralValue = "2018-06-11T08:46:14.000+04:00";
 
         // act
         var stringLiteral =
@@ -357,7 +357,7 @@ public class DateTimeTypeTests
         var dateTimeType = new DateTimeType();
         DateTimeOffset dateTime =
             new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-        var expectedLiteralValue = "2018-06-11T08:46:14.000Z";
+        const string expectedLiteralValue = "2018-06-11T08:46:14.000Z";
 
         // act
         var stringLiteral =
@@ -390,7 +390,7 @@ public class DateTimeTypeTests
         var kind = type.Kind;
 
         // assert
-        Assert.Equal(TypeKind.Scalar, type.Kind);
+        Assert.Equal(TypeKind.Scalar, kind);
     }
 
     [Fact]
@@ -497,7 +497,7 @@ public class DateTimeTypeTests
             // 30th of February is not a valid date.
             "2010-02-30T21:22:53.108Z",
             // 25 is not a valid hour for offset.
-            "2010-02-11T21:22:53.108Z+25:11",
+            "2010-02-11T21:22:53.108+25:11",
             // Additional test cases.
             // A DateTime with 8 fractional digits.
             "2011-08-30T13:22:53.12345678+03:30"

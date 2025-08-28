@@ -5,6 +5,22 @@ namespace HotChocolate.Fusion.Extensions;
 
 internal static class MutableSchemaDefinitionExtensions
 {
+    public static void AddBuiltInFusionTypes(this MutableSchemaDefinition schema)
+    {
+        foreach (var builtInScalar in FusionBuiltIns.SourceSchemaScalars)
+        {
+            schema.Types.Add(builtInScalar);
+        }
+    }
+
+    public static void AddBuiltInFusionDirectives(this MutableSchemaDefinition schema)
+    {
+        foreach (var builtInDirective in FusionBuiltIns.SourceSchemaDirectives)
+        {
+            schema.DirectiveDefinitions.Add(builtInDirective);
+        }
+    }
+
     public static bool IsRootOperationType(
         this MutableSchemaDefinition schema,
         MutableObjectTypeDefinition type)
@@ -15,7 +31,9 @@ internal static class MutableSchemaDefinitionExtensions
             || schema.SubscriptionType == type;
     }
 
-    public static void RemoveUnreferencedTypes(this MutableSchemaDefinition schema)
+    public static void RemoveUnreferencedTypes(
+        this MutableSchemaDefinition schema,
+        HashSet<string> requireInputTypeNames)
     {
         var touchedTypes = new HashSet<ITypeDefinition>();
         var backlog = new Stack<ITypeDefinition>();
@@ -63,7 +81,7 @@ internal static class MutableSchemaDefinitionExtensions
         var typesToRemove = new HashSet<ITypeDefinition>();
         foreach (var type in schema.Types)
         {
-            if (touchedTypes.Contains(type))
+            if (touchedTypes.Contains(type) || requireInputTypeNames.Contains(type.NamedType().Name))
             {
                 continue;
             }

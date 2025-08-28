@@ -105,9 +105,9 @@ public abstract class SortProvider<TContext>
                 (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
             context.Services);
 
-        foreach ((Type Type, ISortFieldHandler? Instance) handler in Configuration.Handlers)
+        foreach (var (handler, handlerInstance) in Configuration.Handlers)
         {
-            if (handler.Instance is ISortFieldHandler<TContext> field)
+            if (handlerInstance is ISortFieldHandler<TContext> field)
             {
                 _fieldHandlers.Add(field);
                 continue;
@@ -115,18 +115,18 @@ public abstract class SortProvider<TContext>
 
             try
             {
-                field = (ISortFieldHandler<TContext>)GetServiceOrCreateInstance(services, handler.Type);
+                field = (ISortFieldHandler<TContext>)GetServiceOrCreateInstance(services, handler);
                 _fieldHandlers.Add(field);
             }
             catch
             {
-                throw SortProvider_UnableToCreateFieldHandler(this, handler.Type);
+                throw SortProvider_UnableToCreateFieldHandler(this, handler);
             }
         }
 
-        foreach ((Type Type, ISortOperationHandler? Instance) handler in Configuration.OperationHandlers)
+        foreach (var (handler, handlerInstance) in Configuration.OperationHandlers)
         {
-            if (handler.Instance is ISortOperationHandler<TContext> op)
+            if (handlerInstance is ISortOperationHandler<TContext> op)
             {
                 _operationHandlers.Add(op);
                 continue;
@@ -134,12 +134,12 @@ public abstract class SortProvider<TContext>
 
             try
             {
-                op = (ISortOperationHandler<TContext>)GetServiceOrCreateInstance(services, handler.Type);
+                op = (ISortOperationHandler<TContext>)GetServiceOrCreateInstance(services, handler);
                 _operationHandlers.Add(op);
             }
             catch
             {
-                throw SortProvider_UnableToCreateOperationHandler(this, handler.Type);
+                throw SortProvider_UnableToCreateOperationHandler(this, handler);
             }
         }
     }

@@ -13,6 +13,8 @@ partial class Build
     AbsolutePath AllSolutionFile => SourceDirectory / "All.sln";
     AbsolutePath TestSolutionFile => TemporaryDirectory / "Build.Test.sln";
     AbsolutePath PackSolutionFile => SourceDirectory / "Build.Pack.sln";
+    AbsolutePath NitroCommandLineOperations
+        => SourceDirectory / "Nitro" / "CommandLine" / "src" / "CommandLine.Cloud" / "persisted" / "operations.json";
 
     AbsolutePath OutputDirectory => RootDirectory / "output";
     AbsolutePath TestResultDirectory => OutputDirectory / "test-results";
@@ -23,6 +25,4 @@ partial class Build
     AbsolutePath EmptyServer12Proj => RootDirectory / "templates" / "server" / "HotChocolate.Template.Server.csproj";
     AbsolutePath EmptyAzf12Proj => RootDirectory / "templates" / "azure-function" / "HotChocolate.Template.AzureFunctions.csproj";
     AbsolutePath Gateway13Proj => RootDirectory / "templates" / "gateway" / "HotChocolate.Template.Gateway.csproj";
-    AbsolutePath GatewayAspire13Proj => RootDirectory / "templates" / "gateway-aspire" / "HotChocolate.Template.Gateway.Aspire.csproj";
-    AbsolutePath GatewayManaged13Proj => RootDirectory / "templates" / "gateway-managed" / "HotChocolate.Template.Gateway.Managed.csproj";
 }

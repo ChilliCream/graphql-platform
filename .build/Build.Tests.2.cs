@@ -2,6 +2,7 @@ using System.Linq;
 using Colorful;
 using Nuke.Common;
 using Nuke.Common.IO;
+using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.Coverlet;
@@ -129,8 +130,8 @@ partial class Build
 
         // we only select test projects that are located in the solutions test directory.
         // this will ensure that on build we do not execute referenced tests from other solutions.
-        var testProjects = ParseSolution(solutionFile)
-            .GetProjects("*.Tests")
+        var testProjects = solutionFile.ReadSolution()
+            .GetAllProjects("*.Tests")
             .Where(t => t.Path.ToString().StartsWith(testDirectory))
             .ToArray();
 
@@ -156,7 +157,7 @@ partial class Build
                     .SetResultsDirectory(TestResultDirectory)
                     .EnableCollectCoverage()
                     .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
-                    .SetProcessArgumentConfigurator(a => a.Add("--collect:\"XPlat Code Coverage\""))
+                    .SetProcessAdditionalArguments("--collect:\"XPlat Code Coverage\"")
                     .SetExcludeByFile("*.Generated.cs")
                     .CombineWith(testProjects, (_, v) => _
                         .SetProjectFile(v)

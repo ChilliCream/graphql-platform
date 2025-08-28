@@ -369,7 +369,7 @@ public class InputObjectTypeTests : TypeTestBase
         // arrange
         // act
         void Action()
-            => InputObjectTypeDescriptorExtensions.Ignore<SimpleInput>(null, t => t.Id);
+            => InputObjectTypeDescriptorExtensions.Ignore<SimpleInput>(null!, t => t.Id);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -384,7 +384,7 @@ public class InputObjectTypeTests : TypeTestBase
                 DescriptorContext.Create());
 
         // act
-        void Action() => descriptor.Ignore(null);
+        void Action() => descriptor.Ignore(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -721,7 +721,7 @@ public class InputObjectTypeTests : TypeTestBase
     [Fact]
     public void OneOf_descriptor_is_null()
     {
-        void Fail() => InputObjectTypeDescriptorExtensions.OneOf(null);
+        void Fail() => InputObjectTypeDescriptorExtensions.OneOf(null!);
 
         Assert.Throws<ArgumentNullException>(Fail);
     }
@@ -729,7 +729,7 @@ public class InputObjectTypeTests : TypeTestBase
     [Fact]
     public void OneOf_generic_descriptor_is_null()
     {
-        void Fail() => InputObjectTypeDescriptorExtensions.OneOf<object>(null);
+        void Fail() => InputObjectTypeDescriptorExtensions.OneOf<object>(null!);
 
         Assert.Throws<ArgumentNullException>(Fail);
     }

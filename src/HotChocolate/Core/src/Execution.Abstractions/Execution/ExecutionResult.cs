@@ -1,3 +1,5 @@
+using HotChocolate.Features;
+
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -22,6 +24,9 @@ public abstract class ExecutionResult : IExecutionResult
 
     /// <inheritdoc cref="IExecutionResult" />
     public abstract IReadOnlyDictionary<string, object?>? ContextData { get; }
+
+    /// <inheritdoc cref="IFeatureProvider" />
+    public IFeatureCollection Features { get; } = new FeatureCollection();
 
     private protected Func<ValueTask>[] CleanupTasks => _cleanupTasks;
 

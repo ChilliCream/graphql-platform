@@ -1,0 +1,71 @@
+{
+  "errors": [
+    {
+      "message": "Could not resolve Product.name",
+      "path": [
+        "topProduct",
+        "name"
+      ]
+    }
+  ],
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "f2ec68e95039d461046bc6fdb087f9f6d03655bbc6e8f2127c65f317517c18d5",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  topProduct {\n    price\n    name\n    id @fusion__requirement\n  }\n}",
+          "id": "e24d93b6245cedd878fff4452f5f16b9",
+          "hash": "e24d93b6245cedd878fff4452f5f16b9",
+          "shortHash": "e24d93b6"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_e24d93b6_1",
+              "type": "Query",
+              "document": "query Op_e24d93b6_1 {\n  topProduct {\n    price\n    id\n  }\n}",
+              "hash": "a18cfeb2f46f52143e45c5a7d3f2cb0c6caee35414da73c88c03207b129d4090",
+              "shortHash": "a18cfeb2"
+            },
+            "responseNames": [
+              "topProduct"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_e24d93b6_2",
+              "type": "Query",
+              "document": "query Op_e24d93b6_2(\n  $__fusion_1_id: Int!\n) {\n  productById(id: $__fusion_1_id) {\n    name\n  }\n}",
+              "hash": "7370a81e08b4e8a30c93c65a7640c6501decd8ea1866a0452ecbbdfc4ce09011",
+              "shortHash": "7370a81e"
+            },
+            "responseNames": [
+              "name"
+            ],
+            "source": "$.productById",
+            "target": "$.topProduct",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "Int!",
+                "path": "$.topProduct",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

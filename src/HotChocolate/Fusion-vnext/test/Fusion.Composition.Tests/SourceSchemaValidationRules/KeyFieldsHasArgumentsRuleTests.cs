@@ -80,8 +80,8 @@ public sealed class KeyFieldsHasArgumentsRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'User' in schema 'A' references field " +
-                    "'User.tags', which must not have arguments."
+                    "A @key directive on type 'User' in schema 'A' references field "
+                    + "'User.tags', which must not have arguments."
                 ]
             },
             // Nested field.
@@ -99,8 +99,8 @@ public sealed class KeyFieldsHasArgumentsRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'User' in schema 'A' references field " +
-                    "'UserInfo.tags', which must not have arguments."
+                    "A @key directive on type 'User' in schema 'A' references field "
+                    + "'UserInfo.tags', which must not have arguments."
                 ]
             },
             // Multiple keys.
@@ -114,11 +114,11 @@ public sealed class KeyFieldsHasArgumentsRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'User' in schema 'A' references field " +
-                    "'User.id', which must not have arguments.",
+                    "A @key directive on type 'User' in schema 'A' references field "
+                    + "'User.id', which must not have arguments.",
 
-                    "A @key directive on type 'User' in schema 'A' references field " +
-                    "'User.tags', which must not have arguments."
+                    "A @key directive on type 'User' in schema 'A' references field "
+                    + "'User.tags', which must not have arguments."
                 ]
             }
         };

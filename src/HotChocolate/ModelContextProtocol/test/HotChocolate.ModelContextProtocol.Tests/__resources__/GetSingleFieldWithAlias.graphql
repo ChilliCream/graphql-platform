@@ -1,0 +1,4 @@
+"GetSingleField description"
+query GetSingleFieldWithAlias {
+  b: field
+}
