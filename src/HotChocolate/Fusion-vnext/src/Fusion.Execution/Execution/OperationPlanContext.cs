@@ -194,29 +194,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     internal void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
         => _resultStore.AddPartialResults(result, selections);
 
-    internal void AddSubscriptionError(
-        IError error,
-        ReadOnlySpan<string> responseNames,
-        ulong subscriptionId)
-    {
-        _diagnosticEvents.ExecutionError(
-            RequestContext,
-            kind: ErrorKind.SubscriptionEventError,
-            [error],
-            state: subscriptionId);
-
-        _resultStore.AddErrors(error, responseNames, Path.Root);
-    }
-
     internal void AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
-    {
-        _diagnosticEvents.ExecutionError(
-            RequestContext,
-            kind: ErrorKind.FieldError,
-            [error]);
-
-        _resultStore.AddErrors(error, responseNames, paths);
-    }
+        => _resultStore.AddErrors(error, responseNames, paths);
 
     internal PooledArrayWriter CreateRentedBuffer()
         => _resultStore.CreateRentedBuffer();

@@ -380,7 +380,7 @@ internal sealed class FusionRequestExecutorManager
 
                 return listeners.Length switch
                 {
-                    0 => new NoopFusionExecutionDiagnosticEvents(),
+                    0 => NoopFusionExecutionDiagnosticEvents.Instance,
                     1 => listeners[0],
                     _ => new AggregateFusionExecutionDiagnosticEvents(listeners)
                 };

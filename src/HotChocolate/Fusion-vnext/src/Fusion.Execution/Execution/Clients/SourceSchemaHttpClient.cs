@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Transport;
@@ -169,9 +170,22 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
                     default:
                     {
+                        SourceSchemaResult? errorResult = null;
+
                         await foreach (var result in response.ReadAsResultStreamAsync()
                             .WithCancellation(cancellationToken))
                         {
+                            if (result.VariableIndex is null)
+                            {
+                                errorResult = new SourceSchemaResult(
+                                    variables[0].Path,
+                                    result,
+                                    result.Data,
+                                    result.Errors,
+                                    result.Extensions);
+                                break;
+                            }
+
                             var index = result.VariableIndex!.Value;
                             var (path, _) = variables[index];
                             yield return new SourceSchemaResult(
@@ -180,6 +194,22 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                                 result.Data,
                                 result.Errors,
                                 result.Extensions);
+                        }
+
+                        if (errorResult is not null)
+                        {
+                            yield return errorResult;
+
+                            for (var i = 1; i < variables.Length; i++)
+                            {
+                                var (path, _) = variables[i];
+                                yield return new SourceSchemaResult(
+                                    path,
+                                    Disposable.Empty,
+                                    default,
+                                    default,
+                                    default);
+                            }
                         }
 
                         break;

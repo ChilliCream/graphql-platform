@@ -27,6 +27,22 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
+    public void RequestError(RequestContext context, Exception error)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].RequestError(context, error);
+        }
+    }
+
+    public void RequestError(RequestContext context, IError error)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].RequestError(context, error);
+        }
+    }
+
     public IDisposable ParseDocument(RequestContext context)
     {
         var scopes = new IDisposable[_listeners.Length];
@@ -51,6 +67,66 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
+    public void ValidationErrors(RequestContext context, IReadOnlyList<IError> errors)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].ValidationErrors(context, errors);
+        }
+    }
+
+    public IDisposable CoerceVariables(RequestContext context)
+    {
+        var scopes = new IDisposable[_listeners.Length];
+
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            scopes[i] = _listeners[i].CoerceVariables(context);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public void AddedDocumentToCache(RequestContext context)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].AddedDocumentToCache(context);
+        }
+    }
+
+    public void RetrievedDocumentFromCache(RequestContext context)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].RetrievedDocumentFromCache(context);
+        }
+    }
+
+    public void RetrievedDocumentFromStorage(RequestContext context)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].RetrievedDocumentFromStorage(context);
+        }
+    }
+
+    public void DocumentNotFoundInStorage(RequestContext context, OperationDocumentId documentId)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].DocumentNotFoundInStorage(context, documentId);
+        }
+    }
+
+    public void UntrustedDocumentRejected(RequestContext context)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].UntrustedDocumentRejected(context);
+        }
+    }
+
     public IDisposable AnalyzeOperationCost(RequestContext context)
     {
         var scopes = new IDisposable[_listeners.Length];
@@ -71,18 +147,6 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-    public IDisposable CoerceVariables(RequestContext context)
-    {
-        var scopes = new IDisposable[_listeners.Length];
-
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            scopes[i] = _listeners[i].CoerceVariables(context);
-        }
-
-        return new AggregateActivityScope(scopes);
-    }
-
     public IDisposable CompileOperation(RequestContext context)
     {
         var scopes = new IDisposable[_listeners.Length];
@@ -93,6 +157,22 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
 
         return new AggregateActivityScope(scopes);
+    }
+
+    public void AddedOperationToCache(RequestContext context)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].AddedOperationToCache(context);
+        }
+    }
+
+    public void RetrievedOperationFromCache(RequestContext context)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].RetrievedOperationFromCache(context);
+        }
     }
 
     public IDisposable ExecuteOperation(RequestContext context)
@@ -133,7 +213,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
 
     public IDisposable ResolveFieldValue(IMiddlewareContext context)
     {
-        if (_listeners.Length == 0)
+        if (_resolverListener.Length == 0)
         {
             return ExecutionDiagnosticEventListener.EmptyScope;
         }
@@ -148,9 +228,25 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
+    public void ResolverError(IMiddlewareContext context, IError error)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].ResolverError(context, error);
+        }
+    }
+
+    public void ResolverError(RequestContext context, ISelection selection, IError error)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].ResolverError(context, selection, error);
+        }
+    }
+
     public IDisposable RunTask(IExecutionTask task)
     {
-        if (_listeners.Length == 0)
+        if (_resolverListener.Length == 0)
         {
             return ExecutionDiagnosticEventListener.EmptyScope;
         }
@@ -163,6 +259,14 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
 
         return new AggregateActivityScope(scopes);
+    }
+
+    public void TaskError(IExecutionTask task, IError error)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].TaskError(task, error);
+        }
     }
 
     public void StartProcessing(RequestContext context)
@@ -205,65 +309,11 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public void ExecutionError(
-        RequestContext context,
-        ErrorKind kind,
-        IReadOnlyList<IError> errors,
-        object? state)
+    public void SubscriptionEventError(RequestContext context, ulong subscriptionId, Exception exception)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {
-            _listeners[i].ExecutionError(context, kind, errors, state);
-        }
-    }
-
-    public void AddedDocumentToCache(RequestContext context)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].AddedDocumentToCache(context);
-        }
-    }
-
-    public void RetrievedDocumentFromCache(RequestContext context)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].RetrievedDocumentFromCache(context);
-        }
-    }
-
-    public void RetrievedDocumentFromStorage(RequestContext context)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].RetrievedDocumentFromStorage(context);
-        }
-    }
-
-    public void DocumentNotFoundInStorage(
-        RequestContext context,
-        OperationDocumentId documentId)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].DocumentNotFoundInStorage(context, documentId);
-        }
-    }
-
-    public void AddedOperationToCache(RequestContext context)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].AddedDocumentToCache(context);
-        }
-    }
-
-    public void RetrievedOperationFromCache(RequestContext context)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].RetrievedDocumentFromCache(context);
+            _listeners[i].SubscriptionEventError(context, subscriptionId, exception);
         }
     }
 
