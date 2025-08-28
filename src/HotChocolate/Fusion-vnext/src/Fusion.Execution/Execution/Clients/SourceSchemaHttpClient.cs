@@ -82,6 +82,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             operationSourceText,
             id: null,
             operationName: null,
+            onError: null,
             variables: variables,
             extensions: null);
     }
@@ -101,6 +102,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             operationSourceText,
             id: null,
             operationName: null,
+            onError: null,
             variables: variables,
             extensions: null);
     }

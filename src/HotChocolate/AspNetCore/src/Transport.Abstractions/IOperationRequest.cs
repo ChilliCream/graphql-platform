@@ -20,6 +20,11 @@ public interface IOperationRequest : IRequestBody
     string? OperationName { get; }
 
     /// <summary>
+    /// Gets the requested error handling mode.
+    /// </summary>
+    ErrorHandlingMode? OnError { get; }
+
+    /// <summary>
     /// Gets a dictionary containing extension values to include with the operation.
     /// </summary>
     IReadOnlyDictionary<string, object?>? Extensions { get; }
