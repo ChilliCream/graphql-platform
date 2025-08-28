@@ -1,0 +1,97 @@
+{
+  "data": {
+    "node": {
+      "commentCount": 3
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "36c044ecb30a3f9c7e9b02101c9dc589365271f609624087ee7370ee1ade201e",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      commentCount\n    }\n    title @fusion__requirement\n  }\n}",
+          "id": "7c1d9f5dd3eeed1783d0c9fbdc80eebf",
+          "hash": "7c1d9f5dd3eeed1783d0c9fbdc80eebf",
+          "shortHash": "7c1d9f5d"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Node",
+            "idValue": "\"RGlzY3Vzc2lvbjox\"",
+            "responseName": "node",
+            "branches": {
+              "Discussion": 3
+            },
+            "fallback": 2
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "operation": {
+              "name": "Op_7c1d9f5d_2",
+              "type": "Query",
+              "document": "query Op_7c1d9f5d_2 {\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n  }\n}",
+              "hash": "6165aa132410f8c3323ef247ca2463a455feae2e75c97a4ce802e6eaa191011e",
+              "shortHash": "6165aa13"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_7c1d9f5d_3",
+              "type": "Query",
+              "document": "query Op_7c1d9f5d_3 {\n  node: discussionById(discussionId: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n    title\n  }\n}",
+              "hash": "8915607e3ece2bdc640ed1eb8522076131e2a973b6ef7495073facf79c670065",
+              "shortHash": "8915607e"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_7c1d9f5d_4",
+              "type": "Query",
+              "document": "query Op_7c1d9f5d_4(\n  $__fusion_1_title: String!\n) {\n  discussionByName(title: $__fusion_1_title) {\n    commentCount\n  }\n}",
+              "hash": "b84128cd5befc64e4bc6655dbbedada580daa2ce1eddbf30d34744cf6b37461a",
+              "shortHash": "b84128cd"
+            },
+            "responseNames": [
+              "commentCount"
+            ],
+            "source": "$.discussionByName",
+            "target": "$.node",
+            "requirements": [
+              {
+                "name": "__fusion_1_title",
+                "type": "String!",
+                "path": "$.node",
+                "selectionMap": "title"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              3
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

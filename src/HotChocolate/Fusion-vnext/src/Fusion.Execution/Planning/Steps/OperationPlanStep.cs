@@ -15,7 +15,7 @@ public record OperationPlanStep : PlanStep
 
     public required ImmutableHashSet<uint> SelectionSets { get; init; }
 
-    public required string SchemaName { get; init; }
+    public required string? SchemaName { get; init; }
 
     public ImmutableHashSet<int> Dependents { get; init; } = [];
 

@@ -8,7 +8,12 @@ namespace HotChocolate.Fusion.Diagnostics;
 public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
 {
     IDisposable PlanOperation(
-        RequestContext context);
+        RequestContext context,
+        string operationId);
+
+    IDisposable ExecuteNodeFieldNode(
+        OperationPlanContext context,
+        NodeFieldExecutionNode node);
 
     IDisposable ExecuteOperationNode(
         OperationPlanContext context,
@@ -22,4 +27,12 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
     IDisposable ExecuteIntrospectionNode(
         OperationPlanContext context,
         IntrospectionExecutionNode node);
+
+    void AddedOperationPlanToCache(
+        RequestContext context,
+        string operationId);
+
+    void RetrievedOperationPlanFromCache(
+        RequestContext context,
+        string operationId);
 }

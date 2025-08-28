@@ -42,9 +42,13 @@ internal sealed class CreateApiCommand : Command
 
         var name = await context.OptionOrAskAsync("Name", Opt<ApiNameOption>.Instance, ct);
         var pathResult = await context
-            .OptionOrAskAsync("Path [dim](e.g. /foo/bar)[/]", Opt<ApiPathOption>.Instance, ct);
+            .OptionOrAskAsync(
+                "Path [dim](e.g. /foo/bar)[/]",
+                Opt<ApiPathOption>.Instance,
+                defaultValue: "/",
+                ct);
 
-        var path = pathResult.Split("/", TrimEntries | RemoveEmptyEntries).ToArray();
+        var path = pathResult.Split("/", TrimEntries | RemoveEmptyEntries);
 
         var kind = context.GetApiKind();
 

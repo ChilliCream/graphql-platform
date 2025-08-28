@@ -2,6 +2,7 @@ using System.CommandLine.Builder;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.Api;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.ApiKey;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.Environment;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.Fusion;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.Mock;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.PersonalAccessToken;
@@ -38,6 +39,7 @@ public static class NitroCloudCommandExtensions
         command.AddCommand(new LoginCommand());
         command.AddCommand(new LogoutCommand());
         command.AddCommand(new SchemaCommand());
+        command.AddCommand(new FusionCommand());
         command.AddCommand(new FusionConfigurationCommand());
         command.AddCommand(new StageCommand());
         command.AddCommand(new WorkspaceCommand());

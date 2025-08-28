@@ -1,10 +1,12 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using Microsoft.AspNetCore.Builder;
@@ -12,12 +14,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Xunit.Sdk;
 
 namespace HotChocolate.Fusion;
 
 public abstract class FusionTestBase : IDisposable
 {
-    internal readonly TestServerSession _testServerSession = new();
+    private readonly TestServerSession _testServerSession = new();
     private bool _disposed;
 
     public TestServer CreateSourceSchema(
@@ -52,6 +55,7 @@ public abstract class FusionTestBase : IDisposable
         (string SchemaName, TestServer Server)[] sourceSchemaServers,
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
+        Action<IFusionGatewayBuilder>? configureGatewayBuilder = null,
         [StringSyntax("json")] string? schemaSettings = null)
     {
         var sourceSchemas = new List<SourceSchemaText>();
@@ -73,12 +77,22 @@ public abstract class FusionTestBase : IDisposable
         }
 
         var compositionLog = new CompositionLog();
-        var composer = new SchemaComposer(sourceSchemas, new SchemaComposerOptions(), compositionLog);
+        var composerOptions = new SchemaComposerOptions { EnableGlobalObjectIdentification = true };
+        var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
 
         if (!result.IsSuccess)
         {
-            throw new InvalidOperationException(result.Errors[0].Message);
+            var sb = new StringBuilder();
+            sb.Append(result.Errors[0].Message);
+
+            foreach (var entry in compositionLog)
+            {
+                sb.AppendLine();
+                sb.Append(entry.Message);
+            }
+
+            throw new XunitException(sb.ToString());
         }
 
         JsonDocumentOwner? settings = null;
@@ -91,6 +105,7 @@ public abstract class FusionTestBase : IDisposable
         gatewayBuilder.AddInMemoryConfiguration(result.Value.ToSyntaxNode(), settings);
         gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
         gatewayBuilder.ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = false);
+        configureGatewayBuilder?.Invoke(gatewayBuilder);
 
         configureApplication ??=
             app =>

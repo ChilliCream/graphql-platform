@@ -12,6 +12,30 @@ Start by installing the latest `16.x.x` version of **all** of the `HotChocolate.
 
 Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
 
+## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
+
+**Before**
+
+```csharp
+builder.Services.AddGraphQLServer()
+    .ModifyOptions(options =>
+    {
+        options.MaxAllowedNodeBatchSize = 100;
+        options.EnsureAllNodesCanBeResolved = false;
+    });
+```
+
+**After**
+
+```csharp
+builder.Services.AddGraphQLServer()
+    .AddGlobalObjectIdentification(options =>
+    {
+        options.MaxAllowedNodeBatchSize = 100;
+        options.EnsureAllNodesCanBeResolved = false;
+    });
+```
+
 ## Skip/include disallowed on root subscription fields
 
 The `@skip` and `@include` directives are now disallowed on root subscription fields, as specified in the RFC: [Prevent @skip and @include on root subscription selection set](https://github.com/graphql/graphql-spec/pull/860).

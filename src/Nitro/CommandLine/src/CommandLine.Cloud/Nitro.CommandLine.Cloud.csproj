@@ -144,5 +144,7 @@
     <ProjectReference Include="..\CommandLine.Fusion.Compatibility\Nitro.CommandLine.Fusion.Compatibility.csproj" />
     <ProjectReference Include="..\..\..\..\StrawberryShake\Client\src\Core\StrawberryShake.Core.csproj" />
     <ProjectReference Include="..\..\..\..\StrawberryShake\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.CommandLine\HotChocolate.Fusion.CommandLine.csproj" />
   </ItemGroup>
 </Project>

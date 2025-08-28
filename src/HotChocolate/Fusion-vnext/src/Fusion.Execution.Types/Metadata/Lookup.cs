@@ -1,16 +1,20 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types;
 
 /// <summary>
 /// Represents a lookup field in a source schema.
 /// </summary>
+[DebuggerDisplay("{FieldName}:{FieldType} ({SchemaName})")]
 public sealed class Lookup : INeedsCompletion
 {
     private readonly string _declaringTypeName;
+    private readonly string _fieldType;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Lookup"/> class.
@@ -18,6 +22,7 @@ public sealed class Lookup : INeedsCompletion
     /// <param name="schemaName">The name of the source schema.</param>
     /// <param name="declaringTypeName">The name of the type that declares the field.</param>
     /// <param name="fieldName">The name of the lookup field.</param>
+    /// <param name="fieldType">The type the lookup field returns.</param>
     /// <param name="arguments">The arguments that represent field requirements.</param>
     /// <param name="fields">The paths to the field that are required.</param>
     /// <exception cref="ArgumentException">
@@ -31,12 +36,14 @@ public sealed class Lookup : INeedsCompletion
         string schemaName,
         string declaringTypeName,
         string fieldName,
+        string fieldType,
         ImmutableArray<LookupArgument> arguments,
         ImmutableArray<IValueSelectionNode> fields)
     {
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
         ArgumentException.ThrowIfNullOrEmpty(declaringTypeName);
         ArgumentException.ThrowIfNullOrEmpty(fieldName);
+        ArgumentException.ThrowIfNullOrEmpty(fieldType);
 
         if (arguments.Length == 0)
         {
@@ -49,6 +56,7 @@ public sealed class Lookup : INeedsCompletion
         }
 
         _declaringTypeName = declaringTypeName;
+        _fieldType = fieldType;
         SchemaName = schemaName;
         FieldName = fieldName;
         Arguments = arguments;
@@ -66,9 +74,9 @@ public sealed class Lookup : INeedsCompletion
     public string FieldName { get; }
 
     /// <summary>
-    /// Get the name of lookup field type.
+    /// Gets the type the lookup field returns.
     /// </summary>
-    public string FieldType => _declaringTypeName;
+    public ITypeDefinition FieldType { get; private set; } = null!;
 
     /// <summary>
     /// Gets the arguments that represent field requirements.
@@ -86,5 +94,8 @@ public sealed class Lookup : INeedsCompletion
     public SelectionSetNode Requirements { get; private set; } = null!;
 
     void INeedsCompletion.Complete(FusionSchemaDefinition schema, CompositeSchemaBuilderContext context)
-        => Requirements = context.RewriteValueSelectionToSelectionSet(schema, _declaringTypeName, Fields);
+    {
+        Requirements = context.RewriteValueSelectionToSelectionSet(schema, _declaringTypeName, Fields);
+        FieldType = schema.Types[_fieldType];
+    }
 }

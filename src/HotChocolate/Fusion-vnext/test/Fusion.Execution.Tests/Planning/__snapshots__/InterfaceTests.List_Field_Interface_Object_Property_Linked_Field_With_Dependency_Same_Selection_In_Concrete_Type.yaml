@@ -3,6 +3,7 @@ operation:
       query testQuery {
         wrappers {
           authorable {
+            __typename @fusion__requirement
             author {
               displayName
               id @fusion__requirement
@@ -26,6 +27,7 @@ nodes:
       query testQuery_123456789101112_1 {
         wrappers {
           authorable {
+            __typename
             author {
               id
             }

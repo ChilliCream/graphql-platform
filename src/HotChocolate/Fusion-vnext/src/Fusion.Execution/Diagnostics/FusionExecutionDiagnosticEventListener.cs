@@ -59,13 +59,23 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     public virtual void RetrievedDocumentFromCache(RequestContext context) { }
 
     /// <inheritdoc />
+    public virtual void AddedOperationPlanToCache(RequestContext context, string operationPlanId) { }
+
+    /// <inheritdoc />
+    public virtual void RetrievedOperationPlanFromCache(RequestContext context, string operationPlanId) { }
+
+    /// <inheritdoc />
     public virtual void RetrievedDocumentFromStorage(RequestContext context) { }
 
     /// <inheritdoc />
     public virtual void DocumentNotFoundInStorage(RequestContext context, OperationDocumentId documentId) { }
 
     /// <inheritdoc />
-    public virtual IDisposable PlanOperation(RequestContext context)
+    public virtual IDisposable PlanOperation(RequestContext context, string operationPlanId)
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteNodeFieldNode(OperationPlanContext context, NodeFieldExecutionNode node)
         => EmptyScope;
 
     /// <inheritdoc />
@@ -73,7 +83,7 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
         => EmptyScope;
 
     /// <inheritdoc />
-    public IDisposable ExecuteSubscriptionNode(
+    public virtual IDisposable ExecuteSubscriptionNode(
         OperationPlanContext context,
         OperationExecutionNode node,
         ulong subscriptionId)
