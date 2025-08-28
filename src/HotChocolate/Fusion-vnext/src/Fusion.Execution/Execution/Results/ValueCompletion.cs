@@ -36,6 +36,14 @@ internal sealed class ValueCompletion
         _errors = errors;
     }
 
+    /// <summary>
+    /// Tries to complete the <paramref name="selectionSet"/> from the
+    /// <paramref name="data"/>, checking for errors on the <paramref name="errorTrie"/>.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c>, if the execution can continue.
+    /// <c>false</c>, if the execution needs to be halted.
+    /// </returns>
     public bool BuildResult(
         SelectionSet selectionSet,
         JsonElement data,
@@ -71,9 +79,9 @@ internal sealed class ValueCompletion
                 {
                     if (_errorHandling is ErrorHandlingMode.Propagate)
                     {
-                        PropagateNullValues(objectResult);
+                        var didPropagateToRoot = PropagateNullValues(objectResult);
 
-                        return true;
+                        return !didPropagateToRoot;
                     }
                     else if (_errorHandling is ErrorHandlingMode.Halt)
                     {
@@ -86,6 +94,14 @@ internal sealed class ValueCompletion
         return true;
     }
 
+    /// <summary>
+    /// Tries to <c>null</c> and assign the <paramref name="error"/> to the path
+    /// of each <paramref name="responseNames"/>.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c>, if the execution can continue.
+    /// <c>false</c>, if the execution needs to be halted.
+    /// </returns>
     public bool BuildErrorResult(
         ObjectResult objectResult,
         ReadOnlySpan<string> responseNames,
@@ -115,20 +131,27 @@ internal sealed class ValueCompletion
 
             if (_errorHandling is ErrorHandlingMode.Propagate && fieldResult.Selection.Type.IsNonNullType())
             {
-                PropagateNullValues(objectResult);
+                var didPropagateToRoot = PropagateNullValues(objectResult);
 
-                return true;
+                return !didPropagateToRoot;
             }
         }
 
         return true;
     }
 
-    private static void PropagateNullValues(ResultData result)
+    /// <summary>
+    /// Invalidates the current result and its parents,
+    /// until reaching a parent that can be set to <c>null</c>.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c>, if the null propagated up to the root.
+    /// </returns>
+    private static bool PropagateNullValues(ResultData result)
     {
         if (result.IsInvalidated)
         {
-            return;
+            return result.Parent is null;
         }
 
         result.IsInvalidated = true;
@@ -138,20 +161,17 @@ internal sealed class ValueCompletion
             var index = result.ParentIndex;
             var parent = result.Parent;
 
-            if (parent.IsInvalidated)
+            if (parent.IsInvalidated || parent.TrySetValueNull(index))
             {
-                return;
-            }
-
-            if (parent.TrySetValueNull(index))
-            {
-                return;
+                return false;
             }
 
             parent.IsInvalidated = true;
 
             result = parent;
         }
+
+        return true;
     }
 
     private bool TryCompleteValue(
