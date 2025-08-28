@@ -98,7 +98,7 @@ internal sealed partial class SubscriptionExecutor
                 resolveQueryRootValue,
                 diagnosticsEvents);
 
-            subscription._subscriptionScope = diagnosticsEvents.ExecuteSubscription(requestContext);
+            subscription._subscriptionScope = diagnosticsEvents.ExecuteSubscription(requestContext, subscription.Id);
             subscription._sourceStream = await subscription.SubscribeAsync().ConfigureAwait(false);
 
             return subscription;
@@ -140,7 +140,7 @@ internal sealed partial class SubscriptionExecutor
         /// </returns>
         private async Task<IOperationResult> OnEvent(object payload)
         {
-            using var es = _diagnosticEvents.OnSubscriptionEvent(_requestContext);
+            using var es = _diagnosticEvents.OnSubscriptionEvent(_requestContext, _id);
             using var serviceScope = _requestContext.RequestServices.CreateScope();
 
             serviceScope.ServiceProvider.InitializeDataLoaderScope();
@@ -182,22 +182,19 @@ internal sealed partial class SubscriptionExecutor
                     .ExecuteAsync(operationContext, scopedContextData)
                     .ConfigureAwait(false);
 
-                // TODO : We want to redo subscription for V16 and then we should revisit also the diagnostic events.
-                // _diagnosticEvents.SubscriptionEventResult(new SubscriptionEventContext(this, payload), result);
-
                 return result;
             }
             catch (OperationCanceledException ex)
             {
                 operationContext = null;
                 var error = ErrorBuilder.FromException(ex).Build();
-                _diagnosticEvents.ExecutionError(_requestContext, ErrorKind.SubscriptionEventError, [error]);
+                _diagnosticEvents.ExecutionError(_requestContext, ErrorKind.SubscriptionEventError, [error], state: Id);
                 throw;
             }
             catch (Exception ex)
             {
                 var error = ErrorBuilder.FromException(ex).Build();
-                _diagnosticEvents.ExecutionError(_requestContext, ErrorKind.SubscriptionEventError, [error]);
+                _diagnosticEvents.ExecutionError(_requestContext, ErrorKind.SubscriptionEventError, [error], state: Id);
                 throw;
             }
             finally
@@ -235,7 +232,7 @@ internal sealed partial class SubscriptionExecutor
                 operationContext.Initialize(
                     _requestContext,
                     _requestContext.RequestServices,
-                    NoopBatchDispatcher.Default,
+                    NoopBatchDispatcher.Instance,
                     _requestContext.GetOperation(),
                     _requestContext.VariableValues[0],
                     rootValue,

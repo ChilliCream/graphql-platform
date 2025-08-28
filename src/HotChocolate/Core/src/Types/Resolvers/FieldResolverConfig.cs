@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Resolvers;
 
 internal readonly struct FieldResolverConfiguration

@@ -3,6 +3,54 @@ namespace HotChocolate.Types;
 public class DataLoaderTests
 {
     [Fact]
+    public async Task GenerateSource_BatchDataLoader_With_ValueType_Result_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, long>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_BatchDataLoader_With_Nullable_ValueType_Result_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, long?>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task GenerateSource_BatchDataLoader_MatchesSnapshot()
     {
         await TestHelper.GetGeneratedSourceSnapshot(
@@ -695,6 +743,97 @@ public class DataLoaderTests
                     GreenDonut.Data.IPredicateBuilder predicate,
                     CancellationToken cancellationToken)
                     => default!;
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Generate_DataLoader_NullableAnnotated_AnonymousType_AsKey_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            public record Id1();
+            public record Id2();
+            public record Stuff();
+
+            public class Dataloaders
+            {
+                [DataLoader]
+                public static async Task<ILookup<(Id1, Id2?), Stuff>> GetStuff(
+                    IReadOnlyList<(Id1, Id2?)> keys,
+                    CancellationToken cancellationToken)
+                {
+                    await Task.CompletedTask;
+                    return null!;
+                }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_BatchDataLoader_ReturnsNullableStruct_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<IReadOnlyDictionary<int, Entity?>> GetEntityByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public struct Entity
+            {
+                public int Id { get; set; }
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task GenerateSource_GroupedDataLoader_ReturnsNullableStruct_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using GreenDonut;
+
+            namespace TestNamespace;
+
+            internal static class TestClass
+            {
+                [DataLoader]
+                public static Task<ILookup<int, Entity?>> GetEntitiesByIdAsync(
+                    IReadOnlyList<int> entityIds,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+
+            public struct Entity
+            {
+                public int Id { get; set; }
             }
             """).MatchMarkdownAsync();
     }

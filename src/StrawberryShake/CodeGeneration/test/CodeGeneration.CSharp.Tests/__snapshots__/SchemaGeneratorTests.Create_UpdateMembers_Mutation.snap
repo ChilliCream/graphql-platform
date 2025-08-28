@@ -1,4 +1,4 @@
-﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
 // ReSharper disable InconsistentNaming
@@ -821,14 +821,14 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IUpdateMembersResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _updateProjectMembersInputFormatter;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public UpdateMembersMutation(global::StrawberryShake.IOperationExecutor<IUpdateMembersResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _updateProjectMembersInputFormatter = serializerResolver.GetInputValueFormatter("UpdateProjectMembersInput");
         }
 
-        private UpdateMembersMutation(global::StrawberryShake.IOperationExecutor<IUpdateMembersResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter updateProjectMembersInputFormatter)
+        private UpdateMembersMutation(global::StrawberryShake.IOperationExecutor<IUpdateMembersResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter updateProjectMembersInputFormatter)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;

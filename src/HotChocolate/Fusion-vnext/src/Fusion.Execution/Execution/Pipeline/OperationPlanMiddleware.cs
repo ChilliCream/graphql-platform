@@ -1,4 +1,6 @@
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
@@ -10,13 +12,19 @@ internal sealed class OperationPlanMiddleware
 {
     private readonly OperationPlanner _planner;
     private readonly InlineFragmentOperationRewriter _rewriter;
+    private readonly IOperationPlannerInterceptor[]  _interceptors;
+    private readonly IFusionExecutionDiagnosticEvents _diagnosticsEvents;
 
-    private OperationPlanMiddleware(ISchemaDefinition schema, OperationPlanner planner)
+    private OperationPlanMiddleware(
+        ISchemaDefinition schema,
+        OperationPlanner planner,
+        IEnumerable<IOperationPlannerInterceptor>? interceptors,
+        IFusionExecutionDiagnosticEvents diagnosticsEvents)
     {
-        ArgumentNullException.ThrowIfNull(planner);
-
         _rewriter = new InlineFragmentOperationRewriter(schema);
         _planner = planner;
+        _interceptors = interceptors?.ToArray() ?? [];
+        _diagnosticsEvents = diagnosticsEvents;
     }
 
     public ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
@@ -34,40 +42,60 @@ internal sealed class OperationPlanMiddleware
             return next(context);
         }
 
-        // Before we can plan an operation, we must defragmentize it and remove statical include conditions.
+        PlanOperation(context, operationDocumentInfo, operationDocumentInfo.Document);
+
+        return next(context);
+    }
+
+    private void PlanOperation(
+        RequestContext context,
+        OperationDocumentInfo operationDocumentInfo,
+        DocumentNode operationDocument)
+    {
         var operationId = context.GetOperationId();
         var operationHash = context.OperationDocumentInfo.Hash.Value;
         var operationShortHash = operationHash[..8];
-        var rewritten = _rewriter.RewriteDocument(operationDocumentInfo.Document, context.Request.OperationName);
-        var operation = GetOperation(rewritten);
-        var executionPlan = _planner.CreatePlan(operationId, operationHash, operationShortHash, operation);
-        context.SetOperationPlan(executionPlan);
 
-        return next(context);
+        using var scope = _diagnosticsEvents.PlanOperation(context, operationId);
 
-        // TODO: this algorithm is wrong and will fail with multiple operations.
-        static OperationDefinitionNode GetOperation(DocumentNode document)
+        // Before we can plan an operation, we must defragmentize it and remove statical include conditions.
+        var rewritten = _rewriter.RewriteDocument(operationDocument, context.Request.OperationName);
+        var operation = rewritten.GetOperation(context.Request.OperationName);
+
+        // After optimizing the query structure we can begin the planning process.
+        var operationPlan = _planner.CreatePlan(operationId, operationHash, operationShortHash, operation);
+        OnAfterPlanCompleted(operationDocumentInfo, operationPlan);
+        context.SetOperationPlan(operationPlan);
+    }
+
+    private void OnAfterPlanCompleted(
+        OperationDocumentInfo operationDocumentInfo,
+        OperationPlan operationPlan)
+    {
+        switch (_interceptors.Length)
         {
-            for (var i = 0; i < document.Definitions.Count; i++)
-            {
-                if (document.Definitions[i] is OperationDefinitionNode operation)
-                {
-                    return operation;
-                }
-            }
+            case 1:
+                _interceptors[0].OnAfterPlanCompleted(operationDocumentInfo, operationPlan);
+                break;
 
-            throw new InvalidOperationException(
-                "The operation document does not contain an operation definition.");
+            case > 1:
+                foreach (var interceptor in _interceptors)
+                {
+                    interceptor.OnAfterPlanCompleted(operationDocumentInfo, operationPlan);
+                }
+                break;
         }
     }
 
-    public static RequestMiddleware Create()
-    {
-        return static (fc, next) =>
-        {
-            var planner = fc.SchemaServices.GetRequiredService<OperationPlanner>();
-            var middleware = new OperationPlanMiddleware(fc.Schema, planner);
-            return requestContext => middleware.InvokeAsync(requestContext, next);
-        };
-    }
+    public static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
+            (fc, next) =>
+            {
+                var planner = fc.SchemaServices.GetRequiredService<OperationPlanner>();
+                var interceptors = fc.SchemaServices.GetService<IEnumerable<IOperationPlannerInterceptor>>();
+                var diagnosticEvents = fc.SchemaServices.GetRequiredService<IFusionExecutionDiagnosticEvents>();
+                var middleware = new OperationPlanMiddleware(fc.Schema, planner, interceptors, diagnosticEvents);
+                return requestContext => middleware.InvokeAsync(requestContext, next);
+            },
+            nameof(OperationPlanMiddleware));
 }

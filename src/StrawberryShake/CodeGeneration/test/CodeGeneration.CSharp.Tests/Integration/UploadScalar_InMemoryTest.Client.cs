@@ -930,7 +930,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _uploadFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _testInputFormatter;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public TestUploadQuery(global::StrawberryShake.IOperationExecutor<ITestUploadResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
@@ -939,7 +939,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
             _testInputFormatter = serializerResolver.GetInputValueFormatter("TestInput");
         }
 
-        private TestUploadQuery(global::StrawberryShake.IOperationExecutor<ITestUploadResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter, global::StrawberryShake.Serialization.IInputValueFormatter testInputFormatter, global::StrawberryShake.Serialization.IInputValueFormatter uploadFormatter)
+        private TestUploadQuery(global::StrawberryShake.IOperationExecutor<ITestUploadResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter @stringFormatter, global::StrawberryShake.Serialization.IInputValueFormatter testInputFormatter, global::StrawberryShake.Serialization.IInputValueFormatter uploadFormatter)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;

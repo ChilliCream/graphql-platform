@@ -1,0 +1,115 @@
+operation:
+  - document: >-
+      {
+        users {
+          nodes {
+            reviews {
+              nodes {
+                product {
+                  deliveryEstimate(zip: "123")
+                  id @fusion__requirement
+                  id @fusion__requirement
+                  weight @fusion__requirement
+                  dimension @fusion__requirement {
+                    length
+                    width
+                    height
+                  }
+                  id @fusion__requirement
+                }
+              }
+            }
+            id @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: >-
+      query Op_123456789101112_1 {
+        users {
+          nodes {
+            id
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: f
+    operation: >-
+      query Op_123456789101112_2(
+        $__fusion_1_id: ID!
+      ) {
+        userById(id: $__fusion_1_id) {
+          reviews {
+            nodes {
+              product {
+                id
+              }
+            }
+          }
+        }
+      }
+    source: $.userById
+    target: $.users.nodes
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: id
+    dependencies:
+      - id: 1
+  - id: 4
+    type: Operation
+    schema: g
+    operation: >-
+      query Op_123456789101112_4(
+        $__fusion_3_dimension: ProductDimensionInput!
+        $__fusion_4_id: ID!
+      ) {
+        productById(id: $__fusion_4_id) {
+          deliveryEstimate(zip: "123", dimension: $__fusion_3_dimension)
+        }
+      }
+    source: $.productById
+    target: $.users.nodes.reviews.nodes.product
+    requirements:
+      - name: __fusion_3_dimension
+        selectionMap: {
+  weight
+  length: dimension.length
+  width: dimension.width
+  height: dimension.height
+}
+      - name: __fusion_4_id
+        selectionMap: id
+    dependencies:
+      - id: 2
+      - id: 5
+  - id: 5
+    type: Operation
+    schema: e
+    operation: >-
+      query Op_123456789101112_5(
+        $__fusion_5_id: ID!
+      ) {
+        node(id: $__fusion_5_id) {
+          __typename
+          ... on Product {
+            weight
+            dimension {
+              length
+              width
+              height
+            }
+          }
+        }
+      }
+    source: $.node<Product>
+    target: $.users.nodes.reviews.nodes.product
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: id
+    dependencies:
+      - id: 2

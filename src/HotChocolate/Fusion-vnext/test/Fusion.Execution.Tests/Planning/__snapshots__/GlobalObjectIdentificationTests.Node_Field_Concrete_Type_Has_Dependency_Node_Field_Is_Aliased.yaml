@@ -1,0 +1,118 @@
+operation:
+  - document: >-
+      query testQuery(
+        $id1: ID!
+        $id2: ID!
+      ) {
+        a: node(id: $id1) {
+          __typename @fusion__requirement
+          ... on Discussion {
+            name
+            commentCount
+          }
+          id @fusion__requirement
+        }
+        b: node(id: $id2) {
+          __typename @fusion__requirement
+          id
+          ... on Discussion {
+            name
+          }
+        }
+      }
+    name: testQuery
+    hash: 123456789101112
+nodes:
+  - id: 1
+    type: Node
+    idValue: $id2
+    responseName: b
+    branches:
+      - Discussion: 3
+    fallback: 2
+  - id: 2
+    type: Operation
+    operation: >-
+      query testQuery_123456789101112_2(
+        $id2: ID!
+      ) {
+        b: node(id: $id2) {
+          __typename
+          id
+        }
+      }
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: a
+    operation: >-
+      query testQuery_123456789101112_3(
+        $id2: ID!
+      ) {
+        b: node(id: $id2) {
+          __typename
+          ... on Discussion {
+            __typename
+            id
+            name
+          }
+        }
+      }
+    dependencies:
+      - id: 1
+  - id: 4
+    type: Node
+    idValue: $id1
+    responseName: a
+    branches:
+      - Discussion: 6
+    fallback: 5
+  - id: 5
+    type: Operation
+    operation: >-
+      query testQuery_123456789101112_5(
+        $id1: ID!
+      ) {
+        a: node(id: $id1) {
+          __typename
+        }
+      }
+    dependencies:
+      - id: 4
+  - id: 6
+    type: Operation
+    schema: b
+    operation: >-
+      query testQuery_123456789101112_6(
+        $id1: ID!
+      ) {
+        a: node(id: $id1) {
+          __typename
+          commentCount
+          id
+        }
+      }
+    dependencies:
+      - id: 4
+  - id: 7
+    type: Operation
+    schema: a
+    operation: >-
+      query testQuery_123456789101112_7(
+        $__fusion_1_id: ID!
+      ) {
+        node(id: $__fusion_1_id) {
+          __typename
+          ... on Discussion {
+            name
+          }
+        }
+      }
+    source: $.node<Discussion>
+    target: $.a
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: id
+    dependencies:
+      - id: 6

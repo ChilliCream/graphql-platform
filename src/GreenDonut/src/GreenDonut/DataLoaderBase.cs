@@ -182,7 +182,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             // we dispatch after everything is enqueued.
             if (_currentBatch is { IsScheduled: false })
             {
-                ScheduleBatchUnsafe(_currentBatch, ct);
+                ScheduleBatchUnsafe(_currentBatch);
             }
         }
 
@@ -401,25 +401,25 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             // we will schedule it before issuing a new batch.
             if (!current.IsScheduled)
             {
-                ScheduleBatchUnsafe(current, ct);
+                ScheduleBatchUnsafe(current);
             }
         }
 
-        var newBatch = _currentBatch = BatchPool<TKey>.Shared.Get();
+        var newBatch = _currentBatch = RentBatch(ct);
         var newPromise = newBatch.GetOrCreatePromise<TValue?>(key, allowCachePropagation);
 
         if (scheduleOnNewBatch)
         {
-            ScheduleBatchUnsafe(newBatch, ct);
+            ScheduleBatchUnsafe(newBatch);
         }
 
         return newPromise;
     }
 
-    private void ScheduleBatchUnsafe(Batch<TKey> batch, CancellationToken ct)
+    private void ScheduleBatchUnsafe(Batch<TKey> batch)
     {
         batch.IsScheduled = true;
-        _batchScheduler.Schedule(() => DispatchBatchAsync(batch, ct));
+        _batchScheduler.Schedule(batch);
     }
 
     private void SetSingleResult(
@@ -518,4 +518,11 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// </returns>
     protected static string GetCacheKeyType(Type type)
         => type.FullName ?? type.Name;
+
+    private Batch<TKey> RentBatch(CancellationToken ct)
+    {
+        var batch = BatchPool<TKey>.Shared.Get();
+        batch.Initialize(DispatchBatchAsync, ct);
+        return batch;
+    }
 }

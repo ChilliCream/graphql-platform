@@ -1,0 +1,4 @@
+mutation ExplicitNonDestructiveTool {
+  explicitNonDestructiveMutation
+  another: explicitNonDestructiveMutation
+}

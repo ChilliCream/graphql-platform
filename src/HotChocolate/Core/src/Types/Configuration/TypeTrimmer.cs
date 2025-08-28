@@ -1,8 +1,6 @@
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class TypeTrimmer

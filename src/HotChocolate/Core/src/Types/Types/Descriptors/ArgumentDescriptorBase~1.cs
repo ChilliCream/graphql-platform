@@ -3,8 +3,6 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 /// <summary>

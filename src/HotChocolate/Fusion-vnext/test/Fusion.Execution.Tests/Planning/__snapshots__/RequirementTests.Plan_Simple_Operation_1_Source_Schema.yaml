@@ -1,27 +1,29 @@
 operation:
   - document: >-
-    {
-      books {
-        titleAndId
-        id @fusion__requirement
-        title @fusion__requirement
+      {
+        books {
+          titleAndId
+          id @fusion__requirement
+          title @fusion__requirement
+        }
       }
-    }
-    hash: 123
+    hash: 123456789101112
 nodes:
   - id: 1
-    schema: A
+    type: Operation
+    schema: a
     operation: >-
-      query Op_123_1 {
+      query Op_123456789101112_1 {
         books {
           id
           title
         }
       }
   - id: 2
-    schema: B
+    type: Operation
+    schema: b
     operation: >-
-      query Op_123_2(
+      query Op_123456789101112_2(
         $__fusion_1_id: String!
         $__fusion_2_title: String
       ) {

@@ -28,21 +28,82 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
                 case IntrospectionExecutionNode introspectionNode:
                     WriteIntrospectionNode(introspectionNode, nodeTrace, writer);
                     break;
+
+                case NodeFieldExecutionNode nodeExecutionNode:
+                    WriteNodeNode(nodeExecutionNode, nodeTrace, writer);
+                    break;
             }
         }
 
         return sb.ToString();
     }
 
+    private static void WriteOperation(
+        OperationPlan plan,
+        OperationPlanTrace? trace,
+        CodeWriter writer)
+    {
+        writer.WriteLine("operation:");
+        writer.Indent();
+
+        writer.WriteLine("- document: >-");
+        writer.Indent();
+        writer.Indent();
+        var reader = new StringReader(plan.Operation.Definition.ToString(indented: true));
+        var line = reader.ReadLine();
+        while (line != null)
+        {
+            writer.WriteLine(line);
+            line = reader.ReadLine();
+        }
+        writer.Unindent();
+
+        if (!string.IsNullOrEmpty(plan.Operation.Name))
+        {
+            writer.WriteLine("name: {0}", plan.Operation.Name);
+        }
+
+        writer.WriteLine("hash: {0}", plan.Operation.Id);
+
+        if (trace is not null)
+        {
+            if (!string.IsNullOrEmpty(trace.AppId))
+            {
+                writer.WriteLine("appId: {0}", trace.AppId);
+            }
+
+            if (!string.IsNullOrEmpty(trace.EnvironmentName))
+            {
+                writer.WriteLine("environment: {0}", trace.EnvironmentName);
+            }
+
+            if (!string.IsNullOrEmpty(trace.TraceId))
+            {
+                writer.WriteLine("traceId: {0}", trace.TraceId);
+            }
+
+            writer.WriteLine("duration: {0}", trace.Duration.TotalMilliseconds);
+        }
+
+        writer.Unindent();
+        writer.Unindent();
+    }
+
     private static void WriteOperationNode(OperationExecutionNode node, ExecutionNodeTrace? trace, CodeWriter writer)
     {
         writer.WriteLine("- id: {0}", node.Id);
         writer.Indent();
-        writer.WriteLine("schema: {0}", node.SchemaName);
+
+        writer.WriteLine("type: {0}", "Operation");
+
+        if (node.SchemaName is not null)
+        {
+            writer.WriteLine("schema: {0}", node.SchemaName);
+        }
 
         writer.WriteLine("operation: >-");
         writer.Indent();
-        var reader = new StringReader(node.Operation.ToString(indented: true));
+        var reader = new StringReader(node.Operation.SourceText);
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -67,7 +128,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Indent();
             foreach (var requirement in node.Requirements.ToArray().OrderBy(t => t.Key))
             {
-                writer.WriteLine("- name: {0}",  requirement.Key);
+                writer.WriteLine("- name: {0}", requirement.Key);
                 writer.Indent();
                 writer.WriteLine("selectionMap: {0}", requirement.Map);
                 writer.Unindent();
@@ -102,59 +163,12 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.Unindent();
     }
 
-    private static void WriteOperation(
-        OperationPlan plan,
-        OperationPlanTrace? trace,
-        CodeWriter writer)
-    {
-        writer.WriteLine("operation:");
-        writer.Indent();
-
-        writer.WriteLine("- document: >-");
-        writer.Indent();
-        var reader = new StringReader(plan.Operation.Definition.ToString(indented: true));
-        var line = reader.ReadLine();
-        while (line != null)
-        {
-            writer.WriteLine(line);
-            line = reader.ReadLine();
-        }
-
-        if (!string.IsNullOrEmpty(plan.Operation.Name))
-        {
-            writer.WriteLine("name: {0}", plan.Operation.Name);
-        }
-
-        writer.WriteLine("hash: {0}", plan.Operation.Id);
-
-        if (trace is not null)
-        {
-            if (!string.IsNullOrEmpty(trace.AppId))
-            {
-                writer.WriteLine("appId: {0}", trace.AppId);
-            }
-
-            if (!string.IsNullOrEmpty(trace.EnvironmentName))
-            {
-                writer.WriteLine("environment: {0}", trace.EnvironmentName);
-            }
-
-            if (!string.IsNullOrEmpty(trace.TraceId))
-            {
-                writer.WriteLine("traceId: {0}", trace.TraceId);
-            }
-
-            writer.WriteLine("duration: {0}", trace.Duration.TotalMilliseconds);
-        }
-
-        writer.Unindent();
-        writer.Unindent();
-    }
-
     private static void WriteIntrospectionNode(IntrospectionExecutionNode node, ExecutionNodeTrace? trace, CodeWriter writer)
     {
         writer.WriteLine("- id: {0}", node.Id);
         writer.Indent();
+
+        writer.WriteLine("type: {0}", "Introspection");
 
         writer.WriteLine("selections:");
         writer.Indent();
@@ -167,6 +181,40 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Unindent();
         }
         writer.Unindent();
+
+        if (trace is not null)
+        {
+            if (trace.SpanId is not null)
+            {
+                writer.WriteLine("spanId: {0}", trace.SpanId);
+            }
+
+            writer.WriteLine("duration: {0}", trace.Duration.TotalMilliseconds);
+            writer.WriteLine("status: {0}", trace.Status.ToString());
+        }
+
+        writer.Unindent();
+    }
+
+    private void WriteNodeNode(NodeFieldExecutionNode nodeField, ExecutionNodeTrace? trace, CodeWriter writer)
+    {
+        writer.WriteLine("- id: {0}", nodeField.Id);
+        writer.Indent();
+
+        writer.WriteLine("type: {0}", nodeField.Type.ToString());
+
+        writer.WriteLine("idValue: {0}", nodeField.IdValue.ToString());
+        writer.WriteLine("responseName: {0}", nodeField.ResponseName);
+
+        writer.WriteLine("branches:");
+        writer.Indent();
+        foreach (var branch in nodeField.Branches.OrderBy(kvp => kvp.Key))
+        {
+            writer.WriteLine("- {0}: {1}", branch.Key, branch.Value.Id);
+        }
+        writer.Unindent();
+
+        writer.WriteLine("fallback: {0}", nodeField.FallbackQuery.Id);
 
         if (trace is not null)
         {

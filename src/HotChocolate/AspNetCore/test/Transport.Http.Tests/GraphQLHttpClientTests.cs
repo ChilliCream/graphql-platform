@@ -974,6 +974,74 @@ public class GraphQLHttpClientTests : ServerTestBase
             """);
     }
 
+    [Fact]
+    public async Task Post_Subscription_Over_JsonLines()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var testServer = CreateStarWarsServer();
+        var httpClient = testServer.CreateClient();
+        httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
+
+        var subscriptionRequest = new GraphQLHttpRequest(
+            new OperationRequest(
+                """
+                subscription {
+                  onReview(episode: JEDI) {
+                    stars
+                  }
+                }
+                """))
+        {
+            Method = GraphQLHttpMethod.Post,
+            Accept = GraphQLHttpRequest.GraphQLOverHttp
+        };
+
+        var mutationRequest = new OperationRequest(
+            """
+            mutation CreateReviewForEpisode(
+                $ep: Episode!, $review: ReviewInput!) {
+                createReview(episode: $ep, review: $review) {
+                    stars
+                    commentary
+                }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["ep"] = "JEDI",
+                ["review"] = new Dictionary<string, object?>
+                {
+                    ["stars"] = 5,
+                    ["commentary"] = "This is a great movie!"
+                }
+            });
+
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        // act
+        var subscriptionResponse = await client.SendAsync(subscriptionRequest, cts.Token);
+        var mutationResponse = await client.PostAsync(mutationRequest, cts.Token);
+
+        mutationResponse.EnsureSuccessStatusCode();
+
+        // assert
+        await foreach (var result in subscriptionResponse.ReadAsResultStreamAsync().WithCancellation(cts.Token))
+        {
+            result.MatchInlineSnapshot(
+                """
+                {
+                  "data": {
+                    "onReview": {
+                      "stars": 5
+                    }
+                  }
+                }
+                """);
+            break;
+        }
+    }
+
     private class CustomHttpClientHandler(HttpStatusCode? httpStatusCode = null) : HttpClientHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(

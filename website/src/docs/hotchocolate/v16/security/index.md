@@ -76,13 +76,13 @@ builder.Services.AddGraphQLServer()
 
 # Nodes batch size
 
-When building a [Relay.js compliant schema](/docs/hotchocolate/v16/defining-a-schema/relay#global-object-identification), our server also exposes a `nodes(ids: [ID])` field besides the `node(id: ID)` field, required by the Relay specification. This `nodes` field allows users to fetch multiple nodes at once. An attacker could exploit this and attempt to fetch a large quantity of nodes to degrade the performance of your GraphQL server. To prevent this, we limit the number of nodes that can be requested to 10.
+When building a [Relay.js compliant schema](/docs/hotchocolate/v16/defining-a-schema/relay#global-object-identification), our server also exposes a `nodes(ids: [ID])` field besides the `node(id: ID)` field, required by the Relay specification. This `nodes` field allows users to fetch multiple nodes at once. An attacker could exploit this and attempt to fetch a large quantity of nodes to degrade the performance of your GraphQL server. To prevent this, we limit the number of nodes that can be requested to 50.
 
 You can change this default to suite the needs of your application as shown below:
 
 ```csharp
 builder.Services.AddGraphQLServer()
-    .ModifyOptions(o => o.MaxAllowedNodeBatchSize = 1);
+    .AddGlobalObjectIdentification(o => o.MaxAllowedNodeBatchSize = 100);
 ```
 
 # Cost analysis

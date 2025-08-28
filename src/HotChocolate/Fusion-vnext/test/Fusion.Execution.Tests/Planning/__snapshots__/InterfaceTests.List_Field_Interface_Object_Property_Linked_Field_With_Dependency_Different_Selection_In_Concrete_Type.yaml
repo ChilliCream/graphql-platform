@@ -1,30 +1,33 @@
 operation:
   - document: >-
-    query testQuery {
-      wrappers {
-        authorable {
-          author {
-            displayName
-            id @fusion__requirement
-          }
-          ... on Discussion {
+      query testQuery {
+        wrappers {
+          authorable {
+            __typename @fusion__requirement
             author {
-              email
+              displayName
               id @fusion__requirement
+            }
+            ... on Discussion {
+              author {
+                email
+                id @fusion__requirement
+              }
             }
           }
         }
       }
-    }
     name: testQuery
-    hash: 123
+    hash: 123456789101112
 nodes:
   - id: 1
-    schema: SUBGRAPH_1
+    type: Operation
+    schema: a
     operation: >-
-      query testQuery_123_1 {
+      query testQuery_123456789101112_1 {
         wrappers {
           authorable {
+            __typename
             author {
               id
             }
@@ -37,9 +40,10 @@ nodes:
         }
       }
   - id: 2
-    schema: SUBGRAPH_2
+    type: Operation
+    schema: b
     operation: >-
-      query testQuery_123_2(
+      query testQuery_123456789101112_2(
         $__fusion_1_id: ID!
       ) {
         authorById(id: $__fusion_1_id) {
@@ -47,16 +51,17 @@ nodes:
         }
       }
     source: $.authorById
-    target: $.wrappers.authorable.<Discussion>.author
+    target: $.wrappers.authorable<Discussion>.author
     requirements:
       - name: __fusion_1_id
         selectionMap: id
     dependencies:
       - id: 1
   - id: 3
-    schema: SUBGRAPH_2
+    type: Operation
+    schema: b
     operation: >-
-      query testQuery_123_3(
+      query testQuery_123456789101112_3(
         $__fusion_2_id: ID!
       ) {
         authorById(id: $__fusion_2_id) {

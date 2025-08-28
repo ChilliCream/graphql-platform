@@ -28,7 +28,9 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
                 }));
 
         // act
+        await Task.Delay(1000, cts.Token);
         await server.GetAsync(new ClientQueryRequest { Query = "{ evict }" });
+        await Task.Delay(2000, cts.Token);
         newExecutorCreatedResetEvent.Wait(cts.Token);
 
         // assert
@@ -58,9 +60,11 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
         }));
 
         // act
+        await Task.Delay(1000, cts.Token);
         await server.GetAsync(
             new ClientQueryRequest { Query = "{ evict }" },
             "/evict");
+        await Task.Delay(2000, cts.Token);
         newExecutorCreatedResetEvent.Wait(cts.Token);
 
         // assert
