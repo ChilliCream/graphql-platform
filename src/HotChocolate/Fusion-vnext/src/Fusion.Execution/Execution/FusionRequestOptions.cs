@@ -11,8 +11,8 @@ public sealed class FusionRequestOptions : ICloneable
     private int _operationDocumentCacheSize = 256;
     private bool _collectOperationPlanTelemetry;
     private bool _allowOperationPlanRequests;
-    private bool _allowErrorHandlingOverride;
-    private ErrorHandlingMode _errorHandlingMode = ErrorHandlingMode.Propagate;
+    private bool _allowErrorHandlingModeOverride;
+    private ErrorHandlingMode _defaultErrorHandlingMode = ErrorHandlingMode.Propagate;
     private bool _isReadOnly;
 
     /// <summary>
@@ -111,7 +111,6 @@ public sealed class FusionRequestOptions : ICloneable
     /// Gets or sets whether the operation plan can be requested via the <c>Fusion-Operation-Plan</c> header.
     /// <c>false</c> by default.
     /// </summary>
-    // TODO: Better name
     public bool AllowOperationPlanRequests
     {
         get => _allowOperationPlanRequests;
@@ -130,10 +129,9 @@ public sealed class FusionRequestOptions : ICloneable
     /// Gets or sets whether the operation plan can be requested via the <c>GraphQL-Error-Handling</c> header.
     /// <c>false</c> by default.
     /// </summary>
-    // TODO: Better name
-    public ErrorHandlingMode ErrorHandlingMode
+    public ErrorHandlingMode DefaultErrorHandlingMode
     {
-        get => _errorHandlingMode;
+        get => _defaultErrorHandlingMode;
         set
         {
             if (_isReadOnly)
@@ -141,18 +139,17 @@ public sealed class FusionRequestOptions : ICloneable
                 throw new InvalidOperationException("The request options are read-only.");
             }
 
-            _errorHandlingMode = value;
+            _defaultErrorHandlingMode = value;
         }
     }
 
     /// <summary>
-    /// Gets or sets whether the operation plan can be requested via the <c>GraphQL-Error-Handling</c> header.
+    /// Gets or sets whether the operation plan can be requested via the <c>GraphQL-Error-Mode</c> header.
     /// <c>false</c> by default.
     /// </summary>
-    // TODO: Better name
-    public bool AllowErrorHandlingOverride
+    public bool AllowErrorHandlingModeOverride
     {
-        get => _allowErrorHandlingOverride;
+        get => _allowErrorHandlingModeOverride;
         set
         {
             if (_isReadOnly)
@@ -160,7 +157,7 @@ public sealed class FusionRequestOptions : ICloneable
                 throw new InvalidOperationException("The request options are read-only.");
             }
 
-            _allowErrorHandlingOverride = value;
+            _allowErrorHandlingModeOverride = value;
         }
     }
 
@@ -179,6 +176,8 @@ public sealed class FusionRequestOptions : ICloneable
         clone._operationDocumentCacheSize = _operationDocumentCacheSize;
         clone._collectOperationPlanTelemetry = _collectOperationPlanTelemetry;
         clone._allowOperationPlanRequests = _allowOperationPlanRequests;
+        clone._defaultErrorHandlingMode = _defaultErrorHandlingMode;
+        clone._allowErrorHandlingModeOverride = _allowErrorHandlingModeOverride;
         return clone;
     }
 

@@ -302,13 +302,13 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     private static ErrorHandlingMode GetErrorHandlingMode(RequestContext requestContext)
     {
         if (requestContext.ContextData.TryGetValue(ExecutionContextData.ErrorHandlingMode, out var rawErrorHandlingMode)
-            && requestContext.AllowErrorHandlingOverride()
+            && requestContext.AllowErrorHandlingModeOverride()
             && rawErrorHandlingMode is ErrorHandlingMode errorHandlingMode)
         {
             return errorHandlingMode;
         }
 
-        return requestContext.ErrorHandlingMode();
+        return requestContext.DefaultErrorHandlingMode();
     }
 
     private List<ObjectFieldNode> GetPathThroughVariables(

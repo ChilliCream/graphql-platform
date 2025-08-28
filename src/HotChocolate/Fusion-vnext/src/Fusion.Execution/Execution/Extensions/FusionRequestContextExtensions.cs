@@ -117,18 +117,18 @@ public static class FusionRequestContextExtensions
         return context.Schema.GetRequestOptions().AllowOperationPlanRequests;
     }
 
-    internal static ErrorHandlingMode ErrorHandlingMode(
+    internal static ErrorHandlingMode DefaultErrorHandlingMode(
         this RequestContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        return context.Schema.GetRequestOptions().ErrorHandlingMode;
+        return context.Schema.GetRequestOptions().DefaultErrorHandlingMode;
     }
 
-    internal static bool AllowErrorHandlingOverride(
+    internal static bool AllowErrorHandlingModeOverride(
         this RequestContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        return context.Schema.GetRequestOptions().AllowErrorHandlingOverride;
+        return context.Schema.GetRequestOptions().AllowErrorHandlingModeOverride;
     }
 
     internal static ISourceSchemaClientScope CreateClientScope(

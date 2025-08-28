@@ -73,8 +73,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsProcessing()
-        => _backlog.Count > 0 || Volatile.Read(ref _activeNodes) > 0;
+    public bool IsProcessing() => _backlog.Count > 0 || Volatile.Read(ref _activeNodes) > 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool HasActiveNodes() => Volatile.Read(ref _activeNodes) > 0;

@@ -27,7 +27,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("A", server1)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -64,7 +64,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("A", server1)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -101,7 +101,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("A", server1)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -153,7 +153,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("A", server1)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -205,7 +205,7 @@ public class SourceSchemaErrorTests : FusionTestBase
                 ("A", server1)
             ],
             configureGatewayBuilder: builder => builder
-                .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+                .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -243,7 +243,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("A", server1)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -281,7 +281,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("A", server1)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -327,7 +327,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("B", server2)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -370,7 +370,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("B", server2)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -413,7 +413,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("B", server2)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -456,7 +456,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("B", server2)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -499,7 +499,7 @@ public class SourceSchemaErrorTests : FusionTestBase
                 ("B", server2)
             ],
             configureGatewayBuilder: builder => builder
-                .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+                .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -542,7 +542,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("B", server2)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -585,7 +585,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("B", server2)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -628,7 +628,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("B", server2)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -686,7 +686,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("B", server2)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -730,7 +730,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("B", server2)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -774,7 +774,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("B", server2)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -818,7 +818,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("B", server2)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -862,7 +862,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("B", server2)
         ],
         configureGatewayBuilder: builder => builder
-            .ModifyRequestOptions(o => o.ErrorHandlingMode = onError));
+            .ModifyRequestOptions(o => o.DefaultErrorHandlingMode = onError));
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
