@@ -1,99 +1,78 @@
 using System.Buffers;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO.Hashing;
 using System.Reactive.Disposables;
-using System.Text;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
-using HotChocolate.Fusion.Execution.Extensions;
-using HotChocolate.Fusion.Types;
-using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed class OperationExecutionNode : ExecutionNode
 {
     private readonly OperationRequirement[] _requirements;
-    private readonly string[] _variables;
-    private ExecutionNode[] _dependencies = [];
-    private ExecutionNode[] _dependents = [];
-    private int _dependencyCount;
-    private int _dependentCount;
-    private bool _isSealed;
+    private readonly string[] _forwardedVariables;
+    private readonly string[] _responseNames;
+    private readonly OperationSourceText _operation;
+    private readonly string? _schemaName;
+    private readonly SelectionPath _target;
+    private readonly SelectionPath _source;
 
-    public OperationExecutionNode(
+    internal OperationExecutionNode(
         int id,
-        OperationDefinitionNode operation,
-        string schemaName,
+        OperationSourceText operation,
+        string? schemaName,
         SelectionPath target,
         SelectionPath source,
-        OperationRequirement[] requirements)
+        OperationRequirement[] requirements,
+        string[] forwardedVariables,
+        string[] responseNames)
     {
         Id = id;
-        Operation = operation;
-        SchemaName = schemaName;
-        Target = target;
-        Source = source;
+        _operation = operation;
+        _schemaName = schemaName;
+        _target = target;
+        _source = source;
         _requirements = requirements;
-
-        // We compute the hash of the operation definition when it is set.
-        // This hash can be used within the GraphQL client to identify the operation
-        // and optimize request serialization.
-        OperationId = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(operation.ToString())).ToString();
-
-        var variables = new List<string>();
-
-        foreach (var variableDef in operation.VariableDefinitions)
-        {
-            if (requirements.Any(r => r.Key == variableDef.Variable.Name.Value))
-            {
-                continue;
-            }
-
-            variables.Add(variableDef.Variable.Name.Value);
-        }
-
-        _variables = variables.ToArray();
+        _forwardedVariables = forwardedVariables;
+        _responseNames = responseNames;
     }
 
+    /// <summary>
+    /// Gets the plan unique node id.
+    /// </summary>
     public override int Id { get; }
 
     /// <summary>
-    /// Gets the unique identifier of the operation.
+    /// Gets the type of the execution node.
     /// </summary>
-    public string OperationId { get; }
+    public override ExecutionNodeType Type => ExecutionNodeType.Operation;
 
     /// <summary>
     /// Gets the operation definition that this execution node represents.
     /// </summary>
-    public OperationDefinitionNode Operation { get; }
+    public OperationSourceText Operation => _operation;
+
+    /// <summary>
+    /// Gets the response names of the <see cref="Target"/> selection set that are fulfilled by this operation.
+    /// </summary>
+    public ReadOnlySpan<string> ResponseNames => _responseNames;
 
     /// <summary>
     /// Gets the name of the source schema that this operation is executed against.
+    /// If <c>null</c> the schema is dynamic and will be set at runtime.
     /// </summary>
-    public string SchemaName { get; }
+    public string? SchemaName => _schemaName;
 
     /// <summary>
     /// Gets the path to the selection set for which this operation fetches data.
     /// </summary>
-    public SelectionPath Target { get; }
+    public SelectionPath Target => _target;
 
     /// <summary>
     /// Gets the path to the local selection set (the selection set within the source schema request)
     /// to extract the data from.
     /// </summary>
-    public SelectionPath Source { get; }
-
-    /// <summary>
-    /// Gets the execution nodes that depend on this operation to be completed
-    /// before they can be executed.
-    /// </summary>
-    public ReadOnlySpan<ExecutionNode> Dependents => _dependents;
-
-    /// <summary>
-    /// Gets the execution nodes that this operation depends on.
-    /// </summary>
-    public override ReadOnlySpan<ExecutionNode> Dependencies => _dependencies;
+    public SelectionPath Source => _source;
 
     /// <summary>
     /// Gets the data requirements that are needed to execute this operation.
@@ -103,50 +82,41 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// <summary>
     /// Gets the variables that are needed to execute this operation.
     /// </summary>
-    public ReadOnlySpan<string> Variables => _variables;
+    public ReadOnlySpan<string> ForwardedVariables => _forwardedVariables;
 
-    public override async Task<ExecutionNodeResult> ExecuteAsync(
+    protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var diagnosticEvents = context.GetDiagnosticEvents();
-        using var scope = diagnosticEvents.ExecuteOperation(context, this);
-        return await ExecuteInternalAsync(context, cancellationToken);
-    }
+        var variables = context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
 
-    private async Task<ExecutionNodeResult> ExecuteInternalAsync(
-        OperationPlanContext context,
-        CancellationToken cancellationToken)
-    {
-        var start = Stopwatch.GetTimestamp();
-        var variables = context.CreateVariableValueSets(Target, Variables, Requirements);
-
-        if (variables.Length == 0 && (Requirements.Length > 0 || Variables.Length > 0))
+        if (variables.Length == 0 && (_requirements.Length > 0 || _forwardedVariables.Length > 0))
         {
-            return new ExecutionNodeResult(
-                Id,
-                Activity.Current,
-                ExecutionStatus.Skipped,
-                Stopwatch.GetElapsedTime(start));
+            return ExecutionStatus.Skipped;
         }
+
+        var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
+
+        context.TrackVariableValueSets(this, variables);
 
         var request = new SourceSchemaClientRequest
         {
-            OperationId = OperationId,
-            Operation = Operation,
+            OperationType = _operation.Type,
+            OperationSourceText = _operation.SourceText,
             Variables = variables
         };
 
-        var client = context.GetClient(SchemaName, Operation.Operation);
-        var response = await client.ExecuteAsync(context, request, cancellationToken);
+        var client = context.GetClient(schemaName, _operation.Type);
+        SourceSchemaClientResponse response;
 
-        if (!response.IsSuccessful)
+        try
         {
-            return new ExecutionNodeResult(
-                Id,
-                Activity.Current,
-                ExecutionStatus.Failed,
-                Stopwatch.GetElapsedTime(start));
+            response = await client.ExecuteAsync(context, request, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            AddErrors(context, exception, variables, _responseNames);
+            return ExecutionStatus.Failed;
         }
 
         var index = 0;
@@ -160,9 +130,9 @@ public sealed class OperationExecutionNode : ExecutionNode
                 buffer[index++] = result;
             }
 
-            context.AddPartialResults(Source, buffer.AsSpan(0, index));
+            context.AddPartialResults(_source, buffer.AsSpan(0, index), _responseNames);
         }
-        catch
+        catch (Exception exception)
         {
             // if there is an error, we need to make sure that the pooled buffers for the JsonDocuments
             // are returned to the pool.
@@ -172,7 +142,8 @@ public sealed class OperationExecutionNode : ExecutionNode
                 result?.Dispose();
             }
 
-            throw;
+            AddErrors(context, exception, variables, _responseNames);
+            return ExecutionStatus.Failed;
         }
         finally
         {
@@ -180,115 +151,84 @@ public sealed class OperationExecutionNode : ExecutionNode
             ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
         }
 
-        return new ExecutionNodeResult(
-            Id,
-            Activity.Current,
-            ExecutionStatus.Success,
-            Stopwatch.GetElapsedTime(start));
+        return ExecutionStatus.Success;
     }
+
+    protected override IDisposable CreateScope(OperationPlanContext context)
+        => context.DiagnosticEvents.ExecuteOperationNode(context, this);
 
     internal async Task<SubscriptionResult> SubscribeAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var variables = context.CreateVariableValueSets(Target, Variables, Requirements);
+        var variables = context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
+
+        var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
+
+        context.TrackVariableValueSets(this, variables);
 
         var request = new SourceSchemaClientRequest
         {
-            OperationId = OperationId,
-            Operation = Operation,
+            OperationType = _operation.Type,
+            OperationSourceText = _operation.SourceText,
             Variables = variables
         };
 
-        var client = context.GetClient(SchemaName, Operation.Operation);
-        var response = await client.ExecuteAsync(context, request, cancellationToken);
+        var client = context.GetClient(schemaName, _operation.Type);
 
-        if (!response.IsSuccessful)
+        try
         {
+            var response = await client.ExecuteAsync(context, request, cancellationToken);
+
+            var stream = new SubscriptionEnumerable(
+                context,
+                this,
+                response,
+                response.ReadAsResultStreamAsync(cancellationToken),
+                context.DiagnosticEvents);
+
+            return SubscriptionResult.Success(stream);
+        }
+        catch (Exception exception)
+        {
+            AddErrors(context, exception, variables, _responseNames);
+
             return SubscriptionResult.Failed();
         }
-
-        var stream = new SubscriptionEnumerable(
-            context,
-            this,
-            response,
-            response.ReadAsResultStreamAsync(cancellationToken),
-            context.GetDiagnosticEvents());
-        return SubscriptionResult.Success(stream);
     }
 
-    internal void AddDependency(ExecutionNode node)
+    private static void AddErrors(
+        OperationPlanContext context,
+        Exception exception,
+        ImmutableArray<VariableValues> variables,
+        ReadOnlySpan<string> responseNames)
     {
-        if (_isSealed)
+        var error = ErrorBuilder.FromException(exception).Build();
+
+        if (variables.Length == 0)
         {
-            throw new InvalidOperationException("The operation execution node is already sealed.");
+            context.AddErrors(error, responseNames, Path.Root);
         }
-
-        ArgumentNullException.ThrowIfNull(node);
-
-        if (node.Equals(this))
+        else
         {
-            throw new InvalidOperationException("An operation cannot depend on itself.");
+            var pathBufferLength = variables.Length;
+            var pathBuffer = ArrayPool<Path>.Shared.Rent(pathBufferLength);
+
+            try
+            {
+                for (var i = 0; i < variables.Length; i++)
+                {
+                    pathBuffer[i] = variables[i].Path;
+                }
+
+                context.AddErrors(error, responseNames, pathBuffer.AsSpan(0, pathBufferLength));
+            }
+            finally
+            {
+                pathBuffer.AsSpan(0, pathBufferLength).Clear();
+                ArrayPool<Path>.Shared.Return(pathBuffer);
+            }
         }
-
-        if (_dependencies.Length == 0)
-        {
-            _dependencies = new ExecutionNode[4];
-        }
-
-        if (_dependencyCount == _dependencies.Length)
-        {
-            Array.Resize(ref _dependencies, _dependencyCount * 2);
-        }
-
-        _dependencies[_dependencyCount++] = node;
-    }
-
-    internal void AddDependent(ExecutionNode node)
-    {
-        if (_isSealed)
-        {
-            throw new InvalidOperationException("The operation execution node is already sealed.");
-        }
-
-        ArgumentNullException.ThrowIfNull(node);
-
-        if (node.Equals(this))
-        {
-            throw new InvalidOperationException("An operation cannot depend on itself.");
-        }
-
-        if (_dependents.Length == 0)
-        {
-            _dependents = new ExecutionNode[4];
-        }
-
-        if (_dependentCount == _dependents.Length)
-        {
-            Array.Resize(ref _dependents, _dependentCount * 2);
-        }
-
-        _dependents[_dependentCount++] = node;
-    }
-
-    protected internal override void Seal()
-    {
-        if (_isSealed)
-        {
-            throw new InvalidOperationException("The operation execution node is already sealed.");
-        }
-
-        if (_dependencies.Length > _dependencyCount)
-        {
-            Array.Resize(ref _dependencies, _dependencyCount);
-        }
-
-        if (_dependents.Length > _dependentCount)
-        {
-            Array.Resize(ref _dependents, _dependentCount);
-        }
-
-        _isSealed = true;
     }
 
     private sealed class SubscriptionEnumerable : IAsyncEnumerable<EventMessageResult>
@@ -326,12 +266,14 @@ public sealed class OperationExecutionNode : ExecutionNode
 
     private sealed class SubscriptionEnumerator : IAsyncEnumerator<EventMessageResult>
     {
+        private readonly ulong _subscriptionId;
         private readonly OperationPlanContext _context;
         private readonly OperationExecutionNode _node;
         private readonly SourceSchemaClientResponse _response;
         private readonly IAsyncEnumerator<SourceSchemaResult> _resultEnumerator;
         private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
         private readonly CancellationToken _cancellationToken;
+        private readonly IDisposable _subscriptionScope;
         private readonly SourceSchemaResult[] _resultBuffer = new SourceSchemaResult[1];
         private bool _completed;
         private bool _disposed;
@@ -344,12 +286,14 @@ public sealed class OperationExecutionNode : ExecutionNode
             IFusionExecutionDiagnosticEvents diagnosticEvents,
             CancellationToken cancellationToken)
         {
+            _subscriptionId = SubscriptionId.Next();
             _context = context;
             _node = node;
             _response = response;
             _resultEnumerator = resultEnumerator;
             _diagnosticEvents = diagnosticEvents;
             _cancellationToken = cancellationToken;
+            _subscriptionScope = diagnosticEvents.ExecuteSubscription(context.RequestContext, _subscriptionId);
         }
 
         public EventMessageResult Current { get; private set; } = null!;
@@ -370,16 +314,16 @@ public sealed class OperationExecutionNode : ExecutionNode
             {
                 hasResult = await _resultEnumerator.MoveNextAsync();
 
-                scope = _diagnosticEvents.ExecuteSubscriptionEvent(_context, _node);
+                scope = _diagnosticEvents.ExecuteSubscriptionNode(_context, _node, _subscriptionId);
                 start = Stopwatch.GetTimestamp();
 
                 if (hasResult)
                 {
                     _resultBuffer[0] = _resultEnumerator.Current;
-                    _context.AddPartialResults(_node.Source, _resultBuffer);
+                    _context.AddPartialResults(_node._source, _resultBuffer, _node._responseNames);
                 }
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
                 // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
                 _resultBuffer[0]?.Dispose();
@@ -390,7 +334,11 @@ public sealed class OperationExecutionNode : ExecutionNode
                     scope ?? Disposable.Empty,
                     start ?? Stopwatch.GetTimestamp(),
                     Stopwatch.GetTimestamp(),
-                    Exception: ex);
+                    Exception: exception,
+                    VariableValueSets: _context.GetVariableValueSets(_node));
+
+                var error = ErrorBuilder.FromException(exception).Build();
+                _context.AddSubscriptionError(error, _node._responseNames, _subscriptionId);
                 return true;
             }
 
@@ -399,10 +347,12 @@ public sealed class OperationExecutionNode : ExecutionNode
                 Current = new EventMessageResult(
                     _node.Id,
                     Activity.Current,
-                    ExecutionStatus.Failed,
+                    ExecutionStatus.Success,
                     scope,
                     start.Value,
-                    Stopwatch.GetTimestamp());
+                    Stopwatch.GetTimestamp(),
+                    Exception: null,
+                    VariableValueSets: _context.GetVariableValueSets(_node));
                 return true;
             }
 
@@ -421,6 +371,14 @@ public sealed class OperationExecutionNode : ExecutionNode
             _disposed = true;
             _response.Dispose();
             await _resultEnumerator.DisposeAsync();
+            _subscriptionScope.Dispose();
         }
+    }
+
+    private static class SubscriptionId
+    {
+        private static ulong s_subscriptionId;
+
+        public static ulong Next() => Interlocked.Increment(ref s_subscriptionId);
     }
 }

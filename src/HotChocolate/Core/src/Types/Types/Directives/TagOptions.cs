@@ -1,4 +1,3 @@
-#nullable enable
 namespace HotChocolate.Types;
 
 internal sealed class TagOptions

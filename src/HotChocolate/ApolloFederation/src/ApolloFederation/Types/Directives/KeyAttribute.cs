@@ -127,12 +127,14 @@ public sealed class KeyAttribute : DescriptorAttribute
         {
             case IObjectFieldDescriptor fieldDesc:
                 fieldDesc.Extend().Configuration.Features.GetOrSet(
-                    static state => new KeyMarker(state), Resolvable);
+                    static state => new KeyMarker(state),
+                    Resolvable);
                 break;
 
             case IInterfaceFieldDescriptor fieldDesc:
                 fieldDesc.Extend().Configuration.Features.GetOrSet(
-                    static state => new KeyMarker(state), Resolvable);
+                    static state => new KeyMarker(state),
+                    Resolvable);
                 break;
         }
     }

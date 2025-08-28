@@ -32,6 +32,23 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition
 
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    /// <summary>
+    /// Gets the source type definition of this type.
+    /// </summary>
+    /// <value>
+    /// The source type definition of this type.
+    /// </value>
+    public SourceUnionTypeCollection Sources
+    {
+        get;
+        private set
+        {
+            EnsureNotSealed(_completed);
+
+            field = value;
+        }
+    } = null!;
+
     public FusionObjectTypeDefinitionCollection Types
     {
         get;
@@ -73,6 +90,7 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition
 
         Directives = context.Directives;
         Types = context.Types;
+        Sources = context.Sources;
         Features = context.Features;
 
         _completed = true;

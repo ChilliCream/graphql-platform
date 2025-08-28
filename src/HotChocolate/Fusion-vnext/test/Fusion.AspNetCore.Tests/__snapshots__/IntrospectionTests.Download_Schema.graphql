@@ -67,10 +67,3 @@ type PageInfo {
   "When paginating backwards, the cursor to continue."
   startCursor: String
 }
-
-enum fusion__Schema {
-  A
-  B
-}
-
-directive @fusion__inaccessible on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

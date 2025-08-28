@@ -74,22 +74,13 @@ public interface ICoreExecutionDiagnosticEvents
     /// The request context encapsulates all GraphQL-specific information about an
     /// individual GraphQL request.
     /// </param>
+    /// <param name="subscriptionId">
+    /// An internal identifier for a subscription.
+    /// </param>
     /// <returns>
     /// A scope that will be disposed of when the subscription has completed.
     /// </returns>
-    IDisposable ExecuteSubscription(RequestContext context);
-
-    /// <summary>
-    /// Called when an event was raised and a new subscription result is being produced.
-    /// </summary>
-    /// <param name="context">
-    /// The request context encapsulates all GraphQL-specific information about an
-    /// individual GraphQL request.
-    /// </param>
-    /// <returns>
-    /// A scope that will be disposed of when the subscription event execution has completed.
-    /// </returns>
-    IDisposable OnSubscriptionEvent(RequestContext context);
+    IDisposable ExecuteSubscription(RequestContext context, ulong subscriptionId);
 
     /// <summary>
     /// Called when an error occurs during the execution of a GraphQL request.

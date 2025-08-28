@@ -2,6 +2,7 @@ operation:
   - document: >-
       query testQuery {
         votables {
+          __typename @fusion__requirement
           viewerCanVote
           ... on Discussion {
             viewerRating
@@ -10,13 +11,15 @@ operation:
         }
       }
     name: testQuery
-    hash: 123
+    hash: 123456789101112
 nodes:
   - id: 1
-    schema: SUBGRAPH_1
+    type: Operation
+    schema: a
     operation: >-
-      query testQuery_123_1 {
+      query testQuery_123456789101112_1 {
         votables {
+          __typename
           viewerCanVote
           ... on Discussion {
             id
@@ -24,9 +27,10 @@ nodes:
         }
       }
   - id: 2
-    schema: SUBGRAPH_2
+    type: Operation
+    schema: b
     operation: >-
-      query testQuery_123_2(
+      query testQuery_123456789101112_2(
         $__fusion_1_id: ID!
       ) {
         discussionById(id: $__fusion_1_id) {
@@ -34,7 +38,7 @@ nodes:
         }
       }
     source: $.discussionById
-    target: $.votables.<Discussion>
+    target: $.votables<Discussion>
     requirements:
       - name: __fusion_1_id
         selectionMap: id

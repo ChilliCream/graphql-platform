@@ -3,8 +3,6 @@ using System.Reflection;
 using HotChocolate.Types;
 using static System.Reflection.BindingFlags;
 
-#nullable enable
-
 namespace HotChocolate.Utilities.Serialization;
 
 internal static class InputObjectConstructorResolver

@@ -10,21 +10,23 @@ operation:
         }
       }
     name: GetTopProducts
-    hash: 123
+    hash: 123456789101112
 nodes:
   - id: 1
-    schema: A
+    type: Operation
+    schema: a
     operation: >-
-      query GetTopProducts_123_1 {
+      query GetTopProducts_123456789101112_1 {
         topProducts {
           id
           region
         }
       }
   - id: 2
-    schema: C
+    type: Operation
+    schema: c
     operation: >-
-      query GetTopProducts_123_2(
+      query GetTopProducts_123456789101112_2(
         $__fusion_1_sku: String!
       ) {
         productBySku(sku: $__fusion_1_sku) {
@@ -39,9 +41,10 @@ nodes:
     dependencies:
       - id: 3
   - id: 3
-    schema: B
+    type: Operation
+    schema: b
     operation: >-
-      query GetTopProducts_123_3(
+      query GetTopProducts_123456789101112_3(
         $__fusion_2_id: ID!
         $__fusion_3_region: String!
       ) {

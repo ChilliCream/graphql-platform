@@ -11,7 +11,7 @@ internal static class LookupDirectiveParser
 
     public static LookupDirective Parse(DirectiveNode directive)
     {
-        string? schemaName = null;
+        string? schemaKey = null;
         SelectionSetNode? key = null;
         FieldDefinitionNode? field = null;
         ImmutableArray<string>? map = null;
@@ -22,7 +22,7 @@ internal static class LookupDirectiveParser
             switch (argument.Name.Value)
             {
                 case "schema":
-                    schemaName = ((EnumValueNode)argument.Value).Value;
+                    schemaKey = ((EnumValueNode)argument.Value).Value;
                     break;
 
                 case "key":
@@ -57,7 +57,7 @@ internal static class LookupDirectiveParser
             }
         }
 
-        if (string.IsNullOrEmpty(schemaName))
+        if (string.IsNullOrEmpty(schemaKey))
         {
             throw new DirectiveParserException(
                 "The `schema` argument is required on the @lookup directive.");
@@ -81,7 +81,7 @@ internal static class LookupDirectiveParser
                 "The `map` argument is required on the @lookup directive.");
         }
 
-        return new LookupDirective(schemaName, key, field, map.Value, path ?? []);
+        return new LookupDirective(new SchemaKey(schemaKey), key, field, map.Value, path ?? []);
     }
 
     private static ImmutableArray<string> ParseMap(IValueNode value)

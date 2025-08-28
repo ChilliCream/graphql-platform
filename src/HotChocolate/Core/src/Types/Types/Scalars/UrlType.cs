@@ -2,8 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class UrlType : ScalarType<Uri, StringValueNode>

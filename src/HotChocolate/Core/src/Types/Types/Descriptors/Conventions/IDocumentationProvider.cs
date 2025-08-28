@@ -1,7 +1,5 @@
 using System.Reflection;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 /// <summary>

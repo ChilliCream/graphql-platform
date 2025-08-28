@@ -1,11 +1,10 @@
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.Metadata;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using static HotChocolate.Types.Relay.NodeConstants;
@@ -34,6 +33,12 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
         => QueryType is not null
             && TypeDef is not null
             && CompletionContext is not null;
+
+    public override bool IsEnabled(IDescriptorContext context)
+    {
+        var feature = context.Features.Get<NodeSchemaFeature>();
+        return feature?.Options.RegisterNodeInterface ?? false;
+    }
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,

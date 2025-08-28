@@ -13,13 +13,13 @@ directive @fusion__lookup(
    ) repeatable on OBJECT | INTERFACE | UNION
 */
 internal sealed class LookupDirective(
-    string schema,
+    SchemaKey schemaKey,
     SelectionSetNode key,
     FieldDefinitionNode field,
     ImmutableArray<string> map,
     ImmutableArray<string> path)
 {
-    public string Schema { get; } = schema;
+    public SchemaKey SchemaKey { get; } = schemaKey;
 
     public SelectionSetNode Key { get; } = key;
 

@@ -75,9 +75,9 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             DotNetBuildSonarSolution(AllSolutionFile);
-            var all = ProjectModelTasks.ParseSolution(AllSolutionFile);
+            var all = AllSolutionFile.ReadSolution();
 
-            var testProjects = all.GetProjects("*.Tests")
+            var testProjects = all.GetAllProjects("*.Tests")
                 .Select(p => new TestProject
                 {
                     Name = Path.GetFileNameWithoutExtension(p.Path),

@@ -3,8 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 // note: this type is considered internal and should not be used by users.

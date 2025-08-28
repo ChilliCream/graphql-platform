@@ -3,6 +3,7 @@ operation:
       query testQuery {
         postEdges {
           node {
+            __typename @fusion__requirement
             ... on Photo {
               product {
                 subgraph2
@@ -19,14 +20,16 @@ operation:
         }
       }
     name: testQuery
-    hash: 123
+    hash: 123456789101112
 nodes:
   - id: 1
-    schema: SUBGRAPH_1
+    type: Operation
+    schema: a
     operation: >-
-      query testQuery_123_1 {
+      query testQuery_123456789101112_1 {
         postEdges {
           node {
+            __typename
             ... on Photo {
               product {
                 id
@@ -41,9 +44,10 @@ nodes:
         }
       }
   - id: 2
-    schema: SUBGRAPH_2
+    type: Operation
+    schema: b
     operation: >-
-      query testQuery_123_2(
+      query testQuery_123456789101112_2(
         $__fusion_1_id: ID!
       ) {
         productById(id: $__fusion_1_id) {
@@ -51,16 +55,17 @@ nodes:
         }
       }
     source: $.productById
-    target: $.postEdges.node.<Discussion>.product
+    target: $.postEdges.node<Discussion>.product
     requirements:
       - name: __fusion_1_id
         selectionMap: id
     dependencies:
       - id: 1
   - id: 3
-    schema: SUBGRAPH_2
+    type: Operation
+    schema: b
     operation: >-
-      query testQuery_123_3(
+      query testQuery_123456789101112_3(
         $__fusion_2_id: ID!
       ) {
         productById(id: $__fusion_2_id) {
@@ -68,7 +73,7 @@ nodes:
         }
       }
     source: $.productById
-    target: $.postEdges.node.<Photo>.product
+    target: $.postEdges.node<Photo>.product
     requirements:
       - name: __fusion_2_id
         selectionMap: id

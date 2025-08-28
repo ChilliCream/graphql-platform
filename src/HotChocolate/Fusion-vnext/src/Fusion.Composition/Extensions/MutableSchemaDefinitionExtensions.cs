@@ -31,7 +31,9 @@ internal static class MutableSchemaDefinitionExtensions
             || schema.SubscriptionType == type;
     }
 
-    public static void RemoveUnreferencedTypes(this MutableSchemaDefinition schema)
+    public static void RemoveUnreferencedTypes(
+        this MutableSchemaDefinition schema,
+        HashSet<string> requireInputTypeNames)
     {
         var touchedTypes = new HashSet<ITypeDefinition>();
         var backlog = new Stack<ITypeDefinition>();
@@ -79,7 +81,7 @@ internal static class MutableSchemaDefinitionExtensions
         var typesToRemove = new HashSet<ITypeDefinition>();
         foreach (var type in schema.Types)
         {
-            if (touchedTypes.Contains(type))
+            if (touchedTypes.Contains(type) || requireInputTypeNames.Contains(type.NamedType().Name))
             {
                 continue;
             }

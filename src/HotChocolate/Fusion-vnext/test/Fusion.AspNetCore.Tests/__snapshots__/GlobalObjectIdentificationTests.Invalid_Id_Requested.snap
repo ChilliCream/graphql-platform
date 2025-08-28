@@ -1,0 +1,77 @@
+{
+  "data": {
+    "node": null
+  },
+  "errors": [
+    {
+      "message": "The node ID string has an invalid format.",
+      "path": [
+        "node"
+      ],
+      "extensions": {
+        "originalValue": "invalid"
+      }
+    }
+  ],
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "b73399d02118a245a2176b8652d9ae064e57b144e77f4003fd9e6d5599f8a273",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  node(id: \"invalid\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n    }\n  }\n}",
+          "id": "3e8751806ea5a1885c3b2b109d808fbf",
+          "hash": "3e8751806ea5a1885c3b2b109d808fbf",
+          "shortHash": "3e875180"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Node",
+            "idValue": "\"invalid\"",
+            "responseName": "node",
+            "branches": {
+              "Discussion": 3
+            },
+            "fallback": 2
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "operation": {
+              "name": "Op_3e875180_2",
+              "type": "Query",
+              "document": "query Op_3e875180_2 {\n  node(id: \"invalid\") {\n    __typename\n  }\n}",
+              "hash": "9541936e62ad2c6ea10e5973c6d13aca7578d71d89fa99abfab25b7dae75932d",
+              "shortHash": "9541936e"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_3e875180_3",
+              "type": "Query",
+              "document": "query Op_3e875180_3 {\n  node: discussionById(discussionId: \"invalid\") {\n    __typename\n    title\n  }\n}",
+              "hash": "7901e85af0caef5ba5cc683cf39b180ccc658746f6939b51fb3185dd8e58d9bc",
+              "shortHash": "7901e85a"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

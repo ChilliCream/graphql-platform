@@ -1,5 +1,7 @@
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,6 +10,12 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 internal sealed class OperationExecutionMiddleware
 {
     private readonly OperationPlanExecutor _planExecutor = new();
+    private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
+
+    private OperationExecutionMiddleware(IFusionExecutionDiagnosticEvents diagnosticEvents)
+    {
+        _diagnosticEvents = diagnosticEvents;
+    }
 
     public async ValueTask InvokeAsync(
         RequestContext context,
@@ -23,38 +31,51 @@ internal sealed class OperationExecutionMiddleware
                 "There is no operation plan available to be executed.");
         }
 
-        if (operationPlan.Operation.Definition.Operation is OperationType.Subscription)
+        using (_diagnosticEvents.ExecuteOperation(context))
         {
-            if (context.VariableValues.Length > 1)
+            if (operationPlan.Operation.Definition.Operation is OperationType.Subscription)
             {
-                context.Result =
-                    OperationResultBuilder.CreateError(
-                        ErrorBuilder.New()
-                            .SetMessage("Variable batching is not supported for subscriptions.")
-                            .Build());
-                return;
-            }
-
-            context.Result = await _planExecutor.SubscribeAsync(context, operationPlan, cancellationToken);
-        }
-        else
-        {
-            if (context.VariableValues.Length > 1)
-            {
-                var variableValues = ImmutableCollectionsMarshal.AsArray(context.VariableValues).AsSpan();
-                var tasks = new Task<IExecutionResult>[variableValues.Length];
-
-                for (var i = 0; i < variableValues.Length; i++)
+                if (context.VariableValues.Length > 1)
                 {
-                    tasks[i] = _planExecutor.ExecuteAsync(context, variableValues[i], operationPlan, cancellationToken);
+                    var error = ErrorBuilder.New()
+                        .SetMessage("Variable batching is not supported for subscriptions.")
+                        .Build();
+
+                    _diagnosticEvents.ExecutionError(context, ErrorKind.RequestError, [error]);
+
+                    context.Result = OperationResultBuilder.CreateError(error);
+                    return;
                 }
 
-                var results = await Task.WhenAll(tasks);
-                context.Result = new OperationResultBatch(results);
+                context.Result = await _planExecutor.SubscribeAsync(context, operationPlan, cancellationToken);
             }
             else
             {
-                context.Result = await _planExecutor.ExecuteAsync(context, context.VariableValues[0], operationPlan, cancellationToken);
+                if (context.VariableValues.Length > 1)
+                {
+                    var variableValues = ImmutableCollectionsMarshal.AsArray(context.VariableValues).AsSpan();
+                    var tasks = new Task<IExecutionResult>[variableValues.Length];
+
+                    for (var i = 0; i < variableValues.Length; i++)
+                    {
+                        tasks[i] = _planExecutor.ExecuteAsync(
+                            context,
+                            variableValues[i],
+                            operationPlan,
+                            cancellationToken);
+                    }
+
+                    var results = await Task.WhenAll(tasks);
+                    context.Result = new OperationResultBatch(results);
+                }
+                else
+                {
+                    context.Result = await _planExecutor.ExecuteAsync(
+                        context,
+                        context.VariableValues[0],
+                        operationPlan,
+                        cancellationToken);
+                }
             }
         }
 
@@ -62,11 +83,11 @@ internal sealed class OperationExecutionMiddleware
     }
 
     public static RequestMiddlewareConfiguration Create()
-    {
-        return new RequestMiddlewareConfiguration(
-            (_, next) =>
+        => new RequestMiddlewareConfiguration(
+            (fc, next) =>
             {
-                var middleware = new OperationExecutionMiddleware();
+                var diagnosticEvents = fc.SchemaServices.GetRequiredService<IFusionExecutionDiagnosticEvents>();
+                var middleware = new OperationExecutionMiddleware(diagnosticEvents);
                 return context => middleware.InvokeAsync(
                     context,
                     context.RequestServices.GetRequiredService<ResultPoolSession>(),
@@ -74,5 +95,4 @@ internal sealed class OperationExecutionMiddleware
                     context.RequestAborted);
             },
             nameof(OperationExecutionMiddleware));
-    }
 }

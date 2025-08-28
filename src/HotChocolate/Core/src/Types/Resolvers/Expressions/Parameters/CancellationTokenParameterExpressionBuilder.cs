@@ -4,8 +4,6 @@ using System.Reflection;
 using HotChocolate.Internal;
 using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class CancellationTokenParameterExpressionBuilder

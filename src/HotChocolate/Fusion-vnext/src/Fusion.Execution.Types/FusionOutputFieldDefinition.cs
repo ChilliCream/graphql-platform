@@ -113,7 +113,7 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition
         }
     }
 
-    internal void Complete(CompositeObjectFieldCompletionContext context)
+    internal void Complete(CompositeOutputFieldCompletionContext context)
     {
         EnsureNotSealed(_completed);
         Directives = context.Directives;
