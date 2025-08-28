@@ -1681,11 +1681,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.DroidEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.DroidEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"));
+                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.DroidEntity(arg0, arg1));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.DroidEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.DroidEntity(arg0, arg1));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.DroidEntity(arg0, arg1));
+                    }
                 }
 
                 return entityId;
@@ -1695,11 +1706,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.HumanEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.HumanEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"));
+                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.HumanEntity(arg0, arg1));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.HumanEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.HumanEntity(arg0, arg1));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.HumanEntity(arg0, arg1));
+                    }
                 }
 
                 return entityId;

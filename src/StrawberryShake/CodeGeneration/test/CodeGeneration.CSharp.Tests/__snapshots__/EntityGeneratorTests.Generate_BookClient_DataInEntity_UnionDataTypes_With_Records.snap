@@ -913,11 +913,24 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.SearchableStoreEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.SearchableStoreEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_IGetStore2_SearchableStore_BooksArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "books")), Deserialize_ISearchResultData(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "search"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_IGetStore2_SearchableStore_BooksArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "books"));
+                    var arg2 = Deserialize_ISearchResultData(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "search"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.SearchableStoreEntity(arg0, arg1, arg2));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.SearchableStoreEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_IGetStore2_SearchableStore_BooksArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "books")), Deserialize_ISearchResultData(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "search"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_IGetStore2_SearchableStore_BooksArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "books"));
+                    var arg2 = Deserialize_ISearchResultData(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "search"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.SearchableStoreEntity(arg0, arg1, arg2));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.SearchableStoreEntity(arg0, arg1, arg2));
+                    }
                 }
 
                 return entityId;
