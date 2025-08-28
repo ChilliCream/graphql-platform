@@ -76,4 +76,10 @@ public class CSharpGeneratorSettings
             subscription: TransportType.WebSocket)
 
     ];
+
+    /// <summary>
+    /// A value indicating whether to generate the
+    /// <c>WithHttpStatusCodeCapture(string key = "HttpStatusCode")</c>-method.
+    /// </summary>
+    public bool GenerateWithHttpStatusCodeCaptureMethod { get; set; }
 }
