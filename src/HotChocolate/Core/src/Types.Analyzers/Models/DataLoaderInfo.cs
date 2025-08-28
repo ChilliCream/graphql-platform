@@ -290,14 +290,23 @@ public sealed class DataLoaderInfo : SyntaxInfo
 
     public static bool IsKeyValuePair(ITypeSymbol returnTypeSymbol, ITypeSymbol keyType, ITypeSymbol valueType)
     {
-        if (returnTypeSymbol is INamedTypeSymbol namedTypeSymbol
-            && namedTypeSymbol.IsGenericType
-            && namedTypeSymbol.OriginalDefinition.SpecialType == SpecialType.None
-            && namedTypeSymbol.ConstructedFrom.ToDisplayString().StartsWith(WellKnownTypes.KeyValuePair)
-            && keyType.Equals(namedTypeSymbol.TypeArguments[0], SymbolEqualityComparer.Default)
-            && valueType.Equals(namedTypeSymbol.TypeArguments[1], SymbolEqualityComparer.Default))
+        if (returnTypeSymbol is INamedTypeSymbol namedTypeSymbol)
         {
-            return true;
+            // Handle nullable types and extract the underlying type
+            var actualTypeSymbol = namedTypeSymbol;
+            if (namedTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            {
+                actualTypeSymbol = (INamedTypeSymbol)namedTypeSymbol.TypeArguments[0];
+            }
+
+            if (actualTypeSymbol.IsGenericType
+                && actualTypeSymbol.OriginalDefinition.SpecialType == SpecialType.None
+                && actualTypeSymbol.ConstructedFrom.ToDisplayString().StartsWith(WellKnownTypes.KeyValuePair)
+                && keyType.Equals(actualTypeSymbol.TypeArguments[0], SymbolEqualityComparer.Default)
+                && valueType.Equals(actualTypeSymbol.TypeArguments[1], SymbolEqualityComparer.Default))
+            {
+                return true;
+            }
         }
 
         return false;
