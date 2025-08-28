@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore;
@@ -9,10 +10,12 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Xunit.Sdk;
 
@@ -28,8 +31,9 @@ public abstract class FusionTestBase : IDisposable
         Action<IRequestExecutorBuilder> configureBuilder,
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
+        Action<HttpClient>? configureHttpClient = null,
         bool isOffline = false,
-        bool isTimeouting = false)
+        bool isTimingOut = false)
     {
         configureApplication ??=
             app =>
@@ -50,7 +54,8 @@ public abstract class FusionTestBase : IDisposable
                 services.Configure<SourceSchemaOptions>(opt =>
                 {
                     opt.IsOffline = isOffline;
-                    opt.IsTimeouting = isTimeouting;
+                    opt.IsTimingOut = isTimingOut;
+                    opt.ConfigureHttpClient = configureHttpClient;
                 });
             },
             configureApplication);
@@ -72,12 +77,12 @@ public abstract class FusionTestBase : IDisposable
             var schemaDocument = await server.Services.GetSchemaAsync(name);
             sourceSchemas.Add(new SourceSchemaText(name, schemaDocument.ToString()));
 
-            var subgraphOptions = server.Services.GetRequiredService<IOptions<SourceSchemaOptions>>().Value;
-            gatewayServices.AddHttpClient(
+            var sourceSchemaOptions = server.Services.GetRequiredService<IOptions<SourceSchemaOptions>>().Value;
+            AddHttpClient(
+                gatewayServices,
                 name,
                 server,
-                subgraphOptions.IsOffline,
-                subgraphOptions.IsTimeouting);
+                sourceSchemaOptions);
 
             if (schemaSettings is null)
             {
@@ -167,7 +172,9 @@ public abstract class FusionTestBase : IDisposable
     {
         public bool IsOffline { get; set; }
 
-        public bool IsTimeouting { get; set; }
+        public bool IsTimingOut { get; set; }
+
+        public Action<HttpClient>? ConfigureHttpClient { get; set; }
     }
 
     private sealed class OperationPlanHttpRequestInterceptor : DefaultHttpRequestInterceptor
@@ -182,6 +189,81 @@ public abstract class FusionTestBase : IDisposable
             return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
         }
     }
+
+     private static IServiceCollection AddHttpClient(
+        IServiceCollection services,
+        string name,
+        TestServer server,
+        SourceSchemaOptions options)
+    {
+        services.TryAddSingleton<IHttpClientFactory, Factory>();
+        return services.AddSingleton(new TestServerRegistration(name, server, options));
+    }
+
+    private class Factory : IHttpClientFactory
+    {
+        private readonly Dictionary<string, TestServerRegistration> _registrations;
+
+        public Factory(IEnumerable<TestServerRegistration> registrations)
+        {
+            _registrations = registrations.ToDictionary(r => r.Name, r => r);
+        }
+
+        public HttpClient CreateClient(string name)
+        {
+            if (_registrations.TryGetValue(name, out var registration))
+            {
+                HttpClient client;
+
+                if (registration.Options.IsOffline)
+                {
+                    client = new HttpClient(new ErrorHandler());
+                }
+                else if (registration.Options.IsTimingOut)
+                {
+                    client = new HttpClient(new TimeoutHandler());
+                }
+                else
+                {
+                    client = registration.Server.CreateClient();
+                }
+
+                registration.Options.ConfigureHttpClient?.Invoke(client);
+
+                client.DefaultRequestHeaders.AddGraphQLPreflight();
+
+                return client;
+            }
+
+            throw new InvalidOperationException(
+                $"No test server registered with the name: {name}");
+        }
+
+        private class ErrorHandler : HttpClientHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(
+                HttpRequestMessage request,
+                CancellationToken cancellationToken)
+                => Task.FromResult(new HttpResponseMessage(HttpStatusCode.InternalServerError));
+        }
+
+        private class TimeoutHandler : HttpClientHandler
+        {
+            protected override async Task<HttpResponseMessage> SendAsync(
+                HttpRequestMessage request,
+                CancellationToken cancellationToken)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(30), cancellationToken);
+
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+        }
+    }
+
+    private record TestServerRegistration(
+        string Name,
+        TestServer Server,
+        SourceSchemaOptions Options);
 
     private class EmptyMemoryOwner : IMemoryOwner<byte>
     {
