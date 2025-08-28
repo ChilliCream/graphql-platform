@@ -1,4 +1,4 @@
-# GenerateSource_BatchDataLoader_With_Lookup_From_OtherType_MatchesSnapshot
+# GenerateSource_BatchDataLoader_Nullable_Object_MatchesSnapshot
 
 ## GreenDonutDataLoader.735550c.g.cs
 
@@ -16,12 +16,12 @@ using GreenDonut;
 namespace TestNamespace
 {
     public interface IEntityByIdDataLoader
-        : global::GreenDonut.IDataLoader<int, global::TestNamespace.Entity2>
+        : global::GreenDonut.IDataLoader<int, global::TestNamespace.Entity?>
     {
     }
 
     public sealed partial class EntityByIdDataLoader
-        : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.Entity2>
+        : global::GreenDonut.DataLoaderBase<int, global::TestNamespace.Entity?>
         , IEntityByIdDataLoader
     {
         private readonly global::System.IServiceProvider _services;
@@ -38,8 +38,8 @@ namespace TestNamespace
 
         protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Memory<GreenDonut.Result<global::TestNamespace.Entity2?>> results,
-            global::GreenDonut.DataLoaderFetchContext<global::TestNamespace.Entity2> context,
+            global::System.Memory<GreenDonut.Result<global::TestNamespace.Entity?>> results,
+            global::GreenDonut.DataLoaderFetchContext<global::TestNamespace.Entity?> context,
             global::System.Threading.CancellationToken ct)
         {
             var temp = await global::TestNamespace.TestClass.GetEntityByIdAsync(keys, ct).ConfigureAwait(false);
@@ -48,19 +48,19 @@ namespace TestNamespace
 
         private void CopyResults(
             global::System.Collections.Generic.IReadOnlyList<int> keys,
-            global::System.Span<GreenDonut.Result<global::TestNamespace.Entity2?>> results,
-            global::System.Collections.Generic.IDictionary<int, global::TestNamespace.Entity2> resultMap)
+            global::System.Span<GreenDonut.Result<global::TestNamespace.Entity?>> results,
+            global::System.Collections.Generic.IReadOnlyDictionary<int, global::TestNamespace.Entity?> resultMap)
         {
             for (var i = 0; i < keys.Count; i++)
             {
                 var key = keys[i];
                 if (resultMap.TryGetValue(key, out var value))
                 {
-                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity2?>.Resolve(value);
+                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity?>.Resolve(value);
                 }
                 else
                 {
-                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity2?>.Resolve(default(global::TestNamespace.Entity2));
+                    results[i] = global::GreenDonut.Result<global::TestNamespace.Entity?>.Resolve(default(global::TestNamespace.Entity));
                 }
             }
         }

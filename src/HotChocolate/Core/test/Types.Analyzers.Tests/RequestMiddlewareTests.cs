@@ -7,12 +7,8 @@ public class RequestMiddlewareTests
     [Fact]
     public async Task GenerateSource_RequestMiddleware_MatchesSnapshot()
     {
-        var currentUiCulture = CultureInfo.CurrentUICulture;
-        try
-        {
-            // Snapshot contains localized strings -> adjust culture
-            CultureInfo.CurrentUICulture = new CultureInfo("en-US");
-            await TestHelper.GetGeneratedSourceSnapshot(
+        await TestHelper.GetGeneratedSourceSnapshot(
+            [
                 """
                 #nullable enable
                 using System.Threading.Tasks;
@@ -40,7 +36,7 @@ public class RequestMiddlewareTests
                     #pragma warning restore CS9113
                 {
                     public async ValueTask InvokeAsync(
-                        IRequestContext context,
+                        RequestContext context,
                         #pragma warning disable CS9113
                         Service1 service1,
                         Service2? service2)
@@ -52,11 +48,8 @@ public class RequestMiddlewareTests
 
                 public class Service1;
                 public class Service2;
-                """).MatchMarkdownAsync();
-        }
-        finally
-        {
-            CultureInfo.CurrentUICulture = currentUiCulture;
-        }
+                """
+            ],
+            enableInterceptors: true).MatchMarkdownAsync();
     }
 }
