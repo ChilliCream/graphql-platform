@@ -7,7 +7,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class ExecutionState
+internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSource cts)
 {
     private readonly List<ExecutionNode> _stack = [];
 
@@ -22,8 +22,6 @@ internal sealed class ExecutionState
     public readonly List<ExecutionNodeTrace> Traces = [];
 
     public readonly AsyncAutoResetEvent Signal = new();
-
-    public bool CollectTelemetry;
 
     public void FillBacklog(OperationPlan plan)
     {
@@ -75,7 +73,8 @@ internal sealed class ExecutionState
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsProcessing() => _backlog.Count > 0 || Volatile.Read(ref _activeNodes) > 0;
+    public bool IsProcessing()
+        => _backlog.Count > 0 || Volatile.Read(ref _activeNodes) > 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool HasActiveNodes() => Volatile.Read(ref _activeNodes) > 0;
@@ -97,12 +96,17 @@ internal sealed class ExecutionState
     public bool TryDequeueCompletedResult([NotNullWhen(true)] out ExecutionNodeResult? result)
         => _completedResults.TryDequeue(out result);
 
+    public void CancelProcessing()
+    {
+        cts.Cancel();
+    }
+
     public void CompleteNode(ExecutionNode node, ExecutionNodeResult result)
     {
         Interlocked.Decrement(ref _activeNodes);
         _completed.Add(node);
 
-        if (CollectTelemetry)
+        if (collectTelemetry)
         {
             Traces.Add(new ExecutionNodeTrace
             {

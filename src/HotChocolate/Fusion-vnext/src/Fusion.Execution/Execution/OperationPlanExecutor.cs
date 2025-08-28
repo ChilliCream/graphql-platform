@@ -1,3 +1,4 @@
+using System.Net.Mime;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -10,19 +11,21 @@ internal sealed class OperationPlanExecutor
         RequestContext requestContext,
         IVariableValueCollection variables,
         OperationPlan operationPlan,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        var context = new OperationPlanContext(requestContext, variables, operationPlan);
+        var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        var context = new OperationPlanContext(requestContext, variables, operationPlan, executionCts);
         context.Begin();
 
         switch (operationPlan.Operation.Definition.Operation)
         {
             case OperationType.Query:
-                await ExecuteQueryAsync(context, operationPlan, context.ExecutionState, cancellationToken);
+                await ExecuteQueryAsync(context, operationPlan, executionCts.Token);
                 break;
 
             case OperationType.Mutation:
-                await ExecuteMutationAsync(context, operationPlan, context.ExecutionState, cancellationToken);
+                await ExecuteMutationAsync(context, operationPlan, executionCts.Token);
                 break;
 
             default:
@@ -32,12 +35,39 @@ internal sealed class OperationPlanExecutor
         return context.Complete();
     }
 
+    public Task<IExecutionResult> SubscribeAsync(
+        RequestContext requestContext,
+        OperationPlan operationPlan,
+        CancellationToken cancellationToken)
+    {
+        // subscription plans must have a single root,
+        // which represents the subscription to a source schema.
+        var root = operationPlan.RootNodes.Single();
+
+        // In the case of a subscription the initial node must always be an operation node
+        // that represents the subscription to a specific source schema.
+        if (root is not OperationExecutionNode subscriptionNode)
+        {
+            throw new InvalidOperationException("The specified operation plan is not supported.");
+        }
+
+        var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        var context = new OperationPlanContext(requestContext, operationPlan, executionCts);
+
+        return ExecuteSubscriptionAsync(
+            context,
+            subscriptionNode,
+            executionCts.Token);
+    }
+
     private static async Task ExecuteQueryAsync(
         OperationPlanContext context,
         OperationPlan plan,
-        ExecutionState executionState,
         CancellationToken cancellationToken)
     {
+        var executionState = context.ExecutionState;
+
         cancellationToken.Register(() => executionState.Signal.TryResetToIdle());
 
         // GraphQL queries allow us to execute the plan by using full parallelism.
@@ -81,9 +111,10 @@ internal sealed class OperationPlanExecutor
     private static async Task ExecuteMutationAsync(
         OperationPlanContext context,
         OperationPlan plan,
-        ExecutionState executionState,
         CancellationToken cancellationToken)
     {
+        var executionState = context.ExecutionState;
+
         cancellationToken.Register(() => executionState.Signal.TryResetToIdle());
 
         // For mutations, we fill the backlog with all nodes from the operation plan just like for queries.
@@ -134,26 +165,15 @@ internal sealed class OperationPlanExecutor
         }
     }
 
-    public async Task<IExecutionResult> SubscribeAsync(
-        RequestContext requestContext,
-        OperationPlan operationPlan,
-        CancellationToken cancellationToken = default)
+    private async Task<IExecutionResult> ExecuteSubscriptionAsync(
+        OperationPlanContext context,
+        OperationExecutionNode subscriptionNode,
+        CancellationToken cancellationToken)
     {
-        // subscription plans must have a single root,
-        // which represents the subscription to a source schema.
-        var root = operationPlan.RootNodes.Single();
-
-        // In the case of a subscription the initial node must always be an operation node
-        // that represents the subscription to a specific source schema.
-        if (root is not OperationExecutionNode subscriptionNode)
-        {
-            throw new InvalidOperationException("The specified operation plan is not supported.");
-        }
-
-        var context = new OperationPlanContext(requestContext, operationPlan);
-        var subscription = await subscriptionNode.SubscribeAsync(context, cancellationToken);
         var executionState = context.ExecutionState;
         var plan = context.OperationPlan;
+
+        var subscription = await subscriptionNode.SubscribeAsync(context, cancellationToken);
 
         cancellationToken.Register(() => executionState.Signal.TryResetToIdle());
 

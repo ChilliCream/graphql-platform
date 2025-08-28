@@ -36,15 +36,17 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     public OperationPlanContext(
         RequestContext requestContext,
-        OperationPlan operationPlan)
-        : this(requestContext, requestContext.VariableValues[0], operationPlan)
+        OperationPlan operationPlan,
+        CancellationTokenSource cancellationTokenSource)
+        : this(requestContext, requestContext.VariableValues[0], operationPlan, cancellationTokenSource)
     {
     }
 
     public OperationPlanContext(
         RequestContext requestContext,
         IVariableValueCollection variables,
-        OperationPlan operationPlan)
+        OperationPlan operationPlan,
+        CancellationTokenSource cancellationTokenSource)
     {
         ArgumentNullException.ThrowIfNull(requestContext);
         ArgumentNullException.ThrowIfNull(variables);
@@ -62,16 +64,14 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         _nodeIdParser = requestContext.Schema.Services.GetRequiredService<INodeIdParser>();
         _diagnosticEvents = requestContext.Schema.Services.GetRequiredService<IFusionExecutionDiagnosticEvents>();
 
-        const ErrorHandling errorHandling = ErrorHandling.Propagate;
-
         _resultStore = new FetchResultStore(
             requestContext.Schema,
             _resultPoolSessionHolder,
             operationPlan.Operation,
-            errorHandling,
+            GetErrorHandlingMode(requestContext),
             IncludeFlags);
 
-        _executionState = new ExecutionState { CollectTelemetry = _collectTelemetry };
+        _executionState = new ExecutionState(_collectTelemetry, cancellationTokenSource);
     }
 
     public OperationPlan OperationPlan { get; }
@@ -194,7 +194,14 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
         ReadOnlySpan<string> responseNames)
-        => _resultStore.AddPartialResults(sourcePath, results, responseNames);
+    {
+       var canExecutionContinue = _resultStore.AddPartialResults(sourcePath, results, responseNames);
+
+       if (!canExecutionContinue)
+       {
+           ExecutionState.CancelProcessing();
+       }
+    }
 
     internal void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
         => _resultStore.AddPartialResults(result, selections);
@@ -210,7 +217,12 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             [error],
             state: subscriptionId);
 
-        _resultStore.AddErrors(error, responseNames, Path.Root);
+        var canExecutionContinue = _resultStore.AddErrors(error, responseNames, Path.Root);
+
+        if (!canExecutionContinue)
+        {
+            ExecutionState.CancelProcessing();
+        }
     }
 
     internal void AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
@@ -220,7 +232,12 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             kind: ErrorKind.FieldError,
             [error]);
 
-        _resultStore.AddErrors(error, responseNames, paths);
+        var canExecutionContinue = _resultStore.AddErrors(error, responseNames, paths);
+
+        if (!canExecutionContinue)
+        {
+            ExecutionState.CancelProcessing();
+        }
     }
 
     internal PooledArrayWriter CreateRentedBuffer()
@@ -280,6 +297,18 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         _resultStore.Reset(_resultPoolSessionHolder);
 
         return result;
+    }
+
+    private static ErrorHandlingMode GetErrorHandlingMode(RequestContext requestContext)
+    {
+        if (requestContext.ContextData.TryGetValue(ExecutionContextData.ErrorHandlingMode, out var rawErrorHandlingMode)
+            && requestContext.AllowErrorHandlingOverride()
+            && rawErrorHandlingMode is ErrorHandlingMode errorHandlingMode)
+        {
+            return errorHandlingMode;
+        }
+
+        return requestContext.ErrorHandlingMode();
     }
 
     private List<ObjectFieldNode> GetPathThroughVariables(

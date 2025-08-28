@@ -44,6 +44,11 @@ public static class ExecutionContextData
     public const string IncludeOperationPlan = "HotChocolate.Execution.EmitOperationPlan";
 
     /// <summary>
+    /// TODO
+    /// </summary>
+    public const string ErrorHandlingMode = "HotChocolate.Execution.ErrorHandlingMode";
+
+    /// <summary>
     /// The key to get the user provided transport operation session id when executing
     /// GraphQL over Websocket.
     /// </summary>

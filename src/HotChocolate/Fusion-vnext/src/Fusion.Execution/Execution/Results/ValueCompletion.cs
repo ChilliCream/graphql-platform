@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Types;
@@ -10,7 +11,7 @@ internal sealed class ValueCompletion
 {
     private readonly ISchemaDefinition _schema;
     private readonly ResultPoolSession _resultPoolSession;
-    private readonly ErrorHandling _errorHandling;
+    private readonly ErrorHandlingMode _errorHandling;
     private readonly int _maxDepth;
     private readonly ulong _includeFlags;
     private readonly List<IError> _errors;
@@ -18,7 +19,7 @@ internal sealed class ValueCompletion
     public ValueCompletion(
         ISchemaDefinition schema,
         ResultPoolSession resultPoolSession,
-        ErrorHandling errorHandling,
+        ErrorHandlingMode errorHandling,
         int maxDepth,
         ulong includeFlags,
         List<IError> errors)
@@ -35,7 +36,7 @@ internal sealed class ValueCompletion
         _errors = errors;
     }
 
-    public void BuildResult(
+    public bool BuildResult(
         SelectionSet selectionSet,
         JsonElement data,
         ErrorTrie? errorTrie,
@@ -49,9 +50,7 @@ internal sealed class ValueCompletion
                     .SetMessage("Unexpected Execution Error")
                     .Build();
 
-            BuildErrorResult(objectResult, responseNames, error, objectResult.Path);
-
-            return;
+            return BuildErrorResult(objectResult, responseNames, error, objectResult.Path);
         }
 
         foreach (var selection in selectionSet.Selections)
@@ -70,16 +69,24 @@ internal sealed class ValueCompletion
 
                 if (!TryCompleteValue(selection, selection.Type, element, errorTrieForResponseName, 0, fieldResult))
                 {
-                    if (_errorHandling is ErrorHandling.Propagate)
+                    if (_errorHandling is ErrorHandlingMode.Propagate)
                     {
                         PropagateNullValues(objectResult);
+
+                        return true;
+                    }
+                    else if (_errorHandling is ErrorHandlingMode.Halt)
+                    {
+                        return false;
                     }
                 }
             }
         }
+
+        return true;
     }
 
-    public void BuildErrorResult(
+    public bool BuildErrorResult(
         ObjectResult objectResult,
         ReadOnlySpan<string> responseNames,
         IError error,
@@ -101,13 +108,20 @@ internal sealed class ValueCompletion
 
             _errors.Add(errorWithPath);
 
-            if (_errorHandling is ErrorHandling.Propagate && fieldResult.Selection.Type.IsNonNullType())
+            if (_errorHandling is ErrorHandlingMode.Halt)
+            {
+                return false;
+            }
+
+            if (_errorHandling is ErrorHandlingMode.Propagate && fieldResult.Selection.Type.IsNonNullType())
             {
                 PropagateNullValues(objectResult);
 
-                return;
+                return true;
             }
         }
+
+        return true;
     }
 
     private static void PropagateNullValues(ResultData result)
@@ -155,11 +169,16 @@ internal sealed class ValueCompletion
                 .AddLocation(selection.SyntaxNodes[0].Node)
                 .Build();
             _errors.Add(errorWithPath);
+
+            if (_errorHandling is ErrorHandlingMode.Halt)
+            {
+                return false;
+            }
         }
 
         if (type.Kind is TypeKind.NonNull)
         {
-            if (data.IsNullOrUndefined() && _errorHandling is ErrorHandling.Propagate)
+            if (data.IsNullOrUndefined() && _errorHandling is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
             {
                 return false;
             }
@@ -231,11 +250,16 @@ internal sealed class ValueCompletion
                     .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
                 _errors.Add(errorWithPath);
+
+                if (_errorHandling is ErrorHandlingMode.Halt)
+                {
+                    return false;
+                }
             }
 
             if (item.IsNullOrUndefined())
             {
-                if (!isNullable && _errorHandling is ErrorHandling.Propagate)
+                if (!isNullable && _errorHandling is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
                 {
                     return false;
                 }

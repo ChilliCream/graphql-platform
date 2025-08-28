@@ -117,6 +117,20 @@ public static class FusionRequestContextExtensions
         return context.Schema.GetRequestOptions().AllowOperationPlanRequests;
     }
 
+    internal static ErrorHandlingMode ErrorHandlingMode(
+        this RequestContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        return context.Schema.GetRequestOptions().ErrorHandlingMode;
+    }
+
+    internal static bool AllowErrorHandlingOverride(
+        this RequestContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        return context.Schema.GetRequestOptions().AllowErrorHandlingOverride;
+    }
+
     internal static ISourceSchemaClientScope CreateClientScope(
         this RequestContext context)
     {

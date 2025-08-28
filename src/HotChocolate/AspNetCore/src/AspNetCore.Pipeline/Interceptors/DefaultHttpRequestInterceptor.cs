@@ -32,6 +32,13 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
             requestBuilder.TryAddGlobalState(IncludeOperationPlan, true);
         }
 
+        if (context.TryGetErrorHandlingMode(out var errorHandlingMode))
+        {
+            requestBuilder.TryAddGlobalState(
+                HotChocolate.ExecutionContextData.ErrorHandlingMode,
+                errorHandlingMode);
+        }
+
         if (context.TryGetCostSwitch() is { } costSwitch)
         {
             requestBuilder.TryAddGlobalState(costSwitch, true);

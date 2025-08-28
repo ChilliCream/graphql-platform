@@ -4,6 +4,8 @@ internal static class HttpHeaderKeys
 {
     public const string OperationPlan = "Fusion-Operation-Plan";
 
+    public const string ErrorMode = "GraphQL-Error-Mode";
+
     public const string CacheControl = "Cache-Control";
 
     public const string Preflight = "GraphQL-Preflight";
