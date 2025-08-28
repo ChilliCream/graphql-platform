@@ -1,21 +1,27 @@
-operation: >-
-  query testQuery {
-    votables {
-      viewerCanVote
-      ... on Discussion {
-        author {
-          displayName
-          id @fusion_internal
+operation:
+  - document: >-
+      query testQuery {
+        votables {
+          __typename @fusion__requirement
+          viewerCanVote
+          ... on Discussion {
+            author {
+              displayName
+              id @fusion__requirement
+            }
+          }
         }
       }
-    }
-  }
+    name: testQuery
+    hash: 123456789101112
 nodes:
   - id: 1
-    schema: SUBGRAPH_1
+    type: Operation
+    schema: a
     operation: >-
-      query testQuery_1 {
+      query testQuery_123456789101112_1 {
         votables {
+          __typename
           viewerCanVote
           ... on Discussion {
             author {
@@ -25,18 +31,20 @@ nodes:
         }
       }
   - id: 2
-    schema: SUBGRAPH_2
+    type: Operation
+    schema: b
     operation: >-
-      query testQuery_2(
+      query testQuery_123456789101112_2(
         $__fusion_1_id: ID!
       ) {
         authorById(id: $__fusion_1_id) {
           displayName
         }
       }
+    source: $.authorById
+    target: $.votables<Discussion>.author
     requirements:
       - name: __fusion_1_id
-        selectionSet: $.votables.<Discussion>.author
         selectionMap: id
     dependencies:
       - id: 1

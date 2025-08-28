@@ -24,7 +24,7 @@ public sealed class OperationCompiler
         _typeNameField = new TypeNameField(nonNullStringType);
     }
 
-    public Operation Compile(string id, OperationDefinitionNode operationDefinition)
+    public Operation Compile(string id, string hash, OperationDefinitionNode operationDefinition)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(operationDefinition);
@@ -53,6 +53,7 @@ public sealed class OperationCompiler
 
             return new Operation(
                 id,
+                hash,
                 operationDefinition,
                 rootType,
                 _schema,
@@ -308,7 +309,7 @@ public sealed class OperationCompiler
 
     private bool IsInternal(FieldNode fieldNode)
     {
-        const string isInternal = "fusion_internal";
+        const string isInternal = "fusion__requirement";
         var directives = fieldNode.Directives;
 
         if (directives.Count == 0)

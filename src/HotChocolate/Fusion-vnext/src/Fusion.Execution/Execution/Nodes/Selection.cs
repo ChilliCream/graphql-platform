@@ -1,9 +1,10 @@
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public sealed class Selection
+public sealed class Selection : ISelection
 {
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
@@ -45,6 +46,8 @@ public sealed class Selection
 
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
 
+    public bool IsConditional => _includeFlags.Length > 0;
+
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
 
     public IOutputFieldDefinition Field { get; }
@@ -53,9 +56,16 @@ public sealed class Selection
 
     public SelectionSet DeclaringSelectionSet { get; private set; } = null!;
 
+    ISelectionSet ISelection.DeclaringSelectionSet => DeclaringSelectionSet;
+
     public ReadOnlySpan<FieldSelectionNode> SyntaxNodes => _syntaxNodes;
 
     internal ResolveFieldValue? Resolver => Field.Features.Get<ResolveFieldValue>();
+
+    IEnumerable<FieldNode> ISelection.GetSyntaxNodes()
+    {
+        throw new NotImplementedException();
+    }
 
     public bool IsIncluded(ulong includeFlags)
     {
@@ -98,6 +108,16 @@ public sealed class Selection
         }
 
         return false;
+    }
+
+    public override string ToString()
+    {
+        if (SyntaxNodes[0].Node.Alias is not null)
+        {
+            return $"{ResponseName} : {Field.Name}";
+        }
+
+        return Field.Name;
     }
 
     internal void Seal(SelectionSet selectionSet)

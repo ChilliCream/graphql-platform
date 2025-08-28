@@ -1,29 +1,35 @@
-operation: >-
-  query testQuery {
-    users {
-      posts {
-        ... on Photo {
-          product {
-            subgraph2
-            id @fusion_internal
-          }
-        }
-        ... on Discussion {
-          author {
-            subgraph3
-            id @fusion_internal
+operation:
+  - document: >-
+      query testQuery {
+        users {
+          posts {
+            __typename @fusion__requirement
+            ... on Photo {
+              product {
+                subgraph2
+                id @fusion__requirement
+              }
+            }
+            ... on Discussion {
+              author {
+                subgraph3
+                id @fusion__requirement
+              }
+            }
           }
         }
       }
-    }
-  }
+    name: testQuery
+    hash: 123456789101112
 nodes:
   - id: 1
-    schema: SUBGRAPH_1
+    type: Operation
+    schema: a
     operation: >-
-      query testQuery_1 {
+      query testQuery_123456789101112_1 {
         users {
           posts {
+            __typename
             ... on Photo {
               product {
                 id
@@ -38,34 +44,38 @@ nodes:
         }
       }
   - id: 2
-    schema: SUBGRAPH_3
+    type: Operation
+    schema: c
     operation: >-
-      query testQuery_2(
+      query testQuery_123456789101112_2(
         $__fusion_1_id: ID!
       ) {
         authorById(id: $__fusion_1_id) {
           subgraph3
         }
       }
+    source: $.authorById
+    target: $.users.posts<Discussion>.author
     requirements:
       - name: __fusion_1_id
-        selectionSet: $.users.posts.<Discussion>.author
         selectionMap: id
     dependencies:
       - id: 1
   - id: 3
-    schema: SUBGRAPH_2
+    type: Operation
+    schema: b
     operation: >-
-      query testQuery_3(
+      query testQuery_123456789101112_3(
         $__fusion_2_id: ID!
       ) {
         productById(id: $__fusion_2_id) {
           subgraph2
         }
       }
+    source: $.productById
+    target: $.users.posts<Photo>.product
     requirements:
       - name: __fusion_2_id
-        selectionSet: $.users.posts.<Photo>.product
         selectionMap: id
     dependencies:
       - id: 1

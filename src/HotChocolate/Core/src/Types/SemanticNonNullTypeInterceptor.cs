@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Collections;
 using HotChocolate.Configuration;
 using HotChocolate.Language;

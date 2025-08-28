@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -9,19 +8,29 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
     public IntrospectionExecutionNode(int id, Selection[] selections)
     {
+        ArgumentNullException.ThrowIfNull(selections);
+
+        if (selections.Length == 0)
+        {
+            throw new ArgumentException(
+                "There must be at least one introspection selection.",
+                nameof(selections));
+        }
+
         Id = id;
         _selections = selections;
     }
 
     public override int Id { get; }
 
-    public override ReadOnlySpan<ExecutionNode> Dependencies => default;
+    public override ExecutionNodeType Type => ExecutionNodeType.Introspection;
 
-    public override Task<ExecutionNodeResult> ExecuteAsync(
+    public ReadOnlySpan<Selection> Selections => _selections;
+
+    protected override ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var start = Stopwatch.GetTimestamp();
         var resultPool = context.ResultPool;
         var backlog = new Stack<(object? Parent, Selection Selection, FieldResult Result)>();
         var root = context.ResultPool.RentObjectResult();
@@ -43,8 +52,11 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         ExecuteSelections(context, backlog);
         context.AddPartialResults(root, _selections);
 
-        return Task.FromResult(new ExecutionNodeResult(Id, ExecutionStatus.Success, Stopwatch.GetElapsedTime(start)));
+        return new ValueTask<ExecutionStatus>(ExecutionStatus.Success);
     }
+
+    protected override IDisposable CreateScope(OperationPlanContext context)
+        => context.DiagnosticEvents.ExecuteIntrospectionNode(context, this);
 
     private static void ExecuteSelections(
         OperationPlanContext context,
@@ -118,9 +130,5 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                 }
             }
         }
-    }
-
-    protected internal override void Seal()
-    {
     }
 }

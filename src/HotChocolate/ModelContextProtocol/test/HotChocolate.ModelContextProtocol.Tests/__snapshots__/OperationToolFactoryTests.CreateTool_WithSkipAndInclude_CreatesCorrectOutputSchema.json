@@ -1,0 +1,340 @@
+{
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "withDefaultedVariables": {
+          "type": "object",
+          "properties": {
+            "notSkipped": {
+              "type": "integer"
+            },
+            "possiblySkipped": {
+              "type": "integer"
+            },
+            "included": {
+              "type": "integer"
+            },
+            "possiblyIncluded": {
+              "type": "integer"
+            },
+            "notSkippedAndIncluded": {
+              "type": "integer"
+            },
+            "notSkippedAndPossiblyIncluded": {
+              "type": "integer"
+            },
+            "possiblySkippedAndIncluded": {
+              "type": "integer"
+            },
+            "possiblySkippedAndPossiblyIncluded": {
+              "type": "integer"
+            },
+            "objectFieldNotSkipped": {
+              "type": "object",
+              "properties": {
+                "field1A": {
+                  "type": "object",
+                  "properties": {
+                    "field1B": {
+                      "type": "object",
+                      "properties": {
+                        "field1C": {
+                          "type": "string",
+                          "format": "time",
+                          "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                          "description": "field1C description"
+                        }
+                      },
+                      "required": [
+                        "field1C"
+                      ],
+                      "additionalProperties": false,
+                      "description": "field1B description"
+                    }
+                  },
+                  "required": [
+                    "field1B"
+                  ],
+                  "additionalProperties": false,
+                  "description": "field1A description"
+                }
+              },
+              "required": [
+                "field1A"
+              ],
+              "additionalProperties": false
+            },
+            "objectFieldPossiblySkipped": {
+              "type": "object",
+              "properties": {
+                "field1A": {
+                  "type": "object",
+                  "properties": {
+                    "field1B": {
+                      "type": "object",
+                      "properties": {
+                        "field1C": {
+                          "type": "string",
+                          "format": "time",
+                          "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                          "description": "field1C description"
+                        }
+                      },
+                      "required": [
+                        "field1C"
+                      ],
+                      "additionalProperties": false,
+                      "description": "field1B description"
+                    }
+                  },
+                  "required": [
+                    "field1B"
+                  ],
+                  "additionalProperties": false,
+                  "description": "field1A description"
+                }
+              },
+              "required": [
+                "field1A"
+              ],
+              "additionalProperties": false
+            },
+            "objectFieldIncluded": {
+              "type": "object",
+              "properties": {
+                "field1A": {
+                  "type": "object",
+                  "properties": {
+                    "field1B": {
+                      "type": "object",
+                      "properties": {
+                        "field1C": {
+                          "type": "string",
+                          "format": "time",
+                          "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                          "description": "field1C description"
+                        }
+                      },
+                      "required": [
+                        "field1C"
+                      ],
+                      "additionalProperties": false,
+                      "description": "field1B description"
+                    }
+                  },
+                  "required": [
+                    "field1B"
+                  ],
+                  "additionalProperties": false,
+                  "description": "field1A description"
+                }
+              },
+              "required": [
+                "field1A"
+              ],
+              "additionalProperties": false
+            },
+            "objectFieldPossiblyIncluded": {
+              "type": "object",
+              "properties": {
+                "field1A": {
+                  "type": "object",
+                  "properties": {
+                    "field1B": {
+                      "type": "object",
+                      "properties": {
+                        "field1C": {
+                          "type": "string",
+                          "format": "time",
+                          "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                          "description": "field1C description"
+                        }
+                      },
+                      "required": [
+                        "field1C"
+                      ],
+                      "additionalProperties": false,
+                      "description": "field1B description"
+                    }
+                  },
+                  "required": [
+                    "field1B"
+                  ],
+                  "additionalProperties": false,
+                  "description": "field1A description"
+                }
+              },
+              "required": [
+                "field1A"
+              ],
+              "additionalProperties": false
+            },
+            "fragmentFieldNotSkipped": {
+              "type": "integer"
+            },
+            "fragmentFieldPossiblySkipped": {
+              "type": "integer"
+            },
+            "fragmentFieldIncluded": {
+              "type": "integer"
+            },
+            "fragmentFieldPossiblyIncluded": {
+              "type": "integer"
+            },
+            "inlineFragmentFieldNotSkipped": {
+              "type": "integer"
+            },
+            "inlineFragmentFieldPossiblySkipped": {
+              "type": "integer"
+            },
+            "inlineFragmentFieldIncluded": {
+              "type": "integer"
+            },
+            "inlineFragmentFieldPossiblyIncluded": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "notSkipped",
+            "included",
+            "notSkippedAndIncluded",
+            "objectFieldNotSkipped",
+            "objectFieldIncluded",
+            "fragmentFieldNotSkipped",
+            "fragmentFieldIncluded",
+            "inlineFragmentFieldNotSkipped",
+            "inlineFragmentFieldIncluded"
+          ],
+          "additionalProperties": false
+        },
+        "withInterfaceType": {
+          "type": "object",
+          "properties": {
+            "typeName": {
+              "type": "string",
+              "description": "The name of the current Object type at runtime."
+            },
+            "typeNameNotSkipped": {
+              "type": "string",
+              "description": "The name of the current Object type at runtime."
+            },
+            "typeNamePossiblySkipped": {
+              "type": "string",
+              "description": "The name of the current Object type at runtime."
+            },
+            "typeNameIncluded": {
+              "type": "string",
+              "description": "The name of the current Object type at runtime."
+            },
+            "typeNamePossiblyIncluded": {
+              "type": "string",
+              "description": "The name of the current Object type at runtime."
+            },
+            "inlineFragmentEqualTypeFieldNeverOmitted": {
+              "type": "string"
+            },
+            "inlineFragmentEqualTypeFieldNotSkipped": {
+              "type": "string"
+            },
+            "inlineFragmentEqualTypeFieldPossiblySkipped": {
+              "type": "string"
+            },
+            "inlineFragmentEqualTypeFieldIncluded": {
+              "type": "string"
+            },
+            "inlineFragmentEqualTypeFieldPossiblyIncluded": {
+              "type": "string"
+            },
+            "inlineFragmentNarrowedTypeFieldPossiblyOmitted": {
+              "type": "boolean"
+            },
+            "inlineFragmentNarrowedTypeFieldNotSkipped": {
+              "type": "boolean"
+            },
+            "inlineFragmentNarrowedTypeFieldPossiblySkipped": {
+              "type": "boolean"
+            },
+            "inlineFragmentNarrowedTypeFieldIncluded": {
+              "type": "boolean"
+            },
+            "inlineFragmentNarrowedTypeFieldPossiblyIncluded": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "typeName",
+            "typeNameNotSkipped",
+            "typeNameIncluded",
+            "inlineFragmentEqualTypeFieldNeverOmitted",
+            "inlineFragmentEqualTypeFieldNotSkipped",
+            "inlineFragmentEqualTypeFieldIncluded"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "withDefaultedVariables",
+        "withInterfaceType"
+      ]
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "locations": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "properties": {
+                "line": {
+                  "type": "integer"
+                },
+                "column": {
+                  "type": "integer"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "path": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": [
+                "string",
+                "integer"
+              ]
+            }
+          },
+          "extensions": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,6 +1,6 @@
-using HotChocolate.Types;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moq;
@@ -14,7 +14,36 @@ public class SchemaListCommandTests
     {
         // arrange
         var services = new ServiceCollection();
-        services.AddGraphQL()
+        services
+            .AddGraphQL()
+            .AddQueryType(x => x.Name("Query").Field("foo").Resolve("bar"));
+
+        var hostMock = new Mock<IHost>();
+        hostMock
+            .Setup(x => x.Services)
+            .Returns(services.BuildServiceProvider());
+
+        var host = hostMock.Object;
+        var console = new TestConsole();
+        var app = new App(host).Build();
+
+        // act
+        await app.InvokeAsync("schema list", console);
+
+        // assert
+        console.Out.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task App_Should_List_All_SchemaNames_2()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services
+            .AddGraphQL("schema1")
+            .AddQueryType(x => x.Name("Query").Field("foo").Resolve("bar"))
+            .Services
+            .AddGraphQL("schema2")
             .AddQueryType(x => x.Name("Query").Field("foo").Resolve("bar"));
 
         var hostMock = new Mock<IHost>();

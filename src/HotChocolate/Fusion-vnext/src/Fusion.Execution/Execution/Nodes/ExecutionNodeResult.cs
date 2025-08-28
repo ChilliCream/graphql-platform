@@ -1,3 +1,13 @@
+using System.Collections.Immutable;
+using System.Diagnostics;
+
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public record ExecutionNodeResult(int Id, ExecutionStatus Status, TimeSpan Duration);
+internal sealed record ExecutionNodeResult(
+    int Id,
+    Activity? Activity,
+    ExecutionStatus Status,
+    TimeSpan Duration,
+    Exception? Exception,
+    ImmutableArray<ExecutionNode> DependentsToExecute,
+    ImmutableArray<VariableValues> VariableValueSets);

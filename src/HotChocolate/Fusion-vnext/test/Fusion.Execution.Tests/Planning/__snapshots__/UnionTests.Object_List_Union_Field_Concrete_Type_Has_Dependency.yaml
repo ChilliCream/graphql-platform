@@ -1,24 +1,30 @@
-operation: >-
-  query testQuery {
-    postEdges {
-      node {
-        ... on Photo {
-          subgraph2
-          id @fusion_internal
-        }
-        ... on Discussion {
-          subgraph1
-        }
-      }
-    }
-  }
-nodes:
-  - id: 1
-    schema: SUBGRAPH_1
-    operation: >-
-      query testQuery_1 {
+operation:
+  - document: >-
+      query testQuery {
         postEdges {
           node {
+            __typename @fusion__requirement
+            ... on Photo {
+              subgraph2
+              id @fusion__requirement
+            }
+            ... on Discussion {
+              subgraph1
+            }
+          }
+        }
+      }
+    name: testQuery
+    hash: 123456789101112
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: >-
+      query testQuery_123456789101112_1 {
+        postEdges {
+          node {
+            __typename
             ... on Photo {
               id
             }
@@ -29,18 +35,20 @@ nodes:
         }
       }
   - id: 2
-    schema: SUBGRAPH_2
+    type: Operation
+    schema: b
     operation: >-
-      query testQuery_2(
+      query testQuery_123456789101112_2(
         $__fusion_1_id: ID!
       ) {
         photoById(id: $__fusion_1_id) {
           subgraph2
         }
       }
+    source: $.photoById
+    target: $.postEdges.node<Photo>
     requirements:
       - name: __fusion_1_id
-        selectionSet: $.postEdges.node.<Photo>
         selectionMap: id
     dependencies:
       - id: 1

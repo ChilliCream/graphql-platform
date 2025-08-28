@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Execution.Operation.Abstractions</PackageId>
+    <AssemblyName>HotChocolate.Execution.Operation.Abstractions</AssemblyName>
+    <RootNamespace>HotChocolate.Execution</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Features\HotChocolate.Features.csproj" />
+    <ProjectReference Include="..\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

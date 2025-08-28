@@ -1,21 +1,27 @@
-operation: >-
-  query testQuery {
-    wrappers {
-      authorable {
-        author {
-          displayName
-          id @fusion_internal
-        }
-      }
-    }
-  }
-nodes:
-  - id: 1
-    schema: SUBGRAPH_1
-    operation: >-
-      query testQuery_1 {
+operation:
+  - document: >-
+      query testQuery {
         wrappers {
           authorable {
+            __typename @fusion__requirement
+            author {
+              displayName
+              id @fusion__requirement
+            }
+          }
+        }
+      }
+    name: testQuery
+    hash: 123456789101112
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: >-
+      query testQuery_123456789101112_1 {
+        wrappers {
+          authorable {
+            __typename
             author {
               id
             }
@@ -23,18 +29,20 @@ nodes:
         }
       }
   - id: 2
-    schema: SUBGRAPH_2
+    type: Operation
+    schema: b
     operation: >-
-      query testQuery_2(
+      query testQuery_123456789101112_2(
         $__fusion_1_id: ID!
       ) {
         authorById(id: $__fusion_1_id) {
           displayName
         }
       }
+    source: $.authorById
+    target: $.wrappers.authorable.author
     requirements:
       - name: __fusion_1_id
-        selectionSet: $.wrappers.authorable.author
         selectionMap: id
     dependencies:
       - id: 1

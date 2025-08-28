@@ -3,5 +3,32 @@
     "__type": {
       "name": "String"
     }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "f332d9eee8a1e3359941824452eca5a40f9443d129388b68786d78cf4be28d18",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  __type(name: \"String\") {\n    name\n  }\n}",
+          "id": "5cddb45336fd254ecdaf2e7cb5e89de1",
+          "hash": "5cddb45336fd254ecdaf2e7cb5e89de1",
+          "shortHash": "5cddb453"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Introspection",
+            "selections": [
+              {
+                "id": 1,
+                "responseName": "__type",
+                "fieldName": "__type"
+              }
+            ]
+          }
+        ]
+      }
+    }
   }
 }

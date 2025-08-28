@@ -1,21 +1,17 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
-using HotChocolate.Types;
-using HotChocolate.Types.Mutable;
-using HotChocolate.Types.Mutable.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
-using Directive = HotChocolate.Types.Mutable.Directive;
 
 namespace HotChocolate.Fusion;
 
@@ -40,8 +36,14 @@ public abstract class FusionTestBase : IDisposable
     protected static FusionSchemaDefinition ComposeSchema(
         [StringSyntax("graphql")] params string[] schemas)
     {
+        var sourceSchemas = CreateSourceSchemaTexts(schemas);
+
         var compositionLog = new CompositionLog();
-        var composer = new SchemaComposer(schemas, new SchemaComposerOptions(), compositionLog);
+        var composerOptions = new SchemaComposerOptions
+        {
+            EnableGlobalObjectIdentification = true
+        };
+        var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
 
         if (!result.IsSuccess)
@@ -53,11 +55,16 @@ public abstract class FusionTestBase : IDisposable
         return FusionSchemaDefinition.Create(compositeSchemaDoc);
     }
 
+    protected static FusionSchemaDefinition ComposeSchema(params TestSourceSchema[] schemas)
+        => ComposeSchema(schemas.Select(t => t.Schema).ToArray());
+
     protected static DocumentNode ComposeSchemaDocument(
         [StringSyntax("graphql")] params string[] schemas)
     {
+        var sourceSchemas = CreateSourceSchemaTexts(schemas);
+
         var compositionLog = new CompositionLog();
-        var composer = new SchemaComposer(schemas, new SchemaComposerOptions(), compositionLog);
+        var composer = new SchemaComposer(sourceSchemas, new SchemaComposerOptions(), compositionLog);
         var result = composer.Compose();
 
         if (!result.IsSuccess)
@@ -93,7 +100,7 @@ public abstract class FusionTestBase : IDisposable
             configureApplication);
     }
 
-    protected static OperationExecutionPlan PlanOperation(
+    protected static OperationPlan PlanOperation(
         FusionSchemaDefinition schema,
         [StringSyntax("graphql")] string operationText)
     {
@@ -103,27 +110,28 @@ public abstract class FusionTestBase : IDisposable
         var operationDoc = Utf8GraphQLParser.Parse(operationText);
 
         var rewriter = new InlineFragmentOperationRewriter(schema);
-        var rewritten = rewriter.RewriteDocument(operationDoc, null);
+        var rewritten = rewriter.RewriteDocument(operationDoc, operationName: null);
         var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
 
         var compiler = new OperationCompiler(schema, pool);
         var planner = new OperationPlanner(schema, compiler);
-        return planner.CreatePlan("123", operation);
+        const string id = "123456789101112";
+        return planner.CreatePlan(id, id, id, operation);
     }
 
     protected static void MatchInline(
-        OperationExecutionPlan plan,
+        OperationPlan plan,
         [StringSyntax("yaml")] string expected)
     {
-        var formatter = new YamlExecutionPlanFormatter();
+        var formatter = new YamlOperationPlanFormatter();
         var actual = formatter.Format(plan);
         actual.MatchInlineSnapshot(expected + Environment.NewLine);
     }
 
     protected static void MatchSnapshot(
-        OperationExecutionPlan plan)
+        OperationPlan plan)
     {
-        var formatter = new YamlExecutionPlanFormatter();
+        var formatter = new YamlOperationPlanFormatter();
         var actual = formatter.Format(plan);
         actual.MatchSnapshot(extension: ".yaml");
     }
@@ -148,84 +156,35 @@ public abstract class FusionTestBase : IDisposable
         }
     }
 
-    protected record TestSubgraph([StringSyntax("graphql")] string Schema);
-
-    protected class TestSubgraphCollection(params TestSubgraph[] subgraphs)
+    private static List<SourceSchemaText> CreateSourceSchemaTexts(IEnumerable<string> schemas)
     {
-        public FusionSchemaDefinition BuildFusionSchema()
+        var sourceSchemas = new List<SourceSchemaText>();
+        var autoName = 'a';
+
+        foreach (var schema in schemas)
         {
-            var schemas = subgraphs.Select(s => s.Schema).ToArray();
-            var rewrittenSchemas = new string[schemas.Length];
+            string name;
+            string sourceText;
 
-            for (var i = 0; i < schemas.Length; i++)
+            var lines = schema.Split(["\r\n", "\n"], StringSplitOptions.None);
+
+            if (lines.Length > 0 && lines[0].StartsWith("# name:"))
             {
-                var sourceSchema = SchemaParser.Parse(schemas[i]);
-
-                AddFusionDirectives(sourceSchema);
-
-                if (sourceSchema.Name == "default")
-                {
-                    sourceSchema.Name = $"Subgraph_{i + 1}";
-
-                    if (sourceSchema.DirectiveDefinitions.TryGetDirective(WellKnownDirectiveNames.SchemaName,
-                        out var schemaNameDirectiveDefinition))
-                    {
-                        sourceSchema.Directives.Add(new Directive(schemaNameDirectiveDefinition,
-                            new ArgumentAssignment(WellKnownArgumentNames.Value, sourceSchema.Name)));
-                    }
-                }
-
-                rewrittenSchemas[i] = sourceSchema.ToString();
+                name = lines[0]["# name:".Length..].Trim();
+                sourceText = string.Join(Environment.NewLine, lines.Skip(1));
+            }
+            else
+            {
+                name = autoName.ToString();
+                autoName++;
+                sourceText = schema;
             }
 
-            return ComposeSchema(rewrittenSchemas);
+            sourceSchemas.Add(new SourceSchemaText(name, sourceText));
         }
 
-        private static void AddFusionDirectives(MutableSchemaDefinition schema)
-        {
-            var fieldSelectionMapType = MutableScalarTypeDefinition.Create(WellKnownTypeNames.FieldSelectionMap);
-            var fieldSelectionSetType = MutableScalarTypeDefinition.Create(WellKnownTypeNames.FieldSelectionSet);
-            var stringType = BuiltIns.String.Create();
-
-            var fusionDirectives = new Dictionary<string, MutableDirectiveDefinition>()
-            {
-                { "external", new ExternalMutableDirectiveDefinition() },
-                { "inaccessible", new InaccessibleMutableDirectiveDefinition() },
-                { "internal", new InternalMutableDirectiveDefinition() },
-                { "is", new IsMutableDirectiveDefinition(fieldSelectionMapType) },
-                { "key", new KeyMutableDirectiveDefinition(fieldSelectionSetType) },
-                { "lookup", new LookupMutableDirectiveDefinition() },
-                { "override", new OverrideMutableDirectiveDefinition(stringType) },
-                { "provides", new ProvidesMutableDirectiveDefinition(fieldSelectionSetType) },
-                { "require", new RequireMutableDirectiveDefinition(fieldSelectionMapType) },
-                { "schemaName", new SchemaNameMutableDirectiveDefinition(stringType) },
-                { "shareable", new ShareableMutableDirectiveDefinition() }
-            };
-
-            if (schema.Types.TryGetType(fieldSelectionMapType.Name, out var existingFieldSelectionMapType))
-            {
-                schema.Types.Remove(existingFieldSelectionMapType);
-            }
-
-            schema.Types.Add(fieldSelectionMapType);
-
-            if (schema.Types.TryGetType(fieldSelectionSetType.Name, out var existingFieldSelectionSetType))
-            {
-                schema.Types.Remove(existingFieldSelectionSetType);
-            }
-
-            schema.Types.Add(fieldSelectionSetType);
-
-            foreach (var fusionDirective in fusionDirectives.Values)
-            {
-                if (schema.DirectiveDefinitions.TryGetDirective(fusionDirective.Name,
-                    out var existingDirectiveDefinition))
-                {
-                    schema.DirectiveDefinitions.Remove(existingDirectiveDefinition);
-                }
-
-                schema.DirectiveDefinitions.Add(fusionDirective);
-            }
-        }
+        return sourceSchemas;
     }
+
+    protected record TestSourceSchema([StringSyntax("graphql")] string Schema);
 }

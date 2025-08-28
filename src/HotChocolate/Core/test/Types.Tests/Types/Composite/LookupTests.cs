@@ -253,7 +253,7 @@ public static class LookupTests
             => new(id, "Abc");
     }
 
-    [Key("id")]
+    [EntityKey("id")]
     public record Book3(int Id, string Title);
 
     public class Query4
@@ -266,7 +266,7 @@ public static class LookupTests
     [OneOf]
     public record Book4ByInput(int? Id, string? Title);
 
-    [Key("id")]
+    [EntityKey("id")]
     public record Book4(int Id, string Title);
 
     public class Query5

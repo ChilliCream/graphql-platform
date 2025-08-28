@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/CommandLine.Cloud/">
+    <Project Path="src/CommandLine.Cloud/Nitro.CommandLine.Cloud.csproj" />
+  </Folder>
+  <Folder Name="/src/CommandLine.Core/">
+    <Project Path="src/CommandLine.Core/Nitro.CommandLine.Core.csproj" />
+  </Folder>
+  <Folder Name="/src/CommandLine.Fusion.Compatibility/">
+    <Project Path="src/CommandLine.Fusion.Compatibility/Nitro.CommandLine.Fusion.Compatibility.csproj" />
+  </Folder>
+  <Folder Name="/src/CommandLine.Fusion/">
+    <Project Path="src/CommandLine.Fusion/Nitro.CommandLine.Fusion.csproj" />
+  </Folder>
+  <Folder Name="/src/CommandLine/">
+    <Project Path="src/CommandLine/Nitro.CommandLine.csproj" />
+  </Folder>
+  <Project Path="../../HotChocolate/Fusion-vnext/src/Fusion.CommandLine/HotChocolate.Fusion.CommandLine.csproj" />
+</Solution>

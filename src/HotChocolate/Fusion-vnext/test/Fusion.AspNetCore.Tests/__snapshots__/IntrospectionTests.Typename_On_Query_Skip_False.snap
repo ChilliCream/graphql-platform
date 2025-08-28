@@ -1,5 +1,32 @@
 {
   "data": {
     "__typename": "Query"
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "ec6a672b76c5a4804ddb9f0f36b67aecc02e265f1db7063520136e88539eba6f",
+        "operation": {
+          "kind": "Query",
+          "document": "query(\n  $s: Boolean! = false\n) {\n  __typename @skip(if: $s)\n}",
+          "id": "7000d58c5a91379479dee99795ff88dd",
+          "hash": "7000d58c5a91379479dee99795ff88dd",
+          "shortHash": "7000d58c"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Introspection",
+            "selections": [
+              {
+                "id": 1,
+                "responseName": "__typename",
+                "fieldName": "__typename"
+              }
+            ]
+          }
+        ]
+      }
+    }
   }
 }

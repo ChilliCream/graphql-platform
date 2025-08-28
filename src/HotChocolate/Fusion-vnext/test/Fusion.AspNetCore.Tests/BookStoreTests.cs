@@ -12,19 +12,80 @@ public class BookStoreTests : FusionTestBase
     {
         // arrange
         using var server1 = CreateSourceSchema(
-            "A",
+            "a",
             b => b.AddQueryType<SourceSchema1.Query>());
 
         using var server2 = CreateSourceSchema(
-            "B",
+            "b",
             b => b.AddQueryType<SourceSchema2.Query>());
 
         // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
-            ("B", server2),
+            ("a", server1),
+            ("b", server2)
         ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+              bookById(id: 1) {
+                id
+                title
+              }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Fetch_Book_From_SourceSchema1_With_Settings()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1),
+                ("b", server2)
+            ],
+            schemaSettings:
+            """
+            {
+              "sourceSchemas": {
+                "a": {
+                  "transports": {
+                    "http": {
+                      "clientName": "a",
+                      "url": "http://localhost:5000/graphql"
+                    }
+                  }
+                },
+                "b": {
+                  "transports": {
+                    "http": {
+                      "clientName": "b",
+                      "url": "http://localhost:5000/graphql"
+                    }
+                  }
+                }
+              }
+            }
+            """);
 
         // assert
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -61,7 +122,7 @@ public class BookStoreTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -84,7 +145,7 @@ public class BookStoreTests : FusionTestBase
         }
 
         using var result2 = await client.PostAsync(
-                """
+            """
             {
               bookById(id: 1) {
                 id
@@ -92,7 +153,7 @@ public class BookStoreTests : FusionTestBase
               }
             }
             """,
-                new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"));
 
         // act
         using (var response = await result2.ReadAsResultAsync())
@@ -117,7 +178,7 @@ public class BookStoreTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // assert
@@ -156,7 +217,7 @@ public class BookStoreTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
-            ("B", server2),
+            ("B", server2)
         ]);
 
         // act
@@ -183,6 +244,302 @@ public class BookStoreTests : FusionTestBase
         response.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Fetch_Books_With_Variable_First_And_First_Is_1()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            query GetBooks($first: Int) {
+              books(first: $first) {
+                nodes {
+                  id
+                  title
+                  author {
+                    name
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                { "first", 1 }
+            },
+            uri: new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Fetch_Books_With_Variable_First_And_First_Omitted()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            query GetBooks($first: Int) {
+              books(first: $first) {
+                nodes {
+                  id
+                  title
+                  author {
+                    name
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>(),
+            uri: new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Fetch_Books_With_Variable_First_Last_And_First_1_And_Last_Omitted()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            query GetBooks($first: Int, $last: Int) {
+              books(first: $first, last: $last) {
+                nodes {
+                  id
+                  title
+                  author {
+                    name
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                { "first", 1 }
+            },
+            uri: new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Fetch_Books_With_Requirements_To_SourceSchema1()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+              books {
+                nodes {
+                  idAndTitle
+                }
+              }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Fetch_Books_With_Requirements_To_SourceSchema1_Three_Times()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act 1
+        using (var client = GraphQLHttpClient.Create(gateway.CreateClient()))
+        {
+            using var result = await client.PostAsync(
+                """
+                {
+                  books {
+                    nodes {
+                      idAndTitle
+                    }
+                  }
+                }
+                """,
+                new Uri("http://localhost:5000/graphql"));
+
+            // assert 1
+            using var response = await result.ReadAsResultAsync();
+            response.MatchSnapshot();
+        }
+
+        // act 2
+        using (var client = GraphQLHttpClient.Create(gateway.CreateClient()))
+        {
+            using var result = await client.PostAsync(
+                """
+                {
+                  books {
+                    nodes {
+                      idAndTitle
+                    }
+                  }
+                }
+                """,
+                new Uri("http://localhost:5000/graphql"));
+
+            // assert 2
+            using var response = await result.ReadAsResultAsync();
+            response.MatchSnapshot();
+        }
+
+        // act 3
+        using (var client = GraphQLHttpClient.Create(gateway.CreateClient()))
+        {
+            using var result = await client.PostAsync(
+                """
+                {
+                  books {
+                    nodes {
+                      idAndTitle
+                    }
+                  }
+                }
+                """,
+                new Uri("http://localhost:5000/graphql"));
+
+            // assert 3
+            using var response = await result.ReadAsResultAsync();
+            response.MatchSnapshot();
+        }
+    }
+
+    [InlineData(5)]
+    [InlineData(10)]
+    [InlineData(15)]
+    [InlineData(20)]
+    [Theory]
+    public async Task Fetch_Books_With_Requirements_To_SourceSchema1_X_Times(int iterations)
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        for (var i = 0; i < iterations; i++)
+        {
+            // act
+            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+            using var result = await client.PostAsync(
+                """
+                {
+                  books {
+                    nodes {
+                      idAndTitle
+                    }
+                  }
+                }
+                """,
+                new Uri("http://localhost:5000/graphql"));
+
+            // assert
+            using var response = await result.ReadAsResultAsync();
+            response.MatchSnapshot();
+        }
+    }
+
     public static class SourceSchema1
     {
         public record Book(int Id, string Title, Author Author);
@@ -192,7 +549,7 @@ public class BookStoreTests : FusionTestBase
         public class Query
         {
             private readonly OrderedDictionary<int, Book> _books =
-                new OrderedDictionary<int, Book>()
+                new()
                 {
                     [1] = new Book(1, "C# in Depth", new Author(1)),
                     [2] = new Book(2, "The Lord of the Rings", new Author(2)),
@@ -231,12 +588,30 @@ public class BookStoreTests : FusionTestBase
 
         public class Query
         {
-            private readonly OrderedDictionary<int, Author> _authors =
-                new OrderedDictionary<int, Author>()
+            private readonly OrderedDictionary<int, Author> _authors;
+            private readonly OrderedDictionary<int, Book> _books;
+
+            public Query()
+            {
+                _authors = new()
                 {
                     [1] = new Author(1, "Jon Skeet"),
                     [2] = new Author(2, "JRR Tolkien")
                 };
+
+                _books = new()
+                {
+                    [1] = new Book(1, _authors[1]),
+                    [2] = new Book(2, _authors[2]),
+                    [3] = new Book(3, _authors[2]),
+                    [4] = new Book(4, _authors[2])
+                };
+            }
+
+            [Internal]
+            [Lookup]
+            public Book GetBookById(int id)
+                => _books[id];
 
             [Internal]
             [Lookup]
@@ -248,6 +623,10 @@ public class BookStoreTests : FusionTestBase
                 => _authors.Values;
         }
 
-        public record Book(int Id, Author Author);
+        public record Book(int Id, Author Author)
+        {
+            public string IdAndTitle([Require] string title)
+                => $"{Id} - {title}";
+        }
     }
 }

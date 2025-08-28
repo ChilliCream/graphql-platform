@@ -1,0 +1,34 @@
+operation:
+  - document: >-
+      query testQuery(
+        $id: ID!
+      ) {
+        node(id: $id) {
+          __typename @fusion__requirement
+          id
+          __typename
+        }
+      }
+    name: testQuery
+    hash: 123456789101112
+nodes:
+  - id: 1
+    type: Node
+    idValue: $id
+    responseName: node
+    branches:
+    fallback: 2
+  - id: 2
+    type: Operation
+    operation: >-
+      query testQuery_123456789101112_2(
+        $id: ID!
+      ) {
+        node(id: $id) {
+          __typename
+          id
+          __typename
+        }
+      }
+    dependencies:
+      - id: 1
