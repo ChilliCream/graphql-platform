@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 
@@ -10,14 +11,18 @@ public sealed class FieldSelectionMapValidatorTests
     [Theory]
     [MemberData(nameof(ValidExamplesData))]
     public void Examples_Valid(
-        string inputTypeName,
-        string outputTypeName,
+        string inputTypeReference,
+        string outputTypeReference,
         string fieldSelectionMap)
     {
         // arrange
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
-        var inputType = s_schema1.Types[inputTypeName];
-        var outputType = s_schema1.Types[outputTypeName];
+        var inputTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(inputTypeReference);
+        var inputTypeDefinition = s_schema1.Types[inputTypeNode.NamedType().Name.Value];
+        var inputType = inputTypeNode.RewriteToType(inputTypeDefinition);
+        var outputTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(outputTypeReference);
+        var outputTypeDefinition = s_schema1.Types[outputTypeNode.NamedType().Name.Value];
+        var outputType = outputTypeNode.RewriteToType(outputTypeDefinition);
 
         // act
         var errors =
@@ -33,15 +38,19 @@ public sealed class FieldSelectionMapValidatorTests
     [Theory]
     [MemberData(nameof(InvalidExamplesData))]
     public void Examples_Invalid(
-        string inputTypeName,
-        string outputTypeName,
+        string inputTypeReference,
+        string outputTypeReference,
         string fieldSelectionMap,
         string[] errorMessages)
     {
         // arrange
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
-        var inputType = s_schema1.Types[inputTypeName];
-        var outputType = s_schema1.Types[outputTypeName];
+        var inputTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(inputTypeReference);
+        var inputTypeDefinition = s_schema1.Types[inputTypeNode.NamedType().Name.Value];
+        var inputType = inputTypeNode.RewriteToType(inputTypeDefinition);
+        var outputTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(outputTypeReference);
+        var outputTypeDefinition = s_schema1.Types[outputTypeNode.NamedType().Name.Value];
+        var outputType = outputTypeNode.RewriteToType(outputTypeDefinition);
 
         // act
         var errors =
@@ -76,8 +85,8 @@ public sealed class FieldSelectionMapValidatorTests
             """);
         const string fieldSelectionMap = "mediaById.id";
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
-        var inputType = schema.Types["ID"];
-        var outputType = schema.Types["Query"];
+        var inputType = schema.QueryType!.Fields["mediaById"].Arguments["id"].Type;
+        var outputType = schema.QueryType;
 
         // act
         var errors =
@@ -113,8 +122,8 @@ public sealed class FieldSelectionMapValidatorTests
             """);
         var fieldSelectionMap = GetFieldSelectionMap(schema, "Query", "userById", "user", "is");
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
-        var inputType = schema.Types["UserInput"];
-        var outputType = schema.Types["User"];
+        var inputType = schema.QueryType!.Fields["userById"].Arguments["user"].Type;
+        var outputType = schema.QueryType!.Fields["userById"].Type;
 
         // act
         var errors =
@@ -150,8 +159,8 @@ public sealed class FieldSelectionMapValidatorTests
             """);
         var fieldSelectionMap = GetFieldSelectionMap(schema, "Query", "findUser", "input", "is");
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
-        var inputType = schema.Types["UserInput"];
-        var outputType = schema.Types["User"];
+        var inputType = schema.QueryType!.Fields["findUser"].Arguments["input"].Type;
+        var outputType = schema.QueryType!.Fields["findUser"].Type;
 
         // act
         var errors =
@@ -184,8 +193,8 @@ public sealed class FieldSelectionMapValidatorTests
             """);
         var fieldSelectionMap = GetFieldSelectionMap(schema, "Query", "findUser", "input", "is");
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
-        var inputType = schema.Types["UserInput"];
-        var outputType = schema.Types["User"];
+        var inputType = schema.QueryType!.Fields["findUser"].Arguments["input"].Type;
+        var outputType = schema.QueryType!.Fields["findUser"].Type;
 
         // act
         var errors =
@@ -242,8 +251,8 @@ public sealed class FieldSelectionMapValidatorTests
             }
             """);
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
-        var inputType = schema.Types["PersonByInput"];
-        var outputType = schema.Types["Person"];
+        var inputType = schema.QueryType!.Fields["person"].Arguments["by"].Type;
+        var outputType = schema.QueryType!.Fields["person"].Type;
 
         // act
         var errors =

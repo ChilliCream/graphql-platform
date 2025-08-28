@@ -52,23 +52,30 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
 
                     if (IsMessageComplete(eventBuffer.WrittenSpan))
                     {
-                        var eventMessage = SseEventParser.Parse(eventBuffer.WrittenSpan);
-
-                        switch (eventMessage.Type)
+                        if (IsKeepAlive(eventBuffer.WrittenSpan))
                         {
-                            case SseEventType.Complete:
-                                reader.AdvanceTo(buffer.GetPosition(1, position.Value));
-                                yield break;
+                            eventBuffer.Reset();
+                        }
+                        else
+                        {
+                            var eventMessage = SseEventParser.Parse(eventBuffer.WrittenSpan);
 
-                            case SseEventType.Next when eventMessage.Data is not null:
-                                eventBuffer.Reset();
-                                var document = JsonDocument.Parse(eventMessage.Data.WrittenMemory);
-                                var documentOwner = new JsonDocumentOwner(document, eventMessage.Data);
-                                yield return OperationResult.Parse(documentOwner);
-                                break;
+                            switch (eventMessage.Type)
+                            {
+                                case SseEventType.Complete:
+                                    reader.AdvanceTo(buffer.GetPosition(1, position.Value));
+                                    yield break;
 
-                            default:
-                                throw new GraphQLHttpStreamException("Malformed message received.");
+                                case SseEventType.Next when eventMessage.Data is not null:
+                                    eventBuffer.Reset();
+                                    var document = JsonDocument.Parse(eventMessage.Data.WrittenMemory);
+                                    var documentOwner = new JsonDocumentOwner(document, eventMessage.Data);
+                                    yield return OperationResult.Parse(documentOwner);
+                                    break;
+
+                                default:
+                                    throw new GraphQLHttpStreamException("Malformed message received.");
+                            }
                         }
                     }
 
@@ -130,4 +137,35 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsMessageComplete(ReadOnlySpan<byte> message)
         => message.Length >= 2 && message[^1] == (byte)'\n' && message[^2] == (byte)'\n';
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsKeepAlive(ReadOnlySpan<byte> message)
+    {
+        // The minimal keep alive message is 3 characters `:\n\n`.
+        // Any message not starting with `:` or shorter than 3 lines is invalid/
+        if (message.Length < 3 || message[0] != (byte)':')
+        {
+            return false;
+        }
+
+        // Each message must end with to new lines, if we find none it's an invalid message.
+        var firstNewline = message.IndexOf((byte)'\n');
+        if (firstNewline == -1)
+        {
+            return false;
+        }
+
+        // After the ':', it should either be:
+        // 1. End of line (just ":\n")
+        // 2. A space followed by arbitrary text (": some text\n")
+        // 3. Arbitrary text without space (":keep-alive\n")
+
+        // But it should NOT contain any SSE field syntax like "event:" or "data:"
+        // Check if the rest of the message (after this comment line) contains valid SSE fields
+        var remaining = message[(firstNewline + 1)..];
+
+        // If there's more content after the comment, it should be another \n (for message termination)
+        // or it should be empty. Keep-alive messages shouldn't have event/data fields.
+        return remaining.Length == 1 && remaining[0] == (byte)'\n';
+    }
 }

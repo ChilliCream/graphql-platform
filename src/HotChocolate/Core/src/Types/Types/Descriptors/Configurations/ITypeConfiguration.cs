@@ -1,3 +1,5 @@
+#nullable disable
+
 namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>

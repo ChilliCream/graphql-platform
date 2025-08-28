@@ -10,6 +10,21 @@ namespace HotChocolate.Execution.Instrumentation;
 public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
 {
     /// <summary>
+    /// Called when an event was raised and a new subscription result is being produced.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
+    /// </param>
+    /// <param name="subscriptionId">
+    /// An internal identifier for a subscription.
+    /// </param>
+    /// <returns>
+    /// A scope that will be disposed of when the subscription event execution has completed.
+    /// </returns>
+    IDisposable OnSubscriptionEvent(RequestContext context, ulong subscriptionId);
+
+    /// <summary>
     /// Called when starting to analyze the operation cost.
     /// </summary>
     /// <param name="context">

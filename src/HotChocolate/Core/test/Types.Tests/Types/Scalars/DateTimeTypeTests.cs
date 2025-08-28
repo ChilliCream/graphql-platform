@@ -497,7 +497,7 @@ public class DateTimeTypeTests
             // 30th of February is not a valid date.
             "2010-02-30T21:22:53.108Z",
             // 25 is not a valid hour for offset.
-            "2010-02-11T21:22:53.108Z+25:11",
+            "2010-02-11T21:22:53.108+25:11",
             // Additional test cases.
             // A DateTime with 8 fractional digits.
             "2011-08-30T13:22:53.12345678+03:30"

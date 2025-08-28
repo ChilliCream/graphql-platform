@@ -14,7 +14,7 @@ interface Node {
 
 type QueryWithInteface {
   "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node
+  node("ID of the object." id: ID!): Node @lookup
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node] @semanticNonNull
   someObject: SomeObject @semanticNonNull
@@ -24,5 +24,12 @@ type SomeObject implements Node & InterfaceImplementingNode {
   id: ID!
   field: String @semanticNonNull
 }
+
+"""
+The @lookup directive is used within a source schema to specify output fields
+that can be used by the distributed GraphQL executor to resolve an entity by
+a stable key.
+"""
+directive @lookup on FIELD_DEFINITION
 
 directive @semanticNonNull(levels: [Int!] = [ 0 ]) on FIELD_DEFINITION

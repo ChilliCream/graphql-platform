@@ -181,25 +181,25 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-    public IDisposable ExecuteSubscription(RequestContext context)
+    public IDisposable ExecuteSubscription(RequestContext context, ulong subscriptionId)
     {
         var scopes = new IDisposable[_listeners.Length];
 
         for (var i = 0; i < _listeners.Length; i++)
         {
-            scopes[i] = _listeners[i].ExecuteSubscription(context);
+            scopes[i] = _listeners[i].ExecuteSubscription(context, subscriptionId);
         }
 
         return new AggregateActivityScope(scopes);
     }
 
-    public IDisposable OnSubscriptionEvent(RequestContext context)
+    public IDisposable OnSubscriptionEvent(RequestContext context, ulong subscriptionId)
     {
         var scopes = new IDisposable[_listeners.Length];
 
         for (var i = 0; i < _listeners.Length; i++)
         {
-            scopes[i] = _listeners[i].OnSubscriptionEvent(context);
+            scopes[i] = _listeners[i].OnSubscriptionEvent(context, subscriptionId);
         }
 
         return new AggregateActivityScope(scopes);

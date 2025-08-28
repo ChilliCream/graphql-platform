@@ -1,4 +1,4 @@
-﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
 // ReSharper disable InconsistentNaming
@@ -627,14 +627,14 @@ namespace Foo.Bar
     {
         private readonly global::StrawberryShake.IOperationExecutor<IChangeHomePlanetResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _changeHomePlanetInputFormatter;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public ChangeHomePlanetMutation(global::StrawberryShake.IOperationExecutor<IChangeHomePlanetResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _changeHomePlanetInputFormatter = serializerResolver.GetInputValueFormatter("ChangeHomePlanetInput");
         }
 
-        private ChangeHomePlanetMutation(global::StrawberryShake.IOperationExecutor<IChangeHomePlanetResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter changeHomePlanetInputFormatter)
+        private ChangeHomePlanetMutation(global::StrawberryShake.IOperationExecutor<IChangeHomePlanetResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter changeHomePlanetInputFormatter)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;

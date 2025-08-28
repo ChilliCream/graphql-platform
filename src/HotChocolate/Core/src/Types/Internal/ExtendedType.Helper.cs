@@ -5,8 +5,6 @@ using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 internal sealed partial class ExtendedType

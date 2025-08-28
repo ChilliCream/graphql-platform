@@ -1174,6 +1174,7 @@ public class ValuesOfCorrectTypeRuleTests
                 $b: String = "ok",
                 $c: Complex3Input = { requiredField: true, intField: 3 }
                 $d: Int! = 123
+                $e: [String!]! = ["default"]
             ) {
                 dog { name }
             }

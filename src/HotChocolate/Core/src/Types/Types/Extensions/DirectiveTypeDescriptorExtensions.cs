@@ -7,7 +7,7 @@ public static class DirectiveTypeDescriptorExtensions
 {
     public static IDirectiveTypeDescriptor<T> Ignore<T>(
         this IDirectiveTypeDescriptor<T> descriptor,
-        Expression<Func<T, object>> property)
+        Expression<Func<T, object?>> property)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(property);

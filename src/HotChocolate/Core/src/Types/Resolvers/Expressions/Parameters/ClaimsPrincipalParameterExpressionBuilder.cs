@@ -6,8 +6,6 @@ using HotChocolate.Properties;
 using static System.Linq.Expressions.Expression;
 using static HotChocolate.Utilities.NullableHelper;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class ClaimsPrincipalParameterExpressionBuilder

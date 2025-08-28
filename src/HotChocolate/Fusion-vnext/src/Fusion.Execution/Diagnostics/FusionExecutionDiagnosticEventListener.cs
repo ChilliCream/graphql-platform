@@ -40,13 +40,17 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     public virtual IDisposable ExecuteOperation(RequestContext context) => EmptyScope;
 
     /// <inheritdoc />
-    public virtual IDisposable ExecuteSubscription(RequestContext context) => EmptyScope;
+    public virtual IDisposable ExecuteSubscription(RequestContext context, ulong subscriptionId)
+        => EmptyScope;
 
     /// <inheritdoc />
-    public virtual IDisposable OnSubscriptionEvent(RequestContext context) => EmptyScope;
-
-    /// <inheritdoc />
-    public virtual void ExecutionError(RequestContext context, ErrorKind kind, IReadOnlyList<IError> errors, object? state = null) { }
+    public virtual void ExecutionError(
+        RequestContext context,
+        ErrorKind kind,
+        IReadOnlyList<IError> errors,
+        object? state = null)
+    {
+    }
 
     /// <inheritdoc />
     public virtual void AddedDocumentToCache(RequestContext context) { }
@@ -55,18 +59,38 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     public virtual void RetrievedDocumentFromCache(RequestContext context) { }
 
     /// <inheritdoc />
+    public virtual void AddedOperationPlanToCache(RequestContext context, string operationPlanId) { }
+
+    /// <inheritdoc />
+    public virtual void RetrievedOperationPlanFromCache(RequestContext context, string operationPlanId) { }
+
+    /// <inheritdoc />
     public virtual void RetrievedDocumentFromStorage(RequestContext context) { }
 
     /// <inheritdoc />
     public virtual void DocumentNotFoundInStorage(RequestContext context, OperationDocumentId documentId) { }
 
-    public virtual IDisposable ExecuteOperation(OperationPlanContext context, OperationExecutionNode node)
+    /// <inheritdoc />
+    public virtual IDisposable PlanOperation(RequestContext context, string operationPlanId)
         => EmptyScope;
 
-    public virtual IDisposable ExecuteSubscriptionEvent(OperationPlanContext context, OperationExecutionNode node)
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteNodeFieldNode(OperationPlanContext context, NodeFieldExecutionNode node)
         => EmptyScope;
 
-    public virtual IDisposable ExecuteIntrospection(OperationPlanContext context, IntrospectionExecutionNode node)
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteOperationNode(OperationPlanContext context, OperationExecutionNode node)
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteSubscriptionNode(
+        OperationPlanContext context,
+        OperationExecutionNode node,
+        ulong subscriptionId)
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecuteIntrospectionNode(OperationPlanContext context, IntrospectionExecutionNode node)
         => EmptyScope;
 
     /// <inheritdoc />

@@ -34,6 +34,7 @@ internal sealed class SourceSchemaMerger
     private readonly Dictionary<string, ValueSelectionToSelectionSetRewriter>
         _selectedValueToSelectionSetRewriters = [];
     private readonly Dictionary<string, MergeSelectionSetRewriter> _mergeSelectionSetRewriters = [];
+    private readonly HashSet<string> _requireInputTypeNames = [];
 
     public SourceSchemaMerger(
         ImmutableSortedSet<MutableSchemaDefinition> schemas,
@@ -70,7 +71,7 @@ internal sealed class SourceSchemaMerger
 
         if (_options.RemoveUnreferencedTypes)
         {
-            mergedSchema.RemoveUnreferencedTypes();
+            mergedSchema.RemoveUnreferencedTypes(_requireInputTypeNames);
         }
 
         // Add lookup directives.
@@ -593,6 +594,15 @@ internal sealed class SourceSchemaMerger
                 .ReplaceNamedType(_ => GetOrCreateType(mergedSchema, fieldType))
                 .ExpectOutputType()
         };
+
+        // Keep track of input object types that are referenced by field arguments with @require.
+        _requireInputTypeNames.UnionWith(
+            fieldGroup
+                .SelectMany(i => i.Field.Arguments.AsEnumerable())
+                .Where(a => a.HasRequireDirective())
+                .Select(a => a.Type.InnerType())
+                .OfType<IInputObjectTypeDefinition>()
+                .Select(t => t.Name));
 
         // [ArgumentName: [{Argument, Field, Type, Schema}, ...], ...].
         var argumentGroupByName = fieldGroup
@@ -1155,19 +1165,19 @@ internal sealed class SourceSchemaMerger
             // Scalar type definitions.
             {
                 TypeNames.FusionFieldDefinition,
-                MutableScalarTypeDefinition.Create(TypeNames.FusionFieldDefinition)
+                new FusionFieldDefinitionMutableScalarTypeDefinition()
             },
             {
                 TypeNames.FusionFieldSelectionMap,
-                MutableScalarTypeDefinition.Create(TypeNames.FusionFieldSelectionMap)
+                new FusionFieldSelectionMapMutableScalarTypeDefinition()
             },
             {
                 TypeNames.FusionFieldSelectionPath,
-                MutableScalarTypeDefinition.Create(TypeNames.FusionFieldSelectionPath)
+                new FusionFieldSelectionPathMutableScalarTypeDefinition()
             },
             {
                 TypeNames.FusionFieldSelectionSet,
-                MutableScalarTypeDefinition.Create(TypeNames.FusionFieldSelectionSet)
+                new FusionFieldSelectionSetMutableScalarTypeDefinition()
             },
             // Enum type definitions.
             {
@@ -1234,6 +1244,10 @@ internal sealed class SourceSchemaMerger
                     fieldSelectionSetType,
                     fieldDefinitionType,
                     fieldSelectionMapType)
+            },
+            {
+                DirectiveNames.FusionSchemaMetadata,
+                new FusionSchemaMetadataMutableDirectiveDefinition(stringType)
             },
             {
                 DirectiveNames.FusionType,

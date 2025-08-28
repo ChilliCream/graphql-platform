@@ -55,6 +55,6 @@ public static partial class CoreFusionGatewayBuilderExtensions
 
         return ConfigureSchemaServices(
             builder,
-            (_, services) => services.AddSingleton(diagnosticEventListener));
+            (_, services) => services.AddSingleton<IFusionExecutionDiagnosticEventListener>(diagnosticEventListener));
     }
 }

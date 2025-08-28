@@ -10,12 +10,13 @@ operation:
         }
       }
     name: GetTopProducts
-    hash: 123
+    hash: 123456789101112
 nodes:
   - id: 1
-    schema: A
+    type: Operation
+    schema: a
     operation: >-
-      query GetTopProducts_123_1 {
+      query GetTopProducts_123456789101112_1 {
         topProducts {
           id
           name
@@ -23,9 +24,10 @@ nodes:
         }
       }
   - id: 2
-    schema: B
+    type: Operation
+    schema: b
     operation: >-
-      query GetTopProducts_123_2(
+      query GetTopProducts_123456789101112_2(
         $__fusion_1_id: ID!
         $__fusion_2_region: String!
       ) {

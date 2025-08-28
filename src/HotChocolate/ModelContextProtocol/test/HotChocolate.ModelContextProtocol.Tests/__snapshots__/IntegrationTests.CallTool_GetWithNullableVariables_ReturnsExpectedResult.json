@@ -1,0 +1,30 @@
+{
+  "data": {
+    "withNullableVariables": {
+      "any": null,
+      "boolean": null,
+      "byte": null,
+      "byteArray": null,
+      "date": null,
+      "dateTime": null,
+      "decimal": null,
+      "enum": null,
+      "float": null,
+      "id": null,
+      "int": null,
+      "json": null,
+      "list": null,
+      "localDate": null,
+      "localDateTime": null,
+      "localTime": null,
+      "long": null,
+      "object": null,
+      "short": null,
+      "string": null,
+      "timeSpan": null,
+      "unknown": null,
+      "url": null,
+      "uuid": null
+    }
+  }
+}

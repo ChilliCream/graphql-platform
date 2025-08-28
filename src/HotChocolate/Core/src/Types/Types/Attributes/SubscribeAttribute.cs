@@ -7,8 +7,6 @@ using HotChocolate.Types.Helpers;
 using static System.Reflection.BindingFlags;
 using static HotChocolate.Utilities.ThrowHelper;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 [AttributeUsage(AttributeTargets.Method)]
