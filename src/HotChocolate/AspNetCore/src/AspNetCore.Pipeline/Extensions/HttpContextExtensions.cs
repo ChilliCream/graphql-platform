@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore;
@@ -24,24 +23,6 @@ internal static class HttpContextExtensions
             return true;
         }
 
-        return false;
-    }
-
-    public static bool TryGetErrorHandlingMode(
-        this HttpContext context,
-        [NotNullWhen(true)] out ErrorHandlingMode? errorHandlingMode)
-    {
-        var headers = context.Request.Headers;
-
-        if (headers.TryGetValue(HttpHeaderKeys.ErrorMode, out var values)
-            && values is [{} value]
-            && GetErrorHandlingModeFromString(value) is {} mode)
-        {
-            errorHandlingMode = mode;
-            return true;
-        }
-
-        errorHandlingMode = null;
         return false;
     }
 
@@ -95,13 +76,4 @@ internal static class HttpContextExtensions
 
         return RequestContentType.None;
     }
-
-    private static ErrorHandlingMode? GetErrorHandlingModeFromString(string value)
-        => value switch
-        {
-            "PROPAGATE" => ErrorHandlingMode.Propagate,
-            "NULL" => ErrorHandlingMode.Null,
-            "HALT" => ErrorHandlingMode.Halt,
-            _ => null
-        };
 }

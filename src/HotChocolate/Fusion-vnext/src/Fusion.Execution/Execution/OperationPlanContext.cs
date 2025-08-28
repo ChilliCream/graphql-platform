@@ -68,7 +68,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             requestContext.Schema,
             _resultPoolSessionHolder,
             operationPlan.Operation,
-            GetErrorHandlingMode(requestContext),
+            requestContext.ErrorHandlingMode(),
             IncludeFlags);
 
         _executionState = new ExecutionState(_collectTelemetry, cancellationTokenSource);
@@ -297,18 +297,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         _resultStore.Reset(_resultPoolSessionHolder);
 
         return result;
-    }
-
-    private static ErrorHandlingMode GetErrorHandlingMode(RequestContext requestContext)
-    {
-        if (requestContext.ContextData.TryGetValue(ExecutionContextData.ErrorHandlingMode, out var rawErrorHandlingMode)
-            && requestContext.AllowErrorHandlingModeOverride()
-            && rawErrorHandlingMode is ErrorHandlingMode errorHandlingMode)
-        {
-            return errorHandlingMode;
-        }
-
-        return requestContext.DefaultErrorHandlingMode();
     }
 
     private List<ObjectFieldNode> GetPathThroughVariables(

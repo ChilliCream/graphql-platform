@@ -23,11 +23,11 @@ internal sealed class TimeoutMiddleware
     public async ValueTask InvokeAsync(RequestContext context)
     {
         // if the debugger is attached we will skip the current middleware.
-        if (Debugger.IsAttached)
-        {
-            await _next(context).ConfigureAwait(false);
-            return;
-        }
+        // if (Debugger.IsAttached)
+        // {
+        //     await _next(context).ConfigureAwait(false);
+        //     return;
+        // }
 
         using var timeout = new CancellationTokenSource(_timeout);
 

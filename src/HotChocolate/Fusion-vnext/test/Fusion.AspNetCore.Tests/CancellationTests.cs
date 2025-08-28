@@ -1,9 +1,11 @@
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
+// TODO: Subscription tests
 public class CancellationTests : FusionTestBase
 {
     [Fact]

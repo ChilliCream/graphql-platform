@@ -2,6 +2,7 @@ using HotChocolate.Features;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 
@@ -117,11 +118,20 @@ public static class FusionRequestContextExtensions
         return context.Schema.GetRequestOptions().AllowOperationPlanRequests;
     }
 
-    internal static ErrorHandlingMode DefaultErrorHandlingMode(
+    internal static ErrorHandlingMode ErrorHandlingMode(
         this RequestContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        return context.Schema.GetRequestOptions().DefaultErrorHandlingMode;
+
+        var requestOptions = context.Schema.GetRequestOptions();
+
+        if (context.Request.ErrorHandlingMode is { } errorHandlingMode
+            && requestOptions.AllowErrorHandlingModeOverride)
+        {
+            return errorHandlingMode;
+        }
+
+        return requestOptions.DefaultErrorHandlingMode;
     }
 
     internal static bool AllowErrorHandlingModeOverride(

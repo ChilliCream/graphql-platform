@@ -13,8 +13,10 @@
     "IsEmpty": true
   },
   "OperationName": null,
-  "ErrorHandlingMode": null,
-  "VariableValues": null,
+  "ErrorHandlingMode": "Halt",
+  "VariableValues": {
+    "one": "foo"
+  },
   "Extensions": null,
   "ContextData": null,
   "Features": [],

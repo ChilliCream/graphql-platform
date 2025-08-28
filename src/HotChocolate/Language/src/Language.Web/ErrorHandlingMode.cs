@@ -1,4 +1,4 @@
-namespace HotChocolate;
+namespace HotChocolate.Language;
 
 public enum ErrorHandlingMode
 {

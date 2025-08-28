@@ -13,7 +13,7 @@
     "IsEmpty": true
   },
   "OperationName": null,
-  "ErrorHandlingMode": null,
+  "ErrorHandlingMode": "Halt",
   "VariableValues": null,
   "Extensions": null,
   "ContextData": null,

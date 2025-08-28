@@ -40,13 +40,6 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
             requestBuilder.TryAddGlobalState(IncludeOperationPlan, true);
         }
 
-        if (context.TryGetErrorHandlingMode(out var errorHandlingMode))
-        {
-            requestBuilder.TryAddGlobalState(
-                HotChocolate.ExecutionContextData.ErrorHandlingMode,
-                errorHandlingMode);
-        }
-
         return default;
     }
 

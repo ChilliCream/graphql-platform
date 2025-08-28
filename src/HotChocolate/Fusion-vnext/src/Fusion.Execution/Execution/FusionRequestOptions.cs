@@ -1,4 +1,5 @@
 using HotChocolate.Caching.Memory;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -126,8 +127,8 @@ public sealed class FusionRequestOptions : ICloneable
     }
 
     /// <summary>
-    /// Gets or sets whether the operation plan can be requested via the <c>GraphQL-Error-Handling</c> header.
-    /// <c>false</c> by default.
+    /// Gets or sets the default error handling mode.
+    /// Defaults to <see cref="ErrorHandlingMode.Propagate"/>.
     /// </summary>
     public ErrorHandlingMode DefaultErrorHandlingMode
     {
@@ -144,8 +145,8 @@ public sealed class FusionRequestOptions : ICloneable
     }
 
     /// <summary>
-    /// Gets or sets whether the operation plan can be requested via the <c>GraphQL-Error-Mode</c> header.
-    /// <c>false</c> by default.
+    /// Gets or sets whether the <see cref="DefaultErrorHandlingMode"/> can be overriden
+    /// on a per-request basis.
     /// </summary>
     public bool AllowErrorHandlingModeOverride
     {
