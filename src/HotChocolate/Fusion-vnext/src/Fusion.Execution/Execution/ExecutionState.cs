@@ -151,7 +151,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         while (_stack.TryPop(out var current))
         {
             if (_backlog.Remove(current)
-                && CollectTelemetry
+                && collectTelemetry
                 && !_completed.Contains(current)
                 && !Traces.ContainsKey(current.Id))
             {
