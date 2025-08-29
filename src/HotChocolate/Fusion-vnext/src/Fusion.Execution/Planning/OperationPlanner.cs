@@ -114,7 +114,6 @@ public sealed partial class OperationPlanner
         string shortHash,
         ISelectionSetIndex index)
     {
-        var indexBuilder = index.ToBuilder();
         var selectionSet = new SelectionSet(
             index.GetId(operationDefinition.SelectionSet),
             operationDefinition.SelectionSet,
@@ -147,7 +146,7 @@ public sealed partial class OperationPlanner
             InternalOperationDefinition = operationDefinition,
             ShortHash = shortHash,
             SchemaName = "None",
-            SelectionSetIndex = indexBuilder,
+            SelectionSetIndex = result.SelectionSetIndex,
             Backlog = backlog,
             PathCost = 1,
             BacklogCost = backlog.Count()
