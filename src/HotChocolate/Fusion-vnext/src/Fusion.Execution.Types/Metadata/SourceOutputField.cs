@@ -1,6 +1,6 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Types;
+namespace HotChocolate.Fusion.Types.Metadata;
 
 public sealed class SourceOutputField(
     string name,

@@ -49,6 +49,7 @@ internal static class LookupDirectiveParser
                     {
                         path = pathValueNode.Value.Trim().Split('.').ToImmutableArray();
                     }
+
                     break;
 
                 default:

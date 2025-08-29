@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -74,7 +75,7 @@ internal sealed class OperationPlanExecutor
 
         if (context.CollectTelemetry)
         {
-            context.Traces = [.. executionState.Traces];
+            context.Traces = executionState.Traces.ToImmutableDictionary();
         }
     }
 
@@ -130,7 +131,7 @@ internal sealed class OperationPlanExecutor
 
         if (context.CollectTelemetry)
         {
-            context.Traces = [.. executionState.Traces];
+            context.Traces = executionState.Traces.ToImmutableDictionary();
         }
     }
 

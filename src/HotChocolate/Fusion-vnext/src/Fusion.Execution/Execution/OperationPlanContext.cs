@@ -88,7 +88,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     public IFeatureCollection Features => RequestContext.Features;
 
-    public ImmutableArray<ExecutionNodeTrace> Traces { get; internal set; } = [];
+    public ImmutableDictionary<int, ExecutionNodeTrace> Traces { get; internal set; } =
+        ImmutableDictionary<int, ExecutionNodeTrace>.Empty;
 
     public IFusionExecutionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 
@@ -219,7 +220,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
                 AppId = environment?.AppId,
                 EnvironmentName = environment?.Name,
                 Duration = Stopwatch.GetElapsedTime(_start),
-                Nodes = Traces.ToImmutableDictionary(t => t.Id)
+                Nodes = Traces
             }
             : null;
 
@@ -314,7 +315,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     {
         public string? SchemaName { get; init; }
 
-        [SuppressMessage("ReSharper", "TypeWithSuspiciousEqualityIsUsedInRecord.Local")]
         public ImmutableArray<VariableValues> Variables { get; init; } = [];
     }
 }
