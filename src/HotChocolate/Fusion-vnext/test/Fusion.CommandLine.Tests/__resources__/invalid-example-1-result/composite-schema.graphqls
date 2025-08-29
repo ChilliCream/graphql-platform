@@ -18,8 +18,8 @@ type Query
 type User
   @fusion__type(schema: SCHEMA1)
   @fusion__type(schema: SCHEMA2)
-  @fusion__lookup(schema: SCHEMA1, key: "id", field: "userById(id: ID!): User!", map: [ "id" ], path: null)
-  @fusion__lookup(schema: SCHEMA2, key: "id", field: "userById(id: ID!): User!", map: [ "id" ], path: null) {
+  @fusion__lookup(schema: SCHEMA1, key: "id", field: "userById(id: ID!): User!", map: [ "id" ], path: null, internal: false)
+  @fusion__lookup(schema: SCHEMA2, key: "id", field: "userById(id: ID!): User!", map: [ "id" ], path: null, internal: false) {
   id: ID!
     @fusion__field(schema: SCHEMA1)
     @fusion__field(schema: SCHEMA2)
@@ -63,7 +63,7 @@ directive @fusion__inaccessible on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT
 directive @fusion__inputField("The name of the source schema that originally provided this input field." schema: fusion__Schema! "The field type in the source schema if it differs in nullability or structure." sourceType: String) repeatable on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 
 "The @fusion__lookup directive specifies how the distributed executor can resolve data for an entity type from a source schema by a stable key."
-directive @fusion__lookup("The GraphQL field definition in the source schema that can be used to look up the entity." field: fusion__FieldDefinition! "A selection set on the annotated entity type that describes the stable key for the lookup." key: fusion__FieldSelectionSet! "The map describes how the key values are resolved from the annotated entity type." map: [fusion__FieldSelectionMap!]! "The path to the lookup field relative to the Query type." path: fusion__FieldSelectionPath "The name of the source schema where the annotated entity type can be looked up from." schema: fusion__Schema!) repeatable on OBJECT | INTERFACE | UNION
+directive @fusion__lookup("The GraphQL field definition in the source schema that can be used to look up the entity." field: fusion__FieldDefinition! "Is the lookup meant as an entry point or just to provide more data." internal: Boolean! = false "A selection set on the annotated entity type that describes the stable key for the lookup." key: fusion__FieldSelectionSet! "The map describes how the key values are resolved from the annotated entity type." map: [fusion__FieldSelectionMap!]! "The path to the lookup field relative to the Query type." path: fusion__FieldSelectionPath "The name of the source schema where the annotated entity type can be looked up from." schema: fusion__Schema!) repeatable on OBJECT | INTERFACE | UNION
 
 "The @fusion__requires directive specifies if a field has requirements on a source schema."
 directive @fusion__requires("The GraphQL field definition in the source schema that this field depends on." field: fusion__FieldDefinition! "The map describes how the argument values for the source schema are resolved from the arguments of the field exposed in the client-facing composite schema and from required data relative to the current type." map: [fusion__FieldSelectionMap]! "A selection set on the annotated field that describes its requirements." requirements: fusion__FieldSelectionSet! "The name of the source schema where this field has requirements to data on other source schemas." schema: fusion__Schema!) repeatable on FIELD_DEFINITION

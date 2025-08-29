@@ -285,6 +285,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Is the lookup meant as an entry point or just to provide more data..
+        /// </summary>
+        internal static string FusionLookupMutableDirectiveDefinition_Argument_Internal_Description {
+            get {
+                return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Argument_Internal_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A selection set on the annotated entity type that describes the stable key for the lookup..
         /// </summary>
         internal static string FusionLookupMutableDirectiveDefinition_Argument_Key_Description {
