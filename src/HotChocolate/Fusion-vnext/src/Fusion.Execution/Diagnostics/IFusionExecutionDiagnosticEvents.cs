@@ -64,17 +64,17 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
     /// Called when an error occurs during operation planning.
     /// </summary>
     /// <param name="context">
-    /// The operation plan context.
+    /// The GraphQL request context.
     /// </param>
-    /// <param name="node">
-    /// The execution node where the planning error occurred.
+    /// <param name="operationId">
+    /// The unique identifier of the operation plan retrieved from cache.
     /// </param>
     /// <param name="error">
     /// The exception that occurred during planning.
     /// </param>
     void PlanOperationError(
-        OperationPlanContext context,
-        ExecutionNode node,
+        RequestContext context,
+        string operationId,
         Exception error);
 
     /// <summary>
@@ -235,7 +235,7 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
         OperationPlanContext context,
         ExecutionNode node,
         string schemaName,
-        IReadOnlyCollection<IError> errors);
+        IReadOnlyList<IError> errors);
 
     /// <summary>
     /// Called when a transport error occurs while communicating with a source schema
