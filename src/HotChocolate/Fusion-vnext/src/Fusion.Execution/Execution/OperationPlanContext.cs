@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;

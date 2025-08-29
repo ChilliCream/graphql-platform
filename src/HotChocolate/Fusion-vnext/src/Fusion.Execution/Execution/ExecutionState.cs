@@ -100,7 +100,10 @@ internal sealed class ExecutionState
     public void CompleteNode(ExecutionNode node, ExecutionNodeResult result)
     {
         Interlocked.Decrement(ref _activeNodes);
-        _completed.Add(node);
+        if (result.Status is ExecutionStatus.Success or ExecutionStatus.PartialSuccess)
+        {
+            _completed.Add(node);
+        }
 
         if (CollectTelemetry)
         {
@@ -139,6 +142,17 @@ internal sealed class ExecutionState
         while (_stack.TryPop(out var current))
         {
             _backlog.Remove(current);
+
+            if (CollectTelemetry && !_completed.Contains(current))
+            {
+                Traces.Add(new ExecutionNodeTrace
+                {
+                    Id = node.Id,
+                    Status = ExecutionStatus.Skipped,
+                    Duration = TimeSpan.Zero,
+                    VariableSets = []
+                });
+            }
 
             foreach (var enqueuedNode in _backlog)
             {

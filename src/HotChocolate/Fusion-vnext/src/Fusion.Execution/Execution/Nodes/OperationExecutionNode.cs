@@ -112,6 +112,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         var index = 0;
         var bufferLength = 0;
         SourceSchemaResult[]? buffer = null;
+        var hasSomeErrors = false;
 
         try
         {
@@ -125,6 +126,11 @@ public sealed class OperationExecutionNode : ExecutionNode
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {
                 buffer[index++] = result;
+
+                if (result.Errors is not null)
+                {
+                    hasSomeErrors = true;
+                }
             }
         }
         catch (Exception exception)
@@ -165,7 +171,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
         }
 
-        return ExecutionStatus.Success;
+        return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
     }
 
     protected override IDisposable CreateScope(OperationPlanContext context)
