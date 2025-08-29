@@ -93,6 +93,9 @@
   <data name="FusionLookupMutableDirectiveDefinition_Argument_Field_Description" xml:space="preserve">
     <value>The GraphQL field definition in the source schema that can be used to look up the entity.</value>
   </data>
+  <data name="FusionLookupMutableDirectiveDefinition_Argument_Internal_Description" xml:space="preserve">
+    <value>Is the lookup meant as an entry point or just to provide more data.</value>
+  </data>
   <data name="FusionLookupMutableDirectiveDefinition_Argument_Key_Description" xml:space="preserve">
     <value>A selection set on the annotated entity type that describes the stable key for the lookup.</value>
   </data>
