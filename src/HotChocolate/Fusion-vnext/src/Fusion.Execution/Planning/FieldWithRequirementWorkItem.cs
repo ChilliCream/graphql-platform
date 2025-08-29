@@ -1,4 +1,5 @@
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Metadata;
 
 namespace HotChocolate.Fusion.Planning;
 

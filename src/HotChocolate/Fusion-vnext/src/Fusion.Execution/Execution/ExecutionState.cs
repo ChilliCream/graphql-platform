@@ -19,7 +19,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
     private int _activeNodes;
 
-    public readonly List<ExecutionNodeTrace> Traces = [];
+    public readonly OrderedDictionary<int, ExecutionNodeTrace> Traces = [];
 
     public readonly AsyncAutoResetEvent Signal = new();
 
@@ -109,14 +109,16 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
         if (collectTelemetry)
         {
-            Traces.Add(new ExecutionNodeTrace
-            {
-                Id = result.Id,
-                SpanId = result.Activity?.SpanId.ToHexString(),
-                Status = result.Status,
-                Duration = result.Duration,
-                VariableSets = result.VariableValueSets
-            });
+            Traces.TryAdd(
+                result.Id,
+                new ExecutionNodeTrace
+                {
+                    Id = result.Id,
+                    SpanId = result.Activity?.SpanId.ToHexString(),
+                    Status = result.Status,
+                    Duration = result.Duration,
+                    VariableSets = result.VariableValueSets
+                });
         }
 
         if (result.Status is ExecutionStatus.Success or ExecutionStatus.PartialSuccess)
@@ -150,15 +152,18 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         {
             if (_backlog.Remove(current)
                 && collectTelemetry
-                && !_completed.Contains(current))
+                && !_completed.Contains(current)
+                && !Traces.ContainsKey(current.Id))
             {
-                Traces.Add(new ExecutionNodeTrace
-                {
-                    Id = node.Id,
-                    Status = ExecutionStatus.Skipped,
-                    Duration = TimeSpan.Zero,
-                    VariableSets = []
-                });
+                Traces.Add(
+                    current.Id,
+                    new ExecutionNodeTrace
+                    {
+                        Id = current.Id,
+                        Status = ExecutionStatus.Skipped,
+                        Duration = TimeSpan.Zero,
+                        VariableSets = []
+                    });
             }
 
             foreach (var enqueuedNode in _backlog)

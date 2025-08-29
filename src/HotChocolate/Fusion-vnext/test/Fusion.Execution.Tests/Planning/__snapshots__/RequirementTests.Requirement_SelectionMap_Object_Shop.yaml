@@ -97,19 +97,16 @@ nodes:
       query Op_123456789101112_5(
         $__fusion_5_id: ID!
       ) {
-        node(id: $__fusion_5_id) {
-          __typename
-          ... on Product {
-            weight
-            dimension {
-              length
-              width
-              height
-            }
+        productById(id: $__fusion_5_id) {
+          weight
+          dimension {
+            length
+            width
+            height
           }
         }
       }
-    source: $.node<Product>
+    source: $.productById
     target: $.users.nodes.reviews.nodes.product
     requirements:
       - name: __fusion_5_id

@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Types;
+namespace HotChocolate.Fusion.Types.Metadata;
 
 /// <summary>
 /// Provides information in which environment the schema is deployed.
