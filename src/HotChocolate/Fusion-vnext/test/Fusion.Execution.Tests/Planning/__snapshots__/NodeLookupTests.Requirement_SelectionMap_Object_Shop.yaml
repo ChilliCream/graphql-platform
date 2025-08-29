@@ -74,7 +74,8 @@ nodes:
     target: $.users.nodes
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1
   - id: 3
@@ -86,13 +87,15 @@ nodes:
       ) {
         node(id: $__fusion_2_id) {
           __typename
-          weight
-          pictureFileName
-          price
-          dimension {
-            length
-            width
-            height
+          ... on Product {
+            weight
+            pictureFileName
+            price
+            dimension {
+              length
+              width
+              height
+            }
           }
         }
       }
@@ -100,7 +103,8 @@ nodes:
     target: $.users.nodes.reviews.nodes.product
     requirements:
       - name: __fusion_2_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 2
   - id: 4
@@ -118,7 +122,8 @@ nodes:
     target: $.users.nodes.reviews.nodes.product
     requirements:
       - name: __fusion_3_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 2
   - id: 5
@@ -137,14 +142,16 @@ nodes:
     target: $.users.nodes.reviews.nodes.product
     requirements:
       - name: __fusion_4_id
-        selectionMap: id
+        selectionMap: >-
+          id
       - name: __fusion_5_dimension
-        selectionMap: {
-  weight
-  length: dimension.length
-  width: dimension.width
-  height: dimension.height
-}
+        selectionMap: >-
+          {
+            weight
+            length: dimension.length
+            width: dimension.width
+            height: dimension.height
+          }
     dependencies:
       - id: 2
       - id: 3
