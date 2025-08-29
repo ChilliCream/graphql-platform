@@ -1,0 +1,84 @@
+---------------
+{
+  "data": {
+    "onReviewCreated": {
+      "id": 1
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "64d7ec30d4a6fd6877bba648f02045a793c39a951218aaaf52173b4a6254a6d8",
+        "operation": {
+          "kind": "Subscription",
+          "document": "subscription {\n  onReviewCreated {\n    id\n  }\n}",
+          "id": "1c7b790e223d28e348d3e04a33527c96",
+          "hash": "1c7b790e223d28e348d3e04a33527c96",
+          "shortHash": "1c7b790e"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_1c7b790e_1",
+              "type": "Subscription",
+              "document": "subscription Op_1c7b790e_1 {\n  onReviewCreated {\n    id\n  }\n}",
+              "hash": "978c1f45afca3a44aa9a7a2ffe6e5aee77c974f2b8d5b1e3f1bbc9372536e188",
+              "shortHash": "978c1f45"
+            },
+            "responseNames": [
+              "onReviewCreated"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
+---------------
+
+---------------
+{
+  "errors": [
+    {
+      "message": "Could not produce review",
+      "path": [
+        "onReviewCreated"
+      ]
+    }
+  ],
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "64d7ec30d4a6fd6877bba648f02045a793c39a951218aaaf52173b4a6254a6d8",
+        "operation": {
+          "kind": "Subscription",
+          "document": "subscription {\n  onReviewCreated {\n    id\n  }\n}",
+          "id": "1c7b790e223d28e348d3e04a33527c96",
+          "hash": "1c7b790e223d28e348d3e04a33527c96",
+          "shortHash": "1c7b790e"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_1c7b790e_1",
+              "type": "Subscription",
+              "document": "subscription Op_1c7b790e_1 {\n  onReviewCreated {\n    id\n  }\n}",
+              "hash": "978c1f45afca3a44aa9a7a2ffe6e5aee77c974f2b8d5b1e3f1bbc9372536e188",
+              "shortHash": "978c1f45"
+            },
+            "responseNames": [
+              "onReviewCreated"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
+---------------

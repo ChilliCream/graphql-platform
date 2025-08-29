@@ -135,7 +135,7 @@ public sealed class FieldSelectionMapValidatorTests
         Assert.Equal(expected, errors);
     }
 
-    // If the "UserInput" type requires the "name" field, but the "User" type has an optional "name"
+    // If the "UserInput" type has an optional "name" field, but the "User" type requires the "name"
     // field, the following selection would be valid.
     [Fact]
     public void RequiredSelectedObjectFields_Example2()
@@ -149,12 +149,12 @@ public sealed class FieldSelectionMapValidatorTests
 
             type User {
                 id: ID
-                name: String
+                name: String!
             }
 
             input UserInput {
                 id: ID
-                name: String!
+                name: String
             }
             """);
         var fieldSelectionMap = GetFieldSelectionMap(schema, "Query", "findUser", "input", "is");
@@ -235,13 +235,13 @@ public sealed class FieldSelectionMapValidatorTests
             }
 
             type Person {
-                id: ID
+                id: ID!
                 name: String
                 address: Address
             }
 
             type Address {
-                id: ID
+                id: ID!
             }
 
             input PersonByInput @oneOf {
@@ -277,9 +277,13 @@ public sealed class FieldSelectionMapValidatorTests
             { "FindMediaInput", "Media", "{ bookId: <Book>.id } | { movieId: <Movie>.id }" },
             { "Nested", "Media", "{ nested: { bookId: <Book>.id } | { movieId: <Movie>.id } }" },
             // Other tests.
-            { "String", "Book", "{ id, title }" },
-            { "ID", "Query", "mediaById<Book>.author.id | mediaById<Movie>.id" },
-            { "ID", "Media", "{ bookId: <Book>.author.id } | { movieId: <Movie>.id }" }
+            { "BookIdAndTitleInput", "Book", "{ id, title }" },
+            { "IdInput", "Query", "storeById.{ id }" },
+            { "IdInput", "Query", "storeById.{ id } | storeById.{ id }" },
+            { "[ID]", "Query", "storeById.media[id]" },
+            { "[ID]", "Query", "storeById.media[id] | storeById.media[id]" },
+            { "[[ID]]", "Query", "nestedBookList[[id]]" },
+            { "[[BookIdAndTitleInput]]", "Query", "nestedBookList[[{ id, title }]]" }
         };
     }
 
@@ -323,19 +327,19 @@ public sealed class FieldSelectionMapValidatorTests
                 "String",
                 "Store",
                 "id",
-                ["The field 'id' is of type 'ID' instead of the expected input type 'String'."]
+                ["The field 'id' is of type 'ID!' instead of the expected input type 'String'."]
             },
             // TODO: 6.3.5 Selected Object Field Names examples.
             // TODO: 6.3.6 Selected Object Field Uniqueness examples.
             // Blocked by https://github.com/graphql/composite-schemas-spec/issues/171.
             // Additional tests.
             {
-                "String",
+                "BookIdAndTitleInput",
                 "Book",
-                "{ id, unknownField1, unknownField2 }",
+                "{ id, title, unknownField1, unknownField2 }",
                 [
-                    "The field 'unknownField1' does not exist on the type 'Book'.",
-                    "The field 'unknownField2' does not exist on the type 'Book'."
+                    "The field 'unknownField1' does not exist on the input type 'BookIdAndTitleInput'.",
+                    "The field 'unknownField2' does not exist on the input type 'BookIdAndTitleInput'."
                 ]
             },
             {
@@ -360,9 +364,31 @@ public sealed class FieldSelectionMapValidatorTests
                 "ID",
                 "Query",
                 "mediaById<Store>.id",
-                [
-                    "The type 'Store' is not a possible type of type 'Media'."
-                ]
+                ["The type 'Store' is not a possible type of type 'Media'."]
+            },
+            {
+                "ID",
+                "Query",
+                "storeById.{ id }",
+                ["Expected an input object type but found 'ID'."]
+            },
+            {
+                "ID",
+                "Book",
+                "{ id, title }",
+                ["Expected an input object type but found 'ID'."]
+            },
+            {
+                "[[[BookIdAndTitleInput]]]",
+                "Query",
+                "nestedBookList[[{ id, title }]]",
+                ["Expected an input object type but found '[BookIdAndTitleInput]'."]
+            },
+            {
+                "[[BookIdAndTitleInput]]",
+                "Query",
+                "nestedBookList[[{ id }]]",
+                ["The selection on input type 'BookIdAndTitleInput' must include all required fields."]
             }
         };
     }
@@ -376,6 +402,7 @@ public sealed class FieldSelectionMapValidatorTests
                 findMedia(input: FindMediaInput): Media
                 searchStore(search: SearchStoreInput): [Store]!
                 storeById(id: ID!): Store
+                nestedBookList: [[Book]] # Added
             }
 
             type Store {
@@ -418,6 +445,17 @@ public sealed class FieldSelectionMapValidatorTests
 
             input Nested {
                 nested: FindMediaInput
+            }
+
+            # Added
+            input BookIdAndTitleInput {
+                id: ID!
+                title: String!
+            }
+
+            # Added
+            input IdInput {
+                id: ID!
             }
             """);
 
