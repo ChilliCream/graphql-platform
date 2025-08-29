@@ -12,7 +12,7 @@ internal sealed class OperationPlanMiddleware
 {
     private readonly OperationPlanner _planner;
     private readonly InlineFragmentOperationRewriter _rewriter;
-    private readonly IOperationPlannerInterceptor[]  _interceptors;
+    private readonly IOperationPlannerInterceptor[] _interceptors;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticsEvents;
 
     private OperationPlanMiddleware(

@@ -8,7 +8,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "e6a988d4f83b04e93522da65db0887b2ac959a3d6f7c4e533f032034c7a64245",
+        "id": "f576c777eb52ae517481428b235f4c62798ad9867a390d433671a02038cfba66",
         "operation": {
           "kind": "Query",
           "document": "{\n  authorById(id: 1) {\n    name\n    age\n    id @fusion__requirement\n  }\n}",
@@ -43,7 +43,9 @@
               "hash": "e5976249e22113aad071cfd11daf2709ea3521e377e172ce3b013ffe6cd5f077",
               "shortHash": "e5976249"
             },
-            "responseNames": [],
+            "responseNames": [
+              "age"
+            ],
             "source": "$.otherInterface<Author>",
             "target": "$.authorById",
             "requirements": [

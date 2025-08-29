@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
@@ -261,13 +262,11 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
 
     private ImmutableArray<Lookup> GetPossibleLookupsInternal(ITypeDefinition type, string? schemaName)
     {
-        // TODO: Currently we just check that the type exists in the given source schema
-        //       and that there are lookups for itself and / or the abstract types
-        //       it's a part of. However, we don't check that the type is part of the
-        //       abstract type in the given source schema.
         if (type is FusionComplexTypeDefinition complexType)
         {
             FusionUnionTypeDefinition[]? unionTypes = null;
+            FusionObjectTypeDefinition? objectType = null;
+
             if (complexType.Kind == TypeKind.Object)
             {
                 // if we are trying to resolve possible lookups for object types
@@ -276,30 +275,46 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
                 //
                 // we do not care about the allocation here as we cache the outcome of this method.
                 unionTypes = _unionTypes.Where(unionType => unionType.Types.ContainsName(type.Name)).ToArray();
+                objectType = (FusionObjectTypeDefinition)complexType;
             }
 
             var lookups = ImmutableArray.CreateBuilder<Lookup>();
 
             foreach (var source in complexType.Sources)
             {
-                CollectLookups(schemaName, lookups, source.Lookups);
+                // if the schemaName is null we are considering all possible source schemas.
+                if (schemaName is not null
+                    && !source.SchemaName.Equals(schemaName, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                lookups.AddRange(source.Lookups);
 
                 foreach (var interfaceType in complexType.Implements)
                 {
-                    if (interfaceType.Sources.TryGetMember(source.SchemaName, out var interfaceSource))
+                    // we will only consider interfaces that are implemented by the complex type
+                    // on the current source schema.
+                    if (source.Implements.Contains(interfaceType.Name)
+                        && interfaceType.Sources.TryGetMember(source.SchemaName, out var interfaceSource))
                     {
-                        CollectLookups(schemaName, lookups, interfaceSource.Lookups);
+                        lookups.AddRange(interfaceSource.Lookups);
                     }
                 }
 
                 // we only look at union types if the complex type is an object type.
-                if (unionTypes is not null)
+                if (objectType is not null && unionTypes is not null)
                 {
+                    var sourceObjectType = (SourceObjectType)source;
+
                     foreach (var unionType in unionTypes)
                     {
-                        if (unionType.Sources.TryGetMember(source.SchemaName, out var unionSource))
+                        // we will only consider unions where the current object type is a member of
+                        // on the current source schema.
+                        if (sourceObjectType.MemberOf.Contains(unionType.Name)
+                            && unionType.Sources.TryGetMember(source.SchemaName, out var unionSource))
                         {
-                            CollectLookups(schemaName, lookups, unionSource.Lookups);
+                            lookups.AddRange(unionSource.Lookups);
                         }
                     }
                 }
@@ -309,27 +324,6 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
         }
 
         return [];
-
-        static void CollectLookups(
-            string? schemaName,
-            ImmutableArray<Lookup>.Builder selectedLookups,
-            ImmutableArray<Lookup> possibleLookups)
-        {
-            if (schemaName is not null)
-            {
-                foreach (var lookup in possibleLookups)
-                {
-                    if (lookup.SchemaName.Equals(schemaName, StringComparison.Ordinal))
-                    {
-                        selectedLookups.Add(lookup);
-                    }
-                }
-            }
-            else
-            {
-                selectedLookups.AddRange(possibleLookups);
-            }
-        }
     }
 
     public IEnumerable<INameProvider> GetAllDefinitions()

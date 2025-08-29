@@ -41,6 +41,7 @@ nodes:
     target: $.votable<Discussion>
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1

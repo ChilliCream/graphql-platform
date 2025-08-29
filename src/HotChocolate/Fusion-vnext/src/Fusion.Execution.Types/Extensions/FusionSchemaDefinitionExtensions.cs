@@ -1,3 +1,5 @@
+using HotChocolate.Fusion.Types.Metadata;
+
 namespace HotChocolate.Fusion.Types;
 
 /// <summary>

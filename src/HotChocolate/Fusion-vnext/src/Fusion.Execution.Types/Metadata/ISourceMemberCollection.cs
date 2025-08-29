@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
-namespace HotChocolate.Fusion.Types;
+namespace HotChocolate.Fusion.Types.Metadata;
 
 public interface ISourceMemberCollection<TMember>
     : IEnumerable<TMember>

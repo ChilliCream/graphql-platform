@@ -84,7 +84,7 @@ internal sealed class SchemaComposition(
 
             var gatewayDirectory = GetProjectPath(compositionResource)!;
             var archivePath = Path.Combine(Path.GetDirectoryName(gatewayDirectory)!, settings.OutputFileName);
-            return await ComposeSchemaAsync(archivePath, sourceSchemas, cancellationToken);
+            return await ComposeSchemaAsync(archivePath, sourceSchemas, settings, cancellationToken);
         }
         catch (OperationCanceledException)
         {
@@ -462,6 +462,7 @@ internal sealed class SchemaComposition(
     private async Task<bool> ComposeSchemaAsync(
         string archivePath,
         List<SourceSchemaInfo> sourceSchemas,
+        GraphQLSchemaCompositionAnnotation settings,
         CancellationToken cancellationToken)
     {
         var tempArchivePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -477,6 +478,7 @@ internal sealed class SchemaComposition(
                 tempArchivePath,
                 [.. sourceSchemas],
                 "Development", // Environment name
+                settings.Settings,
                 logger,
                 cancellationToken))
             {

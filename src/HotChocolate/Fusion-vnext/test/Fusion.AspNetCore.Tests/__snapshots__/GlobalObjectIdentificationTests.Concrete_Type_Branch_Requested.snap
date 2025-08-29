@@ -8,7 +8,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "28ec9a0d9d4c7cc2ca3f8010abfe3c52340edd0d62d0b6f045808715394eec29",
+        "id": "820dc8121b9a3692358e20e844dccbb3557b78d56dea96de9d723f5e7e5d6060",
         "operation": {
           "kind": "Query",
           "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n      commentCount\n    }\n    id @fusion__requirement\n  }\n}",
@@ -73,7 +73,9 @@
               "hash": "68f951566f2260d93a4eb67a82d617aee90f8b4c015513f10af0be6d20420a46",
               "shortHash": "68f95156"
             },
-            "responseNames": [],
+            "responseNames": [
+              "commentCount"
+            ],
             "source": "$.node<Discussion>",
             "target": "$.node",
             "requirements": [

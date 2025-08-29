@@ -41,7 +41,6 @@ internal sealed class PersistedOperationNotFoundMiddleware
         // must be present, otherwise the request would not have been routed to this middleware.
         _diagnosticEvents.DocumentNotFoundInStorage(context, context.Request.DocumentId);
         var error = PersistedOperationNotFound(context.Request.DocumentId);
-        _diagnosticEvents.ExecutionError(context, ErrorKind.RequestError, [error]);
         context.Result = OperationResultBuilder.CreateError(error, _statusCode);
 
         return default;

@@ -7,7 +7,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class ExecutionState
+internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSource cts)
 {
     private readonly List<ExecutionNode> _stack = [];
 
@@ -19,11 +19,9 @@ internal sealed class ExecutionState
 
     private int _activeNodes;
 
-    public readonly List<ExecutionNodeTrace> Traces = [];
+    public readonly OrderedDictionary<int, ExecutionNodeTrace> Traces = [];
 
     public readonly AsyncAutoResetEvent Signal = new();
-
-    public bool CollectTelemetry;
 
     public void FillBacklog(OperationPlan plan)
     {
@@ -97,30 +95,44 @@ internal sealed class ExecutionState
     public bool TryDequeueCompletedResult([NotNullWhen(true)] out ExecutionNodeResult? result)
         => _completedResults.TryDequeue(out result);
 
+    public void CancelProcessing()
+    {
+        if (!cts.IsCancellationRequested)
+        {
+            cts.Cancel();
+        }
+    }
+
     public void CompleteNode(ExecutionNode node, ExecutionNodeResult result)
     {
         Interlocked.Decrement(ref _activeNodes);
-        _completed.Add(node);
 
-        if (CollectTelemetry)
+        if (collectTelemetry)
         {
-            Traces.Add(new ExecutionNodeTrace
-            {
-                Id = result.Id,
-                SpanId = result.Activity?.SpanId.ToHexString(),
-                Status = result.Status,
-                Duration = result.Duration,
-                VariableSets = result.VariableValueSets
-            });
+            Traces.TryAdd(
+                result.Id,
+                new ExecutionNodeTrace
+                {
+                    Id = result.Id,
+                    SpanId = result.Activity?.SpanId.ToHexString(),
+                    Status = result.Status,
+                    Duration = result.Duration,
+                    VariableSets = result.VariableValueSets
+                });
         }
 
-        if (result.DependentsToExecute.Length > 0)
+        if (result.Status is ExecutionStatus.Success or ExecutionStatus.PartialSuccess)
         {
-            foreach (var dependent in node.Dependents)
+            _completed.Add(node);
+
+            if (result.DependentsToExecute.Length > 0)
             {
-                if (!result.DependentsToExecute.Contains(dependent))
+                foreach (var dependent in node.Dependents)
                 {
-                    SkipNode(dependent);
+                    if (!result.DependentsToExecute.Contains(dependent))
+                    {
+                        SkipNode(dependent);
+                    }
                 }
             }
         }
@@ -138,7 +150,21 @@ internal sealed class ExecutionState
 
         while (_stack.TryPop(out var current))
         {
-            _backlog.Remove(current);
+            if (_backlog.Remove(current)
+                && collectTelemetry
+                && !_completed.Contains(current)
+                && !Traces.ContainsKey(current.Id))
+            {
+                Traces.Add(
+                    current.Id,
+                    new ExecutionNodeTrace
+                    {
+                        Id = current.Id,
+                        Status = ExecutionStatus.Skipped,
+                        Duration = TimeSpan.Zero,
+                        VariableSets = []
+                    });
+            }
 
             foreach (var enqueuedNode in _backlog)
             {
