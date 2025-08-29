@@ -540,6 +540,77 @@ public class BookStoreTests : FusionTestBase
         }
     }
 
+    [Fact]
+    public async Task Ensure_String_Literals_Can_Be_Empty()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+              formatTitle(title: "")
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Ensure_String_Variables_Can_Be_Empty()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            query ($s: String!) {
+              formatTitle(title: $s)
+            }
+            """,
+            variables: new Dictionary<string, object?> { { "s", "" } },
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
     public static class SourceSchema1
     {
         public record Book(int Id, string Title, Author Author);
@@ -564,6 +635,9 @@ public class BookStoreTests : FusionTestBase
             [UsePaging]
             public IEnumerable<Book> GetBooks()
                 => _books.Values;
+
+            public string FormatTitle(string title)
+                => title;
         }
     }
 
