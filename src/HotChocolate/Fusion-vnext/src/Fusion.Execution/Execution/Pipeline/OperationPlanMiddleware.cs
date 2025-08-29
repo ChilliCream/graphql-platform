@@ -69,9 +69,11 @@ internal sealed class OperationPlanMiddleware
             OnAfterPlanCompleted(operationDocumentInfo, operationPlan);
             context.SetOperationPlan(operationPlan);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _diagnosticsEvents.PlanOperationError(context, operationId, ex);
+
+            throw;
         }
     }
 
