@@ -219,9 +219,8 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
     {
         foreach (var possibleType in schema.GetPossibleTypes(nodeType))
         {
-            var unionTypes =
-                schema.Types.OfType<MutableUnionTypeDefinition>().Where(u => u.Types.Contains(possibleType));
-            var byIdLookups = possibleType.GetFusionLookupDirectivesById(unionTypes).ToList();
+            var byIdLookups = schema
+                .GetPossibleFusionLookupDirectivesById(possibleType);
 
             var hasNodeLookup = false;
 
@@ -276,13 +275,8 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
     {
         var errors = new List<SatisfiabilityError>();
 
-        // Get the list of union types that contain the current type.
-        var unionTypes =
-            schema.Types.OfType<MutableUnionTypeDefinition>().Where(u => u.Types.Contains(type));
-
-        // Get the list of lookups for the current type in the destination schema.
         var lookupDirectives =
-            type.GetFusionLookupDirectives(transitionToSchemaName, unionTypes).ToImmutableArray();
+            schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
 
         if (!lookupDirectives.Any() && !HasPathInSchema(context.Path, transitionToSchemaName))
         {

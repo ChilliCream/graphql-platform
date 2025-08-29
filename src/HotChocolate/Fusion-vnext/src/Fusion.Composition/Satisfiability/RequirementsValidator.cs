@@ -284,13 +284,8 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
     {
         var errors = new List<SatisfiabilityError>();
 
-        // Get the list of union types that contain the current type.
-        var unionTypes =
-            schema.Types.OfType<MutableUnionTypeDefinition>().Where(u => u.Types.Contains(type));
-
-        // Get the list of lookups for the current type in the destination schema.
         var lookupDirectives =
-            type.GetFusionLookupDirectives(transitionToSchemaName, unionTypes).ToImmutableArray();
+            schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
 
         if (!lookupDirectives.Any() && !HasPathInSchema(context.Path, transitionToSchemaName))
         {

@@ -391,7 +391,7 @@
     <value>Cycle detected: {0} -&gt; {1}.</value>
   </data>
   <data name="SatisfiabilityValidator_NodeTypeHasNoNodeLookup" xml:space="preserve">
-    <value>Type '{0}' implements the 'Node' interface, but no source schema provides a 'Query.node&lt;Node&gt;' lookup field for this type.</value>
+    <value>Type '{0}' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node&lt;Node&gt;' lookup field for this type.</value>
   </data>
   <data name="SatisfiabilityValidator_NoLookupsFoundForType" xml:space="preserve">
     <value>No lookups found for type '{0}' in schema '{1}'.</value>
