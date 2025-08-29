@@ -18,7 +18,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
     private readonly Dictionary<string, FusionDirectiveDefinition> _directiveDefinitionLookup;
     private ImmutableDictionary<string, DirectiveDefinitionNode> _directiveDefinitionNodeLookup;
     private readonly List<INeedsCompletion> _completions = [];
-    private readonly ImmutableDictionary<string, ImmutableDictionary<string, ImmutableHashSet<string>>> _sourceUnions;
+    private readonly ImmutableDictionary<string, ImmutableDictionary<SchemaKey, ImmutableHashSet<string>>> _sourceUnions;
 
     public CompositeSchemaBuilderContext(
         DocumentNode document,
@@ -197,12 +197,12 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
     public string GetSchemaName(SchemaKey schemaKey)
         => SourceSchemaLookup[schemaKey.Value].Name;
 
-    public ImmutableDictionary<string, ImmutableHashSet<string>> GetSourceUnionMembers(
+    public ImmutableDictionary<SchemaKey, ImmutableHashSet<string>> GetSourceUnionMembers(
         string objectTypeName)
     {
         return _sourceUnions.TryGetValue(objectTypeName, out var sourceUnions)
             ? sourceUnions
-            : ImmutableDictionary<string, ImmutableHashSet<string>>.Empty;
+            : ImmutableDictionary<SchemaKey, ImmutableHashSet<string>>.Empty;
     }
 
     private void AddSpecDirectives()

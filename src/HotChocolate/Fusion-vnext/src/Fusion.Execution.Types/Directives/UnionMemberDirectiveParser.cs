@@ -5,10 +5,10 @@ namespace HotChocolate.Fusion.Types.Directives;
 
 internal static class UnionMemberDirectiveParser
 {
-    public static ImmutableDictionary<string, ImmutableDictionary<string, ImmutableHashSet<string>>> Parse(
+    public static ImmutableDictionary<string, ImmutableDictionary<SchemaKey, ImmutableHashSet<string>>> Parse(
         IEnumerable<UnionTypeDefinitionNode> unionTypes)
     {
-        Dictionary<string, Dictionary<string, ImmutableHashSet<string>.Builder>>? temp = null;
+        Dictionary<string, Dictionary<SchemaKey, ImmutableHashSet<string>.Builder>>? temp = null;
 
         foreach (var unionType in unionTypes)
         {
@@ -19,12 +19,12 @@ internal static class UnionMemberDirectiveParser
                     continue;
                 }
 
-                temp ??= new Dictionary<string, Dictionary<string, ImmutableHashSet<string>.Builder>>();
+                temp ??= new Dictionary<string, Dictionary<SchemaKey, ImmutableHashSet<string>.Builder>>();
 
                 var schemaValue = directive.Arguments.FirstOrDefault(t => t.Name.Value == "schema")?.Value;
                 var memberValue = directive.Arguments.FirstOrDefault(t => t.Name.Value == "member")?.Value;
 
-                if (schemaValue is not EnumValueNode { Value.Length: > 0 } schemaName)
+                if (schemaValue is not EnumValueNode { Value: { Length: > 0 } schemaName })
                 {
                     throw new InvalidOperationException(
                         $"The directive `@fusion__implements` has an invalid value for `schema`.\r\n{directive}");
@@ -38,14 +38,16 @@ internal static class UnionMemberDirectiveParser
 
                 if (!temp.TryGetValue(memberName.Value, out var schemaUnionLookup))
                 {
-                    schemaUnionLookup = new Dictionary<string, ImmutableHashSet<string>.Builder>();
+                    schemaUnionLookup = new Dictionary<SchemaKey, ImmutableHashSet<string>.Builder>();
                     temp.Add(memberName.Value, schemaUnionLookup);
                 }
 
-                if (!schemaUnionLookup.TryGetValue(schemaName.Value, out var unionTypeNames))
+                var schemaKey = new SchemaKey(schemaName);
+
+                if (!schemaUnionLookup.TryGetValue(schemaKey, out var unionTypeNames))
                 {
                     unionTypeNames = ImmutableHashSet.CreateBuilder<string>();
-                    schemaUnionLookup.Add(schemaName.Value, unionTypeNames);
+                    schemaUnionLookup.Add(schemaKey, unionTypeNames);
                 }
 
                 unionTypeNames.Add(unionType.Name.Value);
@@ -54,7 +56,7 @@ internal static class UnionMemberDirectiveParser
 
         if (temp is null)
         {
-            return ImmutableDictionary<string, ImmutableDictionary<string, ImmutableHashSet<string>>>.Empty;
+            return ImmutableDictionary<string, ImmutableDictionary<SchemaKey, ImmutableHashSet<string>>>.Empty;
         }
 
         return temp.ToImmutableDictionary(
