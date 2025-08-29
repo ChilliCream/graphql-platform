@@ -79,7 +79,8 @@ nodes:
     target: $.node.product
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 3
   - id: 5
@@ -119,6 +120,7 @@ nodes:
     target: $.node.product
     requirements:
       - name: __fusion_2_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 5

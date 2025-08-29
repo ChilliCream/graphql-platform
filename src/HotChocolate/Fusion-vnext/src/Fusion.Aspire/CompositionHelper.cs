@@ -15,6 +15,7 @@ internal static class CompositionHelper
         string fusionArchivePath,
         ImmutableArray<SourceSchemaInfo> sourceSchemas,
         string environmentName,
+        GraphQLCompositionSettings settings,
         ILogger<SchemaComposition> logger,
         CancellationToken cancellationToken)
     {
@@ -67,7 +68,10 @@ internal static class CompositionHelper
         var compositionLog = new CompositionLog();
         var schemaComposer = new SchemaComposer(
             sourceSchemaMap.Values.OrderBy(t => t.Name).Select(t => t.Schema),
-            new SchemaComposerOptions { EnableGlobalObjectIdentification = false },
+            new SchemaComposerOptions
+            {
+                EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification
+            },
             compositionLog);
         var result = schemaComposer.Compose();
 

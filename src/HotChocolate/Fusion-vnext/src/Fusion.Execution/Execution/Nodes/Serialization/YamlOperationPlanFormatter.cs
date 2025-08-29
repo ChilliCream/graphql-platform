@@ -130,7 +130,17 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             {
                 writer.WriteLine("- name: {0}", requirement.Key);
                 writer.Indent();
-                writer.WriteLine("selectionMap: {0}", requirement.Map);
+
+                writer.WriteLine("selectionMap: >-");
+                writer.Indent();
+                var selectionMapReader = new StringReader(requirement.Map.ToString(indented: true));
+                var selectionMapLine = selectionMapReader.ReadLine();
+                while (selectionMapLine != null)
+                {
+                    writer.WriteLine(selectionMapLine);
+                    selectionMapLine = selectionMapReader.ReadLine();
+                }
+                writer.Unindent();
                 writer.Unindent();
             }
 

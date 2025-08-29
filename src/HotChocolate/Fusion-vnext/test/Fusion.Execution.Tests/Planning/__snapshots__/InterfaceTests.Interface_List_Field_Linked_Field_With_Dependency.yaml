@@ -40,6 +40,7 @@ nodes:
     target: $.authorables.author
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1

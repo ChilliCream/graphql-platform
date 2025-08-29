@@ -57,7 +57,8 @@ nodes:
     target: $.users.nodes
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1
   - id: 4
@@ -76,14 +77,16 @@ nodes:
     target: $.users.nodes.reviews.nodes.product
     requirements:
       - name: __fusion_3_dimension
-        selectionMap: {
-  weight
-  length: dimension.length
-  width: dimension.width
-  height: dimension.height
-}
+        selectionMap: >-
+          {
+            weight
+            length: dimension.length
+            width: dimension.width
+            height: dimension.height
+          }
       - name: __fusion_4_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 2
       - id: 5
@@ -110,6 +113,7 @@ nodes:
     target: $.users.nodes.reviews.nodes.product
     requirements:
       - name: __fusion_5_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 2
