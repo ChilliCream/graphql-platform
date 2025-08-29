@@ -1,3 +1,5 @@
+using HotChocolate.Fusion.Types;
+
 namespace HotChocolate.Fusion.Planning;
 
 public class RequirementTests : FusionTestBase
@@ -180,7 +182,73 @@ public class RequirementTests : FusionTestBase
     public void Requirement_SelectionMap_Object_Shop()
     {
         // arrange
-        var schema = ComposeSchema(
+        var schema = CreateDemoSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              users {
+                nodes {
+                  reviews {
+                    nodes {
+                      product {
+                        deliveryEstimate(zip: "123")
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Complex_Operation()
+    {
+        // arrange
+        var schema = CreateDemoSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query getReviews($userId: ID!) {
+              userById(id: $userId) {
+                name
+              }
+              users {
+                nodes {
+                  id
+                  reviews {
+                    nodes {
+                      product {
+                        deliveryEstimate(zip: "123")
+                      }
+                    }
+                  }
+                }
+              }
+              node(id: $userId) {
+                id
+                ... on User {
+                  name
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    private static FusionSchemaDefinition CreateDemoSchema()
+    {
+        return ComposeSchema(
             """"
             interface Node {
               id: ID!
@@ -537,27 +605,5 @@ public class RequirementTests : FusionTestBase
               height: Float!
             }
             """");
-
-        // act
-        var plan = PlanOperation(
-            schema,
-            """
-            {
-              users {
-                nodes {
-                  reviews {
-                    nodes {
-                      product {
-                        deliveryEstimate(zip: "123")
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            """);
-
-        // assert
-        MatchSnapshot(plan);
     }
 }
