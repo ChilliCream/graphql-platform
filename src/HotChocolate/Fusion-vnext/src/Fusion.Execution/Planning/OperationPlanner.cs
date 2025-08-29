@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
@@ -1199,14 +1200,16 @@ public sealed partial class OperationPlanner
     {
         List<SelectionSetNode>? backlog = null;
 
-        var rewriter = SyntaxRewriter.Create<Stack<ISyntaxNode>>(
-            (node, path) =>
+        var rewriter = SyntaxRewriter.Create<List<ISyntaxNode>>(
+            rewrite: (node, path) =>
             {
                 if (node is not SelectionSetNode selectionSet)
                 {
                     return node;
                 }
 
+                // if the node was rewritten we keep track that the rewritten node and
+                // the original node are semantically equivalent.
                 var originalSelectionSet = (SelectionSetNode)path.Peek();
                 var id = index.GetId(originalSelectionSet);
 
@@ -1260,14 +1263,14 @@ public sealed partial class OperationPlanner
                 index.Register(originalSelectionSet, newSelectionSet);
                 return newSelectionSet;
             },
-            (node, path) =>
+            enter: (node, path) =>
             {
                 path.Push(node);
                 return path;
             },
-            (_, path) => path.Pop());
+            leave: (_, path) => path.Pop());
 
-        return (OperationDefinitionNode)rewriter.Rewrite(operation, new Stack<ISyntaxNode>())!;
+        return (OperationDefinitionNode)rewriter.Rewrite(operation, [])!;
 
         static IReadOnlyList<DirectiveNode> AddInternalDirective(IHasDirectives selection)
         {
@@ -1557,9 +1560,7 @@ file static class Extensions
             // we try to choose one that returns the desired type directly
             // and not an abstract type.
             var byIdLookup = compositeSchema.GetPossibleLookups(type, schemaName)
-                .Where(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }])
-                .OrderByDescending(l => l.FieldType == type)
-                .FirstOrDefault();
+                .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }]);
 
             if (byIdLookup is null)
             {
@@ -1584,9 +1585,7 @@ file static class Extensions
         if (!hasEnqueuedLookup)
         {
             var byIdLookup = compositeSchema.GetPossibleLookups(type)
-                .Where(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }])
-                .OrderByDescending(l => l.FieldType == type)
-                .FirstOrDefault()
+                .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }])
                     ?? throw new InvalidOperationException(
                         $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
 

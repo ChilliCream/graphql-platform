@@ -41,8 +41,10 @@ nodes:
     target: $.products
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
       - name: __fusion_2_name
-        selectionMap: name
+        selectionMap: >-
+          name
     dependencies:
       - id: 1
