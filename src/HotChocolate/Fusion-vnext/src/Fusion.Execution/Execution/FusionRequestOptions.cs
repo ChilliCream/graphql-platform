@@ -128,7 +128,7 @@ public sealed class FusionRequestOptions : ICloneable
 
     /// <summary>
     /// Gets or sets the default error handling mode.
-    /// Defaults to <see cref="ErrorHandlingMode.Propagate"/>.
+    /// <see cref="ErrorHandlingMode.Propagate"/> by default.
     /// </summary>
     public ErrorHandlingMode DefaultErrorHandlingMode
     {
@@ -147,6 +147,7 @@ public sealed class FusionRequestOptions : ICloneable
     /// <summary>
     /// Gets or sets whether the <see cref="DefaultErrorHandlingMode"/> can be overriden
     /// on a per-request basis.
+    /// <c>false</c> by default.
     /// </summary>
     public bool AllowErrorHandlingModeOverride
     {
