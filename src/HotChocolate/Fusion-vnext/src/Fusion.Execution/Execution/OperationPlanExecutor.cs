@@ -216,6 +216,16 @@ internal sealed class OperationPlanExecutor
 
                     result = context.Complete();
                 }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    context.DiagnosticEvents.SubscriptionEventError(
+                        context,
+                        subscriptionNode,
+                        subscriptionNode.SchemaName ?? context.GetDynamicSchemaName(subscriptionNode),
+                        subscription.Id,
+                        ex);
+                    throw;
+                }
                 finally
                 {
                     // disposing the eventArgs disposes the telemetry scope.

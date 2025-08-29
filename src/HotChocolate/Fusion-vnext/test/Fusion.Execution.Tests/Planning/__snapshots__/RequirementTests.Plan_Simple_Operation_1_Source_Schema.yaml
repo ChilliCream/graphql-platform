@@ -35,8 +35,10 @@ nodes:
     target: $.books
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
       - name: __fusion_2_title
-        selectionMap: title
+        selectionMap: >-
+          title
     dependencies:
       - id: 1

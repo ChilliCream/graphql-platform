@@ -51,7 +51,8 @@ nodes:
     target: $.authorables<Discussion>.author
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1
   - id: 3
@@ -69,6 +70,7 @@ nodes:
     target: $.authorables.author
     requirements:
       - name: __fusion_2_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1
