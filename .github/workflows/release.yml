@@ -147,8 +147,8 @@ jobs:
         if: runner.os == 'Windows'
         with:
           endpoint: ${{ vars.AZURE_TRUSTED_SIGNING_ACCOUNT_ENDPOINT }}
-          trusted-signing-account-name: ${{ vars.AZURE_CODE_SIGNING_NAME }}
-          certificate-profile-name: ${{ vars.WINDOWS_APP_CERT_PROFILE_NAME }}
+          trusted-signing-account-name: ${{ secrets.AZURE_CODE_SIGNING_NAME }}
+          certificate-profile-name: ${{ secrets.WINDOWS_APP_CERT_PROFILE_NAME }}
           files: ${{ github.workspace }}\publish\nitro.exe
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
