@@ -131,14 +131,12 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     public virtual IDisposable ExecuteSubscription(RequestContext context, ulong subscriptionId)
         => EmptyScope;
 
-    public IDisposable ExecuteSubscriptionNode(
+    public virtual IDisposable ExecuteSubscriptionNode(
         OperationPlanContext context,
         OperationExecutionNode node,
         string schemaName,
         ulong subscriptionId)
-    {
-        throw new NotImplementedException();
-    }
+        => EmptyScope;
 
     /// <inheritdoc />
     public virtual void SubscriptionTransportError(

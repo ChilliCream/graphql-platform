@@ -198,6 +198,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         };
 
         var client = context.GetClient(schemaName, _operation.Type);
+        var subscriptionId = SubscriptionId.Next();
 
         try
         {
@@ -206,17 +207,18 @@ public sealed class OperationExecutionNode : ExecutionNode
             var stream = new SubscriptionEnumerable(
                 context,
                 this,
+                subscriptionId,
                 response,
                 response.ReadAsResultStreamAsync(cancellationToken),
                 context.DiagnosticEvents);
 
-            return SubscriptionResult.Success(stream);
+            return SubscriptionResult.Success(subscriptionId, stream);
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            AddErrors(context, exception, variables, _responseNames);
-
-            return SubscriptionResult.Failed();
+            AddErrors(context, ex, variables, _responseNames);
+            context.DiagnosticEvents.SubscriptionTransportError(context, this, schemaName, subscriptionId, ex);
+            return SubscriptionResult.Failed(subscriptionId, ex);
         }
     }
 
@@ -258,6 +260,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     {
         private readonly OperationPlanContext _context;
         private readonly OperationExecutionNode _node;
+        private readonly ulong _subscriptionId;
         private readonly SourceSchemaClientResponse _response;
         private readonly IAsyncEnumerable<SourceSchemaResult> _resultEnumerable;
         private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
@@ -265,12 +268,14 @@ public sealed class OperationExecutionNode : ExecutionNode
         public SubscriptionEnumerable(
             OperationPlanContext context,
             OperationExecutionNode node,
+            ulong subscriptionId,
             SourceSchemaClientResponse response,
             IAsyncEnumerable<SourceSchemaResult> resultEnumerable,
             IFusionExecutionDiagnosticEvents diagnosticEvents)
         {
             _context = context;
             _node = node;
+            _subscriptionId = subscriptionId;
             _response = response;
             _resultEnumerable = resultEnumerable;
             _diagnosticEvents = diagnosticEvents;
@@ -282,6 +287,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 _context,
                 _node,
                 _node.SchemaName ?? _context.GetDynamicSchemaName(_node),
+                _subscriptionId,
                 _response,
                 _resultEnumerable.GetAsyncEnumerator(cancellationToken),
                 _diagnosticEvents,
@@ -307,15 +313,16 @@ public sealed class OperationExecutionNode : ExecutionNode
             OperationPlanContext context,
             OperationExecutionNode node,
             string schemaName,
+            ulong subscriptionId,
             SourceSchemaClientResponse response,
             IAsyncEnumerator<SourceSchemaResult> resultEnumerator,
             IFusionExecutionDiagnosticEvents diagnosticEvents,
             CancellationToken cancellationToken)
         {
-            _subscriptionId = SubscriptionId.Next();
             _context = context;
             _node = node;
             _schemaName = schemaName;
+            _subscriptionId = subscriptionId;
             _response = response;
             _resultEnumerator = resultEnumerator;
             _diagnosticEvents = diagnosticEvents;
@@ -340,15 +347,8 @@ public sealed class OperationExecutionNode : ExecutionNode
             try
             {
                 hasResult = await _resultEnumerator.MoveNextAsync();
-
                 scope = _diagnosticEvents.ExecuteSubscriptionNode(_context, _node, _schemaName, _subscriptionId);
                 start = Stopwatch.GetTimestamp();
-
-                if (hasResult)
-                {
-                    _resultBuffer[0] = _resultEnumerator.Current;
-                    _context.AddPartialResults(_node._source, _resultBuffer, _node._responseNames);
-                }
             }
             catch (Exception exception)
             {
@@ -372,11 +372,14 @@ public sealed class OperationExecutionNode : ExecutionNode
                     _subscriptionId,
                     exception);
                 _context.AddErrors(error, _node._responseNames);
-                return true;
+                return false;
             }
 
             if (hasResult)
             {
+                _resultBuffer[0] = _resultEnumerator.Current;
+                _context.AddPartialResults(_node._source, _resultBuffer, _node._responseNames);
+
                 Current = new EventMessageResult(
                     _node.Id,
                     Activity.Current,
