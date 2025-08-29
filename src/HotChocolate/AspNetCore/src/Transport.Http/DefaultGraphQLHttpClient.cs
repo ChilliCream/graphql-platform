@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Language;
 using HotChocolate.Transport.Serialization;
 using static System.Net.Http.HttpCompletionOption;
 
@@ -276,6 +277,13 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             sb.Append(Uri.EscapeDataString(or.OperationName!));
         }
 
+        if (or.OnError is {} errorHandlingMode)
+        {
+            AppendAmpersand(sb, ref appendAmpersand);
+            sb.Append("onError=");
+            sb.Append(GetErrorHandlingModeAsString(errorHandlingMode));
+        }
+
         if (or.VariablesNode is not null)
         {
             AppendAmpersand(sb, ref appendAmpersand);
@@ -313,6 +321,17 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 
             appendAmpersand = true;
         }
+    }
+
+    private static string GetErrorHandlingModeAsString(ErrorHandlingMode mode)
+    {
+        return mode switch
+        {
+            ErrorHandlingMode.Propagate => "PROPAGATE",
+            ErrorHandlingMode.Null => "NULL",
+            ErrorHandlingMode.Halt => "HALT",
+            _ => throw new ArgumentOutOfRangeException(nameof(mode))
+        };
     }
 
     private static string FormatDocumentAsJson(PooledArrayWriter arrayWriter, object? obj)
