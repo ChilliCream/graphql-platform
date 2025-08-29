@@ -1286,7 +1286,6 @@ public sealed partial class OperationPlanner
         // when we inline selections into the internal operation definition
         // we inline them as separate non-mergeable. This is so we can better
         // keep track of what is data and what is requirement.
-        //
         static void IndexInternalSelections(
             SelectionSetNode? selectionSet,
             SelectionSetIndexBuilder index,
