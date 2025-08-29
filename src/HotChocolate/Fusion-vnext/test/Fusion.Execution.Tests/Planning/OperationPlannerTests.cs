@@ -174,7 +174,7 @@ public class OperationPlannerTests : FusionTestBase
             }
 
             type Query {
-              node(id: ID!): Node @lookup @internal
+              node(id: ID!): Node @lookup
             }
 
             interface Node {
