@@ -34,15 +34,17 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     public OperationPlanContext(
         RequestContext requestContext,
-        OperationPlan operationPlan)
-        : this(requestContext, requestContext.VariableValues[0], operationPlan)
+        OperationPlan operationPlan,
+        CancellationTokenSource cancellationTokenSource)
+        : this(requestContext, requestContext.VariableValues[0], operationPlan, cancellationTokenSource)
     {
     }
 
     public OperationPlanContext(
         RequestContext requestContext,
         IVariableValueCollection variables,
-        OperationPlan operationPlan)
+        OperationPlan operationPlan,
+        CancellationTokenSource cancellationTokenSource)
     {
         ArgumentNullException.ThrowIfNull(requestContext);
         ArgumentNullException.ThrowIfNull(variables);
@@ -63,9 +65,10 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             requestContext.Schema,
             _resultPoolSessionHolder,
             operationPlan.Operation,
+            requestContext.ErrorHandlingMode(),
             IncludeFlags);
 
-        _executionState = new ExecutionState { CollectTelemetry = true };
+        _executionState = new ExecutionState(_collectTelemetry, cancellationTokenSource);
     }
 
     public OperationPlan OperationPlan { get; }
@@ -88,7 +91,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     public IFeatureCollection Features => RequestContext.Features;
 
-    public ImmutableArray<ExecutionNodeTrace> Traces { get; internal set; } = [];
+    public ImmutableDictionary<int, ExecutionNodeTrace> Traces { get; internal set; } =
+        ImmutableDictionary<int, ExecutionNodeTrace>.Empty;
 
     public IFusionExecutionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 
@@ -188,13 +192,27 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
         ReadOnlySpan<string> responseNames)
-        => _resultStore.AddPartialResults(sourcePath, results, responseNames);
+    {
+       var canExecutionContinue = _resultStore.AddPartialResults(sourcePath, results, responseNames);
+
+       if (!canExecutionContinue)
+       {
+           ExecutionState.CancelProcessing();
+       }
+    }
 
     internal void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
         => _resultStore.AddPartialResults(result, selections);
 
     internal void AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
-        => _resultStore.AddErrors(error, responseNames, paths);
+    {
+        var canExecutionContinue = _resultStore.AddErrors(error, responseNames, paths);
+
+        if (!canExecutionContinue)
+        {
+            ExecutionState.CancelProcessing();
+        }
+    }
 
     internal PooledArrayWriter CreateRentedBuffer()
         => _resultStore.CreateRentedBuffer();
@@ -219,13 +237,13 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
                 AppId = environment?.AppId,
                 EnvironmentName = environment?.Name,
                 Duration = Stopwatch.GetElapsedTime(_start),
-                Nodes = Traces.ToImmutableDictionary(t => t.Id)
+                Nodes = Traces
             }
             : null;
 
         var resultBuilder = OperationResultBuilder.New();
 
-        if (RequestContext.ContextData.ContainsKey(ExecutionContextData.IncludeQueryPlan))
+        if (RequestContext.ContextData.ContainsKey(ExecutionContextData.IncludeOperationPlan))
         {
             var writer = new PooledArrayWriter();
             s_planFormatter.Format(writer, OperationPlan, trace);
@@ -314,7 +332,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     {
         public string? SchemaName { get; init; }
 
-        [SuppressMessage("ReSharper", "TypeWithSuspiciousEqualityIsUsedInRecord.Local")]
         public ImmutableArray<VariableValues> Variables { get; init; } = [];
     }
 }

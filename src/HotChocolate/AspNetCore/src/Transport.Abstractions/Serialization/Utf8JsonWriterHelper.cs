@@ -24,7 +24,7 @@ internal static class Utf8JsonWriterHelper
                     break;
 
                 case VariableBatchRequest variableBatchRequest:
-                    WriteOperationRequest(writer, variableBatchRequest);
+                    WriteVariableBatchRequest(writer, variableBatchRequest);
                     break;
 
                 default:
@@ -55,6 +55,13 @@ internal static class Utf8JsonWriterHelper
             writer.WriteString(Utf8GraphQLRequestProperties.OperationNameProp, request.OperationName);
         }
 
+        if (request.OnError is {} errorHandlingMode)
+        {
+            writer.WriteString(
+                Utf8GraphQLRequestProperties.OnErrorProp,
+                GetErrorHandlingModeAsString(errorHandlingMode));
+        }
+
         if (request.ExtensionsNode is not null)
         {
             writer.WritePropertyName(Utf8GraphQLRequestProperties.ExtensionsProp);
@@ -80,7 +87,7 @@ internal static class Utf8JsonWriterHelper
         writer.WriteEndObject();
     }
 
-    public static void WriteOperationRequest(Utf8JsonWriter writer, VariableBatchRequest request)
+    public static void WriteVariableBatchRequest(Utf8JsonWriter writer, VariableBatchRequest request)
     {
         writer.WriteStartObject();
 
@@ -97,6 +104,13 @@ internal static class Utf8JsonWriterHelper
         if (!string.IsNullOrWhiteSpace(request.OperationName))
         {
             writer.WriteString(Utf8GraphQLRequestProperties.OperationNameProp, request.OperationName);
+        }
+
+        if (request.OnError is {} errorHandlingMode)
+        {
+            writer.WriteString(
+                Utf8GraphQLRequestProperties.OnErrorProp,
+                GetErrorHandlingModeAsString(errorHandlingMode));
         }
 
         if (request.ExtensionsNode is not null)
@@ -343,6 +357,17 @@ internal static class Utf8JsonWriterHelper
         writer.WriteEndObject();
 
         return fileInfos;
+    }
+
+    private static string GetErrorHandlingModeAsString(ErrorHandlingMode mode)
+    {
+        return mode switch
+        {
+            ErrorHandlingMode.Propagate => "PROPAGATE",
+            ErrorHandlingMode.Null => "NULL",
+            ErrorHandlingMode.Halt => "HALT",
+            _ => throw new ArgumentOutOfRangeException(nameof(mode))
+        };
     }
 
     private static void CollectFiles(IRequestBody requestBody, ref Dictionary<FileReference, FilePath[]>? files)

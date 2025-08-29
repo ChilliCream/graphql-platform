@@ -6,6 +6,7 @@ using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Directives;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -123,6 +124,7 @@ internal static class CompositeSchemaBuilder
         features ??= new FeatureCollection();
 
         return new CompositeSchemaBuilderContext(
+            schemaDocument,
             name,
             description,
             services,

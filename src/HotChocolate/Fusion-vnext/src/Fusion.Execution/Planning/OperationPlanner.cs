@@ -1,10 +1,10 @@
 using System.Collections.Immutable;
-using System.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -1315,7 +1315,7 @@ public sealed partial class OperationPlanner
                 {
                     switch (selection)
                     {
-                        case FieldNode  { SelectionSet: { } fieldSelectionSet }:
+                        case FieldNode { SelectionSet: { } fieldSelectionSet }:
                             backlog.Push(fieldSelectionSet);
                             break;
 
@@ -1560,7 +1560,8 @@ file static class Extensions
             // we try to choose one that returns the desired type directly
             // and not an abstract type.
             var byIdLookup = compositeSchema.GetPossibleLookups(type, schemaName)
-                .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }]);
+                .FirstOrDefault(
+                    l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal);
 
             if (byIdLookup is null)
             {
@@ -1585,9 +1586,10 @@ file static class Extensions
         if (!hasEnqueuedLookup)
         {
             var byIdLookup = compositeSchema.GetPossibleLookups(type)
-                .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }])
-                    ?? throw new InvalidOperationException(
-                        $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
+                .FirstOrDefault(
+                    l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal)
+                        ?? throw new InvalidOperationException(
+                            $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
 
             possiblePlans.Enqueue(
                 planNodeTemplate with

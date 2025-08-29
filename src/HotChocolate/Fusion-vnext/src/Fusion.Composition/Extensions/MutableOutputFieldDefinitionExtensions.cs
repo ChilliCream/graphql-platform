@@ -1,8 +1,8 @@
 using HotChocolate.Language;
 using HotChocolate.Types.Mutable;
-using static HotChocolate.Fusion.WellKnownArgumentNames;
-using static HotChocolate.Fusion.WellKnownDirectiveNames;
 using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
+using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
+using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.Extensions;
 
@@ -10,13 +10,15 @@ internal static class MutableOutputFieldDefinitionExtensions
 {
     public static void ApplyLookupDirective(this MutableOutputFieldDefinition field)
     {
-        field.Directives.Add(new Directive(new MutableDirectiveDefinition(Lookup)));
+        field.Directives.Add(new Directive(new MutableDirectiveDefinition(DirectiveNames.Lookup)));
     }
 
     public static bool ExistsInSchema(this MutableOutputFieldDefinition field, string schemaName)
     {
         return field.Directives.AsEnumerable().Any(
-            d => d.Name == FusionField && (string)d.Arguments[Schema].Value! == schemaName);
+            d =>
+                d.Name == DirectiveNames.FusionField
+                && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
     }
 
     public static string? GetFusionFieldProvides(
@@ -26,12 +28,10 @@ internal static class MutableOutputFieldDefinitionExtensions
         var fusionFieldDirective =
             field.Directives.AsEnumerable().FirstOrDefault(
                 d =>
-                    d.Name == FusionField
-                    && (string)d.Arguments[Schema].Value! == schemaName);
+                    d.Name == DirectiveNames.FusionField
+                    && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
 
-        if (fusionFieldDirective?.Arguments.TryGetValue(
-                WellKnownArgumentNames.Provides,
-                out var provides) == true)
+        if (fusionFieldDirective?.Arguments.TryGetValue(ArgumentNames.Provides, out var provides) == true)
         {
             return (string?)provides.Value;
         }
@@ -48,22 +48,22 @@ internal static class MutableOutputFieldDefinitionExtensions
                 .AsEnumerable()
                 .FirstOrDefault(
                     d =>
-                        d.Name == FusionRequires
-                        && (string)d.Arguments[Schema].Value! == schemaName);
+                        d.Name == DirectiveNames.FusionRequires
+                        && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
 
         if (fusionRequiresDirective is null)
         {
             return null;
         }
 
-        var requirements = (string)fusionRequiresDirective.Arguments[Requirements].Value!;
+        var requirements = (string)fusionRequiresDirective.Arguments[ArgumentNames.Requirements].Value!;
 
         return ParseSelectionSet($"{{ {requirements} }}");
     }
 
     public static bool HasInternalDirective(this MutableOutputFieldDefinition type)
     {
-        return type.Directives.ContainsName(Internal);
+        return type.Directives.ContainsName(DirectiveNames.Internal);
     }
 
     public static bool IsPartial(this MutableOutputFieldDefinition field, string schemaName)
@@ -71,15 +71,15 @@ internal static class MutableOutputFieldDefinitionExtensions
         var fusionFieldDirective =
             field.Directives.AsEnumerable().FirstOrDefault(
                 d =>
-                    d.Name == FusionField
-                    && (string)d.Arguments[Schema].Value! == schemaName);
+                    d.Name == DirectiveNames.FusionField
+                    && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
 
         if (fusionFieldDirective is null)
         {
             return false;
         }
 
-        if (fusionFieldDirective.Arguments.TryGetValue(Partial, out var partial))
+        if (fusionFieldDirective.Arguments.TryGetValue(ArgumentNames.Partial, out var partial))
         {
             return (bool)partial.Value!;
         }
