@@ -214,7 +214,6 @@ internal sealed class OperationPlanExecutor
 
             try
             {
-                // TODO: Does this reset the cts?
                 context.Begin(eventArgs.StartTimestamp, eventArgs.Activity?.TraceId.ToHexString());
 
                 executionState.Reset();
@@ -249,16 +248,13 @@ internal sealed class OperationPlanExecutor
                     await executionState.Signal;
                 }
 
-                // We only want to exit here, if the request was cancelled.
-                // If the execution was halted, we still want to attempt to produce a result.
-                if (requestCancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
+                // If the original CancellationToken of the request was cancelled,
+                // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
+                // so we throw here to properly cancel the request execution.
+                requestCancellationToken.ThrowIfCancellationRequested();
 
                 result = context.Complete();
             }
-            // TODO: Check cancellation
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 context.DiagnosticEvents.SubscriptionEventError(
