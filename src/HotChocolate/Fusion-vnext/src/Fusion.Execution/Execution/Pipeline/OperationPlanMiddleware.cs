@@ -12,7 +12,7 @@ internal sealed class OperationPlanMiddleware
 {
     private readonly OperationPlanner _planner;
     private readonly InlineFragmentOperationRewriter _rewriter;
-    private readonly IOperationPlannerInterceptor[]  _interceptors;
+    private readonly IOperationPlannerInterceptor[] _interceptors;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticsEvents;
 
     private OperationPlanMiddleware(
@@ -58,14 +58,21 @@ internal sealed class OperationPlanMiddleware
 
         using var scope = _diagnosticsEvents.PlanOperation(context, operationId);
 
-        // Before we can plan an operation, we must defragmentize it and remove statical include conditions.
-        var rewritten = _rewriter.RewriteDocument(operationDocument, context.Request.OperationName);
-        var operation = rewritten.GetOperation(context.Request.OperationName);
+        try
+        {
+            // Before we can plan an operation, we must defragmentize it and remove statical include conditions.
+            var rewritten = _rewriter.RewriteDocument(operationDocument, context.Request.OperationName);
+            var operation = rewritten.GetOperation(context.Request.OperationName);
 
-        // After optimizing the query structure we can begin the planning process.
-        var operationPlan = _planner.CreatePlan(operationId, operationHash, operationShortHash, operation);
-        OnAfterPlanCompleted(operationDocumentInfo, operationPlan);
-        context.SetOperationPlan(operationPlan);
+            // After optimizing the query structure we can begin the planning process.
+            var operationPlan = _planner.CreatePlan(operationId, operationHash, operationShortHash, operation);
+            OnAfterPlanCompleted(operationDocumentInfo, operationPlan);
+            context.SetOperationPlan(operationPlan);
+        }
+        catch(Exception ex)
+        {
+            _diagnosticsEvents.PlanOperationError(context, operationId, ex);
+        }
     }
 
     private void OnAfterPlanCompleted(
@@ -83,6 +90,7 @@ internal sealed class OperationPlanMiddleware
                 {
                     interceptor.OnAfterPlanCompleted(operationDocumentInfo, operationPlan);
                 }
+
                 break;
         }
     }

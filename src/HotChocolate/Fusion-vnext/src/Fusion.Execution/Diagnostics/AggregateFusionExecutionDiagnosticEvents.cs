@@ -149,11 +149,11 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         }
     }
 
-    public void PlanOperationError(OperationPlanContext context, ExecutionNode node, Exception error)
+    public void PlanOperationError(RequestContext context, string operationId, Exception error)
     {
         for (var i = 0; i < listeners.Length; i++)
         {
-            listeners[i].PlanOperationError(context, node, error);
+            listeners[i].PlanOperationError(context, operationId, error);
         }
     }
 
@@ -212,7 +212,7 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         OperationPlanContext context,
         ExecutionNode node,
         string schemaName,
-        IReadOnlyCollection<IError> errors)
+        IReadOnlyList<IError> errors)
     {
         for (var i = 0; i < listeners.Length; i++)
         {
