@@ -1208,11 +1208,6 @@ public sealed partial class OperationPlanner
                     return node;
                 }
 
-                if (path.Count > 1 && path[^1] is InlineFragmentNode)
-                {
-                    Debugger.Break();
-                }
-
                 // if the node was rewritten we keep track that the rewritten node and
                 // the original node are semantically equivalent.
                 var originalSelectionSet = (SelectionSetNode)path.Peek();
@@ -1273,15 +1268,7 @@ public sealed partial class OperationPlanner
                 path.Push(node);
                 return path;
             },
-            leave: (_, path) =>
-            {
-                if (false)
-                {
-                    //
-                }
-
-                path.Pop();
-            });
+            leave: (_, path) => path.Pop());
 
         return (OperationDefinitionNode)rewriter.Rewrite(operation, [])!;
 
