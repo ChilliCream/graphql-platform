@@ -1036,6 +1036,8 @@ internal sealed class SourceSchemaMerger
                 ? NullValueNode.Default
                 : new StringValueNode(sourcePath);
 
+            var @internal = sourceField.HasInternalDirective();
+
             type.Directives.Add(
                 new Directive(
                     _fusionDirectiveDefinitions[DirectiveNames.FusionLookup],
@@ -1043,7 +1045,8 @@ internal sealed class SourceSchemaMerger
                     new ArgumentAssignment(ArgumentNames.Key, keyArgument),
                     new ArgumentAssignment(ArgumentNames.Field, fieldArgument),
                     new ArgumentAssignment(ArgumentNames.Map, mapArgument),
-                    new ArgumentAssignment(ArgumentNames.Path, pathArgument)));
+                    new ArgumentAssignment(ArgumentNames.Path, pathArgument),
+                    new ArgumentAssignment(ArgumentNames.Internal, @internal)));
         }
     }
 
@@ -1235,7 +1238,8 @@ internal sealed class SourceSchemaMerger
                     fieldSelectionSetType,
                     fieldDefinitionType,
                     fieldSelectionMapType,
-                    fieldSelectionPathType)
+                    fieldSelectionPathType,
+                    booleanType)
             },
             {
                 DirectiveNames.FusionRequires,

@@ -12,18 +12,21 @@ type Product
       key: "{ id }"
       field: "productById(id: ID!): Product"
       map: ["id"]
+      internal: false
   )
   @fusion__lookup(
       schema: SHIPPING
       key: "{ id }"
       field: "productById(id: ID!): Product"
       map: ["id"]
+      internal: false
   )
   @fusion__lookup(
       schema: REVIEWS
       key: "{ id }"
       field: "productById(id: ID!): Product"
       map: ["id"]
+      internal: false
   ) {
   id: ID!
     @fusion__field(schema: PRODUCTS)

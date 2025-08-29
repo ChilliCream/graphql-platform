@@ -211,6 +211,7 @@ internal static class CompletionTools
                         declaringTypeName,
                         lookup.Field.Name.Value,
                         lookup.Field.Type.NamedType().Name.Value,
+                        lookup.Internal,
                         arguments.ToImmutable(),
                         fields));
             }

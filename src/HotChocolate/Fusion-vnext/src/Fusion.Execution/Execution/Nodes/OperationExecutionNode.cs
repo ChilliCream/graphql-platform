@@ -133,6 +133,13 @@ public sealed class OperationExecutionNode : ExecutionNode
                 }
             }
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // If the execution of the node was cancelled, either the entire request was cancelled
+            // or the execution was halted. In both cases we do not want to produce any errors
+            // and just exit the node as quickly as possible.
+            return ExecutionStatus.Failed;
+        }
         catch (Exception exception)
         {
             diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
@@ -158,6 +165,13 @@ public sealed class OperationExecutionNode : ExecutionNode
         try
         {
             context.AddPartialResults(_source, buffer.AsSpan(0, index), _responseNames);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // If the execution of the node was cancelled, either the entire request was cancelled
+            // or the execution was halted. In both cases we do not want to produce any errors
+            // and just exit the node as quickly as possible.
+            return ExecutionStatus.Failed;
         }
         catch (Exception exception)
         {

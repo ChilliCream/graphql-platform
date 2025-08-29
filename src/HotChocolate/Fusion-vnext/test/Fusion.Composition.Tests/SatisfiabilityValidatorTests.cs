@@ -1562,6 +1562,82 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
+    public void InterfaceLookup_Implementing_Type_Is_Not_Implementing_Interface_In_Specific_Source_Schema()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    animalById(id: ID!): Animal @lookup
+                    myCat: Cat
+                }
+
+                type Cat {
+                    id: ID!
+                    age: Int!
+                }
+
+                type Dog implements Animal {
+                    id: ID!
+                    age: Int!
+                }
+
+                interface Animal {
+                    id: ID!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    # it's important the name of the lookup here is different,
+                    # otherwise it still works, since the path is the same.
+                    animal(id: ID!): Animal @lookup
+                    myDog: Dog
+                }
+
+                type Cat implements Animal {
+                    id: ID!
+                    name: String!
+                }
+
+                type Dog {
+                    id: ID!
+                    name: String!
+                }
+
+                interface Animal {
+                    id: ID!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.False(result.IsSuccess);
+        string.Join("\n\n", log.Select(e => e.Message))
+            .MatchInlineSnapshot(
+                """
+                Unable to access the field 'Dog.name' on path 'A:Query.animalById<Animal>'.
+                  Unable to transition between schemas 'A' and 'B' for access to field 'B:Dog.name<String>'.
+                    No lookups found for type 'Dog' in schema 'B'.
+
+                Unable to access the field 'Cat.age' on path 'B:Query.animal<Animal>'.
+                  Unable to transition between schemas 'B' and 'A' for access to field 'A:Cat.age<Int>'.
+                    No lookups found for type 'Cat' in schema 'A'.
+                """);
+    }
+
+    [Fact]
     public void InterfaceLookupUsingSecondLookup()
     {
         // arrange
@@ -1774,6 +1850,76 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public void UnionLookup_Member_Type_Is_Not_Member_In_Specific_Source_Schema()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    animalById(id: ID!): Animal @lookup
+                }
+
+                type Cat {
+                    id: ID!
+                    age: Int!
+                }
+
+                type Dog {
+                    id: ID!
+                    age: Int!
+                }
+
+                union Animal = Dog
+                """,
+                """
+                # Schema B
+                type Query {
+                    # it's important the name of the lookup here is different,
+                    # otherwise it still works, since the path is the same.
+                    animal(id: ID!): Animal @lookup
+                }
+
+                type Cat {
+                    id: ID!
+                    name: String!
+                }
+
+                type Dog {
+                    id: ID!
+                    name: String!
+                }
+
+                union Animal = Cat
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.False(result.IsSuccess);
+        string.Join("\n\n", log.Select(e => e.Message))
+            .MatchInlineSnapshot(
+                """
+                Unable to access the field 'Dog.name' on path 'A:Query.animalById<Animal>'.
+                  Unable to transition between schemas 'A' and 'B' for access to field 'B:Dog.name<String>'.
+                    No lookups found for type 'Dog' in schema 'B'.
+
+                Unable to access the field 'Cat.age' on path 'B:Query.animal<Animal>'.
+                  Unable to transition between schemas 'B' and 'A' for access to field 'A:Cat.age<Int>'.
+                    No lookups found for type 'Cat' in schema 'A'.
+                """);
     }
 
     [Fact]
@@ -2207,7 +2353,7 @@ public sealed class SatisfiabilityValidatorTests
                     """
                 ],
                 false,
-                "Type 'Cat' implements the 'Node' interface, but no source schema provides a 'Query.node<Node>' lookup field for this type."
+                "Type 'Cat' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type."
             },
             // A source schema has a lookup but not by ID for a type implementing Node
             {
@@ -2229,7 +2375,7 @@ public sealed class SatisfiabilityValidatorTests
                     """
                 ],
                 false,
-                "Type 'Cat' implements the 'Node' interface, but no source schema provides a 'Query.node<Node>' lookup field for this type."
+                "Type 'Cat' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type."
             },
             // A source schema has a lookup by ID but not the Query.node field for a type implementing Node
             {
@@ -2266,7 +2412,72 @@ public sealed class SatisfiabilityValidatorTests
                     """
                 ],
                 false,
-                "Type 'Cat' implements the 'Node' interface, but no source schema provides a 'Query.node<Node>' lookup field for this type."
+                "Type 'Cat' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type."
+            },
+            // A source schema has a lookup by ID, but it's internal
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        node(id: ID!): Node @lookup @internal
+                        myDog: Dog
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Dog implements Node {
+                        id: ID!
+                        age: Int!
+                    }
+                    """
+                ],
+                false,
+                "Type 'Dog' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type."
+            },
+            // Type implements Node in another source schema than where a lookup for Node is
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        node(id: ID!): Node @lookup
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Cat implements Node {
+                        id: ID!
+                    }
+
+                    # Node and Dog are both in this schema, but Dog doesn't implement Node
+                    type Dog {
+                        id: ID!
+                        age: Int!
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Query {
+                        topProduct: Product
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Dog implements Node {
+                        id: ID!
+                        name: String!
+                    }
+                    """
+                ],
+                false,
+                "Type 'Dog' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node<Node>' lookup field for this type."
             },
             // A source schema is missing a lookup for an exclusive field
             {
@@ -2274,7 +2485,7 @@ public sealed class SatisfiabilityValidatorTests
                     """
                     # Schema A
                     type Query {
-                        node(id: ID!): Node @lookup @inaccessible
+                        node(id: ID!): Node @lookup
                     }
 
                     interface Node {
@@ -2349,7 +2560,7 @@ public sealed class SatisfiabilityValidatorTests
                     """
                     # Schema A
                     type Query {
-                        node(id: ID!): Node @lookup @inaccessible
+                        node(id: ID!): Node @lookup
                     }
 
                     interface Node {
@@ -2383,7 +2594,7 @@ public sealed class SatisfiabilityValidatorTests
                     """
                     # Schema B
                     type Query {
-                        node(id: ID!): Node @lookup @inaccessible
+                        node(id: ID!): Node @lookup
                     }
 
                     interface Node {
