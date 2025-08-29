@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Language;
 
 // ReSharper disable once CheckNamespace

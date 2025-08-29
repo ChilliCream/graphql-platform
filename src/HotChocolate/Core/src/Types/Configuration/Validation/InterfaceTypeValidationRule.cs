@@ -2,8 +2,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
 
-#nullable enable
-
 namespace HotChocolate.Configuration.Validation;
 
 internal sealed class InterfaceTypeValidationRule : ISchemaValidationRule

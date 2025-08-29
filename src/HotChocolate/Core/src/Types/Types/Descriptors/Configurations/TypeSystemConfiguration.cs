@@ -1,8 +1,6 @@
 using HotChocolate.Features;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
@@ -14,16 +12,15 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     private List<TypeDependency>? _dependencies;
     private List<ITypeSystemConfigurationTask>? _configurations;
     private IFeatureCollection? _features;
-    private string _name = string.Empty;
 
     /// <summary>
     /// Gets or sets the name of the type system member.
     /// </summary>
-    public string Name
+    public virtual string Name
     {
-        get => _name;
-        set => _name = string.Intern(value.EnsureGraphQLName());
-    }
+        get;
+        set => field = string.Intern(value.EnsureGraphQLName());
+    } = string.Empty;
 
     /// <summary>
     /// Gets or sets the description of the type system member.

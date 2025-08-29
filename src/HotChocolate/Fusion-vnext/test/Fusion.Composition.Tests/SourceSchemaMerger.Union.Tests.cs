@@ -287,7 +287,7 @@ public sealed class SourceSchemaMergerUnionTests
                     @fusion__type(schema: A)
                     @fusion__unionMember(schema: A, member: "Dog")
                     @fusion__unionMember(schema: A, member: "Cat")
-                    @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: [ "id" ], path: null) = Dog | Cat
+                    @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: [ "id" ], path: null, internal: false) = Dog | Cat
                 """
             },
             // @lookup on union member type fields.
@@ -324,7 +324,7 @@ public sealed class SourceSchemaMergerUnionTests
 
                 type Cat
                     @fusion__type(schema: A)
-                    @fusion__lookup(schema: A, key: "id", field: "catById(id: ID!): Cat", map: [ "id" ], path: "animalById") {
+                    @fusion__lookup(schema: A, key: "id", field: "catById(id: ID!): Cat", map: [ "id" ], path: "animalById", internal: false) {
                     catById(id: ID!
                         @fusion__inputField(schema: A)): Cat
                         @fusion__field(schema: A)
@@ -332,7 +332,7 @@ public sealed class SourceSchemaMergerUnionTests
 
                 type Dog
                     @fusion__type(schema: A)
-                    @fusion__lookup(schema: A, key: "id", field: "dogById(id: ID!): Dog", map: [ "id" ], path: "animalById") {
+                    @fusion__lookup(schema: A, key: "id", field: "dogById(id: ID!): Dog", map: [ "id" ], path: "animalById", internal: false) {
                     dogById(id: ID!
                         @fusion__inputField(schema: A)): Dog
                         @fusion__field(schema: A)
@@ -342,7 +342,7 @@ public sealed class SourceSchemaMergerUnionTests
                     @fusion__type(schema: A)
                     @fusion__unionMember(schema: A, member: "Dog")
                     @fusion__unionMember(schema: A, member: "Cat")
-                    @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: [ "id" ], path: null) = Dog | Cat
+                    @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: [ "id" ], path: null, internal: false) = Dog | Cat
                 """
             }
         };

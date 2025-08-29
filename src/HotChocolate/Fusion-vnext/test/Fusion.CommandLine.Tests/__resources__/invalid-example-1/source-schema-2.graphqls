@@ -10,6 +10,3 @@ type User {
   id: ID!
   username: String!
 }
-
-directive @schemaName(value: String!) on SCHEMA
-directive @lookup on FIELD_DEFINITION

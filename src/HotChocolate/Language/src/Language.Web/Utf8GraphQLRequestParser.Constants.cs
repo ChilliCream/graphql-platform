@@ -27,4 +27,6 @@ public ref partial struct Utf8GraphQLRequestParser
     private static ReadOnlySpan<byte> DocumentIdProperty => "documentId"u8;
 
     private static ReadOnlySpan<byte> PayloadProperty => "payload"u8;
+
+    private static ReadOnlySpan<byte> OnErrorProperty => "onError"u8;
 }

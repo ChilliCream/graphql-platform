@@ -1,8 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types.Factories;
 
 internal static class BindDirectiveHelper

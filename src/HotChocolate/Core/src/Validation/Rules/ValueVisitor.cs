@@ -103,7 +103,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             node.Type.NamedType().Name.Value,
             out var variableType))
         {
-            context.Types.Push(variableType);
+            context.Types.Push(node.Type.RewriteToType(variableType));
             return base.Enter(node, context);
         }
 

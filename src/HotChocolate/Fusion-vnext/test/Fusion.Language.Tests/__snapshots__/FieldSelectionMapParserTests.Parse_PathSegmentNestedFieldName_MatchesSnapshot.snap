@@ -1,72 +1,51 @@
 {
-  "Kind": "SelectedValue",
+  "Kind": "Path",
   "Location": {
     "Start": 0,
     "End": 13,
     "Line": 1,
     "Column": 1
   },
-  "SelectedValueEntry": {
-    "Kind": "SelectedValueEntry",
+  "PathSegment": {
+    "Kind": "PathSegment",
     "Location": {
       "Start": 0,
       "End": 13,
       "Line": 1,
       "Column": 1
     },
-    "Path": {
-      "Kind": "Path",
+    "FieldName": {
+      "Kind": "Name",
       "Location": {
         "Start": 0,
-        "End": 13,
+        "End": 7,
         "Line": 1,
         "Column": 1
       },
-      "PathSegment": {
-        "Kind": "PathSegment",
+      "Value": "field1"
+    },
+    "TypeName": null,
+    "PathSegment": {
+      "Kind": "PathSegment",
+      "Location": {
+        "Start": 7,
+        "End": 13,
+        "Line": 1,
+        "Column": 8
+      },
+      "FieldName": {
+        "Kind": "Name",
         "Location": {
-          "Start": 0,
+          "Start": 7,
           "End": 13,
           "Line": 1,
-          "Column": 1
+          "Column": 8
         },
-        "FieldName": {
-          "Kind": "Name",
-          "Location": {
-            "Start": 0,
-            "End": 7,
-            "Line": 1,
-            "Column": 1
-          },
-          "Value": "field1"
-        },
-        "TypeName": null,
-        "PathSegment": {
-          "Kind": "PathSegment",
-          "Location": {
-            "Start": 7,
-            "End": 13,
-            "Line": 1,
-            "Column": 8
-          },
-          "FieldName": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 7,
-              "End": 13,
-              "Line": 1,
-              "Column": 8
-            },
-            "Value": "field2"
-          },
-          "TypeName": null,
-          "PathSegment": null
-        }
+        "Value": "field2"
       },
-      "TypeName": null
-    },
-    "SelectedObjectValue": null,
-    "SelectedListValue": null
+      "TypeName": null,
+      "PathSegment": null
+    }
   },
-  "SelectedValue": null
+  "TypeName": null
 }

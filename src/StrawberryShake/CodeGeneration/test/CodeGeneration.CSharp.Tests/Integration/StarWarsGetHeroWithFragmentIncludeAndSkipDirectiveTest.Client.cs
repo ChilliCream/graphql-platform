@@ -1348,14 +1348,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHeroWithFragmentIncludeAndSkipDirectiveResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _booleanFormatter;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetHeroWithFragmentIncludeAndSkipDirectiveQuery(global::StrawberryShake.IOperationExecutor<IGetHeroWithFragmentIncludeAndSkipDirectiveResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _booleanFormatter = serializerResolver.GetInputValueFormatter("Boolean");
         }
 
-        private GetHeroWithFragmentIncludeAndSkipDirectiveQuery(global::StrawberryShake.IOperationExecutor<IGetHeroWithFragmentIncludeAndSkipDirectiveResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter booleanFormatter)
+        private GetHeroWithFragmentIncludeAndSkipDirectiveQuery(global::StrawberryShake.IOperationExecutor<IGetHeroWithFragmentIncludeAndSkipDirectiveResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter booleanFormatter)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;

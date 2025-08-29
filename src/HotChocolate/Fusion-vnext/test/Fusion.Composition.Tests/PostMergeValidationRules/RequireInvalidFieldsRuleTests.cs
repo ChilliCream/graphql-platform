@@ -65,7 +65,7 @@ public sealed class RequireInvalidFieldsRuleTests
                     # Schema A
                     type User @key(fields: "id") {
                         id: ID!
-                        profile(name: String! @require(field: "name")): Profile
+                        profile(name: String @require(field: "name")): Profile
                     }
 
                     type Profile {
@@ -107,6 +107,24 @@ public sealed class RequireInvalidFieldsRuleTests
                     type ProductDimension {
                         size: Int!
                         weight: Int!
+                    }
+                    """
+                ]
+            },
+            // In the following example, the @require directive’s "field" argument references a field with a list type.
+            {
+                [
+                    """
+                    type CartDiscount {
+                        channels(channelIds: [ID!]! @require(field: "channelIds")): ChannelConnection!
+                        id: ID!
+                    }
+                    """,
+                    """
+                    type CartDiscount {
+                       id: ID!
+                       name: String!
+                       channelIds: [ID!]!
                     }
                     """
                 ]

@@ -48,7 +48,6 @@ internal sealed class WebSocketSession : ISocketSession
             connection.ApplicationStopping);
         var ct = cts.Token;
         var protocol = await connection.TryAcceptConnection();
-        var interceptor = executorSession.SocketSessionInterceptor;
 
         if (protocol is not null)
         {
