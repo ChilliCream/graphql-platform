@@ -77,8 +77,8 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
 
     /// <inheritdoc />
     public virtual void PlanOperationError(
-        OperationPlanContext context,
-        ExecutionNode node,
+        RequestContext context,
+        string operationId,
         Exception error)
     {
     }
@@ -115,7 +115,7 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     public virtual void SourceSchemaResultError(
         OperationPlanContext context,
         ExecutionNode node, string schemaName,
-        IReadOnlyCollection<IError> errors)
+        IReadOnlyList<IError> errors)
     {
     }
 
