@@ -1,10 +1,10 @@
 using System.Collections.Immutable;
-using System.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -1315,7 +1315,7 @@ public sealed partial class OperationPlanner
                 {
                     switch (selection)
                     {
-                        case FieldNode  { SelectionSet: { } fieldSelectionSet }:
+                        case FieldNode { SelectionSet: { } fieldSelectionSet }:
                             backlog.Push(fieldSelectionSet);
                             break;
 
