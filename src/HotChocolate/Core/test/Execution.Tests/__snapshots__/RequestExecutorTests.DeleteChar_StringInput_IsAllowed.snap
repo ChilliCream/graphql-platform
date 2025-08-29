@@ -1,0 +1,7 @@
+{
+  "data": {
+    "delChar": "\u007F",
+    "delCharNonEscaped": "\u007F",
+    "delCharNonEscapedBlockString": "\u007F\n"
+  }
+}

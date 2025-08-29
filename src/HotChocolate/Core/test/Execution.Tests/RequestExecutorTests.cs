@@ -96,7 +96,7 @@ public class RequestExecutorTests
     }
 
     [Fact]
-    public async Task StringInput_WithControlCharacters_IsHandledCorrectly()
+    public async Task DeleteChar_StringInput_IsAllowed()
     {
         var schema = SchemaBuilder.New()
             .AddQueryType(t => t
@@ -106,21 +106,19 @@ public class RequestExecutorTests
                 .Resolve(x => x.ArgumentValue<string>("arg")))
             .Create();
 
-        var escapedControlChars = JsonSerializer.Serialize(new string(
-            Enumerable.Range(0, char.MaxValue)
-                .Select(i => (char)i)
-                .Where(char.IsControl)
-                .ToArray()));
-
         // act
         var executor = schema.MakeExecutable();
-        var result = await executor.ExecuteAsync(
-            $$"""
-            {
-                delChar: echo(arg: "Hello\u007FWorld")
-                allControlChars: echo(arg:{{escapedControlChars}})
-            }
-            """);
+        var result = await executor.ExecuteAsync($$""""
+                                                   {
+                                                       delChar: echo(arg: "\u007F")
+                                                       delCharNonEscaped: echo(arg: "{{"\u007f"}}")
+                                                       delCharNonEscapedBlockString: echo(arg:
+                                                       """
+                                                       {{"\u007f"}}
+                                                       """)
+                                                       #Comment with del char -> {{"\u007f"}} <-
+                                                   }
+                                                   """");
 
         // assert
         result.MatchSnapshot();
