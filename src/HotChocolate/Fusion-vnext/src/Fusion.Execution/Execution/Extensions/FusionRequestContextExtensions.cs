@@ -111,13 +111,6 @@ public static class FusionRequestContextExtensions
         return context.Schema.GetRequestOptions().CollectOperationPlanTelemetry;
     }
 
-    internal static bool AllowOperationPlanRequests(
-        this RequestContext context)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-        return context.Schema.GetRequestOptions().AllowOperationPlanRequests;
-    }
-
     internal static ErrorHandlingMode ErrorHandlingMode(
         this RequestContext context)
     {

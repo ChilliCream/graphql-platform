@@ -26,7 +26,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     private readonly ExecutionState _executionState;
     private readonly INodeIdParser _nodeIdParser;
     private readonly bool _collectTelemetry;
-    private readonly bool _allowOperationPlanRequests;
     private ResultPoolSessionHolder _resultPoolSessionHolder;
     private ISourceSchemaClientScope _clientScope;
     private string? _traceId;
@@ -58,7 +57,6 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
         _resultPoolSessionHolder = requestContext.CreateResultPoolSession();
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
-        _allowOperationPlanRequests = requestContext.AllowOperationPlanRequests();
         _clientScope = requestContext.CreateClientScope();
         _nodeIdParser = requestContext.Schema.Services.GetRequiredService<INodeIdParser>();
         _diagnosticEvents = requestContext.Schema.Services.GetRequiredService<IFusionExecutionDiagnosticEvents>();
@@ -244,7 +242,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
         var resultBuilder = OperationResultBuilder.New();
 
-        if (_allowOperationPlanRequests && RequestContext.ContextData.ContainsKey(ExecutionContextData.IncludeOperationPlan))
+        if (RequestContext.ContextData.ContainsKey(ExecutionContextData.IncludeOperationPlan))
         {
             var writer = new PooledArrayWriter();
             s_planFormatter.Format(writer, OperationPlan, trace);
