@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -64,83 +65,27 @@ internal sealed class OperationPlanExecutor
         try
         {
             var context = new OperationPlanContext(requestContext, operationPlan, executionCts);
-            var subscription = await subscriptionNode.SubscribeAsync(context, executionCts.Token);
+            var subscriptionResult = await subscriptionNode.SubscribeAsync(context, executionCts.Token);
             var executionState = context.ExecutionState;
-            var plan = context.OperationPlan;
 
-            cancellationToken.Register(() => executionState.Signal.TryResetToIdle());
+            executionCts.Token.Register(() => executionState.Signal.TryResetToIdle());
 
-            if (subscription.Status is not ExecutionStatus.Success)
+            if (subscriptionResult.Status is not ExecutionStatus.Success)
             {
                 throw new InvalidOperationException("We could not subscribe to the underlying source schema.");
             }
 
-            var stream = new ResponseStream(CreateResponseStream);
+            var subscriptionEnumerable = CreateSubscriptionEnumerable(
+                context,
+                subscriptionNode,
+                subscriptionResult,
+                executionCts.Token,
+                cancellationToken);
+
+            var stream = new ResponseStream(() => subscriptionEnumerable);
             stream.RegisterForCleanup(context);
             stream.RegisterForCleanup(executionCts);
             return stream;
-
-            async IAsyncEnumerable<IOperationResult> CreateResponseStream()
-            {
-                await foreach (var eventArgs in subscription.ReadStreamAsync().WithCancellation(executionCts.Token))
-                {
-                    IOperationResult result;
-
-                    try
-                    {
-                        context.Begin(eventArgs.StartTimestamp, eventArgs.Activity?.TraceId.ToHexString());
-
-                        executionState.Reset();
-                        executionState.FillBacklog(plan);
-                        executionState.EnqueueForCompletion(
-                            new ExecutionNodeResult(
-                                subscriptionNode.Id,
-                                eventArgs.Activity,
-                                eventArgs.Status,
-                                eventArgs.Duration,
-                                Exception: null,
-                                DependentsToExecute: [],
-                                VariableValueSets: eventArgs.VariableValueSets));
-
-                        while (!executionCts.Token.IsCancellationRequested && executionState.IsProcessing())
-                        {
-                            while (executionState.TryDequeueCompletedResult(out var nodeResult))
-                            {
-                                var node = plan.GetNodeById(nodeResult.Id);
-                                executionState.CompleteNode(node, nodeResult);
-                            }
-
-                            executionState.EnqueueNextNodes(context, executionCts.Token);
-
-                            if (cancellationToken.IsCancellationRequested || !executionState.IsProcessing())
-                            {
-                                break;
-                            }
-
-                            // The signal will be set every time a node completes and will release the executor
-                            // from the async wait to go through the completed results.
-                            await executionState.Signal;
-                        }
-
-                        // We only want to exit here, if the request was cancelled.
-                        // If only the execution was cancelled, we still want to continue
-                        // to produce a result.
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            break;
-                        }
-
-                        result = context.Complete();
-                    }
-                    finally
-                    {
-                        // disposing the eventArgs disposes the telemetry scope.
-                        eventArgs.Dispose();
-                    }
-
-                    yield return result;
-                }
-            }
         }
         catch
         {
@@ -248,6 +193,89 @@ internal sealed class OperationPlanExecutor
         if (context.CollectTelemetry)
         {
             context.Traces = [.. executionState.Traces];
+        }
+    }
+
+    private static async IAsyncEnumerable<IOperationResult> CreateSubscriptionEnumerable(
+        OperationPlanContext context,
+        OperationExecutionNode subscriptionNode,
+        SubscriptionResult subscriptionResult,
+        [EnumeratorCancellation] CancellationToken executionCancellationToken,
+        CancellationToken requestCancellationToken)
+    {
+        var plan = context.OperationPlan;
+        var executionState = context.ExecutionState;
+        var stream = subscriptionResult.ReadStreamAsync()
+            .WithCancellation(executionCancellationToken);
+
+        await foreach (var eventArgs in stream)
+        {
+            IOperationResult result;
+
+            try
+            {
+                // TODO: Does this reset the cts?
+                context.Begin(eventArgs.StartTimestamp, eventArgs.Activity?.TraceId.ToHexString());
+
+                executionState.Reset();
+                executionState.FillBacklog(plan);
+                executionState.EnqueueForCompletion(
+                    new ExecutionNodeResult(
+                        subscriptionNode.Id,
+                        eventArgs.Activity,
+                        eventArgs.Status,
+                        eventArgs.Duration,
+                        Exception: null,
+                        DependentsToExecute: [],
+                        VariableValueSets: eventArgs.VariableValueSets));
+
+                while (!executionCancellationToken.IsCancellationRequested && executionState.IsProcessing())
+                {
+                    while (executionState.TryDequeueCompletedResult(out var nodeResult))
+                    {
+                        var node = plan.GetNodeById(nodeResult.Id);
+                        executionState.CompleteNode(node, nodeResult);
+                    }
+
+                    executionState.EnqueueNextNodes(context, executionCancellationToken);
+
+                    if (executionCancellationToken.IsCancellationRequested || !executionState.IsProcessing())
+                    {
+                        break;
+                    }
+
+                    // The signal will be set every time a node completes and will release the executor
+                    // from the async wait to go through the completed results.
+                    await executionState.Signal;
+                }
+
+                // We only want to exit here, if the request was cancelled.
+                // If the execution was halted, we still want to attempt to produce a result.
+                if (requestCancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+
+                result = context.Complete();
+            }
+            // TODO: Check cancellation
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                context.DiagnosticEvents.SubscriptionEventError(
+                    context,
+                    subscriptionNode,
+                    subscriptionNode.SchemaName ?? context.GetDynamicSchemaName(subscriptionNode),
+                    subscriptionResult.Id,
+                    ex);
+                throw;
+            }
+            finally
+            {
+                // disposing the eventArgs disposes the telemetry scope.
+                eventArgs.Dispose();
+            }
+
+            yield return result;
         }
     }
 }

@@ -88,6 +88,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
+        var diagnosticEvents = context.DiagnosticEvents;
         var variables = context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
 
         if (variables.Length == 0 && (_requirements.Length > 0 || _forwardedVariables.Length > 0))
@@ -107,11 +108,30 @@ public sealed class OperationExecutionNode : ExecutionNode
         };
 
         var client = context.GetClient(schemaName, _operation.Type);
-        SourceSchemaClientResponse response;
+
+        var index = 0;
+        var bufferLength = 0;
+        SourceSchemaResult[]? buffer = null;
+        var hasSomeErrors = false;
 
         try
         {
-            response = await client.ExecuteAsync(context, request, cancellationToken);
+            // we execute the GraphQL request against a source schema
+            var response = await client.ExecuteAsync(context, request, cancellationToken);
+
+            // we read the responses from the response stream.
+            bufferLength = Math.Max(variables.Length, 1);
+            buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
+
+            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
+            {
+                buffer[index++] = result;
+
+                if (result.Errors is not null)
+                {
+                    hasSomeErrors = true;
+                }
+            }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -122,21 +142,28 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
         catch (Exception exception)
         {
+            diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
+
+            // if there is an error, we need to make sure that the pooled buffers for the JsonDocuments
+            // are returned to the pool.
+            if (buffer is not null && bufferLength > 0)
+            {
+                foreach (var result in buffer.AsSpan(0, index))
+                {
+                    // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
+                    result?.Dispose();
+                }
+
+                buffer.AsSpan(0, index).Clear();
+                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
+            }
+
             AddErrors(context, exception, variables, _responseNames);
             return ExecutionStatus.Failed;
         }
 
-        var index = 0;
-        var bufferLength = Math.Max(variables.Length, 1);
-        var buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
-
         try
         {
-            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
-            {
-                buffer[index++] = result;
-            }
-
             context.AddPartialResults(_source, buffer.AsSpan(0, index), _responseNames);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -148,14 +175,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
         catch (Exception exception)
         {
-            // if there is an error, we need to make sure that the pooled buffers for the JsonDocuments
-            // are returned to the pool.
-            foreach (var result in buffer.AsSpan(0, index))
-            {
-                // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
-                result?.Dispose();
-            }
-
+            diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
             AddErrors(context, exception, variables, _responseNames);
             return ExecutionStatus.Failed;
         }
@@ -165,11 +185,14 @@ public sealed class OperationExecutionNode : ExecutionNode
             ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
         }
 
-        return ExecutionStatus.Success;
+        return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
     }
 
     protected override IDisposable CreateScope(OperationPlanContext context)
-        => context.DiagnosticEvents.ExecuteOperationNode(context, this);
+    {
+        var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
+        return context.DiagnosticEvents.ExecuteOperationNode(context, this, schemaName);
+    }
 
     internal async Task<SubscriptionResult> SubscribeAsync(
         OperationPlanContext context,
@@ -189,6 +212,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         };
 
         var client = context.GetClient(schemaName, _operation.Type);
+        var subscriptionId = SubscriptionId.Next();
 
         try
         {
@@ -197,17 +221,18 @@ public sealed class OperationExecutionNode : ExecutionNode
             var stream = new SubscriptionEnumerable(
                 context,
                 this,
+                subscriptionId,
                 response,
                 response.ReadAsResultStreamAsync(cancellationToken),
                 context.DiagnosticEvents);
 
-            return SubscriptionResult.Success(stream);
+            return SubscriptionResult.Success(subscriptionId, stream);
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            AddErrors(context, exception, variables, _responseNames);
-
-            return SubscriptionResult.Failed();
+            AddErrors(context, ex, variables, _responseNames);
+            context.DiagnosticEvents.SubscriptionTransportError(context, this, schemaName, subscriptionId, ex);
+            return SubscriptionResult.Failed(subscriptionId, ex);
         }
     }
 
@@ -249,6 +274,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     {
         private readonly OperationPlanContext _context;
         private readonly OperationExecutionNode _node;
+        private readonly ulong _subscriptionId;
         private readonly SourceSchemaClientResponse _response;
         private readonly IAsyncEnumerable<SourceSchemaResult> _resultEnumerable;
         private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
@@ -256,12 +282,14 @@ public sealed class OperationExecutionNode : ExecutionNode
         public SubscriptionEnumerable(
             OperationPlanContext context,
             OperationExecutionNode node,
+            ulong subscriptionId,
             SourceSchemaClientResponse response,
             IAsyncEnumerable<SourceSchemaResult> resultEnumerable,
             IFusionExecutionDiagnosticEvents diagnosticEvents)
         {
             _context = context;
             _node = node;
+            _subscriptionId = subscriptionId;
             _response = response;
             _resultEnumerable = resultEnumerable;
             _diagnosticEvents = diagnosticEvents;
@@ -272,6 +300,8 @@ public sealed class OperationExecutionNode : ExecutionNode
             => new SubscriptionEnumerator(
                 _context,
                 _node,
+                _node.SchemaName ?? _context.GetDynamicSchemaName(_node),
+                _subscriptionId,
                 _response,
                 _resultEnumerable.GetAsyncEnumerator(cancellationToken),
                 _diagnosticEvents,
@@ -283,6 +313,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         private readonly ulong _subscriptionId;
         private readonly OperationPlanContext _context;
         private readonly OperationExecutionNode _node;
+        private readonly string _schemaName;
         private readonly SourceSchemaClientResponse _response;
         private readonly IAsyncEnumerator<SourceSchemaResult> _resultEnumerator;
         private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
@@ -295,14 +326,17 @@ public sealed class OperationExecutionNode : ExecutionNode
         public SubscriptionEnumerator(
             OperationPlanContext context,
             OperationExecutionNode node,
+            string schemaName,
+            ulong subscriptionId,
             SourceSchemaClientResponse response,
             IAsyncEnumerator<SourceSchemaResult> resultEnumerator,
             IFusionExecutionDiagnosticEvents diagnosticEvents,
             CancellationToken cancellationToken)
         {
-            _subscriptionId = SubscriptionId.Next();
             _context = context;
             _node = node;
+            _schemaName = schemaName;
+            _subscriptionId = subscriptionId;
             _response = response;
             _resultEnumerator = resultEnumerator;
             _diagnosticEvents = diagnosticEvents;
@@ -327,15 +361,8 @@ public sealed class OperationExecutionNode : ExecutionNode
             try
             {
                 hasResult = await _resultEnumerator.MoveNextAsync();
-
-                scope = _diagnosticEvents.ExecuteSubscriptionNode(_context, _node, _subscriptionId);
+                scope = _diagnosticEvents.ExecuteSubscriptionNode(_context, _node, _schemaName, _subscriptionId);
                 start = Stopwatch.GetTimestamp();
-
-                if (hasResult)
-                {
-                    _resultBuffer[0] = _resultEnumerator.Current;
-                    _context.AddPartialResults(_node._source, _resultBuffer, _node._responseNames);
-                }
             }
             catch (Exception exception)
             {
@@ -352,12 +379,21 @@ public sealed class OperationExecutionNode : ExecutionNode
                     VariableValueSets: _context.GetVariableValueSets(_node));
 
                 var error = ErrorBuilder.FromException(exception).Build();
-                _context.AddSubscriptionError(error, _node._responseNames, _subscriptionId);
-                return true;
+                _context.DiagnosticEvents.SubscriptionEventError(
+                    _context,
+                    _node,
+                    _node.SchemaName ?? _context.GetDynamicSchemaName(_node),
+                    _subscriptionId,
+                    exception);
+                _context.AddErrors(error, _node._responseNames);
+                return false;
             }
 
             if (hasResult)
             {
+                _resultBuffer[0] = _resultEnumerator.Current;
+                _context.AddPartialResults(_node._source, _resultBuffer, _node._responseNames);
+
                 Current = new EventMessageResult(
                     _node.Id,
                     Activity.Current,

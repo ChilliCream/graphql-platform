@@ -44,6 +44,6 @@ internal sealed class LoginCommand : Command
             $"Logged in as [bold]{session.Email}[/] ({session.Tenant} on {session.IdentityServer})");
 
         return await SetDefaultWorkspaceCommand
-            .ExecuteAsync(console, client, sessionService, cancellationToken);
+            .ExecuteAsync(forceSelection: false, console, client, sessionService, cancellationToken);
     }
 }

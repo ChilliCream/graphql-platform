@@ -47,6 +47,7 @@ public static class ConsoleHelpers
         this InvocationContext context,
         string question,
         Option<string> option,
+        string? defaultValue,
         CancellationToken cancellationToken)
     {
         var value = context.ParseResult.GetValueForOption(option);
@@ -58,9 +59,22 @@ public static class ConsoleHelpers
 
         var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
 
-        return await new TextPrompt<string>(question.AsQuestion())
-            .ShowAsync(console, cancellationToken);
+        var prompt = new TextPrompt<string>(question.AsQuestion());
+
+        if (defaultValue is not null)
+        {
+            prompt = prompt.DefaultValue(defaultValue);
+        }
+
+        return await prompt.ShowAsync(console, cancellationToken);
     }
+
+    public static Task<string> OptionOrAskAsync(
+        this InvocationContext context,
+        string question,
+        Option<string> option,
+        CancellationToken cancellationToken)
+        => OptionOrAskAsync(context, question, option, defaultValue: null, cancellationToken);
 
     public static async Task<string> AskAsync(
         this IAnsiConsole console,
@@ -104,11 +118,13 @@ public static class ConsoleHelpers
         console.MarkupLine(Glyphs.ExclamationMark.Space() + message);
     }
 
+    // TODO: This should write to stderr, but AnsiConsole can't easily do that atm.
     public static void Error(this IAnsiConsole console, string message)
     {
         console.MarkupLine($"[red bold]{message}[/]");
     }
 
+    // TODO: This should write to stderr, but AnsiConsole can't easily do that atm.
     public static void PrintError(this IAnsiConsole console, string message, string? code = null)
     {
         if (code is not null)

@@ -213,8 +213,13 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 
         foreach (var fileInfo in fileInfos)
         {
-            var file = new StreamContent(fileInfo.File.OpenRead());
-            form.Add(file, fileInfo.Name, fileInfo.File.FileName);
+            var fileContent = new StreamContent(fileInfo.File.OpenRead());
+            if (!string.IsNullOrEmpty(fileInfo.File.ContentType))
+            {
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(fileInfo.File.ContentType);
+            }
+
+            form.Add(fileContent, fileInfo.Name, fileInfo.File.FileName);
         }
 
         return form;

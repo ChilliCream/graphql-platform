@@ -102,6 +102,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
         void ReportSingle(IError singleError)
         {
             var handled = _operationContext.ErrorHandler.Handle(singleError);
+            var diagnosticEvents = _operationContext.DiagnosticEvents;
 
             if (handled is AggregateError ar)
             {
@@ -109,14 +110,14 @@ internal partial class MiddlewareContext : IMiddlewareContext
                 {
                     var errorWithPath = EnsurePathAndLocation(ie, _selection.SyntaxNode, Path);
                     _operationContext.Result.AddError(errorWithPath, _selection);
-                    _operationContext.FieldError([errorWithPath], this);
+                    diagnosticEvents.ResolverError(this, errorWithPath);
                 }
             }
             else
             {
                 var errorWithPath = EnsurePathAndLocation(handled, _selection.SyntaxNode, Path);
                 _operationContext.Result.AddError(errorWithPath, _selection);
-                _operationContext.FieldError([errorWithPath], this);
+                diagnosticEvents.ResolverError(this, errorWithPath);
             }
 
             HasErrors = true;

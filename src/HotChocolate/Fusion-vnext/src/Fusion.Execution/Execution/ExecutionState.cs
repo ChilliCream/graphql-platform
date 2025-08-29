@@ -106,7 +106,6 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     public void CompleteNode(ExecutionNode node, ExecutionNodeResult result)
     {
         Interlocked.Decrement(ref _activeNodes);
-        _completed.Add(node);
 
         if (collectTelemetry)
         {
@@ -120,13 +119,18 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
             });
         }
 
-        if (result.DependentsToExecute.Length > 0)
+        if (result.Status is ExecutionStatus.Success or ExecutionStatus.PartialSuccess)
         {
-            foreach (var dependent in node.Dependents)
+            _completed.Add(node);
+
+            if (result.DependentsToExecute.Length > 0)
             {
-                if (!result.DependentsToExecute.Contains(dependent))
+                foreach (var dependent in node.Dependents)
                 {
-                    SkipNode(dependent);
+                    if (!result.DependentsToExecute.Contains(dependent))
+                    {
+                        SkipNode(dependent);
+                    }
                 }
             }
         }
@@ -144,7 +148,18 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
         while (_stack.TryPop(out var current))
         {
-            _backlog.Remove(current);
+            if (_backlog.Remove(current)
+                && collectTelemetry
+                && !_completed.Contains(current))
+            {
+                Traces.Add(new ExecutionNodeTrace
+                {
+                    Id = node.Id,
+                    Status = ExecutionStatus.Skipped,
+                    Duration = TimeSpan.Zero,
+                    VariableSets = []
+                });
+            }
 
             foreach (var enqueuedNode in _backlog)
             {

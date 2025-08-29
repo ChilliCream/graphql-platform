@@ -5,8 +5,11 @@ using System.Text.Json;
 using System.Threading.Channels;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
+using HotChocolate.Fusion.Results;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CommandLineResources;
 
 namespace HotChocolate.Fusion.CommandLine;
@@ -361,7 +364,7 @@ internal sealed class ComposeCommand : Command
         }
     }
 
-    private static bool IsSchemaFile(string? fileName)
+    public static bool IsSchemaFile(string? fileName)
     {
         if (fileName is null)
         {
@@ -381,23 +384,61 @@ internal sealed class ComposeCommand : Command
         bool printSchema,
         CancellationToken cancellationToken)
     {
-        environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
-
-        Dictionary<string, (SourceSchemaText, JsonDocument)> sourceSchemas;
+        using var archive = File.Exists(archiveFile)
+            ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
+            : FusionArchive.Create(archiveFile);
 
         try
         {
-            sourceSchemas = await ReadSourceSchemasAsync(sourceSchemaFiles, cancellationToken);
+            var compositionLog = new CompositionLog();
+
+            var result = await ComposeAsync(
+                compositionLog,
+                sourceSchemaFiles,
+                archive,
+                environment,
+                enableGlobalObjectIdentification,
+                cancellationToken);
+
+            WriteCompositionLog(
+                compositionLog,
+                writer: result.IsSuccess ? console.Out : console.Error,
+                writeAsGraphQLComments: result.IsSuccess && printSchema);
+
+            if (result.IsFailure)
+            {
+                foreach (var error in result.Errors)
+                {
+                    console.Error.WriteLine(error.Message);
+                }
+
+                return 1;
+            }
+
+            console.Out.WriteLine(printSchema
+                ? result.Value.ToString()
+                : string.Format(ComposeCommand_CompositeSchemaFile_Written, archiveFile));
+
+            return 0;
         }
         catch (Exception e)
         {
             console.Error.WriteLine(e.Message);
             return 1;
         }
+    }
 
-        using var archive = File.Exists(archiveFile)
-            ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
-            : FusionArchive.Create(archiveFile);
+    public static async Task<CompositionResult<MutableSchemaDefinition>> ComposeAsync(
+        ICompositionLog compositionLog,
+        List<string> sourceSchemaFiles,
+        FusionArchive archive,
+        string? environment,
+        bool enableGlobalObjectIdentification,
+        CancellationToken cancellationToken)
+    {
+        environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
+        var sourceSchemas = await ReadSourceSchemasAsync(sourceSchemaFiles, cancellationToken);
         var schemaNames = new SortedSet<string>(StringComparer.Ordinal);
 
         await UpdateArchiveMetadata(archive, schemaNames, cancellationToken);
@@ -442,7 +483,6 @@ internal sealed class ComposeCommand : Command
             EnableGlobalObjectIdentification = enableGlobalObjectIdentification
         };
 
-        var compositionLog = new CompositionLog();
         var schemaComposer = new SchemaComposer(
             sourceSchemas.Values.Select(t => t.Item1),
             schemaComposerOptions,
@@ -450,19 +490,9 @@ internal sealed class ComposeCommand : Command
 
         var result = schemaComposer.Compose();
 
-        WriteCompositionLog(
-            compositionLog,
-            writer: result.IsSuccess ? console.Out : console.Error,
-            writeAsGraphQLComments: result.IsSuccess && printSchema);
-
         if (result.IsFailure)
         {
-            foreach (var error in result.Errors)
-            {
-                console.Error.WriteLine(error.Message);
-            }
-
-            return 1;
+            return result;
         }
 
         bufferWriter.Reset();
@@ -479,11 +509,7 @@ internal sealed class ComposeCommand : Command
 
         await archive.CommitAsync(cancellationToken);
 
-        console.Out.WriteLine(printSchema
-            ? result.Value.ToString()
-            : string.Format(ComposeCommand_CompositeSchemaFile_Written, archiveFile));
-
-        return 0;
+        return result;
     }
 
     private static async Task UpdateArchiveMetadata(
@@ -510,7 +536,7 @@ internal sealed class ComposeCommand : Command
         await archive.SetArchiveMetadataAsync(metadata, cancellationToken);
     }
 
-    private static void WriteCompositionLog(
+    public static void WriteCompositionLog(
         CompositionLog compositionLog,
         IStandardStreamWriter writer,
         bool writeAsGraphQLComments)

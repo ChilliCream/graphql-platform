@@ -5,22 +5,28 @@ public sealed class SubscriptionResult
     private readonly IAsyncEnumerable<EventMessageResult>? _stream;
 
     private SubscriptionResult(
+        ulong id,
         ExecutionStatus status,
         IAsyncEnumerable<EventMessageResult>? stream,
         Exception? exception)
     {
+        Id = id;
         Status = status;
         _stream = stream;
         Exception = exception;
     }
 
     internal static SubscriptionResult Success(
+        ulong id,
         IAsyncEnumerable<EventMessageResult> stream)
-        => new(ExecutionStatus.Success, stream, null);
+        => new(id, ExecutionStatus.Success, stream, null);
 
     internal static SubscriptionResult Failed(
+        ulong id,
         Exception? exception = null)
-        => new(ExecutionStatus.Failed, null, exception);
+        => new(id, ExecutionStatus.Failed, null, exception);
+
+    public ulong Id { get; }
 
     public ExecutionStatus Status { get; }
 

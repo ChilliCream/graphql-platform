@@ -20,6 +20,31 @@ public interface ICoreExecutionDiagnosticEvents
     IDisposable ExecuteRequest(RequestContext context);
 
     /// <summary>
+    /// Called at the end of the execution if an exception occurred at some point,
+    /// including unhandled exceptions when resolving fields.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
+    /// </param>
+    /// <param name="error">
+    /// The last exception that occurred.
+    /// </param>
+    void RequestError(RequestContext context, Exception error);
+
+    /// <summary>
+    /// Called when a request termination error occurs within the request pipeline.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
+    /// </param>
+    /// <param name="error">
+    /// The GraphQL error object.
+    /// </param>
+    void RequestError(RequestContext context, IError error);
+
+    /// <summary>
     /// Called when starting to parse a document.
     /// </summary>
     /// <param name="context">
@@ -42,6 +67,18 @@ public interface ICoreExecutionDiagnosticEvents
     /// A scope that will be disposed of when the validation has finished.
     /// </returns>
     IDisposable ValidateDocument(RequestContext context);
+
+    /// <summary>
+    /// Called if there are any document validation errors.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
+    /// </param>
+    /// <param name="errors">
+    /// The GraphQL validation errors.
+    /// </param>
+    void ValidationErrors(RequestContext context, IReadOnlyList<IError> errors);
 
     /// <summary>
     /// Called when starting to coerce variables for a request.
@@ -83,29 +120,6 @@ public interface ICoreExecutionDiagnosticEvents
     IDisposable ExecuteSubscription(RequestContext context, ulong subscriptionId);
 
     /// <summary>
-    /// Called when an error occurs during the execution of a GraphQL request.
-    /// </summary>
-    /// <param name="context">
-    /// The request context encapsulates all GraphQL-specific information about an
-    /// individual GraphQL request.
-    /// </param>
-    /// <param name="kind">
-    /// The kind of error that occurred.
-    /// </param>
-    /// <param name="errors">
-    /// The errors that occurred.
-    /// </param>
-    /// <param name="state">
-    /// An additional state object that can be used to pass additional information
-    /// to the error diagnostic listener.
-    /// </param>
-    void ExecutionError(
-        RequestContext context,
-        ErrorKind kind,
-        IReadOnlyList<IError> errors,
-        object? state = null);
-
-    /// <summary>
     /// A GraphQL request document was added to the document cache.
     /// </summary>
     /// <param name="context">
@@ -144,6 +158,15 @@ public interface ICoreExecutionDiagnosticEvents
     /// The document id that was not found in the storage.
     /// </param>
     void DocumentNotFoundInStorage(RequestContext context, OperationDocumentId documentId);
+
+    /// <summary>
+    /// Called when a request has a non-trusted document when only trusted-documents are allowed.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information
+    /// about an individual GraphQL request.
+    /// </param>
+    void UntrustedDocumentRejected(RequestContext context);
 
     /// <summary>
     /// A GraphQL request executor was created and is now able to execute GraphQL requests.
