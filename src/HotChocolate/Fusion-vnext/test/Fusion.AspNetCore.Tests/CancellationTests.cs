@@ -1,14 +1,12 @@
-using System.Net.Http.Json;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.Fusion;
 
-// TODO: Subscription tests
 public class CancellationTests : FusionTestBase
 {
     [Fact]
@@ -88,6 +86,47 @@ public class CancellationTests : FusionTestBase
         // assert
         using var response = await result.ReadAsResultAsync();
         response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Execution_Is_Halted_While_Subscription_Is_Still_Ongoing()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b
+                .AddQueryType<SourceSchema2.Query>()
+                .AddSubscriptionType<SourceSchema2.Subscription>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", server1)
+            ],
+            configureGatewayBuilder: builder =>
+                builder.ModifyRequestOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Halt));
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        // act
+        using var result = await client.PostAsync(
+            """
+            subscription {
+                onReviewCreated {
+                    id
+                }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        var snapshot = new Snapshot();
+
+        await foreach (var response in result.ReadAsResultStreamAsync())
+        {
+            snapshot.Add(response);
+        }
+
+        await snapshot.MatchAsync();
     }
 
     [Fact]
@@ -178,6 +217,32 @@ public class CancellationTests : FusionTestBase
                     .SetMessage("Could not resolve reviews")
                     .SetPath(context.Path)
                     .Build());
+        }
+
+        public class Subscription
+        {
+            public async IAsyncEnumerable<Review> OnReviewCreatedStream()
+            {
+                yield return new Review(1);
+
+                await Task.Delay(250);
+
+                yield return new Review(2);
+            }
+
+            [Subscribe(With = nameof(OnReviewCreatedStream))]
+            public Review? OnReviewCreated([EventMessage] Review review, IResolverContext context)
+            {
+                if (review.Id == 2)
+                {
+                    throw new GraphQLException(ErrorBuilder.New()
+                        .SetMessage("Could not produce review")
+                        .SetPath(context.Path)
+                        .Build());
+                }
+
+                return review;
+            }
         }
 
         public record Review(int Id);

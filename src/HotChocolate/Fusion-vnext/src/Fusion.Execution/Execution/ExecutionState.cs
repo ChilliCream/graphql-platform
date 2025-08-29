@@ -97,7 +97,10 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
     public void CancelProcessing()
     {
-        cts.Cancel();
+        if (!cts.IsCancellationRequested)
+        {
+            cts.Cancel();
+        }
     }
 
     public void CompleteNode(ExecutionNode node, ExecutionNodeResult result)
