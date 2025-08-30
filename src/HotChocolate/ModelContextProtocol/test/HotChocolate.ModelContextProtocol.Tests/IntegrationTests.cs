@@ -79,12 +79,21 @@ public sealed class IntegrationTests
                     .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
         var server = new TestServer(builder);
         var mcpClient1 = await CreateMcpClientAsync(server.CreateClient());
-        var listChangedResetEvent = new ManualResetEventSlim(false);
+        var mcpClient2 = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent1 = new ManualResetEventSlim(false);
+        var listChangedResetEvent2 = new ManualResetEventSlim(false);
         mcpClient1.RegisterNotificationHandler(
             NotificationMethods.ToolListChangedNotification,
             async (_, _) =>
             {
-                listChangedResetEvent.Set();
+                listChangedResetEvent1.Set();
+                await ValueTask.CompletedTask;
+            });
+        mcpClient2.RegisterNotificationHandler(
+            NotificationMethods.ToolListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent2.Set();
                 await ValueTask.CompletedTask;
             });
 
@@ -93,11 +102,13 @@ public sealed class IntegrationTests
         typeModule.TriggerChange();
         IList<McpClientTool>? updatedTools = null;
 
-        if (listChangedResetEvent.Wait(TimeSpan.FromSeconds(5)))
+        if (listChangedResetEvent1.Wait(TimeSpan.FromSeconds(5)))
         {
-            var mcpClient2 = await CreateMcpClientAsync(server.CreateClient());
-            updatedTools = await mcpClient2.ListToolsAsync();
+            var mcpClient3 = await CreateMcpClientAsync(server.CreateClient());
+            updatedTools = await mcpClient3.ListToolsAsync();
         }
+
+        var secondClientNotified = listChangedResetEvent2.Wait(TimeSpan.FromSeconds(5));
 
         // assert
         Assert.NotNull(updatedTools);
@@ -115,6 +126,7 @@ public sealed class IntegrationTests
                 s_jsonSerializerOptions)
             .ReplaceLineEndings("\n")
             .MatchSnapshot(extension: ".json");
+        Assert.True(secondClientNotified);
     }
 
     [Fact]

@@ -1,60 +1,11 @@
-using HotChocolate.Execution;
-using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Fusion.Execution;
-using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Language;
-
 namespace HotChocolate.Fusion.Diagnostics;
 
-internal sealed class NoopFusionExecutionDiagnosticEvents : IFusionExecutionDiagnosticEvents, IDisposable
+internal sealed class NoopFusionExecutionDiagnosticEvents
+    : FusionExecutionDiagnosticEventListener
 {
-    public IDisposable ExecuteRequest(RequestContext context) => this;
+    private NoopFusionExecutionDiagnosticEvents()
+    {
+    }
 
-    public IDisposable ParseDocument(RequestContext context) => this;
-
-    public IDisposable ValidateDocument(RequestContext context) => this;
-
-    public IDisposable CoerceVariables(RequestContext context) => this;
-
-    public IDisposable ExecuteOperation(RequestContext context) => this;
-
-    public IDisposable ExecuteSubscription(RequestContext context, ulong subscriptionId) => this;
-
-    public void ExecutionError(
-        RequestContext context,
-        ErrorKind kind,
-        IReadOnlyList<IError> errors,
-        object? state = null) { }
-
-    public void AddedDocumentToCache(RequestContext context) { }
-
-    public void RetrievedDocumentFromCache(RequestContext context) { }
-
-    public void RetrievedDocumentFromStorage(RequestContext context) { }
-
-    public void DocumentNotFoundInStorage(RequestContext context, OperationDocumentId documentId) { }
-
-    public IDisposable PlanOperation(RequestContext context)
-        => this;
-
-    public IDisposable ExecuteOperationNode(OperationPlanContext context, OperationExecutionNode node)
-        => this;
-
-    public IDisposable ExecuteSubscriptionNode(
-        OperationPlanContext context,
-        OperationExecutionNode node,
-        ulong subscriptionId)
-        => this;
-
-    public IDisposable ExecuteSubscriptionEvent(OperationPlanContext context, OperationExecutionNode node)
-        => this;
-
-    public IDisposable ExecuteIntrospectionNode(OperationPlanContext context, IntrospectionExecutionNode node)
-        => this;
-
-    public void ExecutorCreated(string name, IRequestExecutor executor) { }
-
-    public void ExecutorEvicted(string name, IRequestExecutor executor) { }
-
-    public void Dispose() { }
+    public static NoopFusionExecutionDiagnosticEvents Instance { get; } = new();
 }

@@ -121,6 +121,10 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
                 case IntrospectionExecutionNode introspectionNode:
                     WriteIntrospectionNode(jsonWriter, introspectionNode, nodeTrace);
                     break;
+
+                case NodeFieldExecutionNode nodeExecutionNode:
+                    WriteNodeNode(jsonWriter, nodeExecutionNode, nodeTrace);
+                    break;
             }
         }
 
@@ -135,7 +139,11 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         jsonWriter.WriteStartObject();
         jsonWriter.WriteNumber("id", node.Id);
         jsonWriter.WriteString("type", node.Type.ToString());
-        jsonWriter.WriteString("schema", node.SchemaName);
+
+        if (!string.IsNullOrEmpty(node.SchemaName))
+        {
+            jsonWriter.WriteString("schema", node.SchemaName);
+        }
 
         jsonWriter.WriteStartObject("operation");
         jsonWriter.WriteString("name", node.Operation.Name);
@@ -274,6 +282,40 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         {
             jsonWriter.WritePropertyName(field.Name.Value);
             WriteValueNode(jsonWriter, field.Value);
+        }
+
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteNodeNode(Utf8JsonWriter jsonWriter, NodeFieldExecutionNode nodeField, ExecutionNodeTrace? trace)
+    {
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteNumber("id", nodeField.Id);
+        jsonWriter.WriteString("type", nodeField.Type.ToString());
+
+        jsonWriter.WriteString("idValue", nodeField.IdValue.ToString());
+        jsonWriter.WriteString("responseName", nodeField.ResponseName);
+
+        jsonWriter.WriteStartObject("branches");
+
+        foreach (var branch in nodeField.Branches.OrderBy(kvp => kvp.Key))
+        {
+            jsonWriter.WriteNumber(branch.Key, branch.Value.Id);
+        }
+
+        jsonWriter.WriteEndObject();
+
+        jsonWriter.WriteNumber("fallback", nodeField.FallbackQuery.Id);
+
+        if (trace is not null)
+        {
+            if (!string.IsNullOrEmpty(trace.SpanId))
+            {
+                jsonWriter.WriteString("spanId", trace.SpanId);
+            }
+
+            jsonWriter.WriteNumber("duration", trace.Duration.TotalMilliseconds);
+            jsonWriter.WriteString("status", trace.Status.ToString());
         }
 
         jsonWriter.WriteEndObject();

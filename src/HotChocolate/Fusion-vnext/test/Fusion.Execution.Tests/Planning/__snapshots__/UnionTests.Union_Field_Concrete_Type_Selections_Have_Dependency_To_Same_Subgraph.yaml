@@ -2,6 +2,7 @@ operation:
   - document: >-
       query testQuery {
         post {
+          __typename @fusion__requirement
           ... on Photo {
             product {
               subgraph2
@@ -25,6 +26,7 @@ nodes:
     operation: >-
       query testQuery_123456789101112_1 {
         post {
+          __typename
           ... on Photo {
             product {
               id
@@ -52,7 +54,8 @@ nodes:
     target: $.post<Discussion>.author
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1
   - id: 3
@@ -70,6 +73,7 @@ nodes:
     target: $.post<Photo>.product
     requirements:
       - name: __fusion_2_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1

@@ -1,6 +1,8 @@
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -13,8 +15,9 @@ internal sealed class OperationDefinitionBuilder
     private string? _name;
     private string? _description;
     private Lookup? _lookup;
-    private string? _lookupTypeRefinement;
-    private string? _requirementKey;
+    private List<ArgumentNode>? _lookupArguments;
+    private ITypeDefinition? _typeToLookup;
+    private string? _lookupAlias;
     private SelectionSetNode? _selectionSet;
 
     private OperationDefinitionBuilder()
@@ -42,11 +45,16 @@ internal sealed class OperationDefinitionBuilder
         return this;
     }
 
-    public OperationDefinitionBuilder SetLookup(Lookup? lookup, string? lookupTypeRefinement, string? requirementKey)
+    public OperationDefinitionBuilder SetLookup(
+        Lookup lookup,
+        List<ArgumentNode> arguments,
+        ITypeDefinition typeToLookup,
+        string? alias = null)
     {
         _lookup = lookup;
-        _lookupTypeRefinement = lookupTypeRefinement;
-        _requirementKey = requirementKey;
+        _lookupArguments = arguments;
+        _typeToLookup = typeToLookup;
+        _lookupAlias = alias;
         return this;
     }
 
@@ -65,39 +73,50 @@ internal sealed class OperationDefinitionBuilder
 
         var selectionSet = _selectionSet;
         var selectionPathBuilder = SelectionPath.CreateBuilder();
+        var indexBuilder = index.ToBuilder();
 
-        if (_lookup is not null)
+        if (_lookup is not null && _lookupArguments is not null && _typeToLookup is not null)
         {
-            var arguments = new List<ArgumentNode>();
+            selectionPathBuilder.AppendField(_lookup.FieldName);
 
-            foreach (var argument in _lookup.Arguments)
+            var lookupSelectionSet = selectionSet;
+            if (_typeToLookup != _lookup.FieldType
+                && !selectionSet.Selections.All(s => s is InlineFragmentNode inlineFragment
+                    && inlineFragment.TypeCondition?.Name.Value == _typeToLookup.Name))
             {
-                arguments.Add(
-                    new ArgumentNode(
-                        new NameNode(argument.Name),
-                        new VariableNode(new NameNode($"{_requirementKey}_{argument.Name}"))));
+                var typeRefinement =
+                    new InlineFragmentNode(
+                        null,
+                        new NamedTypeNode(_typeToLookup.Name),
+                        [],
+                        selectionSet);
+
+                lookupSelectionSet = new SelectionSetNode([
+                    new FieldNode(IntrospectionFieldNames.TypeName),
+                    typeRefinement
+                ]);
+
+                indexBuilder.Register(lookupSelectionSet);
+
+                selectionPathBuilder.AppendFragment(_typeToLookup.Name);
             }
+
+            var alias = _lookupAlias is not null && _lookupAlias != _lookup.FieldName
+                ? new NameNode(_lookupAlias)
+                : null;
 
             var lookupField = new FieldNode(
                 new NameNode(_lookup.FieldName),
-                null,
+                alias,
                 [],
-                arguments,
-                selectionSet);
+                _lookupArguments,
+                lookupSelectionSet);
 
             selectionSet = new SelectionSetNode(null, [lookupField]);
-
-            var indexBuilder = index.ToBuilder();
-            indexBuilder.Register(selectionSet);
-            index = indexBuilder;
-
-            selectionPathBuilder.AppendField(_lookup.FieldName);
-
-            if (!string.IsNullOrEmpty(_lookupTypeRefinement))
-            {
-                selectionPathBuilder.AppendFragment(_lookupTypeRefinement);
-            }
         }
+
+        indexBuilder.Register(selectionSet);
+        index = indexBuilder;
 
         var definition = new OperationDefinitionNode(
             null,

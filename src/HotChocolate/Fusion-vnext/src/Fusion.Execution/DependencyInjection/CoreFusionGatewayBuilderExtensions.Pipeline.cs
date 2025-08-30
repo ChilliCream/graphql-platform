@@ -44,7 +44,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(TimeoutMiddleware.Create());
+        return builder.UseRequest(FusionMiddleware.Timeout);
     }
 
     public static IFusionGatewayBuilder UseInstrumentation(
@@ -60,7 +60,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(OperationPlanCacheMiddleware.Create());
+        return builder.UseRequest(FusionMiddleware.OperationPlanCache);
     }
 
     public static IFusionGatewayBuilder UseOperationPlan(
@@ -68,7 +68,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(OperationPlanMiddleware.Create());
+        return builder.UseRequest(FusionMiddleware.OperationPlan);
     }
 
     public static IFusionGatewayBuilder UseOperationExecution(
@@ -76,7 +76,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(OperationExecutionMiddleware.Create());
+        return builder.UseRequest(FusionMiddleware.OperationExecution);
     }
 
     public static IFusionGatewayBuilder UseOperationVariableCoercion(
@@ -84,7 +84,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(OperationVariableCoercionMiddleware.Create());
+        return builder.UseRequest(FusionMiddleware.OperationVariableCoercion);
     }
 
     public static IFusionGatewayBuilder UseSkipWarmupExecution(

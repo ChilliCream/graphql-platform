@@ -58,13 +58,12 @@ public class NodeFieldSupportTests
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
-                .AddGlobalObjectIdentification()
+                .AddGlobalObjectIdentification(o => o.MaxAllowedNodeBatchSize = 1)
                 .AddQueryType<Foo>()
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
                     .IdField(t => t.Id)
                     .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null)))
-                .ModifyOptions(o => o.MaxAllowedNodeBatchSize = 1)
                 .BuildRequestExecutorAsync();
 
         // act

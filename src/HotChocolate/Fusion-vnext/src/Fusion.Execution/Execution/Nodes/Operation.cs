@@ -16,7 +16,7 @@ public sealed class Operation : IOperation
     private readonly ConcurrentDictionary<(ulong, string), SelectionSet> _selectionSets = [];
     private readonly OperationCompiler _compiler;
     private readonly IncludeConditionCollection _includeConditions;
-    private readonly FeatureCollection _features;
+    private readonly OperationFeatureCollection _features;
     private uint _lastId;
 
     internal Operation(
@@ -47,7 +47,7 @@ public sealed class Operation : IOperation
         _includeConditions = includeConditions;
         _lastId = lastId;
 
-        _features = new FeatureCollection();
+        _features = new OperationFeatureCollection();
         rootSelectionSet.Seal(this);
     }
 

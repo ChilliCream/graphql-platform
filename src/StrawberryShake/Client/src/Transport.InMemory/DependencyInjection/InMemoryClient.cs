@@ -129,7 +129,7 @@ public class InMemoryClient : IInMemoryClient
             default:
                 if (fileValue is Upload upload)
                 {
-                    return new StreamFile(upload.FileName, () => upload.Content);
+                    return new StreamFile(upload.FileName, () => upload.Content, null, upload.ContentType);
                 }
 
                 return variables;

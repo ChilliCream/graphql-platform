@@ -36,14 +36,7 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
 
         console.Title("Cancel the composition of a fusion configuration");
 
-        var input = new CancelFusionConfigurationCompositionInput { RequestId = requestId };
-
-        var result =
-            await client.CancelFusionConfigurationPublish.ExecuteAsync(input, cancellationToken);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.CancelFusionConfigurationComposition.Errors);
+        await FusionConfigurationPublishHelpers.ReleaseDeploymentSlot(requestId, console, client, cancellationToken);
 
         console.MarkupLine("Cancelled the composition of fusion configuration.");
 

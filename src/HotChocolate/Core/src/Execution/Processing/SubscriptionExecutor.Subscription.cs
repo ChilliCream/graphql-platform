@@ -107,6 +107,7 @@ internal sealed partial class SubscriptionExecutor
         public IAsyncEnumerable<IOperationResult> ExecuteAsync()
             => new SubscriptionEnumerable(
                 _requestContext,
+                Id,
                 _sourceStream,
                 OnEvent,
                 _diagnosticEvents,
@@ -187,14 +188,12 @@ internal sealed partial class SubscriptionExecutor
             catch (OperationCanceledException ex)
             {
                 operationContext = null;
-                var error = ErrorBuilder.FromException(ex).Build();
-                _diagnosticEvents.ExecutionError(_requestContext, ErrorKind.SubscriptionEventError, [error], state: Id);
+                _diagnosticEvents.SubscriptionEventError(_requestContext, Id, ex);
                 throw;
             }
             catch (Exception ex)
             {
-                var error = ErrorBuilder.FromException(ex).Build();
-                _diagnosticEvents.ExecutionError(_requestContext, ErrorKind.SubscriptionEventError, [error], state: Id);
+                _diagnosticEvents.SubscriptionEventError(_requestContext, Id, ex);
                 throw;
             }
             finally
@@ -316,6 +315,7 @@ internal sealed partial class SubscriptionExecutor
     private sealed class SubscriptionEnumerable : IAsyncEnumerable<IOperationResult>
     {
         private readonly RequestContext _requestContext;
+        private readonly ulong _subscriptionId;
         private readonly ISourceStream _sourceStream;
         private readonly Func<object, Task<IOperationResult>> _onEvent;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
@@ -323,12 +323,14 @@ internal sealed partial class SubscriptionExecutor
 
         public SubscriptionEnumerable(
             RequestContext requestContext,
+            ulong subscriptionId,
             ISourceStream sourceStream,
             Func<object, Task<IOperationResult>> onEvent,
             IExecutionDiagnosticEvents diagnosticEvents,
             IErrorHandler errorHandler)
         {
             _requestContext = requestContext;
+            _subscriptionId = subscriptionId;
             _sourceStream = sourceStream;
             _onEvent = onEvent;
             _diagnosticEvents = diagnosticEvents;
@@ -346,6 +348,7 @@ internal sealed partial class SubscriptionExecutor
 
                 return new SubscriptionEnumerator(
                     _requestContext,
+                    _subscriptionId,
                     eventStreamEnumerator,
                     _onEvent,
                     _diagnosticEvents,
@@ -354,8 +357,7 @@ internal sealed partial class SubscriptionExecutor
             }
             catch (Exception ex)
             {
-                var error = ErrorBuilder.FromException(ex).Build();
-                _diagnosticEvents.ExecutionError(_requestContext, ErrorKind.SubscriptionEventError, [error]);
+                _diagnosticEvents.SubscriptionEventError(_requestContext, _subscriptionId, ex);
                 return new ErrorSubscriptionEnumerator();
             }
         }
@@ -364,6 +366,7 @@ internal sealed partial class SubscriptionExecutor
     private sealed class SubscriptionEnumerator : IAsyncEnumerator<IOperationResult>
     {
         private readonly RequestContext _requestContext;
+        private readonly ulong _subscriptionId;
         private readonly IAsyncEnumerator<object?> _eventEnumerator;
         private readonly Func<object, Task<IOperationResult>> _onEvent;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
@@ -374,6 +377,7 @@ internal sealed partial class SubscriptionExecutor
 
         public SubscriptionEnumerator(
             RequestContext requestContext,
+            ulong subscriptionId,
             IAsyncEnumerator<object?> eventEnumerator,
             Func<object, Task<IOperationResult>> onEvent,
             IExecutionDiagnosticEvents diagnosticEvents,
@@ -381,6 +385,7 @@ internal sealed partial class SubscriptionExecutor
             CancellationToken requestAborted)
         {
             _requestContext = requestContext;
+            _subscriptionId = subscriptionId;
             _eventEnumerator = eventEnumerator;
             _onEvent = onEvent;
             _diagnosticEvents = diagnosticEvents;
@@ -413,7 +418,7 @@ internal sealed partial class SubscriptionExecutor
             catch (Exception ex)
             {
                 var error = _errorHandler.Handle(ErrorBuilder.FromException(ex).Build());
-                _diagnosticEvents.ExecutionError(_requestContext, ErrorKind.SubscriptionEventError, [error]);
+                _diagnosticEvents.SubscriptionEventError(_requestContext, _subscriptionId, ex);
                 _completed = true;
 
                 Current = OperationResultBuilder.CreateError(error);

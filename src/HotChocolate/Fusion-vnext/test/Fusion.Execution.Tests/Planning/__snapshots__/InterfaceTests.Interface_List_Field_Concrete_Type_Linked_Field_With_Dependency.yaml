@@ -2,6 +2,7 @@ operation:
   - document: >-
       query testQuery {
         votables {
+          __typename @fusion__requirement
           viewerCanVote
           ... on Discussion {
             author {
@@ -20,6 +21,7 @@ nodes:
     operation: >-
       query testQuery_123456789101112_1 {
         votables {
+          __typename
           viewerCanVote
           ... on Discussion {
             author {
@@ -43,6 +45,7 @@ nodes:
     target: $.votables<Discussion>.author
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1

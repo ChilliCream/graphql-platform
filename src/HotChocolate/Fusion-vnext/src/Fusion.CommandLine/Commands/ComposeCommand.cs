@@ -5,8 +5,11 @@ using System.Text.Json;
 using System.Threading.Channels;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
+using HotChocolate.Fusion.Results;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CommandLineResources;
 
 namespace HotChocolate.Fusion.CommandLine;
@@ -361,7 +364,7 @@ internal sealed class ComposeCommand : Command
         }
     }
 
-    private static bool IsSchemaFile(string? fileName)
+    public static bool IsSchemaFile(string? fileName)
     {
         if (fileName is null)
         {
@@ -381,60 +384,87 @@ internal sealed class ComposeCommand : Command
         bool printSchema,
         CancellationToken cancellationToken)
     {
-        environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
-
-        Dictionary<string, (SourceSchemaText, JsonDocument)> sourceSchemas;
+        using var archive = File.Exists(archiveFile)
+            ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
+            : FusionArchive.Create(archiveFile);
 
         try
         {
-            sourceSchemas = await ReadSourceSchemasAsync(sourceSchemaFiles, cancellationToken);
+            var compositionLog = new CompositionLog();
+
+            var result = await ComposeAsync(
+                compositionLog,
+                sourceSchemaFiles,
+                archive,
+                environment,
+                enableGlobalObjectIdentification,
+                cancellationToken);
+
+            WriteCompositionLog(
+                compositionLog,
+                writer: result.IsSuccess ? console.Out : console.Error,
+                writeAsGraphQLComments: result.IsSuccess && printSchema);
+
+            if (result.IsFailure)
+            {
+                foreach (var error in result.Errors)
+                {
+                    console.Error.WriteLine(error.Message);
+                }
+
+                return 1;
+            }
+
+            console.Out.WriteLine(printSchema
+                ? result.Value.ToString()
+                : string.Format(ComposeCommand_CompositeSchemaFile_Written, archiveFile));
+
+            return 0;
         }
         catch (Exception e)
         {
             console.Error.WriteLine(e.Message);
             return 1;
         }
+    }
 
-        using var archive = File.Exists(archiveFile)
-            ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
-            : FusionArchive.Create(archiveFile);
-        var schemaNames = new SortedSet<string>(StringComparer.Ordinal);
+    public static async Task<CompositionResult<MutableSchemaDefinition>> ComposeAsync(
+        ICompositionLog compositionLog,
+        List<string> sourceSchemaFiles,
+        FusionArchive archive,
+        string? environment,
+        bool enableGlobalObjectIdentification,
+        CancellationToken cancellationToken)
+    {
+        environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
-        await UpdateArchiveMetadata(archive, schemaNames, cancellationToken);
+        var sourceSchemas = await ReadSourceSchemasAsync(
+            sourceSchemaFiles,
+            cancellationToken);
 
-        using var bufferWriter = new PooledArrayWriter();
+        var sourceSchemaNamesInPackage = new SortedSet<string>(
+            await archive.GetSourceSchemaNamesAsync(cancellationToken),
+            StringComparer.Ordinal);
 
-        foreach (var schemaName in schemaNames)
+        foreach (var schemaName in sourceSchemaNamesInPackage)
         {
-            if (!sourceSchemas.ContainsKey(schemaName))
+            if (sourceSchemas.ContainsKey(schemaName))
             {
-                var sourceSchemaConfiguration =
-                    await archive.TryGetSourceSchemaConfigurationAsync(
-                        schemaName,
-                        cancellationToken);
-
-                if (sourceSchemaConfiguration is null)
-                {
-                    continue;
-                }
-
-                bufferWriter.Reset();
-
-                await using (var stream = await sourceSchemaConfiguration.OpenReadSchemaAsync(cancellationToken))
-                {
-                    int read;
-
-                    do
-                    {
-                        var memory = bufferWriter.GetMemory(4096);
-                        read = await stream.ReadAsync(memory, cancellationToken);
-                        bufferWriter.Advance(read);
-                    } while (read > 0);
-                }
-
-                var sourceText = new SourceSchemaText(schemaName, Encoding.UTF8.GetString(bufferWriter.WrittenSpan));
-                sourceSchemas[schemaName] = (sourceText, sourceSchemaConfiguration.Settings);
+                // We have a new configuration for the schema, so we'll take that
+                // instead of the one in the gateway package.
+                continue;
             }
+
+            var configuration = await archive.TryGetSourceSchemaConfigurationAsync(schemaName, cancellationToken);
+
+            if (configuration is null)
+            {
+                continue;
+            }
+
+            var sourceText = await ReadSchemaSourceTextAsync(configuration, cancellationToken);
+
+            sourceSchemas[schemaName] = (new SourceSchemaText(schemaName, sourceText), configuration.Settings);
         }
 
         var schemaComposerOptions = new SchemaComposerOptions
@@ -442,7 +472,6 @@ internal sealed class ComposeCommand : Command
             EnableGlobalObjectIdentification = enableGlobalObjectIdentification
         };
 
-        var compositionLog = new CompositionLog();
         var schemaComposer = new SchemaComposer(
             sourceSchemas.Values.Select(t => t.Item1),
             schemaComposerOptions,
@@ -450,26 +479,33 @@ internal sealed class ComposeCommand : Command
 
         var result = schemaComposer.Compose();
 
-        WriteCompositionLog(
-            compositionLog,
-            writer: result.IsSuccess ? console.Out : console.Error,
-            writeAsGraphQLComments: result.IsSuccess && printSchema);
-
         if (result.IsFailure)
         {
-            foreach (var error in result.Errors)
-            {
-                console.Error.WriteLine(error.Message);
-            }
-
-            return 1;
+            return result;
         }
 
-        bufferWriter.Reset();
+        using var bufferWriter = new PooledArrayWriter();
         new SettingsComposer().Compose(
             bufferWriter,
             sourceSchemas.Values.Select(t => t.Item2.RootElement).ToArray(),
             environment);
+
+        var metadata = new ArchiveMetadata
+        {
+            SupportedGatewayFormats = [new Version(2, 0, 0)],
+            SourceSchemas = [..sourceSchemas.Keys]
+        };
+
+        await archive.SetArchiveMetadataAsync(metadata, cancellationToken);
+
+        foreach (var (schemaName, (schema, settings)) in sourceSchemas)
+        {
+            await archive.SetSourceSchemaConfigurationAsync(
+                schemaName,
+                Encoding.UTF8.GetBytes(schema.SourceText),
+                settings,
+                cancellationToken);
+        }
 
         await archive.SetGatewayConfigurationAsync(
             result.Value + Environment.NewLine,
@@ -479,38 +515,10 @@ internal sealed class ComposeCommand : Command
 
         await archive.CommitAsync(cancellationToken);
 
-        console.Out.WriteLine(printSchema
-            ? result.Value.ToString()
-            : string.Format(ComposeCommand_CompositeSchemaFile_Written, archiveFile));
-
-        return 0;
+        return result;
     }
 
-    private static async Task UpdateArchiveMetadata(
-        FusionArchive archive,
-        SortedSet<string> sourceSchemaNames,
-        CancellationToken cancellationToken)
-    {
-        var metadata = await archive.GetArchiveMetadataAsync(cancellationToken);
-
-        if (metadata is not null)
-        {
-            foreach (var schemaName in metadata.SourceSchemas)
-            {
-                sourceSchemaNames.Add(schemaName);
-            }
-        }
-
-        metadata = new ArchiveMetadata
-        {
-            SupportedGatewayFormats = [new Version(2, 0, 0)],
-            SourceSchemas = [.. sourceSchemaNames]
-        };
-
-        await archive.SetArchiveMetadataAsync(metadata, cancellationToken);
-    }
-
-    private static void WriteCompositionLog(
+    public static void WriteCompositionLog(
         CompositionLog compositionLog,
         IStandardStreamWriter writer,
         bool writeAsGraphQLComments)
@@ -612,6 +620,15 @@ internal sealed class ComposeCommand : Command
             var sourceText = await File.ReadAllTextAsync(schemaFilePath, cancellationToken);
             sourceSchemas.TryAdd(schemaName, (new SourceSchemaText(schemaName, sourceText), settings));
         }
+    }
+
+    private static async Task<string> ReadSchemaSourceTextAsync(
+        SourceSchemaConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        await using var stream = await configuration.OpenReadSchemaAsync(cancellationToken);
+        using var reader = new StreamReader(stream, Encoding.UTF8);
+        return await reader.ReadToEndAsync(cancellationToken);
     }
 
     /// <summary>

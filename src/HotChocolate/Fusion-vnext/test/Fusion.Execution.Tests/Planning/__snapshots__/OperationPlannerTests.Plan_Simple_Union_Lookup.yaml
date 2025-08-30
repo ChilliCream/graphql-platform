@@ -29,6 +29,7 @@ nodes:
         $__fusion_1_id: ID!
       ) {
         lookupUnionById(id: $__fusion_1_id) {
+          __typename
           ... on Product {
             price
           }
@@ -38,6 +39,7 @@ nodes:
     target: $.topProduct
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1

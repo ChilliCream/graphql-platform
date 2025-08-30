@@ -329,6 +329,19 @@ public static partial class RequestExecutorBuilderExtensions
                 (_, sp) => configureServices(sp)));
     }
 
+    public static IRequestExecutorBuilder ConfigureSchemaServices(
+        this IRequestExecutorBuilder builder,
+        Action<IServiceProvider, IServiceCollection> configureServices)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configureServices);
+
+        return Configure(
+            builder,
+            options => options.OnConfigureSchemaServicesHooks.Add(
+                (ctx, sp) => configureServices(ctx.ApplicationServices, sp)));
+    }
+
     public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreated(
         this IRequestExecutorBuilder builder,
         Action<IRequestExecutor> action)

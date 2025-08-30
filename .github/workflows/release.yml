@@ -207,6 +207,7 @@ jobs:
             --self-contained true \
             -p:PublishAot=true \
             -p:TargetFrameworks=NET10.0 \
+            -p:RuntimeIdentifiers=${{ matrix.rid }} \
             -o ./publish
 
       - name: 📦 Zip Binary (Windows)

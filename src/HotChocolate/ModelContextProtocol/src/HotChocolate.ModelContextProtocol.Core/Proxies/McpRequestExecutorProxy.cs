@@ -45,9 +45,8 @@ internal sealed class McpRequestExecutorProxy(
     {
         if (oldExecutor is not null)
         {
-            var handler = oldExecutor.Schema.Services.GetRequiredService<StreamableHttpHandler>();
-            var firstMcpSession = handler.Sessions.Values.FirstOrDefault();
-            newExecutor.Features.Set(firstMcpSession);
+            newExecutor.Features.Set(
+                oldExecutor.Schema.Services.GetRequiredService<StreamableHttpHandler>().Sessions.Values);
         }
 
         var session =
@@ -63,10 +62,13 @@ internal sealed class McpRequestExecutorProxy(
         IRequestExecutor newExecutor,
         IRequestExecutor oldExecutor)
     {
-        var firstMcpSession =
-            newExecutor.Features.Get<HttpMcpSession<StreamableHttpServerTransport>?>();
-
         // https://github.com/modelcontextprotocol/csharp-sdk/issues/564#issuecomment-3184188188
-        firstMcpSession?.Server?.SendNotificationAsync(ToolListChangedNotification).FireAndForget();
+        var mcpSessions =
+            newExecutor.Features.GetRequired<ICollection<HttpMcpSession<StreamableHttpServerTransport>>>();
+
+        foreach (var session in mcpSessions)
+        {
+            session.Server?.SendNotificationAsync(ToolListChangedNotification).FireAndForget();
+        }
     }
 }

@@ -39,7 +39,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
         IApiClient client,
         ISessionService sessionService,
         IConfigurationService configurationService,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
         var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
@@ -51,7 +51,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
         var waitForApproval =
             context.ParseResult.GetValueForOption(Opt<OptionalWaitForApprovalOption>.Instance);
 
-        console.Title("Begin a configuration publish");
+        console.Title("Requesting a deployment slot");
 
         if (console.IsHumandReadable())
         {
@@ -59,96 +59,31 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
                 .Status()
                 .Spinner(Spinner.Known.BouncingBar)
                 .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Publishing...", PublishSchema);
+                .StartAsync("Requesting deployment slot ...", RequestDeploymentSlotAsync);
         }
         else
         {
-            await PublishSchema(null);
+            await RequestDeploymentSlotAsync(null);
         }
 
         return ExitCodes.Success;
 
-        async Task PublishSchema(StatusContext? ctx)
+        async Task RequestDeploymentSlotAsync(StatusContext? ctx)
         {
-            console.Log("Initialized");
+            var requestId = await FusionConfigurationPublishHelpers.RequestDeploymentSlotAsync(
+                apiId,
+                stageName,
+                tag,
+                subgraphId,
+                subgraphName,
+                waitForApproval,
+                ctx,
+                console,
+                client,
+                cancellationToken);
 
-            var input = new BeginFusionConfigurationPublishInput()
-            {
-                ApiId = apiId,
-                Tag = tag,
-                StageName = stageName,
-                SubgraphName = subgraphName,
-                SubgraphApiId = subgraphId,
-                WaitForApproval = waitForApproval
-            };
-
-            var result = await client.BeginFusionConfigurationPublish.ExecuteAsync(input, ct);
-            console.EnsureNoErrors(result);
-            var data = console.EnsureData(result);
-            console.PrintErrorsAndExit(data.BeginFusionConfigurationPublish.Errors);
-            if (data.BeginFusionConfigurationPublish.RequestId is not { } requestId)
-            {
-                throw Exit("No request id returned");
-            }
-
-            console.MarkupLine($"Your request id is [blue]{requestId}[/]");
-
-            using var stopSignal = new Subject<Unit>();
-            var subscription = client.OnFusionConfigurationPublishingTaskChanged
-                .Watch(requestId, ExecutionStrategy.NetworkOnly)
-                .TakeUntil(stopSignal);
-
-            await subscription.ForEachAsync(OnNext, ct);
-
-            void OnNext(IOperationResult<IOnFusionConfigurationPublishingTaskChangedResult> x)
-            {
-                if (x.Errors is { Count: > 0 } errors)
-                {
-                    console.PrintErrorsAndExit(errors);
-                    throw Exit("No request id returned");
-                }
-
-                switch (x.Data?.OnFusionConfigurationPublishingTaskChanged)
-                {
-                    case IProcessingTaskIsQueued v:
-                        ctx?.Status(
-                            $"Your request is queued and is in position [blue]{v.QueuePosition}[/]");
-                        break;
-
-                    case IFusionConfigurationPublishingFailed v:
-                        stopSignal.OnNext(Unit.Default);
-                        console.PrintErrorsAndExit(v.Errors);
-                        throw Exit("Your request has failed");
-
-                    case IFusionConfigurationPublishingSuccess:
-                        stopSignal.OnNext(Unit.Default);
-                        console.WarningLine("Your request is already published");
-                        break;
-
-                    case IProcessingTaskIsReady:
-                        stopSignal.OnNext(Unit.Default);
-                        console.Success("Your request is ready for the composition");
-                        break;
-
-                    case IFusionConfigurationValidationFailed:
-                    case IFusionConfigurationValidationSuccess:
-                    case IValidationInProgress:
-                    case IOperationInProgress:
-                    case IWaitForApproval:
-                    case IProcessingTaskApproved:
-                        stopSignal.OnNext(Unit.Default);
-                        console.Success("Your request is already processing");
-                        break;
-
-                    default:
-                        throw Exit("Unknown response");
-                }
-            }
-
-            console.WriteLine("Request ID:");
-            console.WriteLine(requestId);
             context.SetResult(new FusionConfigurationPublishBeginCommandResult { RequestId = requestId });
-            await FusionConfigurationPublishingState.SetRequestId(requestId, ct);
+            await FusionConfigurationPublishingState.SetRequestId(requestId, cancellationToken);
         }
     }
 

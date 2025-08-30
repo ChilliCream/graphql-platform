@@ -36,13 +36,7 @@ internal sealed class FusionConfigurationPublishStartCommand : Command
 
         console.Title("Start the composition of a fusion configuration");
 
-        var input = new StartFusionConfigurationCompositionInput() { RequestId = requestId };
-
-        var result =
-            await client.StartFusionConfigurationPublish.ExecuteAsync(input, cancellationToken);
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.StartFusionConfigurationComposition.Errors);
+        await FusionConfigurationPublishHelpers.ClaimDeploymentSlot(requestId, console, client, cancellationToken);
 
         console.MarkupLine("Started composition of fusion configuration.");
 

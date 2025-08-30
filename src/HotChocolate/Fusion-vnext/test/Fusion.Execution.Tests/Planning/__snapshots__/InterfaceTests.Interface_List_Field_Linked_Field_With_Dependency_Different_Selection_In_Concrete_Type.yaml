@@ -2,6 +2,7 @@ operation:
   - document: >-
       query testQuery {
         authorables {
+          __typename @fusion__requirement
           author {
             id
             displayName
@@ -24,6 +25,7 @@ nodes:
     operation: >-
       query testQuery_123456789101112_1 {
         authorables {
+          __typename
           author {
             id
           }
@@ -49,7 +51,8 @@ nodes:
     target: $.authorables<Discussion>.author
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1
   - id: 3
@@ -67,6 +70,7 @@ nodes:
     target: $.authorables.author
     requirements:
       - name: __fusion_2_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1

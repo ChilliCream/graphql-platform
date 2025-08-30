@@ -3,7 +3,7 @@ using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 
-namespace HotChocolate.Fusion.Types;
+namespace HotChocolate.Fusion.Types.Metadata;
 
 /// <summary>
 /// Represents the requirements for a field in a source schema.

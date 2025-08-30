@@ -2,6 +2,7 @@ operation:
   - document: >-
       query testQuery {
         authorable {
+          __typename @fusion__requirement
           author {
             id
             displayName
@@ -18,6 +19,7 @@ nodes:
     operation: >-
       query testQuery_123456789101112_1 {
         authorable {
+          __typename
           author {
             id
           }
@@ -38,6 +40,7 @@ nodes:
     target: $.authorable.author
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1

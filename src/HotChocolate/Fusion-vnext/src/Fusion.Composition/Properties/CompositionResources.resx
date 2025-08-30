@@ -93,6 +93,9 @@
   <data name="FusionLookupMutableDirectiveDefinition_Argument_Field_Description" xml:space="preserve">
     <value>The GraphQL field definition in the source schema that can be used to look up the entity.</value>
   </data>
+  <data name="FusionLookupMutableDirectiveDefinition_Argument_Internal_Description" xml:space="preserve">
+    <value>Is the lookup meant as an entry point or just to provide more data.</value>
+  </data>
   <data name="FusionLookupMutableDirectiveDefinition_Argument_Key_Description" xml:space="preserve">
     <value>A selection set on the annotated entity type that describes the stable key for the lookup.</value>
   </data>
@@ -388,7 +391,7 @@
     <value>Cycle detected: {0} -&gt; {1}.</value>
   </data>
   <data name="SatisfiabilityValidator_NodeTypeHasNoNodeLookup" xml:space="preserve">
-    <value>Type '{0}' implements the 'Node' interface, but no source schema provides a 'Query.node&lt;Node&gt;' lookup field for this type.</value>
+    <value>Type '{0}' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node&lt;Node&gt;' lookup field for this type.</value>
   </data>
   <data name="SatisfiabilityValidator_NoLookupsFoundForType" xml:space="preserve">
     <value>No lookups found for type '{0}' in schema '{1}'.</value>

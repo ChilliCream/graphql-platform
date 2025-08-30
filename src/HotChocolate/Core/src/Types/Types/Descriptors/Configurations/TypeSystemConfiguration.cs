@@ -105,7 +105,7 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     /// Ensures that a feature collection is created.
     /// </summary>
     public void TouchFeatures()
-        => _features = new FeatureCollection();
+        => _features ??= new FeatureCollection();
 
     protected void CopyTo(TypeSystemConfiguration target)
     {

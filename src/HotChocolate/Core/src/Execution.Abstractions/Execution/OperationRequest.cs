@@ -24,6 +24,9 @@ public sealed class OperationRequest : IOperationRequest
     /// <param name="operationName">
     /// A name of an operation in the GraphQL request document that shall be executed;
     /// </param>
+    /// <param name="errorHandlingMode">
+    /// The requested error handling mode.
+    /// </param>
     /// <param name="variableValues">
     /// The variable values for the GraphQL request.
     /// </param>
@@ -50,6 +53,7 @@ public sealed class OperationRequest : IOperationRequest
         OperationDocumentId? documentId,
         OperationDocumentHash? documentHash,
         string? operationName,
+        ErrorHandlingMode? errorHandlingMode,
         IReadOnlyDictionary<string, object?>? variableValues,
         IReadOnlyDictionary<string, object?>? extensions,
         IReadOnlyDictionary<string, object?>? contextData,
@@ -66,6 +70,7 @@ public sealed class OperationRequest : IOperationRequest
         DocumentId = documentId ?? OperationDocumentId.Empty;
         DocumentHash = documentHash ?? OperationDocumentHash.Empty;
         OperationName = operationName;
+        ErrorHandlingMode = errorHandlingMode;
         VariableValues = variableValues;
         Extensions = extensions;
         ContextData = contextData;
@@ -94,6 +99,11 @@ public sealed class OperationRequest : IOperationRequest
     /// or, <c>null</c> if the document only contains a single operation.
     /// </summary>
     public string? OperationName { get; }
+
+    /// <summary>
+    /// Gets the requested error handling mode.
+    /// </summary>
+    public ErrorHandlingMode? ErrorHandlingMode { get; }
 
     /// <summary>
     /// Gets the variable values for the GraphQL request.
@@ -140,6 +150,7 @@ public sealed class OperationRequest : IOperationRequest
             DocumentId,
             DocumentHash,
             OperationName,
+            ErrorHandlingMode,
             VariableValues,
             Extensions,
             ContextData,
@@ -162,6 +173,7 @@ public sealed class OperationRequest : IOperationRequest
             documentId,
             DocumentHash,
             OperationName,
+            ErrorHandlingMode,
             VariableValues,
             Extensions,
             ContextData,
@@ -184,6 +196,7 @@ public sealed class OperationRequest : IOperationRequest
             DocumentId,
             documentHash,
             OperationName,
+            ErrorHandlingMode,
             VariableValues,
             Extensions,
             ContextData,
@@ -206,6 +219,30 @@ public sealed class OperationRequest : IOperationRequest
             DocumentId,
             DocumentHash,
             operationName,
+            ErrorHandlingMode,
+            VariableValues,
+            Extensions,
+            ContextData,
+            Features,
+            Services,
+            Flags);
+
+    /// <summary>
+    /// Creates a new request with the specified error handling mode.
+    /// </summary>
+    /// <param name="errorHandlingMode">
+    /// The requested error handling mode.
+    /// </param>
+    /// <returns>
+    /// Returns a new request with the specified error handling mode.
+    /// </returns>
+    public OperationRequest WithErrorHandlingMode(ErrorHandlingMode errorHandlingMode)
+        => new OperationRequest(
+            Document,
+            DocumentId,
+            DocumentHash,
+            OperationName,
+            errorHandlingMode,
             VariableValues,
             Extensions,
             ContextData,
@@ -228,6 +265,7 @@ public sealed class OperationRequest : IOperationRequest
             DocumentId,
             DocumentHash,
             OperationName,
+            ErrorHandlingMode,
             variableValues,
             Extensions,
             ContextData,
@@ -250,6 +288,7 @@ public sealed class OperationRequest : IOperationRequest
             DocumentId,
             DocumentHash,
             OperationName,
+            ErrorHandlingMode,
             VariableValues,
             extensions,
             ContextData,
@@ -272,6 +311,7 @@ public sealed class OperationRequest : IOperationRequest
             DocumentId,
             DocumentHash,
             OperationName,
+            ErrorHandlingMode,
             VariableValues,
             Extensions,
             contextData,
@@ -294,6 +334,7 @@ public sealed class OperationRequest : IOperationRequest
             DocumentId,
             DocumentHash,
             OperationName,
+            ErrorHandlingMode,
             VariableValues,
             Extensions,
             ContextData,
@@ -316,6 +357,7 @@ public sealed class OperationRequest : IOperationRequest
             DocumentId,
             DocumentHash,
             OperationName,
+            ErrorHandlingMode,
             VariableValues,
             Extensions,
             ContextData,
@@ -338,6 +380,7 @@ public sealed class OperationRequest : IOperationRequest
             DocumentId,
             DocumentHash,
             OperationName,
+            ErrorHandlingMode,
             VariableValues,
             Extensions,
             ContextData,
@@ -356,6 +399,9 @@ public sealed class OperationRequest : IOperationRequest
     /// </param>
     /// <param name="operationName">
     /// The name of the operation that shall be executed.
+    /// </param>
+    /// <param name="errorHandlingMode">
+    /// The requested error handling mode.
     /// </param>
     /// <param name="variableValues">
     /// The variable values for the operation.
@@ -385,6 +431,7 @@ public sealed class OperationRequest : IOperationRequest
         OperationDocumentId documentId,
         OperationDocumentHash? documentHash = null,
         string? operationName = null,
+        ErrorHandlingMode? errorHandlingMode = null,
         IReadOnlyDictionary<string, object?>? variableValues = null,
         IReadOnlyDictionary<string, object?>? extensions = null,
         IReadOnlyDictionary<string, object?>? contextData = null,
@@ -402,6 +449,7 @@ public sealed class OperationRequest : IOperationRequest
             documentId,
             documentHash,
             operationName,
+            errorHandlingMode,
             variableValues,
             extensions,
             contextData,
@@ -421,6 +469,9 @@ public sealed class OperationRequest : IOperationRequest
     /// </param>
     /// <param name="operationName">
     /// The name of the operation that shall be executed.
+    /// </param>
+    /// <param name="errorHandlingMode">
+    /// The requested error handling mode.
     /// </param>
     /// <param name="variableValues">
     /// The variable values for the operation.
@@ -450,6 +501,7 @@ public sealed class OperationRequest : IOperationRequest
         string documentId,
         OperationDocumentHash? documentHash = null,
         string? operationName = null,
+        ErrorHandlingMode? errorHandlingMode = null,
         IReadOnlyDictionary<string, object?>? variableValues = null,
         IReadOnlyDictionary<string, object?>? extensions = null,
         IReadOnlyDictionary<string, object?>? contextData = null,
@@ -460,6 +512,7 @@ public sealed class OperationRequest : IOperationRequest
             new OperationDocumentId(documentId),
             documentHash,
             operationName,
+            errorHandlingMode,
             variableValues,
             extensions,
             contextData,
@@ -478,6 +531,9 @@ public sealed class OperationRequest : IOperationRequest
     /// </param>
     /// <param name="operationName">
     /// The name of the operation that shall be executed.
+    /// </param>
+    /// <param name="errorHandlingMode">
+    /// The requested error handling mode.
     /// </param>
     /// <param name="variableValues">
     /// The variable values for the operation.
@@ -504,6 +560,7 @@ public sealed class OperationRequest : IOperationRequest
         string sourceText,
         OperationDocumentHash? documentHash = null,
         string? operationName = null,
+        ErrorHandlingMode? errorHandlingMode = null,
         IReadOnlyDictionary<string, object?>? variableValues = null,
         IReadOnlyDictionary<string, object?>? extensions = null,
         IReadOnlyDictionary<string, object?>? contextData = null,
@@ -515,6 +572,7 @@ public sealed class OperationRequest : IOperationRequest
             null,
             documentHash,
             operationName,
+            errorHandlingMode,
             variableValues,
             extensions,
             contextData,
