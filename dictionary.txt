@@ -18,6 +18,7 @@ BCPROCKS
 bfnrt
 blazor
 blazorwasm
+Brontie
 Browsable
 BSON
 buildtransitive
@@ -111,7 +112,6 @@ NSwag
 ntouches
 nwithin
 oncall
-oneof
 OpenIddict
 opensgid
 OPTOUT
