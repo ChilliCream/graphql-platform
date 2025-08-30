@@ -129,10 +129,10 @@ public class SchemaFirstTests
     public async Task SchemaDescription()
     {
         // arrange
-        const string sourceText = "\"\"\"\nMy Schema Description\n\"\"\"" +
-            "schema" +
-            "{ query: Foo }" +
-            "type Foo { bar: String }";
+        const string sourceText = "\"\"\"\nMy Schema Description\n\"\"\""
+            + "schema"
+            + "{ query: Foo }"
+            + "type Foo { bar: String }";
 
         // act
         var schema = SchemaBuilder.New()

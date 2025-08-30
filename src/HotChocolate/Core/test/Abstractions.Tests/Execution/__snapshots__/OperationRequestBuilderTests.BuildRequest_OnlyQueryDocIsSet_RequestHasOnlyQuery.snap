@@ -73,6 +73,7 @@
     "IsEmpty": true
   },
   "OperationName": null,
+  "ErrorHandlingMode": null,
   "VariableValues": null,
   "Extensions": null,
   "ContextData": null,

@@ -6,8 +6,6 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class AnyType : ScalarType
@@ -215,9 +213,9 @@ public class AnyType : ScalarType
             default:
                 var type = runtimeValue.GetType();
 
-                if (type.IsValueType &&
-                    Converter.TryConvert(type, typeof(string), runtimeValue, out var c) &&
-                    c is string casted)
+                if (type.IsValueType
+                    && Converter.TryConvert(type, typeof(string), runtimeValue, out var c)
+                    && c is string casted)
                 {
                     resultValue = casted;
                     return true;

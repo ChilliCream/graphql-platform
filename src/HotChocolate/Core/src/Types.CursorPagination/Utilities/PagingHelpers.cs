@@ -30,8 +30,8 @@ public static class PagingHelpers
         // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
         // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
         var totalCountRequired =
-            totalCountEnabled &&
-            context.IsSelected(ConnectionType.Names.TotalCount);
+            totalCountEnabled
+            && context.IsSelected(ConnectionType.Names.TotalCount);
 
         // If nodes, edges, or pageInfo are selected, fetch the actual data.
         var edgesRequired =

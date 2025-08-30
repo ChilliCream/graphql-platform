@@ -37,8 +37,8 @@ internal sealed class DirectiveValidationRule : ISchemaValidationRule
         {
             var firstTwoLetters = type.Name.AsSpan()[..2];
 
-            if (firstTwoLetters[0] == PrefixCharacter &&
-                firstTwoLetters[1] == PrefixCharacter)
+            if (firstTwoLetters[0] == PrefixCharacter
+                && firstTwoLetters[1] == PrefixCharacter)
             {
                 errors.Add(TwoUnderscoresNotAllowedOnDirectiveName(type));
             }

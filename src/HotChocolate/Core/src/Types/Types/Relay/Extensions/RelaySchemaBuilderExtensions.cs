@@ -1,6 +1,6 @@
+using HotChocolate.Features;
+using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Relay;
-
-#nullable enable
 
 namespace HotChocolate;
 
@@ -15,7 +15,7 @@ public static class RelaySchemaBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(schemaBuilder);
 
-        return AddGlobalObjectIdentification(schemaBuilder, true);
+        return AddGlobalObjectIdentification(schemaBuilder, o => o.RegisterNodeInterface = true);
     }
 
     /// <summary>
@@ -25,20 +25,26 @@ public static class RelaySchemaBuilderExtensions
     public static ISchemaBuilder AddGlobalObjectIdentification(
         this ISchemaBuilder schemaBuilder,
         bool registerNodeInterface)
+        => AddGlobalObjectIdentification(schemaBuilder, o => o.RegisterNodeInterface = registerNodeInterface);
+
+    /// <summary>
+    /// Adds a <c>node</c> field to the root query according to the
+    /// Global Object Identification specification.
+    /// </summary>
+    public static ISchemaBuilder AddGlobalObjectIdentification(
+        this ISchemaBuilder schemaBuilder,
+        Action<GlobalObjectIdentificationOptions>? configure)
     {
         ArgumentNullException.ThrowIfNull(schemaBuilder);
 
-        schemaBuilder.Features.Set(new NodeSchemaFeature());
+        var feature = schemaBuilder.Features.GetOrSet(new NodeSchemaFeature());
+        configure?.Invoke(feature.Options);
 
         schemaBuilder.TryAddTypeInterceptor<NodeIdSerializerTypeInterceptor>();
 
-        if (registerNodeInterface)
-        {
-            schemaBuilder
-                .TryAddTypeInterceptor<NodeFieldTypeInterceptor>()
-                .TryAddTypeInterceptor<NodeResolverTypeInterceptor>()
-                .AddType<NodeType>();
-        }
+        schemaBuilder
+            .TryAddTypeInterceptor<NodeFieldTypeInterceptor>()
+            .TryAddTypeInterceptor<NodeResolverTypeInterceptor>();
 
         return schemaBuilder;
     }

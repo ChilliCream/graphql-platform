@@ -6,8 +6,6 @@ using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
@@ -400,19 +398,19 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
                 definitionsCleaned = true;
             }
 
-            if (count == 3 &&
-                definitions[0].IsRepeatable &&
-                definitions[1].IsRepeatable &&
-                definitions[2].IsRepeatable)
+            if (count == 3
+                && definitions[0].IsRepeatable
+                && definitions[1].IsRepeatable
+                && definitions[2].IsRepeatable)
             {
                 definitionsCleaned = true;
             }
 
-            if (count == 4 &&
-                definitions[0].IsRepeatable &&
-                definitions[1].IsRepeatable &&
-                definitions[2].IsRepeatable &&
-                definitions[3].IsRepeatable)
+            if (count == 4
+                && definitions[0].IsRepeatable
+                && definitions[1].IsRepeatable
+                && definitions[2].IsRepeatable
+                && definitions[3].IsRepeatable)
             {
                 definitionsCleaned = true;
             }

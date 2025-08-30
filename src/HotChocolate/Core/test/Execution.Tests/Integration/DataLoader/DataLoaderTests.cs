@@ -382,10 +382,12 @@ public class DataLoaderTests
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                @"mutation {
-                    a: doSomething(key: ""a"")
-                    b: doSomething(key: ""b"")
-                }"));
+                """
+                mutation {
+                    a: doSomething(key: "a")
+                    b: doSomething(key: "b")
+                }
+                """));
 
         await snapshot.MatchMarkdownAsync();
     }

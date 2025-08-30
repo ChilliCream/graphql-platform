@@ -74,8 +74,8 @@ public class SubscriptionSingleRootFieldRuleTests
             }
             """,
             t => Assert.Equal(
-                $"Subscription operations must " +
-                "have exactly one root field.", t.Message));
+                $"Subscription operations must "
+                + "have exactly one root field.", t.Message));
     }
 
     [Fact]
@@ -92,8 +92,8 @@ public class SubscriptionSingleRootFieldRuleTests
             }
             """,
             t => Assert.Equal(
-                $"Subscription operations must " +
-                "have exactly one root field.", t.Message));
+                $"Subscription operations must "
+                + "have exactly one root field.", t.Message));
     }
 
     [Fact]
@@ -111,8 +111,8 @@ public class SubscriptionSingleRootFieldRuleTests
             }
             """,
             t => Assert.Equal(
-                $"Subscription operations must " +
-                "have exactly one root field.", t.Message));
+                $"Subscription operations must "
+                + "have exactly one root field.", t.Message));
     }
 
     [Fact]
@@ -133,8 +133,8 @@ public class SubscriptionSingleRootFieldRuleTests
             }
             """,
             t => Assert.Equal(
-                $"Subscription operations must " +
-                "have exactly one root field.", t.Message));
+                $"Subscription operations must "
+                + "have exactly one root field.", t.Message));
     }
 
     [Fact]
@@ -149,8 +149,8 @@ public class SubscriptionSingleRootFieldRuleTests
                 }
             ",
             t => Assert.Equal(
-                "The skip and include directives are not allowed to be used on root fields of " +
-                "the subscription type.",
+                "The skip and include directives are not allowed to be used on root fields of "
+                + "the subscription type.",
                 t.Message));
     }
 
@@ -166,8 +166,8 @@ public class SubscriptionSingleRootFieldRuleTests
                 }
             ",
             t => Assert.Equal(
-                "The skip and include directives are not allowed to be used on root fields of " +
-                "the subscription type.",
+                "The skip and include directives are not allowed to be used on root fields of "
+                + "the subscription type.",
                 t.Message));
     }
 
@@ -188,8 +188,8 @@ public class SubscriptionSingleRootFieldRuleTests
                 }
             ",
             t => Assert.Equal(
-                "The skip and include directives are not allowed to be used on root fields of " +
-                "the subscription type.",
+                "The skip and include directives are not allowed to be used on root fields of "
+                + "the subscription type.",
                 t.Message));
     }
 
@@ -210,8 +210,8 @@ public class SubscriptionSingleRootFieldRuleTests
                 }
             ",
             t => Assert.Equal(
-                "The skip and include directives are not allowed to be used on root fields of " +
-                "the subscription type.",
+                "The skip and include directives are not allowed to be used on root fields of "
+                + "the subscription type.",
                 t.Message));
     }
 
@@ -230,8 +230,8 @@ public class SubscriptionSingleRootFieldRuleTests
                 }
             ",
             t => Assert.Equal(
-                "The skip and include directives are not allowed to be used on root fields of " +
-                "the subscription type.",
+                "The skip and include directives are not allowed to be used on root fields of "
+                + "the subscription type.",
                 t.Message));
     }
 
@@ -250,8 +250,8 @@ public class SubscriptionSingleRootFieldRuleTests
                 }
             ",
             t => Assert.Equal(
-                "The skip and include directives are not allowed to be used on root fields of " +
-                "the subscription type.",
+                "The skip and include directives are not allowed to be used on root fields of "
+                + "the subscription type.",
                 t.Message));
     }
 
@@ -269,8 +269,8 @@ public class SubscriptionSingleRootFieldRuleTests
             }
             """,
             t => Assert.Equal(
-                $"Subscription operations must " +
-                "have exactly one root field.", t.Message));
+                $"Subscription operations must "
+                + "have exactly one root field.", t.Message));
     }
 
     [Fact]

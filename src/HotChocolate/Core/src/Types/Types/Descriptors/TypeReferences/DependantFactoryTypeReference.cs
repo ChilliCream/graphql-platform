@@ -1,7 +1,5 @@
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 /// <summary>
@@ -111,9 +109,9 @@ public sealed class DependantFactoryTypeReference
     {
         unchecked
         {
-            return base.GetHashCode() ^
-                Name.GetHashCode() * 397 ^
-                Dependency.GetHashCode() * 397;
+            return base.GetHashCode()
+                ^ Name.GetHashCode() * 397
+                ^ Dependency.GetHashCode() * 397;
         }
     }
 

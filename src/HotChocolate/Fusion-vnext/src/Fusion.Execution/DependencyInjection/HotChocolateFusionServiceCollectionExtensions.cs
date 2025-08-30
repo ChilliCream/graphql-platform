@@ -5,6 +5,7 @@ using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -33,11 +34,14 @@ public static class HotChocolateFusionServiceCollectionExtensions
     private static void AddRequestExecutorManager(
         IServiceCollection services)
     {
-        services.TryAddSingleton<FusionRequestExecutorManager>();
+        services.TryAddSingleton(
+            static sp => new FusionRequestExecutorManager(
+                sp.GetRequiredService<IOptionsMonitor<FusionGatewaySetup>>(),
+                sp));
         services.TryAddSingleton<IRequestExecutorProvider>(
-            sp => sp.GetRequiredService<FusionRequestExecutorManager>());
+            static sp => sp.GetRequiredService<FusionRequestExecutorManager>());
         services.TryAddSingleton<IRequestExecutorEvents>(
-            sp => sp.GetRequiredService<FusionRequestExecutorManager>());
+            static sp => sp.GetRequiredService<FusionRequestExecutorManager>());
     }
 
     private static void AddSourceSchemaScope(
@@ -48,11 +52,12 @@ public static class HotChocolateFusionServiceCollectionExtensions
                 sp.GetRequiredService<IHttpClientFactory>()));
     }
 
-    private static void AddResultObjectPools(
+    internal static void AddResultObjectPools(
         IServiceCollection services,
         FusionMemoryPoolOptions options)
     {
-        services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+        services.TryAddSingleton<ObjectPoolProvider>(
+            static _ => new DefaultObjectPoolProvider());
 
         services.TryAddSingleton(options);
 
@@ -131,15 +136,25 @@ public static class HotChocolateFusionServiceCollectionExtensions
         });
 
         services.TryAddScoped(static provider =>
-            new ResultPoolSessionHolder(provider.GetRequiredService<ObjectPool<ResultPoolSession>>()));
+            new ResultPoolSessionHolder(
+                provider.GetRequiredService<ObjectPool<ResultPoolSession>>()));
 
-        services.TryAddScoped(static provider => provider.GetRequiredService<ResultPoolSessionHolder>().Session);
+        services.TryAddScoped(static provider =>
+            provider.GetRequiredService<ResultPoolSessionHolder>().Session);
     }
 
     private static DefaultFusionGatewayBuilder CreateBuilder(
         IServiceCollection services,
         string name)
     {
+        if (!services.Any(x =>
+            x.ServiceType == typeof(SchemaName)
+                && x.ImplementationInstance is SchemaName s
+                && s.Value.Equals(name, StringComparison.Ordinal)))
+        {
+            services.AddSingleton(new SchemaName(name));
+        }
+
         var builder = new DefaultFusionGatewayBuilder(services, name);
         builder.UseDefaultPipeline();
         return builder;

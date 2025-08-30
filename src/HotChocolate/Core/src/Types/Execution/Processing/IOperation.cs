@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -155,9 +153,6 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// <typeparam name="TState">
     /// The type of the state.
     /// </typeparam>
-    /// <typeparam name="TContext">
-    /// The type of the context.
-    /// </typeparam>
     /// <param name="key">
     /// The key of the state.
     /// </param>
@@ -167,7 +162,7 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// <returns>
     /// Returns the state.
     /// </returns>
-    TState GetOrAddState<TState, TContext>(
+    TState GetOrAddState<TState>(
         string key,
         Func<string, TState> createState);
 

@@ -161,9 +161,9 @@ public class MiddlewareContextTests
 
                                             foreach (var argumentValue in current.Values)
                                             {
-                                                if (argumentValue.Type.ToRuntimeType() ==
-                                                    typeof(string) &&
-                                                    argumentValue
+                                                if (argumentValue.Type.ToRuntimeType()
+                                                    == typeof(string)
+                                                    && argumentValue
                                                         .ValueLiteral is StringValueNode sv)
                                                 {
                                                     sv = sv.WithValue(sv.Value.Trim());

@@ -77,11 +77,7 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     public void ToString_SelectedListValueNode_ReturnsExpectedString()
     {
         // arrange
-        var node = new SelectedListValueNode(
-            selectedValue: new SelectedValueNode(
-                selectedValueEntry: new SelectedValueEntryNode(
-                    path: new PathNode(
-                        pathSegment: new PathSegmentNode(fieldName: new NameNode("field1"))))));
+        var node = new ListValueSelectionNode(new PathNode(new PathSegmentNode(new NameNode("field1"))));
 
         // act
         var result = node.ToString();
@@ -94,12 +90,9 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     public void ToString_SelectedObjectFieldNode_ReturnsExpectedString()
     {
         // arrange
-        var node = new SelectedObjectFieldNode(
+        var node = new ObjectFieldSelectionNode(
             new NameNode("field1"),
-            new SelectedValueNode(
-                selectedValueEntry: new SelectedValueEntryNode(
-                    path: new PathNode(
-                        pathSegment: new PathSegmentNode(fieldName: new NameNode("field1"))))));
+            new PathNode(new PathSegmentNode(new NameNode("field1"))));
 
         // act
         var result = node.ToString();
@@ -112,23 +105,15 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     public void ToString_SelectedObjectValueNode_ReturnsExpectedString()
     {
         // arrange
-        var node = new SelectedObjectValueNode(fields:
-            [
-                new SelectedObjectFieldNode(
-                    new NameNode("field1"),
-                    new SelectedValueNode(
-                        selectedValueEntry: new SelectedValueEntryNode(
-                            path: new PathNode(
-                                pathSegment: new PathSegmentNode(
-                                    fieldName: new NameNode("field1")))))),
-                new SelectedObjectFieldNode(
-                    new NameNode("field2"),
-                    new SelectedValueNode(
-                        selectedValueEntry: new SelectedValueEntryNode(
-                            path: new PathNode(
-                                pathSegment: new PathSegmentNode(
-                                    fieldName: new NameNode("field2"))))))
-            ]);
+        var node = new ObjectValueSelectionNode(
+        [
+            new ObjectFieldSelectionNode(
+                new NameNode("field1"),
+                new PathNode(new PathSegmentNode(new NameNode("field1")))),
+            new ObjectFieldSelectionNode(
+                new NameNode("field2"),
+                new PathNode(new PathSegmentNode(new NameNode("field2"))))
+        ]);
 
         // act
         var result = node.ToString(
@@ -153,25 +138,12 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     public void ToString_SelectedValueNode_ReturnsExpectedString()
     {
         // arrange
-        var node = new SelectedValueNode(
-            selectedValueEntry: new SelectedValueEntryNode(
-                path: new PathNode(
-                    pathSegment: new PathSegmentNode(
-                        fieldName: new NameNode("field1"),
-                        pathSegment: new PathSegmentNode(fieldName: new NameNode("field2"))))),
-            selectedValue: new SelectedValueNode(
-                selectedValueEntry: new SelectedValueEntryNode(
-                    path: new PathNode(
-                        pathSegment: new PathSegmentNode(
-                            fieldName: new NameNode("field3"),
-                            pathSegment: new PathSegmentNode(fieldName: new NameNode("field4"))))),
-                selectedValue: new SelectedValueNode(
-                    selectedValueEntry: new SelectedValueEntryNode(
-                        path: new PathNode(
-                            pathSegment: new PathSegmentNode(
-                                fieldName: new NameNode("field5"),
-                                pathSegment: new PathSegmentNode(
-                                    fieldName: new NameNode("field6"))))))));
+        var node = new ChoiceValueSelectionNode(
+        [
+            new PathNode(new PathSegmentNode(new NameNode("field1"), new PathSegmentNode(new NameNode("field2")))),
+            new PathNode(new PathSegmentNode(new NameNode("field3"), new PathSegmentNode(new NameNode("field4")))),
+            new PathNode(new PathSegmentNode(new NameNode("field5"), new PathSegmentNode( new NameNode("field6"))))
+        ]);
 
         // act
         var result = node.ToString();

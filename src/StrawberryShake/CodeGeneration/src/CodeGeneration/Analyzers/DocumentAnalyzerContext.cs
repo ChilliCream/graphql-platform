@@ -75,8 +75,8 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         [NotNullWhen(true)] out T? typeModel)
         where T : ITypeModel
     {
-        if (_typeModels.TryGetValue(name, out var model) &&
-            model is T casted)
+        if (_typeModels.TryGetValue(name, out var model)
+            && model is T casted)
         {
             typeModel = casted;
             return true;
@@ -88,8 +88,8 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
 
     public void RegisterModel(string name, ITypeModel typeModel)
     {
-        if (_typeModels.TryGetValue(name, out var registeredTypeModel) &&
-            !ReferenceEquals(registeredTypeModel, typeModel))
+        if (_typeModels.TryGetValue(name, out var registeredTypeModel)
+            && !ReferenceEquals(registeredTypeModel, typeModel))
         {
             throw new GraphQLException("A type model name must be unique.");
         }
@@ -165,8 +165,8 @@ public class DocumentAnalyzerContext : IDocumentAnalyzerContext
         ISyntaxNode syntaxNode,
         IReadOnlyList<string>? additionalNamePatterns = null)
     {
-        if (_syntaxNodeNames.TryGetValue(syntaxNode, out var takenNames) &&
-            takenNames.Contains(proposedName))
+        if (_syntaxNodeNames.TryGetValue(syntaxNode, out var takenNames)
+            && takenNames.Contains(proposedName))
         {
             return proposedName;
         }

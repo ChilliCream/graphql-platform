@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.Execution;
 
@@ -39,6 +40,9 @@ public sealed class ObjectFieldResult : FieldResult
         objectResult.SetParent(Parent!, ParentIndex);
     }
 
+    protected override void OnSetParent(ResultData parent, int index)
+        => Value?.SetParent(parent, index);
+
     /// <summary>
     /// Writes the object result to a JSON writer.
     /// </summary>
@@ -73,6 +77,7 @@ public sealed class ObjectFieldResult : FieldResult
     }
 
     /// <inheritdoc />
+    [MemberNotNullWhen(false, nameof(Value))]
     public override bool HasNullValue => Value is null;
 
     /// <summary>

@@ -199,8 +199,8 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
             directive = true;
             type = directiveDefinition.Name;
         }
-        else if (next is ITypeSystemDefinitionNode or ITypeSystemExtensionNode &&
-            next is NamedSyntaxNode n)
+        else if (next is ITypeSystemDefinitionNode or ITypeSystemExtensionNode
+            && next is NamedSyntaxNode n)
         {
             type = n.Name;
         }

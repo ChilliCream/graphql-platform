@@ -13,11 +13,9 @@ internal sealed class OperationVariableCoercionMiddleware
     private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
     private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
 
-    public OperationVariableCoercionMiddleware(
+    private OperationVariableCoercionMiddleware(
         ICoreExecutionDiagnosticEvents diagnosticEvents)
     {
-        ArgumentNullException.ThrowIfNull(diagnosticEvents);
-
         _diagnosticEvents = diagnosticEvents;
     }
 
@@ -112,8 +110,7 @@ internal sealed class OperationVariableCoercionMiddleware
     }
 
     public static RequestMiddlewareConfiguration Create()
-    {
-        return new RequestMiddlewareConfiguration(
+        => new RequestMiddlewareConfiguration(
             (fc, next) =>
             {
                 var diagnosticEvents = fc.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
@@ -121,5 +118,4 @@ internal sealed class OperationVariableCoercionMiddleware
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },
             nameof(OperationVariableCoercionMiddleware));
-    }
 }

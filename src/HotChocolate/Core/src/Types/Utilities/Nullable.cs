@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Utilities;
 
 internal enum Nullable : byte

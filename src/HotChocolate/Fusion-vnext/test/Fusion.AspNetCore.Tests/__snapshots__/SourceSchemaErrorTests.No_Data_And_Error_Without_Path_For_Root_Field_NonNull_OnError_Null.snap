@@ -1,0 +1,47 @@
+{
+  "data": {
+    "productById": null
+  },
+  "errors": [
+    {
+      "message": "A global error"
+    },
+    {
+      "message": "Unexpected Execution Error",
+      "path": [
+        "productById"
+      ]
+    }
+  ],
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "535882bea0462af9f8d265858daa28a55f91a3693743e05d2ca2ede9db07f4eb",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  productById(id: 1) {\n    name\n  }\n}",
+          "id": "97fd38fcea394bc6badd7ea22c6de660",
+          "hash": "97fd38fcea394bc6badd7ea22c6de660",
+          "shortHash": "97fd38fc"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_97fd38fc_1",
+              "type": "Query",
+              "document": "query Op_97fd38fc_1 {\n  productById(id: 1) {\n    name\n  }\n}",
+              "hash": "14aa75373ce4afe0885f44b0f20e71aa535df3cf43e2571eb8f1a5aa5af22e7a",
+              "shortHash": "14aa7537"
+            },
+            "responseNames": [
+              "productById"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

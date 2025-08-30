@@ -35,9 +35,9 @@ namespace HotChocolate.ApolloFederation.Types;
 /// </example>
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Interface |
-    AttributeTargets.Property,
+    AttributeTargets.Class
+    | AttributeTargets.Interface
+    | AttributeTargets.Property,
     AllowMultiple = true)]
 public sealed class KeyAttribute : DescriptorAttribute
 {
@@ -127,12 +127,14 @@ public sealed class KeyAttribute : DescriptorAttribute
         {
             case IObjectFieldDescriptor fieldDesc:
                 fieldDesc.Extend().Configuration.Features.GetOrSet(
-                    static state => new KeyMarker(state), Resolvable);
+                    static state => new KeyMarker(state),
+                    Resolvable);
                 break;
 
             case IInterfaceFieldDescriptor fieldDesc:
                 fieldDesc.Extend().Configuration.Features.GetOrSet(
-                    static state => new KeyMarker(state), Resolvable);
+                    static state => new KeyMarker(state),
+                    Resolvable);
                 break;
         }
     }

@@ -83,8 +83,8 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'Product' in schema 'A' references field " +
-                    "'Product.featuredItem', which must not be a list, interface, or union type."
+                    "A @key directive on type 'Product' in schema 'A' references field "
+                    + "'Product.featuredItem', which must not be a list, interface, or union type."
                 ]
             },
             // In this example, the @key directive references a field ("tags") of type "List", which
@@ -99,8 +99,8 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'Product' in schema 'A' references field " +
-                    "'Product.tags', which must not be a list, interface, or union type."
+                    "A @key directive on type 'Product' in schema 'A' references field "
+                    + "'Product.tags', which must not be a list, interface, or union type."
                 ]
             },
             // In this example, the @key directive references a field ("relatedItems") of type
@@ -121,8 +121,8 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'Product' in schema 'A' references field " +
-                    "'Product.relatedItems', which must not be a list, interface, or union type."
+                    "A @key directive on type 'Product' in schema 'A' references field "
+                    + "'Product.relatedItems', which must not be a list, interface, or union type."
                 ]
             },
             // Nested interface.
@@ -143,9 +143,9 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'Product' in schema 'A' references field " +
-                    "'ProductInfo.featuredItem', which must not be a list, interface, or union " +
-                    "type."
+                    "A @key directive on type 'Product' in schema 'A' references field "
+                    + "'ProductInfo.featuredItem', which must not be a list, interface, or union "
+                    + "type."
                 ]
             },
             // Nested list.
@@ -162,8 +162,8 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'Product' in schema 'A' references field " +
-                    "'ProductInfo.tags', which must not be a list, interface, or union type."
+                    "A @key directive on type 'Product' in schema 'A' references field "
+                    + "'ProductInfo.tags', which must not be a list, interface, or union type."
                 ]
             },
             // Nested union.
@@ -186,9 +186,9 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'Product' in schema 'A' references field " +
-                    "'ProductInfo.relatedItems', which must not be a list, interface, or union " +
-                    "type."
+                    "A @key directive on type 'Product' in schema 'A' references field "
+                    + "'ProductInfo.relatedItems', which must not be a list, interface, or union "
+                    + "type."
                 ]
             },
             // Multiple keys.
@@ -216,14 +216,14 @@ public sealed class KeyFieldsSelectInvalidTypeRuleTests
                     """
                 ],
                 [
-                    "A @key directive on type 'Product' in schema 'A' references field " +
-                    "'Product.featuredItem', which must not be a list, interface, or union type.",
+                    "A @key directive on type 'Product' in schema 'A' references field "
+                    + "'Product.featuredItem', which must not be a list, interface, or union type.",
 
-                    "A @key directive on type 'Product' in schema 'A' references field " +
-                    "'Product.tags', which must not be a list, interface, or union type.",
+                    "A @key directive on type 'Product' in schema 'A' references field "
+                    + "'Product.tags', which must not be a list, interface, or union type.",
 
-                    "A @key directive on type 'Product' in schema 'A' references field " +
-                    "'Product.relatedItems', which must not be a list, interface, or union type."
+                    "A @key directive on type 'Product' in schema 'A' references field "
+                    + "'Product.relatedItems', which must not be a list, interface, or union type."
                 ]
             }
         };

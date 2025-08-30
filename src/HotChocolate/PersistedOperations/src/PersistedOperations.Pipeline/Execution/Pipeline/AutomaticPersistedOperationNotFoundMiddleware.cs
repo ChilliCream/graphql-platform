@@ -34,10 +34,7 @@ internal sealed class AutomaticPersistedOperationNotFoundMiddleware
             return _next(context);
         }
 
-        var error = PersistedOperationNotFound();
         var result = s_errorResult;
-
-        _diagnosticEvents.ExecutionError(context, ErrorKind.RequestError, [error]);
         context.Result = result;
         return default;
     }

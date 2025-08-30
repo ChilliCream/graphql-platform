@@ -1,0 +1,48 @@
+operation:
+  - document: >-
+      query GetTopProducts {
+        topProducts {
+          id
+          name
+          price
+          id @fusion__requirement
+          region @fusion__requirement
+        }
+      }
+    name: GetTopProducts
+    hash: 123456789101112
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: >-
+      query GetTopProducts_123456789101112_1 {
+        topProducts {
+          id
+          name
+          region
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: b
+    operation: >-
+      query GetTopProducts_123456789101112_2(
+        $__fusion_1_id: ID!
+        $__fusion_2_region: String!
+      ) {
+        productById(id: $__fusion_1_id) {
+          price(region: $__fusion_2_region)
+        }
+      }
+    source: $.productById
+    target: $.topProducts
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_region
+        selectionMap: >-
+          region
+    dependencies:
+      - id: 1

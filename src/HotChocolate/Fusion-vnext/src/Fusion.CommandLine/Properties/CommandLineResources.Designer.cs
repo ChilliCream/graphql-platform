@@ -9,8 +9,8 @@
 
 namespace HotChocolate.Fusion.Properties {
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -22,15 +22,15 @@ namespace HotChocolate.Fusion.Properties {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CommandLineResources {
-        
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal CommandLineResources() {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -44,7 +44,7 @@ namespace HotChocolate.Fusion.Properties {
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -58,7 +58,7 @@ namespace HotChocolate.Fusion.Properties {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to ERR.
         /// </summary>
@@ -67,7 +67,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ComposeCommand_AbbreviatedSeverity_Error", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to INF.
         /// </summary>
@@ -76,7 +76,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ComposeCommand_AbbreviatedSeverity_Info", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to WRN.
         /// </summary>
@@ -85,7 +85,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ComposeCommand_AbbreviatedSeverity_Warning", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Specifies the path at which to write the composite schema file..
         /// </summary>
@@ -94,7 +94,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ComposeCommand_CompositeSchemaFile_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to ✅ Composite schema written to &apos;{0}&apos;..
         /// </summary>
@@ -103,7 +103,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ComposeCommand_CompositeSchemaFile_Written", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Composes multiple source schemas into a single composite schema..
         /// </summary>
@@ -112,7 +112,16 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ComposeCommand_Description", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Determines whether the &apos;Query.node&apos; field shall be added..
+        /// </summary>
+        internal static string ComposeCommand_EnableGlobalObjectIdentification_Description {
+            get {
+                return ResourceManager.GetString("ComposeCommand_EnableGlobalObjectIdentification_Description", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to ❌ No GraphQL schema files were found in the working directory..
         /// </summary>
@@ -121,7 +130,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ComposeCommand_Error_NoSourceSchemaFilesFound", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to ❌ Source schema file &apos;{0}&apos; does not exist..
         /// </summary>
@@ -130,7 +139,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ComposeCommand_Error_SourceSchemaFileDoesNotExist", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to ❌ Working directory &apos;{0}&apos; does not exist..
         /// </summary>
@@ -139,7 +148,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ComposeCommand_Error_WorkingDirectoryDoesNotExist", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Specifies the path to a source schema file (.graphqls) to include in the composition..
         /// </summary>
@@ -148,7 +157,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ComposeCommand_SourceSchemaFile_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Sets the working directory for the command..
         /// </summary>
@@ -157,7 +166,7 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("ComposeCommand_WorkingDirectory_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Fusion CLI.
         /// </summary>

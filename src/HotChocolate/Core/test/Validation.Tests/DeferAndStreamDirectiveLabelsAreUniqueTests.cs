@@ -20,8 +20,8 @@ public class DeferAndStreamDirectiveLabelsAreUniqueTests()
             }
             """,
             t => Assert.Equal(
-                "If a label is passed, it must be unique within all other @defer " +
-                "and @stream directives in the document.",
+                "If a label is passed, it must be unique within all other @defer "
+                + "and @stream directives in the document.",
                 t.Message));
     }
 
@@ -44,8 +44,8 @@ public class DeferAndStreamDirectiveLabelsAreUniqueTests()
             }
             """,
             t => Assert.Equal(
-                "If a label is passed, it must be unique within all other @defer " +
-                "and @stream directives in the document.",
+                "If a label is passed, it must be unique within all other @defer "
+                + "and @stream directives in the document.",
                 t.Message));
     }
 
@@ -66,8 +66,8 @@ public class DeferAndStreamDirectiveLabelsAreUniqueTests()
             }
             """,
             t => Assert.Equal(
-                "If a label is passed, it must be unique within all other @defer " +
-                "and @stream directives in the document.",
+                "If a label is passed, it must be unique within all other @defer "
+                + "and @stream directives in the document.",
                 t.Message));
     }
 

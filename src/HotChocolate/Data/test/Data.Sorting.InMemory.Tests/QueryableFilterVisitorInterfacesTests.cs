@@ -31,15 +31,15 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { test: { prop: ASC}}) " +
-                    "{ test{ prop }}}")
+                    "{ root(order: { test: { prop: ASC}}) "
+                    + "{ test{ prop }}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { test: { prop: DESC}}) " +
-                    "{ test{ prop }}}")
+                    "{ root(order: { test: { prop: DESC}}) "
+                    + "{ test{ prop }}}")
                 .Build());
 
         // assert

@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types;
