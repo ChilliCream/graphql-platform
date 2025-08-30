@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <PackAsTool>true</PackAsTool>
+    <PublishAot>false</PublishAot>
     <UseAppHost>false</UseAppHost>
     <ToolCommandName>nitro</ToolCommandName>
     <RootNamespace>ChilliCream.Nitro.CommandLine</RootNamespace>
