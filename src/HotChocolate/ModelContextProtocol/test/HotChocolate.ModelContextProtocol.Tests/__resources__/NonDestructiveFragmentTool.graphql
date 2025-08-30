@@ -1,0 +1,8 @@
+mutation NonDestructiveFragmentTool {
+  nonDestructiveMutation
+  ...NonDestructiveFragment
+}
+
+fragment NonDestructiveFragment on Mutation {
+  another: nonDestructiveMutation
+}

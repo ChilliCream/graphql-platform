@@ -55,7 +55,7 @@ public sealed class RequireInvalidSyntaxRuleTests
                     """
                     type User @key(fields: "id") {
                         id: ID!
-                        profile(name: String! @require(field: "name")): Profile
+                        profile(name: String @require(field: "name")): Profile
                     }
 
                     type Profile {
@@ -89,8 +89,8 @@ public sealed class RequireInvalidSyntaxRuleTests
                     """
                 ],
                 [
-                    "The @require directive on argument 'User.profile(name:)' in schema 'A' " +
-                    "contains invalid syntax in the 'field' argument."
+                    "The @require directive on argument 'User.profile(name:)' in schema 'A' "
+                    + "contains invalid syntax in the 'field' argument."
                 ]
             }
         };

@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language;
@@ -12,11 +11,7 @@ public ref partial struct Utf8GraphQLParser
         /// Parses a GraphQL object type definitions e.g. type Foo { bar: String }
         /// </summary>
         public static ObjectTypeDefinitionNode ParseObjectTypeDefinition(
-#if NETSTANDARD2_0
             string sourceText) =>
-#else
-            [StringSyntax("graphql")] string sourceText) =>
-#endif
             Parse(sourceText, parser => parser.ParseObjectTypeDefinition());
 
         /// <summary>
@@ -37,11 +32,7 @@ public ref partial struct Utf8GraphQLParser
         /// Parses a GraphQL object type definitions e.g. type Foo { bar: String }
         /// </summary>
         public static DirectiveDefinitionNode ParseDirectiveDefinition(
-#if NETSTANDARD2_0
             string sourceText) =>
-#else
-            [StringSyntax("graphql")] string sourceText) =>
-#endif
             Parse(sourceText, parser => parser.ParseDirectiveDefinition());
 
         /// <summary>
@@ -62,11 +53,7 @@ public ref partial struct Utf8GraphQLParser
         /// Parses a GraphQL field selection string e.g. field(arg: "abc")
         /// </summary>
         public static FieldDefinitionNode ParseFieldDefinition(
-#if NETSTANDARD2_0
             string sourceText) =>
-#else
-            [StringSyntax("graphql")] string sourceText) =>
-#endif
             Parse(sourceText, parser => parser.ParseFieldDefinition());
 
         /// <summary>
@@ -87,11 +74,7 @@ public ref partial struct Utf8GraphQLParser
         /// Parses a GraphQL field selection string e.g. field(arg: "abc")
         /// </summary>
         public static FieldNode ParseField(
-#if NETSTANDARD2_0
             string sourceText) =>
-#else
-            [StringSyntax("graphql")] string sourceText) =>
-#endif
             Parse(sourceText, parser => parser.ParseField());
 
         /// <summary>
@@ -112,11 +95,7 @@ public ref partial struct Utf8GraphQLParser
         /// Parses a GraphQL field selection string e.g. field(arg: "abc")
         /// </summary>
         public static FragmentDefinitionNode ParseFragmentDefinition(
-#if NETSTANDARD2_0
             string sourceText) =>
-#else
-            [StringSyntax("graphql")] string sourceText) =>
-#endif
             Parse(sourceText, parser => parser.ParseFragmentDefinition());
 
         /// <summary>
@@ -137,11 +116,7 @@ public ref partial struct Utf8GraphQLParser
         /// Parses a GraphQL selection set string e.g. { field(arg: "abc") }
         /// </summary>
         public static SelectionSetNode ParseSelectionSet(
-#if NETSTANDARD2_0
             string sourceText) =>
-#else
-            [StringSyntax("graphql")] string sourceText) =>
-#endif
             Parse(sourceText, parser => parser.ParseSelectionSet());
 
         /// <summary>
@@ -159,11 +134,7 @@ public ref partial struct Utf8GraphQLParser
             new Utf8GraphQLParser(reader).ParseSelectionSet();
 
         public static IValueNode ParseValueLiteral(
-#if NETSTANDARD2_0
             string sourceText,
-#else
-            [StringSyntax("graphql")] string sourceText,
-#endif
             bool constant = true) =>
             Parse(sourceText, parser => parser.ParseValueLiteral(constant));
 
@@ -178,11 +149,7 @@ public ref partial struct Utf8GraphQLParser
             new Utf8GraphQLParser(reader).ParseValueLiteral(constant);
 
         public static ObjectValueNode ParseObjectLiteral(
-#if NETSTANDARD2_0
             string sourceText,
-#else
-            [StringSyntax("graphql")] string sourceText,
-#endif
             bool constant = true) =>
             Parse(sourceText, parser => parser.ParseObject(constant));
 
@@ -200,11 +167,7 @@ public ref partial struct Utf8GraphQLParser
         /// Parses a GraphQL type reference e.g. [String!]
         /// </summary>
         public static ITypeNode ParseTypeReference(
-#if NETSTANDARD2_0
             string sourceText) =>
-#else
-            [StringSyntax("graphql")] string sourceText) =>
-#endif
             Parse(sourceText, parser => parser.ParseTypeReference());
 
         /// <summary>
@@ -225,11 +188,7 @@ public ref partial struct Utf8GraphQLParser
         /// Parses a GraphQL schema coordinate e.g. Query.userById(id:)
         /// </summary>
         public static SchemaCoordinateNode ParseSchemaCoordinate(
-#if NETSTANDARD2_0
             string sourceText) =>
-#else
-            [StringSyntax("graphql")] string sourceText) =>
-#endif
             Parse(sourceText, parser => parser.ParseSingleSchemaCoordinate());
 
         /// <summary>

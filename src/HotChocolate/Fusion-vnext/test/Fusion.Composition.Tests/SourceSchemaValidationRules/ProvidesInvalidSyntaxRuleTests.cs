@@ -83,8 +83,8 @@ public sealed class ProvidesInvalidSyntaxRuleTests
                     """
                 ],
                 [
-                    "The @provides directive on field 'User.address' in schema 'A' contains " +
-                    "invalid syntax in the 'fields' argument."
+                    "The @provides directive on field 'User.address' in schema 'A' contains "
+                    + "invalid syntax in the 'fields' argument."
                 ]
             }
         };

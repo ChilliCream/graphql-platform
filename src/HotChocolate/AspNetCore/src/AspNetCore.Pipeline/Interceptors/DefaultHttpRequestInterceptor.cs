@@ -27,9 +27,9 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
         requestBuilder.TryAddGlobalState(nameof(HttpContext), context);
         requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), userState.User);
 
-        if (context.IncludeQueryPlan())
+        if (context.IncludeOperationPlan())
         {
-            requestBuilder.TryAddGlobalState(IncludeQueryPlan, true);
+            requestBuilder.TryAddGlobalState(IncludeOperationPlan, true);
         }
 
         if (context.TryGetCostSwitch() is { } costSwitch)

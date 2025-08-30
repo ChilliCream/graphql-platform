@@ -555,8 +555,8 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { barShort: { nin: " +
-                    "[ \"Rm9vOjEy\", \"Rm9vOjE0\"]}}){ barShort}}")
+                    "{ root(where: { barShort: { nin: "
+                    + "[ \"Rm9vOjEy\", \"Rm9vOjE0\"]}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(

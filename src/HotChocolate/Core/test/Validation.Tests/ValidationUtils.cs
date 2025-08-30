@@ -70,17 +70,17 @@ public static class ValidationUtils
             .AddDirectiveType("onFragmentDefinition", DirectiveLocation.FragmentDefinition)
             .AddDirectiveType("onVariableDefinition", DirectiveLocation.VariableDefinition)
             .AddDirectiveType("directiveA",
-                DirectiveLocation.Field |
-                DirectiveLocation.FragmentDefinition)
+                DirectiveLocation.Field
+                | DirectiveLocation.FragmentDefinition)
             .AddDirectiveType("directiveB",
-                DirectiveLocation.Field |
-                DirectiveLocation.FragmentDefinition)
+                DirectiveLocation.Field
+                | DirectiveLocation.FragmentDefinition)
             .AddDirectiveType("directiveC",
-                DirectiveLocation.Field |
-                DirectiveLocation.FragmentDefinition)
+                DirectiveLocation.Field
+                | DirectiveLocation.FragmentDefinition)
             .AddDirectiveType("repeatable",
-                DirectiveLocation.Field |
-                DirectiveLocation.FragmentDefinition,
+                DirectiveLocation.Field
+                | DirectiveLocation.FragmentDefinition,
                 x => x.Repeatable())
             .ModifyOptions(o => o.EnableOneOf = true)
             .Create();

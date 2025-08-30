@@ -7,12 +7,10 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
-#nullable enable
-
 namespace HotChocolate.Types.Introspection;
 
-[Introspection]
 // ReSharper disable once InconsistentNaming
+[Introspection]
 internal sealed class __Field : ObjectType<IOutputFieldDefinition>
 {
     protected override ObjectTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)

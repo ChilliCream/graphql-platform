@@ -4,15 +4,24 @@
   "tools": {
     "dotnet-sonarscanner": {
       "version": "4.8.0",
-      "commands": ["dotnet-sonarscanner"]
+      "commands": [
+        "dotnet-sonarscanner"
+      ],
+      "rollForward": false
     },
     "boost.tool": {
       "version": "0.2.6",
-      "commands": ["boo"]
+      "commands": [
+        "boo"
+      ],
+      "rollForward": false
     },
     "nuke.globaltool": {
-      "version": "5.1.2",
-      "commands": ["nuke"]
+      "version": "9.0.4",
+      "commands": [
+        "nuke"
+      ],
+      "rollForward": false
     }
   }
 }

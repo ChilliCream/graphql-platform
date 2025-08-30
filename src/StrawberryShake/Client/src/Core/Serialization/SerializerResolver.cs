@@ -52,8 +52,8 @@ public class SerializerResolver : ISerializerResolver
     {
         ArgumentNullException.ThrowIfNull(typeName);
 
-        if (_serializers.TryGetValue(typeName, out var serializer) &&
-            serializer is ILeafValueParser<TSerialized, TRuntime> parser)
+        if (_serializers.TryGetValue(typeName, out var serializer)
+            && serializer is ILeafValueParser<TSerialized, TRuntime> parser)
         {
             return parser;
         }
@@ -76,8 +76,8 @@ public class SerializerResolver : ISerializerResolver
     {
         ArgumentNullException.ThrowIfNull(typeName);
 
-        if (_serializers.TryGetValue(typeName, out var serializer) &&
-            serializer is IInputValueFormatter formatter)
+        if (_serializers.TryGetValue(typeName, out var serializer)
+            && serializer is IInputValueFormatter formatter)
         {
             return formatter;
         }

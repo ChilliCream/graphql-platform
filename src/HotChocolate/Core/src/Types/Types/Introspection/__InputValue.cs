@@ -8,8 +8,6 @@ using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Descriptors.TypeReference;
 
-#nullable enable
-
 namespace HotChocolate.Types.Introspection;
 
 [Introspection]

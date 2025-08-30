@@ -116,7 +116,7 @@ public static class GreenDonutPageExtensions
         var cursors = ImmutableArray.CreateBuilder<PageCursor>();
         cursors.Add(new PageCursor(page.CreateCursor(page.Last, 0), page.Index.Value + 1));
 
-        for (int i = 1; i < maxCursors && page.Index + i < totalPages; i++)
+        for (var i = 1; i < maxCursors && page.Index + i < totalPages; i++)
         {
             cursors.Add(
                 new PageCursor(

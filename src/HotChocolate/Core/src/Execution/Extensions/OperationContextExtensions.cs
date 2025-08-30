@@ -48,7 +48,6 @@ internal static class OperationContextExtensions
         var errors = new List<IError>();
 
         ReportSingleError(
-            operationContext.RequestContext,
             operationContext.ErrorHandler,
             error,
             errors);
@@ -58,18 +57,13 @@ internal static class OperationContextExtensions
         foreach (var handled in errors)
         {
             operationContext.Result.AddError(handled, selection);
+            operationContext.DiagnosticEvents.ResolverError(resolverContext, handled);
         }
-
-        operationContext.DiagnosticEvents.ExecutionError(
-            operationContext.RequestContext,
-            ErrorKind.FieldError,
-            errors);
 
         return operationContext;
     }
 
     private static void ReportSingleError(
-        RequestContext requestContext,
         IErrorHandler errorHandler,
         IError error,
         List<IError> errors,
@@ -78,8 +72,8 @@ internal static class OperationContextExtensions
         if (depth > 4)
         {
             throw new InvalidOperationException(
-                "Error reporting depth exceeded. " +
-                "Aggregate error are not allowed to be nested beyond 4 levels.");
+                "Error reporting depth exceeded. "
+                + "Aggregate error are not allowed to be nested beyond 4 levels.");
         }
 
         var handled = errorHandler.Handle(error);
@@ -89,7 +83,6 @@ internal static class OperationContextExtensions
             foreach (var innerError in aggregateError.Errors)
             {
                 ReportSingleError(
-                    requestContext,
                     errorHandler,
                     innerError,
                     errors,

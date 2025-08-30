@@ -1,0 +1,11 @@
+Description:
+  Prints the graphql schema to the console output
+
+Usage:
+  graphql schema print [options]
+
+Options:
+  --schema-name <schema-name>  The name of the schema that should be exported. If no schema name is specified the default schema will be exported.
+  -?, -h, --help               Show help and usage information
+
+

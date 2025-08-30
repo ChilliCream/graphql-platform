@@ -1,0 +1,14 @@
+mutation uploadSchema($input: UploadSchemaInput!) {
+  uploadSchema(input: $input) {
+    schemaVersion {
+      id
+    }
+    errors {
+      ...UnauthorizedOperation
+      ...DuplicatedTagError
+      ...ConcurrentOperationError
+      ...ApiNotFoundError
+      ...Error
+    }
+  }
+}

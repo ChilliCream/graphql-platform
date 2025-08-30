@@ -1,0 +1,12 @@
+mutation ValidateFusionConfigurationPublish(
+  $input: ValidateFusionConfigurationCompositionInput!
+) {
+  validateFusionConfigurationComposition(input: $input) {
+    errors {
+      ...UnauthorizedOperation
+      ...FusionConfigurationRequestNotFoundError
+      ...InvalidProcessingStateTransitionError
+      ...Error
+    }
+  }
+}

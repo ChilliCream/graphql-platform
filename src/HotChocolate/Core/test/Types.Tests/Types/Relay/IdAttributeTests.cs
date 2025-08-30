@@ -608,12 +608,12 @@ public class IdAttributeTests
         public IReadOnlyList<int>? InterceptedIds { get; }
 
         public string Raw =>
-            $"{nameof(SomeId)}: {SomeId}, " +
-            $"{nameof(SomeIds)}: [{string.Join(", ", SomeIds)}], " +
-            $"{nameof(SomeNullableId)}: {SomeNullableId}, " +
-            $"{nameof(SomeNullableIds)}: [{string.Join(", ", SomeNullableIds ?? Array.Empty<int?>())}]" +
-            $"{nameof(InterceptedId)}: {InterceptedId}" +
-            $"{nameof(InterceptedIds)}: [{string.Join(", ", InterceptedIds ?? Array.Empty<int>())}]";
+            $"{nameof(SomeId)}: {SomeId}, "
+            + $"{nameof(SomeIds)}: [{string.Join(", ", SomeIds)}], "
+            + $"{nameof(SomeNullableId)}: {SomeNullableId}, "
+            + $"{nameof(SomeNullableIds)}: [{string.Join(", ", SomeNullableIds ?? Array.Empty<int?>())}]"
+            + $"{nameof(InterceptedId)}: {InterceptedId}"
+            + $"{nameof(InterceptedIds)}: [{string.Join(", ", InterceptedIds ?? Array.Empty<int>())}]";
     }
 
     public interface IFooPayload
@@ -673,9 +673,9 @@ public class IdAttributeTests
     }
 
     [AttributeUsage(
-        AttributeTargets.Parameter |
-        AttributeTargets.Property |
-        AttributeTargets.Method)]
+        AttributeTargets.Parameter
+        | AttributeTargets.Property
+        | AttributeTargets.Method)]
     public class InterceptedIDAttribute(string typeName) : DescriptorAttribute
     {
         public string TypeName { get; } = typeName;
@@ -720,8 +720,8 @@ public class IdAttributeTests
             ITypeSystemObjectContext context,
             TypeSystemConfiguration configuration)
         {
-            if (context.Type.Name.EqualsOrdinal("Query") &&
-                configuration is ObjectTypeConfiguration typeDef)
+            if (context.Type.Name.EqualsOrdinal("Query")
+                && configuration is ObjectTypeConfiguration typeDef)
             {
                 Count = typeDef.Fields
                     .Single(t => t.Name.EqualsOrdinal("abc"))

@@ -49,9 +49,9 @@ public static class TestServerHelper
                                     {
                                         if (context.ContextData.TryGetValue(
                                                 nameof(HttpContext),
-                                                out var value) &&
-                                            value is HttpContext httpContext &&
-                                            context.Result is HotChocolate.Execution.IOperationResult result)
+                                                out var value)
+                                            && value is HttpContext httpContext
+                                            && context.Result is HotChocolate.Execution.IOperationResult result)
                                         {
                                             var headers = httpContext.Request.Headers;
                                             if (headers.ContainsKey("sendErrorStatusCode"))

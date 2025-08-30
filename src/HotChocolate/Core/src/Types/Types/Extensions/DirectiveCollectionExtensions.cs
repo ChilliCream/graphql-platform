@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
@@ -187,9 +185,9 @@ public static class DirectiveCollectionExtensions
         var argsA = CreateStreamArgs(streamA);
         var argsB = CreateStreamArgs(streamB);
 
-        return SyntaxComparer.BySyntax.Equals(argsA.If, argsB.If) &&
-            SyntaxComparer.BySyntax.Equals(argsA.InitialCount, argsB.InitialCount) &&
-            SyntaxComparer.BySyntax.Equals(argsA.Label, argsB.Label);
+        return SyntaxComparer.BySyntax.Equals(argsA.If, argsB.If)
+            && SyntaxComparer.BySyntax.Equals(argsA.InitialCount, argsB.InitialCount)
+            && SyntaxComparer.BySyntax.Equals(argsA.Label, argsB.Label);
     }
 
     private static StreamArgs CreateStreamArgs(DirectiveNode directiveNode)

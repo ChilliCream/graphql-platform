@@ -112,8 +112,8 @@ internal abstract class GeoJsonSerializerBase : IGeoJsonSerializer
             coordinates = DeserializeCoordinate(type, coordinateObject);
         }
 
-        if (obj.TryGetValue(CrsFieldName, out var crsObject) &&
-            crsObject is int crsInt)
+        if (obj.TryGetValue(CrsFieldName, out var crsObject)
+            && crsObject is int crsInt)
         {
             crs = crsInt;
         }
@@ -154,9 +154,9 @@ internal abstract class GeoJsonSerializerBase : IGeoJsonSerializer
             {
                 coordinates = ParseCoordinateLiteral(type, syntaxNode);
             }
-            else if (CrsFieldName.EqualsInvariantIgnoreCase(fieldName) &&
-                syntaxNode is IntValueNode node &&
-                !node.IsNull())
+            else if (CrsFieldName.EqualsInvariantIgnoreCase(fieldName)
+                && syntaxNode is IntValueNode node
+                && !node.IsNull())
             {
                 crs = node.ToInt32();
             }
@@ -237,8 +237,8 @@ internal abstract class GeoJsonSerializerBase : IGeoJsonSerializer
             {
                 if (GeoJsonPositionSerializer.Default.TrySerialize(type,
                         g.Coordinates[i],
-                        out var serializedPoints) &&
-                    serializedPoints is double[] points)
+                        out var serializedPoints)
+                    && serializedPoints is double[] points)
                 {
                     result[i] = points;
                 }

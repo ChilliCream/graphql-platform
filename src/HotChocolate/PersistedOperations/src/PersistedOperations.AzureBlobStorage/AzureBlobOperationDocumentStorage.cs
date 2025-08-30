@@ -139,7 +139,7 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
     {
         var length = documentId.Value.Length + s_fileExtension.Length;
         char[]? rented = null;
-        Span<char> span = length <= 256
+        var span = length <= 256
             ? stackalloc char[length]
             : rented = ArrayPool<char>.Shared.Rent(length);
 

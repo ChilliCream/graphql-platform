@@ -156,9 +156,12 @@ public static class RequestExecutorServiceCollectionExtensions
         builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();
         builder.TryAddTypeInterceptor<RequirementsTypeInterceptor>();
 
-        if (!ISchemaDefinition.DefaultName.Equals(schemaName, StringComparison.OrdinalIgnoreCase))
+        if (!services.Any(t =>
+            t.ServiceType == typeof(SchemaName)
+            && t.ImplementationInstance is SchemaName s
+            && s.Value.Equals(schemaName, StringComparison.Ordinal)))
         {
-            builder.TryAddTypeInterceptor(_ => new SchemaNameTypeInterceptor(schemaName));
+            services.AddSingleton(new SchemaName(schemaName));
         }
 
         builder.ConfigureSchemaServices(static s => s.TryAddSingleton<ITimeProvider, DefaultTimeProvider>());

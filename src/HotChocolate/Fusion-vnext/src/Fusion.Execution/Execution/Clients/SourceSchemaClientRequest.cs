@@ -5,9 +5,9 @@ namespace HotChocolate.Fusion.Execution.Clients;
 
 public sealed class SourceSchemaClientRequest
 {
-    public required string OperationId { get; init; }
+    public required OperationType OperationType { get; init; }
 
-    public required OperationDefinitionNode Operation { get; init; }
+    public required string OperationSourceText { get; init; }
 
     public ImmutableArray<VariableValues> Variables { get; init; } = [];
 }

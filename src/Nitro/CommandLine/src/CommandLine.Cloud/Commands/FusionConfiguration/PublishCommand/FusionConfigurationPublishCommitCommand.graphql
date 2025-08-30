@@ -1,0 +1,12 @@
+mutation CommitFusionConfigurationPublish(
+  $input: CommitFusionConfigurationPublishInput!
+) {
+  commitFusionConfigurationPublish(input: $input) {
+    errors {
+      ...UnauthorizedOperation
+      ...FusionConfigurationRequestNotFoundError
+      ...InvalidProcessingStateTransitionError
+      ...Error
+    }
+  }
+}

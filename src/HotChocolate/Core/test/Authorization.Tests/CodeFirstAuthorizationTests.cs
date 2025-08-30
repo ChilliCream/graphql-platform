@@ -285,10 +285,7 @@ public class CodeFirstAuthorizationTests
             options =>
             {
                 options.ConfigureSchemaField =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
-                    };
+                    descriptor => descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -339,10 +336,7 @@ public class CodeFirstAuthorizationTests
             options =>
             {
                 options.ConfigureTypeField =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
-                    };
+                    descriptor => descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -393,10 +387,7 @@ public class CodeFirstAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
-                    };
+                    descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -447,10 +438,7 @@ public class CodeFirstAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
-                    };
+                    descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -493,8 +481,7 @@ public class CodeFirstAuthorizationTests
         => new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType<QueryType>()
-            .AddGlobalObjectIdentification()
-            .ModifyOptions(o => o.EnsureAllNodesCanBeResolved = false)
+            .AddGlobalObjectIdentification(o => o.EnsureAllNodesCanBeResolved = false)
             .AddAuthorizationHandler(_ => handler)
             .ModifyAuthorizationOptions(configure ?? (_ => { }))
             .Services

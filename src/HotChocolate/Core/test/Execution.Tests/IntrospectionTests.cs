@@ -76,8 +76,8 @@ public class IntrospectionTests
     {
         // arrange
         const string query =
-            "{ __type (name: \"Foo\") " +
-            "{ name fields { name type { name } } } }";
+            "{ __type (name: \"Foo\") "
+            + "{ name fields { name type { name } } } }";
         var executor = CreateSchema().MakeExecutable();
 
         // act
