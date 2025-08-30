@@ -9,7 +9,7 @@ namespace HotChocolate.Buffers;
 /// <summary>
 /// A <see cref="IBufferWriter{T}"/> that writes to a rented buffer.
 /// </summary>
-public sealed class PooledArrayWriter : IBufferWriter<byte>, IMemoryOwner<byte>
+public sealed class PooledArrayWriter : IWritableMemory
 {
     private const int InitialBufferSize = 512;
     private byte[] _buffer;
@@ -23,6 +23,19 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IMemoryOwner<byte>
     public PooledArrayWriter()
     {
         _buffer = ArrayPool<byte>.Shared.Rent(InitialBufferSize);
+        _capacity = _buffer.Length;
+        _start = 0;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PooledArrayWriter"/> class.
+    /// </summary>
+    /// <param name="initialBufferSize">
+    /// The initial buffer size.
+    /// </param>
+    public PooledArrayWriter(int initialBufferSize)
+    {
+        _buffer = ArrayPool<byte>.Shared.Rent(initialBufferSize);
         _capacity = _buffer.Length;
         _start = 0;
     }
@@ -50,6 +63,12 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IMemoryOwner<byte>
     internal byte[] GetInternalBuffer() => _buffer;
 
     /// <summary>
+    /// Gets access to the full underlying buffer.
+    /// </summary>
+    public Memory<byte> Memory
+        => _buffer;
+
+    /// <summary>
     /// Gets the part of the buffer that has been written to.
     /// </summary>
     /// <returns>
@@ -61,9 +80,6 @@ public sealed class PooledArrayWriter : IBufferWriter<byte>, IMemoryOwner<byte>
 #else
         => _buffer.AsMemory()[.._start];
 #endif
-
-    Memory<byte> IMemoryOwner<byte>.Memory
-        => _buffer.AsMemory(0, _start);
 
     /// <summary>
     /// Gets the part of the buffer that has been written to.

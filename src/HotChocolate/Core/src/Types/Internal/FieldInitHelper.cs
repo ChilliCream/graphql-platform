@@ -6,8 +6,6 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Utilities.ErrorHelper;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 public static class FieldInitHelper
@@ -190,8 +188,8 @@ public static class FieldInitHelper
     {
         runtimeType ??= (type as IHasRuntimeType)?.RuntimeType ?? typeof(object);
 
-        if (runtimeType.IsGenericType &&
-            runtimeType.GetGenericTypeDefinition() == typeof(Optional<>))
+        if (runtimeType.IsGenericType
+            && runtimeType.GetGenericTypeDefinition() == typeof(Optional<>))
         {
             isOptional = true;
             return runtimeType.GetGenericArguments()[0];

@@ -1,8 +1,6 @@
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types.Relay;
 
 /// <summary>
@@ -54,9 +52,9 @@ namespace HotChocolate.Types.Relay;
 /// </para>
 /// </example>
 [AttributeUsage(
-    AttributeTargets.Parameter |
-    AttributeTargets.Property |
-    AttributeTargets.Method)]
+    AttributeTargets.Parameter
+    | AttributeTargets.Property
+    | AttributeTargets.Method)]
 // ReSharper disable once InconsistentNaming
 public class IDAttribute : DescriptorAttribute
 {
@@ -161,9 +159,9 @@ public class IDAttribute : DescriptorAttribute
 /// </para>
 /// </example>
 [AttributeUsage(
-    AttributeTargets.Parameter |
-    AttributeTargets.Property |
-    AttributeTargets.Method)]
+    AttributeTargets.Parameter
+    | AttributeTargets.Property
+    | AttributeTargets.Method)]
 // ReSharper disable once InconsistentNaming
 public class IDAttribute<T> : DescriptorAttribute
 {

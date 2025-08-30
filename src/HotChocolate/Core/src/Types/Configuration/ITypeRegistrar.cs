@@ -1,8 +1,6 @@
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal interface ITypeRegistrar

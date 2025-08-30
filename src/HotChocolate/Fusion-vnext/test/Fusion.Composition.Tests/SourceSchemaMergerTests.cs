@@ -97,4 +97,48 @@ public sealed class SourceSchemaMergerTests
         Assert.True(result.IsSuccess);
         SchemaFormatter.FormatAsString(result.Value).MatchSnapshot(extension: ".graphql");
     }
+
+    [Fact]
+    public void Merge_WithRequireInputObject_RetainsInputObjectType()
+    {
+        // arrange
+        var schemaA =
+            SchemaParser.Parse(
+                """
+                type Query {
+                    product: Product
+                }
+
+                type Product {
+                    weight: Int!
+                }
+                """);
+        schemaA.Name = "A";
+        var schemaB =
+            SchemaParser.Parse(
+                """
+                type Product {
+                    deliveryEstimate(
+                        zip: String!
+                        dimension: ProductDimensionInput! @require(field: "{ weight }")
+                    ): Int!
+                }
+
+                input ProductDimensionInput @inaccessible {
+                    weight: Int!
+                }
+                """);
+        schemaB.Name = "B";
+        IEnumerable<MutableSchemaDefinition> schemas = [schemaA, schemaB];
+        var merger = new SourceSchemaMerger(
+            schemas.ToImmutableSortedSet(
+                new SchemaByNameComparer<MutableSchemaDefinition>()));
+
+        // act
+        var result = merger.Merge();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Value.Types.ContainsName("ProductDimensionInput"));
+    }
 }

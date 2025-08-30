@@ -52,6 +52,9 @@ public sealed class ListFieldResult : FieldResult
         listResult.SetParent(Parent!, ParentIndex);
     }
 
+    protected override void OnSetParent(ResultData parent, int index)
+        => Value?.SetParent(parent, index);
+
     /// <summary>
     /// Writes the list field to the specified JSON writer.
     /// </summary>

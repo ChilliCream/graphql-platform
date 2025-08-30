@@ -3,8 +3,6 @@ using System.Reflection;
 using HotChocolate.Internal;
 using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class SchemaParameterExpressionBuilder
@@ -22,8 +20,8 @@ internal sealed class SchemaParameterExpressionBuilder
     public bool IsDefaultHandler => false;
 
     public bool CanHandle(ParameterInfo parameter)
-        => typeof(ISchemaDefinition) == parameter.ParameterType ||
-           typeof(Schema) == parameter.ParameterType;
+        => typeof(ISchemaDefinition) == parameter.ParameterType
+            || typeof(Schema) == parameter.ParameterType;
 
     public Expression Build(ParameterExpressionBuilderContext context)
         => Expression.Convert(

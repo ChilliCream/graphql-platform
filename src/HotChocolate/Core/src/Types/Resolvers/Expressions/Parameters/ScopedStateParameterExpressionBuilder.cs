@@ -4,8 +4,6 @@ using HotChocolate.Internal;
 using HotChocolate.Utilities;
 using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal class ScopedStateParameterExpressionBuilder
@@ -118,8 +116,8 @@ internal class ScopedStateParameterExpressionBuilder
     {
         var helper = new NullableHelper(targetType);
         var nullabilityFlags = helper.GetFlags(parameter);
-        if (nullabilityFlags.Length > 0 &&
-            nullabilityFlags[0] is { } f)
+        if (nullabilityFlags.Length > 0
+            && nullabilityFlags[0] is { } f)
         {
             return f;
         }

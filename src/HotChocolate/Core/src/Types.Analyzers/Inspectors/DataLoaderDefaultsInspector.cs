@@ -35,8 +35,8 @@ public class DataLoaderDefaultsInspector : ISyntaxInspector
                 var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                 var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                if (fullName.Equals(DataLoaderDefaultsAttribute, Ordinal) &&
-                    attributeSyntax.ArgumentList is { Arguments.Count: > 0 } attribList)
+                if (fullName.Equals(DataLoaderDefaultsAttribute, Ordinal)
+                    && attributeSyntax.ArgumentList is { Arguments.Count: > 0 } attribList)
                 {
                     syntaxInfo = new DataLoaderDefaultsInfo(
                         attribList.Arguments.IsScoped(context),

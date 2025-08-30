@@ -241,4 +241,33 @@ public class ResolverTests
             }
             """).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task Internal_NodeResolver_Should_Generate_Source()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Relay;
+            using System.Threading.Tasks;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                [NodeResolver]
+                internal static Task<Test?> GetTestByIdAsync(int id)
+                    => Task.FromResult<Test?>(null);
+            }
+
+            internal class Test
+            {
+                public int Id { get; set; }
+
+                public string Name { get; set; }
+            }
+            """).MatchMarkdownAsync();
+    }
 }

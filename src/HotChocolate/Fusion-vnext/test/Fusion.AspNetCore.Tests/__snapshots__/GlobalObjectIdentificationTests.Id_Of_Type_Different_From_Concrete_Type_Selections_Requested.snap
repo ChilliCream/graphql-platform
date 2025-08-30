@@ -1,0 +1,68 @@
+{
+  "data": {
+    "node": {
+      "id": "UHJvZHVjdDox"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "09ecb49ddd367e8ea7c7be3e7c98ab78fef5d3cbb877748776f5785fa55a8878",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  node(id: \"UHJvZHVjdDox\") {\n    __typename @fusion__requirement\n    id\n    ... on Discussion {\n      title\n    }\n  }\n}",
+          "id": "83aee782bd7072025c2beece59972fee",
+          "hash": "83aee782bd7072025c2beece59972fee",
+          "shortHash": "83aee782"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Node",
+            "idValue": "\"UHJvZHVjdDox\"",
+            "responseName": "node",
+            "branches": {
+              "Discussion": 3
+            },
+            "fallback": 2
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "operation": {
+              "name": "Op_83aee782_2",
+              "type": "Query",
+              "document": "query Op_83aee782_2 {\n  node(id: \"UHJvZHVjdDox\") {\n    __typename\n    id\n  }\n}",
+              "hash": "1bbc915c4397dae90b19e5957c41c0375f56aaceb053ae945e7a5eecd88f7274",
+              "shortHash": "1bbc915c"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_83aee782_3",
+              "type": "Query",
+              "document": "query Op_83aee782_3 {\n  node: discussionById(discussionId: \"UHJvZHVjdDox\") {\n    __typename\n    id\n    title\n  }\n}",
+              "hash": "75f13526d7645a0f6a1be34094a53a470ea9b4337cff45c495fb87ba8c08e926",
+              "shortHash": "75f13526"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -60,6 +60,15 @@ namespace HotChocolate.Fusion {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected an input object type but found &apos;{0}&apos;..
+        /// </summary>
+        internal static string FieldSelectionMapValidator_ExpectedInputObjectType {
+            get {
+                return ResourceManager.GetString("FieldSelectionMapValidator_ExpectedInputObjectType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The field &apos;{0}&apos; does not exist on the input type &apos;{1}&apos;..
         /// </summary>
         internal static string FieldSelectionMapValidator_FieldDoesNotExistOnInputType {

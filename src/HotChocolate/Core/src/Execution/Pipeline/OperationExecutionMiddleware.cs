@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
@@ -115,6 +116,12 @@ internal sealed class OperationExecutionMiddleware
         IBatchDispatcher batchDispatcher,
         IOperation operation)
     {
+        if (operation.Definition.Operation is OperationType.Query)
+        {
+            await ExecuteVariableBatchRequestOptimizedAsync(context, batchDispatcher, operation);
+            return;
+        }
+
         var variableSet = context.VariableValues;
         var tasks = new Task<IOperationResult>[variableSet.Length];
 
@@ -125,6 +132,118 @@ internal sealed class OperationExecutionMiddleware
 
         var results = await Task.WhenAll(tasks).ConfigureAwait(false);
         context.Result = new OperationResultBatch(results);
+    }
+
+    private async Task ExecuteVariableBatchRequestOptimizedAsync(
+        RequestContext context,
+        IBatchDispatcher batchDispatcher,
+        IOperation operation)
+    {
+        var variableSets = context.VariableValues;
+        var query = GetQueryRootValue(context);
+        var operationContextBuffer = ArrayPool<OperationContextOwner>.Shared.Rent(variableSets.Length);
+        var resultBuffer = ArrayPool<IOperationResult>.Shared.Rent(variableSets.Length);
+
+        for (var variableIndex = 0; variableIndex < variableSets.Length; variableIndex++)
+        {
+            Initialize(
+                context,
+                batchDispatcher,
+                operation,
+                query,
+                operationContextBuffer.AsSpan(0, variableSets.Length),
+                variableSets[variableIndex],
+                variableIndex,
+                _contextFactory);
+        }
+
+        try
+        {
+            await _queryExecutor.ExecuteBatchAsync(
+                operationContextBuffer.AsMemory(0, variableSets.Length),
+                resultBuffer.AsMemory(0, variableSets.Length));
+
+            context.Result = new OperationResultBatch(CreateResults(resultBuffer.AsSpan(0, variableSets.Length)));
+        }
+        catch (OperationCanceledException)
+        {
+            // if an operation is canceled we will abandon the rented operation contexts
+            // to ensure that that abandoned tasks do not leak into new operations.
+            AbandonContexts(ref operationContextBuffer, variableSets.Length);
+
+            // we rethrow so that another middleware can deal with the cancellation.
+            throw;
+        }
+        finally
+        {
+            ReleaseResources(ref operationContextBuffer, resultBuffer, variableSets.Length);
+        }
+
+        static void Initialize(
+            RequestContext context,
+            IBatchDispatcher batchDispatcher,
+            IOperation operation,
+            object? query,
+            Span<OperationContextOwner> operationContexts,
+            IVariableValueCollection variables,
+            int variableIndex,
+            IFactory<OperationContextOwner> operationContextFactory)
+        {
+            var operationContextOwner = operationContextFactory.Create();
+            var operationContext = operationContextOwner.OperationContext;
+
+            operationContext.Initialize(
+                context,
+                context.RequestServices,
+                batchDispatcher,
+                operation,
+                variables,
+                query,
+                () => query,
+                variableIndex);
+
+            operationContexts[variableIndex] = operationContextOwner;
+        }
+
+        static IOperationResult[] CreateResults(ReadOnlySpan<IOperationResult> results)
+            => results.ToArray();
+
+        static void AbandonContexts(ref OperationContextOwner[]? operationContextBuffer, int length)
+        {
+            if (operationContextBuffer is not null)
+            {
+                operationContextBuffer.AsSpan(0, length).Clear();
+                ArrayPool<OperationContextOwner>.Shared.Return(operationContextBuffer);
+            }
+
+            operationContextBuffer = null;
+        }
+
+        static void ReleaseResources(
+            ref OperationContextOwner[]? operationContextBuffer,
+            IOperationResult[] resultBuffer,
+            int length)
+        {
+            var results = resultBuffer.AsSpan(0, length);
+            results.Clear();
+            ArrayPool<IOperationResult>.Shared.Return(resultBuffer);
+
+            if (operationContextBuffer is null)
+            {
+                return;
+            }
+
+            var contextOwners = operationContextBuffer.AsSpan(0, length);
+
+            foreach (var contextOwner in contextOwners)
+            {
+                contextOwner.Dispose();
+            }
+
+            contextOwners.Clear();
+
+            ArrayPool<OperationContextOwner>.Shared.Return(operationContextBuffer);
+        }
     }
 
     private async Task<IExecutionResult> ExecuteQueryOrMutationAsync(
@@ -140,11 +259,11 @@ internal sealed class OperationExecutionMiddleware
         {
             var result =
                 await ExecuteQueryOrMutationAsync(
-                    context,
-                    batchDispatcher,
-                    operation,
-                    operationContext,
-                    variables)
+                        context,
+                        batchDispatcher,
+                        operation,
+                        operationContext,
+                        variables)
                     .ConfigureAwait(false);
 
             if (operationContext.DeferredScheduler.HasResults)
@@ -161,8 +280,8 @@ internal sealed class OperationExecutionMiddleware
         }
         catch (OperationCanceledException)
         {
-            // if an operation is canceled we will abandon the the rented operation context
-            // to ensure that that abandoned tasks to not leak execution into new operations.
+            // if an operation is canceled we will abandon the rented operation context
+            // to ensure that that abandoned tasks do not leak into new operations.
             operationContextOwner = null;
 
             // we rethrow so that another middleware can deal with the cancellation.
@@ -179,7 +298,7 @@ internal sealed class OperationExecutionMiddleware
         IBatchDispatcher batchDispatcher,
         IOperation operation,
         IVariableValueCollection variables,
-        int variableIndex = -1)
+        int variableIndex)
     {
         var operationContextOwner = _contextFactory.Create();
         var operationContext = operationContextOwner.OperationContext;
@@ -187,18 +306,18 @@ internal sealed class OperationExecutionMiddleware
         try
         {
             return await ExecuteQueryOrMutationAsync(
-                context,
-                batchDispatcher,
-                operation,
-                operationContext,
-                variables,
-                variableIndex)
+                    context,
+                    batchDispatcher,
+                    operation,
+                    operationContext,
+                    variables,
+                    variableIndex)
                 .ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
-            // if an operation is canceled we will abandon the the rented operation context
-            // to ensure that that abandoned tasks to not leak execution into new operations.
+            // if an operation is canceled we will abandon the rented operation context
+            // to ensure that the abandoned tasks do not leak into new operations.
             operationContextOwner = null;
 
             // we rethrow so that another middleware can deal with the cancellation.
@@ -307,8 +426,7 @@ internal sealed class OperationExecutionMiddleware
     {
         if (variables is { Count: > 1 })
         {
-            return operation.Definition.Operation is not OperationType.Subscription &&
-                !operation.HasIncrementalParts;
+            return operation.Definition.Operation is not OperationType.Subscription && !operation.HasIncrementalParts;
         }
 
         return true;
@@ -321,7 +439,8 @@ internal sealed class OperationExecutionMiddleware
                 var contextFactory = factoryContext.Services.GetRequiredService<IFactory<OperationContextOwner>>();
                 var queryExecutor = factoryContext.SchemaServices.GetRequiredService<QueryExecutor>();
                 var subscriptionExecutor = factoryContext.SchemaServices.GetRequiredService<SubscriptionExecutor>();
-                var transactionScopeHandler = factoryContext.SchemaServices.GetRequiredService<ITransactionScopeHandler>();
+                var transactionScopeHandler =
+                    factoryContext.SchemaServices.GetRequiredService<ITransactionScopeHandler>();
                 var diagnosticEvents = factoryContext.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
                 var middleware = new OperationExecutionMiddleware(
                     next,

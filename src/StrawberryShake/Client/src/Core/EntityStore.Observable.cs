@@ -19,8 +19,8 @@ public partial class EntityStore
     {
         try
         {
-            while (!_cts.Token.IsCancellationRequested ||
-                !_updates.Reader.Completion.IsCompleted)
+            while (!_cts.Token.IsCancellationRequested
+                || !_updates.Reader.Completion.IsCompleted)
             {
                 var update = await _updates.Reader.ReadAsync(_cts.Token);
                 _entityUpdateObservable.OnUpdated(update);

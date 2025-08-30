@@ -5,6 +5,7 @@
     <OutputType>Exe</OutputType>
     <PackAsTool>true</PackAsTool>
     <PublishAot>false</PublishAot>
+    <UseAppHost>false</UseAppHost>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
     <PackageId>HotChocolate.Fusion.CommandLine</PackageId>
     <ToolCommandName>fusion</ToolCommandName>
@@ -12,6 +13,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.CommandLine.Tests" />
+    <InternalsVisibleTo Include="ChilliCream.Nitro.CommandLine.Cloud" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
+    <ProjectReference Include="..\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
   </ItemGroup>
 
   <ItemGroup>

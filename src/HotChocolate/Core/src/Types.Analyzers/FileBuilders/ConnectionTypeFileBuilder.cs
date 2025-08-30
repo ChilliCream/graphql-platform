@@ -137,18 +137,18 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
 
     private static INamedTypeSymbol? GetListInnerType(INamedTypeSymbol typeSymbol)
     {
-        if (typeSymbol.IsGenericType &&
-            (typeSymbol.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IReadOnlyList<T>" ||
-             typeSymbol.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IList<T>"))
+        if (typeSymbol.IsGenericType
+            && (typeSymbol.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IReadOnlyList<T>"
+            || typeSymbol.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IList<T>"))
         {
             return typeSymbol.TypeArguments[0] as INamedTypeSymbol;
         }
 
         foreach (var interfaceType in typeSymbol.AllInterfaces)
         {
-            if (interfaceType.IsGenericType &&
-                (interfaceType.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IReadOnlyList<T>" ||
-                 interfaceType.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IList<T>"))
+            if (interfaceType.IsGenericType
+                && (interfaceType.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IReadOnlyList<T>"
+                || interfaceType.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IList<T>"))
             {
                 return interfaceType.TypeArguments[0] as INamedTypeSymbol;
             }

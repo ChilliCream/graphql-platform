@@ -1,0 +1,323 @@
+{
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "withComplexVariables": {
+          "type": "object",
+          "properties": {
+            "list": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field1A": {
+                    "type": "object",
+                    "properties": {
+                      "field1B": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "field1C": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "format": "time",
+                              "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                              "description": "field1C description"
+                            }
+                          },
+                          "required": [
+                            "field1C"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "description": "field1B description"
+                      }
+                    },
+                    "required": [
+                      "field1B"
+                    ],
+                    "additionalProperties": false,
+                    "description": "field1A description"
+                  }
+                },
+                "required": [
+                  "field1A"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "object": {
+              "type": "object",
+              "properties": {
+                "field1A": {
+                  "type": "object",
+                  "properties": {
+                    "field1B": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field1C": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "time",
+                            "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                            "description": "field1C description"
+                          }
+                        },
+                        "required": [
+                          "field1C"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "description": "field1B description"
+                    }
+                  },
+                  "required": [
+                    "field1B"
+                  ],
+                  "additionalProperties": false,
+                  "description": "field1A description"
+                }
+              },
+              "required": [
+                "field1A"
+              ],
+              "additionalProperties": false
+            },
+            "nullDefault": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "listWithNullDefault": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "objectWithNullDefault": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "field1A": {
+                  "type": "object",
+                  "properties": {
+                    "field1B": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field1C": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "time",
+                            "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                            "description": "field1C description"
+                          }
+                        },
+                        "required": [
+                          "field1C"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "description": "field1B description"
+                    }
+                  },
+                  "required": [
+                    "field1B"
+                  ],
+                  "additionalProperties": false,
+                  "description": "field1A description"
+                }
+              },
+              "required": [
+                "field1A"
+              ],
+              "additionalProperties": false
+            },
+            "oneOf": {
+              "type": "object",
+              "properties": {
+                "field1": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "description": "field1 description"
+                },
+                "field2": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "field2 description"
+                }
+              },
+              "required": [
+                "field1",
+                "field2"
+              ],
+              "additionalProperties": false
+            },
+            "oneOfList": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field1": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "description": "field1 description"
+                  },
+                  "field2": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "field2 description"
+                  }
+                },
+                "required": [
+                  "field1",
+                  "field2"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "objectWithOneOfField": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "object",
+                  "properties": {
+                    "field1": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "description": "field1 description"
+                    },
+                    "field2": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "field2 description"
+                    }
+                  },
+                  "required": [
+                    "field1",
+                    "field2"
+                  ],
+                  "additionalProperties": false,
+                  "description": "field description"
+                }
+              },
+              "required": [
+                "field"
+              ],
+              "additionalProperties": false
+            },
+            "timeSpanDotNet": {
+              "type": "string",
+              "pattern": "^-?(?:(?:\\d{1,8})\\.)?(?:[0-1]?\\d|2[0-3]):(?:[0-5]?\\d):(?:[0-5]?\\d)(?:\\.(?:\\d{1,7}))?$"
+            }
+          },
+          "required": [
+            "list",
+            "object",
+            "nullDefault",
+            "listWithNullDefault",
+            "objectWithNullDefault",
+            "oneOf",
+            "oneOfList",
+            "objectWithOneOfField",
+            "timeSpanDotNet"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "withComplexVariables"
+      ]
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "locations": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "properties": {
+                "line": {
+                  "type": "integer"
+                },
+                "column": {
+                  "type": "integer"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "path": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": [
+                "string",
+                "integer"
+              ]
+            }
+          },
+          "extensions": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

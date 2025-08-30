@@ -14,6 +14,8 @@ public ref partial struct Utf8GraphQLRequestParser
 
         public bool ContainsDocument { get; set; }
 
+        public ErrorHandlingMode? ErrorHandlingMode { get; set; }
+
         public IReadOnlyList<IReadOnlyDictionary<string, object?>>? Variables { get; set; }
 
         public IReadOnlyDictionary<string, object?>? Extensions { get; set; }

@@ -97,10 +97,7 @@ public class SchemaCoordinateParserTests
         var source = Encoding.UTF8.GetBytes(sourceText);
 
         // act
-        var ex = Record.Exception(() =>
-        {
-            Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(source);
-        });
+        var ex = Record.Exception(() => Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(source));
 
         // assert
         Assert.IsType<SyntaxException>(ex);

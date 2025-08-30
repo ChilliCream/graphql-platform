@@ -1,8 +1,6 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
-#if NET9_0_OR_GREATER
 using System.Runtime.InteropServices;
-#endif
 using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.Buffers;
@@ -323,13 +321,8 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         }
 
         var id = idProp.GetString()!;
-#if NET9_0_OR_GREATER
         var requestData = JsonMarshal.GetRawUtf8Value(payloadProp);
         var request = Parse(requestData);
-#else
-        var requestData = payloadProp.GetRawText();
-        var request = Parse(requestData);
-#endif
 
         if (request.Count == 0)
         {

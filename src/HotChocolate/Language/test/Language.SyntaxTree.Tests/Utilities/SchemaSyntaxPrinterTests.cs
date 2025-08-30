@@ -62,9 +62,9 @@ public class SchemaSyntaxPrinterTests
     public void Serialize_ObjectTypeDefWithDirectivesNoIndent_InOutShouldBeTheSame()
     {
         // arrange
-        const string schema = "type Foo @a(x: \"y\") { bar: String baz: [Int] } " +
-            "type Foo @a @b { bar: String @foo " +
-            "baz(a: String = \"abc\"): [Int] @foo @bar }";
+        const string schema = "type Foo @a(x: \"y\") { bar: String baz: [Int] } "
+            + "type Foo @a @b { bar: String @foo "
+            + "baz(a: String = \"abc\"): [Int] @foo @bar }";
         var document = Utf8GraphQLParser.Parse(schema);
 
         // act
@@ -78,9 +78,9 @@ public class SchemaSyntaxPrinterTests
     public void Serialize_ObjectTypeDefWithDirectivesWithIndent_OutHasIndentation()
     {
         // arrange
-        const string schema = "type Foo @a(x: \"y\") { bar: String baz: [Int] } " +
-            "type Foo @a @b { bar: String @foo " +
-            "baz(a: String = \"abc\"): [Int] @foo @bar }";
+        const string schema = "type Foo @a(x: \"y\") { bar: String baz: [Int] } "
+            + "type Foo @a @b { bar: String @foo "
+            + "baz(a: String = \"abc\"): [Int] @foo @bar }";
         var document = Utf8GraphQLParser.Parse(schema);
 
         // act
@@ -94,10 +94,10 @@ public class SchemaSyntaxPrinterTests
     public void Serialize_ObjectTypeDefWithDescriptionNoIndent_InOutShouldBeTheSame()
     {
         // arrange
-        const string schema = "\"abc\" type Foo @a { \"abc\" bar: String " +
-            "\"abc\" baz: [Int] } " +
-            "\"abc\" type Foo @a @b { \"abc\" bar: String @foo " +
-            "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
+        const string schema = "\"abc\" type Foo @a { \"abc\" bar: String "
+            + "\"abc\" baz: [Int] } "
+            + "\"abc\" type Foo @a @b { \"abc\" bar: String @foo "
+            + "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
         var document = Utf8GraphQLParser.Parse(schema);
 
         // act
@@ -111,10 +111,10 @@ public class SchemaSyntaxPrinterTests
     public void Serialize_ObjectTypeDefWithDescriptionWithIndent_OutHasIndentation()
     {
         // arrange
-        const string schema = "\"abc\" type Foo @a { \"abc\" bar: String " +
-            "\"abc\" baz: [Int] } " +
-            "\"abc\" type Foo @a @b { \"abc\" bar: String @foo " +
-            "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
+        const string schema = "\"abc\" type Foo @a { \"abc\" bar: String "
+            + "\"abc\" baz: [Int] } "
+            + "\"abc\" type Foo @a @b { \"abc\" bar: String @foo "
+            + "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
         var document = Utf8GraphQLParser.Parse(schema);
 
         // act
@@ -128,8 +128,8 @@ public class SchemaSyntaxPrinterTests
     public void Serialize_ObjectTypeImplementsXYZ_InOutShouldBeTheSame()
     {
         // arrange
-        const string schema = "type Foo implements X & Y & Z " +
-            "{ bar: String baz: [Int] }";
+        const string schema = "type Foo implements X & Y & Z "
+            + "{ bar: String baz: [Int] }";
         var document = Utf8GraphQLParser.Parse(schema);
 
         // act
@@ -143,8 +143,8 @@ public class SchemaSyntaxPrinterTests
     public void Serialize_ObjectTypeImplementsXYZWithIndent_OutHasIndentation()
     {
         // arrange
-        const string schema = "type Foo implements X & Y & Z " +
-            "{ bar: String baz: [Int] }";
+        const string schema = "type Foo implements X & Y & Z "
+            + "{ bar: String baz: [Int] }";
         var document = Utf8GraphQLParser.Parse(schema);
 
         // act
@@ -228,9 +228,9 @@ public class SchemaSyntaxPrinterTests
     public void Serialize_InterfaceTypeDefWithDirectivesNoIndent_InOutShouldBeTheSame()
     {
         // arrange
-        const string schema = "interface Foo @a(x: \"y\") { bar: String baz: [Int] } " +
-            "interface Foo @a @b { bar: String @foo " +
-            "baz(a: String = \"abc\"): [Int] @foo @bar }";
+        const string schema = "interface Foo @a(x: \"y\") { bar: String baz: [Int] } "
+            + "interface Foo @a @b { bar: String @foo "
+            + "baz(a: String = \"abc\"): [Int] @foo @bar }";
         var document = Utf8GraphQLParser.Parse(schema);
 
         // act
@@ -244,9 +244,9 @@ public class SchemaSyntaxPrinterTests
     public void Serialize_InterfaceTypeDefWithDirectivesWithIndent_OutHasIndentation()
     {
         // arrange
-        const string schema = "interface Foo @a(x: \"y\") { bar: String baz: [Int] } " +
-            "interface Foo @a @b { bar: String @foo " +
-            "baz(a: String = \"abc\"): [Int] @foo @bar }";
+        const string schema = "interface Foo @a(x: \"y\") { bar: String baz: [Int] } "
+            + "interface Foo @a @b { bar: String @foo "
+            + "baz(a: String = \"abc\"): [Int] @foo @bar }";
         var document = Utf8GraphQLParser.Parse(schema);
 
         // act
@@ -260,10 +260,10 @@ public class SchemaSyntaxPrinterTests
     public void Serialize_InterfaceTypeDefWithDescriptionNoIndent_InOutShouldBeTheSame()
     {
         // arrange
-        const string schema = "\"abc\" interface Foo @a { \"abc\" bar: String " +
-            "\"abc\" baz: [Int] } " +
-            "\"abc\" interface Foo @a @b { \"abc\" bar: String @foo " +
-            "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
+        const string schema = "\"abc\" interface Foo @a { \"abc\" bar: String "
+            + "\"abc\" baz: [Int] } "
+            + "\"abc\" interface Foo @a @b { \"abc\" bar: String @foo "
+            + "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
         var document = Utf8GraphQLParser.Parse(schema);
 
         // act
@@ -277,10 +277,10 @@ public class SchemaSyntaxPrinterTests
     public void Serialize_InterfaceTypeDefWithDescriptionWithIndent_OutHasIndentation()
     {
         // arrange
-        const string schema = "\"abc\" interface Foo @a { \"abc\" bar: String " +
-            "\"abc\" baz: [Int] } " +
-            "\"abc\" interface Foo @a @b { \"abc\" bar: String @foo " +
-            "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
+        const string schema = "\"abc\" interface Foo @a { \"abc\" bar: String "
+            + "\"abc\" baz: [Int] } "
+            + "\"abc\" interface Foo @a @b { \"abc\" bar: String @foo "
+            + "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
         var document = Utf8GraphQLParser.Parse(schema);
 
         // act
@@ -294,8 +294,8 @@ public class SchemaSyntaxPrinterTests
     public void Serialize_InterfaceTypeImplementsXYZ_InOutShouldBeTheSame()
     {
         // arrange
-        const string schema = "interface Foo implements X & Y & Z " +
-            "{ bar: String baz: [Int] }";
+        const string schema = "interface Foo implements X & Y & Z "
+            + "{ bar: String baz: [Int] }";
         var document = Utf8GraphQLParser.Parse(schema);
 
         // act
@@ -309,8 +309,8 @@ public class SchemaSyntaxPrinterTests
     public void Serialize_InterfaceTypeImplementsXYZWithIndent_OutHasIndentation()
     {
         // arrange
-        const string schema = "interface Foo implements X & Y & Z " +
-            "{ bar: String baz: [Int] }";
+        const string schema = "interface Foo implements X & Y & Z "
+            + "{ bar: String baz: [Int] }";
         var document = Utf8GraphQLParser.Parse(schema);
 
         // act
@@ -562,8 +562,8 @@ public class SchemaSyntaxPrinterTests
     public void Serialize_InputObjectTypeDefWithDirectiveNoIndent_InOutShouldBeTheSame()
     {
         // arrange
-        const string schema = "input A @a @b(c: 1) { b: String @a @b(c: 1) " +
-            "c: [String!]! @a @b(c: 1) d: Int = 1 @a @b(c: 1) }";
+        const string schema = "input A @a @b(c: 1) { b: String @a @b(c: 1) "
+            + "c: [String!]! @a @b(c: 1) d: Int = 1 @a @b(c: 1) }";
         var document = Utf8GraphQLParser.Parse(schema);
 
         // act
@@ -577,8 +577,8 @@ public class SchemaSyntaxPrinterTests
     public void Serialize_InputObjectTypeWithDirectiveDefNoIndent_OutHasIndentation()
     {
         // arrange
-        const string schema = "input A @a @b(c: 1) { b: String @a @b(c: 1) " +
-            "c: [String!]! @a @b(c: 1) d: Int = 1 @a @b(c: 1) }";
+        const string schema = "input A @a @b(c: 1) { b: String @a @b(c: 1) "
+            + "c: [String!]! @a @b(c: 1) d: Int = 1 @a @b(c: 1) }";
         var document = Utf8GraphQLParser.Parse(schema);
 
         // act

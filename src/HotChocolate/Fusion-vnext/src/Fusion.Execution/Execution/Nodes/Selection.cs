@@ -1,8 +1,10 @@
+using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public sealed class Selection
+public sealed class Selection : ISelection
 {
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
@@ -31,6 +33,11 @@ public sealed class Selection
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
         _flags = isInternal ? Flags.Internal : Flags.None;
+
+        if (field.Type.NamedType().IsLeafType())
+        {
+            _flags |= Flags.Leaf;
+        }
     }
 
     public uint Id { get; }
@@ -39,13 +46,26 @@ public sealed class Selection
 
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
 
+    public bool IsConditional => _includeFlags.Length > 0;
+
+    public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
+
     public IOutputFieldDefinition Field { get; }
 
     public IType Type => Field.Type;
 
     public SelectionSet DeclaringSelectionSet { get; private set; } = null!;
 
+    ISelectionSet ISelection.DeclaringSelectionSet => DeclaringSelectionSet;
+
     public ReadOnlySpan<FieldSelectionNode> SyntaxNodes => _syntaxNodes;
+
+    internal ResolveFieldValue? Resolver => Field.Features.Get<ResolveFieldValue>();
+
+    IEnumerable<FieldNode> ISelection.GetSyntaxNodes()
+    {
+        throw new NotImplementedException();
+    }
 
     public bool IsIncluded(ulong includeFlags)
     {
@@ -64,8 +84,7 @@ public sealed class Selection
         {
             var flags1 = _includeFlags[0];
             var flags2 = _includeFlags[1];
-            return (flags1 & includeFlags) == flags1
-                || (flags2 & includeFlags) == flags2;
+            return (flags1 & includeFlags) == flags1 || (flags2 & includeFlags) == flags2;
         }
 
         if (_includeFlags.Length == 3)
@@ -91,6 +110,16 @@ public sealed class Selection
         return false;
     }
 
+    public override string ToString()
+    {
+        if (SyntaxNodes[0].Node.Alias is not null)
+        {
+            return $"{ResponseName} : {Field.Name}";
+        }
+
+        return Field.Name;
+    }
+
     internal void Seal(SelectionSet selectionSet)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)
@@ -107,6 +136,7 @@ public sealed class Selection
     {
         None = 0,
         Internal = 1,
-        Sealed = 2
+        Leaf = 2,
+        Sealed = 4
     }
 }

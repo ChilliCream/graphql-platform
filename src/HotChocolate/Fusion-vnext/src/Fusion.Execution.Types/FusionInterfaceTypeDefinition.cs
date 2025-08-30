@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -16,7 +17,7 @@ public sealed class FusionInterfaceTypeDefinition(
     private bool _isEntity;
 
     /// <inheritdoc />
-    public override TypeKind Kind => TypeKind.Object;
+    public override TypeKind Kind => TypeKind.Interface;
 
     /// <summary>
     /// Defines is this interface is an entity.

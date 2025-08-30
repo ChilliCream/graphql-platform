@@ -15,16 +15,16 @@ public class PageInfoType : ObjectType<ConnectionPageInfo>
             .Type<NonNullType<BooleanType>>()
             .Name(Names.HasNextPage)
             .Description(
-                "Indicates whether more edges exist following " +
-                "the set defined by the clients arguments.");
+                "Indicates whether more edges exist following "
+                + "the set defined by the clients arguments.");
 
         descriptor
             .Field(t => t.HasPreviousPage)
             .Type<NonNullType<BooleanType>>()
             .Name(Names.HasPreviousPage)
             .Description(
-                "Indicates whether more edges exist prior " +
-                "the set defined by the clients arguments.");
+                "Indicates whether more edges exist prior "
+                + "the set defined by the clients arguments.");
 
         descriptor
             .Field(t => t.StartCursor)

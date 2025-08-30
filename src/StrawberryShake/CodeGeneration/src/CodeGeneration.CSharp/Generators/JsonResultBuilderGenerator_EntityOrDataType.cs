@@ -85,8 +85,8 @@ public partial class JsonResultBuilderGenerator
                 .AddCode(IfBuilder
                     .New()
                     .SetCondition(
-                        $"typename?.Equals(\"{concreteType.Name}\", " +
-                        $"{TypeNames.OrdinalStringComparison}) ?? false")
+                        $"typename?.Equals(\"{concreteType.Name}\", "
+                        + $"{TypeNames.OrdinalStringComparison}) ?? false")
                     .AddCode(builder));
         }
 

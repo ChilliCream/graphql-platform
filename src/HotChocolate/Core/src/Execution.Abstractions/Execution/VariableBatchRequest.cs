@@ -24,6 +24,9 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// <param name="operationName">
     /// A name of an operation in the GraphQL request document that shall be executed.
     /// </param>
+    /// <param name="errorHandlingMode">
+    /// The requested error handling mode.
+    /// </param>
     /// <param name="variableValues">
     /// The list of variable values for the GraphQL request.
     /// </param>
@@ -50,6 +53,7 @@ public sealed class VariableBatchRequest : IOperationRequest
         OperationDocumentId? documentId,
         OperationDocumentHash? documentHash,
         string? operationName,
+        ErrorHandlingMode? errorHandlingMode,
         IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableValues,
         IReadOnlyDictionary<string, object?>? extensions,
         IReadOnlyDictionary<string, object?>? contextData,
@@ -66,6 +70,7 @@ public sealed class VariableBatchRequest : IOperationRequest
         DocumentId = documentId ?? OperationDocumentId.Empty;
         DocumentHash = documentHash ?? OperationDocumentHash.Empty;
         OperationName = operationName;
+        ErrorHandlingMode = errorHandlingMode;
         VariableValues = variableValues;
         Extensions = extensions;
         ContextData = contextData;
@@ -94,6 +99,11 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// or, <c>null</c> if the document only contains a single operation.
     /// </summary>
     public string? OperationName { get; }
+
+    /// <summary>
+    /// Gets the requested error handling mode.
+    /// </summary>
+    public ErrorHandlingMode? ErrorHandlingMode { get; }
 
     /// <summary>
     /// Gets a list of variable values for the GraphQL request.
@@ -140,6 +150,7 @@ public sealed class VariableBatchRequest : IOperationRequest
             DocumentId,
             DocumentHash,
             OperationName,
+            ErrorHandlingMode,
             VariableValues,
             Extensions,
             ContextData,
@@ -162,6 +173,7 @@ public sealed class VariableBatchRequest : IOperationRequest
             DocumentId,
             DocumentHash,
             OperationName,
+            ErrorHandlingMode,
             VariableValues,
             Extensions,
             ContextData,

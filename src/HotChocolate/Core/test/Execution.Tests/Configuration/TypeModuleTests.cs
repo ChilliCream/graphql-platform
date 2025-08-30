@@ -90,10 +90,7 @@ public class TypeModuleTests
         var provider = services.BuildServiceProvider();
         var warmupService = provider.GetRequiredService<IHostedService>();
 
-        _ = Task.Run(async () =>
-        {
-            await warmupService.StartAsync(CancellationToken.None);
-        }, cts.Token);
+        _ = Task.Run(async () => await warmupService.StartAsync(CancellationToken.None), cts.Token);
 
         await provider.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
 

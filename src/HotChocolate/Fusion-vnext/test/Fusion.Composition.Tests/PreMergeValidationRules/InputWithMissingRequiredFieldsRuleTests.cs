@@ -116,8 +116,8 @@ public sealed class InputWithMissingRequiredFieldsRuleTests
                     """
                 ],
                 [
-                    "The input type 'BookFilter' in schema 'B' must define the required field " +
-                    "'title'."
+                    "The input type 'BookFilter' in schema 'B' must define the required field "
+                    + "'title'."
                 ]
             },
             // Multiple required input fields.
@@ -139,11 +139,11 @@ public sealed class InputWithMissingRequiredFieldsRuleTests
                     """
                 ],
                 [
-                    "The input type 'BookFilter' in schema 'A' must define the required field " +
-                    "'author'.",
+                    "The input type 'BookFilter' in schema 'A' must define the required field "
+                    + "'author'.",
 
-                    "The input type 'BookFilter' in schema 'B' must define the required field " +
-                    "'title'."
+                    "The input type 'BookFilter' in schema 'B' must define the required field "
+                    + "'title'."
                 ]
             }
         };

@@ -55,7 +55,7 @@ public sealed class RequireInvalidFieldTypeRuleTests
                     """
                     type User @key(fields: "id") {
                         id: ID!
-                        profile(name: String! @require(field: "name")): Profile
+                        profile(name: String @require(field: "name")): Profile
                     }
 
                     type Profile {
@@ -89,8 +89,8 @@ public sealed class RequireInvalidFieldTypeRuleTests
                     """
                 ],
                 [
-                    "The @require directive on argument 'User.profile(name:)' in schema 'A' must " +
-                    "specify a string value for the 'field' argument."
+                    "The @require directive on argument 'User.profile(name:)' in schema 'A' must "
+                    + "specify a string value for the 'field' argument."
                 ]
             }
         };

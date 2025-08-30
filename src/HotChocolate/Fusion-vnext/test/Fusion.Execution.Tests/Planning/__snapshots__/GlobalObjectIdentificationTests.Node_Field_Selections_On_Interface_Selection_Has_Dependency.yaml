@@ -1,0 +1,130 @@
+operation:
+  - document: >-
+      query testQuery(
+        $id: ID!
+      ) {
+        node(id: $id) {
+          __typename @fusion__requirement
+          __typename
+          id
+          ... on ProductList {
+            products {
+              id
+              name
+              id @fusion__requirement
+              id @fusion__requirement
+            }
+          }
+        }
+      }
+    name: testQuery
+    hash: 123456789101112
+nodes:
+  - id: 1
+    type: Node
+    idValue: $id
+    responseName: node
+    branches:
+      - Item1: 5
+      - Item2: 3
+    fallback: 2
+  - id: 2
+    type: Operation
+    operation: >-
+      query testQuery_123456789101112_2(
+        $id: ID!
+      ) {
+        node(id: $id) {
+          __typename
+          __typename
+          id
+        }
+      }
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: a
+    operation: >-
+      query testQuery_123456789101112_3(
+        $id: ID!
+      ) {
+        node(id: $id) {
+          __typename
+          ... on Item2 {
+            __typename
+            __typename
+            id
+            products {
+              id
+            }
+          }
+        }
+      }
+    dependencies:
+      - id: 1
+  - id: 4
+    type: Operation
+    schema: b
+    operation: >-
+      query testQuery_123456789101112_4(
+        $__fusion_1_id: ID!
+      ) {
+        node(id: $__fusion_1_id) {
+          __typename
+          ... on Product {
+            name
+          }
+        }
+      }
+    source: $.node<Product>
+    target: $.node.products
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3
+  - id: 5
+    type: Operation
+    schema: a
+    operation: >-
+      query testQuery_123456789101112_5(
+        $id: ID!
+      ) {
+        node(id: $id) {
+          __typename
+          ... on Item1 {
+            __typename
+            __typename
+            id
+            products {
+              id
+            }
+          }
+        }
+      }
+    dependencies:
+      - id: 1
+  - id: 6
+    type: Operation
+    schema: b
+    operation: >-
+      query testQuery_123456789101112_6(
+        $__fusion_2_id: ID!
+      ) {
+        node(id: $__fusion_2_id) {
+          __typename
+          ... on Product {
+            name
+          }
+        }
+      }
+    source: $.node<Product>
+    target: $.node.products
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3

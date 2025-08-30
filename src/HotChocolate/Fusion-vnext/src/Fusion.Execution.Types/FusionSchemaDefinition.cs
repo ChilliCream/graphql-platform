@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
@@ -12,7 +13,16 @@ namespace HotChocolate.Fusion.Types;
 
 public sealed class FusionSchemaDefinition : ISchemaDefinition
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
+    private readonly object _lock = new();
+#endif
     private readonly ConcurrentDictionary<string, ImmutableArray<FusionObjectTypeDefinition>> _possibleTypes = new();
+    private readonly ConcurrentDictionary<(string, string?), ImmutableArray<Lookup>> _possibleLookups = new();
+    private ImmutableArray<FusionUnionTypeDefinition> _unionTypes;
+    private IFeatureCollection _features;
+    private bool _sealed;
 
     internal FusionSchemaDefinition(
         string name,
@@ -35,7 +45,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
         Directives = directives;
         Types = types;
         DirectiveDefinitions = directiveDefinitions;
-        Features = features;
+        _features = features;
     }
 
     public static FusionSchemaDefinition Create(
@@ -120,7 +130,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     IReadOnlyDirectiveDefinitionCollection ISchemaDefinition.DirectiveDefinitions
         => DirectiveDefinitions;
 
-    public IFeatureCollection Features { get; }
+    public IFeatureCollection Features => _features;
 
     public FusionObjectTypeDefinition GetOperationType(OperationType operation)
     {
@@ -197,10 +207,10 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
 
         return _possibleTypes.GetOrAdd(
             abstractType.Name,
-            static (_, context) => GetPossibleTypes(context.AbstractType, context.Types),
+            static (_, context) => BuildPossibleTypes(context.AbstractType, context.Types),
             new PossibleTypeLookupContext(abstractType, Types));
 
-        static ImmutableArray<FusionObjectTypeDefinition> GetPossibleTypes(
+        static ImmutableArray<FusionObjectTypeDefinition> BuildPossibleTypes(
             ITypeDefinition abstractType,
             FusionTypeDefinitionCollection types)
         {
@@ -238,6 +248,109 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
         ITypeDefinition abstractType)
         => GetPossibleTypes(abstractType);
 
+    internal ImmutableArray<Lookup> GetPossibleLookups(
+        ITypeDefinition type,
+        string? schemaName = null)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        return _possibleLookups.GetOrAdd(
+            (type.Name, schemaName),
+            static (_, c) => c.Schema.GetPossibleLookupsInternal(c.Type, c.SchemaName),
+            (Schema: this, Type: type, SchemaName: schemaName));
+    }
+
+    private ImmutableArray<Lookup> GetPossibleLookupsInternal(ITypeDefinition type, string? schemaName)
+    {
+        if (type is FusionComplexTypeDefinition complexType)
+        {
+            FusionUnionTypeDefinition[]? unionTypes = null;
+            FusionObjectTypeDefinition? objectType = null;
+
+            if (complexType.Kind == TypeKind.Object)
+            {
+                // if we are trying to resolve possible lookups for object types
+                // we need to consider lookups for union types where this object type
+                // is a member type of.
+                //
+                // we do not care about the allocation here as we cache the outcome of this method.
+                unionTypes = _unionTypes.Where(unionType => unionType.Types.ContainsName(type.Name)).ToArray();
+                objectType = (FusionObjectTypeDefinition)complexType;
+            }
+
+            var lookups = ImmutableArray.CreateBuilder<Lookup>();
+
+            foreach (var source in complexType.Sources)
+            {
+                // if the schemaName is null we are considering all possible source schemas.
+                if (schemaName is not null
+                    && !source.SchemaName.Equals(schemaName, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                lookups.AddRange(source.Lookups);
+
+                foreach (var interfaceType in complexType.Implements)
+                {
+                    // we will only consider interfaces that are implemented by the complex type
+                    // on the current source schema.
+                    if (source.Implements.Contains(interfaceType.Name)
+                        && interfaceType.Sources.TryGetMember(source.SchemaName, out var interfaceSource))
+                    {
+                        lookups.AddRange(interfaceSource.Lookups);
+                    }
+                }
+
+                // we only look at union types if the complex type is an object type.
+                if (objectType is not null && unionTypes is not null)
+                {
+                    var sourceObjectType = (SourceObjectType)source;
+
+                    foreach (var unionType in unionTypes)
+                    {
+                        // we will only consider unions where the current object type is a member of
+                        // on the current source schema.
+                        if (sourceObjectType.MemberOf.Contains(unionType.Name)
+                            && unionType.Sources.TryGetMember(source.SchemaName, out var unionSource))
+                        {
+                            lookups.AddRange(unionSource.Lookups);
+                        }
+                    }
+                }
+            }
+
+            return lookups.ToImmutable();
+        }
+
+        return [];
+    }
+
+    public IEnumerable<INameProvider> GetAllDefinitions()
+    {
+        foreach (var type in Types.AsEnumerable())
+        {
+            yield return type;
+        }
+
+        foreach (var directiveDefinition in DirectiveDefinitions.AsEnumerable())
+        {
+            yield return directiveDefinition;
+        }
+    }
+
+    internal void Seal()
+    {
+        if (_sealed)
+        {
+            return;
+        }
+
+        _sealed = true;
+        _features = _features.ToReadOnly();
+        _unionTypes = [.. Types.AsEnumerable().OfType<FusionUnionTypeDefinition>()];
+    }
+
     public override string ToString()
         => SchemaFormatter.FormatAsString(this);
 
@@ -246,10 +359,6 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => SchemaFormatter.FormatAsDocument(this);
-
-    // TODO : Implement
-    public IEnumerable<INameProvider> GetAllDefinitions()
-        => throw new NotImplementedException();
 
     private record PossibleTypeLookupContext(
         ITypeDefinition AbstractType,

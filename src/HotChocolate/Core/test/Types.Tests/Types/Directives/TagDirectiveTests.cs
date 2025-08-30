@@ -97,8 +97,8 @@ public class TagDirectiveTests
                 .BuildSchemaAsync();
 
         Assert.Equal(
-            "Tag names may only include alphanumeric characters (a-z, A-Z, 0-9), hyphens, and " +
-            "underscores. (Parameter 'name')",
+            "Tag names may only include alphanumeric characters (a-z, A-Z, 0-9), hyphens, and "
+            + "underscores. (Parameter 'name')",
             (await Assert.ThrowsAsync<ArgumentException>(Act)).Message);
     }
 
