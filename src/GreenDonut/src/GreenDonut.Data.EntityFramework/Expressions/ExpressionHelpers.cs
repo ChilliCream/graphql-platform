@@ -101,8 +101,8 @@ internal static class ExpressionHelpers
             if (keyIsNullable && nullOrdering == NullOrdering.Unspecified)
             {
                 throw new Exception(
-                    "The NullOrdering option must be specified in the paging options or " +
-                    "arguments when using nullable keys.");
+                    "The NullOrdering option must be specified in the paging options or "
+                    + "arguments when using nullable keys.");
             }
 
             var greaterThan = forward
