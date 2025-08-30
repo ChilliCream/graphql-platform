@@ -1529,7 +1529,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `@oneOf` directive is used within the type system definition language to indicate that an input object is a OneOf input object..
+        ///   Looks up a localized string similar to The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object..
         /// </summary>
         internal static string OneOfDirectiveType_Description {
             get {
