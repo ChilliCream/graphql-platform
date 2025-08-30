@@ -217,7 +217,9 @@
   </Folder>
   <Folder Name="/HotChocolate/ModelContextProtocol/" />
   <Folder Name="/HotChocolate/ModelContextProtocol/src/">
+    <Project Path="HotChocolate/ModelContextProtocol/src/HotChocolate.Fusion.ModelContextProtocol/HotChocolate.Fusion.ModelContextProtocol.csproj" />
     <Project Path="HotChocolate/ModelContextProtocol/src/HotChocolate.ModelContextProtocol/HotChocolate.ModelContextProtocol.csproj" />
+    <Project Path="HotChocolate/ModelContextProtocol/src/HotChocolate.ModelContextProtocol.Core/HotChocolate.ModelContextProtocol.Core.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/ModelContextProtocol/test/">
     <Project Path="HotChocolate/ModelContextProtocol/test/HotChocolate.ModelContextProtocol.Tests/HotChocolate.ModelContextProtocol.Tests.csproj" />

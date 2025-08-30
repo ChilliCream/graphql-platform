@@ -4,7 +4,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using HotChocolate.Authorization;
 using HotChocolate.Language;
-using HotChocolate.ModelContextProtocol.Attributes;
+using HotChocolate.ModelContextProtocol.Directives;
 using HotChocolate.Types;
 
 namespace HotChocolate.ModelContextProtocol;
