@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
@@ -21,10 +19,10 @@ namespace HotChocolate.Types;
 /// </summary>
 [DirectiveType(
     DirectiveNames.RequiresOptIn.Name,
-    DirectiveLocation.ArgumentDefinition |
-    DirectiveLocation.EnumValue |
-    DirectiveLocation.FieldDefinition |
-    DirectiveLocation.InputFieldDefinition,
+    DirectiveLocation.ArgumentDefinition
+    | DirectiveLocation.EnumValue
+    | DirectiveLocation.FieldDefinition
+    | DirectiveLocation.InputFieldDefinition,
     IsRepeatable = true)]
 [GraphQLDescription(
     """
