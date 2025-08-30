@@ -195,8 +195,8 @@ public class ValuesOfCorrectTypeRuleTests
             }
             """,
             t => Assert.Equal(
-                "The OneOf Input Object `PetInput` requires that exactly one field must be " +
-                "supplied and that field must not be `null`.",
+                "The OneOf Input Object `PetInput` requires that exactly one field must be "
+                + "supplied and that field must not be `null`.",
                 t.Message));
     }
 
@@ -212,8 +212,8 @@ public class ValuesOfCorrectTypeRuleTests
             }
             """,
             t => Assert.Equal(
-                "The OneOf Input Object `PetInput` requires that exactly one field must be " +
-                "supplied and that field must not be `null`.",
+                "The OneOf Input Object `PetInput` requires that exactly one field must be "
+                + "supplied and that field must not be `null`.",
                 t.Message));
     }
 
@@ -229,8 +229,8 @@ public class ValuesOfCorrectTypeRuleTests
             }
             """,
             t => Assert.Equal(
-                "The variable `$dog` assigned to the field `dog` of the OneOf Input Object " +
-                "`PetInput` must be non-null.",
+                "The variable `$dog` assigned to the field `dog` of the OneOf Input Object "
+                + "`PetInput` must be non-null.",
                 t.Message));
     }
 
