@@ -308,8 +308,8 @@ public class PagingHelperPostgreSqlNullableTests(PostgreSqlResource resource)
 
         // Assert
         Assert.Equal(
-            "The NullOrdering option must be specified in the paging options or arguments when " +
-            "using nullable keys.",
+            "The NullOrdering option must be specified in the paging options or arguments when "
+            + "using nullable keys.",
             (await Assert.ThrowsAsync<Exception>(Act)).Message);
     }
 
