@@ -163,8 +163,8 @@ public sealed class ExternalUnusedRuleTests
                     """
                 ],
                 [
-                    "The external field 'Product.name' in schema 'A' is not referenced by a " +
-                    "@provides directive in the schema."
+                    "The external field 'Product.name' in schema 'A' is not referenced by a "
+                    + "@provides directive in the schema."
                 ]
             },
             // Provides different field.
@@ -183,8 +183,8 @@ public sealed class ExternalUnusedRuleTests
                     """
                 ],
                 [
-                    "The external field 'Product.title' in schema 'A' is not referenced by a " +
-                    "@provides directive in the schema."
+                    "The external field 'Product.title' in schema 'A' is not referenced by a "
+                    + "@provides directive in the schema."
                 ]
             },
             // Subselections.
@@ -210,11 +210,11 @@ public sealed class ExternalUnusedRuleTests
                     """
                 ],
                 [
-                    "The external field 'Product.sku' in schema 'A' is not referenced by a " +
-                    "@provides directive in the schema.",
+                    "The external field 'Product.sku' in schema 'A' is not referenced by a "
+                    + "@provides directive in the schema.",
 
-                    "The external field 'ProductVariation.size' in schema 'A' is not referenced " +
-                    "by a @provides directive in the schema."
+                    "The external field 'ProductVariation.size' in schema 'A' is not referenced "
+                    + "by a @provides directive in the schema."
                 ]
             },
             // Fragments.
@@ -257,11 +257,11 @@ public sealed class ExternalUnusedRuleTests
                     """"
                 ],
                 [
-                    "The external field 'Book.author' in schema 'A' is not referenced by a " +
-                    "@provides directive in the schema.",
+                    "The external field 'Book.author' in schema 'A' is not referenced by a "
+                    + "@provides directive in the schema.",
 
-                    "The external field 'Clothing.size' in schema 'A' is not referenced " +
-                    "by a @provides directive in the schema."
+                    "The external field 'Clothing.size' in schema 'A' is not referenced "
+                    + "by a @provides directive in the schema."
                 ]
             }
         };

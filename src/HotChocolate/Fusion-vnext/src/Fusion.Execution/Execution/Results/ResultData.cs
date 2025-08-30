@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Fusion.Execution;
@@ -18,7 +19,13 @@ public abstract class ResultData : IResultDataJsonFormatter
     /// <summary>
     /// Gets the index under which this data is stored in the parent result.
     /// </summary>
-    protected internal int ParentIndex { get; private set; }
+    protected internal int ParentIndex { get; private set; } = -1;
+
+    /// <summary>
+    /// Gets a value indicating if this result data object was invalidated do to an error
+    /// or null propagation.
+    /// </summary>
+    public bool IsInvalidated { get; set; }
 
     /// <summary>
     /// Gets the path of the result.
@@ -78,6 +85,11 @@ public abstract class ResultData : IResultDataJsonFormatter
 
         Parent = parent;
         ParentIndex = index;
+        OnSetParent(parent, index);
+    }
+
+    protected virtual void OnSetParent(ResultData parent, int index)
+    {
     }
 
     /// <summary>
@@ -102,6 +114,15 @@ public abstract class ResultData : IResultDataJsonFormatter
     /// </summary>
     /// <param name="value">The value to set.</param>
     public virtual void SetNextValue(JsonElement value)
+    {
+        throw new NotSupportedException();
+    }
+
+    /// <summary>
+    /// Sets the next value to the given value.
+    /// </summary>
+    /// <param name="value">The value to set.</param>
+    public virtual void SetNextValue(ReadOnlyMemorySegment value)
     {
         throw new NotSupportedException();
     }

@@ -35,8 +35,8 @@ internal sealed class ExecutionTaskPool<T, TPolicy> : ObjectPool<T>
             for (var i = 0; i < items.Length; i++)
             {
                 item = items[i].Element;
-                if (item != null &&
-                    CompareExchange(ref items[i].Element, null, item) == item)
+                if (item != null
+                    && CompareExchange(ref items[i].Element, null, item) == item)
                 {
                     return item;
                 }

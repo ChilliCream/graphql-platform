@@ -60,10 +60,7 @@ public class TypeScopeInterceptorTests
         {
             descriptor
                 .Extend()
-                .OnBeforeCreate(d =>
-                {
-                    d.Type = ((ExtendedTypeReference)d.Type).WithScope(Scope);
-                });
+                .OnBeforeCreate(d => d.Type = ((ExtendedTypeReference)d.Type).WithScope(Scope));
         }
     }
 

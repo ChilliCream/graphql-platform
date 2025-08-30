@@ -34,8 +34,8 @@ public sealed class DataLoaderModuleInspector : ISyntaxInspector
                 var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                 var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                if (fullName.Equals(DataLoaderModuleAttribute, Ordinal) &&
-                    attributeSyntax.ArgumentList is { Arguments.Count: > 0 })
+                if (fullName.Equals(DataLoaderModuleAttribute, Ordinal)
+                    && attributeSyntax.ArgumentList is { Arguments.Count: > 0 })
                 {
                     var nameExpr = attributeSyntax.ArgumentList.Arguments[0].Expression;
                     var name = context.SemanticModel.GetConstantValue(nameExpr).ToString();

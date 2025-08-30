@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Collections.Immutable;
 using HotChocolate.Language;
 using static HotChocolate.Language.SyntaxComparison;
@@ -73,6 +71,19 @@ public sealed class Directive : IDirective
     /// </returns>
     public T ToValue<T>() where T : notnull
         => (T)_runtimeValue;
+
+    /// <summary>
+    /// Gets the runtime representation of the directive.
+    /// </summary>
+    /// <typeparam name="T">
+    /// The runtime type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the runtime representation of the directive.
+    /// </returns>
+    [Obsolete("Use ToValue<T>() instead.")]
+    public T AsValue<T>() where T : notnull
+        => ToValue<T>();
 
     /// <summary>
     /// Gets the runtime representation of the directive.

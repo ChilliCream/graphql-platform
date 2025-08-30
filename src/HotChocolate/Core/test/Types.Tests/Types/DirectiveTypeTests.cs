@@ -166,8 +166,8 @@ public class DirectiveTypeTests : TypeTestBase
             t =>
             {
                 Assert.Equal(
-                    "The specified directive `@foo` " +
-                    "is unique and cannot be added twice.",
+                    "The specified directive `@foo` "
+                    + "is unique and cannot be added twice.",
                     t.Message);
             });
     }
@@ -799,6 +799,34 @@ public class DirectiveTypeTests : TypeTestBase
         Assert.Single(errors);
         Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
         errors[0].Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Directive_ArgumentDirective_AddedToSchema()
+    {
+        // arrange
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("Qux"))
+            .AddDocumentFromString(
+                """
+                directive @Example on ARGUMENT_DEFINITION
+                directive @Qux(bar: String @Example) on FIELD_DEFINITION
+                """)
+            .BuildSchemaAsync();
+
+        // assert
+        Assert.True(
+            schema.DirectiveTypes
+                .Single(d => d.Name == "Qux")
+                .Arguments["bar"]
+                .Directives[0].Type.Name == "Example");
     }
 
     [Fact]

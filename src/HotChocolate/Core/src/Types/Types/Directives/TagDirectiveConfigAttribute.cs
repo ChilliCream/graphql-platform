@@ -1,4 +1,3 @@
-#nullable enable
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types;
@@ -14,16 +13,16 @@ internal sealed class TagDirectiveConfigAttribute : DirectiveTypeDescriptorAttri
             && options.Mode == TagMode.ApolloFederation)
         {
             descriptor.Extend().Configuration.Locations =
-                DirectiveLocation.Object |
-                DirectiveLocation.Interface |
-                DirectiveLocation.Union |
-                DirectiveLocation.InputObject |
-                DirectiveLocation.Enum |
-                DirectiveLocation.Scalar |
-                DirectiveLocation.FieldDefinition |
-                DirectiveLocation.InputFieldDefinition |
-                DirectiveLocation.ArgumentDefinition |
-                DirectiveLocation.EnumValue;
+                DirectiveLocation.Object
+                | DirectiveLocation.Interface
+                | DirectiveLocation.Union
+                | DirectiveLocation.InputObject
+                | DirectiveLocation.Enum
+                | DirectiveLocation.Scalar
+                | DirectiveLocation.FieldDefinition
+                | DirectiveLocation.InputFieldDefinition
+                | DirectiveLocation.ArgumentDefinition
+                | DirectiveLocation.EnumValue;
         }
     }
 }

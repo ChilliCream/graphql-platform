@@ -1,4 +1,4 @@
-﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
 // ReSharper disable InconsistentNaming
@@ -730,13 +730,13 @@ namespace Foo.Bar
     public partial class GetAllQuery : global::Foo.Bar.IGetAllQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetAllResult> _operationExecutor;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetAllQuery(global::StrawberryShake.IOperationExecutor<IGetAllResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        private GetAllQuery(global::StrawberryShake.IOperationExecutor<IGetAllResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        private GetAllQuery(global::StrawberryShake.IOperationExecutor<IGetAllResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;

@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Threading.Channels;
 using StrawberryShake.Extensions;
 
@@ -8,12 +7,6 @@ namespace StrawberryShake;
 
 public sealed partial class OperationStore : IOperationStore
 {
-    private static readonly MethodInfo s_setGeneric = typeof(OperationStore)
-        .GetMethods(BindingFlags.Instance | BindingFlags.Public)
-        .First(t =>
-            t.IsGenericMethodDefinition &&
-            t.Name.Equals(nameof(Set), StringComparison.Ordinal));
-
     private readonly CancellationTokenSource _cts = new();
     private readonly ConcurrentDictionary<OperationRequest, IStoredOperation> _results = new();
     private readonly IEntityStore _entityStore;
@@ -41,13 +34,6 @@ public sealed partial class OperationStore : IOperationStore
         var storedOperation = GetOrAddStoredOperation<T>(operationRequest);
         storedOperation.SetResult(operationResult);
         OnUpdate(storedOperation, OperationUpdateKind.Updated);
-    }
-
-    public void Set(OperationRequest operationRequest, IOperationResult operationResult)
-    {
-        s_setGeneric
-            .MakeGenericMethod(operationResult.DataType)
-            .Invoke(this, [operationRequest, operationResult]);
     }
 
     public void Reset(OperationRequest operationRequest)
@@ -110,8 +96,8 @@ public sealed partial class OperationStore : IOperationStore
         ArgumentNullException.ThrowIfNull(operationRequest);
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (_results.TryGetValue(operationRequest, out var storedOperation) &&
-            storedOperation is StoredOperation<T> { LastResult: not null } casted)
+        if (_results.TryGetValue(operationRequest, out var storedOperation)
+            && storedOperation is StoredOperation<T> { LastResult: not null } casted)
         {
             result = casted.LastResult!;
             return true;
@@ -168,8 +154,8 @@ public sealed partial class OperationStore : IOperationStore
 
         foreach (var operation in _results.Values)
         {
-            if (operation.Version < update.Version &&
-                update.UpdatedEntityIds.Overlaps(operation.EntityIds))
+            if (operation.Version < update.Version
+                && update.UpdatedEntityIds.Overlaps(operation.EntityIds))
             {
                 operation.UpdateResult(update.Version);
                 updated.Add(new(

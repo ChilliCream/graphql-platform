@@ -1,0 +1,20 @@
+operation:
+  - document: >-
+      query testQuery {
+        post {
+          __typename @fusion__requirement
+          __typename
+        }
+      }
+    name: testQuery
+    hash: 123456789101112
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: >-
+      query testQuery_123456789101112_1 {
+        post {
+          __typename
+        }
+      }

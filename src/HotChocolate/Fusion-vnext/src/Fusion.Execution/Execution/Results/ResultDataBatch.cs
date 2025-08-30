@@ -10,6 +10,9 @@ internal sealed class ResultDataBatch<T> where T : ResultData, new()
     private readonly int _maxAllowedCapacity;
     private readonly T[] _items;
     private int _next = -1;
+#pragma warning disable IDE0052 // Remove unread private members
+    private readonly int _inst;
+#pragma warning restore IDE0052 // Remove unread private members
 
     public ResultDataBatch(int batchSize, int defaultCapacity = 8, int maxAllowedCapacity = 16)
     {
@@ -26,6 +29,8 @@ internal sealed class ResultDataBatch<T> where T : ResultData, new()
         {
             _items[i] = CreateItem();
         }
+
+        _inst = Interlocked.Increment(ref InstanceCounter.Counter);
     }
 
     private T CreateItem()
@@ -62,7 +67,7 @@ internal sealed class ResultDataBatch<T> where T : ResultData, new()
             return;
         }
 
-        var usedItem = _next < _items.Length ? _next : _items.Length;
+        var usedItem = _next < _items.Length ? _next + 1 : _items.Length;
         ref var item = ref MemoryMarshal.GetReference(_items.AsSpan());
         ref var end = ref Unsafe.Add(ref item, usedItem);
 
@@ -77,4 +82,9 @@ internal sealed class ResultDataBatch<T> where T : ResultData, new()
 
         _next = -1;
     }
+}
+
+public static class InstanceCounter
+{
+    public static int Counter;
 }

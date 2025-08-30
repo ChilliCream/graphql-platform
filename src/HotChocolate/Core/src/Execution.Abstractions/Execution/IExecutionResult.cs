@@ -1,3 +1,5 @@
+using HotChocolate.Features;
+
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -8,7 +10,7 @@ namespace HotChocolate.Execution;
 /// them allows it to give back its used memory to the execution
 /// engine result pools.
 /// </remarks>
-public interface IExecutionResult : IAsyncDisposable
+public interface IExecutionResult : IFeatureProvider, IAsyncDisposable
 {
     /// <summary>
     /// Gets the result kind.

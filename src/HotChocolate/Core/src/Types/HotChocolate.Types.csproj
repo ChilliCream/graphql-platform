@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Nullable>disable</Nullable>
     <NoWarn>HC8001;$(NoWarn)</NoWarn>
   </PropertyGroup>
 
@@ -60,6 +59,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.Primitives\GreenDonut.Data.Primitives.csproj" />
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut\GreenDonut.csproj" />
+    <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Language\HotChocolate.Fusion.Language.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\Features\HotChocolate.Features.csproj" />

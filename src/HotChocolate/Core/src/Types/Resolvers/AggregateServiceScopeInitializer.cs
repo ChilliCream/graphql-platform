@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -40,7 +42,6 @@ internal sealed class AggregateServiceScopeInitializer : IServiceScopeInitialize
                 break;
 
             default:
-            {
                 ref var start = ref MemoryMarshal.GetReference(_initializers.AsSpan());
                 ref var end = ref Unsafe.Add(ref start, _initializers.Length);
 
@@ -50,7 +51,6 @@ internal sealed class AggregateServiceScopeInitializer : IServiceScopeInitialize
                     start = ref Unsafe.Add(ref start, 1);
                 }
                 break;
-            }
         }
     }
 }

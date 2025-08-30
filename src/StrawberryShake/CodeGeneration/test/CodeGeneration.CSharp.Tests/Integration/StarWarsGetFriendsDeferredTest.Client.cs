@@ -1089,13 +1089,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
     public partial class GetHeroQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferred.IGetHeroQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        private GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        private GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;

@@ -372,7 +372,7 @@ public class InlineFragmentOperationRewriterTests
             """
             {
               productById(id: 1) {
-                __typename @fusion_internal
+                __typename @fusion__requirement
               }
             }
             """);

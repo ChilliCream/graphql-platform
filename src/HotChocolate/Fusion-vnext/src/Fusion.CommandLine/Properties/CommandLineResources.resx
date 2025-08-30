@@ -36,6 +36,9 @@
   <data name="ComposeCommand_Description" xml:space="preserve">
     <value>Composes multiple source schemas into a single composite schema.</value>
   </data>
+  <data name="ComposeCommand_EnableGlobalObjectIdentification_Description" xml:space="preserve">
+    <value>Determines whether the 'Query.node' field shall be added.</value>
+  </data>
   <data name="ComposeCommand_Error_NoSourceSchemaFilesFound" xml:space="preserve">
     <value>❌ No GraphQL schema files were found in the working directory.</value>
   </data>

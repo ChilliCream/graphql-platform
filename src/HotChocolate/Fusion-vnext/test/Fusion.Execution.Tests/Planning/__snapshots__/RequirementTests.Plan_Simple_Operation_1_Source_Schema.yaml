@@ -1,0 +1,44 @@
+operation:
+  - document: >-
+      {
+        books {
+          titleAndId
+          id @fusion__requirement
+          title @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: >-
+      query Op_123456789101112_1 {
+        books {
+          id
+          title
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: b
+    operation: >-
+      query Op_123456789101112_2(
+        $__fusion_1_id: String!
+        $__fusion_2_title: String
+      ) {
+        bookById(id: $__fusion_1_id) {
+          titleAndId(title: $__fusion_2_title)
+        }
+      }
+    source: $.bookById
+    target: $.books
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_title
+        selectionMap: >-
+          title
+    dependencies:
+      - id: 1

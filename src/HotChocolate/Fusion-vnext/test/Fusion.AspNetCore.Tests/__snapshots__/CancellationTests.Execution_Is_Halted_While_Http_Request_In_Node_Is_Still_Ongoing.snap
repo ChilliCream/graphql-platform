@@ -1,0 +1,56 @@
+{
+  "errors": [
+    {
+      "message": "Could not resolve reviews",
+      "path": [
+        "reviews"
+      ]
+    }
+  ],
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "f7268facd3bf4a654930d6f4ddb28db55c01aac50b6ad3d784198ada1774cf3c",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  topProduct {\n    id\n  }\n  reviews {\n    id\n  }\n}",
+          "id": "512ba6dc13ede1ded2da8cd00532a486",
+          "hash": "512ba6dc13ede1ded2da8cd00532a486",
+          "shortHash": "512ba6dc"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_512ba6dc_1",
+              "type": "Query",
+              "document": "query Op_512ba6dc_1 {\n  topProduct {\n    id\n  }\n}",
+              "hash": "1195a5f13d37f726c4a367a9d66d965959df8d47886ca3c2969b067c0a5ed887",
+              "shortHash": "1195a5f1"
+            },
+            "responseNames": [
+              "topProduct"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_512ba6dc_2",
+              "type": "Query",
+              "document": "query Op_512ba6dc_2 {\n  reviews {\n    id\n  }\n}",
+              "hash": "59ba029ee67b9d15935a9e39da8899dcd88aac7a3c760148ad33b914516cd6a9",
+              "shortHash": "59ba029e"
+            },
+            "responseNames": [
+              "reviews"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

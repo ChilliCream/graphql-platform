@@ -401,10 +401,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL("StarWars")
-                .ModifyRequestOptions(o =>
-                {
-                    o.PersistedOperations.OnlyAllowPersistedDocuments = true;
-                })
+                .ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true)
                 .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedOperationPipeline()
                 .AddHttpRequestInterceptor<AllowNonPersistedOperationInterceptor>());

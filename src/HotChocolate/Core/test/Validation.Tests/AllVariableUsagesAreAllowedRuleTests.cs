@@ -23,8 +23,8 @@ public class AllVariableUsagesAreAllowedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The variable `intArg` is not compatible with the " +
-                "type of the current location.",
+                "The variable `intArg` is not compatible with the "
+                + "type of the current location.",
                 t.Message));
     }
 
@@ -41,8 +41,8 @@ public class AllVariableUsagesAreAllowedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The variable `booleanListArg` is not compatible with the " +
-                "type of the current location.",
+                "The variable `booleanListArg` is not compatible with the "
+                + "type of the current location.",
                 t.Message));
     }
 
@@ -59,8 +59,8 @@ public class AllVariableUsagesAreAllowedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The variable `booleanArg` is not compatible with the " +
-                "type of the current location.",
+                "The variable `booleanArg` is not compatible with the "
+                + "type of the current location.",
                 t.Message));
     }
 
@@ -107,8 +107,8 @@ public class AllVariableUsagesAreAllowedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The variable `nullableBoolean` is not compatible with the " +
-                "type of the current location.",
+                "The variable `nullableBoolean` is not compatible with the "
+                + "type of the current location.",
                 t.Message));
     }
 
@@ -125,8 +125,8 @@ public class AllVariableUsagesAreAllowedRuleTests
             }
             """,
             t => Assert.Equal(
-                "The variable `booleanList` is not compatible with the " +
-                "type of the current location.",
+                "The variable `booleanList` is not compatible with the "
+                + "type of the current location.",
                 t.Message));
     }
 

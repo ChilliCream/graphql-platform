@@ -3999,13 +3999,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
     public partial class IntrospectionQueryQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.IIntrospectionQueryQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IIntrospectionQueryResult> _operationExecutor;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public IntrospectionQueryQuery(global::StrawberryShake.IOperationExecutor<IIntrospectionQueryResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
-        private IntrospectionQueryQuery(global::StrawberryShake.IOperationExecutor<IIntrospectionQueryResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        private IntrospectionQueryQuery(global::StrawberryShake.IOperationExecutor<IIntrospectionQueryResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;
