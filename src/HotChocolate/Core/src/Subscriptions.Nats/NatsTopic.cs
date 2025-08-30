@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using AlterNats;
 using HotChocolate.Subscriptions.Diagnostics;
+using NATS.Client.Core;
 using static HotChocolate.Subscriptions.Nats.NatsResources;
 
 namespace HotChocolate.Subscriptions.Nats;
@@ -30,13 +30,22 @@ internal sealed class NatsTopic<TMessage> : DefaultTopic<TMessage>
         Debug.Assert(_connection != null, "_connection != null");
         Debug.Assert(_connection != null, "_serializer != null");
 
-        var natsSession = await _connection
-            .SubscribeAsync(Name, (string? m) => DispatchMessage(_serializer, m))
-            .ConfigureAwait(false);
+        var natsSession = Task.Run(async () =>
+        {
+            await foreach (var msg in _connection.SubscribeAsync<string?>(
+                Name,
+                cancellationToken: cancellationToken))
+            {
+                Console.WriteLine($"Received {msg.Subject}: {msg.Data}\n");//tmp
+                DispatchMessage(_serializer, msg.Data);
+            }
+        }, cancellationToken);
 
         DiagnosticEvents.ProviderTopicInfo(Name, NatsTopic_ConnectAsync_SubscribedToNats);
 
-        return new Session(Name, natsSession, DiagnosticEvents);
+        return natsSession;
+
+        //return new Session(Name, natsSession, DiagnosticEvents);
     }
 
     private sealed class Session : IDisposable
