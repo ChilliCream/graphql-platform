@@ -9,16 +9,13 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
     private readonly RequestDelegate _next;
     private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
     private readonly PersistedOperationOptions _options;
-    private readonly IErrorHandler _errorHandler;
-    private readonly IError _error;
     private readonly IOperationResult _errorResult;
     private readonly Dictionary<string, object?> _statusCode = new() { { ExecutionContextData.HttpStatusCode, 400 } };
 
     private OnlyPersistedOperationsAllowedMiddleware(
         RequestDelegate next,
         ICoreExecutionDiagnosticEvents diagnosticEvents,
-        PersistedOperationOptions options,
-        IErrorHandler errorHandler)
+        PersistedOperationOptions options)
     {
         ArgumentNullException.ThrowIfNull(next);
         ArgumentNullException.ThrowIfNull(diagnosticEvents);
@@ -26,12 +23,10 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
 
         _next = next;
         _diagnosticEvents = diagnosticEvents;
-        _errorHandler = errorHandler;
 
         // prepare options.
         _options = options;
-        _error = options.OperationNotAllowedError;
-        _errorResult = OperationResultBuilder.CreateError(_error, _statusCode);
+        _errorResult = OperationResultBuilder.CreateError(options.OperationNotAllowedError, _statusCode);
     }
 
     public ValueTask InvokeAsync(RequestContext context)
@@ -72,8 +67,7 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
         }
 
         // if we reach this point, we have to throw an error since the request is not allowed.
-        var error = _errorHandler.Handle(_error);
-        _diagnosticEvents.ExecutionError(context, ErrorKind.RequestError, [error]);
+        _diagnosticEvents.UntrustedDocumentRejected(context);
         context.Result = _errorResult;
         return default;
     }
@@ -84,12 +78,10 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
             {
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
                 var options = core.SchemaServices.GetRequiredService<PersistedOperationOptions>();
-                var errorHandler = core.SchemaServices.GetRequiredService<IErrorHandler>();
                 var middleware = new OnlyPersistedOperationsAllowedMiddleware(
                     next,
                     diagnosticEvents,
-                    options,
-                    errorHandler);
+                    options);
                 return context => middleware.InvokeAsync(context);
             },
             nameof(OnlyPersistedOperationsAllowedMiddleware));

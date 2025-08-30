@@ -24,6 +24,11 @@ public static class Utf8GraphQLRequestProperties
     public static ReadOnlySpan<byte> OperationNameProp => "operationName"u8;
 
     /// <summary>
+    /// Gets the name of the onError property.
+    /// </summary>
+    public static ReadOnlySpan<byte> OnErrorProp => "onError"u8;
+
+    /// <summary>
     /// Gets the name of the variables property.
     /// </summary>
     public static ReadOnlySpan<byte> VariablesProp => "variables"u8;

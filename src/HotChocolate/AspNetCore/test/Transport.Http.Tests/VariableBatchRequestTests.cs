@@ -303,7 +303,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
             """
             ContentType
             ---------------
-            text/event-stream; charset=utf-8
+            application/graphql-response+jsonl; charset=utf-8
             ---------------
 
             ---------------

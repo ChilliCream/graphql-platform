@@ -1,6 +1,6 @@
 namespace HotChocolate.Subscriptions.Postgres;
 
-public class AsyncAutoResetEventTests
+public class AsyncManualResetEventTests
 {
     [Fact]
     public async Task Set_Should_SetResult_When_Called()

@@ -1,0 +1,44 @@
+{
+  "data": {
+    "topProduct": null
+  },
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "path": [
+        "topProduct"
+      ]
+    }
+  ],
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "6dddd40fa0251aa5cce73d612701622d75d8b843d4cb16a45f8955b79fe11afa",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  topProduct {\n    id\n  }\n}",
+          "id": "486d07e5b26a89e416bd23c75b892c79",
+          "hash": "486d07e5b26a89e416bd23c75b892c79",
+          "shortHash": "486d07e5"
+        },
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_486d07e5_1",
+              "type": "Query",
+              "document": "query Op_486d07e5_1 {\n  topProduct {\n    id\n  }\n}",
+              "hash": "516479b81e25ec97c24bef2bad2aedf7064c47349d597acf13a9101f33ef2e4d",
+              "shortHash": "516479b8"
+            },
+            "responseNames": [
+              "topProduct"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,8 +1,9 @@
+using HotChocolate.Fetching;
 using static System.Environment;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed partial class WorkScheduler
+internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
 {
     private readonly IExecutionTask?[] _buffer = new IExecutionTask?[ProcessorCount * 2];
 
@@ -37,7 +38,6 @@ RESTART:
                 if (work is not 0)
                 {
                     var first = buffer[0]!;
-
                     if (!first.IsSerial)
                     {
                         first.BeginExecute(_ct);
@@ -53,19 +53,9 @@ RESTART:
                     }
                     else
                     {
-                        // if work is serial we will synchronize the batch dispatcher and
-                        // wait for the task to be finished.
-                        try
-                        {
-                            _batchDispatcher.DispatchOnSchedule = true;
-                            first.BeginExecute(_ct);
-                            await first.WaitForCompletionAsync(_ct).ConfigureAwait(false);
-                            buffer[0] = null;
-                        }
-                        finally
-                        {
-                            _batchDispatcher.DispatchOnSchedule = false;
-                        }
+                        first.BeginExecute(_ct);
+                        await WaitForTask(first.Id).ConfigureAwait(false);
+                        buffer[0] = null;
                     }
                 }
                 else
@@ -90,6 +80,19 @@ RESTART:
         }
 
         _ct.ThrowIfCancellationRequested();
+    }
+
+    private async Task WaitForTask(uint taskId)
+    {
+        while (!_completed.ContainsKey(taskId))
+        {
+            // we are waiting for completion of the current task
+            // so we force the `TryDispatchOrComplete` to seek completion
+            // even though the _work backlog might still have unprocessed
+            // tasks.
+            TryDispatchOrComplete(isWaitingForTaskCompletion: true);
+            await TryPauseAsync().ConfigureAwait(false);
+        }
     }
 
     private int TryTake(IExecutionTask?[] buffer)
@@ -133,16 +136,6 @@ RESTART:
         return size;
     }
 
-    private void BatchDispatcherEventHandler(object? source, EventArgs args)
-    {
-        lock (_sync)
-        {
-            _hasBatches = true;
-        }
-
-        _pause.TryContinue();
-    }
-
     private void HandleError(Exception exception)
     {
         var error =
@@ -166,34 +159,41 @@ RESTART:
         }
     }
 
-    private void TryDispatchOrComplete()
+    private void TryDispatchOrComplete(bool isWaitingForTaskCompletion = false)
     {
-        if (!_isCompleted)
+        if (_isCompleted)
         {
-            lock (_sync)
+            return;
+        }
+
+        lock (_sync)
+        {
+            if (_isCompleted)
             {
-                if (!_isCompleted)
+                return;
+            }
+
+            if (!isWaitingForTaskCompletion)
+            {
+                isWaitingForTaskCompletion = _work is { HasRunningTasks: true, IsEmpty: true };
+            }
+
+            var hasWork = !_work.IsEmpty || !_serial.IsEmpty;
+
+            if (isWaitingForTaskCompletion)
+            {
+                _signal.Reset();
+
+                if (Interlocked.CompareExchange(ref _hasBatches, 0, 1) == 1)
                 {
-                    var isWaitingForTaskCompletion = _work.HasRunningTasks && _work.IsEmpty;
-                    var hasWork = !_work.IsEmpty || !_serial.IsEmpty;
-
-                    if (isWaitingForTaskCompletion)
-                    {
-                        _pause.Reset();
-
-                        if (_hasBatches)
-                        {
-                            _hasBatches = false;
-                            _batchDispatcher.BeginDispatch(_ct);
-                        }
-                    }
-                    else
-                    {
-                        if (!hasWork)
-                        {
-                            _isCompleted = true;
-                        }
-                    }
+                    _batchDispatcher.BeginDispatch(_ct);
+                }
+            }
+            else
+            {
+                if (!hasWork)
+                {
+                    _isCompleted = true;
                 }
             }
         }
@@ -203,13 +203,35 @@ RESTART:
     {
         if (!_isCompleted)
         {
-            if (_pause.IsPaused)
+            if (_signal.IsPaused)
             {
                 _diagnosticEvents.StopProcessing(_requestContext);
-                await _pause;
+                await _signal;
             }
+
             return true;
         }
+
         return false;
+    }
+
+    public void OnNext(BatchDispatchEventArgs value)
+    {
+        // we
+        if (value.Type is BatchDispatchEventType.Enqueued
+            or BatchDispatchEventType.Dispatched
+            or BatchDispatchEventType.CoordinatorCompleted)
+        {
+            Interlocked.Exchange(ref _hasBatches, 1);
+            _signal.Set();
+        }
+    }
+
+    public void OnError(Exception error)
+    {
+    }
+
+    public void OnCompleted()
+    {
     }
 }

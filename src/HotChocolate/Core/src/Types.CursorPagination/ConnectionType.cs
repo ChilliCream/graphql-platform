@@ -107,10 +107,7 @@ internal sealed class ConnectionType
                 TypeDependencyFulfilled.Named));
         Configuration.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask(
-                (c, _) =>
-                {
-                    EdgeType = c.GetType<IEdgeType>(edgeType);
-                },
+                (c, _) => EdgeType = c.GetType<IEdgeType>(edgeType),
                 Configuration,
                 ApplyConfigurationOn.BeforeCompletion));
     }

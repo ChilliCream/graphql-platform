@@ -1,4 +1,4 @@
-﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
 // ReSharper disable InconsistentNaming
@@ -3885,7 +3885,7 @@ namespace Foo.Bar
         private readonly global::StrawberryShake.IOperationExecutor<IGetBwr_TimeSeriesResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _bwr_TimeSeriesFilterInputFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _readDataInputFormatter;
-        private readonly System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetBwr_TimeSeriesQuery(global::StrawberryShake.IOperationExecutor<IGetBwr_TimeSeriesResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
@@ -3893,7 +3893,7 @@ namespace Foo.Bar
             _readDataInputFormatter = serializerResolver.GetInputValueFormatter("ReadDataInput");
         }
 
-        private GetBwr_TimeSeriesQuery(global::StrawberryShake.IOperationExecutor<IGetBwr_TimeSeriesResult> operationExecutor, System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter readDataInputFormatter, global::StrawberryShake.Serialization.IInputValueFormatter bwr_TimeSeriesFilterInputFormatter)
+        private GetBwr_TimeSeriesQuery(global::StrawberryShake.IOperationExecutor<IGetBwr_TimeSeriesResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter readDataInputFormatter, global::StrawberryShake.Serialization.IInputValueFormatter bwr_TimeSeriesFilterInputFormatter)
         {
             _operationExecutor = operationExecutor;
             _configure = configure;

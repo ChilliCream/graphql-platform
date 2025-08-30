@@ -180,8 +180,6 @@ Both Relay and Apollo support this specification through community packages:
 - [react-relay-network-modern](https://github.com/relay-tools/react-relay-network-modern) using the `uploadMiddleware`
 - [apollo-upload-client](https://github.com/jaydenseric/apollo-upload-client)
 
-> Warning: [Strawberry Shake](/products/strawberryshake) does not yet support the `Upload` scalar.
-
 ### Options
 
 If you need to upload larger files or set custom upload size limits, you can configure those by registering custom [`FormOptions`](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.features.formoptions).

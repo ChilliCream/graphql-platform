@@ -1,0 +1,31 @@
+operation:
+  - document: >-
+      query testQuery {
+        wrappers {
+          votable {
+            __typename @fusion__requirement
+            viewerCanVote
+            ... on Discussion {
+              title
+            }
+          }
+        }
+      }
+    name: testQuery
+    hash: 123456789101112
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: >-
+      query testQuery_123456789101112_1 {
+        wrappers {
+          votable {
+            __typename
+            viewerCanVote
+            ... on Discussion {
+              title
+            }
+          }
+        }
+      }

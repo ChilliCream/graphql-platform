@@ -10,11 +10,15 @@ using GreenDonut.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
+using HotChocolate.Language;
 using HotChocolate.Types.Analyzers;
 using HotChocolate.Types.Pagination;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
@@ -28,7 +32,10 @@ internal static partial class TestHelper
         return GetGeneratedSourceSnapshot([sourceText]);
     }
 
-    public static Snapshot GetGeneratedSourceSnapshot(string[] sourceTexts, string? assemblyName = "Tests")
+    public static Snapshot GetGeneratedSourceSnapshot(
+        string[] sourceTexts,
+        string? assemblyName = "Tests",
+        bool enableInterceptors = false)
     {
         IEnumerable<PortableExecutableReference> references =
         [
@@ -39,16 +46,37 @@ internal static partial class TestHelper
 #elif NET10_0
             .. Net100.References.All,
 #endif
+            // HotChocolate.Primitives
+            MetadataReference.CreateFromFile(typeof(ITypeSystemMember).Assembly.Location),
+
             // HotChocolate.Execution
             MetadataReference.CreateFromFile(typeof(RequestDelegate).Assembly.Location),
 
             // HotChocolate.Execution.Abstractions
+            MetadataReference.CreateFromFile(typeof(RequestContext).Assembly.Location),
+
+            // HotChocolate.Execution.Processing
+            MetadataReference.CreateFromFile(typeof(HotChocolateExecutionSelectionExtensions).Assembly.Location),
+
+            // HotChocolate.Execution.Abstractions
             MetadataReference.CreateFromFile(typeof(IRequestExecutorBuilder).Assembly.Location),
+
+            // HotChocolate.Execution.DependencyInjection
+            MetadataReference.CreateFromFile(typeof(RequestExecutorBuilderExtensions).Assembly.Location),
 
             // HotChocolate.Types
             MetadataReference.CreateFromFile(typeof(ObjectTypeAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Connection).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(PageConnection<>).Assembly.Location),
+
+            // HotChocolate.Types.Abstractions
+            MetadataReference.CreateFromFile(typeof(ISchemaDefinition).Assembly.Location),
+
+            // HotChocolate.Features
+            MetadataReference.CreateFromFile(typeof(IFeatureProvider).Assembly.Location),
+
+            // HotChocolate.Language
+            MetadataReference.CreateFromFile(typeof(OperationType).Assembly.Location),
 
             // HotChocolate.Abstractions
             MetadataReference.CreateFromFile(typeof(ParentAttribute).Assembly.Location),
@@ -64,6 +92,7 @@ internal static partial class TestHelper
             // GreenDonut.Data
             MetadataReference.CreateFromFile(typeof(PagingArguments).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(IPredicateBuilder).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(DefaultPredicateBuilder).Assembly.Location),
 
             // HotChocolate.Data
             MetadataReference.CreateFromFile(typeof(IFilterContext).Assembly.Location),
@@ -76,9 +105,18 @@ internal static partial class TestHelper
         ];
 
         // Create a Roslyn compilation for the syntax tree.
+        var parseOptions = !enableInterceptors
+            ? CSharpParseOptions.Default
+            : CSharpParseOptions.Default
+                .WithPreprocessorSymbols("InterceptorsPreviewFeature")
+                .WithFeatures(new Dictionary<string, string>
+                {
+                    ["InterceptorsNamespaces"] = "HotChocolate.Execution.Generated"
+                });
+
         var compilation = CSharpCompilation.Create(
             assemblyName: assemblyName,
-            syntaxTrees: sourceTexts.Select(s => CSharpSyntaxTree.ParseText(s)),
+            syntaxTrees: sourceTexts.Select(s => CSharpSyntaxTree.ParseText(s, parseOptions)),
             references);
 
         // Create an instance of our GraphQLServerGenerator incremental source generator.
@@ -91,7 +129,25 @@ internal static partial class TestHelper
         driver = driver.RunGenerators(compilation);
 
         // Create a snapshot.
-        return CreateSnapshot(compilation, driver);
+        var snapshot = CreateSnapshot(compilation, driver);
+
+        // Finally, compile the entire assembly (original code + generated code) to check
+        // if the sample is valid as a whole
+        var updatedCompilation = compilation.AddSyntaxTrees(
+            driver.GetRunResult()
+                .Results
+                .SelectMany(r => r.GeneratedSources)
+                .Select(gs => CSharpSyntaxTree.ParseText(gs.SourceText, parseOptions, path: gs.HintName))
+        );
+
+        using var dllStream = new MemoryStream();
+        var emitResult = updatedCompilation.Emit(dllStream);
+        if (!emitResult.Success || emitResult.Diagnostics.Any())
+        {
+            AddDiagnosticsToSnapshot(snapshot, emitResult.Diagnostics, "Assembly Emit Diagnostics");
+        }
+
+        return snapshot;
     }
 
     private static Snapshot CreateSnapshot(CSharpCompilation compilation, GeneratorDriver driver)

@@ -15,9 +15,9 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 {
     public void OptimizeOperation(OperationOptimizerContext context)
     {
-        if (context.Definition.Operation is not OperationType.Query ||
-            context.HasIncrementalParts ||
-            ContainsIntrospectionFields(context))
+        if (context.Definition.Operation is not OperationType.Query
+            || context.HasIncrementalParts
+            || ContainsIntrospectionFields(context))
         {
             // if this is an introspection query, we will not cache it.
             return;
@@ -143,8 +143,8 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
             if (directive is not null)
             {
                 var previousMaxAge = constraints.MaxAge;
-                if (!maxAgeSet &&
-                    directive.MaxAge.HasValue)
+                if (!maxAgeSet
+                    && directive.MaxAge.HasValue)
                 {
                     // If only max-age has been set, we honor the expected behavior that a CDN
                     // cannot ever cache longer than this unless s-maxage specifies otherwise.
@@ -153,9 +153,9 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
                         constraints.MaxAge = directive.MaxAge.Value;
                     }
 
-                    if (!directive.SharedMaxAge.HasValue &&
-                        constraints.SharedMaxAge.HasValue &&
-                        constraints.SharedMaxAge.Value > directive.MaxAge.Value)
+                    if (!directive.SharedMaxAge.HasValue
+                        && constraints.SharedMaxAge.HasValue
+                        && constraints.SharedMaxAge.Value > directive.MaxAge.Value)
                     {
                         constraints.SharedMaxAge = directive.MaxAge;
                     }
@@ -169,15 +169,15 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
                     maxAgeSet = true;
                 }
 
-                if (!sharedMaxAgeSet &&
-                    directive.SharedMaxAge.HasValue &&
-                    (!constraints.SharedMaxAge.HasValue || directive.SharedMaxAge < constraints.SharedMaxAge.Value))
+                if (!sharedMaxAgeSet
+                    && directive.SharedMaxAge.HasValue
+                    && (!constraints.SharedMaxAge.HasValue || directive.SharedMaxAge < constraints.SharedMaxAge.Value))
                 {
                     // The maxAge of the @cacheControl directive is lower
                     // than the previously lowest maxAge value.
-                    if (!constraints.SharedMaxAge.HasValue &&
-                        previousMaxAge.HasValue &&
-                        previousMaxAge.Value < directive.SharedMaxAge.Value)
+                    if (!constraints.SharedMaxAge.HasValue
+                        && previousMaxAge.HasValue
+                        && previousMaxAge.Value < directive.SharedMaxAge.Value)
                     {
                         // If only max-age has been set, we honor the expected behavior that a CDN
                         // cannot ever cache longer than this unless s-maxage specifies otherwise.
@@ -197,8 +197,8 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
                     sharedMaxAgeSet = true;
                 }
 
-                if (directive.Scope.HasValue &&
-                    directive.Scope < constraints.Scope)
+                if (directive.Scope.HasValue
+                    && directive.Scope < constraints.Scope)
                 {
                     // The scope of the @cacheControl directive is more
                     // restrictive than the computed scope.
@@ -230,8 +230,8 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
         {
             var field = Unsafe.Add(ref start, i).Field;
 
-            if (field.IsIntrospectionField &&
-                !field.Name.EqualsOrdinal(IntrospectionFieldNames.TypeName))
+            if (field.IsIntrospectionField
+                && !field.Name.EqualsOrdinal(IntrospectionFieldNames.TypeName))
             {
                 return true;
             }

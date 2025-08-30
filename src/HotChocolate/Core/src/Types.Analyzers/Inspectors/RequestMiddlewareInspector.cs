@@ -48,8 +48,8 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                     IsStatic: false,
                     IsAbstract: false,
                     DeclaredAccessibility: Accessibility.Public
-                } ||
-                ctor is not
+                }
+                || ctor is not
                 {
                     Kind: SymbolKind.Method,
                     IsStatic: false,

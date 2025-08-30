@@ -1,13 +1,21 @@
 using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
-internal sealed class OperationPlanCacheMiddleware(Cache<OperationExecutionPlan> cache)
+internal sealed class OperationPlanCacheMiddleware
 {
-    private readonly Cache<OperationExecutionPlan> _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+    private readonly Cache<OperationPlan> _cache;
+    private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
+
+    private OperationPlanCacheMiddleware(Cache<OperationPlan> cache, IFusionExecutionDiagnosticEvents diagnosticEvents)
+    {
+        _cache = cache;
+        _diagnosticEvents = diagnosticEvents;
+    }
 
     public async ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
     {
@@ -30,6 +38,7 @@ internal sealed class OperationPlanCacheMiddleware(Cache<OperationExecutionPlan>
         {
             context.SetOperationPlan(plan);
             isPlanCached = true;
+            _diagnosticEvents.RetrievedOperationPlanFromCache(context, operationId);
         }
 
         await next(context);
@@ -45,6 +54,7 @@ internal sealed class OperationPlanCacheMiddleware(Cache<OperationExecutionPlan>
             if (executionPlan is not null)
             {
                 _cache.TryAdd(operationId, executionPlan);
+                _diagnosticEvents.AddedOperationPlanToCache(context, operationId);
             }
         }
     }
@@ -53,8 +63,9 @@ internal sealed class OperationPlanCacheMiddleware(Cache<OperationExecutionPlan>
         => new RequestMiddlewareConfiguration(
             static (fc, next) =>
             {
-                var cache = fc.SchemaServices.GetRequiredService<Cache<OperationExecutionPlan>>();
-                var middleware = new OperationPlanCacheMiddleware(cache);
+                var cache = fc.SchemaServices.GetRequiredService<Cache<OperationPlan>>();
+                var diagnosticEvents = fc.SchemaServices.GetRequiredService<IFusionExecutionDiagnosticEvents>();
+                var middleware = new OperationPlanCacheMiddleware(cache, diagnosticEvents);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },
             nameof(OperationPlanCacheMiddleware));

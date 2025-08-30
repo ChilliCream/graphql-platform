@@ -1,0 +1,36 @@
+<Project>
+  <Target Name="GenerateBuildSecrets" BeforeTargets="BeforeCompile">
+    <PropertyGroup>
+      <_SecretsNamespace Condition="'$(RootNamespace)' != ''">$(RootNamespace)</_SecretsNamespace>
+      <_SecretsNamespace Condition="'$(_SecretsNamespace)' == ''">$(MSBuildProjectName)</_SecretsNamespace>
+
+      <_GenDir>$(IntermediateOutputPath)Generated</_GenDir>
+      <_GenFile>$(_GenDir)\Secrets.g.cs</_GenFile>
+
+      <_NitroApiClientId>$(NitroApiClientId)</_NitroApiClientId>
+      <_NitroIdentityClientId>$(NitroIdentityClientId)</_NitroIdentityClientId>
+      <_NitroIdentityScopes>$(NitroIdentityScopes)</_NitroIdentityScopes>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(_GenDir)" />
+
+    <WriteLinesToFile
+      File="$(_GenFile)"
+      Overwrite="true"
+      Lines="$([MSBuild]::Escape(
+namespace $(_SecretsNamespace)
+{
+    internal static class BuildSecrets
+    {
+        internal const string NitroApiClientId = &quot;$(_NitroApiClientId)&quot;;
+        internal const string NitroIdentityClientId = &quot;$(_NitroIdentityClientId)&quot;;
+        internal const string NitroIdentityScopes = &quot;$(_NitroIdentityScopes)&quot;;
+    }
+}
+))" />
+
+    <ItemGroup>
+      <Compile Include="$(_GenFile)" />
+    </ItemGroup>
+  </Target>
+</Project>

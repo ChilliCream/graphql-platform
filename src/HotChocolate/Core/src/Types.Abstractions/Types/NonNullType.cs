@@ -91,7 +91,7 @@ public sealed class NonNullType : IWrapperType, ISyntaxNodeProvider<NonNullTypeN
             return ReferenceEquals(this, other);
         }
 
-        return other is NonNullType otherNonNull &&
-            NullableType.Equals(otherNonNull.NullableType, comparison);
+        return other is NonNullType otherNonNull
+            && NullableType.Equals(otherNonNull.NullableType, comparison);
     }
 }

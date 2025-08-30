@@ -56,7 +56,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
         // with a 400 Bad Request.
         if (headerResult.HasError)
         {
-            // in this case accept headers were specified and we will
+            // in this case accept headers were specified, and we will
             // respond with proper error codes
             acceptMediaTypes = HeaderUtilities.GraphQLResponseContentTypes;
             statusCode = HttpStatusCode.BadRequest;
@@ -73,7 +73,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
         // media type then we will fail the request with 406 Not Acceptable.
         if (requestFlags is None)
         {
-            // in this case accept headers were specified and we will
+            // in this case accept headers were specified, and we will
             // respond with proper error codes
             acceptMediaTypes = HeaderUtilities.GraphQLResponseContentTypes;
             statusCode = HttpStatusCode.NotAcceptable;
@@ -141,9 +141,9 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 {
                     string? operationNames = context.Request.Query[BatchOperations];
 
-                    if (!string.IsNullOrEmpty(operationNames) &&
-                        TryParseOperations(operationNames, out var ops) &&
-                        GetOptions(context).EnableBatching)
+                    if (!string.IsNullOrEmpty(operationNames)
+                        && TryParseOperations(operationNames, out var ops)
+                        && GetOptions(context).EnableBatching)
                     {
                         result = await session.ExecuteOperationBatchAsync(context, requests[0], requestFlags, ops);
                     }
@@ -165,10 +165,8 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 // Most GraphQL requests will be of this type where we want to execute
                 // a single GraphQL query or mutation.
                 case 1:
-                {
                     result = await session.ExecuteSingleAsync(context, requests[0], requestFlags);
                     break;
-                }
 
                 // if the HTTP request body contains more than one GraphQL request than
                 // we need to execute a request batch where we need to execute multiple

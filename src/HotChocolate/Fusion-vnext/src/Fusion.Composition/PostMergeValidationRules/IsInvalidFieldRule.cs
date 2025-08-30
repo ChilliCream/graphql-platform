@@ -42,8 +42,12 @@ internal sealed class IsInvalidFieldRule : IEventHandler<SchemaEvent>
             var fieldArgumentValue = (string)isDirective.Arguments[Field].Value!;
             var fieldSelectionMapParser = new FieldSelectionMapParser(fieldArgumentValue);
             var fieldSelectionMap = fieldSelectionMapParser.Parse();
-            var inputType = schema.Types[sourceArgument.Type.AsTypeDefinition().Name];
-            var outputType = schema.Types[sourceField.Type.AsTypeDefinition().Name];
+            var inputTypeNode = sourceArgument.Type.ToTypeNode();
+            var inputTypeDefinition = schema.Types[sourceArgument.Type.AsTypeDefinition().Name];
+            var inputType = inputTypeNode.RewriteToType(inputTypeDefinition);
+            var outputTypeNode = sourceField.Type.ToTypeNode();
+            var outputTypeDefinition = schema.Types[sourceField.Type.AsTypeDefinition().Name];
+            var outputType = outputTypeNode.RewriteToType(outputTypeDefinition);
 
             var errors = validator.Validate(fieldSelectionMap, inputType, outputType);
 

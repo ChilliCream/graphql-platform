@@ -9,8 +9,6 @@ using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Types.Helpers.CompleteInterfacesHelper;
 using static HotChocolate.Utilities.ErrorHelper;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public partial class ObjectType

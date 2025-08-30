@@ -153,7 +153,7 @@ public sealed class EnumValueNode : IValueNode<string>
 
         byte[]? rented = null;
         var requiredLength = encoding.GetByteCount(_value!);
-        Span<byte> buffer = requiredLength < 256
+        var buffer = requiredLength < 256
             ? stackalloc byte[32]
             : (rented = ArrayPool<byte>.Shared.Rent(requiredLength)).AsSpan();
 

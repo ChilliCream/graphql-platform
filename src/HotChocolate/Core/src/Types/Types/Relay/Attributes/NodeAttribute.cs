@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;

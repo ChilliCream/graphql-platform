@@ -34,14 +34,14 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
     public override async Task InvokeAsync(HttpContext context)
     {
-        if (HttpMethods.IsPost(context.Request.Method) &&
-            GetOptions(context).EnableMultipartRequests &&
-            context.ParseContentType() == RequestContentType.Form)
+        if (HttpMethods.IsPost(context.Request.Method)
+            && GetOptions(context).EnableMultipartRequests
+            && context.ParseContentType() == RequestContentType.Form)
         {
             var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
 
-            if (!context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight) &&
-                GetOptions(context).EnforceMultipartRequestsPreflightHeader)
+            if (!context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight)
+                && GetOptions(context).EnforceMultipartRequestsPreflightHeader)
             {
                 var headerResult = HeaderUtilities.GetAcceptHeader(context.Request);
                 await session.WriteResultAsync(context, _multipartRequestError, headerResult.AcceptMediaTypes, BadRequest);

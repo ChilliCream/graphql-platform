@@ -147,12 +147,12 @@ public class SchemaTypeResolverTests
         public string Baz { get; }
     }
 
-    public struct BarStruct
+    public readonly struct BarStruct
     {
         public string Baz { get; }
     }
 
-    public ref struct BarRefStruct
+    public readonly ref struct BarRefStruct
     {
         public string Baz { get; }
     }

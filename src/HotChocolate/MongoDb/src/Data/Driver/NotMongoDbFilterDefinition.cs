@@ -31,8 +31,8 @@ public sealed class NotMongoDbFilterDefinition : MongoDbFilterDefinition
 
     private static BsonDocument NegateArbitraryFilter(BsonDocument filter)
     {
-        if (filter.ElementCount == 1 &&
-            filter.GetElement(0).Name.StartsWith("$", StringComparison.Ordinal))
+        if (filter.ElementCount == 1
+            && filter.GetElement(0).Name.StartsWith("$", StringComparison.Ordinal))
         {
             return new BsonDocument("$not", filter);
         }

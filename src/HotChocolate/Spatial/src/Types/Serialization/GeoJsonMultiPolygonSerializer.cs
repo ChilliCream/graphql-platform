@@ -77,8 +77,8 @@ Error:
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        if (runtimeValue is not MultiPolygon geometry ||
-            !TrySerializeCoordinates(type, runtimeValue, out var serialized))
+        if (runtimeValue is not MultiPolygon geometry
+            || !TrySerializeCoordinates(type, runtimeValue, out var serialized))
         {
             throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
         }

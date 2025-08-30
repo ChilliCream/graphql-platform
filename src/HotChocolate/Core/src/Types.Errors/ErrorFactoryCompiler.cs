@@ -33,8 +33,8 @@ internal static class ErrorFactoryCompiler
 
         // if none of the above patterns applied it must be an error result type.
         // We will first check if the error was provided as schema type.
-        if (ExtendedType.Tools.IsGenericBaseType(errorType) &&
-            typeof(ObjectType).IsAssignableFrom(errorType))
+        if (ExtendedType.Tools.IsGenericBaseType(errorType)
+            && typeof(ObjectType).IsAssignableFrom(errorType))
         {
             return new[] { new ErrorConfiguration(errorType.GetGenericArguments()[0], errorType) };
         }
@@ -72,8 +72,8 @@ internal static class ErrorFactoryCompiler
             .GetMethods()
             .Single(
                 t =>
-                    t.Name.EqualsOrdinal(nameof(GetType)) &&
-                    t.GetParameters().Length == 0);
+                    t.Name.EqualsOrdinal(nameof(GetType))
+                    && t.GetParameters().Length == 0);
 
         const string ex = nameof(ex);
 
@@ -89,8 +89,8 @@ internal static class ErrorFactoryCompiler
         {
             var parameters = methodInfo.GetParameters();
 
-            if (parameters.Length == 1 &&
-                typeof(Exception).IsAssignableFrom(parameters[0].ParameterType))
+            if (parameters.Length == 1
+                && typeof(Exception).IsAssignableFrom(parameters[0].ParameterType))
             {
                 var resultType = methodInfo.ReturnType == typeof(object)
                     ? errorType
@@ -143,8 +143,8 @@ internal static class ErrorFactoryCompiler
             .GetMethods()
             .Single(
                 t =>
-                    t.Name.EqualsOrdinal(nameof(GetType)) &&
-                    t.GetParameters().Length == 0);
+                    t.Name.EqualsOrdinal(nameof(GetType))
+                    && t.GetParameters().Length == 0);
 
         var exception = Expression.Parameter(typeof(Exception), ex);
         Expression nullValue = Expression.Constant(null, typeof(object));
@@ -156,8 +156,8 @@ internal static class ErrorFactoryCompiler
         {
             var parameters = constructor.GetParameters();
 
-            if (parameters.Length == 1 &&
-                typeof(Exception).IsAssignableFrom(parameters[0].ParameterType))
+            if (parameters.Length == 1
+                && typeof(Exception).IsAssignableFrom(parameters[0].ParameterType))
             {
                 var expectedException = parameters[0].ParameterType;
 

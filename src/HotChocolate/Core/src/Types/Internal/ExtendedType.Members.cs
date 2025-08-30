@@ -1,7 +1,6 @@
+using System.Collections.Immutable;
 using System.Reflection;
 using HotChocolate.Utilities;
-
-#nullable enable
 
 namespace HotChocolate.Internal;
 
@@ -42,7 +41,7 @@ internal sealed partial class ExtendedType
                     cache));
 
             var parameters = method.GetParameters();
-            var parameterTypes = new Dictionary<ParameterInfo, IExtendedType>();
+            var parameterTypes = ImmutableDictionary.CreateBuilder<ParameterInfo, IExtendedType>();
 
             foreach (var parameter in parameters)
             {
@@ -59,7 +58,7 @@ internal sealed partial class ExtendedType
                             cache)));
             }
 
-            return new ExtendedMethodInfo(returnType, parameterTypes);
+            return new ExtendedMethodInfo(returnType, parameterTypes.ToImmutable());
         }
 
         private static ExtendedType Rewrite(
@@ -79,8 +78,8 @@ internal sealed partial class ExtendedType
 
             ExtendedType? elementType = null;
             var isList =
-                !extendedType.IsArray &&
-                Helper.IsListType(extendedType.Type);
+                !extendedType.IsArray
+                && Helper.IsListType(extendedType.Type);
 
             if (isList)
             {
@@ -133,9 +132,9 @@ internal sealed partial class ExtendedType
             Type type,
             ref int position)
         {
-            var state = position == -1 || (type.IsValueType && !type.IsGenericType)
+            var state = position == -1 || type is { IsValueType: true, IsGenericType: false }
                 ? null
-                : GetNextState(flags, ref position);
+                : GetNextState(context, flags, ref position);
 
             if (type.IsValueType)
             {
@@ -185,9 +184,10 @@ internal sealed partial class ExtendedType
                 source: type,
                 isNullable: state ?? false);
 
-            bool? GetNextState(ReadOnlySpan<bool?> flags, ref int position)
+            static bool? GetNextState(bool? context, ReadOnlySpan<bool?> flags, ref int position)
             {
                 var state = context;
+
                 if (!flags.IsEmpty)
                 {
                     if (flags.Length > position)

@@ -326,6 +326,44 @@ public class GraphQLRequestParserTests
             });
     }
 
+    [Theory]
+    [InlineData("PROPAGATE", ErrorHandlingMode.Propagate)]
+    [InlineData("NULL", ErrorHandlingMode.Null)]
+    [InlineData("HALT", ErrorHandlingMode.Halt)]
+    [InlineData("propagate", ErrorHandlingMode.Propagate)]
+    [InlineData("null", ErrorHandlingMode.Null)]
+    [InlineData("halt", ErrorHandlingMode.Halt)]
+    [InlineData(null, null)]
+    [InlineData("bla", null)]
+    public void Parse_OnError(string? onError, ErrorHandlingMode? expectedErrorHandlingMode)
+    {
+        // arrange
+        var request = new GraphQLRequestDto(
+            query: FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks(),
+            onError: onError);
+
+        var source = Encoding.UTF8.GetBytes(
+            JsonConvert.SerializeObject(request
+            ).NormalizeLineBreaks());
+
+        var requestParser = new Utf8GraphQLRequestParser(source);
+
+        // act
+        var result = requestParser.Parse();
+
+        // assert
+        Assert.Collection(result,
+            r =>
+            {
+                Assert.Null(r.OperationName);
+                Assert.Null(r.DocumentId);
+                Assert.Null(r.Variables);
+                Assert.Null(r.Extensions);
+
+                Assert.Equal(expectedErrorHandlingMode, r.ErrorHandlingMode);
+            });
+    }
+
     [Fact]
     public void Parse_Kitchen_Sink_Query_AllProps_No_Cache()
     {
@@ -752,6 +790,7 @@ public class GraphQLRequestParserTests
         string query,
         string? id = null,
         string? operationName = null,
+        string? onError = null,
         IReadOnlyDictionary<string, object>? variables = null,
         IReadOnlyDictionary<string, object>? extensions = null)
     {
@@ -763,6 +802,9 @@ public class GraphQLRequestParserTests
 
         [JsonProperty("query")]
         public string Query { get; set; } = query;
+
+        [JsonProperty("onError")]
+        public string? OnError { get; set; } = onError;
 
         [JsonProperty("variables")]
         public IReadOnlyDictionary<string, object>? Variables { get; set; } = variables;

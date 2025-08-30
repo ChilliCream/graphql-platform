@@ -1,8 +1,6 @@
 using System.Reflection;
 using HotChocolate.Internal;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class PathParameterExpressionBuilder()

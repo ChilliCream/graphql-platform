@@ -10,10 +10,14 @@
     <None Update="$(MSBuildProjectDirectory)\__resources__\**\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="__resources__\invalid-example-2\source-schema-2-settings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Fusion.CommandLine\HotChocolate.Fusion.CommandLine.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
   </ItemGroup>
 
 </Project>

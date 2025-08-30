@@ -142,8 +142,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
                     if (selectionType is null)
                     {
-                        if (definition.ResultType is null ||
-                            !context.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
+                        if (definition.ResultType is null
+                            || !context.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
                         {
                             throw new ArgumentException(
                                 UseProjection_CannotHandleType,
@@ -221,9 +221,9 @@ public static class ProjectionObjectFieldDescriptorExtensions
         {
             // in case we are being called from the node/nodes field we need to enrich
             // the projections context with the type that shall be resolved.
-            if (context.LocalContextData.TryGetValue(InternalType, out var value) &&
-                value is ObjectType objectType &&
-                objectType.RuntimeType != typeof(object))
+            if (context.LocalContextData.TryGetValue(InternalType, out var value)
+                && value is ObjectType objectType
+                && objectType.RuntimeType != typeof(object))
             {
                 var fieldProxy = new ObjectField(context.Selection.Field, objectType);
                 var selection = CreateProxySelection(context.Selection, fieldProxy);
@@ -231,9 +231,9 @@ public static class ProjectionObjectFieldDescriptorExtensions
             }
 
             //for use case when projection is used with Mutation Conventions
-            else if (context.Operation.Type is OperationType.Mutation &&
-                context.Selection.Type.NamedType() is ObjectType mutationPayloadType &&
-                mutationPayloadType.Features.TryGet(out MutationPayloadInfo? mutationInfo))
+            else if (context.Operation.Type is OperationType.Mutation
+                && context.Selection.Type.NamedType() is ObjectType mutationPayloadType
+                && mutationPayloadType.Features.TryGet(out MutationPayloadInfo? mutationInfo))
             {
                 var dataField = mutationPayloadType.Fields[mutationInfo.DataField];
                 var payloadSelectionSet = context.Operation.GetSelectionSet(context.Selection, mutationPayloadType);
