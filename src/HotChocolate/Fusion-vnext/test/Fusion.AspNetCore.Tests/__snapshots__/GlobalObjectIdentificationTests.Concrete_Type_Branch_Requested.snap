@@ -8,7 +8,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "465d83260279b379ccc53dad0e0042c2f8c82ae9fdc2679fb1b076132b01dd7b",
+        "id": "cb7e6964afdb0120c782fa3fe6ca49ffa62b2be10c1ab0f7f0b554f15e19e870",
         "operation": {
           "kind": "Query",
           "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n      commentCount\n    }\n    id @fusion__requirement\n  }\n}",
@@ -30,7 +30,7 @@
           },
           {
             "id": 2,
-            "type": "Operation",
+            "kind": "Operation",
             "operation": {
               "name": "Op_e567807e_2",
               "type": "Query",
@@ -47,7 +47,7 @@
           },
           {
             "id": 3,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_e567807e_3",
@@ -65,7 +65,7 @@
           },
           {
             "id": 4,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "B",
             "operation": {
               "name": "Op_e567807e_4",

@@ -20,7 +20,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "52cf266fb8b8921979271e56d65fa6648eb8019714366e81bf625fd6822a8457",
+        "id": "25138e0fbfcc51f37a5f57fb3782a0f758a796d34f1a129afa4b8c2afd6934ce",
         "operation": {
           "kind": "Query",
           "document": "{\n  books {\n    nodes {\n      a: __typename\n    }\n  }\n}",
@@ -32,7 +32,7 @@
         "nodes": [
           {
             "id": 1,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_01be2e0f_1",

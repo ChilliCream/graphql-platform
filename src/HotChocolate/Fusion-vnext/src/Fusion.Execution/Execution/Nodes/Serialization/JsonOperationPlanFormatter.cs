@@ -140,7 +140,7 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
     {
         jsonWriter.WriteStartObject();
         jsonWriter.WriteNumber("id", node.Id);
-        jsonWriter.WriteString("type", node.Type.ToString());
+        jsonWriter.WriteString("kind", node.Type.ToString());
 
         if (!string.IsNullOrEmpty(node.SchemaName))
         {
@@ -271,6 +271,14 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
                     WriteObjectValueNode(jsonWriter, variableSet.Values);
                 }
 
+                jsonWriter.WriteEndObject();
+            }
+
+            if (trace.Transport is not null)
+            {
+                jsonWriter.WriteStartObject("transport");
+                jsonWriter.WriteString("uri", trace.Transport.Uri.ToString());
+                jsonWriter.WriteString("contentType", trace.Transport.ContentType);
                 jsonWriter.WriteEndObject();
             }
         }

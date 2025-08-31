@@ -5,7 +5,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "d44a8ae58827d46da9c1a91590831908b04ec6c80f67e71ed0f4b0101cdd056d",
+        "id": "4aff49307ee7319e5774b794d5c93ef7c76f1cab19f004e9f054d99f77710239",
         "operation": {
           "kind": "Query",
           "document": "query(\n  $s: String!\n) {\n  formatTitle(title: $s)\n}",
@@ -17,7 +17,7 @@
         "nodes": [
           {
             "id": 1,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "a",
             "operation": {
               "name": "Op_577373a9_1",

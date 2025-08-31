@@ -8,7 +8,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "64d7ec30d4a6fd6877bba648f02045a793c39a951218aaaf52173b4a6254a6d8",
+        "id": "511c6fe356eed454f42439245be1dbd3374727d9a5e95b3cc8fa9f663e2d6852",
         "operation": {
           "kind": "Subscription",
           "document": "subscription {\n  onReviewCreated {\n    id\n  }\n}",
@@ -20,7 +20,7 @@
         "nodes": [
           {
             "id": 1,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_1c7b790e_1",
@@ -53,7 +53,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "64d7ec30d4a6fd6877bba648f02045a793c39a951218aaaf52173b4a6254a6d8",
+        "id": "511c6fe356eed454f42439245be1dbd3374727d9a5e95b3cc8fa9f663e2d6852",
         "operation": {
           "kind": "Subscription",
           "document": "subscription {\n  onReviewCreated {\n    id\n  }\n}",
@@ -65,7 +65,7 @@
         "nodes": [
           {
             "id": 1,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_1c7b790e_1",

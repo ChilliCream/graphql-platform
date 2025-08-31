@@ -9,7 +9,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "b6e258422cef1d623fce5ca1bbc25420b1a94084a2fb35b0c1e0d1732bd16333",
+        "id": "a5b33e41021b90576deb4df60c05fb0e16ebd121a0b4090f6090b5e86041df84",
         "operation": {
           "kind": "Subscription",
           "document": "subscription {\n  onBookCreated {\n    id\n    id @fusion__requirement\n    title\n  }\n}",
@@ -21,7 +21,7 @@
         "nodes": [
           {
             "id": 1,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_a6fc02fc_1",
@@ -36,7 +36,7 @@
           },
           {
             "id": 2,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "B",
             "operation": {
               "name": "Op_a6fc02fc_2",
@@ -81,7 +81,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "b6e258422cef1d623fce5ca1bbc25420b1a94084a2fb35b0c1e0d1732bd16333",
+        "id": "a5b33e41021b90576deb4df60c05fb0e16ebd121a0b4090f6090b5e86041df84",
         "operation": {
           "kind": "Subscription",
           "document": "subscription {\n  onBookCreated {\n    id\n    id @fusion__requirement\n    title\n  }\n}",
@@ -93,7 +93,7 @@
         "nodes": [
           {
             "id": 1,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_a6fc02fc_1",
@@ -108,7 +108,7 @@
           },
           {
             "id": 2,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "B",
             "operation": {
               "name": "Op_a6fc02fc_2",
@@ -153,7 +153,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "b6e258422cef1d623fce5ca1bbc25420b1a94084a2fb35b0c1e0d1732bd16333",
+        "id": "a5b33e41021b90576deb4df60c05fb0e16ebd121a0b4090f6090b5e86041df84",
         "operation": {
           "kind": "Subscription",
           "document": "subscription {\n  onBookCreated {\n    id\n    id @fusion__requirement\n    title\n  }\n}",
@@ -165,7 +165,7 @@
         "nodes": [
           {
             "id": 1,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_a6fc02fc_1",
@@ -180,7 +180,7 @@
           },
           {
             "id": 2,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "B",
             "operation": {
               "name": "Op_a6fc02fc_2",

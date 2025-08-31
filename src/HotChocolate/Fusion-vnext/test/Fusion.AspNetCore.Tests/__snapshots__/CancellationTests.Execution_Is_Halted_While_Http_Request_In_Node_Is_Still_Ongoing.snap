@@ -10,7 +10,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "f7268facd3bf4a654930d6f4ddb28db55c01aac50b6ad3d784198ada1774cf3c",
+        "id": "a2ffd141342c7d4cdd211e5954ea1e10f2f1bd4b9ee402db33fbef53a861019e",
         "operation": {
           "kind": "Query",
           "document": "{\n  topProduct {\n    id\n  }\n  reviews {\n    id\n  }\n}",
@@ -22,7 +22,7 @@
         "nodes": [
           {
             "id": 1,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_512ba6dc_1",
@@ -37,7 +37,7 @@
           },
           {
             "id": 2,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "B",
             "operation": {
               "name": "Op_512ba6dc_2",

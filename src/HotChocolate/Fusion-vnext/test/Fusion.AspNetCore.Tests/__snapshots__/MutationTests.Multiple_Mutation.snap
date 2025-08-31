@@ -17,7 +17,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "96bece43123e79c9317955dc77c36f85e6f0b1e9289c66579dfda14bbd068fdd",
+        "id": "8980c5ceb656e42dd12f65101962c3d159258c6a717da1844fc7222045c69d5e",
         "operation": {
           "kind": "Mutation",
           "document": "mutation {\n  a: createBook(input: { title: \"Book1\" }) {\n    book {\n      id\n      id @fusion__requirement\n      author\n    }\n  }\n  b: createBook(input: { title: \"Book2\" }) {\n    book {\n      id\n      id @fusion__requirement\n      title\n      author\n    }\n  }\n}",
@@ -29,7 +29,7 @@
         "nodes": [
           {
             "id": 1,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_192dc5f8_1",
@@ -44,7 +44,7 @@
           },
           {
             "id": 2,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "B",
             "operation": {
               "name": "Op_192dc5f8_2",
@@ -73,7 +73,7 @@
           },
           {
             "id": 3,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_192dc5f8_3",
@@ -88,7 +88,7 @@
           },
           {
             "id": 4,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "B",
             "operation": {
               "name": "Op_192dc5f8_4",

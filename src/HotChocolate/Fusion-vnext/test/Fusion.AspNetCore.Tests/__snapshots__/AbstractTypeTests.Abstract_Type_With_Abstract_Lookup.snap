@@ -9,7 +9,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "7239ffd9078516929231922aae7054f2201c58d06bb294f840f32bba542353a6",
+        "id": "9d80ecba21c812b4c3c1ca9a4d813ad93d6f9f5172b6c65f4f89a0e65f0d38ef",
         "operation": {
           "kind": "Query",
           "document": "{\n  otherAbstractType {\n    __typename @fusion__requirement\n    id\n    ... on Author {\n      name\n      age\n      id @fusion__requirement\n    }\n  }\n}",
@@ -21,7 +21,7 @@
         "nodes": [
           {
             "id": 1,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_ddf05407_1",
@@ -36,7 +36,7 @@
           },
           {
             "id": 2,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "B",
             "operation": {
               "name": "Op_ddf05407_2",

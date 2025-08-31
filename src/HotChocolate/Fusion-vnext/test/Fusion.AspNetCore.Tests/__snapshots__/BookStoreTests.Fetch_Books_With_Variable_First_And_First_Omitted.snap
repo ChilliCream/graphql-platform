@@ -36,7 +36,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "05bf4dd657b2a180207f5491f1bc6c2224acbd32e538dae495d2c463e60cbdf4",
+        "id": "fae04dfda15b07a3b2ceefb5e9c09d5dd7ae185c3310ededb870a248ee4d082f",
         "operation": {
           "name": "GetBooks",
           "kind": "Query",
@@ -49,7 +49,7 @@
         "nodes": [
           {
             "id": 1,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "A",
             "operation": {
               "name": "GetBooks_f1bed549_1",
@@ -64,7 +64,7 @@
           },
           {
             "id": 2,
-            "type": "Operation",
+            "kind": "Operation",
             "schema": "B",
             "operation": {
               "name": "GetBooks_f1bed549_2",

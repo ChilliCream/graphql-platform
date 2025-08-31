@@ -65,7 +65,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         foreach (var nodeElement in nodesElement.EnumerateArray())
         {
-            var nodeType = nodeElement.GetProperty("type").GetString()!;
+            var nodeType = nodeElement.GetProperty("kind").GetString()!;
             var id = nodeElement.GetProperty("id").GetInt32();
 
             switch (nodeType)
