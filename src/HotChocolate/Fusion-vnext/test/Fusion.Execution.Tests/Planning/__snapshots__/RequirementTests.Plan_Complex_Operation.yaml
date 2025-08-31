@@ -9,11 +9,11 @@ operation:
         users {
           nodes {
             id
+            id @fusion__requirement
             reviews {
               nodes {
                 product {
                   deliveryEstimate(zip: "123")
-                  id @fusion__requirement
                   id @fusion__requirement
                   weight @fusion__requirement
                   dimension @fusion__requirement {
@@ -21,11 +21,9 @@ operation:
                     width
                     height
                   }
-                  id @fusion__requirement
                 }
               }
             }
-            id @fusion__requirement
           }
         }
         node(id: $userId) {
@@ -38,6 +36,7 @@ operation:
       }
     name: getReviews
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Node
