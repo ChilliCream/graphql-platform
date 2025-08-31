@@ -17,7 +17,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "96bece43123e79c9317955dc77c36f85e6f0b1e9289c66579dfda14bbd068fdd",
+        "id": "c6e0dc4694bfbb5fbcc96bac7667b150b1506039f98984053bb993754cb8d65d",
         "operation": {
           "kind": "Mutation",
           "document": "mutation {\n  a: createBook(input: { title: \"Book1\" }) {\n    book {\n      id\n      id @fusion__requirement\n      author\n    }\n  }\n  b: createBook(input: { title: \"Book2\" }) {\n    book {\n      id\n      id @fusion__requirement\n      title\n      author\n    }\n  }\n}",
@@ -33,7 +33,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_192dc5f8_1",
-              "type": "Mutation",
+              "kind": "Mutation",
               "document": "mutation Op_192dc5f8_1 {\n  a: createBook(input: { title: \"Book1\" }) {\n    book {\n      id\n    }\n  }\n}",
               "hash": "25548a2f7a33295a8f2a1fcea06b2bad716e453ba4641f9a0e47d4eaa596cf31",
               "shortHash": "25548a2f"
@@ -48,7 +48,7 @@
             "schema": "B",
             "operation": {
               "name": "Op_192dc5f8_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_192dc5f8_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    author\n  }\n}",
               "hash": "78ea0ad4a49e140fec3cf1418cb5f4d32017dc582e370faa522a02b1e20f22da",
               "shortHash": "78ea0ad4"
@@ -77,7 +77,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_192dc5f8_3",
-              "type": "Mutation",
+              "kind": "Mutation",
               "document": "mutation Op_192dc5f8_3 {\n  b: createBook(input: { title: \"Book2\" }) {\n    book {\n      id\n      title\n    }\n  }\n}",
               "hash": "30dc15e4e9aef4d4c7bceb038aeef3d4b8f149155d491a5ebf2094e0dc7c2c83",
               "shortHash": "30dc15e4"
@@ -92,7 +92,7 @@
             "schema": "B",
             "operation": {
               "name": "Op_192dc5f8_4",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_192dc5f8_4(\n  $__fusion_2_id: Int!\n) {\n  bookById(id: $__fusion_2_id) {\n    author\n  }\n}",
               "hash": "a0421ddd786011e521afea221016c052d1f15da63f869829ba94cb07d4553d17",
               "shortHash": "a0421ddd"

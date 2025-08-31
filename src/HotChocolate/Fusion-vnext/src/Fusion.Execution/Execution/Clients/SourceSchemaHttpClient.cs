@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Net.Http.Headers;
 using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
@@ -48,30 +49,44 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         };
 
         var httpResponse = await _client.SendAsync(httpRequest, cancellationToken);
-        return new Response(request.OperationType, httpResponse, request.Variables);
+        return new Response(
+            request.OperationType,
+            httpRequest,
+            httpResponse,
+            request.Variables);
     }
 
     private GraphQLHttpRequest CreateHttpRequest(
         SourceSchemaClientRequest originalRequest)
     {
+        var defaultAccept = originalRequest.OperationType is OperationType.Subscription
+            ? AcceptContentTypes.Subscription
+            : AcceptContentTypes.Default;
+        var operationSourceText = originalRequest.OperationSourceText;
+
         switch (originalRequest.Variables.Length)
         {
             case 0:
-                return new GraphQLHttpRequest(
-                    CreateSingleRequest(
-                        originalRequest.OperationSourceText));
+                return new GraphQLHttpRequest(CreateSingleRequest(operationSourceText))
+                {
+                    Uri = _configuration.BaseAddress,
+                    Accept = defaultAccept
+                };
 
             case 1:
-                return new GraphQLHttpRequest(
-                    CreateSingleRequest(
-                        originalRequest.OperationSourceText,
-                        originalRequest.Variables[0].Values));
+                var variableValues = originalRequest.Variables[0].Values;
+                return new GraphQLHttpRequest(CreateSingleRequest(operationSourceText, variableValues))
+                {
+                    Uri = _configuration.BaseAddress,
+                    Accept = defaultAccept
+                };
 
             default:
-                return new GraphQLHttpRequest(
-                    CreateBatchRequest(
-                        originalRequest.OperationSourceText,
-                        originalRequest));
+                return new GraphQLHttpRequest(CreateBatchRequest(operationSourceText, originalRequest))
+                {
+                    Uri = _configuration.BaseAddress,
+                    Accept = AcceptContentTypes.VariableBatching
+                };
         }
     }
 
@@ -123,6 +138,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
     private sealed class Response(
         OperationType operation,
+        GraphQLHttpRequest request,
         GraphQLHttpResponse response,
         ImmutableArray<VariableValues> variables)
         : SourceSchemaClientResponse
@@ -220,8 +236,35 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             }
         }
 
+        public override Uri Uri => request.Uri ?? new Uri("http://unknown");
+
+        public override string ContentType => response.ContentHeaders.ContentType?.ToString() ?? "unknown";
+
         public override bool IsSuccessful => response.IsSuccessStatusCode;
 
         public override void Dispose() => response.Dispose();
+    }
+
+    private static class AcceptContentTypes
+    {
+        public static readonly ImmutableArray<MediaTypeWithQualityHeaderValue> Default =
+        [
+            new("application/graphql-response+json") { CharSet = "utf-8" },
+            new("application/json") { CharSet = "utf-8" },
+            new("application/jsonl") { CharSet = "utf-8" },
+            new("text/event-stream") { CharSet = "utf-8" }
+        ];
+
+        public static ImmutableArray<MediaTypeWithQualityHeaderValue> VariableBatching { get; } =
+        [
+            new("application/jsonl") { CharSet = "utf-8" },
+            new("text/event-stream") { CharSet = "utf-8" }
+        ];
+
+        public static ImmutableArray<MediaTypeWithQualityHeaderValue> Subscription { get; } =
+        [
+            new("application/jsonl") { CharSet = "utf-8" },
+            new("text/event-stream") { CharSet = "utf-8" }
+        ];
     }
 }

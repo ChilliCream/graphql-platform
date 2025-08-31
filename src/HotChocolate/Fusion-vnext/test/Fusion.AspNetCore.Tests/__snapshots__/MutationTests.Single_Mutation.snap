@@ -10,7 +10,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "bf8f6111b092cd3d6722adb494a00e261d9db6bdebd9398898a540c84feb168a",
+        "id": "959605bdd10546d849265f60e94a40590e9558fe69696f0dd14b83a7059c2039",
         "operation": {
           "kind": "Mutation",
           "document": "mutation {\n  a: createBook(input: { title: \"Book1\" }) {\n    book {\n      id\n      id @fusion__requirement\n      author\n    }\n  }\n}",
@@ -26,7 +26,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_8adeedac_1",
-              "type": "Mutation",
+              "kind": "Mutation",
               "document": "mutation Op_8adeedac_1 {\n  a: createBook(input: { title: \"Book1\" }) {\n    book {\n      id\n    }\n  }\n}",
               "hash": "ed0fe40f4a8a90c497aa8d96b940c5ccfeceeec4f0774e75d27c96dee4fb51e0",
               "shortHash": "ed0fe40f"
@@ -41,7 +41,7 @@
             "schema": "B",
             "operation": {
               "name": "Op_8adeedac_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_8adeedac_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    author\n  }\n}",
               "hash": "ab391c70745d8f2fd34247970f2f24deb40e8f3a2c08efa2697fce435165d481",
               "shortHash": "ab391c70"

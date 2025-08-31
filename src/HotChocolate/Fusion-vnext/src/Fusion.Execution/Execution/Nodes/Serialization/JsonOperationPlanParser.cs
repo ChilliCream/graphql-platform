@@ -157,7 +157,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var operationElement = nodeElement.GetProperty("operation");
         var operationName = operationElement.GetProperty("name").GetString()!;
-        var operationType = Enum.Parse<OperationType>(operationElement.GetProperty("type").GetString()!);
+        var operationType = Enum.Parse<OperationType>(operationElement.GetProperty("kind").GetString()!);
         var document = operationElement.GetProperty("document").GetString()!;
         var hash = operationElement.GetProperty("hash").GetString()!;
 

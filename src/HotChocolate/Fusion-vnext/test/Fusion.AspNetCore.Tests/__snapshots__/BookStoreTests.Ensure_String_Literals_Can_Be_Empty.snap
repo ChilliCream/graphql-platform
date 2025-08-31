@@ -5,7 +5,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "5f6d4777b547101a6afdcba10ab494bb886423fc03256b1499cc4d743d51d37e",
+        "id": "a857dd20d133e349ea9f4e025f6c56781db14d8c90e3e0591c89156fbd7bc1d1",
         "operation": {
           "kind": "Query",
           "document": "{\n  formatTitle(title: \"\")\n}",
@@ -21,7 +21,7 @@
             "schema": "a",
             "operation": {
               "name": "Op_db37b9bf_1",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_db37b9bf_1 {\n  formatTitle(title: \"\")\n}",
               "hash": "f008a17a4990239900f3bc520624a85106689c0364d27a015aea3f7e2731b816",
               "shortHash": "f008a17a"

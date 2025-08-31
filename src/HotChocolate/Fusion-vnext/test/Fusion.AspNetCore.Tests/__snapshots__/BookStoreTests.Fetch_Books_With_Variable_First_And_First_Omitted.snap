@@ -36,7 +36,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "05bf4dd657b2a180207f5491f1bc6c2224acbd32e538dae495d2c463e60cbdf4",
+        "id": "2de413d1a6a97476b6f6add87618c12f6ac39560a30f5c8f6d8544783233874e",
         "operation": {
           "name": "GetBooks",
           "kind": "Query",
@@ -53,7 +53,7 @@
             "schema": "A",
             "operation": {
               "name": "GetBooks_f1bed549_1",
-              "type": "Query",
+              "kind": "Query",
               "document": "query GetBooks_f1bed549_1(\n  $first: Int\n) {\n  books(first: $first) {\n    nodes {\n      id\n      title\n      author {\n        id\n      }\n    }\n  }\n}",
               "hash": "ca150b9396d3101411a6c840df8109f3f6dda216e385328d8d73252f68334826",
               "shortHash": "ca150b93"
@@ -68,7 +68,7 @@
             "schema": "B",
             "operation": {
               "name": "GetBooks_f1bed549_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query GetBooks_f1bed549_2(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}",
               "hash": "7465d9b6f56139686be87c8c5738678018ad63abf5f2c9bce288c17559872419",
               "shortHash": "7465d9b6"

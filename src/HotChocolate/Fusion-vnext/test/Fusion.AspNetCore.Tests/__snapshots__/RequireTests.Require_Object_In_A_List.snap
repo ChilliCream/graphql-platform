@@ -20,7 +20,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "9930143712f042ca8f70486f23533ec760d49f7a3e715341b67b9f97dec52982",
+        "id": "f6ea9e73e9c89845de9bb7421f0cd501804d9d2fb894a1a7f57fe01d32a8d8a7",
         "operation": {
           "kind": "Query",
           "document": "{\n  books {\n    nodes {\n      title\n      title @fusion__requirement\n      estimatedDelivery\n      id @fusion__requirement\n      dimension @fusion__requirement {\n        width\n        height\n      }\n    }\n  }\n}",
@@ -36,7 +36,7 @@
             "schema": "a",
             "operation": {
               "name": "Op_1f7d6449_1",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_1f7d6449_1 {\n  books {\n    nodes {\n      title\n      id\n    }\n  }\n}",
               "hash": "ab15d47524b29a83f2da76742bbc274f998b016cc75680d7b3e8f05f432b72f9",
               "shortHash": "ab15d475"
@@ -51,7 +51,7 @@
             "schema": "c",
             "operation": {
               "name": "Op_1f7d6449_3",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_1f7d6449_3(\n  $__fusion_2_dimension: BookDimensionInput!\n  $__fusion_3_id: Int!\n) {\n  book(id: $__fusion_3_id) {\n    estimatedDelivery(dimension: $__fusion_2_dimension)\n  }\n}",
               "hash": "8b4000c9a1feadd21a4feecbef14d26b8c546e560524acb24c3bb4f2a0888982",
               "shortHash": "8b4000c9"
@@ -87,7 +87,7 @@
             "schema": "b",
             "operation": {
               "name": "Op_1f7d6449_4",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_1f7d6449_4(\n  $__fusion_4_id: Int!\n) {\n  book(id: $__fusion_4_id) {\n    dimension {\n      width\n      height\n    }\n  }\n}",
               "hash": "607fde782c47674ca211321087dcf9d902fc97afe215c4a89f8fc1cd1050b0e3",
               "shortHash": "607fde78"
