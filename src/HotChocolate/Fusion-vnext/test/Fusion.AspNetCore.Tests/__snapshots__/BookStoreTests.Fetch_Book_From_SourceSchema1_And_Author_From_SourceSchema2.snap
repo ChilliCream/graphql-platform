@@ -10,7 +10,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "1b14aee1b1887dbfba4b2a944c08b49c9b6c3aae31e67d31e21259cc13bc8786",
+        "id": "0b160513fbb22ea92f1fe2d96ba404887bcbdf91cc5051d84702758e47344115",
         "operation": {
           "kind": "Query",
           "document": "{\n  bookById(id: 1) {\n    title\n    author {\n      name\n      id @fusion__requirement\n    }\n  }\n}",
@@ -22,11 +22,11 @@
         "nodes": [
           {
             "id": 1,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_b15d3abc_1",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_b15d3abc_1 {\n  bookById(id: 1) {\n    title\n    author {\n      id\n    }\n  }\n}",
               "hash": "518a7a2e953ae84b619c56e08a900f33e7deb70425d3aa04bc34bbdad35774c1",
               "shortHash": "518a7a2e"
@@ -37,11 +37,11 @@
           },
           {
             "id": 2,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "B",
             "operation": {
               "name": "Op_b15d3abc_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_b15d3abc_2(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}",
               "hash": "4f8e8d424c2ebb8117f6517c56c5225451fdc19c3c56f521fb8f006118b83c9d",
               "shortHash": "4f8e8d42"

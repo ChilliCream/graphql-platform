@@ -20,7 +20,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "5d3ebb833f65e0f5e8999571a7103ae9837488a81b4aeae316b88bd020de7088",
+        "id": "170b956ea3503c1de030490062f4be4fd91631ba0ab3a655be78c9e21f0c4ccb",
         "operation": {
           "kind": "Query",
           "document": "{\n  books {\n    nodes {\n      __typename\n    }\n  }\n}",
@@ -32,11 +32,11 @@
         "nodes": [
           {
             "id": 1,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_710e4ed3_1",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_710e4ed3_1 {\n  books {\n    nodes {\n      __typename\n    }\n  }\n}",
               "hash": "7178e09aa85317f06fb89acb929aba3374c0044e5f9f85064c9a9023226868b6",
               "shortHash": "7178e09a"

@@ -16,7 +16,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "207c0f89281452681e1692199330c38db566ae07bedf69f96e18b7fedf8041da",
+        "id": "1509fc717bd9a5f870350343b334a21ceb14e2ad8a8ea8ead82a61cbd24c1c5b",
         "operation": {
           "kind": "Query",
           "document": "{\n  node(id: \"invalid\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n    }\n  }\n}",
@@ -38,10 +38,10 @@
           },
           {
             "id": 2,
-            "kind": "Operation",
+            "type": "Operation",
             "operation": {
               "name": "Op_3e875180_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_3e875180_2 {\n  node(id: \"invalid\") {\n    __typename\n  }\n}",
               "hash": "9541936e62ad2c6ea10e5973c6d13aca7578d71d89fa99abfab25b7dae75932d",
               "shortHash": "9541936e"
@@ -55,11 +55,11 @@
           },
           {
             "id": 3,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_3e875180_3",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_3e875180_3 {\n  node: discussionById(discussionId: \"invalid\") {\n    __typename\n    title\n  }\n}",
               "hash": "7901e85af0caef5ba5cc683cf39b180ccc658746f6939b51fb3185dd8e58d9bc",
               "shortHash": "7901e85a"

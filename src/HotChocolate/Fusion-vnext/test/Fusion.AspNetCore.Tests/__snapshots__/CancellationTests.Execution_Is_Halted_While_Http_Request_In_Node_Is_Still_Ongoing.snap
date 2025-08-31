@@ -10,7 +10,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "a2ffd141342c7d4cdd211e5954ea1e10f2f1bd4b9ee402db33fbef53a861019e",
+        "id": "d2195dd1746a4bea7c6650e99a25c69ce11ccb03d85839d78d3f46632b75b1a7",
         "operation": {
           "kind": "Query",
           "document": "{\n  topProduct {\n    id\n  }\n  reviews {\n    id\n  }\n}",
@@ -22,11 +22,11 @@
         "nodes": [
           {
             "id": 1,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_512ba6dc_1",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_512ba6dc_1 {\n  topProduct {\n    id\n  }\n}",
               "hash": "1195a5f13d37f726c4a367a9d66d965959df8d47886ca3c2969b067c0a5ed887",
               "shortHash": "1195a5f1"
@@ -37,11 +37,11 @@
           },
           {
             "id": 2,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "B",
             "operation": {
               "name": "Op_512ba6dc_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_512ba6dc_2 {\n  reviews {\n    id\n  }\n}",
               "hash": "59ba029ee67b9d15935a9e39da8899dcd88aac7a3c760148ad33b914516cd6a9",
               "shortHash": "59ba029e"

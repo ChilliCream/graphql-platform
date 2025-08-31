@@ -8,7 +8,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "511c6fe356eed454f42439245be1dbd3374727d9a5e95b3cc8fa9f663e2d6852",
+        "id": "eea1c7ae7c7a7d143a258e15bf3dca3b486dcd8b402eba945f65a344d9ca26fb",
         "operation": {
           "kind": "Subscription",
           "document": "subscription {\n  onReviewCreated {\n    id\n  }\n}",
@@ -20,11 +20,11 @@
         "nodes": [
           {
             "id": 1,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_1c7b790e_1",
-              "type": "Subscription",
+              "kind": "Subscription",
               "document": "subscription Op_1c7b790e_1 {\n  onReviewCreated {\n    id\n  }\n}",
               "hash": "978c1f45afca3a44aa9a7a2ffe6e5aee77c974f2b8d5b1e3f1bbc9372536e188",
               "shortHash": "978c1f45"
@@ -53,7 +53,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "511c6fe356eed454f42439245be1dbd3374727d9a5e95b3cc8fa9f663e2d6852",
+        "id": "eea1c7ae7c7a7d143a258e15bf3dca3b486dcd8b402eba945f65a344d9ca26fb",
         "operation": {
           "kind": "Subscription",
           "document": "subscription {\n  onReviewCreated {\n    id\n  }\n}",
@@ -65,11 +65,11 @@
         "nodes": [
           {
             "id": 1,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_1c7b790e_1",
-              "type": "Subscription",
+              "kind": "Subscription",
               "document": "subscription Op_1c7b790e_1 {\n  onReviewCreated {\n    id\n  }\n}",
               "hash": "978c1f45afca3a44aa9a7a2ffe6e5aee77c974f2b8d5b1e3f1bbc9372536e188",
               "shortHash": "978c1f45"

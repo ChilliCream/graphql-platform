@@ -9,7 +9,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "a5b33e41021b90576deb4df60c05fb0e16ebd121a0b4090f6090b5e86041df84",
+        "id": "0ae97f1107641fe2b45849167176086d2f8ba655f04ed2e45ab4b326f86cf339",
         "operation": {
           "kind": "Subscription",
           "document": "subscription {\n  onBookCreated {\n    id\n    id @fusion__requirement\n    title\n  }\n}",
@@ -21,11 +21,11 @@
         "nodes": [
           {
             "id": 1,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_a6fc02fc_1",
-              "type": "Subscription",
+              "kind": "Subscription",
               "document": "subscription Op_a6fc02fc_1 {\n  onBookCreated {\n    id\n  }\n}",
               "hash": "34406d1c68a98e2322ad00b753c0c8097fbc97b2b9bf307522646e08f1ad4096",
               "shortHash": "34406d1c"
@@ -36,11 +36,11 @@
           },
           {
             "id": 2,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "B",
             "operation": {
               "name": "Op_a6fc02fc_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_a6fc02fc_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    title\n  }\n}",
               "hash": "de30926b00718ae714fcc0da2bea071fa233c64d9ddea4f3831c2cfb887efc18",
               "shortHash": "de30926b"
@@ -81,7 +81,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "a5b33e41021b90576deb4df60c05fb0e16ebd121a0b4090f6090b5e86041df84",
+        "id": "0ae97f1107641fe2b45849167176086d2f8ba655f04ed2e45ab4b326f86cf339",
         "operation": {
           "kind": "Subscription",
           "document": "subscription {\n  onBookCreated {\n    id\n    id @fusion__requirement\n    title\n  }\n}",
@@ -93,11 +93,11 @@
         "nodes": [
           {
             "id": 1,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_a6fc02fc_1",
-              "type": "Subscription",
+              "kind": "Subscription",
               "document": "subscription Op_a6fc02fc_1 {\n  onBookCreated {\n    id\n  }\n}",
               "hash": "34406d1c68a98e2322ad00b753c0c8097fbc97b2b9bf307522646e08f1ad4096",
               "shortHash": "34406d1c"
@@ -108,11 +108,11 @@
           },
           {
             "id": 2,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "B",
             "operation": {
               "name": "Op_a6fc02fc_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_a6fc02fc_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    title\n  }\n}",
               "hash": "de30926b00718ae714fcc0da2bea071fa233c64d9ddea4f3831c2cfb887efc18",
               "shortHash": "de30926b"
@@ -153,7 +153,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "a5b33e41021b90576deb4df60c05fb0e16ebd121a0b4090f6090b5e86041df84",
+        "id": "0ae97f1107641fe2b45849167176086d2f8ba655f04ed2e45ab4b326f86cf339",
         "operation": {
           "kind": "Subscription",
           "document": "subscription {\n  onBookCreated {\n    id\n    id @fusion__requirement\n    title\n  }\n}",
@@ -165,11 +165,11 @@
         "nodes": [
           {
             "id": 1,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_a6fc02fc_1",
-              "type": "Subscription",
+              "kind": "Subscription",
               "document": "subscription Op_a6fc02fc_1 {\n  onBookCreated {\n    id\n  }\n}",
               "hash": "34406d1c68a98e2322ad00b753c0c8097fbc97b2b9bf307522646e08f1ad4096",
               "shortHash": "34406d1c"
@@ -180,11 +180,11 @@
           },
           {
             "id": 2,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "B",
             "operation": {
               "name": "Op_a6fc02fc_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_a6fc02fc_2(\n  $__fusion_1_id: Int!\n) {\n  bookById(id: $__fusion_1_id) {\n    title\n  }\n}",
               "hash": "de30926b00718ae714fcc0da2bea071fa233c64d9ddea4f3831c2cfb887efc18",
               "shortHash": "de30926b"

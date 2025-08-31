@@ -17,7 +17,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "b57c9b0b3c777677cb8e0a3cb72690ec2dc2a2e7777cd653e797fd2987c7441a",
+        "id": "972060feb65d6fd741c126395b3cf84247d05fa57802b0ccb329bf727315e834",
         "operation": {
           "kind": "Query",
           "document": "{\n  nullableTopProduct {\n    price\n    name\n    id @fusion__requirement\n  }\n}",
@@ -29,11 +29,11 @@
         "nodes": [
           {
             "id": 1,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_12015865_1",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_12015865_1 {\n  nullableTopProduct {\n    price\n    id\n  }\n}",
               "hash": "68e35eec8291725cef8e25c979de580f55693919e752bc30ce4d25f99c26db8c",
               "shortHash": "68e35eec"
@@ -44,11 +44,11 @@
           },
           {
             "id": 2,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "B",
             "operation": {
               "name": "Op_12015865_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_12015865_2(\n  $__fusion_1_id: Int!\n) {\n  productById(id: $__fusion_1_id) {\n    name\n  }\n}",
               "hash": "c90d37d9fcc33c0feb617e9fa10b860e3432077b74840e2df9ac1132f32b01a8",
               "shortHash": "c90d37d9"

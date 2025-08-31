@@ -140,7 +140,7 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
     {
         jsonWriter.WriteStartObject();
         jsonWriter.WriteNumber("id", node.Id);
-        jsonWriter.WriteString("kind", node.Type.ToString());
+        jsonWriter.WriteString("type", node.Type.ToString());
 
         if (!string.IsNullOrEmpty(node.SchemaName))
         {
@@ -149,7 +149,7 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
 
         jsonWriter.WriteStartObject("operation");
         jsonWriter.WriteString("name", node.Operation.Name);
-        jsonWriter.WriteString("type", node.Operation.Type.ToString());
+        jsonWriter.WriteString("kind", node.Operation.Type.ToString());
         jsonWriter.WriteString("document", node.Operation.SourceText);
         jsonWriter.WriteString("hash", node.Operation.Hash);
         jsonWriter.WriteString("shortHash", node.Operation.Hash[..8]);

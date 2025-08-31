@@ -7,7 +7,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "d472fdd0a41b0775a9dc10bb468f5972549704fefb8078389e1e4a82d0cefb18",
+        "id": "17f3bedec7fd1e8ea47f31347103804992c87b23a6005bde9286dcc52e88c060",
         "operation": {
           "kind": "Query",
           "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      __typename\n    }\n  }\n}",
@@ -29,10 +29,10 @@
           },
           {
             "id": 2,
-            "kind": "Operation",
+            "type": "Operation",
             "operation": {
               "name": "Op_72167d7d_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_72167d7d_2 {\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n  }\n}",
               "hash": "8c2df8d78bf1ef49a145eba270617e933935f53d21bc01af4085b0c0cdd00807",
               "shortHash": "8c2df8d7"
@@ -46,11 +46,11 @@
           },
           {
             "id": 3,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_72167d7d_3",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_72167d7d_3 {\n  node: discussionById(discussionId: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n    __typename\n  }\n}",
               "hash": "1a577bbb61a345b7eb4307da4f0a5fe835b9b58331bc96c0685594381b0c31df",
               "shortHash": "1a577bbb"

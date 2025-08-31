@@ -15,7 +15,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "6cc399a3a433e256f763d16426e88eb1192307d3571b15e2b5d693a2f5ebe1e6",
+        "id": "e5b1a73c233934a7259e6b5732fdf69e1d757e6718b5d0fb63619fed628b0435",
         "operation": {
           "name": "GetBooks",
           "kind": "Query",
@@ -28,11 +28,11 @@
         "nodes": [
           {
             "id": 1,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "A",
             "operation": {
               "name": "GetBooks_938ff9c0_1",
-              "type": "Query",
+              "kind": "Query",
               "document": "query GetBooks_938ff9c0_1(\n  $first: Int\n  $last: Int\n) {\n  books(first: $first, last: $last) {\n    nodes {\n      id\n      title\n      author {\n        id\n      }\n    }\n  }\n}",
               "hash": "f7a1e037efde48a7a307cfd09902e55a8055db3feb1a16b6056f725be4515934",
               "shortHash": "f7a1e037"
@@ -43,11 +43,11 @@
           },
           {
             "id": 2,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "B",
             "operation": {
               "name": "GetBooks_938ff9c0_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query GetBooks_938ff9c0_2(\n  $__fusion_1_id: Int!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}",
               "hash": "8cd0f1894efe9efd6d0fe929722c5773471ad71f0e5f137a0886e7662a56fd28",
               "shortHash": "8cd0f189"

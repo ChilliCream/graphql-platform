@@ -7,7 +7,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "6ae407f76c3ab53f5142893a31dcf7ae8ba6f0e8db3b8681e7067ecf8fc36ba1",
+        "id": "196519488810dc4bc797d579e2b38aa56e263f05daac5c75f4d0a48769632d37",
         "operation": {
           "kind": "Query",
           "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      commentCount\n    }\n    title @fusion__requirement\n  }\n}",
@@ -29,10 +29,10 @@
           },
           {
             "id": 2,
-            "kind": "Operation",
+            "type": "Operation",
             "operation": {
               "name": "Op_7c1d9f5d_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_7c1d9f5d_2 {\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n  }\n}",
               "hash": "6165aa132410f8c3323ef247ca2463a455feae2e75c97a4ce802e6eaa191011e",
               "shortHash": "6165aa13"
@@ -46,11 +46,11 @@
           },
           {
             "id": 3,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "B",
             "operation": {
               "name": "Op_7c1d9f5d_3",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_7c1d9f5d_3 {\n  node: discussionById(discussionId: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n    title\n  }\n}",
               "hash": "8915607e3ece2bdc640ed1eb8522076131e2a973b6ef7495073facf79c670065",
               "shortHash": "8915607e"
@@ -64,11 +64,11 @@
           },
           {
             "id": 4,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_7c1d9f5d_4",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_7c1d9f5d_4(\n  $__fusion_1_title: String!\n) {\n  discussionByName(title: $__fusion_1_title) {\n    commentCount\n  }\n}",
               "hash": "b84128cd5befc64e4bc6655dbbedada580daa2ce1eddbf30d34744cf6b37461a",
               "shortHash": "b84128cd"

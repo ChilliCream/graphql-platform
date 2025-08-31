@@ -9,7 +9,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "9d80ecba21c812b4c3c1ca9a4d813ad93d6f9f5172b6c65f4f89a0e65f0d38ef",
+        "id": "27701bbf0ae2dbf3eb058997088b5261146472f3457f27e5f856dff5f1350542",
         "operation": {
           "kind": "Query",
           "document": "{\n  otherAbstractType {\n    __typename @fusion__requirement\n    id\n    ... on Author {\n      name\n      age\n      id @fusion__requirement\n    }\n  }\n}",
@@ -21,11 +21,11 @@
         "nodes": [
           {
             "id": 1,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "A",
             "operation": {
               "name": "Op_ddf05407_1",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_ddf05407_1 {\n  otherAbstractType {\n    __typename\n    id\n    ... on Author {\n      name\n      id\n    }\n  }\n}",
               "hash": "f672d6d5d7acaaeb35e1e6432c284e79507332892d9b2d9b2c615e752328ab0f",
               "shortHash": "f672d6d5"
@@ -36,11 +36,11 @@
           },
           {
             "id": 2,
-            "kind": "Operation",
+            "type": "Operation",
             "schema": "B",
             "operation": {
               "name": "Op_ddf05407_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_ddf05407_2(\n  $__fusion_1_id: Int!\n) {\n  otherInterface(id: $__fusion_1_id) {\n    __typename\n    ... on Author {\n      age\n    }\n  }\n}",
               "hash": "ea05e581a87b416975b5c262538bb986758a733bf05452803d8d087655ba274b",
               "shortHash": "ea05e581"
