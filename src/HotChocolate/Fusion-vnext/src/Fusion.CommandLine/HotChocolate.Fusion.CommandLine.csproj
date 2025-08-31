@@ -5,6 +5,7 @@
     <OutputType>Exe</OutputType>
     <PackAsTool>true</PackAsTool>
     <PublishAot>false</PublishAot>
+    <UseAppHost>false</UseAppHost>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
     <PackageId>HotChocolate.Fusion.CommandLine</PackageId>
     <ToolCommandName>fusion</ToolCommandName>
