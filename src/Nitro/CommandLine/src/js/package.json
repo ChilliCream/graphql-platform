@@ -1,0 +1,35 @@
+{
+  "name": "@chillicream/nitro",
+  "version": "0.0.0",
+  "description": "Nitro CLI",
+  "homepage": "https://chillicream.com",
+  "repository": {
+    "type": "git",
+    "url": "git+chttps://github.com/ChilliCream/graphql-platform.git",
+    "directory": "src/Nitro/CommandLine/src/js"
+  },
+  "bugs": {
+    "url": "https://github.com/ChilliCream/graphql-platform/issues"
+  },
+  "keywords": [
+    "nitro",
+    "fusion",
+    "graphql"
+  ],
+  "author": {
+    "name": "ChilliCream",
+    "url": "https://chillicream.com",
+    "email": "info@chillicream.com"
+  },
+  "license": "MIT",
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/chillicream"
+  },
+  "type": "module",
+  "bin": "cli.js",
+  "packageManager": "yarn@4.9.4",
+  "dependencies": {
+    "detect-libc": "^2.0.4"
+  }
+}
