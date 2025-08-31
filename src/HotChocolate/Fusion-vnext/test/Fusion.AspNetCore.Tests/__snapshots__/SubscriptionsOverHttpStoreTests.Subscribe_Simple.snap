@@ -9,14 +9,15 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "a6a0ec861f10d265a8e68e421b09d83cd0fc0465ffe37b276a3291ba1c141d40",
+        "id": "b6e258422cef1d623fce5ca1bbc25420b1a94084a2fb35b0c1e0d1732bd16333",
         "operation": {
           "kind": "Subscription",
-          "document": "subscription {\n  onBookCreated {\n    id\n    title\n    id @fusion__requirement\n  }\n}",
+          "document": "subscription {\n  onBookCreated {\n    id\n    id @fusion__requirement\n    title\n  }\n}",
           "id": "a6fc02fcd58c513d69d75983869b251f",
           "hash": "a6fc02fcd58c513d69d75983869b251f",
           "shortHash": "a6fc02fc"
         },
+        "searchSpace": 1,
         "nodes": [
           {
             "id": 1,
@@ -80,14 +81,15 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "a6a0ec861f10d265a8e68e421b09d83cd0fc0465ffe37b276a3291ba1c141d40",
+        "id": "b6e258422cef1d623fce5ca1bbc25420b1a94084a2fb35b0c1e0d1732bd16333",
         "operation": {
           "kind": "Subscription",
-          "document": "subscription {\n  onBookCreated {\n    id\n    title\n    id @fusion__requirement\n  }\n}",
+          "document": "subscription {\n  onBookCreated {\n    id\n    id @fusion__requirement\n    title\n  }\n}",
           "id": "a6fc02fcd58c513d69d75983869b251f",
           "hash": "a6fc02fcd58c513d69d75983869b251f",
           "shortHash": "a6fc02fc"
         },
+        "searchSpace": 1,
         "nodes": [
           {
             "id": 1,
@@ -151,14 +153,15 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "a6a0ec861f10d265a8e68e421b09d83cd0fc0465ffe37b276a3291ba1c141d40",
+        "id": "b6e258422cef1d623fce5ca1bbc25420b1a94084a2fb35b0c1e0d1732bd16333",
         "operation": {
           "kind": "Subscription",
-          "document": "subscription {\n  onBookCreated {\n    id\n    title\n    id @fusion__requirement\n  }\n}",
+          "document": "subscription {\n  onBookCreated {\n    id\n    id @fusion__requirement\n    title\n  }\n}",
           "id": "a6fc02fcd58c513d69d75983869b251f",
           "hash": "a6fc02fcd58c513d69d75983869b251f",
           "shortHash": "a6fc02fc"
         },
+        "searchSpace": 1,
         "nodes": [
           {
             "id": 1,

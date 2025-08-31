@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Net.Mime;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
@@ -203,15 +202,19 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
                 nameof(abstractType));
         }
 
-        if (_possibleTypes.TryGetValue(abstractType.Name, out var possibleTypes))
+        if (!_possibleTypes.TryGetValue(abstractType.Name, out var possibleTypes))
         {
-            return possibleTypes;
+            lock (_lock)
+            {
+                if (!_possibleTypes.TryGetValue(abstractType.Name, out possibleTypes))
+                {
+                    possibleTypes = BuildPossibleTypes(abstractType, Types);
+                    _possibleTypes.TryAdd(abstractType.Name, possibleTypes);
+                }
+            }
         }
 
-        return _possibleTypes.GetOrAdd(
-            abstractType.Name,
-            static (_, context) => BuildPossibleTypes(context.AbstractType, context.Types),
-            new PossibleTypeLookupContext(abstractType, Types));
+        return possibleTypes;
 
         static ImmutableArray<FusionObjectTypeDefinition> BuildPossibleTypes(
             ITypeDefinition abstractType,
@@ -228,8 +231,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
 
                 foreach (var type in types)
                 {
-                    if (type is FusionObjectTypeDefinition obj
-                        && obj.Implements.ContainsName(interfaceType.Name))
+                    if (type is FusionObjectTypeDefinition obj && obj.Implements.ContainsName(interfaceType.Name))
                     {
                         builder.Add(obj);
                     }
@@ -295,8 +297,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
             foreach (var source in complexType.Sources)
             {
                 // if the schemaName is null we are considering all possible source schemas.
-                if (schemaName is not null
-                    && !source.SchemaName.Equals(schemaName, StringComparison.Ordinal))
+                if (schemaName is not null && !source.SchemaName.Equals(schemaName, StringComparison.Ordinal))
                 {
                     continue;
                 }
@@ -338,32 +339,70 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
         return [];
     }
 
+    /// <summary>
+    /// Tries to get the best direct lookup to transition from one schema to another without intemediary transitions.
+    /// The best lookup algorithm will try to find the smallest possible key that does not require any intermediary transitions.
+    /// </summary>
+    /// <param name="type">The type to get the best direct lookup for.</param>
+    /// <param name="fromSchemas">The schemas to get the best direct lookup from.</param>
+    /// <param name="toSchema">The schema to get the best direct lookup to.</param>
+    /// <param name="lookup">The best direct lookup.</param>
+    /// <returns>True if the best direct lookup was found, false otherwise.</returns>
     public bool TryGetBestDirectLookup(
         FusionComplexTypeDefinition type,
-        string from,
-        string to,
+        ImmutableHashSet<string> fromSchemas,
+        string toSchema,
         [NotNullWhen(true)] out Lookup? lookup)
     {
         ArgumentNullException.ThrowIfNull(type);
-        ArgumentException.ThrowIfNullOrEmpty(from);
-        ArgumentException.ThrowIfNullOrEmpty(to);
+        ArgumentNullException.ThrowIfNull(fromSchemas);
+        ArgumentException.ThrowIfNullOrEmpty(toSchema);
 
-        if (!_bestDirectLookup.TryGetValue(new TransitionKey(type.Name, from, to), out lookup))
+        foreach (var fromSchema in fromSchemas)
+        {
+            if (TryGetBestDirectLookup(type, fromSchema, toSchema, out lookup))
+            {
+                return true;
+            }
+        }
+
+        lookup = null;
+        return false;
+    }
+
+    /// <summary>
+    /// Tries to get the best direct lookup to transition from one schema to another without intemediary transitions.
+    /// The best lookup algorithm will try to find the smallest possible key that does not require any intermediary transitions.
+    /// </summary>
+    /// <param name="type">The type to get the best direct lookup for.</param>
+    /// <param name="fromSchema">The schema to get the best direct lookup from.</param>
+    /// <param name="toSchema">The schema to get the best direct lookup to.</param>
+    /// <param name="lookup">The best direct lookup.</param>
+    /// <returns>True if the best direct lookup was found, false otherwise.</returns>
+    public bool TryGetBestDirectLookup(
+        FusionComplexTypeDefinition type,
+        string fromSchema,
+        string toSchema,
+        [NotNullWhen(true)] out Lookup? lookup)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentException.ThrowIfNullOrEmpty(fromSchema);
+        ArgumentException.ThrowIfNullOrEmpty(toSchema);
+
+        if (!_bestDirectLookup.TryGetValue(new TransitionKey(type.Name, fromSchema, toSchema), out lookup))
         {
             var keyTransitionVisitor = new KeyTransitionVisitor();
 
             var context = new KeyTransitionVisitor.Context
             {
-                CompositeSchema = this,
-                SourceSchema = from,
-                Types = [type]
+                CompositeSchema = this, SourceSchema = fromSchema, Types = [type]
             };
 
             Lookup? bestLookup = null;
             var fields = 0;
             var fragments = 0;
 
-            foreach (var possibleLookup in GetPossibleLookups(type, to))
+            foreach (var possibleLookup in GetPossibleLookups(type, toSchema))
             {
                 keyTransitionVisitor.Visit(possibleLookup.Requirements, context);
 
@@ -403,10 +442,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
 
             if (bestLookup is not null)
             {
-                lock (_lock)
-                {
-                    _bestDirectLookup.TryAdd(new TransitionKey(type.Name, from, to), bestLookup);
-                }
+                _bestDirectLookup.TryAdd(new TransitionKey(type.Name, fromSchema, toSchema), bestLookup);
             }
 
             lookup = bestLookup;
@@ -449,10 +485,6 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => SchemaFormatter.FormatAsDocument(this);
 
-    private record PossibleTypeLookupContext(
-        ITypeDefinition AbstractType,
-        FusionTypeDefinitionCollection Types);
-
     private readonly record struct TransitionKey(string TypeName, string From, string To);
 }
 
@@ -463,8 +495,7 @@ internal sealed class KeyTransitionVisitor : SyntaxWalker<KeyTransitionVisitor.C
         var type = (FusionComplexTypeDefinition)context.Types.Peek();
         var field = type.Fields[node.Name.Value];
 
-        if (!field.Sources.TryGetMember(context.SourceSchema, out var member)
-            || member.Requirements is not null)
+        if (!field.Sources.TryGetMember(context.SourceSchema, out var member) || member.Requirements is not null)
         {
             context.NeedsTransition = true;
             return Break;

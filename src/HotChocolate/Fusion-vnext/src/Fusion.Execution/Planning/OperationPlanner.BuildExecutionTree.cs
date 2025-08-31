@@ -14,7 +14,8 @@ public sealed partial class OperationPlanner
     private OperationPlan BuildExecutionPlan(
         Operation operation,
         OperationDefinitionNode operationDefinition,
-        ImmutableList<PlanStep> planSteps)
+        ImmutableList<PlanStep> planSteps,
+        uint searchSpace)
     {
         if (operation.IsIntrospectionOnly())
         {
@@ -23,7 +24,7 @@ public sealed partial class OperationPlanner
 
             var nodes = ImmutableArray.Create<ExecutionNode>(introspectionNode);
 
-            return OperationPlan.Create(operation, nodes, nodes);
+            return OperationPlan.Create(operation, nodes, nodes, searchSpace);
         }
 
         var completedSteps = new HashSet<int>();
@@ -61,7 +62,7 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
-        return OperationPlan.Create(operation, rootNodes, allNodes);
+        return OperationPlan.Create(operation, rootNodes, allNodes, searchSpace);
     }
 
     private static ImmutableList<PlanStep> PrepareSteps(
@@ -279,8 +280,7 @@ public sealed partial class OperationPlanner
     {
         foreach (var (nodeId, stepDependencies) in dependencyLookup)
         {
-            if (!completedNodes.TryGetValue(nodeId, out var entry)
-                || entry is not OperationExecutionNode node)
+            if (!completedNodes.TryGetValue(nodeId, out var entry) || entry is not OperationExecutionNode node)
             {
                 continue;
             }
@@ -478,4 +478,9 @@ file static class Extensions
 #endif
         return new OperationSourceText(operation.Name!.Value, operation.Operation, sourceText, operationHash);
     }
+}
+
+public class PlanTrace
+{
+    public int Max { get; set; }
 }

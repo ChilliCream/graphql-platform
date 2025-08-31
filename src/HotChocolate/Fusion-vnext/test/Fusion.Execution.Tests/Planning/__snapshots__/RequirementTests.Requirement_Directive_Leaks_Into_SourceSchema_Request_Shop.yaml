@@ -1,0 +1,276 @@
+operation:
+  - document: >-
+      query findMe(
+        $skip: Boolean = true
+      ) {
+        users {
+          nodes {
+            id
+            id @fusion__requirement
+            birthdate
+            reviews {
+              nodes {
+                author {
+                  id
+                  name
+                }
+                product {
+                  id
+                  id @fusion__requirement
+                  weight
+                  weight @fusion__requirement
+                  deliveryEstimate(zip: "4383")
+                  pictureFileName
+                  price
+                  quantity @skip(if: $skip)
+                  reviews {
+                    nodes {
+                      author {
+                        birthdate
+                        reviews {
+                          nodes {
+                            stars
+                            product {
+                              weight
+                              item {
+                                quantity
+                                product {
+                                  name
+                                  id @fusion__requirement
+                                }
+                              }
+                              id @fusion__requirement
+                            }
+                          }
+                        }
+                        id @fusion__requirement
+                      }
+                    }
+                  }
+                  dimension @fusion__requirement {
+                    length
+                    width
+                    height
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    name: findMe
+    hash: 123456789101112
+    searchSpace: 17
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: >-
+      query findMe_123456789101112_1 {
+        users {
+          nodes {
+            id
+            birthdate
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: f
+    operation: >-
+      query findMe_123456789101112_2(
+        $__fusion_1_id: ID!
+      ) {
+        userById(id: $__fusion_1_id) {
+          reviews {
+            nodes {
+              author {
+                id
+                name
+              }
+              product {
+                id
+                reviews {
+                  nodes {
+                    author {
+                      reviews {
+                        nodes {
+                          stars
+                          product {
+                            __typename @fusion__requirement
+                            id
+                          }
+                        }
+                      }
+                      id
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    source: $.userById
+    target: $.users.nodes
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: e
+    operation: >-
+      query findMe_123456789101112_3(
+        $__fusion_2_id: ID!
+      ) {
+        productById(id: $__fusion_2_id) {
+          weight
+          pictureFileName
+          price
+          dimension {
+            length
+            width
+            height
+          }
+        }
+      }
+    source: $.productById
+    target: $.users.nodes.reviews.nodes.product
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 5
+    type: Operation
+    schema: g
+    operation: >-
+      query findMe_123456789101112_5(
+        $__fusion_4_dimension: ProductDimensionInput!
+        $__fusion_5_id: ID!
+      ) {
+        productById(id: $__fusion_5_id) {
+          deliveryEstimate(zip: "4383", dimension: $__fusion_4_dimension)
+        }
+      }
+    source: $.productById
+    target: $.users.nodes.reviews.nodes.product
+    requirements:
+      - name: __fusion_4_dimension
+        selectionMap: >-
+          {
+            weight
+            length: dimension.length
+            width: dimension.width
+            height: dimension.height
+          }
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 6
+    type: Operation
+    schema: b
+    operation: >-
+      query findMe_123456789101112_6(
+        $skip: Boolean = true
+        $__fusion_6_id: ID!
+      ) {
+        productByIdAsync(id: $__fusion_6_id) {
+          quantity @skip(if: $skip)
+        }
+      }
+    source: $.productByIdAsync
+    target: $.users.nodes.reviews.nodes.product
+    requirements:
+      - name: __fusion_6_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 7
+    type: Operation
+    schema: a
+    operation: >-
+      query findMe_123456789101112_7(
+        $__fusion_7_id: ID!
+      ) {
+        userById(id: $__fusion_7_id) {
+          birthdate
+        }
+      }
+    source: $.userById
+    target: $.users.nodes.reviews.nodes.product.reviews.nodes.author
+    requirements:
+      - name: __fusion_7_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 8
+    type: Operation
+    schema: e
+    operation: >-
+      query findMe_123456789101112_8(
+        $__fusion_8_id: ID!
+      ) {
+        productById(id: $__fusion_8_id) {
+          weight
+        }
+      }
+    source: $.productById
+    target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product
+    requirements:
+      - name: __fusion_8_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 9
+    type: Operation
+    schema: b
+    operation: >-
+      query findMe_123456789101112_9(
+        $__fusion_9_id: ID!
+      ) {
+        productByIdAsync(id: $__fusion_9_id) {
+          item {
+            quantity
+            product {
+              id
+            }
+          }
+        }
+      }
+    source: $.productByIdAsync
+    target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product
+    requirements:
+      - name: __fusion_9_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 10
+    type: Operation
+    schema: e
+    operation: >-
+      query findMe_123456789101112_10(
+        $__fusion_10_id: ID!
+      ) {
+        productById(id: $__fusion_10_id) {
+          name
+        }
+      }
+    source: $.productById
+    target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product.item.product
+    requirements:
+      - name: __fusion_10_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 9

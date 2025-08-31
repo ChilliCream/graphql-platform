@@ -5,20 +5,21 @@ operation:
           __typename @fusion__requirement
           author {
             id
-            displayName
             id @fusion__requirement
+            displayName
           }
           ... on Discussion {
             author {
               id
-              displayName
               id @fusion__requirement
+              displayName
             }
           }
         }
       }
     name: testQuery
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Operation

@@ -5,15 +5,16 @@ operation:
           brand {
             name
           }
-          nameAndId
-          id @fusion__requirement
-          name @fusion__requirement
           brand @fusion__requirement {
             name
           }
+          nameAndId
+          id @fusion__requirement
+          name @fusion__requirement
         }
       }
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Operation
