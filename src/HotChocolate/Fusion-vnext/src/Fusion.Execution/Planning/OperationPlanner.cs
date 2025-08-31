@@ -1407,6 +1407,20 @@ file static class Extensions
         }
     }
 
+    private static ImmutableHashSet<string> GetCandidateSchemas(
+        this PlanNode current,
+        uint selectionSetId)
+    {
+        var schemaNames = ImmutableHashSet.CreateBuilder<string>();
+
+        foreach (var (_, _, schema) in GetCandidateSteps(current, selectionSetId))
+        {
+            schemaNames.Add(schema);
+        }
+
+        return schemaNames.ToImmutable();
+    }
+
     public static ImmutableStack<WorkItem> Push(
         this ImmutableStack<WorkItem> backlog,
         ImmutableStack<SelectionSet> unresolvable)
@@ -1527,19 +1541,48 @@ file static class Extensions
         FusionSchemaDefinition compositeSchema)
     {
         var backlog = planNodeTemplate.Backlog.Pop();
+        var allCandidateSchemas = planNodeTemplate.GetCandidateSchemas(workItem.SelectionSet.Id);
+        var type = (FusionComplexTypeDefinition)workItem.SelectionSet.Type;
 
-        foreach (var (schemaName, resolutionCost) in compositeSchema.GetPossibleSchemas(workItem.SelectionSet))
+        foreach (var (toSchema, resolutionCost) in compositeSchema.GetPossibleSchemas(workItem.SelectionSet))
         {
-            foreach (var lookup in compositeSchema.GetPossibleLookups(workItem.SelectionSet.Type, schemaName))
+            var candidateSchemas = allCandidateSchemas.Remove(toSchema);
+            var hasDirectLookup = false;
+
+            foreach (var fromSchema in candidateSchemas)
             {
-                possiblePlans.Enqueue(
-                    planNodeTemplate with
-                    {
-                        SchemaName = schemaName,
-                        PathCost = planNodeTemplate.PathCost + 1,
-                        BacklogCost = planNodeTemplate.BacklogCost + resolutionCost + 1,
-                        Backlog = backlog.Push(workItem with { Lookup = lookup })
-                    });
+                if (compositeSchema.TryGetBestDirectLookup(
+                    type,
+                    fromSchema,
+                    toSchema,
+                    out var lookup))
+                {
+                    hasDirectLookup = true;
+                    possiblePlans.Enqueue(
+                        planNodeTemplate with
+                        {
+                            SchemaName = toSchema,
+                            PathCost = planNodeTemplate.PathCost + 1,
+                            BacklogCost = planNodeTemplate.BacklogCost + resolutionCost + 1,
+                            Backlog = backlog.Push(workItem with { Lookup = lookup })
+                        });
+                    break;
+                }
+            }
+
+            if (!hasDirectLookup)
+            {
+                foreach (var lookup in compositeSchema.GetPossibleLookups(workItem.SelectionSet.Type, toSchema))
+                {
+                    possiblePlans.Enqueue(
+                        planNodeTemplate with
+                        {
+                            SchemaName = toSchema,
+                            PathCost = planNodeTemplate.PathCost + 1,
+                            BacklogCost = planNodeTemplate.BacklogCost + resolutionCost + 1,
+                            Backlog = backlog.Push(workItem with { Lookup = lookup })
+                        });
+                }
             }
         }
     }
@@ -1560,8 +1603,7 @@ file static class Extensions
             // we try to choose one that returns the desired type directly
             // and not an abstract type.
             var byIdLookup = compositeSchema.GetPossibleLookups(type, schemaName)
-                .FirstOrDefault(
-                    l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal);
+                .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal);
 
             if (byIdLookup is null)
             {
@@ -1586,9 +1628,8 @@ file static class Extensions
         if (!hasEnqueuedLookup)
         {
             var byIdLookup = compositeSchema.GetPossibleLookups(type)
-                .FirstOrDefault(
-                    l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal)
-                        ?? throw new InvalidOperationException(
+                .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal)
+                    ?? throw new InvalidOperationException(
                             $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
 
             possiblePlans.Enqueue(
