@@ -38,6 +38,8 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         jsonWriter.WritePropertyName("operation");
         WriteOperation(jsonWriter, plan.Operation, trace);
 
+        jsonWriter.WriteNumber("searchSpace", plan.SearchSpace);
+
         jsonWriter.WritePropertyName("nodes");
         WriteNodes(jsonWriter, plan.AllNodes, trace);
 

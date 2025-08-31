@@ -10,14 +10,15 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "4c4f6b89bc4449df1f57b174ddb0fb62a87f83216d0b97249e68c2584c47999a",
+        "id": "bf8f6111b092cd3d6722adb494a00e261d9db6bdebd9398898a540c84feb168a",
         "operation": {
           "kind": "Mutation",
-          "document": "mutation {\n  a: createBook(input: { title: \"Book1\" }) {\n    book {\n      id\n      author\n      id @fusion__requirement\n    }\n  }\n}",
+          "document": "mutation {\n  a: createBook(input: { title: \"Book1\" }) {\n    book {\n      id\n      id @fusion__requirement\n      author\n    }\n  }\n}",
           "id": "8adeedac0c987644c3244bc6ad459a3d",
           "hash": "8adeedac0c987644c3244bc6ad459a3d",
           "shortHash": "8adeedac"
         },
+        "searchSpace": 1,
         "nodes": [
           {
             "id": 1,

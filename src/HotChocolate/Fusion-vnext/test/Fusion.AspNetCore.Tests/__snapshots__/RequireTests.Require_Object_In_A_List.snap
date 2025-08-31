@@ -20,14 +20,15 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "785e94eab53b00bd7effc373bd640b9043709cd50c8bd3dde05e8165d5c12fb0",
+        "id": "9930143712f042ca8f70486f23533ec760d49f7a3e715341b67b9f97dec52982",
         "operation": {
           "kind": "Query",
-          "document": "{\n  books {\n    nodes {\n      title\n      estimatedDelivery\n      id @fusion__requirement\n      id @fusion__requirement\n      title @fusion__requirement\n      dimension @fusion__requirement {\n        width\n        height\n      }\n      id @fusion__requirement\n    }\n  }\n}",
+          "document": "{\n  books {\n    nodes {\n      title\n      title @fusion__requirement\n      estimatedDelivery\n      id @fusion__requirement\n      dimension @fusion__requirement {\n        width\n        height\n      }\n    }\n  }\n}",
           "id": "1f7d64490a0ae4c811ddec3de271b2bd",
           "hash": "1f7d64490a0ae4c811ddec3de271b2bd",
           "shortHash": "1f7d6449"
         },
+        "searchSpace": 1,
         "nodes": [
           {
             "id": 1,

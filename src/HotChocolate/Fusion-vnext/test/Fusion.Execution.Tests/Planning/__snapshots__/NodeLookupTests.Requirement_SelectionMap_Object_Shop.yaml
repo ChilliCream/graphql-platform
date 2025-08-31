@@ -4,6 +4,7 @@ operation:
         users {
           nodes {
             id
+            id @fusion__requirement
             birthdate
             reviews {
               nodes {
@@ -13,15 +14,13 @@ operation:
                 }
                 product {
                   id
+                  id @fusion__requirement
                   weight
+                  weight @fusion__requirement
                   deliveryEstimate(zip: "4383")
                   pictureFileName
                   price
                   quantity
-                  id @fusion__requirement
-                  id @fusion__requirement
-                  id @fusion__requirement
-                  weight @fusion__requirement
                   dimension @fusion__requirement {
                     length
                     width
@@ -30,12 +29,12 @@ operation:
                 }
               }
             }
-            id @fusion__requirement
           }
         }
       }
     name: findMe
     hash: 123456789101112
+    searchSpace: 6
 nodes:
   - id: 1
     type: Operation
