@@ -80,13 +80,16 @@ public sealed partial class OperationPlanner
             foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
             {
                 possiblePlans.Enqueue(
-                    node with { SchemaName = schemaName, BacklogCost = node.Backlog.Count() + resolutionCost });
+                    node with
+                    {
+                        SchemaName = schemaName,
+                        BacklogCost = node.Backlog.Count() + resolutionCost
+                    });
             }
 
             if (possiblePlans.Count < 1)
             {
-                possiblePlans.Enqueue(
-                    node with { BacklogCost = node.Backlog.Count() });
+                possiblePlans.Enqueue(node with { BacklogCost = node.Backlog.Count() });
             }
 
             var plan = Plan(possiblePlans);
@@ -1067,10 +1070,29 @@ public sealed partial class OperationPlanner
     {
         var field = workItem.Selection.Field;
         var fieldSource = field.Sources[current.SchemaName];
-
-        // TODO: we need a deep copy of this selection set or there might be problems if a requirement
-        // is used on different parts of the operation.
         var requirements = fieldSource.Requirements!.Requirements;
+
+        if (index.IsRegistered(requirements))
+        {
+            // if we already used the same requirements object and have indexed it
+            // we will do a deep clone of the syntax tree so that the planner does
+            // not get confused and sees them as different requirements.
+            requirements = SyntaxRewriter.Create(
+                node =>
+                {
+                    if (node is FieldNode { SelectionSet: null } leafField)
+                    {
+                        return new FieldNode(
+                            leafField.Name,
+                            leafField.Alias,
+                            leafField.Directives,
+                            leafField.Arguments,
+                            leafField.SelectionSet);
+                    }
+
+                    return node;
+                }).Rewrite(requirements)!;
+        }
 
         index.Register(
             workItem.Selection.SelectionSetId,
