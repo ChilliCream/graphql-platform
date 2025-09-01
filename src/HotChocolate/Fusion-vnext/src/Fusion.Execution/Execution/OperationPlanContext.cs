@@ -156,9 +156,35 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             return [];
         }
 
-        return _nodeContexts.TryGetValue(node.Id, out var variableValueSets)
-            ? variableValueSets.Variables
+        return _nodeContexts.TryGetValue(node.Id, out var context)
+            ? context.Variables
             : [];
+    }
+
+    internal void TrackSourceSchemaClientResponse(ExecutionNode node, SourceSchemaClientResponse result)
+    {
+        if (!CollectTelemetry)
+        {
+            return;
+        }
+
+        _nodeContexts.AddOrUpdate(
+            node.Id,
+            static (_, result) => new NodeContext { Uri = result.Uri, ContentType = result.ContentType },
+            static (_, context, result) => context with { Uri = result.Uri, ContentType = result.ContentType },
+            result);
+    }
+
+    internal (Uri? Uri, string? ContentType) GetTransportDetails(ExecutionNode node)
+    {
+        if (!CollectTelemetry)
+        {
+            return (null, null);
+        }
+
+        return _nodeContexts.TryGetValue(node.Id, out var context)
+            ? (context.Uri, context.ContentType)
+            : (null, null);
     }
 
     internal void CompleteNode(ExecutionNodeResult result)
@@ -333,6 +359,10 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         public string? SchemaName { get; init; }
 
         public ImmutableArray<VariableValues> Variables { get; init; } = [];
+
+        public Uri? Uri { get; init; }
+
+        public string? ContentType { get; init; }
     }
 }
 

@@ -10,9 +10,8 @@ operation:
           ... on ProductList {
             products {
               id
+              id @fusion__requirement
               name
-              id @fusion__requirement
-              id @fusion__requirement
             }
           }
           ... on Item2 {
@@ -25,6 +24,7 @@ operation:
       }
     name: testQuery
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Node

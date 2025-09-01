@@ -7,7 +7,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "b761ad72f69f964d9632f306ecb9b7eb98f0199f36807cb8045777864b2e8307",
+        "id": "17f3bedec7fd1e8ea47f31347103804992c87b23a6005bde9286dcc52e88c060",
         "operation": {
           "kind": "Query",
           "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      __typename\n    }\n  }\n}",
@@ -15,6 +15,7 @@
           "hash": "72167d7d7ed0d1df427c3f70d87aa054",
           "shortHash": "72167d7d"
         },
+        "searchSpace": 1,
         "nodes": [
           {
             "id": 1,
@@ -31,7 +32,7 @@
             "type": "Operation",
             "operation": {
               "name": "Op_72167d7d_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_72167d7d_2 {\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n  }\n}",
               "hash": "8c2df8d78bf1ef49a145eba270617e933935f53d21bc01af4085b0c0cdd00807",
               "shortHash": "8c2df8d7"
@@ -49,7 +50,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_72167d7d_3",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_72167d7d_3 {\n  node: discussionById(discussionId: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n    __typename\n  }\n}",
               "hash": "1a577bbb61a345b7eb4307da4f0a5fe835b9b58331bc96c0685594381b0c31df",
               "shortHash": "1a577bbb"

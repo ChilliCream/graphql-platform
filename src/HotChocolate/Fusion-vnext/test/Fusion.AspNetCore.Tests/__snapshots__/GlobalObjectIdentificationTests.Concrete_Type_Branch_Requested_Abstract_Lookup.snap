@@ -8,7 +8,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "3edfcb4a6b9c62f2baeeb6944beaafd49c3cd7a48a39537faa000c3170e1da11",
+        "id": "258a9e65b0cccdb31042a3ae2dfcaa80541faf036994b3f0398693d360a46c3b",
         "operation": {
           "kind": "Query",
           "document": "{\n  node(id: \"UHJvZHVjdDox\") {\n    __typename @fusion__requirement\n    id\n    ... on Product {\n      name\n    }\n  }\n}",
@@ -16,6 +16,7 @@
           "hash": "f71a6d9ff69b4939ee6e11a250bfa12d",
           "shortHash": "f71a6d9f"
         },
+        "searchSpace": 1,
         "nodes": [
           {
             "id": 1,
@@ -32,7 +33,7 @@
             "type": "Operation",
             "operation": {
               "name": "Op_f71a6d9f_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_f71a6d9f_2 {\n  node(id: \"UHJvZHVjdDox\") {\n    __typename\n    id\n  }\n}",
               "hash": "754ed17825fddac4c3fad8aa01cb0ff852bde277cc35ac2ac1fcf6621c33e603",
               "shortHash": "754ed178"
@@ -50,7 +51,7 @@
             "schema": "B",
             "operation": {
               "name": "Op_f71a6d9f_3",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_f71a6d9f_3 {\n  node(id: \"UHJvZHVjdDox\") {\n    __typename\n    ... on Product {\n      __typename\n      id\n      name\n    }\n  }\n}",
               "hash": "4737b710afaacdf1079288eef204c0f45a1f4a7e307f4bdcd669750fb8eba5a8",
               "shortHash": "4737b710"

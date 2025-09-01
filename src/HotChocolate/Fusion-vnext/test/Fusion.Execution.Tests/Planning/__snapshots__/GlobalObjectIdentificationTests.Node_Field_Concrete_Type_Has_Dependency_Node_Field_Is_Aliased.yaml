@@ -22,6 +22,7 @@ operation:
       }
     name: testQuery
     hash: 123456789101112
+    searchSpace: 3
 nodes:
   - id: 1
     type: Node

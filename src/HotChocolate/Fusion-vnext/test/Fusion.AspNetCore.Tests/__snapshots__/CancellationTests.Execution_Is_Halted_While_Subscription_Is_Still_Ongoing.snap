@@ -8,7 +8,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "64d7ec30d4a6fd6877bba648f02045a793c39a951218aaaf52173b4a6254a6d8",
+        "id": "eea1c7ae7c7a7d143a258e15bf3dca3b486dcd8b402eba945f65a344d9ca26fb",
         "operation": {
           "kind": "Subscription",
           "document": "subscription {\n  onReviewCreated {\n    id\n  }\n}",
@@ -16,6 +16,7 @@
           "hash": "1c7b790e223d28e348d3e04a33527c96",
           "shortHash": "1c7b790e"
         },
+        "searchSpace": 1,
         "nodes": [
           {
             "id": 1,
@@ -23,7 +24,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_1c7b790e_1",
-              "type": "Subscription",
+              "kind": "Subscription",
               "document": "subscription Op_1c7b790e_1 {\n  onReviewCreated {\n    id\n  }\n}",
               "hash": "978c1f45afca3a44aa9a7a2ffe6e5aee77c974f2b8d5b1e3f1bbc9372536e188",
               "shortHash": "978c1f45"
@@ -52,7 +53,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "64d7ec30d4a6fd6877bba648f02045a793c39a951218aaaf52173b4a6254a6d8",
+        "id": "eea1c7ae7c7a7d143a258e15bf3dca3b486dcd8b402eba945f65a344d9ca26fb",
         "operation": {
           "kind": "Subscription",
           "document": "subscription {\n  onReviewCreated {\n    id\n  }\n}",
@@ -60,6 +61,7 @@
           "hash": "1c7b790e223d28e348d3e04a33527c96",
           "shortHash": "1c7b790e"
         },
+        "searchSpace": 1,
         "nodes": [
           {
             "id": 1,
@@ -67,7 +69,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_1c7b790e_1",
-              "type": "Subscription",
+              "kind": "Subscription",
               "document": "subscription Op_1c7b790e_1 {\n  onReviewCreated {\n    id\n  }\n}",
               "hash": "978c1f45afca3a44aa9a7a2ffe6e5aee77c974f2b8d5b1e3f1bbc9372536e188",
               "shortHash": "978c1f45"

@@ -9,7 +9,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "f09d36f74738aa591209a22d7e7bf388ac1935f3c9d448e1855a81130e1cf3ea",
+        "id": "afc0e15cd63c8091500e4f22170d79dd3e722c79c7a4b8b22931705958388d4b",
         "operation": {
           "kind": "Query",
           "document": "{\n  abstractType {\n    __typename @fusion__requirement\n    id\n    ... on Discussion {\n      title\n      commentCount\n      id @fusion__requirement\n    }\n  }\n}",
@@ -17,6 +17,7 @@
           "hash": "bf0deff65ebc6098ea48ca77515a25c9",
           "shortHash": "bf0deff6"
         },
+        "searchSpace": 1,
         "nodes": [
           {
             "id": 1,
@@ -24,7 +25,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_bf0deff6_1",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_bf0deff6_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n      id\n    }\n  }\n}",
               "hash": "fbdf3e142755c8f68d2beaaf88f9422712cc435641b2241fa3ab08ac2d8a96dd",
               "shortHash": "fbdf3e14"
@@ -39,7 +40,7 @@
             "schema": "B",
             "operation": {
               "name": "Op_bf0deff6_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_bf0deff6_2(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    commentCount\n  }\n}",
               "hash": "dc7822c133bcc3323fae835db78b85eb4ca8715c70722b2513f9ad375a173d6c",
               "shortHash": "dc7822c1"

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
@@ -36,6 +37,14 @@ public sealed partial class OperationPlanner
         _nodeFieldSelectionSetPartitioner = new NodeFieldSelectionSetPartitioner(schema);
     }
 
+    /// <summary>
+    /// Creates an operation plan for the given operation definition.
+    /// </summary>
+    /// <param name="id">The unique identifier for operation.</param>
+    /// <param name="hash">The hash of the operation document.</param>
+    /// <param name="shortHash">The short hash of the operation document.</param>
+    /// <param name="operationDefinition">The operation definition to create a plan for.</param>
+    /// <returns>The operation plan.</returns>
     public OperationPlan CreatePlan(
         string id,
         string hash,
@@ -62,6 +71,7 @@ public sealed partial class OperationPlanner
 
         var internalOperationDefinition = operationDefinition;
         ImmutableList<PlanStep> planSteps = [];
+        uint searchSpace = 0;
 
         if (!node.Backlog.IsEmpty)
         {
@@ -73,17 +83,13 @@ public sealed partial class OperationPlanner
                     node with
                     {
                         SchemaName = schemaName,
-                        BacklogCost = node.Backlog.Count() + resolutionCost
+                        ResolutionCost = resolutionCost
                     });
             }
 
             if (possiblePlans.Count < 1)
             {
-                possiblePlans.Enqueue(
-                    node with
-                    {
-                        BacklogCost = node.Backlog.Count()
-                    });
+                possiblePlans.Enqueue(node);
             }
 
             var plan = Plan(possiblePlans);
@@ -95,6 +101,7 @@ public sealed partial class OperationPlanner
 
             internalOperationDefinition = plan.Value.InternalOperationDefinition;
             planSteps = plan.Value.Steps;
+            searchSpace = plan.Value.SearchSpace;
 
             internalOperationDefinition = AddTypeNameToAbstractSelections(
                 internalOperationDefinition,
@@ -106,7 +113,8 @@ public sealed partial class OperationPlanner
         return BuildExecutionPlan(
             operation,
             operationDefinition,
-            planSteps);
+            planSteps,
+            searchSpace);
     }
 
     private (PlanNode Node, SelectionSet First) CreateQueryPlanBase(
@@ -147,9 +155,7 @@ public sealed partial class OperationPlanner
             ShortHash = shortHash,
             SchemaName = "None",
             SelectionSetIndex = result.SelectionSetIndex,
-            Backlog = backlog,
-            PathCost = 1,
-            BacklogCost = backlog.Count()
+            Backlog = backlog
         };
 
         return (node, selectionSet);
@@ -206,9 +212,7 @@ public sealed partial class OperationPlanner
             ShortHash = shortHash,
             SchemaName = ISchemaDefinition.DefaultName,
             SelectionSetIndex = indexBuilder,
-            Backlog = backlog,
-            PathCost = 1,
-            BacklogCost = 1
+            Backlog = backlog
         };
 
         return (node, firstSelectionSet);
@@ -234,26 +238,28 @@ public sealed partial class OperationPlanner
             ShortHash = shortHash,
             SchemaName = "None",
             SelectionSetIndex = index,
-            Backlog = ImmutableStack<WorkItem>.Empty.Push(workItem),
-            PathCost = 1,
-            BacklogCost = 1
+            Backlog = ImmutableStack<WorkItem>.Empty.Push(workItem)
         };
 
         return (node, selectionSet);
     }
 
-    private (OperationDefinitionNode InternalOperationDefinition, ImmutableList<PlanStep> Steps)? Plan(
-        PriorityQueue<PlanNode, double> possiblePlans)
+    private PlanResult? Plan(PriorityQueue<PlanNode, double> possiblePlans)
     {
+        var searchSpace = (uint)possiblePlans.Count;
+
         while (possiblePlans.TryDequeue(out var current, out _))
         {
+            var possiblePlansCount = possiblePlans.Count;
+            searchSpace = MaxSearchSpace(Unsafe.As<int, uint>(ref possiblePlansCount), searchSpace);
+
             var backlog = current.Backlog;
 
             if (backlog.IsEmpty)
             {
                 // If the backlog is empty, the planning process is complete, and we can return the
                 // steps to build the actual execution plan.
-                return (current.InternalOperationDefinition, current.Steps);
+                return new PlanResult(current.InternalOperationDefinition, current.Steps, searchSpace);
             }
 
             // The backlog represents the tasks we have to complete to build out
@@ -294,6 +300,9 @@ public sealed partial class OperationPlanner
         }
 
         return null;
+
+        static uint MaxSearchSpace(uint val1, uint val2)
+            => (val1 >= val2) ? val1 : val2;
     }
 
     private void PlanRootSelections(
@@ -340,7 +349,7 @@ public sealed partial class OperationPlanner
             return;
         }
 
-        backlog = backlog.Push(unresolvable);
+        backlog = backlog.Push(unresolvable, current.SchemaName);
         backlog = backlog.Push(fieldsWithRequirements, stepId);
 
         // lookups are always queries.
@@ -408,8 +417,6 @@ public sealed partial class OperationPlanner
             SelectionSetIndex = index,
             Backlog = backlog,
             Steps = current.Steps.Add(step),
-            PathCost = current.PathCost,
-            BacklogCost = backlog.Count(),
             LastRequirementId = lastRequirementId
         };
 
@@ -428,6 +435,28 @@ public sealed partial class OperationPlanner
         var index = current.SelectionSetIndex.ToBuilder();
         var selectionSet = lookup.Requirements;
 
+        if (index.IsRegistered(selectionSet))
+        {
+            // if we already used the same requirements object and have indexed it
+            // we will do a deep clone of the syntax tree so that the planner does
+            // not get confused and sees them as different requirements.
+            selectionSet = SyntaxRewriter.Create(
+                node =>
+                {
+                    if (node is FieldNode { SelectionSet: null } leafField)
+                    {
+                        return new FieldNode(
+                            leafField.Name,
+                            leafField.Alias,
+                            leafField.Directives,
+                            leafField.Arguments,
+                            leafField.SelectionSet);
+                    }
+
+                    return node;
+                }).Rewrite(selectionSet)!;
+        }
+
         index.Register(workItemSelectionSet.Id, selectionSet);
 
         var internalOperation = InlineSelections(
@@ -440,7 +469,7 @@ public sealed partial class OperationPlanner
 
         foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItemSelectionSet.Id))
         {
-            if (!processed.Add(schemaName))
+            if (!processed.Add(schemaName) || lookup.SchemaName.Equals(schemaName))
             {
                 continue;
             }
@@ -490,7 +519,7 @@ public sealed partial class OperationPlanner
                         selectionSet = top.Node;
                     }
 
-                    backlog = backlog.Push(unresolvable);
+                    backlog = backlog.Push(unresolvable, current.SchemaName);
                 }
             }
 
@@ -506,7 +535,8 @@ public sealed partial class OperationPlanner
             backlog = backlog.Push(
                 new OperationWorkItem(
                     OperationWorkItemKind.Lookup,
-                    workItemSelectionSet with { Node = selectionSet })
+                    workItemSelectionSet with { Node = selectionSet },
+                    FromSchema: lookup.SchemaName)
                 {
                     Dependents = ImmutableHashSet<int>.Empty.Add(lookupStepId)
                 });
@@ -521,17 +551,24 @@ public sealed partial class OperationPlanner
         };
     }
 
+    /// <summary>
+    /// Tries to inline the field that has a requirement into its original intended plan step 
+    /// by resolving the requirements from non-dependant siblings or from parents.
+    /// </summary>
     private void PlanInlineFieldWithRequirements(
         FieldRequirementWorkItem workItem,
         PlanNode current,
         PriorityQueue<PlanNode, double> possiblePlans,
         ImmutableStack<WorkItem> backlog)
     {
+        // we first resolve the original intended plan step, so we can inline the field
+        // into it.
         if (current.Steps.ById(workItem.StepId) is not OperationPlanStep currentStep)
         {
             return;
         }
 
+        // next we try to inline the requirements into non-dependant siblings or parents.
         var steps = current.Steps;
         var index = current.SelectionSetIndex.ToBuilder();
         var requirementId = current.LastRequirementId + 1;
@@ -553,15 +590,15 @@ public sealed partial class OperationPlanner
             return;
         }
 
-        var field = workItem.Selection.Field;
-        var fieldSource = field.Sources[current.SchemaName];
+        var compositeField = workItem.Selection.Field;
+        var sourceField = compositeField.Sources[current.SchemaName];
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
 
-        foreach (var argument in fieldSource.Requirements!.Arguments)
+        foreach (var argument in sourceField.Requirements!.Arguments)
         {
             // arguments that are exposed on the composite schema
             // are not requirements, and we can skip them.
-            if (field.Arguments.ContainsName(argument.Name))
+            if (compositeField.Arguments.ContainsName(argument.Name))
             {
                 continue;
             }
@@ -582,10 +619,10 @@ public sealed partial class OperationPlanner
 
         var requirements = currentStep.Requirements;
 
-        for (var i = 0; i < fieldSource.Requirements.Arguments.Length; i++)
+        for (var i = 0; i < sourceField.Requirements.Arguments.Length; i++)
         {
-            var argument = fieldSource.Requirements.Arguments[i];
-            var fieldSelectionMap = fieldSource.Requirements.Fields[i];
+            var argument = sourceField.Requirements.Arguments[i];
+            var fieldSelectionMap = sourceField.Requirements.Fields[i];
 
             if (fieldSelectionMap is null)
             {
@@ -616,8 +653,6 @@ public sealed partial class OperationPlanner
             SelectionSetIndex = index,
             Backlog = backlog,
             Steps = steps,
-            PathCost = current.PathCost,
-            BacklogCost = backlog.Count(),
             LastRequirementId = requirementId
         };
 
@@ -677,20 +712,21 @@ public sealed partial class OperationPlanner
                         leftoverRequirements,
                         workItem.Selection.Field.DeclaringType,
                         workItem.Selection.Path),
-                    RequirementKey: requirementKey)
+                    RequirementKey: requirementKey,
+                    FromSchema: lookup.SchemaName)
                 {
                     Dependents = ImmutableHashSet<int>.Empty.Add(stepId)
                 });
         }
 
-        var field = workItem.Selection.Field;
-        var fieldSource = field.Sources[current.SchemaName];
+        var compositeField = workItem.Selection.Field;
+        var sourceField = compositeField.Sources[current.SchemaName];
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
 
-        for (var i = 0; i < fieldSource.Requirements!.Arguments.Length; i++)
+        for (var i = 0; i < sourceField.Requirements!.Arguments.Length; i++)
         {
-            var argument = fieldSource.Requirements.Arguments[i];
-            var fieldSelectionMap = fieldSource.Requirements.Fields[i];
+            var argument = sourceField.Requirements.Arguments[i];
+            var fieldSelectionMap = sourceField.Requirements.Fields[i];
 
             if (fieldSelectionMap is null)
             {
@@ -707,11 +743,11 @@ public sealed partial class OperationPlanner
             requirements = requirements.Add(argumentRequirementKey, operationRequirement);
         }
 
-        foreach (var argument in fieldSource.Requirements!.Arguments)
+        foreach (var argument in sourceField.Requirements!.Arguments)
         {
             // arguments that are exposed on the composite schema
             // are not requirements, and we can skip them.
-            if (field.Arguments.ContainsName(argument.Name))
+            if (compositeField.Arguments.ContainsName(argument.Name))
             {
                 continue;
             }
@@ -770,7 +806,7 @@ public sealed partial class OperationPlanner
         {
             Id = stepId,
             Definition = definition,
-            Type = field.DeclaringType,
+            Type = compositeField.DeclaringType,
             SchemaName = current.SchemaName,
             RootSelectionSetId = index.GetId(selectionSetNode),
             SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, indexBuilder),
@@ -789,8 +825,6 @@ public sealed partial class OperationPlanner
             SelectionSetIndex = indexBuilder,
             Backlog = backlog,
             Steps = steps.Add(step),
-            PathCost = current.PathCost,
-            BacklogCost = backlog.Count(),
             LastRequirementId = lastRequirementId
         };
 
@@ -823,7 +857,7 @@ public sealed partial class OperationPlanner
             return;
         }
 
-        backlog = backlog.Push(unresolvable);
+        backlog = backlog.Push(unresolvable, current.SchemaName);
         backlog = backlog.Push(fieldsWithRequirements, stepId);
 
         var selectionSetNode = resolvable
@@ -869,16 +903,17 @@ public sealed partial class OperationPlanner
             Source = SelectionPath.Root
         };
 
-        var nodePlanStep = current.Steps.OfType<NodePlanStep>().LastOrDefault()
-            ?? throw new InvalidOperationException($"Expected to find a {nameof(NodePlanStep)} in the existing steps.");
+        var nodePlanStep = current.Steps.OfType<NodePlanStep>().LastOrDefault() ??
+            throw new InvalidOperationException($"Expected to find a {nameof(NodePlanStep)} in the existing steps.");
 
         var steps = current.Steps;
 
         // Add a new branch to the existing node plan step
-        steps = steps.Replace(nodePlanStep, nodePlanStep with
-        {
-            Branches = nodePlanStep.Branches.SetItem(workItem.SelectionSet.Type.Name, operationPlanStep)
-        });
+        steps = steps.Replace(nodePlanStep,
+            nodePlanStep with
+            {
+                Branches = nodePlanStep.Branches.SetItem(workItem.SelectionSet.Type.Name, operationPlanStep)
+            });
 
         // Add the lookup operation to the steps
         steps = steps.Add(operationPlanStep);
@@ -893,8 +928,6 @@ public sealed partial class OperationPlanner
             SelectionSetIndex = index,
             Backlog = backlog,
             Steps = steps,
-            PathCost = current.PathCost,
-            BacklogCost = backlog.Count(),
             LastRequirementId = current.LastRequirementId
         };
 
@@ -922,11 +955,7 @@ public sealed partial class OperationPlanner
             _schema.Types["Node"],
             selectionPath);
 
-        var input = new SelectionSetByTypePartitionerInput
-        {
-            SelectionSet = selectionSet,
-            SelectionSetIndex = index
-        };
+        var input = new SelectionSetByTypePartitionerInput { SelectionSet = selectionSet, SelectionSetIndex = index };
 
         (var sharedSelectionSet, var selectionSetsByType, index) = _selectionSetByTypePartitioner.Partition(input);
 
@@ -1003,8 +1032,6 @@ public sealed partial class OperationPlanner
             Steps = current.Steps
                 .Add(nodeStep)
                 .Add(fallbackQueryStep),
-            PathCost = current.PathCost,
-            BacklogCost = backlog.Count(),
             LastRequirementId = current.LastRequirementId
         };
 
@@ -1054,7 +1081,7 @@ public sealed partial class OperationPlanner
         };
 
         var (resolvable, unresolvable, fieldsWithRequirements, _) = _partitioner.Partition(input);
-        backlog = backlog.Push(unresolvable);
+        backlog = backlog.Push(unresolvable, current.SchemaName);
         backlog = backlog.Push(fieldsWithRequirements, stepId);
         return resolvable;
     }
@@ -1068,12 +1095,31 @@ public sealed partial class OperationPlanner
         ref ImmutableStack<WorkItem> backlog,
         ref ImmutableList<PlanStep> steps)
     {
-        var field = workItem.Selection.Field;
-        var fieldSource = field.Sources[current.SchemaName];
+        var compositeField = workItem.Selection.Field;
+        var sourceField = compositeField.Sources[current.SchemaName];
+        var requirements = sourceField.Requirements!.Requirements;
 
-        // TODO: we need a deep copy of this selection set or there might be problems if a requirement
-        // is used on different parts of the operation.
-        var requirements = fieldSource.Requirements!.Requirements;
+        if (index.IsRegistered(requirements))
+        {
+            // if we already used the same requirements object and have indexed it
+            // we will do a deep clone of the syntax tree so that the planner does
+            // not get confused and sees them as different requirements.
+            requirements = SyntaxRewriter.Create(
+                node =>
+                {
+                    if (node is FieldNode { SelectionSet: null } leafField)
+                    {
+                        return new FieldNode(
+                            leafField.Name,
+                            leafField.Alias,
+                            leafField.Directives,
+                            leafField.Arguments,
+                            leafField.SelectionSet);
+                    }
+
+                    return node;
+                }).Rewrite(requirements)!;
+        }
 
         index.Register(
             workItem.Selection.SelectionSetId,
@@ -1174,7 +1220,8 @@ public sealed partial class OperationPlanner
                         new OperationWorkItem(
                             OperationWorkItemKind.Lookup,
                             selectionSet,
-                            RequirementKey: requirementKey));
+                            RequirementKey: requirementKey,
+                            FromSchema: current.SchemaName));
                 }
             }
 
@@ -1305,12 +1352,12 @@ public sealed partial class OperationPlanner
 
             while (backlog.TryPop(out var current))
             {
-                if (!index.IsRegistered(selectionSet))
+                if (!index.IsRegistered(current))
                 {
-                    index.Register(selectionSet);
+                    index.Register(current);
                 }
 
-                foreach (var selection in selectionSet.Selections)
+                foreach (var selection in current.Selections)
                 {
                     switch (selection)
                     {
@@ -1343,7 +1390,7 @@ public sealed partial class OperationPlanner
 
                 if (type.IsAbstractType())
                 {
-                    // we add the __typename field to all seelection sets that have
+                    // we add the __typename field to all selection sets that have
                     // an abstract type context as we need the type context for
                     // runtime decisions.
                     //
@@ -1365,7 +1412,7 @@ public sealed partial class OperationPlanner
                 {
                     var field = complexType.Fields[fieldNode.Name.Value];
 
-                    path.Push(field.Type.AsTypeDefinition());
+                    path.Push(field.Type.NamedType());
                 }
                 else if (node is InlineFragmentNode { TypeCondition: { } typeCondition })
                 {
@@ -1387,6 +1434,11 @@ public sealed partial class OperationPlanner
 
         return (OperationDefinitionNode)rewriter.Rewrite(operation, context)!;
     }
+
+    private readonly record struct PlanResult(
+        OperationDefinitionNode InternalOperationDefinition,
+        ImmutableList<PlanStep> Steps,
+        uint SearchSpace);
 }
 
 file static class Extensions
@@ -1406,9 +1458,24 @@ file static class Extensions
         }
     }
 
+    private static ImmutableHashSet<string> GetCandidateSchemas(
+        this PlanNode current,
+        uint selectionSetId)
+    {
+        var schemaNames = ImmutableHashSet.CreateBuilder<string>();
+
+        foreach (var (_, _, schema) in GetCandidateSteps(current, selectionSetId))
+        {
+            schemaNames.Add(schema);
+        }
+
+        return schemaNames.ToImmutable();
+    }
+
     public static ImmutableStack<WorkItem> Push(
         this ImmutableStack<WorkItem> backlog,
-        ImmutableStack<SelectionSet> unresolvable)
+        ImmutableStack<SelectionSet> unresolvable,
+        string fromSchema)
     {
         if (unresolvable.IsEmpty)
         {
@@ -1421,7 +1488,8 @@ file static class Extensions
                 selectionSet.Path.IsRoot
                     ? OperationWorkItemKind.Root
                     : OperationWorkItemKind.Lookup,
-                selectionSet);
+                selectionSet,
+                FromSchema: fromSchema);
             backlog = backlog.Push(workItem);
         }
 
@@ -1472,6 +1540,10 @@ file static class Extensions
                 ? null
                 : planNodeTemplate.Backlog.Peek();
 
+        // we reset the resolution cost so that the next plan is not chosen based
+        // on the last resolutions cost.
+        planNodeTemplate = planNodeTemplate with { ResolutionCost = 0 };
+
         switch (nextWorkItem)
         {
             case null:
@@ -1513,8 +1585,7 @@ file static class Extensions
                 planNodeTemplate with
                 {
                     SchemaName = schemaName,
-                    PathCost = planNodeTemplate.PathCost + 1,
-                    BacklogCost = planNodeTemplate.BacklogCost + resolutionCost
+                    ResolutionCost = resolutionCost
                 });
         }
     }
@@ -1526,17 +1597,39 @@ file static class Extensions
         FusionSchemaDefinition compositeSchema)
     {
         var backlog = planNodeTemplate.Backlog.Pop();
+        var allCandidateSchemas = planNodeTemplate.GetCandidateSchemas(workItem.SelectionSet.Id);
+        var type = (FusionComplexTypeDefinition)workItem.SelectionSet.Type;
 
-        foreach (var (schemaName, resolutionCost) in compositeSchema.GetPossibleSchemas(workItem.SelectionSet))
+        foreach (var (toSchema, resolutionCost) in compositeSchema.GetPossibleSchemas(workItem.SelectionSet))
         {
-            foreach (var lookup in compositeSchema.GetPossibleLookups(workItem.SelectionSet.Type, schemaName))
+            if (toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (compositeSchema.TryGetBestDirectLookup(
+                type,
+                allCandidateSchemas.Remove(toSchema),
+                toSchema,
+                out var bestLookup))
             {
                 possiblePlans.Enqueue(
                     planNodeTemplate with
                     {
-                        SchemaName = schemaName,
-                        PathCost = planNodeTemplate.PathCost + 1,
-                        BacklogCost = planNodeTemplate.BacklogCost + resolutionCost + 1,
+                        SchemaName = toSchema,
+                        ResolutionCost = resolutionCost,
+                        Backlog = backlog.Push(workItem with { Lookup = bestLookup })
+                    });
+                continue;
+            }
+
+            foreach (var lookup in compositeSchema.GetPossibleLookups(workItem.SelectionSet.Type, toSchema))
+            {
+                possiblePlans.Enqueue(
+                    planNodeTemplate with
+                    {
+                        SchemaName = toSchema,
+                        ResolutionCost = resolutionCost,
                         Backlog = backlog.Push(workItem with { Lookup = lookup })
                     });
             }
@@ -1559,8 +1652,7 @@ file static class Extensions
             // we try to choose one that returns the desired type directly
             // and not an abstract type.
             var byIdLookup = compositeSchema.GetPossibleLookups(type, schemaName)
-                .FirstOrDefault(
-                    l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal);
+                .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal);
 
             if (byIdLookup is null)
             {
@@ -1571,8 +1663,7 @@ file static class Extensions
                 planNodeTemplate with
                 {
                     SchemaName = schemaName,
-                    PathCost = planNodeTemplate.PathCost + 1,
-                    BacklogCost = planNodeTemplate.BacklogCost + resolutionCost + 1,
+                    ResolutionCost = resolutionCost,
                     Backlog = backlog.Push(workItem with { Lookup = byIdLookup })
                 });
 
@@ -1585,17 +1676,15 @@ file static class Extensions
         if (!hasEnqueuedLookup)
         {
             var byIdLookup = compositeSchema.GetPossibleLookups(type)
-                .FirstOrDefault(
-                    l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal)
-                        ?? throw new InvalidOperationException(
-                            $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
+                    .FirstOrDefault(l =>
+                        l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal) ??
+                throw new InvalidOperationException(
+                    $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
 
             possiblePlans.Enqueue(
                 planNodeTemplate with
                 {
                     SchemaName = byIdLookup.SchemaName,
-                    PathCost = planNodeTemplate.PathCost + 1,
-                    BacklogCost = planNodeTemplate.BacklogCost + 1,
                     Backlog = backlog.Push(workItem with { Lookup = byIdLookup })
                 });
         }
@@ -1608,41 +1697,69 @@ file static class Extensions
         FusionSchemaDefinition compositeSchema)
     {
         var backlog = planNodeTemplate.Backlog.Pop();
+        var allCandidateSchemas = planNodeTemplate.GetCandidateSchemas(workItem.Selection.SelectionSetId);
+        var selectionSetType = workItem.Selection.Field.DeclaringType;
 
         foreach (var schemaName in workItem.Selection.Field.Sources.Schemas)
         {
+            var candidateSchemas = allCandidateSchemas.Remove(schemaName);
+
             if (schemaName == planNodeTemplate.SchemaName)
             {
                 possiblePlans.Enqueue(
                     planNodeTemplate with
                     {
-                        PathCost = planNodeTemplate.PathCost + 1,
-                        BacklogCost = planNodeTemplate.BacklogCost,
-                        Backlog = backlog.Push(workItem)
+                        Backlog = backlog.Push(workItem),
                     });
 
-                foreach (var lookup in compositeSchema.GetPossibleLookups(workItem.Selection.Field.DeclaringType, schemaName))
+                if (compositeSchema.TryGetBestDirectLookup(
+                    selectionSetType,
+                    candidateSchemas.Remove(schemaName),
+                    schemaName,
+                    out var bestLookup))
                 {
                     possiblePlans.Enqueue(
                         planNodeTemplate with
                         {
                             SchemaName = schemaName,
-                            PathCost = planNodeTemplate.PathCost + 1,
-                            BacklogCost = planNodeTemplate.BacklogCost + 1,
+                            Backlog = backlog.Push(workItem with { Lookup = bestLookup })
+                        });
+                    continue;
+                }
+
+                foreach (var lookup in compositeSchema.GetPossibleLookups(selectionSetType, schemaName))
+                {
+                    possiblePlans.Enqueue(
+                        planNodeTemplate with
+                        {
+                            SchemaName = schemaName,
                             Backlog = backlog.Push(workItem with { Lookup = lookup })
                         });
                 }
             }
             else
             {
-                foreach (var lookup in compositeSchema.GetPossibleLookups(workItem.Selection.Field.DeclaringType, schemaName))
+                if (compositeSchema.TryGetBestDirectLookup(
+                    selectionSetType,
+                    candidateSchemas,
+                    schemaName,
+                    out var bestLookup))
                 {
                     possiblePlans.Enqueue(
                         planNodeTemplate with
                         {
                             SchemaName = schemaName,
-                            PathCost = planNodeTemplate.PathCost + 1,
-                            BacklogCost = planNodeTemplate.BacklogCost + 1,
+                            Backlog = backlog.Push(workItem with { Lookup = bestLookup })
+                        });
+                    continue;
+                }
+
+                foreach (var lookup in compositeSchema.GetPossibleLookups(selectionSetType, schemaName))
+                {
+                    possiblePlans.Enqueue(
+                        planNodeTemplate with
+                        {
+                            SchemaName = schemaName,
                             Backlog = backlog.Push(workItem with { Lookup = lookup })
                         });
                 }

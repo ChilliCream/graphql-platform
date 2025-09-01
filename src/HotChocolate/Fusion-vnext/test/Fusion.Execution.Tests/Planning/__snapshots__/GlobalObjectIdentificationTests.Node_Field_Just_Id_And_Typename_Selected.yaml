@@ -5,12 +5,13 @@ operation:
       ) {
         node(id: $id) {
           __typename @fusion__requirement
-          id
           __typename
+          id
         }
       }
     name: testQuery
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Node

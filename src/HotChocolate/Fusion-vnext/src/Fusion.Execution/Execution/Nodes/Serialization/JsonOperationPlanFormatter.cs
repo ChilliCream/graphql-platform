@@ -38,6 +38,8 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         jsonWriter.WritePropertyName("operation");
         WriteOperation(jsonWriter, plan.Operation, trace);
 
+        jsonWriter.WriteNumber("searchSpace", plan.SearchSpace);
+
         jsonWriter.WritePropertyName("nodes");
         WriteNodes(jsonWriter, plan.AllNodes, trace);
 
@@ -147,7 +149,7 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
 
         jsonWriter.WriteStartObject("operation");
         jsonWriter.WriteString("name", node.Operation.Name);
-        jsonWriter.WriteString("type", node.Operation.Type.ToString());
+        jsonWriter.WriteString("kind", node.Operation.Type.ToString());
         jsonWriter.WriteString("document", node.Operation.SourceText);
         jsonWriter.WriteString("hash", node.Operation.Hash);
         jsonWriter.WriteString("shortHash", node.Operation.Hash[..8]);
@@ -269,6 +271,14 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
                     WriteObjectValueNode(jsonWriter, variableSet.Values);
                 }
 
+                jsonWriter.WriteEndObject();
+            }
+
+            if (trace.Transport is not null)
+            {
+                jsonWriter.WriteStartObject("transport");
+                jsonWriter.WriteString("uri", trace.Transport.Uri.ToString());
+                jsonWriter.WriteString("contentType", trace.Transport.ContentType);
                 jsonWriter.WriteEndObject();
             }
         }

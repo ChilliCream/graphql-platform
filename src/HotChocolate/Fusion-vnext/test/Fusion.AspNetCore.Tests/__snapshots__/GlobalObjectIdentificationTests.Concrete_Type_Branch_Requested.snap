@@ -8,7 +8,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "820dc8121b9a3692358e20e844dccbb3557b78d56dea96de9d723f5e7e5d6060",
+        "id": "1aec4d6ef75636dfffa9ee2a13c16fb23871c14f7dcc241074d177e0feb4549d",
         "operation": {
           "kind": "Query",
           "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n      commentCount\n    }\n    id @fusion__requirement\n  }\n}",
@@ -16,6 +16,7 @@
           "hash": "e567807ec1ad5128cfb566fad1645abc",
           "shortHash": "e567807e"
         },
+        "searchSpace": 1,
         "nodes": [
           {
             "id": 1,
@@ -32,7 +33,7 @@
             "type": "Operation",
             "operation": {
               "name": "Op_e567807e_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_e567807e_2 {\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n  }\n}",
               "hash": "4a2a025bfea51266b719e0e2d21a7f7f6a811a6fe9044ffdb3ba2b0daf1074ae",
               "shortHash": "4a2a025b"
@@ -50,7 +51,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_e567807e_3",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_e567807e_3 {\n  node: discussionById(discussionId: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n    title\n    id\n  }\n}",
               "hash": "f4d65f7ce02d10c3ee98737bd4b71dfb3f94e8457ca3551d84e54e31d1ce29c1",
               "shortHash": "f4d65f7c"
@@ -68,15 +69,15 @@
             "schema": "B",
             "operation": {
               "name": "Op_e567807e_4",
-              "type": "Query",
-              "document": "query Op_e567807e_4(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on Discussion {\n      commentCount\n    }\n  }\n}",
-              "hash": "68f951566f2260d93a4eb67a82d617aee90f8b4c015513f10af0be6d20420a46",
-              "shortHash": "68f95156"
+              "kind": "Query",
+              "document": "query Op_e567807e_4(\n  $__fusion_1_id: ID!\n) {\n  discussionById(id: $__fusion_1_id) {\n    commentCount\n  }\n}",
+              "hash": "81f56010513e763ae2fe61f294860509d7fe4ce8fbc2a34356f7b801a1e971c3",
+              "shortHash": "81f56010"
             },
             "responseNames": [
               "commentCount"
             ],
-            "source": "$.node<Discussion>",
+            "source": "$.discussionById",
             "target": "$.node",
             "requirements": [
               {

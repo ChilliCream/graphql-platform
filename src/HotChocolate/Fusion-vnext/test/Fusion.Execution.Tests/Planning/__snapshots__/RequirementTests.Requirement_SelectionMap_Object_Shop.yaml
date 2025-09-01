@@ -8,14 +8,12 @@ operation:
                 product {
                   deliveryEstimate(zip: "123")
                   id @fusion__requirement
-                  id @fusion__requirement
                   weight @fusion__requirement
                   dimension @fusion__requirement {
                     length
                     width
                     height
                   }
-                  id @fusion__requirement
                 }
               }
             }
@@ -24,6 +22,7 @@ operation:
         }
       }
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Operation

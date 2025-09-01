@@ -8,7 +8,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "364cb99e92d7763c828eca5bd343d1e34ef99878e699d2515937eb9c27f60687",
+        "id": "718d9a578fb467e35b2a10d59d21c8f608ed2883614e9a271a523fe1f84777e7",
         "operation": {
           "kind": "Query",
           "document": "{\n  abstractType {\n    __typename @fusion__requirement\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}",
@@ -16,6 +16,7 @@
           "hash": "05500418af4758851fab031f4cd75d38",
           "shortHash": "05500418"
         },
+        "searchSpace": 1,
         "nodes": [
           {
             "id": 1,
@@ -23,7 +24,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_05500418_1",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_05500418_1 {\n  abstractType {\n    __typename\n    id\n    ... on Discussion {\n      title\n    }\n    ... on Author {\n      name\n    }\n  }\n}",
               "hash": "22196d50502d4ce499b6455b10f237c55888bcb56794e0abe264e23728235b7a",
               "shortHash": "22196d50"

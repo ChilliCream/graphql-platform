@@ -8,8 +8,8 @@ operation:
           ... on Discussion {
             product {
               id
-              name
               id @fusion__requirement
+              name
             }
           }
           ... on Review {
@@ -22,6 +22,7 @@ operation:
       }
     name: testQuery
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Node
