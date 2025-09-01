@@ -149,7 +149,7 @@ jobs:
           xcrun notarytool submit nitro-${{ matrix.rid }}.zip \
             --apple-id "$APPLE_DEVELOPER_ID_EMAIL" \
             --team-id "$APPLE_DEVELOPER_TEAM_ID" \
-            --password "$APP_SPECIFIC_PASSWORD" \
+            --password "$APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD" \
             --wait
 
       - name: 🖋️ Clean up macOS signing resources
