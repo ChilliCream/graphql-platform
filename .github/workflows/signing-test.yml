@@ -39,8 +39,8 @@ jobs:
           - os: windows-2025
             rid: win-x86
           # Windows (arm64 on ARM runner!)
-          - os: windows-11-arm
-            rid: win-arm64
+          # - os: windows-11-arm
+          #   rid: win-arm64
 
     steps:
       - name: 📦 Checkout
@@ -160,6 +160,11 @@ jobs:
             nitro-${{ matrix.rid }}.zip
 
           codesign --verify --deep --strict --verbose=2 nitro-${{ matrix.rid }}.zip
+
+          xcrun notarytool history
+            --apple-id "$APPLE_DEVELOPER_ID_EMAIL" \
+            --team-id "$APPLE_DEVELOPER_TEAM_ID" \
+            --password "$APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD"
 
           xcrun notarytool submit nitro-${{ matrix.rid }}.zip \
             --apple-id "$APPLE_DEVELOPER_ID_EMAIL" \
