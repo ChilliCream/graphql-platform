@@ -103,8 +103,8 @@ jobs:
           - os: windows-2025
             rid: win-x86
           # Windows (arm64 on ARM runner!)
-          - os: windows-11-arm
-            rid: win-arm64
+          # - os: windows-11-arm
+          #   rid: win-arm64
 
     steps:
       - name: 📦 Checkout
@@ -187,6 +187,7 @@ jobs:
           CODESIGN_IDENTITY: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_IDENTITY }}
         run: |
           codesign --sign "$CODESIGN_IDENTITY" \
+            --verbose=3 \
             --identifier "com.chillicream.nitro" \
             --options runtime \
             --timestamp \
@@ -210,18 +211,26 @@ jobs:
       - name: 🖋️ Notarize macOS zipped binary
         if: runner.os == 'macOS'
         env:
+          CODESIGN_IDENTITY: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_IDENTITY }}
           APPLE_DEVELOPER_ID_EMAIL: ${{ secrets.APPLE_DEVELOPER_ID_EMAIL }}
           APPLE_DEVELOPER_TEAM_ID: ${{ secrets.APPLE_DEVELOPER_TEAM_ID }}
           APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD }}
         run: |
+          codesign --sign "$CODESIGN_IDENTITY" \
+            --verbose=3 \
+            --options runtime \
+            --timestamp \
+            --force \
+            nitro-${{ matrix.rid }}.zip
+
           xcrun notarytool submit nitro-${{ matrix.rid }}.zip \
             --apple-id "$APPLE_DEVELOPER_ID_EMAIL" \
             --team-id "$APPLE_DEVELOPER_TEAM_ID" \
             --password "$APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD" \
             --wait
 
-          spctl --assess --type exec -vv publish/nitro || true
-          codesign -dvv publish/nitro || true
+          spctl --assess --type exec -vv nitro-${{ matrix.rid }}.zip || true
+          codesign -dvv nitro-${{ matrix.rid }}.zip || true
 
       - name: 🖋️ Clean up macOS signing resources
         if: always() && runner.os == 'macOS'
