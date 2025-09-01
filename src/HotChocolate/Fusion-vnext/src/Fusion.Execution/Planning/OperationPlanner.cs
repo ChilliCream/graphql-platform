@@ -83,13 +83,13 @@ public sealed partial class OperationPlanner
                     node with
                     {
                         SchemaName = schemaName,
-                        BacklogCost = node.Backlog.Count() + resolutionCost
+                        ResolutionCost = resolutionCost
                     });
             }
 
             if (possiblePlans.Count < 1)
             {
-                possiblePlans.Enqueue(node with { BacklogCost = node.Backlog.Count() });
+                possiblePlans.Enqueue(node);
             }
 
             var plan = Plan(possiblePlans);
@@ -155,9 +155,7 @@ public sealed partial class OperationPlanner
             ShortHash = shortHash,
             SchemaName = "None",
             SelectionSetIndex = result.SelectionSetIndex,
-            Backlog = backlog,
-            PathCost = 1,
-            BacklogCost = backlog.Count()
+            Backlog = backlog
         };
 
         return (node, selectionSet);
@@ -214,9 +212,7 @@ public sealed partial class OperationPlanner
             ShortHash = shortHash,
             SchemaName = ISchemaDefinition.DefaultName,
             SelectionSetIndex = indexBuilder,
-            Backlog = backlog,
-            PathCost = 1,
-            BacklogCost = 1
+            Backlog = backlog
         };
 
         return (node, firstSelectionSet);
@@ -242,9 +238,7 @@ public sealed partial class OperationPlanner
             ShortHash = shortHash,
             SchemaName = "None",
             SelectionSetIndex = index,
-            Backlog = ImmutableStack<WorkItem>.Empty.Push(workItem),
-            PathCost = 1,
-            BacklogCost = 1
+            Backlog = ImmutableStack<WorkItem>.Empty.Push(workItem)
         };
 
         return (node, selectionSet);
@@ -341,7 +335,9 @@ public sealed partial class OperationPlanner
 
         var input = new SelectionSetPartitionerInput
         {
-            SchemaName = current.SchemaName, SelectionSet = workItem.SelectionSet, SelectionSetIndex = index
+            SchemaName = current.SchemaName,
+            SelectionSet = workItem.SelectionSet,
+            SelectionSetIndex = index
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
@@ -353,7 +349,7 @@ public sealed partial class OperationPlanner
             return;
         }
 
-        backlog = backlog.Push(unresolvable);
+        backlog = backlog.Push(unresolvable, current.SchemaName);
         backlog = backlog.Push(fieldsWithRequirements, stepId);
 
         // lookups are always queries.
@@ -421,8 +417,6 @@ public sealed partial class OperationPlanner
             SelectionSetIndex = index,
             Backlog = backlog,
             Steps = current.Steps.Add(step),
-            PathCost = current.PathCost,
-            BacklogCost = backlog.Count(),
             LastRequirementId = lastRequirementId
         };
 
@@ -461,7 +455,7 @@ public sealed partial class OperationPlanner
 
                     return node;
                 }).Rewrite(selectionSet)!;
-    }
+        }
 
         index.Register(workItemSelectionSet.Id, selectionSet);
 
@@ -475,7 +469,7 @@ public sealed partial class OperationPlanner
 
         foreach (var (step, stepIndex, schemaName) in current.GetCandidateSteps(workItemSelectionSet.Id))
         {
-            if (!processed.Add(schemaName))
+            if (!processed.Add(schemaName) || lookup.SchemaName.Equals(schemaName))
             {
                 continue;
             }
@@ -525,7 +519,7 @@ public sealed partial class OperationPlanner
                         selectionSet = top.Node;
                     }
 
-                    backlog = backlog.Push(unresolvable);
+                    backlog = backlog.Push(unresolvable, current.SchemaName);
                 }
             }
 
@@ -541,7 +535,8 @@ public sealed partial class OperationPlanner
             backlog = backlog.Push(
                 new OperationWorkItem(
                     OperationWorkItemKind.Lookup,
-                    workItemSelectionSet with { Node = selectionSet })
+                    workItemSelectionSet with { Node = selectionSet },
+                    FromSchema: lookup.SchemaName)
                 {
                     Dependents = ImmutableHashSet<int>.Empty.Add(lookupStepId)
                 });
@@ -556,17 +551,24 @@ public sealed partial class OperationPlanner
         };
     }
 
+    /// <summary>
+    /// Tries to inline the field that has a requirement into its original intended plan step 
+    /// by resolving the requirements from non-dependant siblings or from parents.
+    /// </summary>
     private void PlanInlineFieldWithRequirements(
         FieldRequirementWorkItem workItem,
         PlanNode current,
         PriorityQueue<PlanNode, double> possiblePlans,
         ImmutableStack<WorkItem> backlog)
     {
+        // we first resolve the original intended plan step, so we can inline the field
+        // into it.
         if (current.Steps.ById(workItem.StepId) is not OperationPlanStep currentStep)
         {
             return;
         }
 
+        // next we try to inline the requirements into non-dependant siblings or parents.
         var steps = current.Steps;
         var index = current.SelectionSetIndex.ToBuilder();
         var requirementId = current.LastRequirementId + 1;
@@ -651,8 +653,6 @@ public sealed partial class OperationPlanner
             SelectionSetIndex = index,
             Backlog = backlog,
             Steps = steps,
-            PathCost = current.PathCost,
-            BacklogCost = backlog.Count(),
             LastRequirementId = requirementId
         };
 
@@ -712,7 +712,11 @@ public sealed partial class OperationPlanner
                         leftoverRequirements,
                         workItem.Selection.Field.DeclaringType,
                         workItem.Selection.Path),
-                    RequirementKey: requirementKey) { Dependents = ImmutableHashSet<int>.Empty.Add(stepId) });
+                    RequirementKey: requirementKey,
+                    FromSchema: lookup.SchemaName)
+                {
+                    Dependents = ImmutableHashSet<int>.Empty.Add(stepId)
+                });
         }
 
         var compositeField = workItem.Selection.Field;
@@ -821,8 +825,6 @@ public sealed partial class OperationPlanner
             SelectionSetIndex = indexBuilder,
             Backlog = backlog,
             Steps = steps.Add(step),
-            PathCost = current.PathCost,
-            BacklogCost = backlog.Count(),
             LastRequirementId = lastRequirementId
         };
 
@@ -841,7 +843,9 @@ public sealed partial class OperationPlanner
 
         var input = new SelectionSetPartitionerInput
         {
-            SchemaName = current.SchemaName, SelectionSet = workItem.SelectionSet, SelectionSetIndex = index
+            SchemaName = current.SchemaName,
+            SelectionSet = workItem.SelectionSet,
+            SelectionSetIndex = index
         };
 
         (var resolvable, var unresolvable, var fieldsWithRequirements, index) = _partitioner.Partition(input);
@@ -853,7 +857,7 @@ public sealed partial class OperationPlanner
             return;
         }
 
-        backlog = backlog.Push(unresolvable);
+        backlog = backlog.Push(unresolvable, current.SchemaName);
         backlog = backlog.Push(fieldsWithRequirements, stepId);
 
         var selectionSetNode = resolvable
@@ -924,8 +928,6 @@ public sealed partial class OperationPlanner
             SelectionSetIndex = index,
             Backlog = backlog,
             Steps = steps,
-            PathCost = current.PathCost,
-            BacklogCost = backlog.Count(),
             LastRequirementId = current.LastRequirementId
         };
 
@@ -995,7 +997,10 @@ public sealed partial class OperationPlanner
 
         var nodeStep = new NodePlanStep
         {
-            Id = stepId, FallbackQuery = fallbackQueryStep, ResponseName = responseName, IdValue = idArgumentValue
+            Id = stepId,
+            FallbackQuery = fallbackQueryStep,
+            ResponseName = responseName,
+            IdValue = idArgumentValue
         };
 
         foreach (var (type, selectionSetNode) in selectionSetsByType)
@@ -1027,8 +1032,6 @@ public sealed partial class OperationPlanner
             Steps = current.Steps
                 .Add(nodeStep)
                 .Add(fallbackQueryStep),
-            PathCost = current.PathCost,
-            BacklogCost = backlog.Count(),
             LastRequirementId = current.LastRequirementId
         };
 
@@ -1072,11 +1075,13 @@ public sealed partial class OperationPlanner
 
         var input = new SelectionSetPartitionerInput
         {
-            SchemaName = current.SchemaName, SelectionSet = selectionSet, SelectionSetIndex = index
+            SchemaName = current.SchemaName,
+            SelectionSet = selectionSet,
+            SelectionSetIndex = index
         };
 
         var (resolvable, unresolvable, fieldsWithRequirements, _) = _partitioner.Partition(input);
-        backlog = backlog.Push(unresolvable);
+        backlog = backlog.Push(unresolvable, current.SchemaName);
         backlog = backlog.Push(fieldsWithRequirements, stepId);
         return resolvable;
     }
@@ -1215,7 +1220,8 @@ public sealed partial class OperationPlanner
                         new OperationWorkItem(
                             OperationWorkItemKind.Lookup,
                             selectionSet,
-                            RequirementKey: requirementKey));
+                            RequirementKey: requirementKey,
+                            FromSchema: current.SchemaName));
                 }
             }
 
@@ -1468,7 +1474,8 @@ file static class Extensions
 
     public static ImmutableStack<WorkItem> Push(
         this ImmutableStack<WorkItem> backlog,
-        ImmutableStack<SelectionSet> unresolvable)
+        ImmutableStack<SelectionSet> unresolvable,
+        string fromSchema)
     {
         if (unresolvable.IsEmpty)
         {
@@ -1481,7 +1488,8 @@ file static class Extensions
                 selectionSet.Path.IsRoot
                     ? OperationWorkItemKind.Root
                     : OperationWorkItemKind.Lookup,
-                selectionSet);
+                selectionSet,
+                FromSchema: fromSchema);
             backlog = backlog.Push(workItem);
         }
 
@@ -1532,6 +1540,10 @@ file static class Extensions
                 ? null
                 : planNodeTemplate.Backlog.Peek();
 
+        // we reset the resolution cost so that the next plan is not chosen based
+        // on the last resolutions cost.
+        planNodeTemplate = planNodeTemplate with { ResolutionCost = 0 };
+
         switch (nextWorkItem)
         {
             case null:
@@ -1573,8 +1585,7 @@ file static class Extensions
                 planNodeTemplate with
                 {
                     SchemaName = schemaName,
-                    PathCost = planNodeTemplate.PathCost + 1,
-                    BacklogCost = planNodeTemplate.BacklogCost + resolutionCost
+                    ResolutionCost = resolutionCost
                 });
         }
     }
@@ -1591,6 +1602,11 @@ file static class Extensions
 
         foreach (var (toSchema, resolutionCost) in compositeSchema.GetPossibleSchemas(workItem.SelectionSet))
         {
+            if (toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
             if (compositeSchema.TryGetBestDirectLookup(
                 type,
                 allCandidateSchemas.Remove(toSchema),
@@ -1601,8 +1617,7 @@ file static class Extensions
                     planNodeTemplate with
                     {
                         SchemaName = toSchema,
-                        PathCost = planNodeTemplate.PathCost + 1,
-                        BacklogCost = planNodeTemplate.BacklogCost + resolutionCost + 1,
+                        ResolutionCost = resolutionCost,
                         Backlog = backlog.Push(workItem with { Lookup = bestLookup })
                     });
                 continue;
@@ -1614,8 +1629,7 @@ file static class Extensions
                     planNodeTemplate with
                     {
                         SchemaName = toSchema,
-                        PathCost = planNodeTemplate.PathCost + 1,
-                        BacklogCost = planNodeTemplate.BacklogCost + resolutionCost + 1,
+                        ResolutionCost = resolutionCost,
                         Backlog = backlog.Push(workItem with { Lookup = lookup })
                     });
             }
@@ -1649,8 +1663,7 @@ file static class Extensions
                 planNodeTemplate with
                 {
                     SchemaName = schemaName,
-                    PathCost = planNodeTemplate.PathCost + 1,
-                    BacklogCost = planNodeTemplate.BacklogCost + resolutionCost + 1,
+                    ResolutionCost = resolutionCost,
                     Backlog = backlog.Push(workItem with { Lookup = byIdLookup })
                 });
 
@@ -1672,8 +1685,6 @@ file static class Extensions
                 planNodeTemplate with
                 {
                     SchemaName = byIdLookup.SchemaName,
-                    PathCost = planNodeTemplate.PathCost + 1,
-                    BacklogCost = planNodeTemplate.BacklogCost + 1,
                     Backlog = backlog.Push(workItem with { Lookup = byIdLookup })
                 });
         }
@@ -1698,9 +1709,7 @@ file static class Extensions
                 possiblePlans.Enqueue(
                     planNodeTemplate with
                     {
-                        PathCost = planNodeTemplate.PathCost + 1,
-                        BacklogCost = planNodeTemplate.BacklogCost,
-                        Backlog = backlog.Push(workItem)
+                        Backlog = backlog.Push(workItem),
                     });
 
                 if (compositeSchema.TryGetBestDirectLookup(
@@ -1713,8 +1722,6 @@ file static class Extensions
                         planNodeTemplate with
                         {
                             SchemaName = schemaName,
-                            PathCost = planNodeTemplate.PathCost + 1,
-                            BacklogCost = planNodeTemplate.BacklogCost + 1,
                             Backlog = backlog.Push(workItem with { Lookup = bestLookup })
                         });
                     continue;
@@ -1726,8 +1733,6 @@ file static class Extensions
                         planNodeTemplate with
                         {
                             SchemaName = schemaName,
-                            PathCost = planNodeTemplate.PathCost + 1,
-                            BacklogCost = planNodeTemplate.BacklogCost + 1,
                             Backlog = backlog.Push(workItem with { Lookup = lookup })
                         });
                 }
@@ -1744,8 +1749,6 @@ file static class Extensions
                         planNodeTemplate with
                         {
                             SchemaName = schemaName,
-                            PathCost = planNodeTemplate.PathCost + 1,
-                            BacklogCost = planNodeTemplate.BacklogCost + 1,
                             Backlog = backlog.Push(workItem with { Lookup = bestLookup })
                         });
                     continue;
@@ -1757,8 +1760,6 @@ file static class Extensions
                         planNodeTemplate with
                         {
                             SchemaName = schemaName,
-                            PathCost = planNodeTemplate.PathCost + 1,
-                            BacklogCost = planNodeTemplate.BacklogCost + 1,
                             Backlog = backlog.Push(workItem with { Lookup = lookup })
                         });
                 }

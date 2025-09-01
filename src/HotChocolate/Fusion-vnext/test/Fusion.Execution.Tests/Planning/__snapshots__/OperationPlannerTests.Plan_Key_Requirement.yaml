@@ -11,7 +11,7 @@ operation:
       }
     name: GetTopProducts
     hash: 123456789101112
-    searchSpace: 3
+    searchSpace: 2
 nodes:
   - id: 1
     type: Operation
