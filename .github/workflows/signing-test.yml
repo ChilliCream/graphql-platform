@@ -156,7 +156,7 @@ jobs:
             --password "$APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD" \
             --wait
 
-          spctl --assess --type exec -vv publish/nitro || true
+          spctl --assess --type exec -vv nitro-${{ matrix.rid }}.zip || true
           codesign -dvv publish/nitro || true
 
       - name: 🖋️ Clean up macOS signing resources
