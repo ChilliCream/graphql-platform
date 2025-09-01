@@ -185,13 +185,15 @@ jobs:
         if: runner.os == 'macOS'
         env:
           CODESIGN_IDENTITY: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_IDENTITY }}
-          CODESIGN_PREFIX: "com.chillicream."
         run: |
           codesign --sign "$CODESIGN_IDENTITY" \
-            --prefix "$CODESIGN_PREFIX" \
+            --identifier "com.chillicream.nitro" \
             --options runtime \
             --timestamp \
+            -- force \
             publish/nitro
+
+          codesign --verify --deep --strict --verbose=2 publish/nitro
 
       - name: 📦 Zip binary (Windows)
         if: runner.os == 'Windows'
@@ -217,6 +219,10 @@ jobs:
             --team-id "$APPLE_DEVELOPER_TEAM_ID" \
             --password "$APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD" \
             --wait
+            --timeout 20m
+
+          spctl --assess --type exec -vv publish/nitro || true
+          codesign -dvv publish/nitro
 
       - name: 🖋️ Clean up macOS signing resources
         if: always() && runner.os == 'macOS'
