@@ -441,6 +441,28 @@ public sealed partial class OperationPlanner
         var index = current.SelectionSetIndex.ToBuilder();
         var selectionSet = lookup.Requirements;
 
+        if (index.IsRegistered(selectionSet))
+        {
+            // if we already used the same requirements object and have indexed it
+            // we will do a deep clone of the syntax tree so that the planner does
+            // not get confused and sees them as different requirements.
+            selectionSet = SyntaxRewriter.Create(
+                node =>
+                {
+                    if (node is FieldNode { SelectionSet: null } leafField)
+                    {
+                        return new FieldNode(
+                            leafField.Name,
+                            leafField.Alias,
+                            leafField.Directives,
+                            leafField.Arguments,
+                            leafField.SelectionSet);
+                    }
+
+                    return node;
+                }).Rewrite(selectionSet)!;
+    }
+
         index.Register(workItemSelectionSet.Id, selectionSet);
 
         var internalOperation = InlineSelections(
@@ -566,15 +588,15 @@ public sealed partial class OperationPlanner
             return;
         }
 
-        var field = workItem.Selection.Field;
-        var fieldSource = field.Sources[current.SchemaName];
+        var compositeField = workItem.Selection.Field;
+        var sourceField = compositeField.Sources[current.SchemaName];
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
 
-        foreach (var argument in fieldSource.Requirements!.Arguments)
+        foreach (var argument in sourceField.Requirements!.Arguments)
         {
             // arguments that are exposed on the composite schema
             // are not requirements, and we can skip them.
-            if (field.Arguments.ContainsName(argument.Name))
+            if (compositeField.Arguments.ContainsName(argument.Name))
             {
                 continue;
             }
@@ -595,10 +617,10 @@ public sealed partial class OperationPlanner
 
         var requirements = currentStep.Requirements;
 
-        for (var i = 0; i < fieldSource.Requirements.Arguments.Length; i++)
+        for (var i = 0; i < sourceField.Requirements.Arguments.Length; i++)
         {
-            var argument = fieldSource.Requirements.Arguments[i];
-            var fieldSelectionMap = fieldSource.Requirements.Fields[i];
+            var argument = sourceField.Requirements.Arguments[i];
+            var fieldSelectionMap = sourceField.Requirements.Fields[i];
 
             if (fieldSelectionMap is null)
             {
@@ -693,14 +715,14 @@ public sealed partial class OperationPlanner
                     RequirementKey: requirementKey) { Dependents = ImmutableHashSet<int>.Empty.Add(stepId) });
         }
 
-        var field = workItem.Selection.Field;
-        var fieldSource = field.Sources[current.SchemaName];
+        var compositeField = workItem.Selection.Field;
+        var sourceField = compositeField.Sources[current.SchemaName];
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
 
-        for (var i = 0; i < fieldSource.Requirements!.Arguments.Length; i++)
+        for (var i = 0; i < sourceField.Requirements!.Arguments.Length; i++)
         {
-            var argument = fieldSource.Requirements.Arguments[i];
-            var fieldSelectionMap = fieldSource.Requirements.Fields[i];
+            var argument = sourceField.Requirements.Arguments[i];
+            var fieldSelectionMap = sourceField.Requirements.Fields[i];
 
             if (fieldSelectionMap is null)
             {
@@ -717,11 +739,11 @@ public sealed partial class OperationPlanner
             requirements = requirements.Add(argumentRequirementKey, operationRequirement);
         }
 
-        foreach (var argument in fieldSource.Requirements!.Arguments)
+        foreach (var argument in sourceField.Requirements!.Arguments)
         {
             // arguments that are exposed on the composite schema
             // are not requirements, and we can skip them.
-            if (field.Arguments.ContainsName(argument.Name))
+            if (compositeField.Arguments.ContainsName(argument.Name))
             {
                 continue;
             }
@@ -780,7 +802,7 @@ public sealed partial class OperationPlanner
         {
             Id = stepId,
             Definition = definition,
-            Type = field.DeclaringType,
+            Type = compositeField.DeclaringType,
             SchemaName = current.SchemaName,
             RootSelectionSetId = index.GetId(selectionSetNode),
             SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, indexBuilder),
@@ -1068,9 +1090,9 @@ public sealed partial class OperationPlanner
         ref ImmutableStack<WorkItem> backlog,
         ref ImmutableList<PlanStep> steps)
     {
-        var field = workItem.Selection.Field;
-        var fieldSource = field.Sources[current.SchemaName];
-        var requirements = fieldSource.Requirements!.Requirements;
+        var compositeField = workItem.Selection.Field;
+        var sourceField = compositeField.Sources[current.SchemaName];
+        var requirements = sourceField.Requirements!.Requirements;
 
         if (index.IsRegistered(requirements))
         {
