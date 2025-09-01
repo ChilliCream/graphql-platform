@@ -369,7 +369,7 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var schema = ComposeSchema(
             """
-            schema @schemaName(value: "A") {
+            schema {
               query: Query
             }
 
@@ -383,7 +383,7 @@ public class OperationPlannerTests : FusionTestBase
             }
             """,
             """
-            schema @schemaName(value: "B") {
+            schema {
               query: Query
             }
 
@@ -397,7 +397,7 @@ public class OperationPlannerTests : FusionTestBase
             }
             """,
             """
-            schema @schemaName(value: "C") {
+            schema {
               query: Query
             }
 

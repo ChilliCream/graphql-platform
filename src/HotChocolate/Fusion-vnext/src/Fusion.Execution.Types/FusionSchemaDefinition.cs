@@ -340,7 +340,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     }
 
     /// <summary>
-    /// Tries to get the best direct lookup to transition from one schema to another without intemediary transitions.
+    /// Tries to get the best direct lookup to transition from one schema to another without intermediary transitions.
     /// The best lookup algorithm will try to find the smallest possible key that does not require any intermediary transitions.
     /// </summary>
     /// <param name="type">The type to get the best direct lookup for.</param>
@@ -371,8 +371,9 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition
     }
 
     /// <summary>
-    /// Tries to get the best direct lookup to transition from one schema to another without intemediary transitions.
-    /// The best lookup algorithm will try to find the smallest possible key that does not require any intermediary transitions.
+    /// Tries to get the best direct lookup to transition from one schema to another without intermediary transitions.
+    /// The best lookup algorithm will try to find the smallest possible key that does not require
+    /// any intermediary transitions.
     /// </summary>
     /// <param name="type">The type to get the best direct lookup for.</param>
     /// <param name="fromSchema">The schema to get the best direct lookup from.</param>
