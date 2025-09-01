@@ -161,7 +161,7 @@ jobs:
         if: runner.os == 'macOS'
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_CERTFICATE_BASE64 }}
-          P12_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTFICATE_BASE64_PASSWORD }}
+          P12_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTFICATE_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.TEMPORARY_KEYCHAIN_PASSWORD }}
         run: |
           # create variables
@@ -182,9 +182,10 @@ jobs:
           security list-keychain -d user -s $KEYCHAIN_PATH
 
       - name: 🖋️ Sign macOS binary
+        if: runner.os == 'macOS'
         env:
-          CODESIGN_IDENTITY: "TODO" # this is the identity in the keychain
-          CODESIGN_PREFIX: "com.chillicream." # todo: is this enough or does it need to be more specific?
+          CODESIGN_IDENTITY: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_IDENTITY }}
+          CODESIGN_PREFIX: "com.chillicream."
         run: |
           codesign --sign "$CODESIGN_IDENTITY" \
             --prefix "$CODESIGN_PREFIX" \
@@ -222,15 +223,15 @@ jobs:
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
           rm ~/Library/MobileDevice/Provisioning\ Profiles/build_pp.provisionprofile
 
-      - name: 📤 Upload Zipped AOT binary
+      - name: 📤 Upload Zipped AOT binary as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nitro-${{ matrix.rid }}.zip
+          path: nitro-${{ matrix.rid }}.zip
+
+      - name: 📤 Upload Zipped AOT binary to release
         shell: bash
         run: |
           gh release upload ${{ github.ref_name }} nitro-${{ matrix.rid }}.zip --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-# TODO: I need the following secrets
-# APPLE_DEVELOPER_ID_EMAIL
-# APPLE_DEVELOPER_TEAM_ID
-# APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD
-# APPLE_DEVELOPER_CERTFICATE_BASE64
-# APPLE_DEVELOPER_CERTFICATE_BASE64_PASSWORD
