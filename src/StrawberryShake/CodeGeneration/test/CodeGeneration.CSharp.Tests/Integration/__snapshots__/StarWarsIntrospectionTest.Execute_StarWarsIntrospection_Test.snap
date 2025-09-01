@@ -907,7 +907,7 @@
               "DeprecationReason": null
             },
             {
-              "Name": "oneOf",
+              "Name": "isOneOf",
               "Description": null,
               "Args": [],
               "Type": {
@@ -4193,7 +4193,7 @@
             },
             {
               "__typename": "__Field",
-              "Name": "oneOf",
+              "Name": "isOneOf",
               "Description": null,
               "Args": [],
               "Type": {

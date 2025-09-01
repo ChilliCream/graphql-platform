@@ -503,4 +503,46 @@ public class AllVariableUsagesAreAllowedRuleTests
             """
         );
     }
+
+    [Fact]
+    public void VariablesUsedForOneOfInputObjectFieldsMustBeNonNullable1_Valid()
+    {
+        ExpectValid(
+            """
+            mutation addCat($cat: CatInput!) {
+              addPet(pet: { cat: $cat }) {
+                name
+              }
+            }
+            """
+        );
+    }
+
+    [Fact]
+    public void VariablesUsedForOneOfInputObjectFieldsMustBeNonNullable2_Valid()
+    {
+        ExpectValid(
+            """
+            mutation addCatWithDefault($cat: CatInput! = { name: "Brontie" }) {
+              addPet(pet: { cat: $cat }) {
+                name
+              }
+            }
+            """
+        );
+    }
+
+    [Fact]
+    public void VariablesUsedForOneOfInputObjectFieldsMustBeNonNullable1_Error()
+    {
+        ExpectErrors(
+            """
+            mutation addNullableCat($cat: CatInput) {
+              addPet(pet: { cat: $cat }) {
+                name
+              }
+            }
+            """
+        );
+    }
 }
