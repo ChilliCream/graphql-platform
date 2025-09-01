@@ -21,26 +21,26 @@ jobs:
       matrix:
         include:
           # Linux (x64)
-          - os: ubuntu-22.04
-            rid: linux-x64
-          - os: ubuntu-22.04
-            rid: linux-musl-x64
-          # Linux (arm64 on ARM runner!)
-          - os: ubuntu-24.04-arm
-            rid: linux-arm64
+          # - os: ubuntu-22.04
+          #   rid: linux-x64
+          # - os: ubuntu-22.04
+          #   rid: linux-musl-x64
+          # # Linux (arm64 on ARM runner!)
+          # - os: ubuntu-24.04-arm
+          #   rid: linux-arm64
           # macOS
           - os: macos-15
             rid: osx-x64
           - os: macos-15
             rid: osx-arm64
           # Windows
-          - os: windows-2025
-            rid: win-x64
-          - os: windows-2025
-            rid: win-x86
-          # Windows (arm64 on ARM runner!)
-          - os: windows-11-arm
-            rid: win-arm64
+          # - os: windows-2025
+          #   rid: win-x64
+          # - os: windows-2025
+          #   rid: win-x86
+          # # Windows (arm64 on ARM runner!)
+          # - os: windows-11-arm
+          #   rid: win-arm64
 
     steps:
       - name: 📦 Checkout
