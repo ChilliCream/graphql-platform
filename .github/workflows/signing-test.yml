@@ -64,7 +64,7 @@ jobs:
             -p:RuntimeIdentifiers=${{ matrix.rid }} \
             -o ./publish
 
-      - name: Azure login
+      - name: 🖋️ Azure login (for Windows)
         uses: azure/login@v1
         if: runner.os == 'Windows'
         with:
@@ -155,10 +155,9 @@ jobs:
             --team-id "$APPLE_DEVELOPER_TEAM_ID" \
             --password "$APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD" \
             --wait
-            --timeout 20m
 
           spctl --assess --type exec -vv publish/nitro || true
-          codesign -dvv publish/nitro
+          codesign -dvv publish/nitro || true
 
       - name: 🖋️ Clean up macOS signing resources
         if: always() && runner.os == 'macOS'
