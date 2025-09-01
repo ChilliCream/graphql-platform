@@ -940,11 +940,20 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.HumanEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "homePlanet"))));
+                    var arg0 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "homePlanet"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(arg0));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "homePlanet"))));
+                    var arg0 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "homePlanet"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(arg0));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(arg0));
+                    }
                 }
 
                 return entityId;

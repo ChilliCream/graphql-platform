@@ -998,11 +998,20 @@ namespace Foo.Bar.State
                 {
                     if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.BazEntity? entity))
                     {
-                        session.SetEntity(entityId, new global::Foo.Bar.State.BazEntity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"))));
+                        var arg0 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                        session.SetEntity(entityId, new global::Foo.Bar.State.BazEntity(arg0));
                     }
                     else
                     {
-                        session.SetEntity(entityId, new global::Foo.Bar.State.BazEntity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"))));
+                        var arg0 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                        if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                        {
+                            session.SetEntity(entityId, new global::Foo.Bar.State.BazEntity(arg0));
+                        }
+                        else
+                        {
+                            session.SetEntity(entityId, new global::Foo.Bar.State.BazEntity(arg0));
+                        }
                     }
 
                     return new global::StrawberryShake.EntityIdOrData(entityId);
@@ -1021,11 +1030,20 @@ namespace Foo.Bar.State
                 {
                     if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.Baz2Entity? entity))
                     {
-                        session.SetEntity(entityId, new global::Foo.Bar.State.Baz2Entity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"))));
+                        var arg0 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                        session.SetEntity(entityId, new global::Foo.Bar.State.Baz2Entity(arg0));
                     }
                     else
                     {
-                        session.SetEntity(entityId, new global::Foo.Bar.State.Baz2Entity(Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"))));
+                        var arg0 = Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                        if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                        {
+                            session.SetEntity(entityId, new global::Foo.Bar.State.Baz2Entity(arg0));
+                        }
+                        else
+                        {
+                            session.SetEntity(entityId, new global::Foo.Bar.State.Baz2Entity(arg0));
+                        }
                     }
 
                     return new global::StrawberryShake.EntityIdOrData(entityId);

@@ -421,4 +421,45 @@ public class TestGeneration
             scalar LocalDateTime
             scalar LocalTime
             """);
+
+    [Fact]
+    public void RecursiveEntitySelfReference() =>
+        AssertResult(
+            CreateIntegrationTest(),
+            skipWarnings: true,
+                """
+                query GetSelfishGuy {
+                  selfishGuy {
+                    id
+                    firstName
+                    lastName
+                    bestFriend {
+                      firstName
+                      lastName
+                      age
+                      phone
+                    }
+                    friends {
+                      id
+                      firstName
+                      lastName
+                      zipCode
+                    }
+                  }
+                }
+                """,
+            "type Query { selfishGuy: Person! }",
+            """
+            type Person {
+              id: String!
+              firstName: String!
+              lastName: String!
+              age: Int!
+              phone: String!
+              zipCode: String!
+              bestFriend: Person!
+              friends: [Person!]
+            }
+            """,
+            "extend schema @key(fields: \"id\")");
 }

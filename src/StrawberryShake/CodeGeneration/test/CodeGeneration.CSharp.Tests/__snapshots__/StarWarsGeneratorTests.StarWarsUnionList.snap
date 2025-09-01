@@ -879,7 +879,14 @@ namespace Foo.Bar.State
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.StarshipEntity());
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.StarshipEntity());
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.StarshipEntity());
+                    }
                 }
 
                 return entityId;
@@ -889,11 +896,20 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.HumanEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(arg0));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(arg0));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.HumanEntity(arg0));
+                    }
                 }
 
                 return entityId;
@@ -903,11 +919,20 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.DroidEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.DroidEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.DroidEntity(arg0));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.DroidEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.DroidEntity(arg0));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.DroidEntity(arg0));
+                    }
                 }
 
                 return entityId;
