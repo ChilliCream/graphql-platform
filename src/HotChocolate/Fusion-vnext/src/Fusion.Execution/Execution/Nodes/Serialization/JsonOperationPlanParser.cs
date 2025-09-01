@@ -20,16 +20,24 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     {
         using var document = JsonDocument.Parse(planSourceText);
         var rootElement = document.RootElement;
+        uint searchSpace = 0;
 
         var id = rootElement.GetProperty("id").GetString()!;
         var operation = ParseOperation(rootElement.GetProperty("operation"));
+
+        if (rootElement.TryGetProperty("searchSpace", out var searchSpaceElement))
+        {
+            searchSpace = searchSpaceElement.GetUInt32();
+        }
+
         var nodes = ParseNodes(rootElement.GetProperty("nodes"), operation);
 
         return OperationPlan.Create(
             id,
             operation,
             [.. nodes.Where(n => n.Dependencies.Length == 0)],
-            nodes);
+            nodes,
+            searchSpace);
     }
 
     private Operation ParseOperation(JsonElement operationElement)
@@ -149,7 +157,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var operationElement = nodeElement.GetProperty("operation");
         var operationName = operationElement.GetProperty("name").GetString()!;
-        var operationType = Enum.Parse<OperationType>(operationElement.GetProperty("type").GetString()!);
+        var operationType = Enum.Parse<OperationType>(operationElement.GetProperty("kind").GetString()!);
         var document = operationElement.GetProperty("document").GetString()!;
         var hash = operationElement.GetProperty("hash").GetString()!;
 

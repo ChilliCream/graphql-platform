@@ -35,9 +35,9 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
         requestBuilder.TryAddGlobalState(OperationSessionId, operationSessionId);
         requestBuilder.TryAddGlobalState(nameof(ClaimsPrincipal), userState.User);
 
-        if (context.IncludeQueryPlan())
+        if (context.IncludeOperationPlan())
         {
-            requestBuilder.TryAddGlobalState(IncludeQueryPlan, true);
+            requestBuilder.TryAddGlobalState(IncludeOperationPlan, true);
         }
 
         return default;

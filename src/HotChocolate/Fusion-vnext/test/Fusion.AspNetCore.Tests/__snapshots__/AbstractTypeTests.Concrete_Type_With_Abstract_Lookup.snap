@@ -8,7 +8,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "e6a988d4f83b04e93522da65db0887b2ac959a3d6f7c4e533f032034c7a64245",
+        "id": "4ce82e0e3e83ffce1dba53e51ca363c95868c819ddf044df2318f75d475d5341",
         "operation": {
           "kind": "Query",
           "document": "{\n  authorById(id: 1) {\n    name\n    age\n    id @fusion__requirement\n  }\n}",
@@ -16,6 +16,7 @@
           "hash": "94874bbd5fd74fc49ba59e51c4bad3fe",
           "shortHash": "94874bbd"
         },
+        "searchSpace": 1,
         "nodes": [
           {
             "id": 1,
@@ -23,7 +24,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_94874bbd_1",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_94874bbd_1 {\n  authorById(id: 1) {\n    name\n    id\n  }\n}",
               "hash": "44717c77a830d9df712a9f3e6258abd0d20dee26414085b050d2350dd119be2f",
               "shortHash": "44717c77"
@@ -38,12 +39,14 @@
             "schema": "B",
             "operation": {
               "name": "Op_94874bbd_2",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_94874bbd_2(\n  $__fusion_1_id: Int!\n) {\n  otherInterface(id: $__fusion_1_id) {\n    __typename\n    ... on Author {\n      age\n    }\n  }\n}",
               "hash": "e5976249e22113aad071cfd11daf2709ea3521e377e172ce3b013ffe6cd5f077",
               "shortHash": "e5976249"
             },
-            "responseNames": [],
+            "responseNames": [
+              "age"
+            ],
             "source": "$.otherInterface<Author>",
             "target": "$.authorById",
             "requirements": [

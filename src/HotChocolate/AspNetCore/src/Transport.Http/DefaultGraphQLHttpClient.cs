@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Language;
 using HotChocolate.Transport.Serialization;
 using static System.Net.Http.HttpCompletionOption;
 
@@ -212,8 +213,13 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 
         foreach (var fileInfo in fileInfos)
         {
-            var file = new StreamContent(fileInfo.File.OpenRead());
-            form.Add(file, fileInfo.Name, fileInfo.File.FileName);
+            var fileContent = new StreamContent(fileInfo.File.OpenRead());
+            if (!string.IsNullOrEmpty(fileInfo.File.ContentType))
+            {
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(fileInfo.File.ContentType);
+            }
+
+            form.Add(fileContent, fileInfo.Name, fileInfo.File.FileName);
         }
 
         return form;
@@ -271,6 +277,13 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             sb.Append(Uri.EscapeDataString(or.OperationName!));
         }
 
+        if (or.OnError is {} errorHandlingMode)
+        {
+            AppendAmpersand(sb, ref appendAmpersand);
+            sb.Append("onError=");
+            sb.Append(GetErrorHandlingModeAsString(errorHandlingMode));
+        }
+
         if (or.VariablesNode is not null)
         {
             AppendAmpersand(sb, ref appendAmpersand);
@@ -308,6 +321,17 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 
             appendAmpersand = true;
         }
+    }
+
+    private static string GetErrorHandlingModeAsString(ErrorHandlingMode mode)
+    {
+        return mode switch
+        {
+            ErrorHandlingMode.Propagate => "PROPAGATE",
+            ErrorHandlingMode.Null => "NULL",
+            ErrorHandlingMode.Halt => "HALT",
+            _ => throw new ArgumentOutOfRangeException(nameof(mode))
+        };
     }
 
     private static string FormatDocumentAsJson(PooledArrayWriter arrayWriter, object? obj)

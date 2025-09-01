@@ -10,15 +10,15 @@ operation:
           ... on ProductList {
             products {
               id
+              id @fusion__requirement
               name
-              id @fusion__requirement
-              id @fusion__requirement
             }
           }
         }
       }
     name: testQuery
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Node
@@ -81,7 +81,8 @@ nodes:
     target: $.node.products
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 3
   - id: 5
@@ -123,6 +124,7 @@ nodes:
     target: $.node.products
     requirements:
       - name: __fusion_2_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 3

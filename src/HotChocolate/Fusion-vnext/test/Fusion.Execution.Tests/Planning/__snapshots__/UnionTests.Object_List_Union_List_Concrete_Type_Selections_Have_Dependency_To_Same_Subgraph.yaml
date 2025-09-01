@@ -21,6 +21,7 @@ operation:
       }
     name: testQuery
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Operation
@@ -58,7 +59,8 @@ nodes:
     target: $.users.posts<Discussion>.author
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1
   - id: 3
@@ -76,6 +78,7 @@ nodes:
     target: $.users.posts<Photo>.product
     requirements:
       - name: __fusion_2_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1

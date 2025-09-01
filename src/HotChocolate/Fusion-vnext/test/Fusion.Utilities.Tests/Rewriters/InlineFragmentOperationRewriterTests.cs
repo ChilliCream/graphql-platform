@@ -555,4 +555,40 @@ public class InlineFragmentOperationRewriterTests
             }
             """);
     }
+
+    [Fact]
+    public void Merge_Fusion_Requirements()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+                productById(id: 1) {
+                    id @fusion__requirement
+                    id @fusion__requirement
+                    id @fusion__requirement
+                    id @fusion__requirement
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(schemaDefinition, true);
+        var rewritten = rewriter.RewriteDocument(doc, null);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            query(
+              $skip: Boolean!
+            ) {
+              productById(id: 1) {
+                id @fusion__requirement
+              }
+            }
+            """);
+    }
 }

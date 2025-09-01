@@ -19,6 +19,7 @@ internal sealed class FetchResultStore : IDisposable
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
     private readonly ISchemaDefinition _schema;
     private readonly Operation _operation;
+    private readonly ErrorHandlingMode _errorHandling;
     private readonly ulong _includeFlags;
     private readonly ConcurrentStack<IDisposable> _memory = [];
     private ObjectResult _root = null!;
@@ -30,6 +31,7 @@ internal sealed class FetchResultStore : IDisposable
         ISchemaDefinition schema,
         ResultPoolSession resultPoolSession,
         Operation operation,
+        ErrorHandlingMode errorHandling,
         ulong includeFlags)
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -38,6 +40,7 @@ internal sealed class FetchResultStore : IDisposable
 
         _schema = schema;
         _operation = operation;
+        _errorHandling = errorHandling;
         _includeFlags = includeFlags;
 
         Reset(resultPoolSession);
@@ -53,7 +56,7 @@ internal sealed class FetchResultStore : IDisposable
         _valueCompletion = new ValueCompletion(
             _schema,
             resultPoolSession,
-            ErrorHandling.Propagate,
+            _errorHandling,
             32,
             _includeFlags,
             _errors);
@@ -65,7 +68,7 @@ internal sealed class FetchResultStore : IDisposable
 
     public ConcurrentStack<IDisposable> MemoryOwners => _memory;
 
-    public void AddPartialResults(
+    public bool AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
         ReadOnlySpan<string> responseNames)
@@ -110,7 +113,7 @@ internal sealed class FetchResultStore : IDisposable
                 errorTrie = ref Unsafe.Add(ref errorTrie, 1)!;
             }
 
-            SaveSafe(results, dataElementsSpan, errorTriesSpan, responseNames);
+            return SaveSafe(results, dataElementsSpan, errorTriesSpan, responseNames);
         }
         finally
         {
@@ -151,7 +154,7 @@ internal sealed class FetchResultStore : IDisposable
         }
     }
 
-    public void AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
+    public bool AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
     {
         _lock.EnterWriteLock();
 
@@ -164,7 +167,7 @@ internal sealed class FetchResultStore : IDisposable
             {
                 if (_root.IsInvalidated)
                 {
-                    return;
+                    return false;
                 }
 
                 var objectResult = path.IsRoot ? _root : GetStartObjectResult(path);
@@ -177,7 +180,14 @@ internal sealed class FetchResultStore : IDisposable
                 }
 #pragma warning restore RCS1146
 
-                _valueCompletion.BuildErrorResult(objectResult, responseNames, error, path);
+                var canExecutionContinue = _valueCompletion.BuildErrorResult(objectResult, responseNames, error, path);
+
+                if (!canExecutionContinue)
+                {
+                    _root.IsInvalidated = true;
+
+                    return false;
+                }
 
                 AddErrors_Next:
                 path = ref Unsafe.Add(ref path, 1)!;
@@ -187,9 +197,11 @@ internal sealed class FetchResultStore : IDisposable
         {
             _lock.ExitWriteLock();
         }
+
+        return true;
     }
 
-    private void SaveSafe(
+    private bool SaveSafe(
         ReadOnlySpan<SourceSchemaResult> results,
         ReadOnlySpan<JsonElement> dataElements,
         ReadOnlySpan<ErrorTrie?> errorTries,
@@ -208,7 +220,7 @@ internal sealed class FetchResultStore : IDisposable
             {
                 if (_root.IsInvalidated)
                 {
-                    return;
+                    return false;
                 }
 
 #pragma warning disable RCS1146
@@ -221,7 +233,19 @@ internal sealed class FetchResultStore : IDisposable
 #pragma warning restore RCS1146
 
                 var selectionSet = result.Path.IsRoot ? _operation.RootSelectionSet : objectResult.SelectionSet;
-                _valueCompletion.BuildResult(selectionSet, data, errorTrie, responseNames, objectResult);
+                var canExecutionContinue = _valueCompletion.BuildResult(
+                    selectionSet,
+                    data,
+                    errorTrie,
+                    responseNames,
+                    objectResult);
+
+                if (!canExecutionContinue)
+                {
+                    _root.IsInvalidated = true;
+
+                    return false;
+                }
 
                 SaveSafe_Next:
                 result = ref Unsafe.Add(ref result, 1)!;
@@ -233,6 +257,8 @@ internal sealed class FetchResultStore : IDisposable
         {
             _lock.ExitWriteLock();
         }
+
+        return true;
     }
 
     public ImmutableArray<VariableValues> CreateVariableValueSets(

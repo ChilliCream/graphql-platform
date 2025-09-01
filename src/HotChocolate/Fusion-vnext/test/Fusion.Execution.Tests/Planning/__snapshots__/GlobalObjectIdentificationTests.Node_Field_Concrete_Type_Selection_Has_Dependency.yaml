@@ -17,6 +17,7 @@ operation:
       }
     name: testQuery
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Node
@@ -73,6 +74,7 @@ nodes:
     target: $.node.product
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 3

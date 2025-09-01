@@ -5,13 +5,14 @@ operation:
           __typename @fusion__requirement
           author {
             id
-            displayName
             id @fusion__requirement
+            displayName
           }
         }
       }
     name: testQuery
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Operation
@@ -40,6 +41,7 @@ nodes:
     target: $.authorables.author
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1

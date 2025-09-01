@@ -17,6 +17,7 @@ operation:
         }
       }
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Operation
@@ -51,7 +52,8 @@ nodes:
     target: $.productBySlug
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1
   - id: 3
@@ -69,6 +71,7 @@ nodes:
     target: $.productBySlug.reviews.nodes.author
     requirements:
       - name: __fusion_2_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 2

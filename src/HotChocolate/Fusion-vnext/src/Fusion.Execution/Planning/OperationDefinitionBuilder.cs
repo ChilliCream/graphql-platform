@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -95,7 +96,7 @@ internal sealed class OperationDefinitionBuilder
                     typeRefinement
                 ]);
 
-                indexBuilder.Register(selectionSet, lookupSelectionSet);
+                indexBuilder.Register(lookupSelectionSet);
 
                 selectionPathBuilder.AppendFragment(_typeToLookup.Name);
             }

@@ -55,17 +55,35 @@ public sealed record PlanNode
         }
     }
 
-    public required ImmutableStack<WorkItem> Backlog { get; init; }
+    public required ImmutableStack<WorkItem> Backlog
+    {
+        get;
+        init
+        {
+            field = value;
+            BacklogCost = value.Sum(t => t.Cost);
+        }
+    }
 
-    public ImmutableList<PlanStep> Steps { get; init; } = [];
+    public ImmutableList<PlanStep> Steps
+    {
+        get;
+        init
+        {
+            field = value;
+            PathCost = value.OfType<OperationPlanStep>().Count() * 10.0;
+        }
+    } = [];
 
     public uint LastRequirementId { get; init; }
 
-    public double PathCost { get; init; }
+    public double PathCost { get; private set; }
 
-    public double BacklogCost { get; init; }
+    public double BacklogCost { get; private set; }
 
-    public double TotalCost => PathCost + BacklogCost;
+    public double ResolutionCost { get; init; }
+
+    public double TotalCost => PathCost + BacklogCost + ResolutionCost;
 
     public string CreateOperationName(int stepId)
     {

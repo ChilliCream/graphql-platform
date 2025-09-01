@@ -14,6 +14,7 @@ operation:
       }
     name: testQuery
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Node
@@ -43,8 +44,11 @@ nodes:
       ) {
         node(id: $id) {
           __typename
-          name
-          id
+          ... on Discussion {
+            __typename
+            name
+            id
+          }
         }
       }
     dependencies:
@@ -64,6 +68,7 @@ nodes:
     target: $.node
     requirements:
       - name: __fusion_1_discussionId
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 3

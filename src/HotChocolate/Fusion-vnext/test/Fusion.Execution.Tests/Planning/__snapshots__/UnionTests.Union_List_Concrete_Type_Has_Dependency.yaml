@@ -14,6 +14,7 @@ operation:
       }
     name: testQuery
     hash: 123456789101112
+    searchSpace: 1
 nodes:
   - id: 1
     type: Operation
@@ -45,6 +46,7 @@ nodes:
     target: $.posts<Photo>
     requirements:
       - name: __fusion_1_id
-        selectionMap: id
+        selectionMap: >-
+          id
     dependencies:
       - id: 1

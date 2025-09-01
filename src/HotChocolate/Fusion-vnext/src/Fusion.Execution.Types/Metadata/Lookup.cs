@@ -5,7 +5,7 @@ using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Types;
+namespace HotChocolate.Fusion.Types.Metadata;
 
 /// <summary>
 /// Represents a lookup field in a source schema.
@@ -23,6 +23,7 @@ public sealed class Lookup : INeedsCompletion
     /// <param name="declaringTypeName">The name of the type that declares the field.</param>
     /// <param name="fieldName">The name of the lookup field.</param>
     /// <param name="fieldType">The type the lookup field returns.</param>
+    /// <param name="isInternal">Whether the lookup is internal or not.</param>
     /// <param name="arguments">The arguments that represent field requirements.</param>
     /// <param name="fields">The paths to the field that are required.</param>
     /// <exception cref="ArgumentException">
@@ -37,6 +38,7 @@ public sealed class Lookup : INeedsCompletion
         string declaringTypeName,
         string fieldName,
         string fieldType,
+        bool isInternal,
         ImmutableArray<LookupArgument> arguments,
         ImmutableArray<IValueSelectionNode> fields)
     {
@@ -59,6 +61,7 @@ public sealed class Lookup : INeedsCompletion
         _fieldType = fieldType;
         SchemaName = schemaName;
         FieldName = fieldName;
+        IsInternal = isInternal;
         Arguments = arguments;
         Fields = fields;
     }
@@ -77,6 +80,11 @@ public sealed class Lookup : INeedsCompletion
     /// Gets the type the lookup field returns.
     /// </summary>
     public ITypeDefinition FieldType { get; private set; } = null!;
+
+    /// <summary>
+    /// Gets whether the lookup is internal or not.
+    /// </summary>
+    public bool IsInternal { get; }
 
     /// <summary>
     /// Gets the arguments that represent field requirements.

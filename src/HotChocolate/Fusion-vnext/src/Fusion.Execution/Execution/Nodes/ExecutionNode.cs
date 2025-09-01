@@ -41,7 +41,7 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
         }
         catch (Exception ex)
         {
-            OnError(scope, ex);
+            OnError(context, scope, ex);
             error = ex;
             status = ExecutionStatus.Failed;
         }
@@ -57,7 +57,8 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
             Stopwatch.GetElapsedTime(start),
             error,
             context.GetDependentsToExecute(this),
-            context.GetVariableValueSets(this));
+            context.GetVariableValueSets(this),
+            context.GetTransportDetails(this));
 
         context.CompleteNode(result);
     }
@@ -68,7 +69,8 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
 
     protected virtual IDisposable? CreateScope(OperationPlanContext context) => null;
 
-    protected virtual void OnError(IDisposable? scope, Exception error) { }
+    protected virtual void OnError(OperationPlanContext context, IDisposable? scope, Exception error)
+        => context.DiagnosticEvents.ExecutionNodeError(context, this, error);
 
     protected void EnqueueDependentForExecution(OperationPlanContext context, ExecutionNode dependent)
     {

@@ -42,6 +42,7 @@ public ref partial struct Utf8GraphQLRequestParser
                     request.DocumentId,
                     null,
                     operationName ?? request.OperationName,
+                    request.ErrorHandlingMode,
                     request.Variables,
                     request.Extensions
                 );
@@ -179,6 +180,7 @@ public ref partial struct Utf8GraphQLRequestParser
             request.DocumentId,
             request.DocumentHash,
             request.OperationName,
+            request.ErrorHandlingMode,
             request.Variables,
             request.Extensions
         );
@@ -270,6 +272,27 @@ public ref partial struct Utf8GraphQLRequestParser
                 if (fieldName.SequenceEqual(OperationNameProperty))
                 {
                     request.OperationName = ParseStringOrNull();
+                }
+
+                if (fieldName.SequenceEqual(OnErrorProperty))
+                {
+                    var rawErrorHandlingMode = ParseStringOrNull();
+
+                    if (rawErrorHandlingMode is not null)
+                    {
+                        if (rawErrorHandlingMode.Equals("PROPAGATE", StringComparison.OrdinalIgnoreCase))
+                        {
+                            request.ErrorHandlingMode = ErrorHandlingMode.Propagate;
+                        }
+                        else if (rawErrorHandlingMode.Equals("NULL", StringComparison.OrdinalIgnoreCase))
+                        {
+                            request.ErrorHandlingMode = ErrorHandlingMode.Null;
+                        }
+                        else if (rawErrorHandlingMode.Equals("HALT", StringComparison.OrdinalIgnoreCase))
+                        {
+                            request.ErrorHandlingMode = ErrorHandlingMode.Halt;
+                        }
+                    }
                 }
 
                 break;

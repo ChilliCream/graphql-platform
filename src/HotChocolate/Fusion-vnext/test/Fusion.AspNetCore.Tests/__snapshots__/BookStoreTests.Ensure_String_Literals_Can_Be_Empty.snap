@@ -1,0 +1,37 @@
+{
+  "data": {
+    "formatTitle": ""
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "a857dd20d133e349ea9f4e025f6c56781db14d8c90e3e0591c89156fbd7bc1d1",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  formatTitle(title: \"\")\n}",
+          "id": "db37b9bf699a3623f803777a91ad4002",
+          "hash": "db37b9bf699a3623f803777a91ad4002",
+          "shortHash": "db37b9bf"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "a",
+            "operation": {
+              "name": "Op_db37b9bf_1",
+              "kind": "Query",
+              "document": "query Op_db37b9bf_1 {\n  formatTitle(title: \"\")\n}",
+              "hash": "f008a17a4990239900f3bc520624a85106689c0364d27a015aea3f7e2731b816",
+              "shortHash": "f008a17a"
+            },
+            "responseNames": [
+              "formatTitle"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

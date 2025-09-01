@@ -64,6 +64,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         }
 
         writer.WriteLine("hash: {0}", plan.Operation.Id);
+        writer.WriteLine("searchSpace: {0}", plan.SearchSpace);
 
         if (trace is not null)
         {
@@ -130,7 +131,17 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             {
                 writer.WriteLine("- name: {0}", requirement.Key);
                 writer.Indent();
-                writer.WriteLine("selectionMap: {0}", requirement.Map);
+
+                writer.WriteLine("selectionMap: >-");
+                writer.Indent();
+                var selectionMapReader = new StringReader(requirement.Map.ToString(indented: true));
+                var selectionMapLine = selectionMapReader.ReadLine();
+                while (selectionMapLine != null)
+                {
+                    writer.WriteLine(selectionMapLine);
+                    selectionMapLine = selectionMapReader.ReadLine();
+                }
+                writer.Unindent();
                 writer.Unindent();
             }
 
