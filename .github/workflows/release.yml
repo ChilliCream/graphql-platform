@@ -179,7 +179,6 @@ jobs:
           # import certificate to keychain
           security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
 
       - name: 🖋️ Sign macOS binary
         if: runner.os == 'macOS'
@@ -221,12 +220,11 @@ jobs:
         if: ${{ always() }} && runner.os == 'macOS'
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
-          rm ~/Library/MobileDevice/Provisioning\ Profiles/build_pp.provisionprofile
 
       - name: 📤 Upload Zipped AOT binary as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: nitro-${{ matrix.rid }}.zip
+          name: nitro-${{ matrix.rid }}
           path: nitro-${{ matrix.rid }}.zip
 
       - name: 📤 Upload Zipped AOT binary to release
