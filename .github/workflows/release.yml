@@ -5,6 +5,10 @@ on:
     tags:
       - "16.*"
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   release:
     name: 📦 Build & Publish NuGet Packages
@@ -70,84 +74,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build-fusion-cli:
-    name: 🧱 Build and Publish Fusion CLI
-    runs-on: ${{ matrix.os }}
-    permissions:
-      contents: write
-    strategy:
-      matrix:
-        include:
-          # Linux (x64)
-          - os: ubuntu-22.04
-            rid: linux-x64
-            ext: ""
-          - os: ubuntu-22.04
-            rid: linux-musl-x64
-            ext: ""
-          # Linux (arm64 on ARM runner!)
-          - os: ubuntu-24.04-arm
-            rid: linux-arm64
-            ext: ""
-          # macOS
-          - os: macos-15
-            rid: osx-x64
-            ext: ""
-          - os: macos-15
-            rid: osx-arm64
-            ext: ""
-          # Windows
-          - os: windows-2025
-            rid: win-x64
-            ext: ".exe"
-          - os: windows-2025
-            rid: win-x86
-            ext: ".exe"
-          # Windows (arm64 on ARM runner!)
-          - os: windows-11-arm
-            rid: win-arm64
-            ext: ".exe"
-
-    steps:
-      - name: 📦 Checkout
-        uses: actions/checkout@v4
-
-      - name: 🛠 Install .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.x
-
-      - name: 🧩 Publish AOT Binary for ${{ matrix.rid }}
-        shell: bash
-        run: |
-          dotnet publish ./src/HotChocolate/Fusion-vnext/src/Fusion.CommandLine \
-            -c Release \
-            -r ${{ matrix.rid }} \
-            -f net10.0 \
-            --self-contained true \
-            -p:PublishAot=true \
-            -p:TargetFrameworks=NET10.0 \
-            -o ./publish
-
-      - name: 📦 Zip Binary (Windows)
-        if: runner.os == 'Windows'
-        run: Compress-Archive -Path publish/fusion.exe -DestinationPath fusion-${{ matrix.rid }}.zip
-        shell: pwsh
-
-      - name: 📦 Zip Binary (Unix)
-        if: runner.os != 'Windows'
-        run: |
-          cd publish
-          zip ../fusion-${{ matrix.rid }}.zip fusion${{ matrix.ext }}
-        shell: bash
-
-      - name: 📤 Upload Zipped AOT Binary
-        shell: bash
-        run: |
-          gh release upload ${{ github.ref_name }} fusion-${{ matrix.rid }}.zip --repo ${{ github.repository }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   build-nitro-cli:
     name: 🧱 Build and Publish Nitro CLI
     runs-on: ${{ matrix.os }}
@@ -161,32 +87,24 @@ jobs:
           # Linux (x64)
           - os: ubuntu-22.04
             rid: linux-x64
-            ext: ""
           - os: ubuntu-22.04
             rid: linux-musl-x64
-            ext: ""
           # Linux (arm64 on ARM runner!)
           - os: ubuntu-24.04-arm
             rid: linux-arm64
-            ext: ""
           # macOS
           - os: macos-15
             rid: osx-x64
-            ext: ""
           - os: macos-15
             rid: osx-arm64
-            ext: ""
           # Windows
           - os: windows-2025
             rid: win-x64
-            ext: ".exe"
           - os: windows-2025
             rid: win-x86
-            ext: ".exe"
           # Windows (arm64 on ARM runner!)
-          - os: windows-11-arm
-            rid: win-arm64
-            ext: ".exe"
+          # - os: windows-11-arm
+          #   rid: win-arm64
 
     steps:
       - name: 📦 Checkout
@@ -197,7 +115,7 @@ jobs:
         with:
           dotnet-version: 10.x
 
-      - name: 🧩 Publish AOT Binary for ${{ matrix.rid }}
+      - name: 🧩 Publish AOT binary for ${{ matrix.rid }}
         shell: bash
         run: |
           dotnet publish ./src/Nitro/CommandLine/src/CommandLine \
@@ -210,19 +128,130 @@ jobs:
             -p:RuntimeIdentifiers=${{ matrix.rid }} \
             -o ./publish
 
-      - name: 📦 Zip Binary (Windows)
+      - name: 🖋️ Azure login (for Windows)
+        uses: azure/login@v1
         if: runner.os == 'Windows'
-        run: Compress-Archive -Path publish/nitro.exe -DestinationPath nitro-${{ matrix.rid }}.zip
+        with:
+          creds: ${{ secrets.SIGNING_CREDENTIALS }}
+
+      - name: 🖋️ Sign Windows binary
+        uses: azure/trusted-signing-action@v0
+        if: runner.os == 'Windows'
+        with:
+          endpoint: ${{ vars.AZURE_TRUSTED_SIGNING_ACCOUNT_ENDPOINT }}
+          trusted-signing-account-name: ${{ secrets.AZURE_CODE_SIGNING_NAME }}
+          certificate-profile-name: ${{ secrets.WINDOWS_APP_CERT_PROFILE_NAME }}
+          files: ${{ github.workspace }}\publish\nitro.exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+          exclude-environment-credential: true
+          exclude-workload-identity-credential: true
+          exclude-managed-identity-credential: true
+          exclude-shared-token-cache-credential: true
+          exclude-visual-studio-credential: true
+          exclude-visual-studio-code-credential: true
+          exclude-azure-cli-credential: false
+          exclude-azure-powershell-credential: true
+          exclude-azure-developer-cli-credential: true
+          exclude-interactive-browser-credential: true
+
+      # https://docs.github.com/en/actions/how-tos/deploy/deploy-to-third-party-platforms/sign-xcode-applications
+      - name: 🖋️ Set up macOS signing resources
+        if: runner.os == 'macOS'
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_CERTFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.TEMPORARY_KEYCHAIN_PASSWORD }}
+        run: |
+          # create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # import certificate from secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      - name: 🖋️ Sign macOS binary
+        if: runner.os == 'macOS'
+        env:
+          CODESIGN_IDENTITY: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_IDENTITY }}
+        run: |
+          echo "Code signing 'publish/nitro'..."
+
+          codesign --sign "$CODESIGN_IDENTITY" \
+            --verbose=3 \
+            --identifier "com.chillicream.nitro" \
+            --options runtime \
+            --timestamp \
+            --force \
+            publish/nitro
+
+          codesign --verify --deep --strict --verbose=2 publish/nitro
+
+      - name: 📦 Zip binary (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          Compress-Archive -Path (Get-Item publish/nitro.exe) -DestinationPath nitro-${{ matrix.rid }}.zip
         shell: pwsh
 
-      - name: 📦 Zip Binary (Unix)
+      - name: 📦 Zip binary (Unix)
         if: runner.os != 'Windows'
         run: |
-          cd publish
-          zip ../nitro-${{ matrix.rid }}.zip nitro${{ matrix.ext }}
+          zip -j nitro-${{ matrix.rid }}.zip publish/nitro
         shell: bash
 
-      - name: 📤 Upload Zipped AOT Binary
+      - name: 🖋️ Notarize macOS zipped binary
+        if: runner.os == 'macOS'
+        env:
+          CODESIGN_IDENTITY: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_IDENTITY }}
+          APPLE_DEVELOPER_ID_EMAIL: ${{ secrets.APPLE_DEVELOPER_ID_EMAIL }}
+          APPLE_DEVELOPER_TEAM_ID: ${{ secrets.APPLE_DEVELOPER_TEAM_ID }}
+          APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD }}
+        run: |
+          echo "Code signing 'nitro-${{ matrix.rid }}.zip'..."
+
+          codesign --sign "$CODESIGN_IDENTITY" \
+            --verbose=3 \
+            --options runtime \
+            --timestamp \
+            --force \
+            nitro-${{ matrix.rid }}.zip
+
+          codesign --verify --deep --strict --verbose=2 nitro-${{ matrix.rid }}.zip
+
+          echo "Notarizing 'nitro-${{ matrix.rid }}.zip'..."
+
+          xcrun notarytool submit nitro-${{ matrix.rid }}.zip \
+            --apple-id "$APPLE_DEVELOPER_ID_EMAIL" \
+            --team-id "$APPLE_DEVELOPER_TEAM_ID" \
+            --password "$APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD" \
+            --wait
+
+          spctl --assess --type exec -vv nitro-${{ matrix.rid }}.zip || true
+          codesign -dvv nitro-${{ matrix.rid }}.zip || true
+
+      - name: 🖋️ Clean up macOS signing resources
+        if: always() && runner.os == 'macOS'
+        run: |
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
+
+      - name: 📤 Upload Zipped AOT binary as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nitro-${{ matrix.rid }}
+          path: nitro-${{ matrix.rid }}.zip
+
+      - name: 📤 Upload Zipped AOT binary to release
         shell: bash
         run: |
           gh release upload ${{ github.ref_name }} nitro-${{ matrix.rid }}.zip --repo ${{ github.repository }}
