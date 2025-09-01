@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Reflection.Metadata;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Language;

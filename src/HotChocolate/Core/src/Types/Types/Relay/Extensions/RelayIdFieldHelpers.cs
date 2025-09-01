@@ -84,6 +84,7 @@ internal static class RelayIdFieldHelpers
 
         configuration.Tasks.Add(configurationTask);
     }
+
     internal static void ApplyIdToFieldCore(
         IDescriptor<OutputFieldConfiguration> descriptor,
         NodeIdNameDefinitionUnion? nameDefinition)
