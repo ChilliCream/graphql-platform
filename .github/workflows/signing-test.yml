@@ -126,7 +126,7 @@ jobs:
             --identifier "com.chillicream.nitro" \
             --options runtime \
             --timestamp \
-            -- force \
+            --force \
             publish/nitro
 
           codesign --verify --deep --strict --verbose=2 publish/nitro
