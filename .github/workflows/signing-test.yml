@@ -123,7 +123,7 @@ jobs:
           CODESIGN_IDENTITY: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_IDENTITY }}
         run: |
           codesign --sign "$CODESIGN_IDENTITY" \
-            --verbose=3
+            --verbose=3 \
             --identifier "com.chillicream.nitro" \
             --options runtime \
             --timestamp \
@@ -153,7 +153,7 @@ jobs:
           APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD }}
         run: |
           codesign --sign "$CODESIGN_IDENTITY" \
-            --verbose=3 --verbose=3
+            --verbose=3 \
             --options runtime \
             --timestamp \
             --force \
