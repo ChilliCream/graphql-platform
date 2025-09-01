@@ -186,6 +186,8 @@ jobs:
         env:
           CODESIGN_IDENTITY: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_IDENTITY }}
         run: |
+          echo "Code signing 'publish/nitro'..."
+
           codesign --sign "$CODESIGN_IDENTITY" \
             --verbose=3 \
             --identifier "com.chillicream.nitro" \
@@ -216,12 +218,18 @@ jobs:
           APPLE_DEVELOPER_TEAM_ID: ${{ secrets.APPLE_DEVELOPER_TEAM_ID }}
           APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD }}
         run: |
+          echo "Code signing 'nitro-${{ matrix.rid }}.zip'..."
+
           codesign --sign "$CODESIGN_IDENTITY" \
             --verbose=3 \
             --options runtime \
             --timestamp \
             --force \
             nitro-${{ matrix.rid }}.zip
+
+          codesign --verify --deep --strict --verbose=2 nitro-${{ matrix.rid }}.zip
+
+          echo "Notarizing 'nitro-${{ matrix.rid }}.zip'..."
 
           xcrun notarytool submit nitro-${{ matrix.rid }}.zip \
             --apple-id "$APPLE_DEVELOPER_ID_EMAIL" \
