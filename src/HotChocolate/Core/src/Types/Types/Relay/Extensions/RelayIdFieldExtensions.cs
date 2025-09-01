@@ -139,7 +139,7 @@ public static class RelayIdFieldExtensions
     public static IObjectFieldDescriptor ID<T>(this IObjectFieldDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        
+
         RelayIdFieldHelpers.ApplyIdToField<T>(descriptor);
 
         return descriptor;

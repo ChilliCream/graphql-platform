@@ -168,7 +168,7 @@ public class IdDescriptorTests
         var result =
             await services.ExecuteRequestAsync(
                 $$"""
-                mutation {
+                 mutation {
                     validAnyIdInput1: acceptsAnyId(input: { id: "{{userId}}" }) { int }
                     validAnyIdInput2: acceptsAnyId(input: { id: "{{fooId}}" }) { int }
                     validAnyIdInput3: acceptsAnyId(input: { id: "{{fluentFooId}}" }) { int }

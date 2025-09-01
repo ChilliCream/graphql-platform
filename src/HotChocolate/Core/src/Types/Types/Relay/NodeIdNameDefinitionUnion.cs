@@ -1,4 +1,3 @@
-﻿#nullable enable
 namespace HotChocolate.Types.Relay;
 
 /// <summary>
