@@ -190,18 +190,19 @@ jobs:
           codesign --sign "$CODESIGN_IDENTITY" \
             --prefix "$CODESIGN_PREFIX" \
             --options runtime \
+            --timestamp \
             publish/nitro
 
       - name: 📦 Zip binary (Windows)
         if: runner.os == 'Windows'
         run: |
-          Compress-Archive -Path publish/nitro.exe -DestinationPath nitro-${{ matrix.rid }}.zip
+          Compress-Archive -Path (Get-Item publish/nitro.exe) -DestinationPath nitro-${{ matrix.rid }}.zip
         shell: pwsh
 
       - name: 📦 Zip binary (Unix)
         if: runner.os != 'Windows'
         run: |
-          zip nitro-${{ matrix.rid }}.zip publish/nitro
+          zip -j nitro-${{ matrix.rid }}.zip publish/nitro
         shell: bash
 
       - name: 🖋️ Notarize macOS zipped binary
