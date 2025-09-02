@@ -127,7 +127,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: chillicream-nitro-$GIT_TAG.tgz
-          path: src/Nitro/CommandLine/src/js/chillicream-nitro-$GIT_TAG.tgz
+          path: src/Nitro/CommandLine/src/js/chillicream-nitro-${{ env.GIT_TAG }}.tgz
 
       # - name: 📤 Attach tarball to GitHub release
       #   env:
