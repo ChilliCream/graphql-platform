@@ -57,7 +57,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             return;
         }
 
-        if (type.Resolvers.Any(t => t.Bindings.Length > 0))
+        if (type.Resolvers.SelectMany(t => t.Bindings).Any(b => b.Kind is MemberBindingKind.Property))
         {
             Writer.WriteLine();
             Writer.WriteIndentedLine("var naming = descriptor.Extend().Context.Naming;");
@@ -65,13 +65,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
             foreach (var binding in type.Resolvers.SelectMany(t => t.Bindings))
             {
-                if (binding.Kind is MemberBindingKind.Field)
-                {
-                    Writer.WriteIndentedLine(
-                        "ignoredFields.Add(\"{0}\");",
-                        binding.Name);
-                }
-                else if (binding.Kind is MemberBindingKind.Property)
+                if (binding.Kind is MemberBindingKind.Property)
                 {
                     Writer.WriteIndentedLine(
                         "ignoredFields.Add(naming.GetMemberName(\"{0}\", global::{1}.ObjectField));",
@@ -98,12 +92,23 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
             using (Writer.IncreaseIndent())
             {
-                Writer.WriteIndentedLine(
-                    ".Field(thisType.GetMember(\"{0}\", global::{1})[0])",
-                    resolver.Member.Name,
-                    resolver.IsStatic
-                        ? WellKnownTypes.StaticMemberFlags
-                        : WellKnownTypes.InstanceMemberFlags);
+                // Check if this resolver has a field binding (BindField attribute)
+                var fieldBinding = resolver.Bindings.FirstOrDefault(b => b.Kind is MemberBindingKind.Field);
+                if (fieldBinding.Name is not null)
+                {
+                    // For BindField, configure the bound field name instead of creating a new field from the method
+                    Writer.WriteIndentedLine(".Field(\"{0}\")", fieldBinding.Name);
+                }
+                else
+                {
+                    // For regular resolvers, create field from method name
+                    Writer.WriteIndentedLine(
+                        ".Field(thisType.GetMember(\"{0}\", global::{1})[0])",
+                        resolver.Member.Name,
+                        resolver.IsStatic
+                            ? WellKnownTypes.StaticMemberFlags
+                            : WellKnownTypes.InstanceMemberFlags);
+                }
 
                 if (resolver.Kind is ResolverKind.ConnectionResolver)
                 {
