@@ -289,7 +289,7 @@ internal sealed class FusionPublishCommand : Command
                 compositionLog,
                 sourceSchemaFiles,
                 archive,
-                null,
+                environment: stageName,
                 false,
                 cancellationToken);
 
