@@ -25,8 +25,8 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     private readonly AsyncAutoResetEvent _signal = new();
     private readonly object _sync = new();
     private readonly HashSet<Batch> _enqueuedBatches = [];
+    private readonly HashSet<Batch> _completedBatches = [];
     private readonly CancellationTokenSource _coordinatorCts = new();
-    private int _enqueueVersion;
     private int _openBatches;
     private long _lastSubscribed;
     private long _lastEnqueued;
@@ -192,6 +192,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
             {
                 completedBatches.Add(batch);
                 dispatchTasks.Add(batch.DispatchAsync());
+                Interlocked.Decrement(ref _openBatches);
             }
 
             if (dispatchTasks.Count == MaxParallelBatches)
@@ -208,8 +209,8 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         {
             foreach (var completed in completedBatches)
             {
+                _completedBatches.Add(completed);
                 _enqueuedBatches.Remove(completed);
-                Interlocked.Decrement(ref _openBatches);
             }
         }
     }
