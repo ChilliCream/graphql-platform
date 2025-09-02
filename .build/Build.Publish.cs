@@ -31,7 +31,7 @@ partial class Build
         {
             DotNetPublish(c => c
                 .SetProject("src/Nitro/CommandLine/src/CommandLine")
-                .SetOutput(OutputDirectory)
+                .SetOutput(PublishDirectory)
                 .SetRuntime(RuntimeIdentifier)
                 .SetFramework("net10.0")
                 .SetConfiguration(Configuration)
