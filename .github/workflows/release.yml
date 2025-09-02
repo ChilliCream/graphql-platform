@@ -115,13 +115,13 @@ jobs:
           NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
           NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
 
-      - name: 🖋️ Azure login (for Windows)
+      - name: 🖋️ Azure login (Windows)
         uses: azure/login@v1
         if: runner.os == 'Windows'
         with:
           creds: ${{ secrets.SIGNING_CREDENTIALS }}
 
-      - name: 🖋️ Sign Windows binary
+      - name: 🖋️ Sign binary (Windows)
         uses: azure/trusted-signing-action@v0
         if: runner.os == 'Windows'
         with:
@@ -144,7 +144,7 @@ jobs:
           exclude-interactive-browser-credential: true
 
       # https://docs.github.com/en/actions/how-tos/deploy/deploy-to-third-party-platforms/sign-xcode-applications
-      - name: 🖋️ Set up macOS signing resources
+      - name: 🖋️ Setup signing resources (macOS)
         if: runner.os == 'macOS'
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_CERTFICATE_BASE64 }}
@@ -168,7 +168,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
-      - name: 🖋️ Sign macOS binary
+      - name: 🖋️ Sign binary (macOS)
         if: runner.os == 'macOS'
         env:
           CODESIGN_IDENTITY: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_IDENTITY }}
@@ -197,7 +197,7 @@ jobs:
           zip -j nitro-${{ matrix.rid }}.zip publish/nitro
         shell: bash
 
-      - name: 🖋️ Notarize macOS zipped binary
+      - name: 🖋️ Notarize binary (macOS)
         if: runner.os == 'macOS'
         env:
           CODESIGN_IDENTITY: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_IDENTITY }}
@@ -227,7 +227,7 @@ jobs:
           spctl --assess --type exec -vv nitro-${{ matrix.rid }}.zip || true
           codesign -dvv nitro-${{ matrix.rid }}.zip || true
 
-      - name: 🖋️ Clean up macOS signing resources
+      - name: 🖋️ Clean up signing resources (macOS)
         if: always() && runner.os == 'macOS'
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
@@ -272,7 +272,7 @@ jobs:
       - name: 🏷 Get the version from tag
         run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: 🗂️ Prepare package directories
+      - name: 🗂️ Move binaries to npm package
         run: |
           PACKAGE_DIR="src/Nitro/CommandLine/src/chillicream-nitro"
 
@@ -300,7 +300,7 @@ jobs:
         working-directory: src/Nitro/CommandLine/src/chillicream-nitro
         run: npm version $GIT_TAG
 
-      - name: 📦 Create npm tarball
+      - name: 📦 Create tarball
         working-directory: src/Nitro/CommandLine/src/chillicream-nitro
         run: npm pack
 
