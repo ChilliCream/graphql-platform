@@ -106,12 +106,31 @@ jobs:
         with:
           dotnet-version: 10.x
 
-      - name: 🏷 Get the version from tag
-        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      - name: 🏷 Get the version from tag (Windows)
+        if: runner.os == 'Windows'
+        run: echo "GIT_TAG=$($env:GITHUB_REF -replace '^refs/tags/','')" >> $env:GITHUB_ENV
+        shell: pwsh
 
-      - name: 📦 Publish binary
+      - name: 🏷 Get the version from tag (Unix)
+        if: runner.os != 'Windows'
+        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        shell: bash
+
+      - name: 📦 Publish binary (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          ./build.ps1 publishaot --SemVersion $env:GIT_TAG --RuntimeIdentifier ${{ matrix.rid }} --Configuration Release
+        shell: pwsh
+        env:
+          NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
+          NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
+          NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
+
+      - name: 📦 Publish binary (Unix)
+        if: runner.os != 'Windows'
         run: |
           ./build.sh publishaot --SemVersion $GIT_TAG --RuntimeIdentifier ${{ matrix.rid }} --Configuration Release
+        shell: bash
         env:
           NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
           NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
