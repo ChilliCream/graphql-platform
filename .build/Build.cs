@@ -20,6 +20,9 @@ partial class Build : NukeBuild
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly string Configuration = IsLocalBuild ? Debug : Release;
 
+    [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
+    readonly string RuntimeIdentifier;
+
     [CI] readonly AzurePipelines DevOpsPipeLine;
 
     Target Clean => _ => _
