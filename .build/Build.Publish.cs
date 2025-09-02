@@ -26,6 +26,7 @@ partial class Build
     readonly Tool NitroCli;
 
     Target PublishAot => _ => _
+        .Requires(() => SemVersion)
         .Requires(() => Configuration.Equals(Release))
         .Executes(() =>
         {
