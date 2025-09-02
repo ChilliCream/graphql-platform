@@ -123,6 +123,29 @@ jobs:
         working-directory: src/Nitro/CommandLine/src/js
         run: npm pack
 
+      - name: 🏷️ Decide additional tag (latest vs preview)
+        run: |
+          if [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "DIST_TAG=latest" >> $GITHUB_ENV
+          else
+            echo "DIST_TAG=preview" >> $GITHUB_ENV
+          fi
+        shell: bash
+
+      - name: 🚀 Publish tarball to npm
+        working-directory: src/Nitro/CommandLine/src/js
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          PKG_NAME="@chillicream/nitro"
+
+          TARBALL="chillicream-nitro-${GIT_TAG}.tgz"
+
+          npm publish "./${TARBALL}" --tag "${GIT_TAG}"
+
+          npm dist-tag add "${PKG_NAME}@${GIT_TAG}" "${DIST_TAG}"
+        shell: bash
+
       - name: 📤 Upload tarball as artifact
         uses: actions/upload-artifact@v4
         with:
