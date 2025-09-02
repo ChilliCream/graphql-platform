@@ -19,6 +19,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <param name="keepWarm">
     /// Apply warmup task after eviction and keep executor in-memory.
     /// </param>
+    /// <param name="skipIf">
+    /// Skips the warmup task if set to true.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
@@ -28,12 +31,17 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     public static IRequestExecutorBuilder InitializeOnStartup(
         this IRequestExecutorBuilder builder,
         Func<IRequestExecutor, CancellationToken, Task>? warmup = null,
-        bool keepWarm = false)
+        bool keepWarm = false,
+        bool skipIf = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        builder.Services.AddHostedService<RequestExecutorWarmupService>();
-        builder.Services.AddSingleton(new WarmupSchemaTask(builder.Name, keepWarm, warmup));
+        if (!skipIf)
+        {
+            builder.Services.AddHostedService<RequestExecutorWarmupService>();
+            builder.Services.AddSingleton(new WarmupSchemaTask(builder.Name, keepWarm, warmup));
+        }
+
         return builder;
     }
 
@@ -46,6 +54,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <param name="options">
     /// The <see cref="RequestExecutorInitializationOptions"/>.
     /// </param>
+    /// <param name="skipIf">
+    /// Skips the warmup task if set to true.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
@@ -54,9 +65,15 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// </exception>
     public static IRequestExecutorBuilder InitializeOnStartup(
         this IRequestExecutorBuilder builder,
-        RequestExecutorInitializationOptions options)
+        RequestExecutorInitializationOptions options,
+        bool skipIf = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
+
+        if (skipIf)
+        {
+            return builder;
+        }
 
         Func<IRequestExecutor, CancellationToken, Task>? warmup;
 
