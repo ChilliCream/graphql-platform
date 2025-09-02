@@ -28,6 +28,17 @@
   },
   "type": "module",
   "bin": "cli.js",
+  "files": [
+    "cli.js",
+    "linux-x64/",
+    "linux-musl-x64/",
+    "linux-arm64/",
+    "osx-x64/",
+    "osx-arm64/",
+    "win-x64/",
+    "win-x86/",
+    "win-arm64/"
+  ],
   "packageManager": "yarn@4.9.4",
   "dependencies": {
     "detect-libc": "^2.0.4"
