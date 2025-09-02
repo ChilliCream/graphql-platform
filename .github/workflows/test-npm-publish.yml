@@ -49,8 +49,17 @@ jobs:
         with:
           dotnet-version: 10.x
 
+      - name: 🏷 Get the version from tag
+        # run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        run: echo "GIT_TAG=16.0.0" >> $GITHUB_ENV
+
+      # TODO: Set version
       - name: 🧩 Publish AOT binary for ${{ matrix.rid }}
         shell: bash
+        env:
+          NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
+          NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
+          NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
         run: |
           dotnet publish ./src/Nitro/CommandLine/src/CommandLine \
             -c Release \
@@ -207,12 +216,19 @@ jobs:
           registry-url: ${{ vars.NPM_REGISTRY_URL }}
           scope: "@chillicream"
 
+      - name: 🧰 Enable corepack
+        run: corepack enable
+
       - name: 📥 Download all zipped nitro binaries
         uses: actions/download-artifact@v4
         with:
           pattern: nitro-*
           merge-multiple: true
           path: dist-zips
+
+      - name: 🏷 Get the version from tag
+        # run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        run: echo "GIT_TAG=16.0.0" >> $GITHUB_ENV
 
       - name: 🗂️ Prepare package directories
         run: |
@@ -240,8 +256,6 @@ jobs:
 
       - name: 🏷️ Set version
         working-directory: src/Nitro/CommandLine/src/js
-        env:
-          GIT_TAG: 16.0.0 # ${{ github.ref_name }}
         run: npm version $GIT_TAG
 
       - name: 📦 Create npm tarball
@@ -250,8 +264,6 @@ jobs:
 
       - name: 📤 Upload tarball as artifact
         uses: actions/upload-artifact@v4
-        env:
-          GIT_TAG: 16.0.0 # ${{ github.ref_name }}
         with:
           name: chillicream-nitro-$GIT_TAG.tgz
           path: src/Nitro/CommandLine/src/js/chillicream-nitro-$GIT_TAG.tgz

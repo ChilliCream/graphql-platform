@@ -30,7 +30,6 @@ jobs:
             10.x
 
       - name: 🏷 Get the version from tag
-        id: get_version
         run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: 📦 Build NuGet Packages
@@ -105,8 +104,13 @@ jobs:
         with:
           dotnet-version: 10.x
 
+      # TODO: Set version
       - name: 🧩 Publish AOT binary for ${{ matrix.rid }}
         shell: bash
+        env:
+          NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
+          NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
+          NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
         run: |
           dotnet publish ./src/Nitro/CommandLine/src/CommandLine \
             -c Release \
