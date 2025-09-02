@@ -296,9 +296,9 @@ jobs:
 
       - name: 📝 Generate Homebrew formula
         run: |
-          cat > nitro.rb << EOF
-          class Nitro < Formula
-            desc "ChilliCream Nitro CommandLine"
+          cat > nitro-cli.rb << EOF
+          class NitroCli < Formula
+            desc "ChilliCream Nitro Command Line"
             homepage "https://chillicream.com"
             url "https://github.com/ChilliCream/graphql-platform"
             license "MIT"
@@ -326,16 +326,16 @@ jobs:
       - name: 📥 Checkout homebrew repo
         uses: actions/checkout@v4
         with:
-          repository: ChilliCream/homebrew-nitro
+          repository: ChilliCream/homebrew-tools
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          path: homebrew-nitro
+          path: homebrew-tools
 
       - name: 🚀 Update formula in homebrew repo
         run: |
-          cp nitro.rb homebrew-nitro/nitro.rb
-          cd homebrew-nitro
+          cp nitro-cli.rb homebrew-tools/nitro-cli.rb
+          cd homebrew-tools
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add nitro.rb
+          git add nitro-cli.rb
           git commit -m "🍺 Update nitro formula to ${{ steps.version.outputs.version }}" || exit 0
           git push
