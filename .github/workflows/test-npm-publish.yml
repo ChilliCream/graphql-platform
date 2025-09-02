@@ -74,7 +74,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22.x"
-          registry-url: ${{ vars.NPM_REGISTRY_URL }}
           scope: "@chillicream"
 
       - name: 🧰 Enable corepack
@@ -135,10 +134,9 @@ jobs:
       - name: 🚀 Publish tarball to npm
         working-directory: src/Nitro/CommandLine/src/js
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
         run: |
           PKG_NAME="@chillicream/nitro"
-
           TARBALL="chillicream-nitro-${GIT_TAG}.tgz"
 
           npm publish "./${TARBALL}" --tag "${GIT_TAG}"
