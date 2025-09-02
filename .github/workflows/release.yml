@@ -104,23 +104,16 @@ jobs:
         with:
           dotnet-version: 10.x
 
-      # TODO: Set version
-      - name: 🧩 Publish AOT binary for ${{ matrix.rid }}
-        shell: bash
+      - name: 🏷 Get the version from tag
+        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: 📦 Build NuGet Packages
+        run: |
+          ./build.sh publishaot --SemVersion ${{ env.GIT_TAG }} --RuntimeIdentifier ${{ matrix.rid }} --Configuration Release
         env:
           NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
           NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
           NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
-        run: |
-          dotnet publish ./src/Nitro/CommandLine/src/CommandLine \
-            -c Release \
-            -r ${{ matrix.rid }} \
-            -f net10.0 \
-            --self-contained true \
-            -p:PublishAot=true \
-            -p:TargetFrameworks=NET10.0 \
-            -p:RuntimeIdentifiers=${{ matrix.rid }} \
-            -o ./publish
 
       - name: 🖋️ Azure login (for Windows)
         uses: azure/login@v1
