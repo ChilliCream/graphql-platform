@@ -316,6 +316,9 @@ jobs:
           chmod +x $PACKAGE_DIR/osx-x64/nitro || true
           chmod +x $PACKAGE_DIR/osx-arm64/nitro || true
 
+          # Ensure cli.js is executable
+          chmod +x $PACKAGE_DIR/cli.js
+
       - name: 🔍 Install dependencies
         working-directory: src/Nitro/CommandLine/src/chillicream-nitro
         run: yarn install --immutable

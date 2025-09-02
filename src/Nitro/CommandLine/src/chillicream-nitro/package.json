@@ -27,7 +27,9 @@
     "url": "https://opencollective.com/chillicream"
   },
   "type": "module",
-  "bin": "cli.js",
+  "bin": {
+    "nitro": "cli.js"
+  },
   "files": [
     "cli.js",
     "linux-x64/",
