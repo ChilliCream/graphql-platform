@@ -447,7 +447,8 @@ public static partial class TypeDescriptorMapper
                         .Select(
                             t => new EnumValueDescriptor(t.Name, t.Value.Name, t.Description))
                         .ToList(),
-                    enumTypeModel.Description);
+                    enumTypeModel.Description,
+                    context.OptionalEnum);
 
                 leafTypeDescriptors.Add(leafType.Type.Name, descriptor);
             }
