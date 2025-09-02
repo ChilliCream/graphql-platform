@@ -281,7 +281,7 @@ jobs:
 
       - name: 🗂️ Prepare package directories
         run: |
-          PACKAGE_DIR="src/Nitro/CommandLine/src/js"
+          PACKAGE_DIR="src/Nitro/CommandLine/src/chillicream-nitro"
 
           for z in dist-zips/nitro-*.zip; do
             name=$(basename "$z" .zip)  # e.g. nitro-linux-x64
@@ -300,15 +300,15 @@ jobs:
           chmod +x $PACKAGE_DIR/osx-arm64/nitro || true
 
       - name: 🔍 Install dependencies
-        working-directory: src/Nitro/CommandLine/src/js
+        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
         run: yarn install --immutable
 
       - name: 🏷️ Set version
-        working-directory: src/Nitro/CommandLine/src/js
+        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
         run: npm version $GIT_TAG
 
       - name: 📦 Create npm tarball
-        working-directory: src/Nitro/CommandLine/src/js
+        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
         run: npm pack
 
       - name: 🏷️ Decide additional tag (latest vs preview)
@@ -321,7 +321,7 @@ jobs:
         shell: bash
 
       - name: 🚀 Publish tarball to npm
-        working-directory: src/Nitro/CommandLine/src/js
+        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
         run: |
@@ -337,11 +337,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: chillicream-nitro-${{ env.GIT_TAG }}.tgz
-          path: src/Nitro/CommandLine/src/js/chillicream-nitro-${{ env.GIT_TAG }}.tgz
+          path: src/Nitro/CommandLine/src/chillicream-nitro/chillicream-nitro-${{ env.GIT_TAG }}.tgz
 
       - name: 📤 Attach tarball to GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: src/Nitro/CommandLine/src/js
+        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
         run: |
           gh release upload "${{ github.ref_name }}" "chillicream-nitro-${{ github.ref_name }}.tgz" --repo "${{ github.repository }}"
