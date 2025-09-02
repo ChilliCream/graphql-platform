@@ -20,12 +20,14 @@ public sealed record OperationPlan
         string id,
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
-        ImmutableArray<ExecutionNode> allNodes)
+        ImmutableArray<ExecutionNode> allNodes,
+        uint searchSpace)
     {
         Id = id;
         Operation = operation;
         RootNodes = rootNodes;
         AllNodes = allNodes;
+        SearchSpace = searchSpace;
         _nodes = allNodes.ToFrozenDictionary(t => t.Id);
     }
 
@@ -61,6 +63,11 @@ public sealed record OperationPlan
     public ImmutableArray<ExecutionNode> AllNodes { get; }
 
     /// <summary>
+    /// Gets a number specifying how many possible plans were considered during planning.
+    /// </summary>
+    public uint SearchSpace { get; }
+
+    /// <summary>
     /// Retrieves an execution node by its unique identifier.
     /// </summary>
     /// <param name="id">The unique identifier of the execution node is unique within this plan.</param>
@@ -76,6 +83,7 @@ public sealed record OperationPlan
     /// <param name="operation">The GraphQL operation.</param>
     /// <param name="rootNodes">The root execution nodes.</param>
     /// <param name="allNodes">All execution nodes in the plan.</param>
+    /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <returns>A new <see cref="OperationPlan"/> instance.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
@@ -84,14 +92,15 @@ public sealed record OperationPlan
         string id,
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
-        ImmutableArray<ExecutionNode> allNodes)
+        ImmutableArray<ExecutionNode> allNodes,
+        uint searchSpace)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(operation);
         ArgumentOutOfRangeException.ThrowIfLessThan(rootNodes.Length, 0);
         ArgumentOutOfRangeException.ThrowIfLessThan(allNodes.Length, 0);
 
-        return new OperationPlan(id, operation, rootNodes, allNodes);
+        return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace);
     }
 
     /// <summary>
@@ -101,13 +110,15 @@ public sealed record OperationPlan
     /// <param name="operation">The GraphQL operation.</param>
     /// <param name="rootNodes">The root execution nodes.</param>
     /// <param name="allNodes">All execution nodes in the plan.</param>
+    /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <returns>A new <see cref="OperationPlan"/> instance with a content-based identifier.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when node arrays have negative length.</exception>
     public static OperationPlan Create(
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
-        ImmutableArray<ExecutionNode> allNodes)
+        ImmutableArray<ExecutionNode> allNodes,
+        uint searchSpace)
     {
         ArgumentNullException.ThrowIfNull(operation);
         ArgumentOutOfRangeException.ThrowIfLessThan(rootNodes.Length, 0);
@@ -129,6 +140,6 @@ public sealed record OperationPlan
         var id = Convert.ToHexString(buffer.WrittenSpan[^32..]).ToLowerInvariant();
 #endif
 
-        return new OperationPlan(id, operation, rootNodes, allNodes);
+        return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace);
     }
 }

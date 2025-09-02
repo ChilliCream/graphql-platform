@@ -1,0 +1,611 @@
+operation:
+  - document: >-
+      {
+        products {
+          nodes {
+            reviews {
+              nodes {
+                stars
+                author {
+                  birthdate
+                  username
+                  id @fusion__requirement
+                }
+                b: product {
+                  weight
+                  id @fusion__requirement
+                }
+                product {
+                  weight
+                  weight @fusion__requirement
+                  deliveryEstimate(zip: "Foo")
+                  pictureFileName
+                  price
+                  quantity
+                  item {
+                    product {
+                      weight
+                      weight @fusion__requirement
+                      deliveryEstimate(zip: "Foo")
+                      pictureFileName
+                      reviews {
+                        edges {
+                          node {
+                            author {
+                              birthdate
+                              id @fusion__requirement
+                            }
+                          }
+                        }
+                      }
+                      id @fusion__requirement
+                      dimension @fusion__requirement {
+                        length
+                        width
+                        height
+                      }
+                    }
+                  }
+                  id @fusion__requirement
+                  dimension @fusion__requirement {
+                    length
+                    width
+                    height
+                  }
+                }
+              }
+            }
+            b: reviews {
+              nodes {
+                stars
+                author {
+                  birthdate
+                  username
+                  id @fusion__requirement
+                }
+                b: product {
+                  weight
+                  id @fusion__requirement
+                }
+                product {
+                  weight
+                  weight @fusion__requirement
+                  deliveryEstimate(zip: "Foo")
+                  pictureFileName
+                  price
+                  quantity
+                  item {
+                    product {
+                      weight
+                      weight @fusion__requirement
+                      deliveryEstimate(zip: "Foo")
+                      pictureFileName
+                      reviews {
+                        edges {
+                          node {
+                            author {
+                              birthdate
+                              id @fusion__requirement
+                            }
+                          }
+                        }
+                      }
+                      id @fusion__requirement
+                      dimension @fusion__requirement {
+                        length
+                        width
+                        height
+                      }
+                    }
+                  }
+                  id @fusion__requirement
+                  dimension @fusion__requirement {
+                    length
+                    width
+                    height
+                  }
+                }
+              }
+            }
+            weight
+            id @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 5831
+nodes:
+  - id: 1
+    type: Operation
+    schema: e
+    operation: >-
+      query Op_123456789101112_1 {
+        products {
+          nodes {
+            weight
+            id
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: f
+    operation: >-
+      query Op_123456789101112_2(
+        $__fusion_1_id: ID!
+      ) {
+        productById(id: $__fusion_1_id) {
+          reviews {
+            nodes {
+              stars
+              author {
+                id
+              }
+              b: product {
+                id
+              }
+              product {
+                id
+              }
+            }
+          }
+          b: reviews {
+            nodes {
+              stars
+              author {
+                id
+              }
+              b: product {
+                id
+              }
+              product {
+                id
+              }
+            }
+          }
+        }
+      }
+    source: $.productById
+    target: $.products.nodes
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: e
+    operation: >-
+      query Op_123456789101112_3(
+        $__fusion_2_id: ID!
+      ) {
+        productById(id: $__fusion_2_id) {
+          weight
+          pictureFileName
+          price
+          dimension {
+            length
+            width
+            height
+          }
+        }
+      }
+    source: $.productById
+    target: $.products.nodes.b.nodes.product
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 4
+    type: Operation
+    schema: b
+    operation: >-
+      query Op_123456789101112_4(
+        $__fusion_3_id: ID!
+      ) {
+        productByIdAsync(id: $__fusion_3_id) {
+          quantity
+          item {
+            product {
+              id
+            }
+          }
+        }
+      }
+    source: $.productByIdAsync
+    target: $.products.nodes.b.nodes.product
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 5
+    type: Operation
+    schema: g
+    operation: >-
+      query Op_123456789101112_5(
+        $__fusion_4_id: ID!
+        $__fusion_5_dimension: ProductDimensionInput!
+      ) {
+        productById(id: $__fusion_4_id) {
+          deliveryEstimate(zip: "Foo", dimension: $__fusion_5_dimension)
+        }
+      }
+    source: $.productById
+    target: $.products.nodes.b.nodes.product
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+      - name: __fusion_5_dimension
+        selectionMap: >-
+          {
+            weight
+            length: dimension.length
+            width: dimension.width
+            height: dimension.height
+          }
+    dependencies:
+      - id: 2
+      - id: 3
+  - id: 6
+    type: Operation
+    schema: f
+    operation: >-
+      query Op_123456789101112_6(
+        $__fusion_6_id: ID!
+      ) {
+        productById(id: $__fusion_6_id) {
+          reviews {
+            edges {
+              node {
+                author {
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
+    source: $.productById
+    target: $.products.nodes.b.nodes.product.item.product
+    requirements:
+      - name: __fusion_6_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 4
+  - id: 7
+    type: Operation
+    schema: e
+    operation: >-
+      query Op_123456789101112_7(
+        $__fusion_7_id: ID!
+      ) {
+        productById(id: $__fusion_7_id) {
+          weight
+          pictureFileName
+          dimension {
+            length
+            width
+            height
+          }
+        }
+      }
+    source: $.productById
+    target: $.products.nodes.b.nodes.product.item.product
+    requirements:
+      - name: __fusion_7_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 4
+  - id: 8
+    type: Operation
+    schema: g
+    operation: >-
+      query Op_123456789101112_8(
+        $__fusion_8_id: ID!
+        $__fusion_9_dimension: ProductDimensionInput!
+      ) {
+        productById(id: $__fusion_8_id) {
+          deliveryEstimate(zip: "Foo", dimension: $__fusion_9_dimension)
+        }
+      }
+    source: $.productById
+    target: $.products.nodes.b.nodes.product.item.product
+    requirements:
+      - name: __fusion_8_id
+        selectionMap: >-
+          id
+      - name: __fusion_9_dimension
+        selectionMap: >-
+          {
+            weight
+            length: dimension.length
+            width: dimension.width
+            height: dimension.height
+          }
+    dependencies:
+      - id: 4
+      - id: 7
+  - id: 9
+    type: Operation
+    schema: a
+    operation: >-
+      query Op_123456789101112_9(
+        $__fusion_10_id: ID!
+      ) {
+        userById(id: $__fusion_10_id) {
+          birthdate
+        }
+      }
+    source: $.userById
+    target: $.products.nodes.b.nodes.product.item.product.reviews.edges.node.author
+    requirements:
+      - name: __fusion_10_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 6
+  - id: 10
+    type: Operation
+    schema: e
+    operation: >-
+      query Op_123456789101112_10(
+        $__fusion_11_id: ID!
+      ) {
+        productById(id: $__fusion_11_id) {
+          weight
+        }
+      }
+    source: $.productById
+    target: $.products.nodes.b.nodes.b
+    requirements:
+      - name: __fusion_11_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 11
+    type: Operation
+    schema: a
+    operation: >-
+      query Op_123456789101112_11(
+        $__fusion_12_id: ID!
+      ) {
+        userById(id: $__fusion_12_id) {
+          birthdate
+          username
+        }
+      }
+    source: $.userById
+    target: $.products.nodes.b.nodes.author
+    requirements:
+      - name: __fusion_12_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 12
+    type: Operation
+    schema: b
+    operation: >-
+      query Op_123456789101112_12(
+        $__fusion_13_id: ID!
+      ) {
+        productByIdAsync(id: $__fusion_13_id) {
+          quantity
+          item {
+            product {
+              id
+            }
+          }
+        }
+      }
+    source: $.productByIdAsync
+    target: $.products.nodes.reviews.nodes.product
+    requirements:
+      - name: __fusion_13_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 13
+    type: Operation
+    schema: e
+    operation: >-
+      query Op_123456789101112_13(
+        $__fusion_14_id: ID!
+      ) {
+        productById(id: $__fusion_14_id) {
+          weight
+          pictureFileName
+          price
+          dimension {
+            length
+            width
+            height
+          }
+        }
+      }
+    source: $.productById
+    target: $.products.nodes.reviews.nodes.product
+    requirements:
+      - name: __fusion_14_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 14
+    type: Operation
+    schema: g
+    operation: >-
+      query Op_123456789101112_14(
+        $__fusion_15_id: ID!
+        $__fusion_16_dimension: ProductDimensionInput!
+      ) {
+        productById(id: $__fusion_15_id) {
+          deliveryEstimate(zip: "Foo", dimension: $__fusion_16_dimension)
+        }
+      }
+    source: $.productById
+    target: $.products.nodes.reviews.nodes.product
+    requirements:
+      - name: __fusion_15_id
+        selectionMap: >-
+          id
+      - name: __fusion_16_dimension
+        selectionMap: >-
+          {
+            weight
+            length: dimension.length
+            width: dimension.width
+            height: dimension.height
+          }
+    dependencies:
+      - id: 2
+      - id: 13
+  - id: 15
+    type: Operation
+    schema: e
+    operation: >-
+      query Op_123456789101112_15(
+        $__fusion_17_id: ID!
+      ) {
+        productById(id: $__fusion_17_id) {
+          weight
+          pictureFileName
+          dimension {
+            length
+            width
+            height
+          }
+        }
+      }
+    source: $.productById
+    target: $.products.nodes.reviews.nodes.product.item.product
+    requirements:
+      - name: __fusion_17_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 12
+  - id: 16
+    type: Operation
+    schema: g
+    operation: >-
+      query Op_123456789101112_16(
+        $__fusion_18_id: ID!
+        $__fusion_19_dimension: ProductDimensionInput!
+      ) {
+        productById(id: $__fusion_18_id) {
+          deliveryEstimate(zip: "Foo", dimension: $__fusion_19_dimension)
+        }
+      }
+    source: $.productById
+    target: $.products.nodes.reviews.nodes.product.item.product
+    requirements:
+      - name: __fusion_18_id
+        selectionMap: >-
+          id
+      - name: __fusion_19_dimension
+        selectionMap: >-
+          {
+            weight
+            length: dimension.length
+            width: dimension.width
+            height: dimension.height
+          }
+    dependencies:
+      - id: 12
+      - id: 15
+  - id: 17
+    type: Operation
+    schema: f
+    operation: >-
+      query Op_123456789101112_17(
+        $__fusion_20_id: ID!
+      ) {
+        productById(id: $__fusion_20_id) {
+          reviews {
+            edges {
+              node {
+                author {
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
+    source: $.productById
+    target: $.products.nodes.reviews.nodes.product.item.product
+    requirements:
+      - name: __fusion_20_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 12
+  - id: 18
+    type: Operation
+    schema: a
+    operation: >-
+      query Op_123456789101112_18(
+        $__fusion_21_id: ID!
+      ) {
+        userById(id: $__fusion_21_id) {
+          birthdate
+        }
+      }
+    source: $.userById
+    target: $.products.nodes.reviews.nodes.product.item.product.reviews.edges.node.author
+    requirements:
+      - name: __fusion_21_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 17
+  - id: 19
+    type: Operation
+    schema: e
+    operation: >-
+      query Op_123456789101112_19(
+        $__fusion_22_id: ID!
+      ) {
+        productById(id: $__fusion_22_id) {
+          weight
+        }
+      }
+    source: $.productById
+    target: $.products.nodes.reviews.nodes.b
+    requirements:
+      - name: __fusion_22_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 20
+    type: Operation
+    schema: a
+    operation: >-
+      query Op_123456789101112_20(
+        $__fusion_23_id: ID!
+      ) {
+        userById(id: $__fusion_23_id) {
+          birthdate
+          username
+        }
+      }
+    source: $.userById
+    target: $.products.nodes.reviews.nodes.author
+    requirements:
+      - name: __fusion_23_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2

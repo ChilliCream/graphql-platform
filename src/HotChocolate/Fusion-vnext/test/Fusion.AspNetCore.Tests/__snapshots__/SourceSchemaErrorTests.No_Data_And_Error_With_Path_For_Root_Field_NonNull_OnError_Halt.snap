@@ -10,7 +10,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "535882bea0462af9f8d265858daa28a55f91a3693743e05d2ca2ede9db07f4eb",
+        "id": "d2dc52c2d119af8ac6eb7ac8f52c6557d8327b87e1ef9049af389c770b8941e6",
         "operation": {
           "kind": "Query",
           "document": "{\n  productById(id: 1) {\n    name\n  }\n}",
@@ -18,6 +18,7 @@
           "hash": "97fd38fcea394bc6badd7ea22c6de660",
           "shortHash": "97fd38fc"
         },
+        "searchSpace": 1,
         "nodes": [
           {
             "id": 1,
@@ -25,7 +26,7 @@
             "schema": "A",
             "operation": {
               "name": "Op_97fd38fc_1",
-              "type": "Query",
+              "kind": "Query",
               "document": "query Op_97fd38fc_1 {\n  productById(id: 1) {\n    name\n  }\n}",
               "hash": "14aa75373ce4afe0885f44b0f20e71aa535df3cf43e2571eb8f1a5aa5af22e7a",
               "shortHash": "14aa7537"

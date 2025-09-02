@@ -158,7 +158,8 @@ public sealed class GraphQLHttpResponse : IDisposable
             return new SseReader(_message);
         }
 
-        if (contentType?.MediaType?.Equals(ContentType.GraphQLJsonLine, StringComparison.Ordinal) ?? false)
+        if ((contentType?.MediaType?.Equals(ContentType.GraphQLJsonLine, StringComparison.Ordinal) ?? false)
+            || (contentType?.MediaType?.Equals(ContentType.JsonLine, StringComparison.Ordinal) ?? false))
         {
             return new JsonLinesReader(_message);
         }

@@ -21,12 +21,11 @@ public sealed partial class BatchDispatcher
     {
         ArgumentNullException.ThrowIfNull(batch, nameof(batch));
 
-        Interlocked.Increment(ref _enqueueVersion);
-        Interlocked.Increment(ref _openBatches);
-
         lock (_enqueuedBatches)
         {
             _enqueuedBatches.Add(batch);
+            Interlocked.Increment(ref _openBatches);
+            Interlocked.Increment(ref _enqueueVersion);
             _lastEnqueued = Stopwatch.GetTimestamp();
         }
 

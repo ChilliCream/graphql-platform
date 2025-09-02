@@ -44,9 +44,10 @@ public sealed class TestOperationToolStorage : IOperationToolStorage, IDisposabl
         OperationToolStorageEventType type;
         await _semaphore.WaitAsync(cancellationToken);
 
+        OperationToolDefinition tool;
         try
         {
-            var tool = new OperationToolDefinition(name, document);
+            tool = new OperationToolDefinition(name, document);
             if (_tools.TryAdd(name, tool))
             {
                 type = OperationToolStorageEventType.Added;
@@ -62,7 +63,7 @@ public sealed class TestOperationToolStorage : IOperationToolStorage, IDisposabl
             _semaphore.Release();
         }
 
-        NotifySubscribers(name, document, type);
+        NotifySubscribers(name, tool, type);
     }
 
     public async Task RemoveToolAsync(
@@ -92,11 +93,14 @@ public sealed class TestOperationToolStorage : IOperationToolStorage, IDisposabl
         return new ObserverSession(this, observer);
     }
 
-    private void NotifySubscribers(string name, DocumentNode? document, OperationToolStorageEventType type)
+    private void NotifySubscribers(
+        string name,
+        OperationToolDefinition? toolDefinition,
+        OperationToolStorageEventType type)
     {
         if (type is OperationToolStorageEventType.Added or OperationToolStorageEventType.Modified)
         {
-            ArgumentNullException.ThrowIfNull(document);
+            ArgumentNullException.ThrowIfNull(toolDefinition);
         }
 
         if (_disposed)
@@ -105,7 +109,7 @@ public sealed class TestOperationToolStorage : IOperationToolStorage, IDisposabl
         }
 
         var sessions = _sessions;
-        var eventArgs = new OperationToolStorageEventArgs(name, type, document);
+        var eventArgs = new OperationToolStorageEventArgs(name, type, toolDefinition);
 
         foreach (var session in sessions)
         {

@@ -16,6 +16,7 @@ partial class Build
     AbsolutePath NitroCommandLineOperations
         => SourceDirectory / "Nitro" / "CommandLine" / "src" / "CommandLine.Cloud" / "persisted" / "operations.json";
 
+    AbsolutePath PublishDirectory => RootDirectory / "publish";
     AbsolutePath OutputDirectory => RootDirectory / "output";
     AbsolutePath TestResultDirectory => OutputDirectory / "test-results";
     AbsolutePath CoverageReportDirectory => OutputDirectory / "coverage-reports";

@@ -3,14 +3,15 @@ operation:
       query GetTopProducts {
         topProducts {
           id
+          id @fusion__requirement
           name
           sku @fusion__requirement
-          id @fusion__requirement
           region @fusion__requirement
         }
       }
     name: GetTopProducts
     hash: 123456789101112
+    searchSpace: 2
 nodes:
   - id: 1
     type: Operation

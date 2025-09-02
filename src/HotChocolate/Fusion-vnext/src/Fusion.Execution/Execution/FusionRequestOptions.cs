@@ -1,5 +1,6 @@
 using HotChocolate.Caching.Memory;
 using HotChocolate.Language;
+using HotChocolate.PersistedOperations;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -13,6 +14,7 @@ public sealed class FusionRequestOptions : ICloneable
     private bool _collectOperationPlanTelemetry;
     private ErrorHandlingMode _defaultErrorHandlingMode = ErrorHandlingMode.Propagate;
     private bool _allowErrorHandlingModeOverride;
+    private PersistedOperationOptions _persistedOperationOptions = new();
     private bool _isReadOnly;
 
     /// <summary>
@@ -141,6 +143,26 @@ public sealed class FusionRequestOptions : ICloneable
             }
 
             _allowErrorHandlingModeOverride = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the persisted operation options.
+    /// </summary>
+    /// <exception cref="InvalidOperationException"></exception>
+    public PersistedOperationOptions PersistedOperations
+    {
+        get => _persistedOperationOptions;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new InvalidOperationException("The request options are read-only.");
+            }
+
+            ArgumentNullException.ThrowIfNull(value);
+
+            _persistedOperationOptions = value;
         }
     }
 

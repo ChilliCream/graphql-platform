@@ -58,9 +58,9 @@ internal sealed class ToolStorageObserver : IDisposable
         {
             var tools = ImmutableDictionary.CreateBuilder<string, OperationTool>();
 
-            foreach (var tool in await _storage.GetToolsAsync(cancellationToken))
+            foreach (var toolDefinition in await _storage.GetToolsAsync(cancellationToken))
             {
-                tools.Add(tool.Name, _toolFactory.CreateTool(tool.Name, tool.Document));
+                tools.Add(toolDefinition.Name, _toolFactory.CreateTool(toolDefinition));
             }
 
             _tools = tools.ToImmutable();
@@ -84,7 +84,7 @@ internal sealed class ToolStorageObserver : IDisposable
                 {
                     case OperationToolStorageEventType.Added:
                     case OperationToolStorageEventType.Modified:
-                        var tool = _toolFactory.CreateTool(eventArg.Name, eventArg.Document!);
+                        var tool = _toolFactory.CreateTool(eventArg.ToolDefinition!);
                         _tools = _tools.SetItem(eventArg.Name, tool);
                         break;
 
