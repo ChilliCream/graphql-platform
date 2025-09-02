@@ -25,7 +25,6 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     private readonly AsyncAutoResetEvent _signal = new();
     private readonly object _sync = new();
     private readonly HashSet<Batch> _enqueuedBatches = [];
-    private readonly HashSet<Batch> _completedBatches = [];
     private readonly CancellationTokenSource _coordinatorCts = new();
     private int _openBatches;
     private long _lastSubscribed;
@@ -80,7 +79,6 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     {
         var backlog = new PriorityQueue<Batch, long>();
         var dispatchTasks = new List<Task>(MaxParallelBatches);
-        var completedBatches = new List<Batch>(MaxParallelBatches);
 
         Send(BatchDispatchEventType.CoordinatorStarted);
 
@@ -95,7 +93,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
                     return;
                 }
 
-                await EvaluateAndDispatchAsync(backlog, dispatchTasks, completedBatches, stoppingToken);
+                await EvaluateAndDispatchAsync(backlog, dispatchTasks, stoppingToken);
             }
         }
         finally
@@ -114,7 +112,6 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     private async Task EvaluateAndDispatchAsync(
         PriorityQueue<Batch, long> backlog,
         List<Task> dispatchTasks,
-        List<Batch> completedBatches,
         CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -132,9 +129,8 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
             // Clear the state for the next evaluation round.
             backlog.Clear();
             dispatchTasks.Clear();
-            completedBatches.Clear();
 
-            EvaluateOpenBatches(ref lastModified, backlog, dispatchTasks, completedBatches);
+            EvaluateOpenBatches(ref lastModified, backlog, dispatchTasks);
 
             // If the evaluation selected batches for dispatch.
             if (dispatchTasks.Count > 0)
@@ -160,8 +156,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     private void EvaluateOpenBatches(
         ref long lastModified,
         PriorityQueue<Batch, long> backlog,
-        List<Task> dispatchTasks,
-        List<Batch> completedBatches)
+        List<Task> dispatchTasks)
     {
         // Fill the evaluation backlog with the current enqueued batches.
         // The backlog orders batches by ModifiedTimestamp, so batches that
@@ -190,27 +185,18 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
             if (batch.Touch())
             {
-                completedBatches.Add(batch);
-                dispatchTasks.Add(batch.DispatchAsync());
+                lock (_enqueuedBatches)
+                {
+                    _enqueuedBatches.Remove(batch);
+                }
+
                 Interlocked.Decrement(ref _openBatches);
+                dispatchTasks.Add(batch.DispatchAsync());
             }
 
             if (dispatchTasks.Count == MaxParallelBatches)
             {
                 break;
-            }
-        }
-
-        // Remove batches that have been marked for dispatch from the enqueued list.
-        // Note: Calling DispatchAsync() closes the batch, preventing DataLoaders from
-        // enqueuing new keys. The _enqueuedBatches set only tracks batches available
-        // for evaluation rounds; it doesn't control whether new keys can be enqueued.
-        lock (_enqueuedBatches)
-        {
-            foreach (var completed in completedBatches)
-            {
-                _completedBatches.Add(completed);
-                _enqueuedBatches.Remove(completed);
             }
         }
     }
