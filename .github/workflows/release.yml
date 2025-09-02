@@ -280,6 +280,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22.x"
+          registry-url: ${{ vars.NPM_REGISTRY_URL }}
           scope: "@chillicream"
 
       - name: 🧰 Enable corepack
@@ -340,7 +341,7 @@ jobs:
             DIST_TAG="preview"
           fi
 
-          npm publish "./${TARBALL}" --tag "${DIST_TAG}"
+          npm publish "./${TARBALL}" --access public --registry=${{ vars.NPM_REGISTRY_URL }} --tag "${DIST_TAG}"
         shell: bash
 
       - name: 📤 Upload tarball as artifact
