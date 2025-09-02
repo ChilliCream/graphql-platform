@@ -135,7 +135,7 @@ internal sealed class FusionRequestExecutorManager
         var parserOptions = CreateParserOptions(setup);
         var clientConfigurations = CreateClientConfigurations(setup, configuration.Settings.Document);
         var features = CreateSchemaFeatures(setup, requestOptions, parserOptions, clientConfigurations);
-        var schemaServices = CreateSchemaServices(setup);
+        var schemaServices = CreateSchemaServices(setup, requestOptions);
 
         var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
         var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
@@ -247,6 +247,7 @@ internal sealed class FusionRequestExecutorManager
         var features = new FeatureCollection();
 
         features.Set(requestOptions);
+        features.Set(requestOptions.PersistedOperations);
         features.Set(parserOptions);
         features.Set(clientConfigurations);
         features.Set(CreateTypeResolverInterceptors());
@@ -272,11 +273,12 @@ internal sealed class FusionRequestExecutorManager
         };
 
     private ServiceProvider CreateSchemaServices(
-        FusionGatewaySetup setup)
+        FusionGatewaySetup setup,
+        FusionRequestOptions requestOptions)
     {
         var schemaServices = new ServiceCollection();
 
-        AddCoreServices(schemaServices);
+        AddCoreServices(schemaServices, requestOptions);
         AddOperationPlanner(schemaServices);
         AddParserServices(schemaServices);
         AddDocumentValidator(setup, schemaServices);
@@ -290,7 +292,7 @@ internal sealed class FusionRequestExecutorManager
         return schemaServices.BuildServiceProvider();
     }
 
-    private void AddCoreServices(IServiceCollection services)
+    private void AddCoreServices(IServiceCollection services, FusionRequestOptions requestOptions)
     {
         services.AddSingleton<IRootServiceProviderAccessor>(
             new RootServiceProviderAccessor(_applicationServices));
@@ -305,6 +307,9 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton(static _ => new SchemaDefinitionAccessor());
         services.AddSingleton(static sp => sp.GetRequiredService<SchemaDefinitionAccessor>().Schema);
         services.AddSingleton<ISchemaDefinition>(static sp => sp.GetRequiredService<FusionSchemaDefinition>());
+
+        services.AddSingleton(requestOptions);
+        services.AddSingleton(requestOptions.PersistedOperations);
 
         services.AddSingleton<ObjectPool<PooledRequestContext>>(
             static _ => new DefaultObjectPool<PooledRequestContext>(
