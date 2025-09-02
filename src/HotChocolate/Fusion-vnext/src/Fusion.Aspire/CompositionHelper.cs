@@ -14,7 +14,6 @@ internal static class CompositionHelper
     public static async Task<bool> TryComposeAsync(
         string fusionArchivePath,
         ImmutableArray<SourceSchemaInfo> sourceSchemas,
-        string environmentName,
         GraphQLCompositionSettings settings,
         ILogger<SchemaComposition> logger,
         CancellationToken cancellationToken)
@@ -93,7 +92,10 @@ internal static class CompositionHelper
         {
             using var buffer = new PooledArrayWriter(4096);
             var settingsComposer = new SettingsComposer();
-            settingsComposer.Compose(buffer, sourceSchemaMap.Values.Select(t => t.SchemaSettings).ToArray(), environmentName);
+            settingsComposer.Compose(
+                buffer,
+                sourceSchemaMap.Values.Select(t => t.SchemaSettings).ToArray(),
+                settings.EnvironmentName ?? "Aspire");
 
             var metadata = new ArchiveMetadata
             {
