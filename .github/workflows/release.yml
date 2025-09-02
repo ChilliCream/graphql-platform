@@ -327,7 +327,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ChilliCream/homebrew-nitro
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           path: homebrew-nitro
 
       - name: 🚀 Update formula in homebrew repo
