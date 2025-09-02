@@ -30,7 +30,6 @@ jobs:
             10.x
 
       - name: 🏷 Get the version from tag
-        id: get_version
         run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: 📦 Build NuGet Packages
@@ -55,21 +54,11 @@ jobs:
         env:
           NuGetApiKey: ${{ secrets.NUGETAPIKEY }}
 
-      - name: 🔎 Get GitHub Release Info
-        id: get_release
-        run: |
-          RELEASE_ID=$(gh api repos/ChilliCream/graphql-platform/releases/tags/${{ env.GIT_TAG }} --jq '.id')
-          UPLOAD_URL=$(gh api repos/ChilliCream/graphql-platform/releases/$RELEASE_ID --jq '.upload_url')
-          echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
-          echo "UPLOAD_URL=${UPLOAD_URL}" >> $GITHUB_ENV
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 📤 Upload .nupkg Release Assets
+      - name: 📤 Attach .nupkg assets to GitHub release
         run: |
           for file in ./output/packages/*.nupkg; do
             echo "📤 Uploading $file"
-            gh release upload ${{ env.GIT_TAG }} "$file" --repo ChilliCream/graphql-platform
+            gh release upload ${{ env.GIT_TAG }} "$file" --repo "${{ github.repository }}"
           done
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -115,26 +104,24 @@ jobs:
         with:
           dotnet-version: 10.x
 
-      - name: 🧩 Publish AOT binary for ${{ matrix.rid }}
-        shell: bash
-        run: |
-          dotnet publish ./src/Nitro/CommandLine/src/CommandLine \
-            -c Release \
-            -r ${{ matrix.rid }} \
-            -f net10.0 \
-            --self-contained true \
-            -p:PublishAot=true \
-            -p:TargetFrameworks=NET10.0 \
-            -p:RuntimeIdentifiers=${{ matrix.rid }} \
-            -o ./publish
+      - name: 🏷 Get the version from tag
+        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: 🖋️ Azure login (for Windows)
+      - name: 📦 Build NuGet Packages
+        run: |
+          ./build.sh publishaot --SemVersion ${{ env.GIT_TAG }} --RuntimeIdentifier ${{ matrix.rid }} --Configuration Release
+        env:
+          NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
+          NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
+          NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
+
+      - name: 🖋️ Azure login (Windows)
         uses: azure/login@v1
         if: runner.os == 'Windows'
         with:
           creds: ${{ secrets.SIGNING_CREDENTIALS }}
 
-      - name: 🖋️ Sign Windows binary
+      - name: 🖋️ Sign binary (Windows)
         uses: azure/trusted-signing-action@v0
         if: runner.os == 'Windows'
         with:
@@ -157,7 +144,7 @@ jobs:
           exclude-interactive-browser-credential: true
 
       # https://docs.github.com/en/actions/how-tos/deploy/deploy-to-third-party-platforms/sign-xcode-applications
-      - name: 🖋️ Set up macOS signing resources
+      - name: 🖋️ Setup signing resources (macOS)
         if: runner.os == 'macOS'
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_CERTFICATE_BASE64 }}
@@ -181,7 +168,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
-      - name: 🖋️ Sign macOS binary
+      - name: 🖋️ Sign binary (macOS)
         if: runner.os == 'macOS'
         env:
           CODESIGN_IDENTITY: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_IDENTITY }}
@@ -210,7 +197,7 @@ jobs:
           zip -j nitro-${{ matrix.rid }}.zip publish/nitro
         shell: bash
 
-      - name: 🖋️ Notarize macOS zipped binary
+      - name: 🖋️ Notarize binary (macOS)
         if: runner.os == 'macOS'
         env:
           CODESIGN_IDENTITY: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_IDENTITY }}
@@ -240,18 +227,18 @@ jobs:
           spctl --assess --type exec -vv nitro-${{ matrix.rid }}.zip || true
           codesign -dvv nitro-${{ matrix.rid }}.zip || true
 
-      - name: 🖋️ Clean up macOS signing resources
+      - name: 🖋️ Clean up signing resources (macOS)
         if: always() && runner.os == 'macOS'
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
 
-      - name: 📤 Upload Zipped AOT binary as artifact
+      - name: 📤 Upload zipped binary as artifact
         uses: actions/upload-artifact@v4
         with:
           name: nitro-${{ matrix.rid }}
           path: nitro-${{ matrix.rid }}.zip
 
-      - name: 📤 Upload Zipped AOT binary to release
+      - name: 📤 Attach zipped binary to GitHub release
         shell: bash
         run: |
           gh release upload ${{ github.ref_name }} nitro-${{ matrix.rid }}.zip --repo ${{ github.repository }}

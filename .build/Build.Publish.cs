@@ -25,6 +25,29 @@ partial class Build
         Framework = "net8.0")]
     readonly Tool NitroCli;
 
+    Target PublishAot => _ => _
+        .Requires(() => Configuration.Equals(Release))
+        .Executes(() =>
+        {
+            DotNetPublish(c => c
+                .SetProject("src/Nitro/CommandLine/src/CommandLine")
+                .SetOutput(OutputDirectory)
+                .SetRuntime(RuntimeIdentifier)
+                .SetFramework("net10.0")
+                .SetConfiguration(Configuration)
+                .SetSelfContained(true)
+                .SetInformationalVersion(SemVersion)
+                .SetFileVersion(Version)
+                .SetAssemblyVersion(Version)
+                .SetVersion(SemVersion)
+                .SetProperty("NitroApiClientId", NitroApiClientId)
+                .SetProperty("NitroIdentityClientId", NitroIdentityClientId)
+                .SetProperty("NitroIdentityScopes", NitroIdentityScopes)
+                .SetProperty("PublishAot", true)
+                .SetProperty("TargetFrameworks", "NET10.0")
+                .SetProperty("RuntimeIdentifiers", RuntimeIdentifier));
+        });
+
     Target Pack => _ => _
         .DependsOn(PackLocal)
         .Produces(PackageDirectory / "*.nupkg")
