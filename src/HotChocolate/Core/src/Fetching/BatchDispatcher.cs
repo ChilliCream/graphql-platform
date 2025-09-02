@@ -192,7 +192,6 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
             {
                 completedBatches.Add(batch);
                 dispatchTasks.Add(batch.DispatchAsync());
-                Interlocked.Decrement(ref _openBatches);
             }
 
             if (dispatchTasks.Count == MaxParallelBatches)
@@ -210,6 +209,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
             foreach (var completed in completedBatches)
             {
                 _enqueuedBatches.Remove(completed);
+                Interlocked.Decrement(ref _openBatches);
             }
         }
     }
