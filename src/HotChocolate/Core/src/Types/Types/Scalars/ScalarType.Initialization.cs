@@ -71,12 +71,26 @@ public abstract partial class ScalarType
         ScalarTypeDefinition definition)
     {
         _converter = context.DescriptorContext.TypeConverter;
-        var directiveDefinitions = definition.GetDirectives();
-        Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
 
         if(definition.SpecifiedBy is not null)
         {
             SpecifiedBy = definition.SpecifiedBy;
         }
+    }
+
+    protected sealed override void OnBeforeCompleteMetadata(
+        ITypeCompletionContext context,
+        DefinitionBase configuration)
+    {
+        OnBeforeCompleteMetadata(context, (ScalarTypeDefinition)configuration);
+        base.OnBeforeCompleteMetadata(context, configuration);
+    }
+
+    protected virtual void OnBeforeCompleteMetadata(
+        ITypeCompletionContext context,
+        ScalarTypeDefinition configuration)
+    {
+        var directiveDefinitions = configuration.GetDirectives();
+        Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
     }
 }
