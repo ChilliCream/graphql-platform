@@ -1,8 +1,11 @@
 "use strict";
 
-import { join } from "path";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 import { spawn } from "child_process";
 import { family, GLIBC, MUSL } from "detect-libc";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 async function resolveBinary() {
   const { platform, arch } = process;
@@ -39,14 +42,11 @@ async function resolveBinary() {
   }
 
   const binaryPath = typeof binary === "function" ? await binary() : binary;
-
-  return binaryPath ? join(import.meta.dirname, binaryPath) : null;
+  return binaryPath ? join(__dirname, binaryPath) : null;
 }
 
 const bin = await resolveBinary();
 const input = process.argv.slice(2);
-
-console.log({ bin, input });
 
 if (bin !== null) {
   spawn(bin, input, { stdio: "inherit" }).on("exit", process.exit);

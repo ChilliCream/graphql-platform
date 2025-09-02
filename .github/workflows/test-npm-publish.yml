@@ -1,74 +1,18 @@
-name: 🚀 Release
+name: 🚀 Test npm publish
 
 on:
-  push:
-    tags:
-      - "16.*"
+  pull_request:
+    branches:
+      - main
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  release:
-    name: 📦 Build & Publish NuGet Packages
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: write
-    steps:
-      - name: 📦 Checkout
-        uses: actions/checkout@v4
-        with:
-          show-progress: false
-
-      - name: 🛠 Install .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: |
-            8.x
-            9.x
-            10.x
-
-      - name: 🏷 Get the version from tag
-        id: get_version
-        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: 📦 Build NuGet Packages
-        run: |
-          ./build.sh pack --SemVersion ${{ env.GIT_TAG }} --Configuration Release
-        env:
-          NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
-          NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
-          NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
-
-      - name: 📦 Publish Nitro CLI client
-        run: |
-          ./build.sh UploadNitroClient --SemVersion ${{ env.GIT_TAG }}
-          ./build.sh PublishNitroClient --SemVersion ${{ env.GIT_TAG }}
-        env:
-          NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
-          NitroApiKey: ${{ secrets.NITRO_API_KEY }}
-
-      - name: 🚀 Push Packages to NuGet
-        run: |
-          ./build.cmd publish --skip
-        env:
-          NuGetApiKey: ${{ secrets.NUGETAPIKEY }}
-
-      - name: 📤 Attach .nupkg assets to GitHub release
-        run: |
-          for file in ./output/packages/*.nupkg; do
-            echo "📤 Uploading $file"
-            gh release upload ${{ env.GIT_TAG }} "$file" --repo "${{ github.repository }}"
-          done
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   build-nitro-cli:
     name: 🧱 Build and Publish Nitro CLI
     runs-on: ${{ matrix.os }}
-    # We need to depend on this job, as it publishes the persisted operations of the CLI.
-    needs: release
     permissions:
       contents: write
     strategy:
@@ -241,12 +185,12 @@ jobs:
           name: nitro-${{ matrix.rid }}
           path: nitro-${{ matrix.rid }}.zip
 
-      - name: 📤 Attach zipped binary to GitHub release
-        shell: bash
-        run: |
-          gh release upload ${{ github.ref_name }} nitro-${{ matrix.rid }}.zip --repo ${{ github.repository }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: 📤 Attach zipped binary to GitHub release
+      #   shell: bash
+      #   run: |
+      #     gh release upload ${{ github.ref_name }} nitro-${{ matrix.rid }}.zip --repo ${{ github.repository }}
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-nitro-cli-npm:
     name: 🧱 Publish Nitro CLI to npm
@@ -270,13 +214,35 @@ jobs:
           merge-multiple: true
           path: dist-zips
 
+      - name: 🗂️ Prepare package directories
+        run: |
+          PACKAGE_DIR="src/Nitro/CommandLine/src/js"
+
+          for z in dist-zips/nitro-*.zip; do
+            name=$(basename "$z" .zip)  # e.g. nitro-linux-x64
+            rid=${name#nitro-}          # e.g. linux-x64
+
+            echo "Unpacking $z -> $PACKAGE_DIR/$rid"
+            mkdir -p "$PACKAGE_DIR/$rid"
+            unzip -q "$z" -d "$PACKAGE_DIR/$rid"
+          done
+
+          # Ensure unix binaries are executable
+          chmod +x $PACKAGE_DIR/linux-x64/nitro || true
+          chmod +x $PACKAGE_DIR/linux-musl-x64/nitro || true
+          chmod +x $PACKAGE_DIR/linux-arm64/nitro || true
+          chmod +x $PACKAGE_DIR/osx-x64/nitro || true
+          chmod +x $PACKAGE_DIR/osx-arm64/nitro || true
+
       - name: 🔍 Install dependencies
         working-directory: src/Nitro/CommandLine/src/js
         run: yarn install --immutable
 
-      - name: Set version
+      - name: 🏷️ Set version
         working-directory: src/Nitro/CommandLine/src/js
-        run: npm version ${{ github.ref_name }}
+        env:
+          GIT_TAG: 16.0.0 # ${{ github.ref_name }}
+        run: npm version $GIT_TAG
 
       - name: 📦 Create npm tarball
         working-directory: src/Nitro/CommandLine/src/js
@@ -284,13 +250,15 @@ jobs:
 
       - name: 📤 Upload tarball as artifact
         uses: actions/upload-artifact@v4
-        with:
-          name: chillicream-nitro-${{ github.ref_name }}.tgz
-          path: src/Nitro/CommandLine/src/js/chillicream-nitro-${{ github.ref_name }}.tgz
-
-      - name: 📤 Attach tarball to GitHub release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: src/Nitro/CommandLine/src/js
-        run: |
-          gh release upload "${{ github.ref_name }}" "chillicream-nitro-${{ github.ref_name }}.tgz" --repo "${{ github.repository }}"
+          GIT_TAG: 16.0.0 # ${{ github.ref_name }}
+        with:
+          name: chillicream-nitro-$GIT_TAG.tgz
+          path: src/Nitro/CommandLine/src/js/chillicream-nitro-$GIT_TAG.tgz
+
+      # - name: 📤 Attach tarball to GitHub release
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   working-directory: src/Nitro/CommandLine/src/js
+      #   run: |
+      #     gh release upload "${{ github.ref_name }}" "chillicream-nitro-${{ github.ref_name }}.tgz" --repo "${{ github.repository }}"
