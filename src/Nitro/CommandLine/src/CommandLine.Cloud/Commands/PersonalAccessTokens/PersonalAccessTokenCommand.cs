@@ -4,7 +4,7 @@ internal sealed class PersonalAccessTokenCommand : Command
 {
     public PersonalAccessTokenCommand() : base("pat")
     {
-        Description = "Use this command to manage personal access tokens";
+        Description = "Manage personal access tokens";
 
         this.AddNitroCloudDefaultOptions();
 

@@ -4,15 +4,17 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
 using HotChocolate.Buffers;
+using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
+using HotChocolate.Fusion.Properties;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CommandLineResources;
 
-namespace HotChocolate.Fusion.CommandLine;
+namespace ChilliCream.Nitro.CommandLine.Fusion.Commands;
 
 internal sealed class ComposeCommand : Command
 {
@@ -59,7 +61,7 @@ internal sealed class ComposeCommand : Command
         environmentOption.AddAlias("--env");
         environmentOption.AddAlias("-e");
 
-        var enableGlobalIdsOption = new Option<bool>("--enable-global-object-identification")
+        var enableGlobalIdsOption = new Option<bool?>("--enable-global-object-identification")
         {
             Description = ComposeCommand_EnableGlobalObjectIdentification_Description
         };
@@ -105,7 +107,7 @@ internal sealed class ComposeCommand : Command
         List<string> sourceSchemaFiles,
         string? archiveFile,
         string? environment,
-        bool enableGlobalObjectIdentification,
+        bool? enableGlobalObjectIdentification,
         bool watchMode,
         bool printSchema,
         CancellationToken cancellationToken)
@@ -169,7 +171,7 @@ internal sealed class ComposeCommand : Command
         List<string> sourceSchemaFiles,
         string archiveFile,
         string? environment,
-        bool enableGlobalObjectIdentification,
+        bool? enableGlobalObjectIdentification,
         CancellationToken cancellationToken)
     {
         console.Out.WriteLine("🔍 Starting watch mode...");
@@ -318,7 +320,7 @@ internal sealed class ComposeCommand : Command
         List<string> sourceSchemaFiles,
         string archiveFile,
         string? environment,
-        bool enableGlobalObjectIdentification,
+        bool? enableGlobalObjectIdentification,
         CancellationToken cancellationToken)
     {
         var lastComposition = DateTime.MinValue;
@@ -380,7 +382,7 @@ internal sealed class ComposeCommand : Command
         List<string> sourceSchemaFiles,
         string archiveFile,
         string? environment,
-        bool enableGlobalObjectIdentification,
+        bool? enableGlobalObjectIdentification,
         bool printSchema,
         CancellationToken cancellationToken)
     {
@@ -400,10 +402,17 @@ internal sealed class ComposeCommand : Command
                 enableGlobalObjectIdentification,
                 cancellationToken);
 
+            var writer = result.IsSuccess ? console.Out : console.Error;
+
             WriteCompositionLog(
                 compositionLog,
-                writer: result.IsSuccess ? console.Out : console.Error,
+                writer,
                 writeAsGraphQLComments: result.IsSuccess && printSchema);
+
+            if (!compositionLog.IsEmpty)
+            {
+                writer.WriteLine();
+            }
 
             if (result.IsFailure)
             {
@@ -433,7 +442,7 @@ internal sealed class ComposeCommand : Command
         List<string> sourceSchemaFiles,
         FusionArchive archive,
         string? environment,
-        bool enableGlobalObjectIdentification,
+        bool? enableGlobalObjectIdentification,
         CancellationToken cancellationToken)
     {
         environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
@@ -467,10 +476,25 @@ internal sealed class ComposeCommand : Command
             sourceSchemas[schemaName] = (new SourceSchemaText(schemaName, sourceText), configuration.Settings);
         }
 
+        var existingCompositionSettings = await GetCompositionSettingsAsync(archive, cancellationToken);
+
         var schemaComposerOptions = new SchemaComposerOptions
         {
             EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                ?? existingCompositionSettings.EnableGlobalObjectIdentification
         };
+
+        if (existingCompositionSettings.EnableGlobalObjectIdentification
+            != schemaComposerOptions.EnableGlobalObjectIdentification)
+        {
+            compositionLog.Write(
+                new LogEntry(
+                    schemaComposerOptions.EnableGlobalObjectIdentification
+                        ? ComposeCommand_GlobalObjectIdentification_Enabled
+                        : ComposeCommand_GlobalObjectIdentification_Disabled,
+                    LogEntryCodes.ModifiedCompositionSetting,
+                    LogSeverity.Info));
+        }
 
         var schemaComposer = new SchemaComposer(
             sourceSchemas.Values.Select(t => t.Item1),
@@ -513,6 +537,8 @@ internal sealed class ComposeCommand : Command
             new Version(2, 0, 0),
             cancellationToken);
 
+        await SaveCompositionSettingsAsync(archive, schemaComposerOptions, cancellationToken);
+
         await archive.CommitAsync(cancellationToken);
 
         return result;
@@ -551,11 +577,6 @@ internal sealed class ComposeCommand : Command
             }
 
             writer.WriteLine(message);
-        }
-
-        if (!compositionLog.IsEmpty)
-        {
-            writer.WriteLine();
         }
     }
 
@@ -622,6 +643,35 @@ internal sealed class ComposeCommand : Command
         }
     }
 
+    private static async Task<CompositionSettings> GetCompositionSettingsAsync(
+        FusionArchive archive,
+        CancellationToken cancellationToken)
+    {
+        var compositionSettings = await archive.GetCompositionSettingsAsync(cancellationToken);
+
+        return compositionSettings?.Deserialize(JsonSourceGenerationContext.Default.CompositionSettings)
+            ?? new CompositionSettings
+            {
+                EnableGlobalObjectIdentification = false
+            };
+    }
+
+    private static async Task SaveCompositionSettingsAsync(
+        FusionArchive archive,
+        SchemaComposerOptions options,
+        CancellationToken cancellationToken)
+    {
+        var settings = new CompositionSettings
+        {
+            EnableGlobalObjectIdentification = options.EnableGlobalObjectIdentification
+        };
+        var settingsJson = JsonSerializer.SerializeToDocument(
+            settings,
+            JsonSourceGenerationContext.Default.CompositionSettings);
+
+        await archive.SetCompositionSettingsAsync(settingsJson, cancellationToken);
+    }
+
     private static async Task<string> ReadSchemaSourceTextAsync(
         SourceSchemaConfiguration configuration,
         CancellationToken cancellationToken)
@@ -645,5 +695,10 @@ internal sealed class ComposeCommand : Command
         }
 
         return string.Join(Environment.NewLine + "   ", lines);
+    }
+
+    public record CompositionSettings
+    {
+        public required bool EnableGlobalObjectIdentification { get; init; }
     }
 }

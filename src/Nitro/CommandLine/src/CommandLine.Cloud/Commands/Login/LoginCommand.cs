@@ -9,7 +9,7 @@ internal sealed class LoginCommand : Command
     public LoginCommand() : base("login")
     {
         Description =
-            "This command logs you in with a user account. Nitro CLI will try to launch a web browser to log you in interactively";
+            "Log in interactively through your default browser";
 
         AddOption(Opt<IdentityCloudUrlOption>.Instance);
 

@@ -4,7 +4,7 @@ internal sealed class ApiKeyCommand : Command
 {
     public ApiKeyCommand() : base("api-key")
     {
-        Description = "Use this command to manage api keys";
+        Description = "Manage API keys";
 
         this.AddNitroCloudDefaultOptions();
 

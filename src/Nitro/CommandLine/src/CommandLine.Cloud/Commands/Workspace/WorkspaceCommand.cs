@@ -4,7 +4,7 @@ internal sealed class WorkspaceCommand : Command
 {
     public WorkspaceCommand() : base("workspace")
     {
-        Description = "Use this command to manage workspaces";
+        Description = "Manage workspaces";
 
         this.AddNitroCloudDefaultOptions();
 

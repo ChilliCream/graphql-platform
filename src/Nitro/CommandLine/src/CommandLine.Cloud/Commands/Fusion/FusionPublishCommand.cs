@@ -1,8 +1,7 @@
 using System.CommandLine.IO;
 using ChilliCream.Nitro.CommandLine.Cloud.Client;
-using ChilliCream.Nitro.CommandLine.Cloud.Commands.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
-using HotChocolate.Fusion.CommandLine;
+using ChilliCream.Nitro.CommandLine.Fusion.Commands;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
 using static HotChocolate.Fusion.Properties.CommandLineResources;
@@ -13,7 +12,19 @@ internal sealed class FusionPublishCommand : Command
 {
     public FusionPublishCommand() : base("publish")
     {
-        Description = "Publishes one or more source schemas as a new fusion configuration to Nitro.";
+        Description = "Publishes one or more source schemas as a new Fusion configuration to Nitro."
+            + System.Environment.NewLine
+            + "To take control over the deployment orchestration use sub-commands like 'begin'."
+            + System.Environment.NewLine
+            + "Since this command performs a Fusion composition internally, it only supports Fusion v2."
+            + System.Environment.NewLine
+            + "The orchestration sub-commands can also be used for Fusion v1.";
+
+        AddCommand(new FusionConfigurationPublishBeginCommand());
+        AddCommand(new FusionConfigurationPublishStartCommand());
+        AddCommand(new FusionConfigurationPublishValidateCommand());
+        AddCommand(new FusionConfigurationPublishCancelCommand());
+        AddCommand(new FusionConfigurationPublishCommitCommand());
 
         var workingDirectoryOption = new Option<string>("--working-directory")
         {
@@ -47,6 +58,8 @@ internal sealed class FusionPublishCommand : Command
         AddOption(Opt<TagOption>.Instance);
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
+        AddOption(Opt<CloudUrlOption>.Instance);
+        AddOption(Opt<ApiKeyOption>.Instance);
 
         this.SetHandler(async context =>
         {
@@ -66,6 +79,9 @@ internal sealed class FusionPublishCommand : Command
                 apiId,
                 stageName,
                 tag,
+                // We'll always take the setting already in the configuration for this
+                enableGlobalObjectIdentification: null,
+                requireExistingConfiguration: false,
                 console,
                 apiClient,
                 httpClientFactory,
@@ -73,12 +89,14 @@ internal sealed class FusionPublishCommand : Command
         });
     }
 
-    private static async Task<int> ExecuteAsync(
-        string workingDirectory,
+    public static async Task<int> ExecuteAsync(
+        string? workingDirectory,
         List<string> sourceSchemaFiles,
         string apiId,
         string stageName,
         string tag,
+        bool? enableGlobalObjectIdentification,
+        bool requireExistingConfiguration,
         IAnsiConsole console,
         IApiClient client,
         IHttpClientFactory httpClientFactory,
@@ -124,7 +142,7 @@ internal sealed class FusionPublishCommand : Command
 
                 if (!success)
                 {
-                    await FusionConfigurationPublishHelpers.ReleaseDeploymentSlot(
+                    await FusionPublishHelpers.ReleaseDeploymentSlot(
                         requestId,
                         console,
                         client,
@@ -163,7 +181,7 @@ internal sealed class FusionPublishCommand : Command
 
                 if (!success)
                 {
-                    await FusionConfigurationPublishHelpers.ReleaseDeploymentSlot(
+                    await FusionPublishHelpers.ReleaseDeploymentSlot(
                         requestId,
                         console,
                         client,
@@ -183,7 +201,7 @@ internal sealed class FusionPublishCommand : Command
 
             if (!string.IsNullOrEmpty(requestId))
             {
-                await FusionConfigurationPublishHelpers.ReleaseDeploymentSlot(
+                await FusionPublishHelpers.ReleaseDeploymentSlot(
                     requestId,
                     console,
                     client,
@@ -195,7 +213,7 @@ internal sealed class FusionPublishCommand : Command
 
         Task<string> RequestDeploymentSlotAsync(StatusContext? statusContext)
         {
-            return FusionConfigurationPublishHelpers.RequestDeploymentSlotAsync(
+            return FusionPublishHelpers.RequestDeploymentSlotAsync(
                 apiId,
                 stageName,
                 tag,
@@ -212,7 +230,7 @@ internal sealed class FusionPublishCommand : Command
 
         async Task ClaimDeploymentSlotAsync()
         {
-            await FusionConfigurationPublishHelpers.ClaimDeploymentSlot(
+            await FusionPublishHelpers.ClaimDeploymentSlot(
                 requestId,
                 console,
                 client,
@@ -223,7 +241,7 @@ internal sealed class FusionPublishCommand : Command
 
         async Task<Stream?> DownloadConfigurationAsync()
         {
-            var stream = await FusionConfigurationPublishHelpers.DownloadConfigurationAsync(
+            var stream = await FusionPublishHelpers.DownloadConfigurationAsync(
                 apiId,
                 stageName,
                 client,
@@ -232,7 +250,12 @@ internal sealed class FusionPublishCommand : Command
 
             if (stream is null)
             {
-                console.WarningLine($"There is not existing configuration on '{stageName}'.");
+                if (requireExistingConfiguration)
+                {
+                    throw new ExitException($"Expected an existing configuration on '{stageName}'.");
+                }
+
+                console.WarningLine($"There is no existing configuration on '{stageName}'.");
             }
             else
             {
@@ -263,22 +286,25 @@ internal sealed class FusionPublishCommand : Command
                 archive = FusionArchive.Create(archiveStream, leaveOpen: true);
             }
 
-            if (sourceSchemaFiles.Count == 0)
+            if (!string.IsNullOrEmpty(workingDirectory))
             {
-                sourceSchemaFiles.AddRange(
-                    new DirectoryInfo(workingDirectory)
-                        .GetFiles("*.graphql*", SearchOption.AllDirectories)
-                        .Where(f => ComposeCommand.IsSchemaFile(f.Name))
-                        .Select(i => i.FullName));
-            }
-            else
-            {
-                for (var i = 0; i < sourceSchemaFiles.Count; i++)
+                if (sourceSchemaFiles.Count == 0)
                 {
-                    var sourceSchemaFile = sourceSchemaFiles[i];
-                    if (!Path.IsPathRooted(sourceSchemaFile))
+                    sourceSchemaFiles.AddRange(
+                        new DirectoryInfo(workingDirectory)
+                            .GetFiles("*.graphql*", SearchOption.AllDirectories)
+                            .Where(f => ComposeCommand.IsSchemaFile(f.Name))
+                            .Select(i => i.FullName));
+                }
+                else
+                {
+                    for (var i = 0; i < sourceSchemaFiles.Count; i++)
                     {
-                        sourceSchemaFiles[i] = Path.Combine(workingDirectory, sourceSchemaFile);
+                        var sourceSchemaFile = sourceSchemaFiles[i];
+                        if (!Path.IsPathRooted(sourceSchemaFile))
+                        {
+                            sourceSchemaFiles[i] = Path.Combine(workingDirectory, sourceSchemaFile);
+                        }
                     }
                 }
             }
@@ -290,7 +316,7 @@ internal sealed class FusionPublishCommand : Command
                 sourceSchemaFiles,
                 archive,
                 environment: stageName,
-                false,
+                enableGlobalObjectIdentification,
                 cancellationToken);
 
             ComposeCommand.WriteCompositionLog(
@@ -315,7 +341,7 @@ internal sealed class FusionPublishCommand : Command
 
         async Task UploadConfigurationAsync(Stream stream, StatusContext? statusContext)
         {
-            var success = await FusionConfigurationPublishHelpers.UploadConfigurationAsync(
+            var success = await FusionPublishHelpers.UploadConfigurationAsync(
                 requestId,
                 stream,
                 statusContext,

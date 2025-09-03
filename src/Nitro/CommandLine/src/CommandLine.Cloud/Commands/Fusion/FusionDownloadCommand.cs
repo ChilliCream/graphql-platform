@@ -2,14 +2,12 @@ using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Cloud.Client;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
 using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
-using Microsoft.AspNetCore.Mvc.ActionConstraints;
-using StrawberryShake;
 
-namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.FusionConfiguration;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Fusion;
 
-internal sealed class FusionConfigurationDownloadCommand : Command
+internal sealed class FusionDownloadCommand : Command
 {
-    public FusionConfigurationDownloadCommand() : base("download")
+    public FusionDownloadCommand() : base("download")
     {
         Description = "Downloads the most recent gateway configuration";
 
@@ -43,7 +41,7 @@ internal sealed class FusionConfigurationDownloadCommand : Command
 
         console.Title($"Download the fusion configuration {apiId}/{stageName}");
 
-        await using var stream = await FusionConfigurationPublishHelpers.DownloadConfigurationAsync(
+        await using var stream = await FusionPublishHelpers.DownloadConfigurationAsync(
             apiId,
             stageName,
             client,
