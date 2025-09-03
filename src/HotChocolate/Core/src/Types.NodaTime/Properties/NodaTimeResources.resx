@@ -179,6 +179,18 @@ Allowed patterns:
 Examples:
 {1}</value>
   </data>
+  <data name="AnnualDateType_Description" xml:space="preserve">
+    <value>AnnualDate represents a date within the calendar, with no reference to a particular time zone, year, or time.</value>
+  </data>
+  <data name="AnnualDateType_Description_Extended" xml:space="preserve">
+    <value>AnnualDate represents a date within the calendar, with no reference to a particular time zone, year, or time.
+
+Allowed patterns:
+{0}
+
+Examples:
+{1}</value>
+  </data>
   <data name="NodaTime_NoPatternProvided" xml:space="preserve">
     <value>The provided patterns are empty. You must provide at least one pattern for type {0}.</value>
   </data>

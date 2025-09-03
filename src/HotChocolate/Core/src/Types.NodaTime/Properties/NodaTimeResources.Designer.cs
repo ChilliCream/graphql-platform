@@ -60,6 +60,30 @@ namespace HotChocolate.Types.NodaTime.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to AnnualDate represents a date within the calendar, with no reference to a particular time zone, year, or time..
+        /// </summary>
+        internal static string AnnualDateType_Description {
+            get {
+                return ResourceManager.GetString("AnnualDateType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AnnualDate represents a date within the calendar, with no reference to a particular time zone, year, or time.
+        ///
+        ///Allowed patterns:
+        ///{0}
+        ///
+        ///Examples:
+        ///{1}.
+        /// </summary>
+        internal static string AnnualDateType_Description_Extended {
+            get {
+                return ResourceManager.GetString("AnnualDateType_Description_Extended", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Represents a time zone - a mapping between UTC and local time.
         ///A time zone maps UTC instants to local times - or, equivalently, to the offset from UTC at any particular instant.
         ///
