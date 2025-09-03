@@ -66,7 +66,7 @@ public class DecimalTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => type.IsInstanceOfType(null));
+            () => type.IsInstanceOfType(null!));
     }
 
     [Fact]
@@ -203,7 +203,7 @@ public class DecimalTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => type.ParseLiteral(null));
+            () => type.ParseLiteral(null!));
     }
 
     [Fact]
@@ -280,7 +280,7 @@ public class DecimalTypeTests
     {
         // arrange
         var type = new DecimalType();
-        object input = null;
+        object input = null!;
 
         // act
         object output = type.ParseValue(input);

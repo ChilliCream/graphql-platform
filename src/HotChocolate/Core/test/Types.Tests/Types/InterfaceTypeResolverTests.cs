@@ -32,7 +32,7 @@ public static class InterfaceTypeResolverTests
         protected override void Configure(IInterfaceTypeDescriptor descriptor)
         {
             descriptor.Name("SomeInterface");
-            descriptor.Field("field").Type<StringType>().Resolve(_ => new ValueTask<object>("Test"));
+            descriptor.Field("field").Type<StringType>().Resolve(_ => new ValueTask<object?>("Test"));
         }
     }
 

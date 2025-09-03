@@ -337,12 +337,12 @@ public class TypeFactoryTests : TypeTestBase
 
     public class SimpleInputObject
     {
-        public string Name { get; set; }
-        public string[] Friends { get; set; }
+        public required string Name { get; set; }
+        public required string[] Friends { get; set; }
     }
 
     public class DummyQuery
     {
-        public string Bar { get; set; }
+        public required string Bar { get; set; }
     }
 }

@@ -122,5 +122,17 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("RootCommand_Description", resourceCulture);
             }
         }
+        
+        internal static string ComposeCommand_GlobalObjectIdentification_Enabled {
+            get {
+                return ResourceManager.GetString("ComposeCommand_GlobalObjectIdentification_Enabled", resourceCulture);
+            }
+        }
+        
+        internal static string ComposeCommand_GlobalObjectIdentification_Disabled {
+            get {
+                return ResourceManager.GetString("ComposeCommand_GlobalObjectIdentification_Disabled", resourceCulture);
+            }
+        }
     }
 }

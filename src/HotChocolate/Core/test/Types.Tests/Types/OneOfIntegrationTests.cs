@@ -6,8 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
-#nullable enable
-
 public class OneOfIntegrationTests : TypeValidationTestBase
 {
     [Fact]

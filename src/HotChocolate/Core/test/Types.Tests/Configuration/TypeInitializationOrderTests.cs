@@ -77,6 +77,6 @@ public class TypeInitializationOrderTests
 
     public class Word
     {
-        public string Value { get; set; }
+        public required string Value { get; set; }
     }
 }

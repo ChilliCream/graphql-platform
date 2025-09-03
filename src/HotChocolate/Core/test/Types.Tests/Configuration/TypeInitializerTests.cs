@@ -36,6 +36,7 @@ public class TypeInitializerTests
             out var type);
 
         Assert.True(exists);
+        Assert.NotNull(type);
         var fooType =
             Assert.IsType<FooType>(type.Type).Fields.ToDictionary(
                 t => t.Name,
@@ -46,6 +47,7 @@ public class TypeInitializerTests
             out type);
 
         Assert.True(exists);
+        Assert.NotNull(type);
         var barType =
             Assert.IsType<BarType>(type.Type).Fields.ToDictionary(
                 t => t.Name,
@@ -91,6 +93,7 @@ public class TypeInitializerTests
             out var type);
 
         Assert.True(exists);
+        Assert.NotNull(type);
         var fooType =
             Assert.IsType<ObjectType<Foo>>(type.Type).Fields.ToDictionary(
                 t => t.Name,
@@ -101,6 +104,7 @@ public class TypeInitializerTests
             out type);
 
         Assert.True(exists);
+        Assert.NotNull(type);
         var barType =
             Assert.IsType<ObjectType<Bar>>(type.Type).Fields.ToDictionary(
                 t => t.Name,
@@ -218,14 +222,14 @@ public class TypeInitializerTests
 
     public class BarType : ObjectType<Bar>;
 
-    public class Foo
+    public class Foo(Bar bar)
     {
-        public Bar Bar { get; }
+        public Bar Bar { get; } = bar;
     }
 
-    public class Bar
+    public class Bar(string baz)
     {
-        public string Baz { get; }
+        public string Baz { get; } = baz;
     }
 
     private sealed class TypeRegInterceptor : TypeInterceptor

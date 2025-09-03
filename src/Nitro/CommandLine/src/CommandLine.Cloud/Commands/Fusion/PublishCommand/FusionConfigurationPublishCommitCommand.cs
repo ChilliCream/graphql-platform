@@ -67,6 +67,8 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
             throw Exit("The commit has failed.");
         }
 
+        console.Success("Fusion composition was successful.");
+
         return ExitCodes.Success;
 
         async Task Commit(StatusContext? ctx)

@@ -3,7 +3,7 @@ schema {
 }
 
 type Query {
-  someClass: SomeClass
+  someClass: SomeClass!
 }
 
 type SomeClass {

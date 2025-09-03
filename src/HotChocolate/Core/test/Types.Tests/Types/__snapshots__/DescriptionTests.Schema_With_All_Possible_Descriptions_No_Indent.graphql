@@ -4,34 +4,34 @@ comment
 """ interface SomeInterface { "Single line comment" field: String """
   Multi line
   comment
-  """ fieldMulti: String fieldWithArgs("Single line comment" arg1: String """
+  """ fieldMulti: String fieldWithArgs("Single line comment" arg1: String! """
   Multi line
   comment
-  """ arg2: String): String } """
+  """ arg2: String!): String } """
 Multi line
 comment
-""" type OtherObjectType implements SomeInterface & OtherInterface { field: String fieldMulti: String fieldWithArgs(arg1: String arg2: String): String } """
+""" type OtherObjectType implements SomeInterface & OtherInterface { field: String fieldMulti: String fieldWithArgs(arg1: String! arg2: String!): String } """
 Multi line
 comment
 """ type Query { "Single line comment" outputFieldSingle: String """
   Multi line
   comment
-  """ outputFieldMulti: String outputFieldWithArgs("Single line comment" arg1: SomeInput """
+  """ outputFieldMulti: String outputFieldWithArgs("Single line comment" arg1: SomeInput! """
   Multi line
   comment
-  """ arg2: OtherInput): String } "Single line comment" union OtherUnion = OtherObjectType """
+  """ arg2: OtherInput!): String } "Single line comment" union OtherUnion = OtherObjectType """
 Multi line
 comment
-""" union SomeUnion = OtherObjectType "Single line comment" input OtherInput { "Single line comment" field: String """
+""" union SomeUnion = OtherObjectType "Single line comment" input OtherInput { "Single line comment" field: String! """
   Multi line
   comment
-  """ fieldMulti: String } """
+  """ fieldMulti: String! } """
 Multi line
 comment
-""" input SomeInput { "Single line comment" field: String """
+""" input SomeInput { "Single line comment" field: String! """
   Multi line
   comment
-  """ fieldMulti: String } """
+  """ fieldMulti: String! } """
 Multi line
 comment
 """ enum OtherEnum { "Single line comment" VALUE1 """

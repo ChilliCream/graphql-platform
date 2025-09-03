@@ -3,8 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class InputObjectTypeTests : TypeTestBase

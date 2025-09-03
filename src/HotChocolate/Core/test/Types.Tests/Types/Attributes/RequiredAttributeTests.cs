@@ -2,8 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class RequiredAttributeTests

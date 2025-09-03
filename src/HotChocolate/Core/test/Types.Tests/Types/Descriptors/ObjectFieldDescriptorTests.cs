@@ -191,14 +191,14 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
     [Fact]
     public void Type_Syntax_Type_Null()
     {
-        void Error() => ObjectFieldDescriptor.New(Context, "foo").Type((string)null);
+        void Error() => ObjectFieldDescriptor.New(Context, "foo").Type((string)null!);
         Assert.Throws<ArgumentNullException>(Error);
     }
 
     [Fact]
     public void Type_Syntax_Descriptor_Null()
     {
-        void Error() => default(IObjectFieldDescriptor).Type("foo");
+        void Error() => default(IObjectFieldDescriptor)!.Type("foo");
         Assert.Throws<ArgumentNullException>(Error);
     }
 

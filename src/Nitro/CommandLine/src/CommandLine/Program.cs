@@ -2,7 +2,7 @@ using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Cloud;
-using HotChocolate.Fusion.CommandLine;
+using ChilliCream.Nitro.CommandLine.Fusion;
 
 var builder = new CommandLineBuilder(new NitroRootCommand())
     .AddNitroCloudConfiguration()

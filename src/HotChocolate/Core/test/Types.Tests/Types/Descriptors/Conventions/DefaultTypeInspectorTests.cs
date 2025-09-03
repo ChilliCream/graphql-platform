@@ -242,7 +242,7 @@ public class DefaultTypeInspectorTests
         var typeInspector = new DefaultTypeInspector();
 
         // act
-        var typeReference = typeInspector.GetArgumentTypeRef(parameter!);
+        var typeReference = typeInspector.GetArgumentTypeRef(parameter);
 
         // assert
         var extTypeRef = Assert.IsType<ExtendedTypeReference>(typeReference);
@@ -259,7 +259,7 @@ public class DefaultTypeInspectorTests
         var typeInspector = new DefaultTypeInspector();
 
         // act
-        var typeReference = typeInspector.GetArgumentTypeRef(parameter!, "abc");
+        var typeReference = typeInspector.GetArgumentTypeRef(parameter, "abc");
 
         // assert
         var extTypeRef = Assert.IsType<ExtendedTypeReference>(typeReference);
@@ -278,7 +278,7 @@ public class DefaultTypeInspectorTests
         var typeInspector = new DefaultTypeInspector();
 
         // act
-        var typeReference = typeInspector.GetReturnTypeRef(property!);
+        var typeReference = typeInspector.GetReturnTypeRef(property);
 
         // assert
         var extTypeRef = Assert.IsType<SyntaxTypeReference>(typeReference);
@@ -308,7 +308,7 @@ public class DefaultTypeInspectorTests
         var typeInspector = new DefaultTypeInspector();
 
         // act
-        var extendedType = typeInspector.GetArgumentType(parameter!);
+        var extendedType = typeInspector.GetArgumentType(parameter);
 
         // assert
         Assert.Equal("String!", extendedType.ToString());
@@ -336,7 +336,7 @@ public class DefaultTypeInspectorTests
 
         // act
         var typeReference =
-            typeInspector.GetTypeRef(type!, TypeContext.Output);
+            typeInspector.GetTypeRef(type, TypeContext.Output);
 
         // assert
         Assert.Equal("Foo", typeReference.Type.ToString());
@@ -353,7 +353,7 @@ public class DefaultTypeInspectorTests
 
         // act
         var typeReference =
-            typeInspector.GetTypeRef(type!, TypeContext.Output, "abc");
+            typeInspector.GetTypeRef(type, TypeContext.Output, "abc");
 
         // assert
         Assert.Equal("Foo", typeReference.Type.ToString());
@@ -382,7 +382,7 @@ public class DefaultTypeInspectorTests
         var typeInspector = new DefaultTypeInspector();
 
         // act
-        var extendedType = typeInspector.GetType(type!);
+        var extendedType = typeInspector.GetType(type);
 
         // assert
         Assert.Equal("Foo", extendedType.ToString());
@@ -409,7 +409,7 @@ public class DefaultTypeInspectorTests
         var typeInspector = new DefaultTypeInspector();
 
         // act
-        var extendedType = typeInspector.GetType(type!, false);
+        var extendedType = typeInspector.GetType(type, false);
 
         // assert
         Assert.Equal("Foo!", extendedType.ToString());
@@ -637,60 +637,60 @@ public class DefaultTypeInspectorTests
             member => Assert.Equal("DoInfer", member.Name));
     }
 
-    public class ObjectPropWithTypeAttribute
+    public class ObjectPropWithTypeAttribute(object shouldNotBeFound, object shouldBeFound)
     {
-        public object ShouldNotBeFound { get; }
+        public object ShouldNotBeFound { get; } = shouldNotBeFound;
 
         [GraphQLType(typeof(StringType))]
-        public object ShouldBeFound { get; }
+        public object ShouldBeFound { get; } = shouldBeFound;
     }
 
-    public class ObjectPropWithDescriptorAttribute
+    public class ObjectPropWithDescriptorAttribute(object shouldNotBeFound, object shouldBeFound)
     {
-        public object ShouldNotBeFound { get; }
+        public object ShouldNotBeFound { get; } = shouldNotBeFound;
 
         [Some]
-        public object ShouldBeFound { get; }
+        public object ShouldBeFound { get; } = shouldBeFound;
     }
 
-    public class ObjectPropWithSyntaxType
+    public class ObjectPropWithSyntaxType(object shouldBeFound)
     {
         [GraphQLType("[String]")]
-        public object ShouldBeFound { get; }
+        public object ShouldBeFound { get; } = shouldBeFound;
     }
 
     public class ObjectMethodWithTypeAttribute
     {
-        public object ShouldNotBeFound() => null;
+        public object? ShouldNotBeFound() => null;
 
         [GraphQLType(typeof(StringType))]
-        public object ShouldBeFound() => null;
+        public object? ShouldBeFound() => null;
     }
 
     public class ObjectMethodWithDescriptorAttribute
     {
-        public object ShouldNotBeFound() => null;
+        public object? ShouldNotBeFound() => null;
 
         [Some]
-        public object ShouldBeFound() => null;
+        public object? ShouldBeFound() => null;
     }
 
     public class MethodAndObjectParameterWithTypeAttribute
     {
-        public string ShouldNotBeFound(
+        public string? ShouldNotBeFound(
             object o) => null;
 
-        public string ShouldBeFound(
+        public string? ShouldBeFound(
             [GraphQLType(typeof(StringType))]
             object o) => null;
     }
 
     public class MethodAndObjectParameterWithDescriptorAttribute
     {
-        public string ShouldNotBeFound(
+        public string? ShouldNotBeFound(
             object o) => null;
 
-        public string ShouldBeFound(
+        public string? ShouldBeFound(
             [Some]
             object o) => null;
     }
@@ -739,8 +739,6 @@ public class DefaultTypeInspectorTests
         }
     }
 
-#nullable enable
-
     public class Foo
     {
         public List<string> Bar() => throw new NotImplementedException();
@@ -748,15 +746,13 @@ public class DefaultTypeInspectorTests
         public List<string> Baz(string s) => throw new NotImplementedException();
     }
 
-#nullable restore
-
     public enum BarEnum
     {
         Bar,
         Baz
     }
 
-    public class DoNotInfer
+    public class DoNotInfer(object objectProp, Action action)
     {
         private string _s = "";
 
@@ -764,7 +760,7 @@ public class DefaultTypeInspectorTests
 
         public void ReturnsVoid() { }
 
-        public object ObjectProp { get; }
+        public object ObjectProp { get; } = objectProp;
 
         public string ByRefParameter(ref string s) => s;
 
@@ -791,7 +787,7 @@ public class DefaultTypeInspectorTests
 
         public Type GetMyType() => typeof(Foo);
 
-        public IAsyncResult GetSomeAsyncResult() => null;
+        public IAsyncResult? GetSomeAsyncResult() => null;
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async void GetAsyncVoid() { }
@@ -799,7 +795,7 @@ public class DefaultTypeInspectorTests
 
         public string RefStruct(ReadOnlySpan<byte> bytes) => "";
 
-        public Action Action { get; }
+        public Action Action { get; } = action;
 
         public async IAsyncEnumerable<string> AsyncEnumerable()
         {

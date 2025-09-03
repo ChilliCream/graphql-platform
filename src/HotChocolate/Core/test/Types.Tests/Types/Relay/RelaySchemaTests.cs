@@ -143,9 +143,9 @@ public class RelaySchemaTests
 
     public class User
     {
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
-        public string Name { get; set; }
+        public required string Name { get; set; }
     }
 
     public class UserType : ObjectType<User>
@@ -158,9 +158,9 @@ public class RelaySchemaTests
                 .ResolveNode(ResolveNode);
         }
 
-        private Task<User> ResolveNode(IResolverContext context, string id)
+        private Task<User?> ResolveNode(IResolverContext context, string? id)
         {
-            return Task.FromResult(new User { Name = "TEST" });
+            return Task.FromResult<User?>(new User { Name = "TEST" });
         }
     }
 
@@ -182,7 +182,7 @@ public class RelaySchemaTests
             descriptor
                 .Name("Some")
                 .ImplementsNode()
-                .ResolveNode<object>((_, _) => Task.FromResult(new object()));
+                .ResolveNode<object?>((_, _) => Task.FromResult<object?>(new object()));
 
             descriptor
                 .Field("id")
@@ -226,7 +226,7 @@ public class RelaySchemaTests
 
     public class BazPayload
     {
-        public string Some { get; set; }
+        public string? Some { get; set; }
     }
 
     public class BarResult;

@@ -207,8 +207,6 @@ internal static class FusionPublishHelpers
                 case IFusionConfigurationPublishingSuccess:
                     committed = true;
                     stopSignal.OnNext(Unit.Default);
-
-                    console.Success("Fusion composition was successful.");
                     break;
 
                 case IProcessingTaskIsReady:
