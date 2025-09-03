@@ -1,7 +1,7 @@
 using System.CommandLine;
-using System.CommandLine.Builder;
+using ChilliCream.Nitro.CommandLine.Fusion.Commands;
 
-namespace HotChocolate.Fusion.CommandLine;
+namespace ChilliCream.Nitro.CommandLine.Fusion.Extensions;
 
 public static class FusionCommandExtensions
 {

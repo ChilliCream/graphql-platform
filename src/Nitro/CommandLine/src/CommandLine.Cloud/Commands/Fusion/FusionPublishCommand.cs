@@ -1,7 +1,7 @@
 using System.CommandLine.IO;
 using ChilliCream.Nitro.CommandLine.Cloud.Client;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
-using HotChocolate.Fusion.CommandLine;
+using ChilliCream.Nitro.CommandLine.Fusion.Commands;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
 using static HotChocolate.Fusion.Properties.CommandLineResources;
@@ -303,7 +303,7 @@ internal sealed class FusionPublishCommand : Command
                 sourceSchemaFiles,
                 archive,
                 environment: stageName,
-                false,
+                null, // We'll always take the one already in the configuration
                 cancellationToken);
 
             ComposeCommand.WriteCompositionLog(
