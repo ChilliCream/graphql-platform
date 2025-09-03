@@ -1,4 +1,3 @@
-#if NET7_0_OR_GREATER
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -10,11 +9,11 @@ using ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
 using StrawberryShake;
 using static ChilliCream.Nitro.CommandLine.Cloud.ThrowHelper;
 
-namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.FusionConfiguration;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Fusion;
 
-internal sealed class FusionConfigurationValidateCommand : Command
+internal sealed class FusionValidateCommand : Command
 {
-    public FusionConfigurationValidateCommand() : base("validate")
+    public FusionValidateCommand() : base("validate")
     {
         Description = "Validates a fusion configuration against a stage";
 
@@ -160,5 +159,3 @@ internal sealed class FusionConfigurationValidateCommand : Command
         return schemaFileStream;
     }
 }
-
-#endif

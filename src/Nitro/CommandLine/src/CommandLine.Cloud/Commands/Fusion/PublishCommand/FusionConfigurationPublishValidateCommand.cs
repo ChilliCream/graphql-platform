@@ -9,7 +9,7 @@ using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 using StrawberryShake;
 using static ChilliCream.Nitro.CommandLine.Cloud.ThrowHelper;
 
-namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.FusionConfiguration;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Fusion;
 
 internal sealed class FusionConfigurationPublishValidateCommand : Command
 {

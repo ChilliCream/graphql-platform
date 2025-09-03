@@ -1,10 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Xunit2.Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Fusion.CommandLine.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Fusion</RootNamespace>
+    <RootNamespace>ChilliCream.Nitro.CommandLine.Fusion.Tests</RootNamespace>
+    <AssemblyName>ChilliCream.Nitro.CommandLine.Fusion</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\CommandLine.Fusion\Nitro.CommandLine.Fusion.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Update="$(MSBuildProjectDirectory)\__resources__\**\*.*">
@@ -13,11 +17,6 @@
     <None Update="__resources__\invalid-example-2\source-schema-2-settings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Fusion.CommandLine\HotChocolate.Fusion.CommandLine.csproj" />
-    <ProjectReference Include="..\..\src\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
   </ItemGroup>
 
 </Project>

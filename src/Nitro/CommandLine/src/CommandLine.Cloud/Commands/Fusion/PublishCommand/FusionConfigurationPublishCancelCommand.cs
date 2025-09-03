@@ -1,9 +1,10 @@
 using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Cloud.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.Fusion;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
 using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 
-namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.FusionConfiguration;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Fusion;
 
 internal sealed class FusionConfigurationPublishCancelCommand : Command
 {
@@ -36,7 +37,7 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
 
         console.Title("Cancel the composition of a fusion configuration");
 
-        await FusionConfigurationPublishHelpers.ReleaseDeploymentSlot(requestId, console, client, cancellationToken);
+        await FusionPublishHelpers.ReleaseDeploymentSlot(requestId, console, client, cancellationToken);
 
         console.MarkupLine("Cancelled the composition of fusion configuration.");
 

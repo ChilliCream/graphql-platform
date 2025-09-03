@@ -1,6 +1,5 @@
 using System.CommandLine.IO;
 using ChilliCream.Nitro.CommandLine.Cloud.Client;
-using ChilliCream.Nitro.CommandLine.Cloud.Commands.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
 using HotChocolate.Fusion.CommandLine;
 using HotChocolate.Fusion.Logging;
@@ -14,6 +13,12 @@ internal sealed class FusionPublishCommand : Command
     public FusionPublishCommand() : base("publish")
     {
         Description = "Publishes one or more source schemas as a new fusion configuration to Nitro.";
+
+        AddCommand(new FusionConfigurationPublishBeginCommand());
+        AddCommand(new FusionConfigurationPublishStartCommand());
+        AddCommand(new FusionConfigurationPublishValidateCommand());
+        AddCommand(new FusionConfigurationPublishCancelCommand());
+        AddCommand(new FusionConfigurationPublishCommitCommand());
 
         var workingDirectoryOption = new Option<string>("--working-directory")
         {
@@ -47,6 +52,8 @@ internal sealed class FusionPublishCommand : Command
         AddOption(Opt<TagOption>.Instance);
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
+        AddOption(Opt<CloudUrlOption>.Instance);
+        AddOption(Opt<ApiKeyOption>.Instance);
 
         this.SetHandler(async context =>
         {
@@ -124,7 +131,7 @@ internal sealed class FusionPublishCommand : Command
 
                 if (!success)
                 {
-                    await FusionConfigurationPublishHelpers.ReleaseDeploymentSlot(
+                    await FusionPublishHelpers.ReleaseDeploymentSlot(
                         requestId,
                         console,
                         client,
@@ -163,7 +170,7 @@ internal sealed class FusionPublishCommand : Command
 
                 if (!success)
                 {
-                    await FusionConfigurationPublishHelpers.ReleaseDeploymentSlot(
+                    await FusionPublishHelpers.ReleaseDeploymentSlot(
                         requestId,
                         console,
                         client,
@@ -183,7 +190,7 @@ internal sealed class FusionPublishCommand : Command
 
             if (!string.IsNullOrEmpty(requestId))
             {
-                await FusionConfigurationPublishHelpers.ReleaseDeploymentSlot(
+                await FusionPublishHelpers.ReleaseDeploymentSlot(
                     requestId,
                     console,
                     client,
@@ -195,7 +202,7 @@ internal sealed class FusionPublishCommand : Command
 
         Task<string> RequestDeploymentSlotAsync(StatusContext? statusContext)
         {
-            return FusionConfigurationPublishHelpers.RequestDeploymentSlotAsync(
+            return FusionPublishHelpers.RequestDeploymentSlotAsync(
                 apiId,
                 stageName,
                 tag,
@@ -212,7 +219,7 @@ internal sealed class FusionPublishCommand : Command
 
         async Task ClaimDeploymentSlotAsync()
         {
-            await FusionConfigurationPublishHelpers.ClaimDeploymentSlot(
+            await FusionPublishHelpers.ClaimDeploymentSlot(
                 requestId,
                 console,
                 client,
@@ -223,7 +230,7 @@ internal sealed class FusionPublishCommand : Command
 
         async Task<Stream?> DownloadConfigurationAsync()
         {
-            var stream = await FusionConfigurationPublishHelpers.DownloadConfigurationAsync(
+            var stream = await FusionPublishHelpers.DownloadConfigurationAsync(
                 apiId,
                 stageName,
                 client,
@@ -315,7 +322,7 @@ internal sealed class FusionPublishCommand : Command
 
         async Task UploadConfigurationAsync(Stream stream, StatusContext? statusContext)
         {
-            var success = await FusionConfigurationPublishHelpers.UploadConfigurationAsync(
+            var success = await FusionPublishHelpers.UploadConfigurationAsync(
                 requestId,
                 stream,
                 statusContext,

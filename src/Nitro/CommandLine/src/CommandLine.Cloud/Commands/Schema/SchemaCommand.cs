@@ -4,7 +4,7 @@ internal sealed class SchemaCommand : Command
 {
     public SchemaCommand() : base("schema")
     {
-        Description = "Upload, publish and validate schemas";
+        Description = "Manage schemas";
 
         this.AddNitroCloudDefaultOptions();
 

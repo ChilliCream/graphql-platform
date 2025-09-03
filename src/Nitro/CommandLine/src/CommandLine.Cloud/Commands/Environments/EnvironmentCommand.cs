@@ -4,7 +4,7 @@ internal sealed class EnvironmentCommand : Command
 {
     public EnvironmentCommand() : base("environment")
     {
-        Description = "Use this command to manage environments";
+        Description = "Manage environments";
 
         this.AddNitroCloudDefaultOptions();
 
