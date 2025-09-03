@@ -29,8 +29,8 @@ public class ExtendObjectTypeAttributeTests
     public class Foo
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string IgnoreMe { get; set; }
+        public required string Name { get; set; }
+        public required string IgnoreMe { get; set; }
     }
 
     public class FooType : ObjectType<Foo>

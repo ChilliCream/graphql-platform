@@ -20,10 +20,10 @@ interface SomeInterface {
   comment
   """
   fieldMulti: String
-  fieldWithArgs("Single line comment" arg1: String """
+  fieldWithArgs("Single line comment" arg1: String! """
   Multi line
   comment
-  """ arg2: String): String
+  """ arg2: String!): String
 }
 
 """
@@ -33,7 +33,7 @@ comment
 type OtherObjectType implements SomeInterface & OtherInterface {
   field: String
   fieldMulti: String
-  fieldWithArgs(arg1: String arg2: String): String
+  fieldWithArgs(arg1: String! arg2: String!): String
 }
 
 """
@@ -48,10 +48,10 @@ type Query {
   comment
   """
   outputFieldMulti: String
-  outputFieldWithArgs("Single line comment" arg1: SomeInput """
+  outputFieldWithArgs("Single line comment" arg1: SomeInput! """
   Multi line
   comment
-  """ arg2: OtherInput): String
+  """ arg2: OtherInput!): String
 }
 
 "Single line comment"
@@ -66,12 +66,12 @@ union SomeUnion = OtherObjectType
 "Single line comment"
 input OtherInput {
   "Single line comment"
-  field: String
+  field: String!
   """
   Multi line
   comment
   """
-  fieldMulti: String
+  fieldMulti: String!
 }
 
 """
@@ -80,12 +80,12 @@ comment
 """
 input SomeInput {
   "Single line comment"
-  field: String
+  field: String!
   """
   Multi line
   comment
   """
-  fieldMulti: String
+  fieldMulti: String!
 }
 
 """

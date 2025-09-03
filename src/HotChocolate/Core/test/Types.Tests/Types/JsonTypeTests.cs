@@ -25,7 +25,7 @@ public class JsonTypeTests
 
             type Query {
               someJson: JSON!
-              manyJson: [JSON!]
+              manyJson: [JSON!]!
               inputJson(input: JSON!): JSON!
               jsonFromString: JSON!
             }
@@ -281,7 +281,7 @@ public class JsonTypeTests
                                 inputJson(input: $input)
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object> { { "input", input } })
+                        .SetVariableValues(new Dictionary<string, object?> { { "input", input } })
                         .Build());
 
         result.MatchInlineSnapshot(

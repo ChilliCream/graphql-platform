@@ -1,4 +1,4 @@
-﻿{
+{
   "fooType": {
     "__schema": "__Schema!",
     "__type": "__Type",
@@ -7,6 +7,6 @@
   },
   "barType": {
     "__typename": "String!",
-    "baz": "String"
+    "baz": "String!"
   }
 }

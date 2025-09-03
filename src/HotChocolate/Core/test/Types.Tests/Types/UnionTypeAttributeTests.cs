@@ -1,7 +1,5 @@
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class UnionTypeAttributeTests

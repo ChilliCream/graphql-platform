@@ -91,9 +91,9 @@ public class InputObjectToDictionaryConverterTests
 
     public class Foo
     {
-        public List<Bar> Bars { get; set; }
+        public required List<Bar?> Bars { get; set; }
 
-        public Bar Bar { get; set; }
+        public Bar? Bar { get; set; }
     }
 
     public class Bar
@@ -111,6 +111,6 @@ public class InputObjectToDictionaryConverterTests
 
     public class DummyQuery
     {
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
     }
 }

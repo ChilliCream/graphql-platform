@@ -3,23 +3,23 @@ schema {
 }
 
 interface IFooPayload {
-  someId: ID
-  anotherId: ID
+  someId: ID!
+  anotherId: ID!
 }
 
 type FooPayload implements IFooPayload {
-  someId: ID
-  anotherId: ID
+  someId: ID!
+  anotherId: ID!
 }
 
 type Query {
-  intId(id: ID!): String
-  stringId(id: ID): String
-  guidId(id: ID!): String
+  intId(id: ID!): String!
+  stringId(id: ID!): String!
+  guidId(id: ID!): String!
   foo(input: FooInput): IFooPayload
 }
 
 input FooInput {
-  someId: ID
-  anotherId: ID
+  someId: ID!
+  anotherId: ID!
 }

@@ -9,7 +9,7 @@ interface Node {
 
 type Foo implements Node {
   id: ID!
-  clearTextId: String
+  clearTextId: String!
 }
 
 type Query {
@@ -17,7 +17,7 @@ type Query {
   node("ID of the object." id: ID!): Node @lookup
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]!
-  fooById(id: ID!): Foo
+  fooById(id: ID!): Foo!
 }
 
 """

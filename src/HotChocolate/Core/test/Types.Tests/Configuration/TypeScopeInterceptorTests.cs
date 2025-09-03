@@ -51,7 +51,7 @@ public class TypeScopeInterceptorTests
 
     public class ScopeAttribute : ObjectFieldDescriptorAttribute
     {
-        public string Scope { get; set; }
+        public required string Scope { get; set; }
 
         protected override void OnConfigure(
             IDescriptorContext context,
@@ -60,7 +60,7 @@ public class TypeScopeInterceptorTests
         {
             descriptor
                 .Extend()
-                .OnBeforeCreate(d => d.Type = ((ExtendedTypeReference)d.Type).WithScope(Scope));
+                .OnBeforeCreate(d => d.Type = ((ExtendedTypeReference)d.Type!).WithScope(Scope));
         }
     }
 

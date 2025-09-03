@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Bar
 }
 
@@ -7,5 +7,5 @@ type Bar {
 }
 
 input FooInput {
-  description: String
+  description: String!
 }
