@@ -1,5 +1,6 @@
 using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Results;
 
 namespace HotChocolate.Fusion.Execution.Introspection;
 

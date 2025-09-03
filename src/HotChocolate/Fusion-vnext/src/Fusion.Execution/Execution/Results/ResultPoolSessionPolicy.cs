@@ -1,6 +1,6 @@
 using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed class ResultPoolSessionPolicy
     : PooledObjectPolicy<ResultPoolSession>

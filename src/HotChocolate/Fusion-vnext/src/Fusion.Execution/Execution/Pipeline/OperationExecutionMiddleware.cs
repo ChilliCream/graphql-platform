@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
