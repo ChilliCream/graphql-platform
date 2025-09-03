@@ -20,25 +20,32 @@ internal sealed class ResultDataPoolSession<T> where T : ResultData, new()
     {
         while (true)
         {
-            var current = _current;
-
-            if (current.TryRent(out var item))
+            if (_current.TryRent(out var item))
             {
                 return item;
             }
 
             lock (_lock)
             {
-                current = _current;
-
-                if (current.TryRent(out item))
+                if (_current.TryRent(out item))
                 {
                     return item;
                 }
 
                 // we get the next batch and try to rent a result data object again.
-                _current = current = _pool.Get();
-                _usedBatches.Add(current);
+                var next = _pool.Get();
+                if (next.TryRent(out item))
+                {
+                    _usedBatches.Add(next);
+                    _current = next;
+                    return item;
+                }
+
+                // if there is no pool corruption we should never hit
+                // this as a new batch from the pool would always have
+                // new poolable object available.
+                _current = next;
+                _usedBatches.Add(next);
             }
         }
     }

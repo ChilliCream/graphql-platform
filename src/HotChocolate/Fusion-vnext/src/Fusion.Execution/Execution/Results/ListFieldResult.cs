@@ -91,9 +91,7 @@ public sealed class ListFieldResult : FieldResult
     }
 
     protected internal override KeyValuePair<string, object?> AsKeyValuePair()
-    {
-        throw new NotImplementedException();
-    }
+        => throw new NotSupportedException();
 
     public override bool Reset()
     {

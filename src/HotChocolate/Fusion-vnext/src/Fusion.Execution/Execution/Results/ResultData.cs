@@ -36,6 +36,7 @@ public abstract class ResultData : IResultDataJsonFormatter
         {
             if (_path is null)
             {
+                // todo : we should rent this.
                 var stack = new Stack<ResultData>();
                 var current = this;
 
