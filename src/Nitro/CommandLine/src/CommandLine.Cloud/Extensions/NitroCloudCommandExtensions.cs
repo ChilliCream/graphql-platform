@@ -3,7 +3,6 @@ using ChilliCream.Nitro.CommandLine.Cloud.Commands.Api;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.ApiKey;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.Environment;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.Fusion;
-using ChilliCream.Nitro.CommandLine.Cloud.Commands.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.Mock;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.PersonalAccessToken;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.Stages;
@@ -15,10 +14,8 @@ namespace ChilliCream.Nitro.CommandLine.Cloud;
 
 public static class NitroCloudCommandExtensions
 {
-    public static CommandLineBuilder AddNitroCloud(this CommandLineBuilder builder)
+    public static CommandLineBuilder AddNitroCloudConfiguration(this CommandLineBuilder builder)
     {
-        builder.Command.AddNitroCloudCommands();
-
         builder.AddService<IConfigurationService, ConfigurationService>()
             .AddSession()
             .AddResult()
@@ -29,22 +26,26 @@ public static class NitroCloudCommandExtensions
         return builder;
     }
 
-    internal static void AddNitroCloudCommands(this Command command)
+    public static (Command RootCommand, Command FusionCommand) AddNitroCloudCommands(this Command command)
     {
         command.AddCommand(new ApiKeyCommand());
         command.AddCommand(new ApiCommand());
         command.AddCommand(new ClientCommand());
         command.AddCommand(new EnvironmentCommand());
+
+        var fusionCommand = new FusionCommand();
+        command.AddCommand(fusionCommand);
+
         command.AddCommand(new LaunchCommand());
         command.AddCommand(new LoginCommand());
         command.AddCommand(new LogoutCommand());
-        command.AddCommand(new SchemaCommand());
-        command.AddCommand(new FusionCommand());
-        command.AddCommand(new FusionConfigurationCommand());
-        command.AddCommand(new StageCommand());
-        command.AddCommand(new WorkspaceCommand());
         command.AddCommand(new MockCommand());
         command.AddCommand(new PersonalAccessTokenCommand());
+        command.AddCommand(new SchemaCommand());
+        command.AddCommand(new StageCommand());
+        command.AddCommand(new WorkspaceCommand());
+
+        return (command, fusionCommand);
     }
 
     internal static void AddNitroCloudDefaultOptions(this Command command)

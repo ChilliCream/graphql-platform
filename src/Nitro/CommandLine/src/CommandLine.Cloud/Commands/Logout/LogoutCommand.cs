@@ -7,7 +7,7 @@ internal sealed class LogoutCommand : Command
 {
     public LogoutCommand() : base("logout")
     {
-        Description = "Log out to remove access to Nitro";
+        Description = "Log out and remove session information";
 
         this.SetHandler(
             ExecuteAsync,

@@ -5,14 +5,7 @@ namespace HotChocolate.Fusion.CommandLine;
 
 public static class FusionCommandExtensions
 {
-    public static CommandLineBuilder AddFusion(this CommandLineBuilder builder)
-    {
-        builder.Command.AddFusionCommands();
-
-        return builder;
-    }
-
-    private static Command AddFusionCommands(this Command command)
+    public static Command AddFusionComposeCommand(this Command command)
     {
         command.AddCommand(new ComposeCommand());
 

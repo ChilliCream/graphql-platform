@@ -1,9 +1,10 @@
 using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Cloud.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.Fusion;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
 using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 
-namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.FusionConfiguration;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Fusion;
 
 internal sealed class FusionConfigurationPublishStartCommand : Command
 {
@@ -36,7 +37,7 @@ internal sealed class FusionConfigurationPublishStartCommand : Command
 
         console.Title("Start the composition of a fusion configuration");
 
-        await FusionConfigurationPublishHelpers.ClaimDeploymentSlot(requestId, console, client, cancellationToken);
+        await FusionPublishHelpers.ClaimDeploymentSlot(requestId, console, client, cancellationToken);
 
         console.MarkupLine("Started composition of fusion configuration.");
 

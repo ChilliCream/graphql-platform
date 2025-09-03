@@ -4,7 +4,7 @@ internal sealed class ApiCommand : Command
 {
     public ApiCommand() : base("api")
     {
-        Description = "Manage apis";
+        Description = "Manage APIs";
 
         this.AddNitroCloudDefaultOptions();
 

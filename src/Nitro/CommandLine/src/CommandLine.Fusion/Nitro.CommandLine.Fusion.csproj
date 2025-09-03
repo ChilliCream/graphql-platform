@@ -4,4 +4,33 @@
     <AssemblyName>ChilliCream.Nitro.CommandLine.Fusion</AssemblyName>
     <PackageId>ChilliCream.Nitro.CommandLine.Fusion</PackageId>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ChilliCream.Nitro.CommandLine.Fusion.Tests" />
+    <InternalsVisibleTo Include="ChilliCream.Nitro.CommandLine.Cloud" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Commandline" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\CommandLineResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\CommandLineResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandLineResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>

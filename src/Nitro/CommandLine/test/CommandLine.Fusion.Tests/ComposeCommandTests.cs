@@ -1,3 +1,4 @@
+using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
@@ -362,9 +363,9 @@ public sealed class ComposeCommandTests : IDisposable
 
     private static CommandLineBuilder GetCommandLineBuilder()
     {
-        return new CommandLineBuilder(new FusionRootCommand())
-            .AddFusion()
-            .UseDefaults();
+        var rootCommand = new Command("fusion");
+        rootCommand.AddFusionComposeCommand();
+        return new CommandLineBuilder(rootCommand).UseDefaults();
     }
 
     private static async Task<string> ReadSchemaAsync(GatewayConfiguration config)
