@@ -202,6 +202,6 @@ public class SchemaSerializerTests
 
     public class Query
     {
-        public string Bar { get; set; }
+        public required string Bar { get; set; }
     }
 }

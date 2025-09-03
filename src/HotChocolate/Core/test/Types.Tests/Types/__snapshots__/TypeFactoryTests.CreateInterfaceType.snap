@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: DummyQuery
 }
 
@@ -8,5 +8,5 @@ interface Simple {
 }
 
 type DummyQuery {
-  bar: String
+  bar: String!
 }

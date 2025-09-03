@@ -113,7 +113,7 @@ public class InputObjectTypeAttributeTests
                                     foo bar baz qux quux
                                 }
                             }")
-                    .SetVariableValues(new Dictionary<string, object> { { "q", new Dictionary<string, object>() } })
+                    .SetVariableValues(new Dictionary<string, object?> { { "q", new Dictionary<string, object>() } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -121,7 +121,7 @@ public class InputObjectTypeAttributeTests
     public class Object1
     {
         [RenameField]
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
     }
 
     public class RenameFieldAttribute
@@ -139,7 +139,7 @@ public class InputObjectTypeAttributeTests
     [RenameType]
     public class Object2
     {
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
     }
 
     [InputObjectType(Name = "Foo")]
@@ -163,7 +163,7 @@ public class InputObjectTypeAttributeTests
     public class InputWithDefaults
     {
         [DefaultValue("DefaultValue123")]
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
 
         [DefaultValue(2)]
         public int Bar { get; set; }

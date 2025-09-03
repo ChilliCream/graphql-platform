@@ -12,8 +12,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using Moq;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers;
 
 public class ResolverCompilerTests

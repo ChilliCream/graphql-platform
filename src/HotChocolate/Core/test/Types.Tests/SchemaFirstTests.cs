@@ -544,7 +544,7 @@ public class SchemaFirstTests
 
     public class Person
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
     }
 
     public class CustomDescriptionDirective : ISchemaDirective
@@ -559,7 +559,7 @@ public class SchemaFirstTests
         {
             if (definition is ObjectFieldConfiguration objectField)
             {
-                objectField.Description = (string)directiveNode.Arguments.First().Value.Value;
+                objectField.Description = (string?)directiveNode.Arguments.First().Value.Value;
             }
         }
     }

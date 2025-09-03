@@ -113,9 +113,9 @@ public class SchemaTypeDiscoveryTests
         Assert.Equal("ByteArray", field.Type.NamedType().Name);
     }
 
-    public class QueryFieldArgument
+    public class QueryFieldArgument(Bar bar)
     {
-        public Bar Bar { get; }
+        public Bar Bar { get; } = bar;
 
         public Foo GetFoo(Foo foo)
         {
@@ -125,20 +125,20 @@ public class SchemaTypeDiscoveryTests
 
     public class QueryField
     {
-        public Foo GetFoo()
+        public Foo? GetFoo()
         {
             return null;
         }
     }
 
-    public class QueryProperty
+    public class QueryProperty(Foo foo)
     {
-        public Foo Foo { get; }
+        public Foo Foo { get; } = foo;
     }
 
     public class QueryMethodVoid
     {
-        public Foo GetFoo()
+        public Foo? GetFoo()
         {
             return null;
         }
@@ -150,7 +150,7 @@ public class SchemaTypeDiscoveryTests
 
     public class QueryWithCustomScalar
     {
-        public FooByte GetFoo(FooByte foo)
+        public FooByte? GetFoo(FooByte foo)
         {
             return null;
         }
@@ -158,17 +158,17 @@ public class SchemaTypeDiscoveryTests
 
     public class Foo
     {
-        public Bar Bar { get; set; }
+        public required Bar Bar { get; set; }
     }
 
     public class FooByte
     {
-        public byte[] Bar { get; set; }
+        public required byte[] Bar { get; set; }
     }
 
     public class Bar
     {
-        public string Baz { get; set; }
+        public required string Baz { get; set; }
     }
 
     public enum FooBar
@@ -195,32 +195,32 @@ public class SchemaTypeDiscoveryTests
             throw new NotSupportedException();
         }
 
-        public override IValueNode ParseValue(object value)
+        public override IValueNode ParseValue(object? value)
         {
             throw new NotSupportedException();
         }
 
-        public override IValueNode ParseResult(object resultValue)
+        public override IValueNode ParseResult(object? resultValue)
         {
             throw new NotSupportedException();
         }
 
-        public override object Serialize(object runtimeValue)
+        public override object Serialize(object? runtimeValue)
         {
             throw new NotSupportedException();
         }
 
-        public override object Deserialize(object resultValue)
+        public override object Deserialize(object? resultValue)
         {
             throw new NotSupportedException();
         }
 
-        public override bool TryDeserialize(object resultValue, out object runtimeValue)
+        public override bool TryDeserialize(object? resultValue, out object runtimeValue)
         {
             throw new NotSupportedException();
         }
 
-        public override bool TrySerialize(object runtimeValue, out object resultValue)
+        public override bool TrySerialize(object? runtimeValue, out object resultValue)
         {
             throw new NotSupportedException();
         }

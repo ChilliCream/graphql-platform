@@ -116,7 +116,7 @@ public class IdTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => type.IsInstanceOfType(null));
+            () => type.IsInstanceOfType(null!));
     }
 
     [Fact]
@@ -190,7 +190,7 @@ public class IdTypeTests
     {
         // arrange
         var type = new IdType();
-        object serialized = null;
+        object serialized = null!;
 
         // act
         type.TryDeserialize(serialized, out var value);
@@ -292,7 +292,7 @@ public class IdTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(() =>
-            type.ParseLiteral(null));
+            type.ParseLiteral(null!));
     }
 
     [Fact]
@@ -313,7 +313,7 @@ public class IdTypeTests
     {
         // arrange
         var type = new IdType();
-        object input = null;
+        object input = null!;
 
         // act
         object output = type.ParseValue(input);

@@ -17,7 +17,7 @@ public class LocalDateTypeTests
         const string expectedValue = "2018-06-11";
 
         // act
-        var serializedValue = (string)localDateType.Serialize(dateOnly);
+        var serializedValue = (string?)localDateType.Serialize(dateOnly);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);
@@ -32,7 +32,7 @@ public class LocalDateTypeTests
         const string expectedValue = "2018-06-11";
 
         // act
-        var serializedValue = (string)localDateType.Serialize(dateTime);
+        var serializedValue = (string?)localDateType.Serialize(dateTime);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);
@@ -49,7 +49,7 @@ public class LocalDateTypeTests
         const string expectedValue = "2018-06-11";
 
         // act
-        var serializedValue = (string)localDateType.Serialize(dateTime);
+        var serializedValue = (string?)localDateType.Serialize(dateTime);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);

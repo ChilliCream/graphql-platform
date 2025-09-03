@@ -1,8 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate.Regressions;
 
 // Relates to issue https://github.com/ChilliCream/graphql-platform/issues/2114

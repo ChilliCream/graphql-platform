@@ -221,7 +221,7 @@ public class DirectiveTypeTests : TypeTestBase
         // act
         Action action = () =>
             DirectiveTypeDescriptorExtensions
-                .Ignore<CustomDirective2>(null, t => t.Argument2);
+                .Ignore<CustomDirective2>(null!, t => t.Argument2);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -236,7 +236,7 @@ public class DirectiveTypeTests : TypeTestBase
                 DescriptorContext.Create());
 
         // act
-        void Action() => descriptor.Ignore(null);
+        void Action() => descriptor.Ignore(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -508,7 +508,7 @@ public class DirectiveTypeTests : TypeTestBase
                     new DirectiveType(
                         d => d.Name("foo")
                             .Location(DirectiveLocation.Object)
-                            .Use(null)))
+                            .Use(null!)))
                 .Create();
 
         // assert
@@ -973,42 +973,42 @@ public class DirectiveTypeTests : TypeTestBase
 
     public class CustomDirective
     {
-        public string Argument { get; set; }
+        public required string Argument { get; set; }
     }
 
     public class CustomDirective2
     {
-        public string Argument1 { get; set; }
+        public string? Argument1 { get; set; }
 
-        public string Argument2 { get; set; }
+        public string? Argument2 { get; set; }
     }
 
     public class DirectiveWithDefaults
     {
-        [DefaultValue("abc")] public string Argument1 { get; set; }
+        [DefaultValue("abc")] public required string Argument1 { get; set; }
 
-        public string Argument2 { get; set; }
+        public string? Argument2 { get; set; }
     }
 
     [DirectiveType("anno", DirectiveLocation.FieldDefinition)]
     public sealed class AnnotationDirective
     {
-        public AnnotationDirective(string foo)
+        public AnnotationDirective(string? foo)
         {
             Foo = foo;
         }
 
-        public string Foo { get; }
+        public string? Foo { get; }
     }
 
     [DirectiveType(DirectiveLocation.FieldDefinition)]
     public sealed class FooDirective
     {
-        public FooDirective(string foo)
+        public FooDirective(string? foo)
         {
             Foo = foo;
         }
 
-        public string Foo { get; }
+        public string? Foo { get; }
     }
 }
