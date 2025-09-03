@@ -163,6 +163,7 @@ public abstract class ResultData : IResultDataJsonFormatter
     /// </summary>
     public virtual bool Reset()
     {
+        IsInvalidated = false;
         Parent = null;
         ParentIndex = -1;
         _path = null;
