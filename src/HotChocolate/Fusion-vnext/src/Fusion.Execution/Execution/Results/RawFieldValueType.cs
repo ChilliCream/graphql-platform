@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 public static class RawFieldValueType
 {

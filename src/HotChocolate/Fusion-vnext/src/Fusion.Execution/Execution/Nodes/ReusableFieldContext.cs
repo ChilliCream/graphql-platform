@@ -1,5 +1,6 @@
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Language;
 using HotChocolate.Types;
 

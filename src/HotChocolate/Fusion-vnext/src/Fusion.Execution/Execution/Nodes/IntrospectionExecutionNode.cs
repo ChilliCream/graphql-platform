@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;

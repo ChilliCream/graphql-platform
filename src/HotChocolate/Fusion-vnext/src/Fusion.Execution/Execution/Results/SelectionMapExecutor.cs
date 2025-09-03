@@ -3,7 +3,7 @@ using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 internal static class ResultDataMapper
 {
