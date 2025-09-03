@@ -169,15 +169,15 @@ public class IdDescriptorTests
             await services.ExecuteRequestAsync(
                 $$"""
                 mutation {
-                   validAnyIdInput1: acceptsAnyId(input: { id: "{{userId}}" }) { int }
-                   validAnyIdInput2: acceptsAnyId(input: { id: "{{fooId}}" }) { int }
-                   validAnyIdInput3: acceptsAnyId(input: { id: "{{fluentFooId}}" }) { int }
-                   validAnyIdInput4: acceptsAnyId(input: { id: "{{singleTypeFluentFooId}}" }) { int }
+                    validAnyIdInput1: acceptsAnyId(input: { id: "{{userId}}" }) { int }
+                    validAnyIdInput2: acceptsAnyId(input: { id: "{{fooId}}" }) { int }
+                    validAnyIdInput3: acceptsAnyId(input: { id: "{{fluentFooId}}" }) { int }
+                    validAnyIdInput4: acceptsAnyId(input: { id: "{{singleTypeFluentFooId}}" }) { int }
 
-                   validUserIdInput: acceptsUserId(input: { id: "{{userId}}" }) { int }
-                   validFooIdInput: acceptsFooId(input: { id: "{{fooId}}" }) { int }
-                   validFluentFooIdInput: acceptsFluentFooId(input: { id: "{{fluentFooId}}" }) { int }
-                   validSingleTypeFluentFooIdInput: acceptsSingleTypeFluentFooId(input: { id: "{{singleTypeFluentFooId}}" }) { int }
+                    validUserIdInput: acceptsUserId(input: { id: "{{userId}}" }) { int }
+                    validFooIdInput: acceptsFooId(input: { id: "{{fooId}}" }) { int }
+                    validFluentFooIdInput: acceptsFluentFooId(input: { id: "{{fluentFooId}}" }) { int }
+                    validSingleTypeFluentFooIdInput: acceptsSingleTypeFluentFooId(input: { id: "{{singleTypeFluentFooId}}" }) { int }
                 }
                 """);
 
