@@ -12,7 +12,13 @@ internal sealed class FusionPublishCommand : Command
 {
     public FusionPublishCommand() : base("publish")
     {
-        Description = "Publishes one or more source schemas as a new fusion configuration to Nitro.";
+        Description = "Publishes one or more source schemas as a new fusion configuration to Nitro."
+            + System.Environment.NewLine
+            + "To take control over the deployment orchestration use sub-commands like 'begin'."
+            + System.Environment.NewLine
+            + "Since this command performs a Fusion composition internally, it only supports Fusion v2."
+            + System.Environment.NewLine
+            + "The orchestration sub-commands can also be used for Fusion v1.";
 
         AddCommand(new FusionConfigurationPublishBeginCommand());
         AddCommand(new FusionConfigurationPublishStartCommand());

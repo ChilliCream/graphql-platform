@@ -15,7 +15,9 @@ internal sealed class FusionValidateCommand : Command
 {
     public FusionValidateCommand() : base("validate")
     {
-        Description = "Validates a fusion configuration against a stage";
+        Description = "Validates a fusion configuration against a stage."
+            + System.Environment.NewLine
+            + "This only works for Fusion v1 at the moment.";
 
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);

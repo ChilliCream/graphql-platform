@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <RootNamespace>ChilliCream.Nitro.CommandLine.Fusion.Tests</RootNamespace>
-    <AssemblyName>ChilliCream.Nitro.CommandLine.Fusion</AssemblyName>
+    <AssemblyName>ChilliCream.Nitro.CommandLine.Fusion.Tests</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
