@@ -10,9 +10,6 @@ internal sealed class ResultDataBatch<T> where T : ResultData, new()
     private readonly int _maxAllowedCapacity;
     private readonly T[] _items;
     private int _next = -1;
-#pragma warning disable IDE0052 // Remove unread private members
-    private readonly int _inst;
-#pragma warning restore IDE0052 // Remove unread private members
 
     public ResultDataBatch(int batchSize, int defaultCapacity = 8, int maxAllowedCapacity = 16)
     {
@@ -29,8 +26,6 @@ internal sealed class ResultDataBatch<T> where T : ResultData, new()
         {
             _items[i] = CreateItem();
         }
-
-        _inst = Interlocked.Increment(ref InstanceCounter.Counter);
     }
 
     private T CreateItem()
@@ -42,12 +37,17 @@ internal sealed class ResultDataBatch<T> where T : ResultData, new()
 
     public bool TryRent([NotNullWhen(true)] out T? item)
     {
-        if (_next >= _items.Length)
-        {
-            item = null;
-            return false;
-        }
-
+        // Theoretically the increment could overflow _next and would then
+        // become negative as interlocked is unchecked.
+        // Which would cause consecutive errors.
+        //
+        // However, the ResultDataPoolSession would rent another
+        // batch when it detects exhaustion of the batch.
+        // Which means we will never end up in that error state.
+        //
+        // When this batch is reset the _next value
+        // is set to the initial state, even if we have
+        // over shot here, reset will amend the issue.
         var index = Interlocked.Increment(ref _next);
 
         if (index < _items.Length)
@@ -82,9 +82,4 @@ internal sealed class ResultDataBatch<T> where T : ResultData, new()
 
         _next = -1;
     }
-}
-
-public static class InstanceCounter
-{
-    public static int Counter;
 }

@@ -36,6 +36,7 @@ public abstract class ResultData : IResultDataJsonFormatter
         {
             if (_path is null)
             {
+                // todo : we should rent this.
                 var stack = new Stack<ResultData>();
                 var current = this;
 
@@ -163,6 +164,7 @@ public abstract class ResultData : IResultDataJsonFormatter
     /// </summary>
     public virtual bool Reset()
     {
+        IsInvalidated = false;
         Parent = null;
         ParentIndex = -1;
         _path = null;
