@@ -6,8 +6,9 @@ internal sealed class FusionCommand : Command
     {
         Description = "Manage Fusion configurations";
 
-        AddCommand(new FusionPublishCommand());
         AddCommand(new FusionDownloadCommand());
+        AddCommand(new FusionPublishCommand());
+        AddCommand(new FusionSettingsCommand());
         AddCommand(new FusionValidateCommand());
     }
 }

@@ -9,6 +9,7 @@ using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
+using HotChocolate.Fusion.Properties;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CommandLineResources;
@@ -401,10 +402,17 @@ internal sealed class ComposeCommand : Command
                 enableGlobalObjectIdentification,
                 cancellationToken);
 
+            var writer = result.IsSuccess ? console.Out : console.Error;
+
             WriteCompositionLog(
                 compositionLog,
-                writer: result.IsSuccess ? console.Out : console.Error,
+                writer,
                 writeAsGraphQLComments: result.IsSuccess && printSchema);
+
+            if (!compositionLog.IsEmpty)
+            {
+                writer.WriteLine();
+            }
 
             if (result.IsFailure)
             {
@@ -473,9 +481,20 @@ internal sealed class ComposeCommand : Command
         var schemaComposerOptions = new SchemaComposerOptions
         {
             EnableGlobalObjectIdentification = enableGlobalObjectIdentification
-                ?? existingCompositionSettings?.EnableGlobalObjectIdentification
-                ?? false
+                ?? existingCompositionSettings.EnableGlobalObjectIdentification
         };
+
+        if (existingCompositionSettings.EnableGlobalObjectIdentification
+            != schemaComposerOptions.EnableGlobalObjectIdentification)
+        {
+            compositionLog.Write(
+                new LogEntry(
+                    schemaComposerOptions.EnableGlobalObjectIdentification
+                        ? ComposeCommand_GlobalObjectIdentification_Enabled
+                        : ComposeCommand_GlobalObjectIdentification_Disabled,
+                    LogEntryCodes.ModifiedCompositionSetting,
+                    LogSeverity.Info));
+        }
 
         var schemaComposer = new SchemaComposer(
             sourceSchemas.Values.Select(t => t.Item1),
@@ -559,11 +578,6 @@ internal sealed class ComposeCommand : Command
 
             writer.WriteLine(message);
         }
-
-        if (!compositionLog.IsEmpty)
-        {
-            writer.WriteLine();
-        }
     }
 
     private static async Task<Dictionary<string, (SourceSchemaText, JsonDocument)>> ReadSourceSchemasAsync(
@@ -629,13 +643,17 @@ internal sealed class ComposeCommand : Command
         }
     }
 
-    private static async Task<CompositionSettings?> GetCompositionSettingsAsync(
+    private static async Task<CompositionSettings> GetCompositionSettingsAsync(
         FusionArchive archive,
         CancellationToken cancellationToken)
     {
         var compositionSettings = await archive.GetCompositionSettingsAsync(cancellationToken);
 
-        return compositionSettings?.Deserialize(JsonSourceGenerationContext.Default.CompositionSettings);
+        return compositionSettings?.Deserialize(JsonSourceGenerationContext.Default.CompositionSettings)
+            ?? new CompositionSettings
+            {
+                EnableGlobalObjectIdentification = false
+            };
     }
 
     private static async Task SaveCompositionSettingsAsync(

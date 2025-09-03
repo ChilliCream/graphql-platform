@@ -2,7 +2,6 @@ using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
-using ChilliCream.Nitro.CommandLine.Fusion.Extensions;
 using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Fusion.Tests;
