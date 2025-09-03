@@ -191,6 +191,11 @@ Allowed patterns:
 Examples:
 {1}</value>
   </data>
+  <data name="CalendarSystemType_Description" xml:space="preserve">
+    <value>A calendar system maps the non-calendar-specific "local time line" to human concepts such as years, months and days.
+
+Example: `ISO`</value>
+  </data>
   <data name="NodaTime_NoPatternProvided" xml:space="preserve">
     <value>The provided patterns are empty. You must provide at least one pattern for type {0}.</value>
   </data>

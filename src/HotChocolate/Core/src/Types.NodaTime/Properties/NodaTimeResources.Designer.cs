@@ -84,6 +84,17 @@ namespace HotChocolate.Types.NodaTime.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A calendar system maps the non-calendar-specific &quot;local time line&quot; to human concepts such as years, months and days.
+        ///
+        ///Example: `ISO`.
+        /// </summary>
+        internal static string CalendarSystemType_Description {
+            get {
+                return ResourceManager.GetString("CalendarSystemType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Represents a time zone - a mapping between UTC and local time.
         ///A time zone maps UTC instants to local times - or, equivalently, to the offset from UTC at any particular instant.
         ///
