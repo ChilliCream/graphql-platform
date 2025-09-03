@@ -167,6 +167,18 @@ Allowed patterns:
 Examples:
 {1}</value>
   </data>
+  <data name="YearMonthType_Description" xml:space="preserve">
+    <value>YearMonth represents a month within the calendar, with no reference to a particular time zone, date, or time.</value>
+  </data>
+  <data name="YearMonthType_Description_Extended" xml:space="preserve">
+    <value>YearMonth represents a month within the calendar, with no reference to a particular time zone, date, or time.
+
+Allowed patterns:
+{0}
+
+Examples:
+{1}</value>
+  </data>
   <data name="NodaTime_NoPatternProvided" xml:space="preserve">
     <value>The provided patterns are empty. You must provide at least one pattern for type {0}.</value>
   </data>

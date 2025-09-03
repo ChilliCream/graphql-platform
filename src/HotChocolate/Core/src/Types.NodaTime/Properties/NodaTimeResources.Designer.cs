@@ -348,6 +348,30 @@ namespace HotChocolate.Types.NodaTime.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to YearMonth represents a month within the calendar, with no reference to a particular time zone, date, or time..
+        /// </summary>
+        internal static string YearMonthType_Description {
+            get {
+                return ResourceManager.GetString("YearMonthType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to YearMonth represents a month within the calendar, with no reference to a particular time zone, date, or time.
+        ///
+        ///Allowed patterns:
+        ///{0}
+        ///
+        ///Examples:
+        ///{1}.
+        /// </summary>
+        internal static string YearMonthType_Description_Extended {
+            get {
+                return ResourceManager.GetString("YearMonthType_Description_Extended", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A LocalDateTime in a specific time zone and with a particular offset to distinguish between otherwise-ambiguous instants.
         ///A ZonedDateTime is global, in that it maps to a single Instant..
         /// </summary>
