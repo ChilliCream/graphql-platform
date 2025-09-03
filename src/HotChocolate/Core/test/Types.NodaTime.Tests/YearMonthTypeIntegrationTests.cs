@@ -104,7 +104,7 @@ public sealed class YearMonthTypeIntegrationTests
 
         yearMonthType.Description.MatchInlineSnapshot(
             """
-            YearMonth represents a month within the calendar, with no reference to a particular time zone, day, or time.
+            YearMonth represents a month within the calendar, with no reference to a particular time zone, date, or time.
 
             Allowed patterns:
             - `YYYY-MM`
@@ -120,6 +120,6 @@ public sealed class YearMonthTypeIntegrationTests
         var yearMonthType = new YearMonthType(YearMonthPattern.Create("MM", CultureInfo.InvariantCulture));
 
         yearMonthType.Description.MatchInlineSnapshot(
-            "YearMonth represents a month within the calendar, with no reference to a particular time zone, day, or time.");
+            "YearMonth represents a month within the calendar, with no reference to a particular time zone, date, or time.");
     }
 }
