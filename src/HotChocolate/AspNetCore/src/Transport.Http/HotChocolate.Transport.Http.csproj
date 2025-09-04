@@ -40,4 +40,8 @@
     <PackageReference Include="System.IO.Pipelines" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
+  </ItemGroup>
+
 </Project>
