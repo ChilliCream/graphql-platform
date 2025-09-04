@@ -16,7 +16,7 @@ public sealed class InlineFragmentOperationRewriter(
             null,
             new NameNode(IntrospectionFieldNames.TypeName),
             null,
-            [new DirectiveNode("fusion__requirement")],
+            [new DirectiveNode("fusion__empty")],
             ImmutableArray<ArgumentNode>.Empty,
             null);
 
@@ -57,7 +57,6 @@ public sealed class InlineFragmentOperationRewriter(
                     {
                         context.AddField(field);
                     }
-
                     break;
 
                 case InlineFragmentNode inlineFragment:
@@ -65,7 +64,6 @@ public sealed class InlineFragmentOperationRewriter(
                     {
                         CollectInlineFragment(inlineFragment, context);
                     }
-
                     break;
 
                 case FragmentSpreadNode fragmentSpread:
@@ -73,7 +71,6 @@ public sealed class InlineFragmentOperationRewriter(
                     {
                         CollectFragmentSpread(fragmentSpread, context);
                     }
-
                     break;
             }
         }

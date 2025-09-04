@@ -12,17 +12,10 @@
   <Folder Name="/test/">
     <Project Path="test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
     <Project Path="test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
+    <Project Path="test/Fusion.EventSources.Tests/HotChocolate.Fusion.EventSources.Tests.csproj" />
     <Project Path="test/Fusion.Language.Tests/HotChocolate.Fusion.Language.Tests.csproj" />
     <Project Path="test/Fusion.Utilities.Tests/HotChocolate.Fusion.Utilities.Tests.csproj" />
     <Project Path="test/Fusion.Packaging.Tests/HotChocolate.Fusion.Packaging.Tests.csproj" />
     <Project Path="test/Fusion.AspNetCore.Tests/HotChocolate.Fusion.AspNetCore.Tests.csproj" />
-  </Folder>
-  <Folder Name="/references/">
-    <Project Path="../../CookieCrumble/src/CookieCrumble.Analyzers/CookieCrumble.Analyzers.csproj" />
-    <Project Path="../../CookieCrumble/src/CookieCrumble.HotChocolate.Language/CookieCrumble.HotChocolate.Language.csproj" />
-    <Project Path="../../CookieCrumble/src/CookieCrumble.Xunit/CookieCrumble.Xunit.csproj" />
-    <Project Path="../../CookieCrumble/src/CookieCrumble/CookieCrumble.csproj" />
-    <Project Path="../Language/src/Language.SyntaxTree/HotChocolate.Language.SyntaxTree.csproj" />
-    <Project Path="../Utilities/src/Utilities.Buffers/HotChocolate.Utilities.Buffers.csproj" />
   </Folder>
 </Solution>

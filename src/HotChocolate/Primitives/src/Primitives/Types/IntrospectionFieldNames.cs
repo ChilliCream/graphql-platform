@@ -8,7 +8,7 @@ public static class IntrospectionFieldNames
     /// <summary>
     /// Gets the field name of the __typename introspection field.
     /// </summary>
-    public static string TypeName => "__typename";
+    public const string TypeName = "__typename";
 
     /// <summary>
     /// Gets the field name of the __typename introspection field as a span of utf-8 bytes.
@@ -18,7 +18,7 @@ public static class IntrospectionFieldNames
     /// <summary>
     /// Gets the field name of the __schema introspection field.
     /// </summary>
-    public static string Schema => "__schema";
+    public const string Schema =  "__schema";
 
     /// <summary>
     /// Gets the field name of the __schema introspection field as a span of utf-8 bytes.
@@ -28,7 +28,7 @@ public static class IntrospectionFieldNames
     /// <summary>
     /// Gets the field name of the __type introspection field.
     /// </summary>
-    public static string Type => "__type";
+    public const string Type = "__type";
 
     /// <summary>
     /// Gets the field name of the __type introspection field as a span of utf-8 bytes.

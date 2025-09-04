@@ -3,6 +3,8 @@ using System.Security.Cryptography;
 using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -232,7 +234,7 @@ public sealed partial class OperationPlanner
 
                     var node = new OperationExecutionNode(
                         operationStep.Id,
-                        operationStep.Definition.ToSourceText(),
+                        RemoveEmptyTypeNames(operationStep.Definition).ToSourceText(),
                         operationStep.SchemaName,
                         operationStep.Target,
                         operationStep.Source,
@@ -417,6 +419,69 @@ public sealed partial class OperationPlanner
 
         return current;
     }
+
+    private static OperationDefinitionNode RemoveEmptyTypeNames(OperationDefinitionNode operationDefinition)
+    {
+        return (OperationDefinitionNode)SyntaxRewriter.Create<List<bool>>(
+            rewrite: (node, context) =>
+            {
+                if (node is SelectionSetNode selectionSet && context.Peek())
+                {
+                    var items = selectionSet.Selections.ToList();
+                    for (var i = items.Count - 1; i >= 0; i--)
+                    {
+                        if (items[i] is FieldNode
+                        {
+                            Alias: null,
+                            Name.Value: IntrospectionFieldNames.TypeName,
+                            Directives: [{ Name.Value: "fusion__empty" }]
+                        } field)
+                        {
+                            if (items.Count > 1)
+                            {
+                                items.RemoveAt(i);
+                            }
+                            else
+                            {
+                                items[i] = field.WithDirectives([]);
+                            }
+                        }
+                    }
+
+                    return new SelectionSetNode(items);
+                }
+
+                return node;
+            },
+            enter: (node, context) =>
+            {
+                switch (node)
+                {
+                    case SelectionSetNode:
+                        context.Push(false);
+                        break;
+
+                    case FieldNode
+                    {
+                        Alias: null,
+                        Name.Value: IntrospectionFieldNames.TypeName,
+                        Directives: [{ Name.Value: "fusion__empty"}]
+                    }:
+                        context[^1] = true;
+                        break;
+                }
+
+                return context;
+            },
+            leave: (node, context) =>
+            {
+                if (node is SelectionSetNode)
+                {
+                    context.Pop();
+                }
+            })
+            .Rewrite(operationDefinition, [])!;
+    }
 }
 
 file static class Extensions
@@ -477,9 +542,4 @@ file static class Extensions
 #endif
         return new OperationSourceText(operation.Name!.Value, operation.Operation, sourceText, operationHash);
     }
-}
-
-public class PlanTrace
-{
-    public int Max { get; set; }
 }
