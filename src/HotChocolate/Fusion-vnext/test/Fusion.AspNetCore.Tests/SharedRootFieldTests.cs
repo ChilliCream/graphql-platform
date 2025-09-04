@@ -1,4 +1,5 @@
 using HotChocolate.Transport.Http;
+using HotChocolate.Types.Composite;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
@@ -91,6 +92,50 @@ public class SharedRootFieldTests : FusionTestBase
         response.MatchSnapshot();
     }
 
+    // TODO: Add tests with inlinefragments and abstract types from the root
+
+    [Fact]
+    public async Task Test()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema4.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema5.Query>());
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+                productById(id: 1) {
+                    schema1
+                    shared {
+                        schema2
+                        schema1
+                    }
+                    schema2
+                }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
     public static class SourceSchema1
     {
         public class Query
@@ -141,6 +186,49 @@ public class SharedRootFieldTests : FusionTestBase
         public class Viewer
         {
             public string Schema3 => "schema3";
+        }
+    }
+
+    public static class SourceSchema4
+    {
+        public class Query
+        {
+            [Lookup]
+            public Product? GetProductById(int id) => new Product(id);
+        }
+
+        public record Product(int Id)
+        {
+            public string Schema1 => "schema1";
+
+            public SharedProduct? Shared => new SharedProduct();
+        }
+
+        public class SharedProduct
+        {
+            public string Schema1 => "schema1";
+        }
+    }
+
+    public static class SourceSchema5
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public Product? GetProductById(int id) => new Product(id);
+        }
+
+        public record Product(int Id)
+        {
+            public string Schema2 => "schema2";
+
+            public SharedProduct? Shared => new SharedProduct();
+        }
+
+        public class SharedProduct
+        {
+            public string Schema2 => "schema2";
         }
     }
 }
