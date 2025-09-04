@@ -94,7 +94,7 @@ internal partial class MiddlewareContext
         }
 
         if (value is T castedValue
-            || _operationContext.Converter.TryConvert(value, out castedValue))
+            || _operationContext.Converter.TryConvert(value, out castedValue, out var conversionException))
         {
             return castedValue;
         }
@@ -114,7 +114,8 @@ internal partial class MiddlewareContext
             _selection.SyntaxNode,
             Path,
             argument.Name,
-            typeof(T));
+            typeof(T),
+            conversionException);
     }
 
     public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(

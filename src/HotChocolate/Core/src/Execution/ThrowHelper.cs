@@ -128,7 +128,7 @@ internal static class ThrowHelper
             .Build());
 
     public static GraphQLException ResolverContext_CannotConvertArgument(
-        FieldNode field, Path path, string argumentName, Type requestedType) =>
+        FieldNode field, Path path, string argumentName, Type requestedType, Exception? exception) =>
         new(ErrorBuilder.New()
             .SetMessage(
                 ThrowHelper_ResolverContext_CannotConvertArgument_Message,
@@ -139,6 +139,7 @@ internal static class ThrowHelper
             .SetExtension("fieldName", field.Name)
             .SetExtension("argumentName", argumentName)
             .SetExtension("requestedType", requestedType.FullName)
+            .SetException(exception)
             .Build());
 
     public static GraphQLException ResolverContext_LiteralNotCompatible(

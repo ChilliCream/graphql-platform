@@ -1,0 +1,26 @@
+{
+  "errors": [
+    {
+      "message": "Boom",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "inputParameter"
+      ],
+      "extensions": {
+        "fieldName": "inputParameter",
+        "argumentName": "arg",
+        "requestedType": "HotChocolate.Execution.Integration.TypeConverter.TypeConverterExceptionPropagationTests+FailingId",
+        "exception": {
+          "message": "Boom",
+          "stackTrace": "Test"
+        }
+      }
+    }
+  ],
+  "data": null
+}
