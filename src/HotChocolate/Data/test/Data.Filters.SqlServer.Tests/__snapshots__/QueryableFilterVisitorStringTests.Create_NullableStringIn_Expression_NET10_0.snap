@@ -16,14 +16,12 @@ testatestAndtestb Result:
 
 testatestAndtestb SQL:
 ---------------
-.param set @p '["testatest","testbtest"]'
+.param set @p1 'testatest'
+.param set @p2 'testbtest'
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" IN (
-    SELECT "p"."value"
-    FROM json_each(@p) AS "p"
-)
+WHERE "d"."Bar" IN (@p1, @p2)
 ---------------
 
 testbtestAndNull Result:
@@ -44,14 +42,11 @@ testbtestAndNull Result:
 
 testbtestAndNull SQL:
 ---------------
-.param set @p_without_nulls '["testbtest"]'
+.param set @p1 'testbtest'
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" IN (
-    SELECT "p"."value"
-    FROM json_each(@p_without_nulls) AS "p"
-) OR "d"."Bar" IS NULL
+WHERE "d"."Bar" IS NULL OR "d"."Bar" = @p1
 ---------------
 
 testatest Result:
@@ -69,12 +64,9 @@ testatest Result:
 
 testatest SQL:
 ---------------
-.param set @p '["testatest"]'
+.param set @p1 'testatest'
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" IN (
-    SELECT "p"."value"
-    FROM json_each(@p) AS "p"
-)
+WHERE "d"."Bar" = @p1
 ---------------
