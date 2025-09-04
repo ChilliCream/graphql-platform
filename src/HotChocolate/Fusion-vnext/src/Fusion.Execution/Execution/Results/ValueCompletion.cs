@@ -257,9 +257,11 @@ internal sealed class ValueCompletion
                 : _resultPoolSession.RentObjectListResult();
         listResult.Initialize(type);
 
-        for (int i = 0, len = data.GetArrayLength(); i < len; ++i)
+        var i = -1;
+        foreach (var item in data.EnumerateArray())
         {
-            var item = data[i];
+            i++;
+
             ErrorTrie? errorTrieForIndex = null;
             errorTrie?.TryGetValue(i, out errorTrieForIndex);
 
@@ -373,7 +375,13 @@ internal sealed class ValueCompletion
                 ErrorTrie? errorTrieForResponseName = null;
                 errorTrie?.TryGetValue(fieldSelection.ResponseName, out errorTrieForResponseName);
 
-                if (!TryCompleteValue(fieldSelection, fieldSelection.Type, child, errorTrieForResponseName, depth, field))
+                if (!TryCompleteValue(
+                    fieldSelection,
+                    fieldSelection.Type,
+                    child,
+                    errorTrieForResponseName,
+                    depth,
+                    field))
                 {
                     return false;
                 }

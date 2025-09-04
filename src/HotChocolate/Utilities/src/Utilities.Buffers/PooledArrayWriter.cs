@@ -22,7 +22,7 @@ public sealed class PooledArrayWriter : IWritableMemory
     /// </summary>
     public PooledArrayWriter()
     {
-        _buffer = ArrayPool<byte>.Shared.Rent(InitialBufferSize);
+        _buffer = BufferPools.Rent(InitialBufferSize);
         _capacity = _buffer.Length;
         _start = 0;
     }
@@ -35,7 +35,7 @@ public sealed class PooledArrayWriter : IWritableMemory
     /// </param>
     public PooledArrayWriter(int initialBufferSize)
     {
-        _buffer = ArrayPool<byte>.Shared.Rent(initialBufferSize);
+        _buffer = BufferPools.Rent(initialBufferSize);
         _capacity = _buffer.Length;
         _start = 0;
     }
@@ -239,7 +239,7 @@ public sealed class PooledArrayWriter : IWritableMemory
     /// <param name="neededCapacity">
     /// The necessary capacity on the internal buffer.
     /// </param>
-    private void EnsureBufferCapacity(int neededCapacity)
+    public void EnsureBufferCapacity(int neededCapacity)
     {
         // check if we have enough capacity available on the buffer.
         if (_capacity < neededCapacity)
@@ -260,7 +260,8 @@ public sealed class PooledArrayWriter : IWritableMemory
 
             // next we will rent a new array from the array pool that supports
             // the new capacity requirements.
-            _buffer = ArrayPool<byte>.Shared.Rent(newSize);
+            _buffer = BufferPools.Rent(newSize);
+            var actualNewSize = _buffer.Length;
 
             // the rented array might have a larger size than the necessary capacity,
             // so we will take the buffer length and calculate from that the free capacity.
@@ -270,7 +271,17 @@ public sealed class PooledArrayWriter : IWritableMemory
             buffer.AsSpan().CopyTo(_buffer);
 
             // last but not least, we return the original buffer to the array pool.
-            ArrayPool<byte>.Shared.Return(buffer);
+            BufferPools.Return(buffer);
+
+            _resizeCount++;
+
+            // Log the resize operation
+            Log.BufferResize(oldSize, actualNewSize, _start, neededCapacity, _resizeCount);
+
+            if (actualNewSize > LargeAllocationThreshold)
+            {
+                Log.LargeAllocation(actualNewSize, LargeAllocationThreshold);
+            }
         }
     }
 
@@ -285,7 +296,14 @@ public sealed class PooledArrayWriter : IWritableMemory
     {
         if (!_disposed)
         {
-            ArrayPool<byte>.Shared.Return(_buffer);
+            Log.WriterDisposed(_start, _buffer.Length, _resizeCount);
+
+            if (_start > 0)
+            {
+                _buffer.AsSpan(0, _start).Clear();
+            }
+
+            BufferPools.Return(_buffer);
             _buffer = [];
             _capacity = 0;
             _start = 0;
