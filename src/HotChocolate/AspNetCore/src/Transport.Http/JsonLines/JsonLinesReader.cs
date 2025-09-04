@@ -52,7 +52,7 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
                     // Skip empty lines
                     if (!IsEmptyLine(line))
                     {
-                        var document = await ParseDocumentAsync(line, cts.Token);
+                        var document = ParseDocument(line);
                         yield return OperationResult.Parse(document);
                     }
 
@@ -73,26 +73,13 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
         }
     }
 
-    private static async ValueTask<JsonDocument> ParseDocumentAsync(
-        ReadOnlySequence<byte> lineBuffer,
-        CancellationToken cancellationToken = default)
+    private static JsonDocumentOwner ParseDocument(ReadOnlySequence<byte> lineBuffer)
     {
-        await using var stream = ClientStreamManager.Rent();
-
-        if (lineBuffer.IsSingleSegment)
-        {
-            stream.Write(lineBuffer.First.Span);
-        }
-        else
-        {
-            var position = lineBuffer.Start;
-            while (lineBuffer.TryGet(ref position, out var memory))
-            {
-                stream.Write(memory.Span);
-            }
-        }
-
-        return await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+        var requiredSize = (int)lineBuffer.Length;
+        var buffer = new PooledArrayWriter(requiredSize);
+        lineBuffer.CopyTo(buffer.GetSpan(requiredSize));
+        buffer.Advance(requiredSize);
+        return new JsonDocumentOwner(JsonDocument.Parse(buffer.WrittenMemory), buffer);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
