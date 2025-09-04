@@ -349,7 +349,7 @@ public sealed partial class OperationPlanner
             return;
         }
 
-        backlog = backlog.Push(unresolvable, current.SchemaName);
+        backlog = backlog.Push(unresolvable, current);
         backlog = backlog.Push(fieldsWithRequirements, stepId);
 
         // lookups are always queries.
@@ -519,7 +519,7 @@ public sealed partial class OperationPlanner
                         selectionSet = top.Node;
                     }
 
-                    backlog = backlog.Push(unresolvable, current.SchemaName);
+                    backlog = backlog.Push(unresolvable, current);
                 }
             }
 
@@ -552,7 +552,7 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Tries to inline the field that has a requirement into its original intended plan step 
+    /// Tries to inline the field that has a requirement into its original intended plan step
     /// by resolving the requirements from non-dependant siblings or from parents.
     /// </summary>
     private void PlanInlineFieldWithRequirements(
@@ -857,7 +857,7 @@ public sealed partial class OperationPlanner
             return;
         }
 
-        backlog = backlog.Push(unresolvable, current.SchemaName);
+        backlog = backlog.Push(unresolvable, current);
         backlog = backlog.Push(fieldsWithRequirements, stepId);
 
         var selectionSetNode = resolvable
@@ -1081,7 +1081,7 @@ public sealed partial class OperationPlanner
         };
 
         var (resolvable, unresolvable, fieldsWithRequirements, _) = _partitioner.Partition(input);
-        backlog = backlog.Push(unresolvable, current.SchemaName);
+        backlog = backlog.Push(unresolvable, current);
         backlog = backlog.Push(fieldsWithRequirements, stepId);
         return resolvable;
     }
@@ -1475,7 +1475,7 @@ file static class Extensions
     public static ImmutableStack<WorkItem> Push(
         this ImmutableStack<WorkItem> backlog,
         ImmutableStack<SelectionSet> unresolvable,
-        string fromSchema)
+        PlanNode current)
     {
         if (unresolvable.IsEmpty)
         {
@@ -1489,7 +1489,7 @@ file static class Extensions
                     ? OperationWorkItemKind.Root
                     : OperationWorkItemKind.Lookup,
                 selectionSet,
-                FromSchema: fromSchema);
+                FromSchema: current.SchemaName);
             backlog = backlog.Push(workItem);
         }
 
@@ -1623,6 +1623,7 @@ file static class Extensions
                 continue;
             }
 
+            var hasEnqueuedLookup = false;
             foreach (var lookup in compositeSchema.GetPossibleLookups(workItem.SelectionSet.Type, toSchema))
             {
                 possiblePlans.Enqueue(
@@ -1632,8 +1633,159 @@ file static class Extensions
                         ResolutionCost = resolutionCost,
                         Backlog = backlog.Push(workItem with { Lookup = lookup })
                     });
+
+                hasEnqueuedLookup = true;
+            }
+
+            // If we cannot create a lookup for a selection set on the given schema,
+            // we check if the SelectionSet's path would be resolvable on the target schema.
+            if (!hasEnqueuedLookup && planNodeTemplate.OperationDefinition.Operation == OperationType.Query)
+            {
+                var selectionSetIndex = planNodeTemplate.SelectionSetIndex;
+
+                var selectionSetFromRoot = CreateSelectionSetFromRoot(
+                    planNodeTemplate,
+                    workItem.SelectionSet,
+                    toSchema,
+                    ref selectionSetIndex,
+                    compositeSchema);
+
+                if (selectionSetFromRoot is not null)
+                {
+                    possiblePlans.Enqueue(
+                        planNodeTemplate with
+                        {
+                            SchemaName = toSchema,
+                            ResolutionCost = resolutionCost, // TODO: Is this correct
+                            SelectionSetIndex = selectionSetIndex,
+                            Backlog = backlog.Push(workItem with
+                            {
+                                SelectionSet = selectionSetFromRoot,
+                                Kind = OperationWorkItemKind.Root,
+                            })
+                        });
+                }
             }
         }
+    }
+
+    private static SelectionSet? CreateSelectionSetFromRoot(
+        PlanNode planNodeTemplate,
+        SelectionSet selectionSet,
+        string schemaName,
+        ref ISelectionSetIndex selectionSetIndex,
+        FusionSchemaDefinition compositeSchema)
+    {
+        if (selectionSet.Path.IsRoot)
+        {
+            return null;
+        }
+
+        FusionComplexTypeDefinition? currentType = compositeSchema.QueryType;
+        var currentSelectionSetNode = planNodeTemplate.InternalOperationDefinition.SelectionSet;
+
+        var selectionPath = new Stack<ISelectionNode>();
+
+        foreach (var segment in selectionSet.Path.Segments)
+        {
+            switch (segment.Kind)
+            {
+                case SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field:
+                    var fieldAliasOrName = segment.Name;
+
+                    // Try to find the selected field from the path segment, considering it can also be an alias.
+                    var fieldSelection = currentSelectionSetNode.Selections
+                        .OfType<FieldNode>()
+                        .FirstOrDefault(
+                            f => f.Name.Value == fieldAliasOrName || f.Alias?.Value == fieldAliasOrName);
+
+                    if (fieldSelection is null)
+                    {
+                        return null;
+                    }
+
+                    // Check if the field exists in the source schema we're currently looking at
+                    // and that it's not a list field.
+                    if (!currentType.Fields.TryGetField(fieldSelection.Name.Value, out var field)
+                        || field.Type.IsListType()
+                        || !field.Sources.ContainsSchema(schemaName))
+                    {
+                        return null;
+                    }
+
+                    // Add fieldSelection to source schema selection set
+                    selectionPath.Push(fieldSelection);
+
+                    currentSelectionSetNode = fieldSelection.SelectionSet!;
+
+                    // TODO: Add test with union field
+                    currentType = field.Type.NamedType() as FusionComplexTypeDefinition;
+
+                    if (currentType is null)
+                    {
+                        return null;
+                    }
+
+                    break;
+
+                case SelectionPathSegmentKind.InlineFragment:
+                    var inlineFragmentSelection = currentSelectionSetNode.Selections
+                        .OfType<InlineFragmentNode>()
+                        .FirstOrDefault(f => f.TypeCondition?.Name.Value == segment.Name);
+
+                    if (inlineFragmentSelection is null)
+                    {
+                        return null;
+                    }
+
+                    var possibleTypes = compositeSchema.GetPossibleTypes(currentType);
+
+                    var typeFromRefinement = possibleTypes
+                        .FirstOrDefault(t => t.Name == segment.Name);
+
+#pragma warning disable RCS1146
+                    if (typeFromRefinement is null || !typeFromRefinement.Sources.ContainsSchema(schemaName))
+#pragma warning restore RCS1146
+                    {
+                        return null;
+                    }
+
+                    currentType = typeFromRefinement;
+                    currentSelectionSetNode = inlineFragmentSelection.SelectionSet;
+
+                    break;
+
+                default:
+                    throw new NotImplementedException($"Segment kind {segment.Kind} is not supported.");
+            }
+        }
+
+        var finalSelectionSet = selectionSet.Node;
+        var selectionSetIndexBuilder = selectionSetIndex.ToBuilder();
+
+        while (selectionPath.TryPop(out var selectionNode))
+        {
+            if (selectionNode is FieldNode fieldNode)
+            {
+                finalSelectionSet = new SelectionSetNode(
+                    [fieldNode.WithSelectionSet(finalSelectionSet)]);
+            }
+            else if (selectionNode is InlineFragmentNode inlineFragmentNode)
+            {
+                finalSelectionSet = new SelectionSetNode(
+                    [inlineFragmentNode.WithSelectionSet(finalSelectionSet)]);
+            }
+
+            selectionSetIndexBuilder.Register(finalSelectionSet);
+        }
+
+        selectionSetIndex = selectionSetIndexBuilder;
+
+        return new SelectionSet(
+            selectionSetIndexBuilder.GetId(finalSelectionSet),
+            finalSelectionSet,
+            compositeSchema.QueryType,
+            SelectionPath.Root);
     }
 
     private static void EnqueueNodeLookupPlanNodes(

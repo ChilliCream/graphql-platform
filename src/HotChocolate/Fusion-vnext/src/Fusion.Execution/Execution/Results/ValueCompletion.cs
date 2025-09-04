@@ -366,13 +366,24 @@ internal sealed class ValueCompletion
 
         var operation = selection.DeclaringSelectionSet.DeclaringOperation;
         var selectionSet = operation.GetSelectionSet(selection, objectType);
-        var objectResult = _resultPoolSession.RentObjectResult();
 
-        objectResult.Initialize(_resultPoolSession, selectionSet, _includeFlags);
+        ObjectResult objectResult;
+        // In the case of shared root paths an object result might have already been initialized
+        // by another operation node, so we reuse that result.
+        if (parent is ObjectFieldResult { Value: { } existingObjectResult })
+        {
+            objectResult = existingObjectResult;
+        }
+        else
+        {
+            objectResult = _resultPoolSession.RentObjectResult();
 
-        // we set the value early so that in the error case we can correctly
-        // traverse along the parent path and propagate errors.
-        parent.SetNextValue(objectResult);
+            objectResult.Initialize(_resultPoolSession, selectionSet, _includeFlags);
+
+            // we set the value early so that in the error case we can correctly
+            // traverse along the parent path and propagate errors.
+            parent.SetNextValue(objectResult);
+        }
 
         foreach (var property in data.EnumerateObject())
         {
