@@ -220,16 +220,23 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         ReadOnlySpan<SourceSchemaResult> results,
         ReadOnlySpan<string> responseNames)
     {
-       var canExecutionContinue = _resultStore.AddPartialResults(sourcePath, results, responseNames);
+        var canExecutionContinue = _resultStore.AddPartialResults(sourcePath, results, responseNames);
 
-       if (!canExecutionContinue)
-       {
-           ExecutionState.CancelProcessing();
-       }
+        if (!canExecutionContinue)
+        {
+            ExecutionState.CancelProcessing();
+        }
     }
 
     internal void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
-        => _resultStore.AddPartialResults(result, selections);
+    {
+        var canExecutionContinue = _resultStore.AddPartialResults(result, selections);
+
+        if (!canExecutionContinue)
+        {
+            ExecutionState.CancelProcessing();
+        }
+    }
 
     internal void AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
     {
