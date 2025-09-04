@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,97 +7,45 @@ namespace HotChocolate.Execution.Integration.TypeConverter;
 
 public class TypeConverterExceptionPropagationTests
 {
-    [Fact]
-    public async Task ExceptionOfTypeConverter_ForScalarInputParameter_IsAvailableInErrorFilter()
+    public record TestCase([StringSyntax("graphql")] string Query, string DisplayName)
     {
-        // arrange
-        var executor = await GetServiceCollection()
-            .AddErrorFilter(AssertErrorFilter)
-            .BuildRequestExecutorAsync();
-
-        // act
-        var result = await executor.ExecuteAsync("""{ inputParameter(arg: "foo") }""");
-
-        // assert
-        result.MatchSnapshot();
-        static IError AssertErrorFilter(IError x)
-        {
-            Assert.IsType<CustomIdSerializationException>(x.Exception);
-            return x.WithMessage(x.Exception.Message);
-        }
+        public override string ToString() => DisplayName;
     }
 
-    [Fact]
-    public async Task ExceptionOfTypeConverter_ForListInputParameter_IsAvailableInErrorFilter()
-    {
-        // arrange
-        var executor = await GetServiceCollection()
-            .AddErrorFilter(AssertErrorFilter)
-            .BuildRequestExecutorAsync();
+    public static readonly TheoryData<TestCase> TestCases =
+    [
+        new("""{ inputParameter(arg: "foo") }""", "ForScalarFieldInputParameter"),
+        new("""{ inputObject(arg: { id: "foo" }) }""", "ForObjectWithScalarInputParameter"),
+        new("""{ listInputParameter(arg: ["foo"]) }""", "ForListInputParameter"),
+        new("""{ listInputObject(arg: { id: ["foo"] }) }""", "ForObjectWithScalarListInputParameter")
+    ];
 
-        // act
-        var result = await executor.ExecuteAsync("""{ listInputParameter(arg: ["foo"]) }""");
-
-        // assert
-        result.MatchSnapshot();
-        static IError AssertErrorFilter(IError x)
-        {
-            Assert.IsType<CustomIdSerializationException>(x.Exception);
-            return x.WithMessage(x.Exception.Message);
-        }
-    }
-    [Fact]
-    public async Task ExceptionOfTypeConverter_ForObjectWithScalarInputParameter_IsAvailableInErrorFilter()
+    [Theory]
+    [MemberData(nameof(TestCases))]
+    public async Task ExceptionOfTypeConverter_IsAvailableInErrorFilter(TestCase testCase)
     {
         // arrange
         Exception? caughtException = null;
-        var executor = await GetServiceCollection()
-            .AddErrorFilter(AssertErrorFilter)
-            .BuildRequestExecutorAsync();
-
-        // act
-        var result = await executor.ExecuteAsync("""{ inputObject(arg: { id: "foo" }) }""");
-
-        // assert
-        Assert.IsType<CustomIdSerializationException>(caughtException);
-        result.MatchSnapshot();
-
-        IError AssertErrorFilter(IError x)
-        {
-            caughtException = x.Exception;
-            return x.WithMessage(x.Exception!.Message);
-        }
-    }
-
-    [Fact]
-    public async Task ExceptionOfTypeConverter_ForObjectWithScalarListInputParameter_IsAvailableInErrorFilter()
-    {
-        // arrange
-        var executor = await GetServiceCollection()
-            .AddErrorFilter(AssertErrorFilter)
-            .BuildRequestExecutorAsync();
-
-        // act
-        var result = await executor.ExecuteAsync("""{ listInputObject(arg: { id: ["foo"] }) }""");
-
-        // assert
-        result.MatchSnapshot();
-        static IError AssertErrorFilter(IError x)
-        {
-            Assert.IsType<CustomIdSerializationException>(x.Exception);
-            return x.WithMessage(x.Exception.Message);
-        }
-    }
-
-    private static IRequestExecutorBuilder GetServiceCollection()
-    {
-        return new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType<SomeQuery>()
             .AddTypeConverter<string, FailingId>(FailingId.Parse)
             .AddTypeConverter<FailingId, string>(id => id.Value.ToString())
             .BindRuntimeType<FailingId, StringType>()
-            .ModifyRequestOptions(x => x.IncludeExceptionDetails = true);
+            .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
+            .AddErrorFilter(x =>
+            {
+                caughtException = x.Exception;
+                return x.WithMessage(x.Exception!.Message);
+            })
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(testCase.Query);
+
+        // assert
+        Assert.IsType<CustomIdSerializationException>(caughtException);
+        result.MatchSnapshot(postFix: testCase.DisplayName);
     }
 
     public record FailingId(int Value)
