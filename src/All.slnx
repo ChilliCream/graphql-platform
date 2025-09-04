@@ -47,6 +47,7 @@
     <Project Path="HotChocolate/AspNetCore/src/Transport.Sockets.Client/HotChocolate.Transport.Sockets.Client.csproj" />
     <Project Path="HotChocolate/AspNetCore/src/Transport.Sockets/HotChocolate.Transport.Sockets.csproj" />
   </Folder>
+  <Folder Name="/HotChocolate/AspNetCore/src/AspNetCore/" />
   <Folder Name="/HotChocolate/AspNetCore/test/">
     <Project Path="HotChocolate/AspNetCore/test/AspNetCore.Authorization.Opa.Tests/HotChocolate.AspNetCore.Authorization.Opa.Tests.csproj" />
     <Project Path="HotChocolate/AspNetCore/test/AspNetCore.Authorization.Tests/HotChocolate.AspNetCore.Authorization.Tests.csproj" />
@@ -188,6 +189,7 @@
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.AspNetCore.Tests/HotChocolate.Fusion.AspNetCore.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
+    <Project Path="HotChocolate/Fusion-vnext/test/Fusion.EventSources.Tests/HotChocolate.Fusion.EventSources.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Language.Tests/HotChocolate.Fusion.Language.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Packaging.Tests/HotChocolate.Fusion.Packaging.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Utilities.Tests/HotChocolate.Fusion.Utilities.Tests.csproj" />

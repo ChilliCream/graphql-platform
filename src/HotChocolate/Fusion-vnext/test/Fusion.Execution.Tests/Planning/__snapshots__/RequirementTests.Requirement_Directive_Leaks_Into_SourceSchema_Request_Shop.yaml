@@ -97,7 +97,6 @@ nodes:
                         nodes {
                           stars
                           product {
-                            __typename @fusion__requirement
                             id
                           }
                         }
