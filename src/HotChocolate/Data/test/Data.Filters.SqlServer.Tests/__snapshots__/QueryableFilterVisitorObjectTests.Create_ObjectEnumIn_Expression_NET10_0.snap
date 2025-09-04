@@ -25,15 +25,13 @@ BarAndFoo Result:
 
 BarAndFoo SQL:
 ---------------
-.param set @p '[1,0]'
+.param set @p1 1
+.param set @p2 0
 
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarEnum" IN (
-    SELECT "p"."value"
-    FROM json_each(@p) AS "p"
-)
+WHERE "f"."BarEnum" IN (@p1, @p2)
 ---------------
 
 FOO Result:
@@ -53,15 +51,12 @@ FOO Result:
 
 FOO SQL:
 ---------------
-.param set @p '[0]'
+.param set @p1 0
 
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarEnum" IN (
-    SELECT "p"."value"
-    FROM json_each(@p) AS "p"
-)
+WHERE "f"."BarEnum" = @p1
 ---------------
 
 nullAndFoo Result:
