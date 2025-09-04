@@ -436,7 +436,7 @@ public class InterfaceTypeTests : TypeTestBase
     {
         // arrange
         // act
-        void Action() => InterfaceTypeDescriptorExtensions.Ignore<IFoo>(null, t => t.Bar);
+        void Action() => InterfaceTypeDescriptorExtensions.Ignore<IFoo>(null!, t => t.Bar);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -449,7 +449,7 @@ public class InterfaceTypeTests : TypeTestBase
         var descriptor = InterfaceTypeDescriptor.New<IFoo>(DescriptorContext.Create());
 
         // act
-        void Action() => descriptor.Ignore(null);
+        void Action() => descriptor.Ignore(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -780,7 +780,7 @@ public class InterfaceTypeTests : TypeTestBase
     public interface IFoo
     {
         bool Bar { get; }
-        string Baz();
+        string? Baz();
         int Qux(string a);
     }
 
@@ -871,7 +871,7 @@ public class InterfaceTypeTests : TypeTestBase
     [InterfaceType(Inherited = true)]
     public class Pet
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
     }
 
     public class Canine : Pet;

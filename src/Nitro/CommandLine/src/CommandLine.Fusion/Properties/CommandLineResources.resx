@@ -57,4 +57,10 @@
   <data name="RootCommand_Description" xml:space="preserve">
     <value>Fusion CLI</value>
   </data>
+  <data name="ComposeCommand_GlobalObjectIdentification_Enabled" xml:space="preserve">
+    <value>Enabled global object identification.</value>
+  </data>
+  <data name="ComposeCommand_GlobalObjectIdentification_Disabled" xml:space="preserve">
+    <value>Disabled global object identification.</value>
+  </data>
 </root>

@@ -2,7 +2,7 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 public sealed class RawFieldResult : FieldResult
 {

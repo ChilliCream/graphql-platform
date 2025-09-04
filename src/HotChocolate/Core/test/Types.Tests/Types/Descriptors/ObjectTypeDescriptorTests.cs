@@ -185,11 +185,11 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
     public class Foo : FooBase
     {
-        public string A { get; set; }
-        public override string B { get; set; }
-        public string C { get; set; }
+        public required string A { get; set; }
+        public override required string B { get; set; }
+        public required string C { get; set; }
 
-        public override bool Equals(object obj) => true;
+        public override bool Equals(object? obj) => true;
 
         public override int GetHashCode() => 0;
     }
@@ -199,7 +199,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
     public class FooBase
     {
-        public virtual string B { get; set; }
+        public virtual required string B { get; set; }
     }
 
     public class BarType : ObjectType

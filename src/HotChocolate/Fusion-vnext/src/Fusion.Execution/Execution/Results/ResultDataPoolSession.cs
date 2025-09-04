@@ -1,6 +1,7 @@
 using Microsoft.Extensions.ObjectPool;
+using static HotChocolate.Fusion.Execution.Results.ResultPoolEventSource;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed class ResultDataPoolSession<T> where T : ResultData, new()
 {
@@ -16,29 +17,42 @@ internal sealed class ResultDataPoolSession<T> where T : ResultData, new()
         _usedBatches.Add(_current);
     }
 
+    public int UsedBatchCount => _usedBatches.Count;
+
     public T Rent()
     {
         while (true)
         {
-            var current = _current;
-
-            if (current.TryRent(out var item))
+            if (_current.TryRent(out var item))
             {
                 return item;
             }
 
             lock (_lock)
             {
-                current = _current;
-
-                if (current.TryRent(out item))
+                if (_current.TryRent(out item))
                 {
                     return item;
                 }
 
+                Log.BatchExhausted(typeof(T).Name, _usedBatches.Count - 1);
+
                 // we get the next batch and try to rent a result data object again.
-                _current = current = _pool.Get();
-                _usedBatches.Add(current);
+                var next = _pool.Get();
+                if (next.TryRent(out item))
+                {
+                    _usedBatches.Add(next);
+                    _current = next;
+                    Log.BatchAllocated(typeof(T).Name, _usedBatches.Count - 1);
+                    return item;
+                }
+
+                // if there is no pool corruption we should never hit
+                // this as a new batch from the pool would always have
+                // new poolable object available.
+                _current = next;
+                _usedBatches.Add(next);
+                Log.PoolCorruption(typeof(T).Name);
             }
         }
     }

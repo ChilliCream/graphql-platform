@@ -3,13 +3,14 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ChilliCream.Nitro.CommandLine.Cloud.Client;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.Fusion;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
 using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 using ChilliCream.Nitro.CommandLine.Cloud.Results;
 using StrawberryShake;
 using static ChilliCream.Nitro.CommandLine.Cloud.ThrowHelper;
 
-namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.FusionConfiguration;
+namespace ChilliCream.Nitro.CommandLine.Cloud.Commands.Fusion;
 
 internal sealed class FusionConfigurationPublishBeginCommand : Command
 {
@@ -70,7 +71,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
 
         async Task RequestDeploymentSlotAsync(StatusContext? ctx)
         {
-            var requestId = await FusionConfigurationPublishHelpers.RequestDeploymentSlotAsync(
+            var requestId = await FusionPublishHelpers.RequestDeploymentSlotAsync(
                 apiId,
                 stageName,
                 tag,

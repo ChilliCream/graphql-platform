@@ -186,7 +186,7 @@ public class UnionTypeExtensionTests
     {
         public string Description { get; } = "hello";
 
-        public string GetName(string a)
+        public string? GetName(string a)
         {
             return null;
         }

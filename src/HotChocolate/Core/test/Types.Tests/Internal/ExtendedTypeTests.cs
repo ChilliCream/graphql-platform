@@ -2,8 +2,6 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 public class ExtendedTypeTests

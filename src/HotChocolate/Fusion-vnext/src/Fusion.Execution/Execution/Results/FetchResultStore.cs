@@ -11,7 +11,7 @@ using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 // TODO: we must make this thread-safe
 internal sealed class FetchResultStore : IDisposable

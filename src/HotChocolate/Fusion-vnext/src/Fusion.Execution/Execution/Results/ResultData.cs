@@ -2,7 +2,7 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
 /// Represents a result data object like an object or list.
@@ -36,6 +36,7 @@ public abstract class ResultData : IResultDataJsonFormatter
         {
             if (_path is null)
             {
+                // todo : we should rent this.
                 var stack = new Stack<ResultData>();
                 var current = this;
 
@@ -163,6 +164,7 @@ public abstract class ResultData : IResultDataJsonFormatter
     /// </summary>
     public virtual bool Reset()
     {
+        IsInvalidated = false;
         Parent = null;
         ParentIndex = -1;
         _path = null;

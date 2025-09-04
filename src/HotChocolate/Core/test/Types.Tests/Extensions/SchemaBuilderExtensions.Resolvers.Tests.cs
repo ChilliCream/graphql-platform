@@ -15,7 +15,7 @@ public class SchemaBuilderExtensionsResolversTests
         // act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
-                null,
+                null!,
                 "A",
                 "B",
                 new Func<IResolverContext, object>(c => new object()));
@@ -36,7 +36,7 @@ public class SchemaBuilderExtensionsResolversTests
                 builder,
                 "A",
                 "B",
-                (Func<IResolverContext, object>)null);
+                (Func<IResolverContext, object>)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -71,7 +71,7 @@ public class SchemaBuilderExtensionsResolversTests
         // act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
-                null,
+                null!,
                 "A",
                 "B",
                 new Func<IResolverContext, Task<object>>(
@@ -93,7 +93,7 @@ public class SchemaBuilderExtensionsResolversTests
                 builder,
                 "A",
                 "B",
-                (Func<IResolverContext, Task<object>>)null);
+                (Func<IResolverContext, Task<object>>)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -112,8 +112,7 @@ public class SchemaBuilderExtensionsResolversTests
                 builder,
                 "Query",
                 "foo",
-                new Func<IResolverContext, ValueTask<object>>(
-                    c => new ValueTask<object>("bar")));
+                c => new ValueTask<object?>("bar"));
 
         // assert
         await builder.Create()
@@ -131,7 +130,7 @@ public class SchemaBuilderExtensionsResolversTests
         // act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
-                null,
+                null!,
                 "A",
                 "B",
                 new Func<IResolverContext, string>(
@@ -153,7 +152,7 @@ public class SchemaBuilderExtensionsResolversTests
                 builder,
                 "A",
                 "B",
-                (Func<IResolverContext, string>)null);
+                (Func<IResolverContext, string>)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -191,7 +190,7 @@ public class SchemaBuilderExtensionsResolversTests
         // act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
-                null,
+                null!,
                 "A",
                 "B",
                 new Func<IResolverContext, Task<string>>(
@@ -213,7 +212,7 @@ public class SchemaBuilderExtensionsResolversTests
                 builder,
                 "A",
                 "B",
-                (Func<IResolverContext, Task<string>>)null);
+                (Func<IResolverContext, Task<string>>)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -251,7 +250,7 @@ public class SchemaBuilderExtensionsResolversTests
         // act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
-                null,
+                null!,
                 "A",
                 "B",
                 new Func<object>(() => "abc"));
@@ -272,7 +271,7 @@ public class SchemaBuilderExtensionsResolversTests
                 builder,
                 "A",
                 "B",
-                (Func<object>)null);
+                (Func<object>)null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

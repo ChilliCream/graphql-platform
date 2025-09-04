@@ -1,10 +1,10 @@
-﻿schema {
+schema {
   query: Query
 }
 
 interface IFoo {
   baz: String
-  qux(a: String): Int!
+  qux(a: String!): Int!
 }
 
 type Query {

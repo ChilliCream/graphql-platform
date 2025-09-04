@@ -8,8 +8,6 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate.Types.Relay;
 
 public class IdAttributeTests

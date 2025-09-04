@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.ApiKey;
-using ChilliCream.Nitro.CommandLine.Cloud.Commands.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.Fusion;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.Mock.Component;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.PersonalAccessToken;
 

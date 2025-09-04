@@ -1,7 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
 /// Represents the result of a leaf field (a scalar or enum field) in a GraphQL operation.

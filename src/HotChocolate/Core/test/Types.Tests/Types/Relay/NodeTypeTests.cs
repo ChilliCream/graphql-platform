@@ -169,7 +169,7 @@ public class NodeTypeTests : TypeTestBase
                                 }
                             }
                         }")
-                    .SetVariableValues(new Dictionary<string, object> { { "id", id } })
+                    .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
                     .Build())
             .MatchSnapshotAsync();
     }
@@ -224,7 +224,7 @@ public class NodeTypeTests : TypeTestBase
                                 }
                             }
                         }")
-                    .SetVariableValues(new Dictionary<string, object> { { "id", id } })
+                    .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
                     .Build())
             .MatchSnapshotAsync();
     }

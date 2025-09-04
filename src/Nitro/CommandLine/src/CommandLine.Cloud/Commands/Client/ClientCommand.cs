@@ -6,7 +6,7 @@ internal sealed class ClientCommand : Command
 {
     public ClientCommand() : base("client")
     {
-        Description = "Upload, publish and validate clients";
+        Description = "Manage clients";
 
         this.AddNitroCloudDefaultOptions();
 

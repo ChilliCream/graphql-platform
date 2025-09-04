@@ -17,7 +17,7 @@ public class LocalTimeTypeTests
         const string expectedValue = "08:46:14";
 
         // act
-        var serializedValue = (string)localTimeType.Serialize(timeOnly);
+        var serializedValue = (string?)localTimeType.Serialize(timeOnly);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);
@@ -32,7 +32,7 @@ public class LocalTimeTypeTests
         const string expectedValue = "08:46:14";
 
         // act
-        var serializedValue = (string)localTimeType.Serialize(dateTime);
+        var serializedValue = (string?)localTimeType.Serialize(dateTime);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);
@@ -49,7 +49,7 @@ public class LocalTimeTypeTests
         const string expectedValue = "02:46:14";
 
         // act
-        var serializedValue = (string)localTimeType.Serialize(dateTime);
+        var serializedValue = (string?)localTimeType.Serialize(dateTime);
 
         // assert
         Assert.Equal(expectedValue, serializedValue);
