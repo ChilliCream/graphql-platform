@@ -363,6 +363,8 @@ It can be installed like the following.
 
 | Type           | Description                                                                               | Example                                       |
 | -------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------- |
+| AnnualDate     | A [NodaTime AnnualDate](https://nodatime.org/3.0.x/userguide/annualdate-patterns)         | `"09-03"`                                     |
+| CalendarSystem | A [NodaTime CalendarSystem](https://nodatime.org/3.0.x/api/NodaTime.CalendarSystem.html)  | `"ISO"`                                       |
 | DateTimeZone   | A [NodaTime DateTimeZone](https://nodatime.org/TimeZones)                                 | `"Europe/Rome"`                               |
 | Duration       | A [NodaTime Duration](https://nodatime.org/3.0.x/userguide/duration-patterns)             | `"-123:07:53:10.019"`                         |
 | Instant        | A [NodaTime Instant](https://nodatime.org/3.0.x/userguide/instant-patterns)               | `"2020-02-20T17:42:59Z"`                      |
@@ -375,6 +377,7 @@ It can be installed like the following.
 | OffsetTime     | A [NodaTime OffsetTime](https://nodatime.org/3.0.x/userguide/offsettime-patterns)         | `"13:46:78+02:35"`                            |
 | Offset         | A [NodeTime Offset](https://nodatime.org/3.0.x/userguide/offset-patterns)                 | `"+02:35"`                                    |
 | Period         | A [NodeTime Period](https://nodatime.org/3.0.x/userguide/period-patterns)                 | `"P-3W3DT139t"`                               |
+| YearMonth      | A [NodaTime YearMonth](https://nodatime.org/3.0.x/userguide/yearmonth-patterns)           | `"2025-09"`                                   |
 | ZonedDateTime  | A [NodaTime ZonedDateTime](https://nodatime.org/3.0.x/userguide/zoneddatetime-patterns)   | `"2020-12-31T19:40:13 Asia/Kathmandu +05:45"` |
 
 When returning a NodaTime type from one of our resolvers, for example a `NodaTime.Duration`, we also need to explicitly register the corresponding scalar type. In the case of a `NodaTime.Duration` this would be the `DurationType` scalar.
