@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Types;
@@ -27,6 +28,9 @@ public struct SourceResultElement
 
 public sealed partial class CompositeResultDocument
 {
+    public const int StackallocByteThreshold = 256;
+
+    private static Encoding s_utf8Encoding = Encoding.UTF8;
     private MetaDb _metaDb;
     private byte[][] _dataChunks;
     private List<SourceResultDocument> _sources;
@@ -48,7 +52,7 @@ public sealed partial class CompositeResultDocument
 
         CheckExpectedType(ElementTokenType.StartArray, row.TokenType);
 
-        var arrayLength = row.SizeOrLength;
+        var arrayLength = row.NumberOfRows;
 
         if ((uint)arrayIndex >= (uint)arrayLength)
         {
@@ -66,7 +70,18 @@ public sealed partial class CompositeResultDocument
 
         CheckExpectedType(ElementTokenType.StartArray, row.TokenType);
 
-        return row.SizeOrLength;
+        return row.NumberOfRows;
+    }
+
+    internal int GetPropertyCount(int currentIndex)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var row = _metaDb.Get(currentIndex);
+
+        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
+
+        return row.NumberOfRows;
     }
 
     private CompositeResultElement CreateObject(int parentRow, SelectionSet selectionSet)
