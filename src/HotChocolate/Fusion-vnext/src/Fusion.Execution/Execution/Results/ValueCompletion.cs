@@ -61,8 +61,13 @@ internal sealed class ValueCompletion
             return BuildErrorResult(objectResult, responseNames, error, objectResult.Path);
         }
 
-        foreach (var selection in selectionSet.Selections)
+        foreach (var property in data.EnumerateObject())
         {
+            if (!selectionSet.TryGetSelection(property.Name, out var selection))
+            {
+                continue;
+            }
+
             if (!selection.IsIncluded(_includeFlags))
             {
                 continue;
@@ -70,23 +75,19 @@ internal sealed class ValueCompletion
 
             var fieldResult = objectResult[selection.ResponseName];
 
-            if (data.TryGetProperty(selection.ResponseName, out var element))
+            ErrorTrie? errorTrieForResponseName = null;
+            errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
+
+            if (!TryCompleteValue(selection, selection.Type, property.Value, errorTrieForResponseName, 0, fieldResult))
             {
-                ErrorTrie? errorTrieForResponseName = null;
-                errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
-
-                if (!TryCompleteValue(selection, selection.Type, element, errorTrieForResponseName, 0, fieldResult))
+                switch (_errorHandling)
                 {
-                    if (_errorHandling is ErrorHandlingMode.Propagate)
-                    {
+                    case ErrorHandlingMode.Propagate:
                         var didPropagateToRoot = PropagateNullValues(objectResult);
-
                         return !didPropagateToRoot;
-                    }
-                    else if (_errorHandling is ErrorHandlingMode.Halt)
-                    {
+
+                    case ErrorHandlingMode.Halt:
                         return false;
-                    }
                 }
             }
         }
@@ -361,8 +362,13 @@ internal sealed class ValueCompletion
         // traverse along the parent path and propagate errors.
         parent.SetNextValue(objectResult);
 
-        foreach (var field in objectResult.Fields)
+        foreach (var property in data.EnumerateObject())
         {
+            if (!objectResult.TryGetValue(property.Name, out var field))
+            {
+                continue;
+            }
+
             var fieldSelection = field.Selection;
 
             if (!fieldSelection.IsIncluded(_includeFlags))
@@ -370,21 +376,18 @@ internal sealed class ValueCompletion
                 continue;
             }
 
-            if (data.TryGetProperty(fieldSelection.ResponseName, out var child))
-            {
-                ErrorTrie? errorTrieForResponseName = null;
-                errorTrie?.TryGetValue(fieldSelection.ResponseName, out errorTrieForResponseName);
+            ErrorTrie? errorTrieForResponseName = null;
+            errorTrie?.TryGetValue(fieldSelection.ResponseName, out errorTrieForResponseName);
 
-                if (!TryCompleteValue(
-                    fieldSelection,
-                    fieldSelection.Type,
-                    child,
-                    errorTrieForResponseName,
-                    depth,
-                    field))
-                {
-                    return false;
-                }
+            if (!TryCompleteValue(
+                fieldSelection,
+                fieldSelection.Type,
+                property.Value,
+                errorTrieForResponseName,
+                depth,
+                field))
+            {
+                return false;
             }
         }
 
