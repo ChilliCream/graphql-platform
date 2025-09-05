@@ -1,7 +1,6 @@
 using System.Net;
 using System.Diagnostics;
 using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Utilities;
@@ -166,7 +165,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
         if (contentType?.MediaType.EqualsOrdinal(ContentType.EventStream) ?? false)
         {
-            return ReadAsResultStreamInternalAsync(contentType.CharSet, cancellationToken);
+            return new SseReader(_message);
         }
 
         // The server supports the newer graphql-response+json media type and users are free
@@ -185,27 +184,6 @@ public sealed class GraphQLHttpResponse : IDisposable
         }
 
         return SingleResult(new ValueTask<OperationResult>(_transportError));
-    }
-
-    private async IAsyncEnumerable<OperationResult> ReadAsResultStreamInternalAsync(
-        string? charSet,
-        [EnumeratorCancellation] CancellationToken ct)
-    {
-        await using var contentStream = await _message.Content.ReadAsStreamAsync(ct)
-            .ConfigureAwait(false);
-
-        var stream = contentStream;
-
-        var sourceEncoding = GetEncoding(charSet);
-        if (sourceEncoding is not null && !Equals(sourceEncoding.EncodingName, _utf8.EncodingName))
-        {
-            stream = GetTranscodingStream(contentStream, sourceEncoding);
-        }
-
-        await foreach (var item in GraphQLHttpEventStreamProcessor.ReadStream(stream, ct).ConfigureAwait(false))
-        {
-            yield return item;
-        }
     }
 
     private static async IAsyncEnumerable<OperationResult> SingleResult(ValueTask<OperationResult> result)
