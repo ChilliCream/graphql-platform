@@ -24,6 +24,22 @@ public partial class TypeConverterTests
          new("""{ echo(arg: "foo") @boom(arg: "foo") }""", "DirectiveInput")
     ];
 
+    public static readonly TheoryData<TestCase> TestCasesM =
+    [
+        new("""mutation{ scalarInput(input: { arg: "foo" }) { string } }""", "ScalarInput"),
+        new("""mutation{ objectInput(input: { arg: { id: "foo" } }) { string } }""", "ObjectInput"),
+        new("""mutation{ listOfScalarsInput(input: { arg: ["foo"] }) { string } }""", "ListOfScalarsInput"),
+        new("""mutation{ objectWithListOfScalarsInput(input: { arg: { id: ["foo"] } }) { string } }""",
+            "ObjectWithListOfScalarsInput"),
+        new("""mutation{ nestedObjectInput(input: { arg: { inner: { id: "foo" } } }) { string } }""",
+            "NestedObjectInput"),
+        new("""mutation{ listOfObjectsInput(input: { arg: { items: [{ id: "foo" }] } }) { string } }""",
+            "ListOfObjectsInput"),
+        new("""mutation{ nonNullScalarInput(input: { arg: "foo" }) { string } }""", "NonNullScalarInput"),
+        new("""mutation($v: String!) { scalarInput(input: { arg: $v }) { string } }""", "VariableInput"),
+        new("""mutation{ echo(input: { arg: "foo"}) @boom(arg: "foo") { string }  }""", "DirectiveInput")
+    ];
+
     [Theory]
     [MemberData(nameof(TestCases))]
     public async Task Exception_IsAvailableInErrorFilter(TestCase testCase)
@@ -91,6 +107,41 @@ public partial class TypeConverterTests
         result.MatchSnapshot(postFix: testCase.DisplayName);
     }
 
+    [Theory]
+    [MemberData(nameof(TestCasesM))]
+    public async Task Exception_IsAvailableInErrorFilter_Mutation_WithMutationConventions(TestCase testCase)
+    {
+        // arrange
+        Exception? caughtException = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddMutationType<SomeQuery>()
+            .AddMutationConventions()
+            .AddDirectiveType<BoomDirectiveType>()
+            .AddTypeConverter<string, BrokenType>(_ => throw new CustomIdSerializationException("Boom"))
+            .BindRuntimeType<BrokenType, StringType>()
+            .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
+            .ModifyOptions(x => x.StrictValidation = false)
+            .AddErrorFilter(x =>
+            {
+                caughtException = x.Exception;
+                return x;
+            })
+            .BuildRequestExecutorAsync();
+
+        // act
+        var variableValues =
+            testCase.DisplayName == "VariableInput"
+                ? new Dictionary<string, object?> { ["v"] = "foo" }
+                : [];
+
+        var result = await executor.ExecuteAsync(testCase.QueryString, variableValues: variableValues);
+
+        // assert
+        Assert.IsType<CustomIdSerializationException>(caughtException);
+        result.MatchSnapshot(postFix: testCase.DisplayName);
+    }
+
     public record BrokenType(int Value)
     {
         public static BrokenType Parse(string id) => throw new CustomIdSerializationException("Boom");
@@ -125,6 +176,7 @@ public partial class TypeConverterTests
 
     public class SomeQuery
     {
+        [Error<CustomIdSerializationException>]
         public string ScalarInput(BrokenType arg) => "";
         public string ObjectInput(ObjectWithId arg) => "";
         public string ListOfScalarsInput(List<BrokenType> arg) => "";
