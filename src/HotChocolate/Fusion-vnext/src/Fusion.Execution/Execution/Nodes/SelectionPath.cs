@@ -166,6 +166,11 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
         return new SelectionPath(builder.ToImmutable());
     }
 
+    public static SelectionPath From(ImmutableArray<Segment> segments)
+    {
+        return new SelectionPath(segments);
+    }
+
     /// <summary>
     /// Returns the portion of this path that comes <em>after</em> <paramref name="basePath"/>.
     /// </summary>

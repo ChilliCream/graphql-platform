@@ -2086,7 +2086,7 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void Type_Without_Lookup_But_Shared_Path()
+    public void Type_Without_Lookup_But_Path_Matches_Up_To_Root()
     {
         // arrange
         var merger = new SourceSchemaMerger(
@@ -2137,7 +2137,7 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void Type_Without_Lookup_But_Shared_Path_With_Requirement()
+    public void Type_Without_Lookup_But_Path_Matches_Up_To_Root_With_Requirement()
     {
         // arrange
         var merger = new SourceSchemaMerger(
@@ -2178,7 +2178,7 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void Type_Without_Lookup_Not_All_Schemas_Share_Path()
+    public void Type_Without_Lookup_Not_All_Schemas_Share_Path_Up_To_Root()
     {
         // arrange
         var merger = new SourceSchemaMerger(
@@ -2247,7 +2247,7 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void Type_Without_Lookup_Not_All_Schemas_Share_Path_With_Requirement()
+    public void Type_Without_Lookup_Not_All_Schemas_Share_Path_Up_To_Root_With_Requirement()
     {
         // arrange
         var merger = new SourceSchemaMerger(
@@ -2302,6 +2302,78 @@ public sealed class SatisfiabilityValidatorTests
               Unable to transition between schemas 'B' and 'A' for access to field 'A:Viewer.fullName<String>'.
                 No lookups found for type 'Viewer' in schema 'A'.
             """);
+    }
+
+    // TODO: Add more tests
+    [Fact]
+    public void Type_Without_Lookup_But_Parent_Has_Lookup()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    productById(id: ID!): Product @lookup
+                }
+
+                type Product {
+                    id: ID!
+                    name: String!
+                    availability: ProductAvailability!
+                }
+
+                type ProductAvailability {
+                    date: String
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    node(id: ID!): Node @lookup
+                }
+
+                interface Node {
+                    id: ID!
+                }
+
+                type Product implements Node {
+                    id: ID!
+                    availability: ProductAvailability!
+                }
+
+                type ProductAvailability {
+                    quantityOnHand: Int
+                }
+                """,
+                """
+                # Schema C
+                type Query {
+                    product(id: ID!): Product @lookup
+                }
+
+                type Product {
+                    id: ID!
+                    availability: ProductAvailability!
+                }
+
+                type ProductAvailability {
+                    details: String
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.False(result.IsFailure);
     }
 
     [Theory]

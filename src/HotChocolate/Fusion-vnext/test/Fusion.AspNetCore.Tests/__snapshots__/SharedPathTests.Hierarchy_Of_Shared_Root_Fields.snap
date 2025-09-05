@@ -1,0 +1,57 @@
+{
+  "data": {
+    "viewer": {
+      "settings": {
+        "schema1": "schema1",
+        "schema2": "schema2"
+      }
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "370d19794fff22d671be86cae22b7226c495f05ded20eedc083e78d31ae8b4c3",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  viewer {\n    settings {\n      schema1\n      schema2\n    }\n  }\n}",
+          "id": "58df2c1b9e78bf9d35c918bda0af7f24",
+          "hash": "58df2c1b9e78bf9d35c918bda0af7f24",
+          "shortHash": "58df2c1b"
+        },
+        "searchSpace": 2,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_58df2c1b_1",
+              "kind": "Query",
+              "document": "query Op_58df2c1b_1 {\n  viewer {\n    settings {\n      schema1\n    }\n  }\n}",
+              "hash": "53e813dab5bac7c39c2d9e08e7148cc4a930f4974eb8ad03ed7c8f4991da4fa4",
+              "shortHash": "53e813da"
+            },
+            "responseNames": [
+              "viewer"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_58df2c1b_2",
+              "kind": "Query",
+              "document": "query Op_58df2c1b_2 {\n  viewer {\n    settings {\n      schema2\n    }\n  }\n}",
+              "hash": "b8664c17d0dc0ab344dc2cc097e780e9ed99b88390c3e3c0a38dc6932eb7dbed",
+              "shortHash": "b8664c17"
+            },
+            "responseNames": [
+              "viewer"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

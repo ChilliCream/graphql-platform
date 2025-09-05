@@ -278,7 +278,7 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         var lookupDirectives =
             schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
 
-        if (!lookupDirectives.Any() && !HasPathInSchema(context.Path, transitionToSchemaName))
+        if (!lookupDirectives.Any() && !CanTransitionToSchemaThroughPath(context.Path, transitionToSchemaName))
         {
             errors.Add(
                 new SatisfiabilityError(
@@ -329,15 +329,31 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         return [.. errors];
     }
 
-    private bool HasPathInSchema(
+    /// <summary>
+    /// We check whether the path we're currently on exists one-to-one
+    /// on the given schema or whether a type on the path has a lookup
+    /// on the given schema.
+    /// </summary>
+    private bool CanTransitionToSchemaThroughPath(
         SatisfiabilityPath path,
         string schemaName)
     {
-        var stack = new Stack<SatisfiabilityPathItem>(path);
-
-        while (stack.TryPop(out var item))
+        foreach (var pathItem in path)
         {
-            if (!item.Field.ExistsInSchema(schemaName))
+            var lookupDirectives =
+                schema.GetPossibleFusionLookupDirectives(
+                    pathItem.Type,
+                    schemaName);
+
+            var hasLookups = lookupDirectives.Count > 0;
+            var fieldExists = pathItem.Field.ExistsInSchema(schemaName);
+
+            if (hasLookups && fieldExists)
+            {
+                return true;
+            }
+
+            if (!fieldExists)
             {
                 return false;
             }

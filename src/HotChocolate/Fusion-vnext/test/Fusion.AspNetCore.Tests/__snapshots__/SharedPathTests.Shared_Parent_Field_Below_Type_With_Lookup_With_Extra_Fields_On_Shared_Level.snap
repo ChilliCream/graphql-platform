@@ -12,7 +12,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "636801872bfb0f0ea59079a243457bcf1e38b9e1167a8e5b6998689b656d7b77",
+        "id": "57414c2c8af1ec696a2c2c3ccb62cc6b344e30330bd8dcc33d092d82d9aea642",
         "operation": {
           "kind": "Query",
           "document": "{\n  productById(id: 1) {\n    schema1\n    shared {\n      schema2\n      schema1\n    }\n    schema2\n    id @fusion__requirement\n  }\n}",
@@ -20,7 +20,7 @@
           "hash": "49906eeaddb0e14de3cf10cc5494b47a",
           "shortHash": "49906eea"
         },
-        "searchSpace": 2,
+        "searchSpace": 1,
         "nodes": [
           {
             "id": 1,
@@ -44,14 +44,14 @@
             "operation": {
               "name": "Op_49906eea_2",
               "kind": "Query",
-              "document": "query Op_49906eea_2(\n  $__fusion_1_id: Int!\n) {\n  productById(id: $__fusion_1_id) {\n    schema2\n  }\n}",
-              "hash": "6a6b6e32c2e412c68221926832d94a56b606fff6b291947788cc48b318b56acb",
-              "shortHash": "6a6b6e32"
+              "document": "query Op_49906eea_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    schema2\n  }\n}",
+              "hash": "6d6e1c18d66a952128c18e61c916cf27e40980d2d3310fbcc5ca329407621306",
+              "shortHash": "6d6e1c18"
             },
             "responseNames": [
               "schema2"
             ],
-            "source": "$.productById",
+            "source": "$.product",
             "target": "$.productById",
             "requirements": [
               {
@@ -73,12 +73,26 @@
             "operation": {
               "name": "Op_49906eea_3",
               "kind": "Query",
-              "document": "query Op_49906eea_3 {\n  productById(id: 1) {\n    shared {\n      schema2\n    }\n  }\n}",
-              "hash": "ce1dc4ae9e9425d708b4eee2b6e82cdfb8fa89dbc65afcf249a99e38a3419ef3",
-              "shortHash": "ce1dc4ae"
+              "document": "query Op_49906eea_3(\n  $__fusion_2_id: Int!\n) {\n  product(id: $__fusion_2_id) {\n    shared {\n      schema2\n    }\n  }\n}",
+              "hash": "dd87ef71b827728af8d1878e050f673c56812159f7eacd3c8e4141a7274affe0",
+              "shortHash": "dd87ef71"
             },
             "responseNames": [
-              "productById"
+              "shared"
+            ],
+            "source": "$.product",
+            "target": "$.productById",
+            "requirements": [
+              {
+                "name": "__fusion_2_id",
+                "type": "Int!",
+                "path": "$.productById",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
             ]
           }
         ]
