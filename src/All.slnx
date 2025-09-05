@@ -194,6 +194,15 @@
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Packaging.Tests/HotChocolate.Fusion.Packaging.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Utilities.Tests/HotChocolate.Fusion.Utilities.Tests.csproj" />
   </Folder>
+  <Folder Name="/HotChocolate/Json/" />
+  <Folder Name="/HotChocolate/Json/src/" />
+  <Folder Name="/HotChocolate/Json/src/Json/">
+    <Project Path="HotChocolate/Json/src/Json/HotChocolate.Text.Json.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Json/test/" />
+  <Folder Name="/HotChocolate/Json/test/Json.Tests/">
+    <Project Path="HotChocolate/Json/test/Json.Tests/HotChocolate.Text.Json.Tests.csproj" />
+  </Folder>
   <Folder Name="/HotChocolate/Language/" />
   <Folder Name="/HotChocolate/Language/src/">
     <Project Path="HotChocolate/Language/src/Language.SyntaxTree/HotChocolate.Language.SyntaxTree.csproj" />
