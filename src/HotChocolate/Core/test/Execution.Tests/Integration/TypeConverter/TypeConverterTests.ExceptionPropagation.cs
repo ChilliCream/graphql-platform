@@ -24,7 +24,7 @@ public partial class TypeConverterTests
          new("""{ echo(arg: "foo") @boom(arg: "foo") }""", "DirectiveInput")
     ];
 
-    public static readonly TheoryData<TestCase> TestCasesM =
+    public static readonly TheoryData<TestCase> TestCasesForMutationConventions =
     [
         new("""mutation{ scalarInput(input: { arg: "foo" }) { string } }""", "ScalarInput"),
         new("""mutation{ objectInput(input: { arg: { id: "foo" } }) { string } }""", "ObjectInput"),
@@ -38,6 +38,23 @@ public partial class TypeConverterTests
         new("""mutation{ nonNullScalarInput(input: { arg: "foo" }) { string } }""", "NonNullScalarInput"),
         new("""mutation($v: String!) { scalarInput(input: { arg: $v }) { string } }""", "VariableInput"),
         new("""mutation{ echo(input: { arg: "foo"}) @boom(arg: "foo") { string }  }""", "DirectiveInput")
+    ];
+
+    public static readonly TheoryData<TestCase> TestCasesForQueryConventions =
+    [
+        new("""{ scalarInput(arg: "foo") { ... on ObjectWithId { id } } }""", "ScalarInput"),
+        new("""{ objectInput(arg: { id: "foo" }) { ... on ObjectWithId { id } } }""", "ObjectInput"),
+        new("""{ listOfScalarsInput(arg: ["foo"]) { ... on ObjectWithId { id } } }""", "ListOfScalarsInput"),
+        new("""{ objectWithListOfScalarsInput(arg: { id: ["foo"] }) { ... on ObjectWithId { id } } }""",
+            "ObjectWithListOfScalarsInput"),
+        new("""{ nestedObjectInput(arg: { inner: { id: "foo" } }) { ... on ObjectWithId { id } } }""",
+            "NestedObjectInput"),
+        new("""{ listOfObjectsInput(arg: { items: [{ id: "foo" }] }) { ... on ObjectWithId { id } } }""",
+            "ListOfObjectsInput"),
+        new("""{ nonNullScalarInput(arg: "foo") { ... on ObjectWithId { id } } }""", "NonNullScalarInput"),
+        new("""query($v: String!) { scalarInput(arg: $v) { ... on ObjectWithId { id } } }""",
+            "VariableInput"),
+        new("""{ echo(arg: "foo") @boom(arg: "foo") { ... on ObjectWithId { id } } }""", "DirectiveInput")
     ];
 
     [Theory]
@@ -108,7 +125,7 @@ public partial class TypeConverterTests
     }
 
     [Theory]
-    [MemberData(nameof(TestCasesM))]
+    [MemberData(nameof(TestCasesForMutationConventions))]
     public async Task Exception_IsAvailableInErrorFilter_Mutation_WithMutationConventions(TestCase testCase)
     {
         // arrange
@@ -117,6 +134,41 @@ public partial class TypeConverterTests
             .AddGraphQLServer()
             .AddMutationType<SomeQuery>()
             .AddMutationConventions()
+            .AddDirectiveType<BoomDirectiveType>()
+            .AddTypeConverter<string, BrokenType>(_ => throw new CustomIdSerializationException("Boom"))
+            .BindRuntimeType<BrokenType, StringType>()
+            .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
+            .ModifyOptions(x => x.StrictValidation = false)
+            .AddErrorFilter(x =>
+            {
+                caughtException = x.Exception;
+                return x;
+            })
+            .BuildRequestExecutorAsync();
+
+        // act
+        var variableValues =
+            testCase.DisplayName == "VariableInput"
+                ? new Dictionary<string, object?> { ["v"] = "foo" }
+                : [];
+
+        var result = await executor.ExecuteAsync(testCase.QueryString, variableValues: variableValues);
+
+        // assert
+        Assert.IsType<CustomIdSerializationException>(caughtException);
+        result.MatchSnapshot(postFix: testCase.DisplayName);
+    }
+
+    [Theory]
+    [MemberData(nameof(TestCasesForQueryConventions))]
+    public async Task Exception_IsAvailableInErrorFilter_WithQueryConventions(TestCase testCase)
+    {
+        // arrange
+        Exception? caughtException = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType<SomeQueryConventionFriendlyQueryType>()
+            .AddQueryConventions()
             .AddDirectiveType<BoomDirectiveType>()
             .AddTypeConverter<string, BrokenType>(_ => throw new CustomIdSerializationException("Boom"))
             .BindRuntimeType<BrokenType, StringType>()
@@ -154,7 +206,7 @@ public partial class TypeConverterTests
 
     public class BoomDirective
     {
-        public BrokenType Arg { get; set; } = default!;
+        public BrokenType Arg { get; set; } = null!;
     }
 
     public class BoomDirectiveType : DirectiveType<BoomDirective>
@@ -176,16 +228,36 @@ public partial class TypeConverterTests
 
     public class SomeQuery
     {
-        [Error<CustomIdSerializationException>]
-        public string ScalarInput(BrokenType arg) => "";
-        public string ObjectInput(ObjectWithId arg) => "";
-        public string ListOfScalarsInput(List<BrokenType> arg) => "";
-        public string ObjectWithListOfScalarsInput(ObjectWithListOfIds arg) => "";
-        public string NestedObjectInput(NestedObject arg) => "";
+        public string? ScalarInput(BrokenType arg) => null;
+        public string? ObjectInput(ObjectWithId arg) => null;
+        public string? ListOfScalarsInput(List<BrokenType> arg) => null;
+        public string? ObjectWithListOfScalarsInput(ObjectWithListOfIds arg) => null;
+        public string? NestedObjectInput(NestedObject arg) => null;
         // ReSharper disable once MemberHidesStaticFromOuterClass
-        public string ListOfObjectsInput(ListOfObjectsInput arg) => "";
-        public string NonNullScalarInput([GraphQLNonNullType] BrokenType arg) => "";
-        public string Echo(string arg) => arg;
+        public string? ListOfObjectsInput(ListOfObjectsInput arg) => null;
+        public string? NonNullScalarInput([GraphQLNonNullType] BrokenType arg) => null;
+        public string? Echo(string arg) => arg;
+    }
+
+    public class SomeQueryConventionFriendlyQueryType
+    {
+        [Error<CustomIdSerializationException>]
+        public ObjectWithId? ScalarInput(BrokenType arg) => null;
+        [Error<CustomIdSerializationException>]
+        public ObjectWithId? ObjectInput(ObjectWithId arg) => null;
+        [Error<CustomIdSerializationException>]
+        public ObjectWithId? ListOfScalarsInput(List<BrokenType> arg) => null;
+        [Error<CustomIdSerializationException>]
+        public ObjectWithId? ObjectWithListOfScalarsInput(ObjectWithListOfIds arg) => null;
+        [Error<CustomIdSerializationException>]
+        public ObjectWithId? NestedObjectInput(NestedObject arg) => null;
+        // ReSharper disable once MemberHidesStaticFromOuterClass
+        [Error<CustomIdSerializationException>]
+        public ObjectWithId? ListOfObjectsInput(ListOfObjectsInput arg) => null;
+        [Error<CustomIdSerializationException>]
+        public ObjectWithId? NonNullScalarInput([GraphQLNonNullType] BrokenType arg) => null;
+        [Error<CustomIdSerializationException>]
+        public ObjectWithId? Echo(string arg) => null;
     }
 
     public class CustomIdSerializationException(string message) : Exception(message)
