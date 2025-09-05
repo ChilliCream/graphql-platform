@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Buffers;
 using static HotChocolate.Transport.Properties.TransportAbstractionResources;
 using static HotChocolate.Transport.Serialization.Utf8GraphQLResultProperties;
 
@@ -85,6 +86,21 @@ public sealed class OperationResult : IDisposable
     /// </summary>
     public void Dispose()
         => _memoryOwner?.Dispose();
+
+    public static OperationResult Parse(JsonDocumentOwner documentOwner)
+    {
+        ArgumentNullException.ThrowIfNull(documentOwner);
+
+        var root = documentOwner.Document.RootElement;
+
+        return new OperationResult(
+            documentOwner,
+            root.TryGetProperty(DataProp, out var data) ? data : default,
+            root.TryGetProperty(ErrorsProp, out var errors) ? errors : default,
+            root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default,
+            root.TryGetProperty(RequestIndexProp, out var requestIndex) ? requestIndex.GetInt32() : null,
+            root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : null);
+    }
 
     public static OperationResult Parse(JsonDocument document)
     {
