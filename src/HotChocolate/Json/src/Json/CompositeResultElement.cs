@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Text.Json;
 
@@ -21,13 +22,8 @@ public struct CompositeResultElement
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private JsonTokenType TokenType
-    {
-        get
-        {
-            return _parent?.GetJsonTokenType(_index) ?? JsonTokenType.None;
-        }
-    }
+    private JsonTokenType TokenType => _parent?.GetJsonTokenType(_index) ?? JsonTokenType.None;
+
     /// <summary>
     ///   The <see cref="JsonValueKind"/> that the value is.
     /// </summary>

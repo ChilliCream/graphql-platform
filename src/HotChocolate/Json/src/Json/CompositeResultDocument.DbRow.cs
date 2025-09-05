@@ -115,47 +115,47 @@ public sealed partial class CompositeResultDocument
         /// </summary>
         public bool IsSimpleValue => TokenType >= ElementTokenType.PropertyName;
     }
+}
 
-    [Flags]
-    internal enum ElementFlags : byte
-    {
-        None = 0,
+internal enum ElementTokenType : byte
+{
+    None = 0,
+    StartObject = 1,
+    EndObject = 2,
+    StartArray = 3,
+    EndArray = 4,
+    PropertyName = 5,
+    // Retained for compatibility, we do not actually need this.
+    Comment = 6,
+    String = 7,
+    Number = 8,
+    True = 9,
+    False = 10,
+    Null = 11,
+    // A reference in case a property or array element point
+    // to an array or an object
+    Reference = 12
+}
 
-        // 0x01 - For error propagation
-        Invalidated = 1,
+[Flags]
+internal enum ElementFlags : byte
+{
+    None = 0,
 
-        // 0x02 - Data stored in composite (not source document)
-        Local = 2,
+    // 0x01 - For error propagation
+    Invalidated = 1,
 
-        // 0x04 - Field can be null (schema info)
-        IsNullable = 4,
+    // 0x02 - Data stored in composite (not source document)
+    Local = 2,
 
-        // 0x08 - Element has no parent (ignore ParentRow value)
-        IsRoot = 8,
+    // 0x04 - Field can be null (schema info)
+    IsNullable = 4,
 
-        // 0x16 - Element is internal and mustnt be written to the output stream.
-        IsInternal = 16,
+    // 0x08 - Element has no parent (ignore ParentRow value)
+    IsRoot = 8,
 
-        IsLeaf = 32
-    }
+    // 0x16 - Element is internal and mustnt be written to the output stream.
+    IsInternal = 16,
 
-    internal enum ElementTokenType : byte
-    {
-        None = 0,
-        StartObject = 1,
-        EndObject = 2,
-        StartArray = 3,
-        EndArray = 4,
-        PropertyName = 5,
-        // Retained for compatibility, we do not actually need this.
-        Comment = 6,
-        String = 7,
-        Number = 8,
-        True = 9,
-        False = 10,
-        Null = 11,
-        // A reference in case a property or array element point
-        // to an array or an object
-        Reference = 12
-    }
+    IsLeaf = 32
 }
