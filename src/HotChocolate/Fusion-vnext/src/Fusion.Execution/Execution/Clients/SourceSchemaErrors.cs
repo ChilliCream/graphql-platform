@@ -143,9 +143,9 @@ public sealed class SourceSchemaErrors
     {
         var path = Path.Root;
 
-        for (var i = 0; i < errorSubPath.GetArrayLength(); i++)
+        foreach (var item in errorSubPath.EnumerateArray())
         {
-            path = errorSubPath[i] switch
+            path = item switch
             {
                 { ValueKind: JsonValueKind.String } nameElement => path.Append(nameElement.GetString()!),
                 { ValueKind: JsonValueKind.Number } indexElement => path.Append(indexElement.GetInt32()),

@@ -20,7 +20,7 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         await using var stream = await message.Content.ReadAsStreamAsync(cts.Token);
-        using var eventBuffer = new PooledArrayWriter(4096);
+        using var eventBuffer = new PooledArrayWriter();
         var reader = PipeReader.Create(stream, s_options);
 
         try
@@ -98,6 +98,8 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
 
     private static void WriteLineToMessage(PooledArrayWriter message, ReadOnlySequence<byte> buffer)
     {
+        message.EnsureBufferCapacity((int)buffer.Length);
+
         if (buffer.IsSingleSegment)
         {
             var span = buffer.First.Span;
