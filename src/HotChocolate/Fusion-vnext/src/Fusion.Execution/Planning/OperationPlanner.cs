@@ -1724,19 +1724,6 @@ file static class Extensions
 
                 finalSelectionSet = new SelectionSetNode(
                     [fieldNode.WithSelectionSet(finalSelectionSet)]);
-
-                if (result.Selections.TryPeek(out var parentSelection))
-                {
-                    if (parentSelection is FieldNode parentField)
-                    {
-                        // TODO: Do this branching for all cases
-                        selectionSetIndexBuilder.Register(parentField.SelectionSet!, finalSelectionSet);
-                    }
-                }
-                else
-                {
-                    selectionSetIndexBuilder.Register(finalSelectionSet);
-                }
             }
             else if (selectionNode is InlineFragmentNode inlineFragmentNode)
             {
@@ -1758,8 +1745,23 @@ file static class Extensions
 
                 finalSelectionSet = new SelectionSetNode(
                     [inlineFragmentNode.WithSelectionSet(finalSelectionSet)]);
+            }
 
-                selectionSetIndexBuilder.Register(finalSelectionSet);
+            if (result.Selections.TryPeek(out var parentSelection))
+            {
+                var parentSelectionSet = parentSelection is FieldNode parentField
+                    ? parentField.SelectionSet!
+                    : parentSelection is InlineFragmentNode parentFragment
+                        ? parentFragment.SelectionSet
+                        : throw new InvalidOperationException("Expected parent selection to either be field or inline fragment");
+
+                selectionSetIndexBuilder.Register(parentSelectionSet, finalSelectionSet);
+            }
+            else
+            {
+                selectionSetIndexBuilder.Register(
+                    planNodeTemplate.InternalOperationDefinition.SelectionSet,
+                    finalSelectionSet);
             }
         }
 

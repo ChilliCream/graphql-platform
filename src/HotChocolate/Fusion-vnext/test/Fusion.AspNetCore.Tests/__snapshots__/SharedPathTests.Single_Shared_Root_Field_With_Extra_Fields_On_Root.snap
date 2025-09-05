@@ -1,0 +1,73 @@
+{
+  "data": {
+    "viewer": {
+      "schema1": "schema1",
+      "schema2": "schema2"
+    },
+    "schema1": "schema1",
+    "schema2": "schema2"
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "64121b20f75dba60e11a1b314608070e4a113a5f5dcfb6185fbd2e0045b0686b",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  viewer {\n    schema1\n    schema2\n  }\n  schema1\n  schema2\n}",
+          "id": "4a75abf382d52f602e2150a996e24010",
+          "hash": "4a75abf382d52f602e2150a996e24010",
+          "shortHash": "4a75abf3"
+        },
+        "searchSpace": 2,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_4a75abf3_1",
+              "kind": "Query",
+              "document": "query Op_4a75abf3_1 {\n  viewer {\n    schema1\n  }\n  schema1\n}",
+              "hash": "d057e6977c3656a241a1f1232cd2bd4900223ba67f74580e7b58b26c7abe9671",
+              "shortHash": "d057e697"
+            },
+            "responseNames": [
+              "schema1",
+              "viewer"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_4a75abf3_2",
+              "kind": "Query",
+              "document": "query Op_4a75abf3_2 {\n  schema2\n}",
+              "hash": "2d01036b6083cc6fe7abe50a8ba80a750447f5f940e709975148f044372950d3",
+              "shortHash": "2d01036b"
+            },
+            "responseNames": [
+              "schema2"
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_4a75abf3_3",
+              "kind": "Query",
+              "document": "query Op_4a75abf3_3 {\n  viewer {\n    schema2\n  }\n}",
+              "hash": "7e70036c7711c58068e3f905dc9952a69542f32ebf71c401602b470ecc161e76",
+              "shortHash": "7e70036c"
+            },
+            "responseNames": [
+              "viewer"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

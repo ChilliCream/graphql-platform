@@ -1,0 +1,69 @@
+{
+  "data": {
+    "item": {
+      "schema1": "schema1",
+      "schema2": "schema2"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "8269f8e59b57058d0bafad0c792e11f6c46d4d32b34c6bb6c359de61706704a5",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  item {\n    __typename @fusion__requirement\n    ... on Product {\n      schema1\n      schema2\n      id @fusion__requirement\n    }\n  }\n}",
+          "id": "1547cadd728b7efa6d43fadcb09b2fc0",
+          "hash": "1547cadd728b7efa6d43fadcb09b2fc0",
+          "shortHash": "1547cadd"
+        },
+        "searchSpace": 2,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_1547cadd_1",
+              "kind": "Query",
+              "document": "query Op_1547cadd_1 {\n  item {\n    __typename\n    ... on Product {\n      schema1\n      id\n    }\n  }\n}",
+              "hash": "db607122f3c8939b802e29646d984ad56d270e6ddd90f22074bba819ef27bd64",
+              "shortHash": "db607122"
+            },
+            "responseNames": [
+              "item"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_1547cadd_2",
+              "kind": "Query",
+              "document": "query Op_1547cadd_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    schema2\n  }\n}",
+              "hash": "a617338db67c01c063fe46a173deaea1ceef44ea8d9f8788d56fbd3d007ad361",
+              "shortHash": "a617338d"
+            },
+            "responseNames": [
+              "schema2"
+            ],
+            "source": "$.product",
+            "target": "$.item<Product>",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "Int!",
+                "path": "$.item<Product>",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

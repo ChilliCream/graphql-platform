@@ -1,0 +1,55 @@
+{
+  "data": {
+    "viewer": {
+      "schema1": "schema1",
+      "schema2": "schema2"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "1784a7d195d5ef9b52783ab9edc245e58e12b4b3c89e198e94c304a10b0e7c0f",
+        "operation": {
+          "kind": "Query",
+          "document": "query(\n  $skip: Boolean!\n) {\n  viewer {\n    ... @skip(if: $skip) {\n      schema1\n      schema2\n    }\n  }\n}",
+          "id": "88b508acf393a30001c4910716aed6be",
+          "hash": "88b508acf393a30001c4910716aed6be",
+          "shortHash": "88b508ac"
+        },
+        "searchSpace": 2,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_88b508ac_1",
+              "kind": "Query",
+              "document": "query Op_88b508ac_1(\n  $skip: Boolean!\n) {\n  viewer {\n    ... @skip(if: $skip) {\n      schema1\n    }\n  }\n}",
+              "hash": "0e07bc522d15de31e73ab0f263a40d180db30e575454325a547c093c8bac5cfe",
+              "shortHash": "0e07bc52"
+            },
+            "responseNames": [
+              "viewer"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_88b508ac_2",
+              "kind": "Query",
+              "document": "query Op_88b508ac_2 {\n  viewer {\n    ... @skip(if: $skip) {\n      schema2\n    }\n  }\n}",
+              "hash": "aae3d5ac9c8beb524a79537903f9c9d10b561b62c5dd78b2968b4cca88924703",
+              "shortHash": "aae3d5ac"
+            },
+            "responseNames": [
+              "viewer"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

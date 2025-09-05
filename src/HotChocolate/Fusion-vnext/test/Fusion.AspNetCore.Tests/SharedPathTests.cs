@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.Fusion;
 
 // TODO: Add tests with inlinefragments and abstract types from the root
+// TODO: SelectionSetPartitioner doesn't include inline fragments on unresolvable selections...
 public class SharedPathTests : FusionTestBase
 {
     [Fact]
@@ -36,6 +37,128 @@ public class SharedPathTests : FusionTestBase
                     schema1
                     schema2
                 }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Single_Shared_Root_Field_With_Inline_Fragment_Without_TypeCondition()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            query($skip: Boolean!) {
+                viewer {
+                    ... @skip(if: $skip) {
+                        schema1
+                        schema2
+                    }
+                }
+            }
+            """,
+            new Dictionary<string, object?> { ["skip"] = false },
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    // TODO: Needs some other type than product, do we handle all possible types?
+    public async Task Single_Abstract_Shared_Root_Field_With_Type_Refinement()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+                item {
+                    ... on Product {
+                        schema1
+                        schema2
+                    }
+                }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Single_Shared_Root_Field_With_Extra_Fields_On_Root()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+                viewer {
+                    schema1
+                    schema2
+                }
+                schema1
+                schema2
             }
             """,
             new Uri("http://localhost:5000/graphql"));
@@ -139,11 +262,11 @@ public class SharedPathTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "A",
-            b => b.AddQueryType<SourceSchema4.Query>());
+            b => b.AddQueryType<SourceSchema1.Query>());
 
         using var server2 = CreateSourceSchema(
             "B",
-            b => b.AddQueryType<SourceSchema5.Query>());
+            b => b.AddQueryType<SourceSchema2.Query>());
 
         // act
         using var gateway = await CreateCompositeSchemaAsync(
@@ -179,11 +302,11 @@ public class SharedPathTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "A",
-            b => b.AddQueryType<SourceSchema4.Query>());
+            b => b.AddQueryType<SourceSchema1.Query>());
 
         using var server2 = CreateSourceSchema(
             "B",
-            b => b.AddQueryType<SourceSchema5.Query>());
+            b => b.AddQueryType<SourceSchema2.Query>());
 
         // act
         using var gateway = await CreateCompositeSchemaAsync(
@@ -216,16 +339,58 @@ public class SharedPathTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Shared_Parent_Field_Below_Type_With_Lookup_With_Type_Refinement()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+                item {
+                    ... on Product {
+                        shared {
+                            schema1
+                            schema2
+                        }
+                    }
+                }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Hierarchy_Of_Shared_Parent_Fields_Below_Type_With_Lookup()
     {
         // arrange
         using var server1 = CreateSourceSchema(
             "A",
-            b => b.AddQueryType<SourceSchema4.Query>());
+            b => b.AddQueryType<SourceSchema1.Query>());
 
         using var server2 = CreateSourceSchema(
             "B",
-            b => b.AddQueryType<SourceSchema5.Query>());
+            b => b.AddQueryType<SourceSchema2.Query>());
 
         // act
         using var gateway = await CreateCompositeSchemaAsync(
@@ -258,16 +423,16 @@ public class SharedPathTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Hierarchy_Of_Shared_Parent_Fields_Below_Type_With_Lookup_Extra_Fields_On_Shared_Level()
+    public async Task Hierarchy_Of_Shared_Parent_Fields_Below_Type_With_Lookup_With_Extra_Fields_On_Shared_Level()
     {
         // arrange
         using var server1 = CreateSourceSchema(
             "A",
-            b => b.AddQueryType<SourceSchema4.Query>());
+            b => b.AddQueryType<SourceSchema1.Query>());
 
         using var server2 = CreateSourceSchema(
             "B",
-            b => b.AddQueryType<SourceSchema5.Query>());
+            b => b.AddQueryType<SourceSchema2.Query>());
 
         // act
         using var gateway = await CreateCompositeSchemaAsync(
@@ -307,11 +472,11 @@ public class SharedPathTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "A",
-            b => b.AddQueryType<SourceSchema4.Query>());
+            b => b.AddQueryType<SourceSchema1.Query>());
 
         using var server2 = CreateSourceSchema(
             "B",
-            b => b.AddQueryType<SourceSchema5.Query>());
+            b => b.AddQueryType<SourceSchema2.Query>());
 
         // act
         using var gateway = await CreateCompositeSchemaAsync(
@@ -352,6 +517,13 @@ public class SharedPathTests : FusionTestBase
         public class Query
         {
             public Viewer Viewer => new Viewer();
+
+            public string Schema1 => "schema1";
+
+            public IItem Item => new Product(1);
+
+            [Lookup]
+            public Product? GetProductById(int id) => new Product(id);
         }
 
         public class Viewer
@@ -364,6 +536,30 @@ public class SharedPathTests : FusionTestBase
         public class ViewerSettings
         {
             public string Schema1 => "schema1";
+        }
+
+        public record Product(int Id) : IItem
+        {
+            public string Schema1 => "schema1";
+
+            public SharedProduct? Shared => new SharedProduct();
+        }
+
+        public class SharedProduct
+        {
+            public string Schema1 => "schema1";
+
+            public SharedProduct2 ? Shared2 => new SharedProduct2();
+        }
+
+        public class SharedProduct2
+        {
+            public string Schema1 => "schema1";
+        }
+
+        public interface IItem
+        {
+            int Id { get; }
         }
     }
 
@@ -372,6 +568,13 @@ public class SharedPathTests : FusionTestBase
         public class Query
         {
             public Viewer Viewer => new Viewer();
+
+            public string Schema2 => "schema2";
+
+            public IItem Item => new Product(1);
+
+            [Lookup]
+            public Product? GetProduct(int id) => new Product(id);
         }
 
         public class Viewer
@@ -384,6 +587,30 @@ public class SharedPathTests : FusionTestBase
         public class ViewerSettings
         {
             public string Schema2 => "schema2";
+        }
+
+        public record Product(int Id) : IItem
+        {
+            public string Schema2 => "schema2";
+
+            public SharedProduct? Shared => new SharedProduct();
+        }
+
+        public class SharedProduct
+        {
+            public string Schema2 => "schema2";
+
+            public SharedProduct2 ? Shared2 => new SharedProduct2();
+        }
+
+        public class SharedProduct2
+        {
+            public string Schema2 => "schema2";
+        }
+
+        public interface IItem
+        {
+            int Id { get; }
         }
     }
 
@@ -397,62 +624,6 @@ public class SharedPathTests : FusionTestBase
         public class Viewer
         {
             public string Schema3 => "schema3";
-        }
-    }
-
-    public static class SourceSchema4
-    {
-        public class Query
-        {
-            [Lookup]
-            public Product? GetProductById(int id) => new Product(id);
-        }
-
-        public record Product(int Id)
-        {
-            public string Schema1 => "schema1";
-
-            public SharedProduct? Shared => new SharedProduct();
-        }
-
-        public class SharedProduct
-        {
-            public string Schema1 => "schema1";
-
-            public SharedProduct2 ? Shared2 => new SharedProduct2();
-        }
-
-        public class SharedProduct2
-        {
-            public string Schema1 => "schema1";
-        }
-    }
-
-    public static class SourceSchema5
-    {
-        public class Query
-        {
-            [Lookup]
-            public Product? GetProduct(int id) => new Product(id);
-        }
-
-        public record Product(int Id)
-        {
-            public string Schema2 => "schema2";
-
-            public SharedProduct? Shared => new SharedProduct();
-        }
-
-        public class SharedProduct
-        {
-            public string Schema2 => "schema2";
-
-            public SharedProduct2 ? Shared2 => new SharedProduct2();
-        }
-
-        public class SharedProduct2
-        {
-            public string Schema2 => "schema2";
         }
     }
 }
