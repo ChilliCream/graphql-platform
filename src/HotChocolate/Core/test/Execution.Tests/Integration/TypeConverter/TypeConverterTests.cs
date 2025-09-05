@@ -7,7 +7,7 @@ using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Integration.TypeConverter;
 
-public class TypeConverterTests
+public partial class TypeConverterTests
 {
     [Fact]
     public async Task VariablesAreCoercedToTypesOtherThanTheDefinedClrTypes()

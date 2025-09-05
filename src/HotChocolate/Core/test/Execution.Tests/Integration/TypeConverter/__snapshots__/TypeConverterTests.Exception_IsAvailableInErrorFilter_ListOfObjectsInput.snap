@@ -1,20 +1,22 @@
 {
   "errors": [
     {
-      "message": "Boom",
+      "message": "The value provided for `id` is not in a valid format.",
       "locations": [
         {
           "line": 1,
-          "column": 3
+          "column": 27
         }
       ],
       "path": [
-        "inputParameter"
+        "arg",
+        "items",
+        0,
+        "id"
       ],
       "extensions": {
-        "fieldName": "inputParameter",
-        "argumentName": "arg",
-        "requestedType": "HotChocolate.Execution.Integration.TypeConverter.TypeConverterExceptionPropagationTests+FailingId",
+        "code": "HC0001",
+        "fieldCoordinate": "ObjectWithIdInput.id",
         "exception": {
           "message": "Boom",
           "stackTrace": "Test"

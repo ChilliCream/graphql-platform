@@ -20,7 +20,18 @@ internal partial class MiddlewareContext
             throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
         }
 
-        return CoerceArgumentValue<T>(argument);
+        try
+        {
+            return CoerceArgumentValue<T>(argument);
+        }
+        catch (SerializationException ex)
+        {
+            var location = Selection.Arguments[argument.Name].ValueLiteral?.Location;
+            throw new SerializationException(
+                ErrorBuilder.FromError(ex.Errors[0]).AddLocation(location).Build(),
+                ex.Type,
+                ex.Errors[0].Path);
+        }
     }
 
     public Optional<T> ArgumentOptional<T>(string name)

@@ -993,4 +993,7 @@ Type: `{0}`</value>
   <data name="TypeExtensions_KindIsNotSupported" xml:space="preserve">
     <value>The specified type kind is not supported.</value>
   </data>
+  <data name="ThrowHelper_InvalidTypeConversion" xml:space="preserve">
+    <value>The value provided for `{0}` is not in a valid format.</value>
+  </data>
 </root>
