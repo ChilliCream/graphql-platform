@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion.Types.Metadata;
 /// <summary>
 /// Represents a lookup field in a source schema.
 /// </summary>
-[DebuggerDisplay("{FieldName}:{FieldType} ({SchemaName})")]
+[DebuggerDisplay("{FieldName}:{FieldType.Name} ({SchemaName})")]
 public sealed class Lookup : INeedsCompletion
 {
     private readonly string _declaringTypeName;

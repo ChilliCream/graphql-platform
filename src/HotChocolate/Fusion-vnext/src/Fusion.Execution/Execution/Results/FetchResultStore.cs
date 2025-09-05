@@ -122,7 +122,7 @@ internal sealed class FetchResultStore : IDisposable
         }
     }
 
-    public void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
+    public bool AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(result);
@@ -145,8 +145,15 @@ internal sealed class FetchResultStore : IDisposable
                     continue;
                 }
 
+                if (_root.IsInvalidated)
+                {
+                    return false;
+                }
+
                 result.MoveFieldTo(selection.ResponseName, _root);
             }
+
+            return true;
         }
         finally
         {
