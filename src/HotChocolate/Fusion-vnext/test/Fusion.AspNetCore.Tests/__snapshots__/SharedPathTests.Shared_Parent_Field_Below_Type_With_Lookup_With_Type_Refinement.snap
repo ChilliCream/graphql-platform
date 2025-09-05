@@ -10,15 +10,15 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "cbb2b5d59717411a4bad4d4ba17b9b1197e38905e0454860dd93ee2451895c32",
+        "id": "1ffe88d0d9655ccae2e202e3b82db57b1d7311b5c7535149162b0ca2bd098ac1",
         "operation": {
           "kind": "Query",
-          "document": "{\n  item {\n    __typename @fusion__requirement\n    ... on Product {\n      shared {\n        schema1\n        schema2\n      }\n    }\n  }\n}",
+          "document": "{\n  item {\n    __typename @fusion__requirement\n    ... on Product {\n      shared {\n        schema1\n        schema2\n      }\n      id @fusion__requirement\n    }\n  }\n}",
           "id": "d5c7857fe805c308e161673a72b15cc8",
           "hash": "d5c7857fe805c308e161673a72b15cc8",
           "shortHash": "d5c7857f"
         },
-        "searchSpace": 2,
+        "searchSpace": 1,
         "nodes": [
           {
             "id": 1,
@@ -27,9 +27,9 @@
             "operation": {
               "name": "Op_d5c7857f_1",
               "kind": "Query",
-              "document": "query Op_d5c7857f_1 {\n  item {\n    __typename\n    ... on Product {\n      shared {\n        schema1\n      }\n    }\n  }\n}",
-              "hash": "5e26d9ac80c7171b86692208d8063257d1165764f4f2b582d57e5ba6ed7d3dd5",
-              "shortHash": "5e26d9ac"
+              "document": "query Op_d5c7857f_1 {\n  item {\n    __typename\n    ... on Product {\n      shared {\n        schema1\n      }\n      id\n    }\n  }\n}",
+              "hash": "869d4fd7b49f7b5f6bbe9d1232077949413e70559e4c8cbcfbc88bc94f5afd4b",
+              "shortHash": "869d4fd7"
             },
             "responseNames": [
               "item"
@@ -42,12 +42,26 @@
             "operation": {
               "name": "Op_d5c7857f_2",
               "kind": "Query",
-              "document": "query Op_d5c7857f_2 {\n  item {\n    __typename\n    ... on Product {\n      shared {\n        schema2\n      }\n    }\n  }\n}",
-              "hash": "5352273121cf7aef979b64e29bead359aac70b4dca2bf309bc72771ceb42d154",
-              "shortHash": "53522731"
+              "document": "query Op_d5c7857f_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    shared {\n      schema2\n    }\n  }\n}",
+              "hash": "911916381ab542ab0a6e79a568bcb8eb0c9893db94ca17a2a7e77d1c080e2baa",
+              "shortHash": "91191638"
             },
             "responseNames": [
-              "item"
+              "shared"
+            ],
+            "source": "$.product",
+            "target": "$.item<Product>",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "Int!",
+                "path": "$.item<Product>",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
             ]
           }
         ]

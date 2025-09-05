@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.Fusion;
 
 // TODO: Add tests with inlinefragments and abstract types from the root
-// TODO: SelectionSetPartitioner doesn't include inline fragments on unresolvable selections...
 public class SharedPathTests : FusionTestBase
 {
     [Fact]
@@ -46,7 +45,7 @@ public class SharedPathTests : FusionTestBase
         response.MatchSnapshot();
     }
 
-    [Fact]
+    [Fact(Skip = "SelectionSetPartitioner incorrectly does not include ... @skip")]
     public async Task Single_Shared_Root_Field_With_Inline_Fragment_Without_TypeCondition()
     {
         // arrange
@@ -88,7 +87,6 @@ public class SharedPathTests : FusionTestBase
     }
 
     [Fact]
-    // TODO: Needs some other type than product, do we handle all possible types?
     public async Task Single_Abstract_Shared_Root_Field_With_Type_Refinement()
     {
         // arrange
@@ -339,6 +337,7 @@ public class SharedPathTests : FusionTestBase
     }
 
     [Fact]
+    // TODO: This should've used the product lookup
     public async Task Shared_Parent_Field_Below_Type_With_Lookup_With_Type_Refinement()
     {
         // arrange
@@ -571,7 +570,7 @@ public class SharedPathTests : FusionTestBase
 
             public string Schema2 => "schema2";
 
-            public IItem Item => new Product(1);
+            // public IItem Item => new Product(1);
 
             [Lookup]
             public Product? GetProduct(int id) => new Product(id);

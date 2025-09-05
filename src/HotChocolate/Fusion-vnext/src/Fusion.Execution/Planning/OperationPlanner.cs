@@ -1652,6 +1652,7 @@ file static class Extensions
                     {
                         SchemaName = toSchema,
                         SelectionSetIndex = index,
+                        // TODO: Not sure if this is the best approach
                         ResolutionCost = resolutionCost + cost,
                         Backlog = backlog.Push(workItem2)
                     });
@@ -1674,88 +1675,94 @@ file static class Extensions
             yield break;
         }
 
-        var result = TraverseSelectionPath(
+        var pathItems = ReverseSelectionPath(
             planNodeTemplate.InternalOperationDefinition,
             selectionSet.Path,
             compositeSchema);
 
-        if (result is null)
+        if (pathItems is null)
         {
             yield break;
         }
 
         var selectionSetIndexBuilder = planNodeTemplate.SelectionSetIndex.ToBuilder();
-        var finalSelectionSet = selectionSet.Node;
         var segments = selectionSet.Path.Segments;
+        var finalSelectionSet = selectionSet.Node;
+        var fieldsMovedUp = 0;
 
-        while (result.Selections.TryPop(out var selectionNode))
+        while (pathItems.TryPop(out var pathItem))
         {
-            if (selectionNode is FieldNode fieldNode)
+            if (pathItem is FieldPathItem fieldPathItem)
             {
-                var field = result.Fields.Pop();
-                var fieldType = field.Type.NamedType();
-
-                if (fieldType is FusionComplexTypeDefinition complexType
-                    && complexType.Sources.ContainsSchema(schemaName))
-                {
-                    foreach (var lookup in compositeSchema.GetPossibleLookups(complexType, schemaName))
-                    {
-                        var newSelectionSet = new SelectionSet(
-                            selectionSetIndexBuilder.GetId(finalSelectionSet),
-                            finalSelectionSet,
-                            complexType,
-                            SelectionPath.From(segments));
-
-                        // TODO: This also includes fragments, so not good
-                        var levelsMovedUp = selectionSet.Path.Segments.Length - segments.Length;
-
-                        var newWorkItem = workItem with { SelectionSet = newSelectionSet, Lookup = lookup };
-
-                        yield return (newWorkItem, levelsMovedUp, selectionSetIndexBuilder);
-                    }
-                }
-
-                if (!field.Sources.ContainsSchema(schemaName))
+                if (!fieldPathItem.Field.Sources.ContainsSchema(schemaName))
                 {
                     yield break;
                 }
 
-                segments = segments.RemoveAt(segments.Length - 1);
-
                 finalSelectionSet = new SelectionSetNode(
-                    [fieldNode.WithSelectionSet(finalSelectionSet)]);
-            }
-            else if (selectionNode is InlineFragmentNode inlineFragmentNode)
-            {
-                if (inlineFragmentNode.TypeCondition?.Name.Value is { } typeConditionName)
-                {
-                    if (!compositeSchema.Types.TryGetType(typeConditionName, out var typeCondition))
-                    {
-                        yield break;
-                    }
+                    [fieldPathItem.Node.WithSelectionSet(finalSelectionSet)]);
 
+                fieldsMovedUp++;
+            }
+            else if (pathItem is InlineFragmentPathItem inlineFragmentPathItem)
+            {
+                if (inlineFragmentPathItem.TypeCondition is { } typeCondition)
+                {
                     if (typeCondition is FusionComplexTypeDefinition complexTypeCondition
                         && !complexTypeCondition.Sources.ContainsSchema(schemaName))
                     {
                         yield break;
                     }
 
-                    segments = segments.RemoveAt(segments.Length - 1);
+                    if (typeCondition is FusionUnionTypeDefinition unionTypeCondition
+                        && !unionTypeCondition.Sources.ContainsSchema(schemaName))
+                    {
+                        yield break;
+                    }
                 }
 
                 finalSelectionSet = new SelectionSetNode(
-                    [inlineFragmentNode.WithSelectionSet(finalSelectionSet)]);
+                    [inlineFragmentPathItem.Node.WithSelectionSet(finalSelectionSet)]);
             }
 
-            if (result.Selections.TryPeek(out var parentSelection))
+            segments = segments.RemoveAt(segments.Length - 1);
+
+            if (pathItems.TryPeek(out var parentPathItem))
             {
-                var parentSelectionSet = parentSelection is FieldNode parentField
-                    ? parentField.SelectionSet!
-                    : parentSelection is InlineFragmentNode parentFragment
-                        ? parentFragment.SelectionSet
-                        : throw new InvalidOperationException("Expected parent selection to either be field or inline fragment");
+                var parentSelectionSet = parentPathItem switch
+                {
+                    FieldPathItem f => f.Node.SelectionSet!,
+                    InlineFragmentPathItem f => f.Node.SelectionSet,
+                    _ => throw new InvalidOperationException(
+                        "Expected parent selection to either be field or inline fragment")
+                };
 
                 selectionSetIndexBuilder.Register(parentSelectionSet, finalSelectionSet);
+
+                var parentType = parentPathItem switch
+                {
+                    FieldPathItem f => f.Field.Type.NamedType<IOutputTypeDefinition>(),
+                    InlineFragmentPathItem f => f.TypeCondition,
+                    _ => null
+                };
+
+                if (parentType is not null
+                    && ((parentType is FusionComplexTypeDefinition complexType && complexType.Sources.ContainsSchema(schemaName))
+                        || (parentType is FusionUnionTypeDefinition unionType && unionType.Sources.ContainsSchema(schemaName))))
+                {
+                    foreach (var lookup in compositeSchema.GetPossibleLookups(parentType, schemaName))
+                    {
+                        var newSelectionSet = new SelectionSet(
+                            selectionSetIndexBuilder.GetId(finalSelectionSet),
+                            finalSelectionSet,
+                            parentType,
+                            SelectionPath.From(segments));
+
+                        var newWorkItem = workItem with { SelectionSet = newSelectionSet, Lookup = lookup };
+
+                        yield return (newWorkItem, fieldsMovedUp, selectionSetIndexBuilder);
+                    }
+                }
             }
             else
             {
@@ -1780,22 +1787,18 @@ file static class Extensions
 
         var newRootWorkItem = workItem with { Kind = OperationWorkItemKind.Root, SelectionSet = newRootSelectionSet };
 
-        // TODO: This includes fragment segments and is therefore wrong
-        var levelsTillRoot = selectionSet.Path.Segments.Length;
-
-        yield return (newRootWorkItem, levelsTillRoot, selectionSetIndexBuilder);
+        yield return (newRootWorkItem, fieldsMovedUp, selectionSetIndexBuilder);
     }
 
-    private static TraverseSelectionPathResult? TraverseSelectionPath(
+    private static Stack<PathItem>? ReverseSelectionPath(
         OperationDefinitionNode operationDefinitionNode,
         SelectionPath path,
         FusionSchemaDefinition compositeSchema)
     {
-        FusionComplexTypeDefinition currentType = compositeSchema.QueryType;
+        IOutputTypeDefinition currentType = compositeSchema.QueryType;
         var currentSelectionSetNode = operationDefinitionNode.SelectionSet;
 
-        var selections = new Stack<ISelectionNode>();
-        var fields = new Stack<FusionOutputFieldDefinition>();
+        var items = new Stack<PathItem>();
 
         foreach (var segment in path.Segments)
         {
@@ -1808,23 +1811,21 @@ file static class Extensions
                         .OfType<FieldNode>()
                         .FirstOrDefault(f => f.Name.Value == fieldAliasOrName || f.Alias?.Value == fieldAliasOrName);
 
-                    if (fieldSelection is null
-                        || !currentType.Fields.TryGetField(fieldSelection.Name.Value, out var field))
+                    if (fieldSelection is null)
                     {
                         return null;
                     }
 
-                    // TODO: What to do with unions and lists?
-                    if (field.Type.NamedType() is not FusionComplexTypeDefinition fieldType)
+                    if (currentType is not FusionComplexTypeDefinition complexType
+                        || !complexType.Fields.TryGetField(fieldSelection.Name.Value, out var field))
                     {
                         return null;
                     }
 
-                    currentType = fieldType;
+                    currentType = field.Type.NamedType<IOutputTypeDefinition>();
                     currentSelectionSetNode = fieldSelection.SelectionSet!;
 
-                    selections.Push(fieldSelection);
-                    fields.Push(field);
+                    items.Push(new FieldPathItem(fieldSelection, field));
 
                     break;
 
@@ -1838,11 +1839,12 @@ file static class Extensions
                         return null;
                     }
 
+                    IOutputTypeDefinition? typeCondition = null;
                     if (inlineFragmentSelection.TypeCondition?.Name.Value is { } typeConditionName)
                     {
-                        if (!compositeSchema.Types.TryGetType<FusionComplexTypeDefinition>(
-                            segment.Name,
-                            out var typeCondition))
+                        if (!compositeSchema.Types.TryGetType<IOutputTypeDefinition>(
+                            typeConditionName,
+                            out typeCondition))
                         {
                             return null;
                         }
@@ -1852,7 +1854,7 @@ file static class Extensions
 
                     currentSelectionSetNode = inlineFragmentSelection.SelectionSet;
 
-                    selections.Push(inlineFragmentSelection);
+                    items.Push(new InlineFragmentPathItem(inlineFragmentSelection, typeCondition));
 
                     break;
 
@@ -1861,11 +1863,14 @@ file static class Extensions
             }
         }
 
-        return new TraverseSelectionPathResult(selections, fields);
+        return items;
     }
 
-    // TODO: Rename
-    private record TraverseSelectionPathResult(Stack<ISelectionNode> Selections, Stack<FusionOutputFieldDefinition> Fields);
+    private interface PathItem;
+    private record FieldPathItem(FieldNode Node, FusionOutputFieldDefinition Field) : PathItem;
+    private record InlineFragmentPathItem(
+        InlineFragmentNode Node,
+        IOutputTypeDefinition? TypeCondition) : PathItem;
 
     private static void EnqueueNodeLookupPlanNodes(
         this PriorityQueue<PlanNode, double> possiblePlans,
