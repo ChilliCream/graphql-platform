@@ -368,8 +368,8 @@ internal sealed class ValueCompletion
         var selectionSet = operation.GetSelectionSet(selection, objectType);
 
         ObjectResult objectResult;
-        // In the case of shared root paths an object result might have already been initialized
-        // by another operation node, so we reuse that result.
+        // In the case of shared paths, an object result might have already been initialized
+        // by another operation node, so we reuse it.
         if (parent is ObjectFieldResult { Value: { } existingObjectResult })
         {
             objectResult = existingObjectResult;

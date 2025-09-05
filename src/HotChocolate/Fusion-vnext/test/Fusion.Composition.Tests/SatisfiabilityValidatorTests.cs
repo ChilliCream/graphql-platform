@@ -2304,7 +2304,6 @@ public sealed class SatisfiabilityValidatorTests
             """);
     }
 
-    // TODO: Add more tests
     [Fact]
     public void Type_Without_Lookup_But_Parent_Has_Lookup()
     {
