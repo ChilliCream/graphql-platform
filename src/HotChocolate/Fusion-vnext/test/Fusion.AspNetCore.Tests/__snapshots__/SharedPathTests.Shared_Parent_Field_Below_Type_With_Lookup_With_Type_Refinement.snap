@@ -1,6 +1,6 @@
 {
   "data": {
-    "item": {
+    "unsharedInterface": {
       "shared": {
         "schema1": "schema1",
         "schema2": "schema2"
@@ -10,13 +10,13 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "1ffe88d0d9655ccae2e202e3b82db57b1d7311b5c7535149162b0ca2bd098ac1",
+        "id": "8d6ae9f14f1d676f0802d9fda74faa46564248ca6fe1076a59c383af91cbb1b1",
         "operation": {
           "kind": "Query",
-          "document": "{\n  item {\n    __typename @fusion__requirement\n    ... on Product {\n      shared {\n        schema1\n        schema2\n      }\n      id @fusion__requirement\n    }\n  }\n}",
-          "id": "d5c7857fe805c308e161673a72b15cc8",
-          "hash": "d5c7857fe805c308e161673a72b15cc8",
-          "shortHash": "d5c7857f"
+          "document": "{\n  unsharedInterface {\n    __typename @fusion__requirement\n    ... on Product {\n      shared {\n        schema1\n        schema2\n      }\n      id @fusion__requirement\n    }\n  }\n}",
+          "id": "c8e1a8bf80f58ee07e449b1d627a32e5",
+          "hash": "c8e1a8bf80f58ee07e449b1d627a32e5",
+          "shortHash": "c8e1a8bf"
         },
         "searchSpace": 1,
         "nodes": [
@@ -25,14 +25,14 @@
             "type": "Operation",
             "schema": "A",
             "operation": {
-              "name": "Op_d5c7857f_1",
+              "name": "Op_c8e1a8bf_1",
               "kind": "Query",
-              "document": "query Op_d5c7857f_1 {\n  item {\n    __typename\n    ... on Product {\n      shared {\n        schema1\n      }\n      id\n    }\n  }\n}",
-              "hash": "869d4fd7b49f7b5f6bbe9d1232077949413e70559e4c8cbcfbc88bc94f5afd4b",
-              "shortHash": "869d4fd7"
+              "document": "query Op_c8e1a8bf_1 {\n  unsharedInterface {\n    __typename\n    ... on Product {\n      shared {\n        schema1\n      }\n      id\n    }\n  }\n}",
+              "hash": "c5dab4bee4422d40e2331ad3d7802499e74ae6a11f42c0844efc70da9bd8cc07",
+              "shortHash": "c5dab4be"
             },
             "responseNames": [
-              "item"
+              "unsharedInterface"
             ]
           },
           {
@@ -40,22 +40,22 @@
             "type": "Operation",
             "schema": "B",
             "operation": {
-              "name": "Op_d5c7857f_2",
+              "name": "Op_c8e1a8bf_2",
               "kind": "Query",
-              "document": "query Op_d5c7857f_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    shared {\n      schema2\n    }\n  }\n}",
-              "hash": "911916381ab542ab0a6e79a568bcb8eb0c9893db94ca17a2a7e77d1c080e2baa",
-              "shortHash": "91191638"
+              "document": "query Op_c8e1a8bf_2(\n  $__fusion_1_id: Int!\n) {\n  product(id: $__fusion_1_id) {\n    shared {\n      schema2\n    }\n  }\n}",
+              "hash": "331e5166957ba47a763aaf3536dabe7511651a5970e7d23697c848804b3d31e0",
+              "shortHash": "331e5166"
             },
             "responseNames": [
               "shared"
             ],
             "source": "$.product",
-            "target": "$.item<Product>",
+            "target": "$.unsharedInterface<Product>",
             "requirements": [
               {
                 "name": "__fusion_1_id",
                 "type": "Int!",
-                "path": "$.item<Product>",
+                "path": "$.unsharedInterface<Product>",
                 "selectionMap": "id"
               }
             ],

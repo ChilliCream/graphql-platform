@@ -1,0 +1,55 @@
+{
+  "data": {
+    "union": {
+      "schema1": "schema1",
+      "schema2": "schema2"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "c9eb614141d756f8723f0fd6eab495cf5fb449bec036b237651d9db4e8e5f4e0",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  union {\n    __typename @fusion__requirement\n    ... on Review {\n      schema1\n      schema2\n    }\n  }\n}",
+          "id": "55b9106f0dc9ff30e58f924088ee5f0d",
+          "hash": "55b9106f0dc9ff30e58f924088ee5f0d",
+          "shortHash": "55b9106f"
+        },
+        "searchSpace": 2,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_55b9106f_1",
+              "kind": "Query",
+              "document": "query Op_55b9106f_1 {\n  union {\n    __typename\n    ... on Review {\n      schema1\n    }\n  }\n}",
+              "hash": "7804ab0c455d49011dcd01e4661332dab103f63ef73f38e2b268556e8a6a9e09",
+              "shortHash": "7804ab0c"
+            },
+            "responseNames": [
+              "union"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_55b9106f_2",
+              "kind": "Query",
+              "document": "query Op_55b9106f_2 {\n  union {\n    __typename\n    ... on Review {\n      schema2\n    }\n  }\n}",
+              "hash": "b216e3f14071f3ecb9ef7cf5e0c3a515ac8485a725ec4bcd2eadd97e2b1499e5",
+              "shortHash": "b216e3f1"
+            },
+            "responseNames": [
+              "union"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

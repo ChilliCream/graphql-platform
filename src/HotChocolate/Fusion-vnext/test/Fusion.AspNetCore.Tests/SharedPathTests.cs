@@ -1,10 +1,10 @@
 using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 using HotChocolate.Types.Composite;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
-// TODO: Add tests with inlinefragments and abstract types from the root
 public class SharedPathTests : FusionTestBase
 {
     [Fact]
@@ -87,7 +87,7 @@ public class SharedPathTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Single_Abstract_Shared_Root_Field_With_Type_Refinement()
+    public async Task Single_Shared_Interface_Root_Field_With_Type_Refinement()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -111,8 +111,48 @@ public class SharedPathTests : FusionTestBase
         using var result = await client.PostAsync(
             """
             {
-                item {
-                    ... on Product {
+                interface {
+                    ... on Review {
+                        schema1
+                        schema2
+                    }
+                }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var response = await result.ReadAsResultAsync();
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Single_Shared_Union_Root_Field_With_Type_Refinement()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema2.Query>());
+
+        // act
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // assert
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        using var result = await client.PostAsync(
+            """
+            {
+                union {
+                    ... on Review {
                         schema1
                         schema2
                     }
@@ -362,7 +402,7 @@ public class SharedPathTests : FusionTestBase
         using var result = await client.PostAsync(
             """
             {
-                item {
+                unsharedInterface {
                     ... on Product {
                         shared {
                             schema1
@@ -519,7 +559,13 @@ public class SharedPathTests : FusionTestBase
 
             public string Schema1 => "schema1";
 
-            public IItem Item => new Product(1);
+            public IInterface Interface => new Review(1);
+
+            public IInterface UnsharedInterface => new Product(2);
+
+            public IUnion Union => new Review(2);
+
+            public Review TopReview => new Review(3);
 
             [Lookup]
             public Product? GetProductById(int id) => new Product(id);
@@ -537,11 +583,16 @@ public class SharedPathTests : FusionTestBase
             public string Schema1 => "schema1";
         }
 
-        public record Product(int Id) : IItem
+        public record Product(int Id) : IInterface, IUnion
         {
             public string Schema1 => "schema1";
 
             public SharedProduct? Shared => new SharedProduct();
+        }
+
+        public record Review(int Id) : IInterface, IUnion
+        {
+            public string Schema1 => "schema1";
         }
 
         public class SharedProduct
@@ -556,10 +607,13 @@ public class SharedPathTests : FusionTestBase
             public string Schema1 => "schema1";
         }
 
-        public interface IItem
+        public interface IInterface
         {
             int Id { get; }
         }
+
+        [UnionType]
+        public interface IUnion;
     }
 
     public static class SourceSchema2
@@ -570,7 +624,11 @@ public class SharedPathTests : FusionTestBase
 
             public string Schema2 => "schema2";
 
-            // public IItem Item => new Product(1);
+            public IInterface Interface => new Review(1);
+
+            public IUnion Union => new Review(2);
+
+            public Review TopReview => new Review(3);
 
             [Lookup]
             public Product? GetProduct(int id) => new Product(id);
@@ -588,11 +646,16 @@ public class SharedPathTests : FusionTestBase
             public string Schema2 => "schema2";
         }
 
-        public record Product(int Id) : IItem
+        public record Product(int Id) : IInterface, IUnion
         {
             public string Schema2 => "schema2";
 
             public SharedProduct? Shared => new SharedProduct();
+        }
+
+        public record Review(int Id) : IInterface, IUnion
+        {
+            public string Schema2 => "schema2";
         }
 
         public class SharedProduct
@@ -607,10 +670,13 @@ public class SharedPathTests : FusionTestBase
             public string Schema2 => "schema2";
         }
 
-        public interface IItem
+        public interface IInterface
         {
             int Id { get; }
         }
+
+        [UnionType]
+        public interface IUnion;
     }
 
     public static class SourceSchema3
