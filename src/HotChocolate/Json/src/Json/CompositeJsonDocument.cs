@@ -263,10 +263,6 @@ public class CompositeJsonDocument
     }
 }
 
-public struct CompositeJsonElement
-{
-}
-
 internal static class MetaDbMemoryPool
 {
     public static byte[] Rent() => new byte[ChunkSize];
