@@ -199,9 +199,21 @@ internal sealed class ValueCompletion
 
         if (type.Kind is TypeKind.NonNull)
         {
-            if (data.IsNullOrUndefined() && _errorHandling is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+            if (data.IsNullOrUndefined())
             {
-                return false;
+                var nonNullViolationError = ErrorBuilder.New()
+                    .SetMessage("Cannot return null for non-nullable field.")
+                    .SetCode(ErrorCodes.Execution.NonNullViolation)
+                    .SetPath(parent.Path)
+                    .AddLocation(selection.SyntaxNodes[0].Node)
+                    .Build();
+
+                _errors.Add(nonNullViolationError);
+
+                if (_errorHandling is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                {
+                    return false;
+                }
             }
 
             type = type.InnerType();

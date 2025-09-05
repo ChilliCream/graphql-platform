@@ -279,6 +279,10 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             resultBuilder.RegisterForCleanup(writer);
         }
 
+        Debug.Assert(
+            !_resultStore.Data.IsInvalidated || _resultStore.Errors.Count > 0,
+            "Expected to either valid data or errors");
+
         var result = resultBuilder
             .AddErrors(_resultStore.Errors)
             .SetData(_resultStore.Data.IsInvalidated ? null : _resultStore.Data)
