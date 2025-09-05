@@ -36,7 +36,7 @@
 ```sql
 -- @__Count_1='101'
 -- @__p_0='3'
-SELECT @__Count_1 AS "TotalCount", p."Name", p."BrandId", p."Id"
+SELECT @__Count_1 AS "TotalCount", p."BrandId", p."Name", p."Id"
 FROM "Products" AS p
 ORDER BY p."Name" DESC, p."Id"
 LIMIT @__p_0
