@@ -1,4 +1,4 @@
-﻿{
+{
   "errors": [
     {
       "message": "The value provided for `arg` is not in a valid format.",
@@ -22,5 +22,7 @@
       }
     }
   ],
-  "data": null
+  "data": {
+    "nonNullScalarInput": null
+  }
 }

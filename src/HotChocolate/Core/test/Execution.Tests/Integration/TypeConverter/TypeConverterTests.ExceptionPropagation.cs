@@ -236,7 +236,7 @@ public partial class TypeConverterTests
         // ReSharper disable once MemberHidesStaticFromOuterClass
         public string? ListOfObjectsInput(ListOfObjectsInput arg) => null;
         public string? NonNullScalarInput([GraphQLNonNullType] BrokenType arg) => null;
-        public string? Echo(string arg) => arg;
+        public string? Echo(string arg) => null;
     }
 
     public class SomeQueryConventionFriendlyQueryType

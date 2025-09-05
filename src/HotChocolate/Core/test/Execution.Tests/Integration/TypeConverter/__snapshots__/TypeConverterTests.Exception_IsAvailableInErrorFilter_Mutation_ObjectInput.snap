@@ -22,5 +22,7 @@
       }
     }
   ],
-  "data": null
+  "data": {
+    "objectInput": null
+  }
 }

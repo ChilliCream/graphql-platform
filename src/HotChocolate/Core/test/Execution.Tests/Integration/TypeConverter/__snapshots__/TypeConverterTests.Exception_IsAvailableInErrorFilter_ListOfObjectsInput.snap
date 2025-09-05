@@ -24,5 +24,7 @@
       }
     }
   ],
-  "data": null
+  "data": {
+    "listOfObjectsInput": null
+  }
 }
