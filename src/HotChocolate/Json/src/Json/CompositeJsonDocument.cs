@@ -2,30 +2,36 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using static HotChocolate.Text.Json.MetaDbConstants;
 
 namespace HotChocolate.Text.Json;
 
 public class CompositeJsonDocument
 {
-    internal struct CompositeMetaDb : IDisposable
-    {
-        // 6552 rows × 20 bytes
-        private const int ChunkSize = 131040;
-        private const int RowsPerChunk = 6552;
+    public CompositeJsonElement RootElement { get; }
 
-        internal int Length { get; private set; }
+    internal struct MetaDb : IDisposable
+    {
         private byte[][] _chunks;
         private int _currentChunk;
         private int _currentPosition;
+        private bool _disposed;
 
-        internal static CompositeMetaDb CreateForEstimatedRows(int estimatedRows)
+        internal int Length { get; private set; }
+
+        internal static MetaDb CreateForEstimatedRows(int estimatedRows)
         {
-            var chunksNeeded = estimatedRows / RowsPerChunk + 1;
+            var chunksNeeded = Math.Max(4, (estimatedRows / RowsPerChunk) + 1);
             var chunks = new byte[][chunksNeeded];
 
-            chunks[0] = new byte[ChunkSize];
+            chunks[0] = MetaDbMemoryPool.Rent();
 
-            return new CompositeMetaDb
+            for (int i = 1; i < chunks.Length; i++)
+            {
+                chunks[i] = [];
+            }
+
+            return new MetaDb
             {
                 _chunks = chunks,
                 _currentChunk = 0,
@@ -54,7 +60,10 @@ public class CompositeJsonDocument
                     Array.Resize(ref _chunks, _chunks.Length * 2);
                 }
 
-                _chunks[_currentChunk] ??= new byte[ChunkSize];
+                if (_chunks[_currentChunk].Length == 0)
+                {
+                    _chunks[_currentChunk] = MetaDbMemoryPool.Rent();
+                }
             }
 
             var row = new DbRow(
@@ -72,36 +81,47 @@ public class CompositeJsonDocument
             Length += DbRow.Size;
         }
 
-        internal DbRow Get(int globalIndex)
+        internal DbRow Get(int index)
         {
-            int chunkIndex = (globalIndex / DbRow.Size) / RowsPerChunk;
-            int localRowIndex = (globalIndex / DbRow.Size) % RowsPerChunk;
-            int byteOffset = localRowIndex * DbRow.Size;
+            var chunkIndex = index / DbRow.Size / RowsPerChunk;
+            var localRowIndex = index / DbRow.Size % RowsPerChunk;
+            var byteOffset = localRowIndex * DbRow.Size;
 
             return MemoryMarshal.Read<DbRow>(_chunks[chunkIndex].AsSpan(byteOffset));
         }
 
-        internal void SetNumberOfRows(int globalIndex, int numberOfRows)
+        internal void SetNumberOfRows(int index, int numberOfRows)
         {
-            int chunkIndex = (globalIndex / DbRow.Size) / RowsPerChunk;
-            int localRowIndex = (globalIndex / DbRow.Size) % RowsPerChunk;
-            int byteOffset = localRowIndex * DbRow.Size + 8; // NumberOfRows offset
+            var chunkIndex = index / DbRow.Size / RowsPerChunk;
+            var rowIndex = index / DbRow.Size % RowsPerChunk;
+            var offset = (rowIndex * DbRow.Size) + 8;
 
             var chunk = _chunks[chunkIndex];
-            Span<byte> dataPos = chunk.AsSpan(byteOffset);
-            int current = MemoryMarshal.Read<int>(dataPos);
+            var dataPos = chunk.AsSpan(offset);
+            var current = MemoryMarshal.Read<int>(dataPos);
 
             // Persist the most significant nybble (JsonTokenType)
-            int value = (current & unchecked((int)0xF0000000)) | numberOfRows;
-            MemoryMarshal.Write(dataPos, ref value);
+            var value = (current & unchecked((int)0xF0000000)) | numberOfRows;
+            MemoryMarshal.Write(dataPos, in value);
         }
 
         public void Dispose()
         {
-            // In your case, chunks are just regular arrays, not pooled
-            // So disposal is just clearing references
-            _chunks = null!;
-            Length = 0;
+            if (!_disposed)
+            {
+                foreach (var chunk in _chunks)
+                {
+                    if (chunk.Length == 0)
+                    {
+                        break;
+                    }
+
+                    MetaDbMemoryPool.Return(chunk);
+                }
+
+                _chunks = [];
+                _disposed = true;
+            }
         }
     }
     [StructLayout(LayoutKind.Sequential)]
@@ -241,4 +261,24 @@ public class CompositeJsonDocument
         Reserved3 = 64,             // 0x40
         Reserved4 = 128             // 0x80
     }
+}
+
+public struct CompositeJsonElement
+{
+}
+
+internal static class MetaDbMemoryPool
+{
+    public static byte[] Rent() => new byte[ChunkSize];
+
+    public static void Return(byte[] chunk)
+    {
+    }
+}
+
+internal static class MetaDbConstants
+{
+    // 6552 rows × 20 bytes
+    public const int ChunkSize = 131040;
+    public const int RowsPerChunk = 6552;
 }
