@@ -56,6 +56,41 @@ public partial class TypeConverterTests
         result.MatchSnapshot(postFix: testCase.DisplayName);
     }
 
+    [Theory]
+    [MemberData(nameof(TestCases))]
+    public async Task Exception_IsAvailableInErrorFilter_Mutation(TestCase testCase)
+    {
+        // arrange
+        Exception? caughtException = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddMutationType<SomeQuery>()
+            .AddDirectiveType<BoomDirectiveType>()
+            .AddTypeConverter<string, BrokenType>(_ => throw new CustomIdSerializationException("Boom"))
+            .BindRuntimeType<BrokenType, StringType>()
+            .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
+            .ModifyOptions(x => x.StrictValidation = false)
+            .AddErrorFilter(x =>
+            {
+                caughtException = x.Exception;
+                return x;
+            })
+            .BuildRequestExecutorAsync();
+
+        // act
+        var variableValues =
+            testCase.DisplayName == "VariableInput"
+                ? new Dictionary<string, object?> { ["v"] = "foo" }
+                : [];
+
+        var mutation = $"mutation{testCase.QueryString.TrimStart("query")}";
+        var result = await executor.ExecuteAsync(mutation, variableValues: variableValues);
+
+        // assert
+        Assert.IsType<CustomIdSerializationException>(caughtException);
+        result.MatchSnapshot(postFix: testCase.DisplayName);
+    }
+
     public record BrokenType(int Value)
     {
         public static BrokenType Parse(string id) => throw new CustomIdSerializationException("Boom");
