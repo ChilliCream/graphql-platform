@@ -10,4 +10,13 @@
     <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="CompositeResultDocument.DbRow.cs">
+      <DependentUpon>CompositeJsonDocument.cs</DependentUpon>
+    </Compile>
+    <Compile Update="CompositeResultDocument.MetaDb.cs">
+      <DependentUpon>CompositeJsonDocument.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>

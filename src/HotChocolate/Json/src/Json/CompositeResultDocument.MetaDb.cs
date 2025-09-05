@@ -1,40 +1,15 @@
-using System.Buffers;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text.Json;
-using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Types;
 using static HotChocolate.Text.Json.MetaDbConstants;
 
 namespace HotChocolate.Text.Json;
 
-
-public class SourceResultDocument
-{
-    internal int Id;
-}
-
-public struct SourceResultElement
-{
-    internal SourceResultDocument Parent;
-    internal int Index;
-    internal int Size;
-    internal ElementTokenType TokenType;
-    internal JsonValueKind ValueKind;
-    internal bool HasComplexChildren;
-}
-
 public sealed partial class CompositeResultDocument
 {
-    private MetaDb _metaDb;
-    private byte[][] _dataChunks;
-    private List<SourceResultDocument> _sources;
-
-    public CompositeResultElement RootElement { get; }
-
-    internal struct MetaDb : IDisposable
+  internal struct MetaDb : IDisposable
     {
+        const int TokenTypeOffset = 8;
+
         private byte[][] _chunks;
         private int _currentChunk;
         private int _currentPosition;
@@ -181,6 +156,20 @@ public sealed partial class CompositeResultDocument
             return MemoryMarshal.Read<DbRow>(_chunks[chunkIndex].AsSpan(localOffset));
         }
 
+        internal ElementTokenType GetElementTokenType(int index)
+        {
+            // We convert the row index back into a byte offset that we can
+            // // in turn break up into the chunk where the row resides and the
+            // // local offset we have in that chunk.
+            var byteOffset = index * DbRow.Size;
+            var chunkIndex = byteOffset / ChunkSize;
+            var localOffset = byteOffset % ChunkSize;
+
+            var union = MemoryMarshal.Read<uint>(_chunks[chunkIndex].AsSpan(localOffset + TokenTypeOffset));
+
+            return (ElementTokenType)(union >> 28);
+        }
+
         public void Dispose()
         {
             if (!_disposed)
@@ -200,100 +189,4 @@ public sealed partial class CompositeResultDocument
             }
         }
     }
-
-    private CompositeResultElement CreateObject(int parentRow, SelectionSet selectionSet)
-    {
-        // change to int
-        var index = WriteStartObject(parentRow, (int)selectionSet.Id);
-
-        foreach (var selection in selectionSet.Selections)
-        {
-            WriteEmptyProperty(index, selection);
-        }
-
-        WriteEndObject();
-
-        throw new NotImplementedException();
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteLeaveValue(CompositeResultElement target, SourceResultElement source)
-    {
-        _metaDb.Replace(
-            index: target.MetadataDbIndex,
-            tokenType: source.TokenType,
-            location: source.Index,
-            sizeOrLength: source.Size,
-            sourceDocumentId: source.Parent.Id,
-            parentRow: _metaDb.Get(target.MetadataDbIndex).ParentRow);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private int WriteStartObject(int parentRow = 0, int selectionSetId = 0)
-    {
-        var flags = ElementFlags.None;
-
-        if (parentRow < 0)
-        {
-            parentRow = 0;
-            flags = ElementFlags.IsRoot;
-        }
-
-        return _metaDb.Append(
-            ElementTokenType.StartObject,
-            parentRow: parentRow,
-            selectionSetId: selectionSetId,
-            flags: flags);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteEndObject() => _metaDb.Append(ElementTokenType.EndObject);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteEmptyProperty(int parentRow, Selection selection)
-    {
-        var flags = ElementFlags.None;
-
-        if (selection.IsInternal)
-        {
-            flags = ElementFlags.IsInternal;
-        }
-
-        if (selection.IsLeaf)
-        {
-            flags |= ElementFlags.IsLeaf;
-        }
-
-        if (selection.Type.Kind is not TypeKind.NonNull)
-        {
-            flags |= ElementFlags.IsNullable;
-        }
-
-        var index = _metaDb.Append(
-            ElementTokenType.PropertyName,
-            parentRow: parentRow,
-            selectionSetId: (int)selection.Id,
-            flags: flags);
-
-        _metaDb.Append(
-            ElementTokenType.None,
-            parentRow: index);
-    }
-}
-
-internal static class MetaDbMemoryPool
-{
-    public static byte[] Rent() => new byte[ChunkSize];
-
-    public static void Return(byte[] chunk)
-    {
-
-    }
-}
-
-internal static class MetaDbConstants
-{
-    // 6552 rows × 20 bytes
-    public const int ChunkSize = RowsPerChunk * CompositeResultDocument.DbRow.Size;
-    public const int RowsPerChunk = 6552;
 }

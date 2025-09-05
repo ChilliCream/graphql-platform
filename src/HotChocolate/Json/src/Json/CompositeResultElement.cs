@@ -1,16 +1,15 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
-using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Text.Json;
 
 public struct CompositeResultElement
 {
-    private readonly CompositeJsonDocument _parent;
+    private readonly CompositeResultDocument _parent;
     private readonly int _index;
 
-    internal CompositeResultElement(CompositeJsonDocument parent, int index)
+    internal CompositeResultElement(CompositeResultDocument parent, int index)
     {
         // parent is usually not null, but the Current property
         // on the enumerators (when initialized as `default`) can
@@ -22,7 +21,7 @@ public struct CompositeResultElement
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private JsonTokenType TokenType => _parent?.GetJsonTokenType(_index) ?? JsonTokenType.None;
+    private ElementTokenType TokenType => _parent?.GetElementTokenType(_index) ?? ElementTokenType.None;
 
     /// <summary>
     ///   The <see cref="JsonValueKind"/> that the value is.
@@ -45,7 +44,7 @@ public struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public JsonElement this[int index]
+    public CompositeResultElement this[int index]
     {
         get
         {
