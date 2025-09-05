@@ -189,8 +189,8 @@ public class RequestExecutorProxy : IRequestExecutor, IDisposable
                     .GetExecutorAsync(_schemaName, cancellationToken)
                     .ConfigureAwait(false);
 
-                CurrentExecutor = executor;
                 OnConfigureRequestExecutor(executor, null);
+                CurrentExecutor = executor;
             }
             else
             {
