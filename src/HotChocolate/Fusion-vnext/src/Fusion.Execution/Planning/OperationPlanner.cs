@@ -1641,7 +1641,7 @@ file static class Extensions
                 continue;
             }
 
-            foreach (var (workItem2, cost, index) in  Test2(
+            foreach (var (workItem2, cost, index) in  GetPossibleLookupsThroughPath(
                 planNodeTemplate,
                 workItem,
                 toSchema,
@@ -1659,11 +1659,132 @@ file static class Extensions
         }
     }
 
-    // TODO: Rename
-    private record Bruh(Stack<ISelectionNode> Selections, Stack<FusionOutputFieldDefinition> Fields);
+    // TODO: Add summary
+    private static IEnumerable<(OperationWorkItem WorkItem, double Cost, ISelectionSetIndex SelectionSetIndex)>
+        GetPossibleLookupsThroughPath(
+            PlanNode planNodeTemplate,
+            OperationWorkItem workItem,
+            string schemaName,
+            FusionSchemaDefinition compositeSchema)
+    {
+        var selectionSet = workItem.SelectionSet;
 
-    // TODO: Rename
-    private static Bruh? Test(
+        if (selectionSet.Path.IsRoot)
+        {
+            yield break;
+        }
+
+        var result = TraverseSelectionPath(
+            planNodeTemplate.InternalOperationDefinition,
+            selectionSet.Path,
+            compositeSchema);
+
+        if (result is null)
+        {
+            yield break;
+        }
+
+        var selectionSetIndexBuilder = planNodeTemplate.SelectionSetIndex.ToBuilder();
+        var finalSelectionSet = selectionSet.Node;
+        var segments = selectionSet.Path.Segments;
+
+        while (result.Selections.TryPop(out var selectionNode))
+        {
+            if (selectionNode is FieldNode fieldNode)
+            {
+                var field = result.Fields.Pop();
+                var fieldType = field.Type.NamedType();
+
+                if (fieldType is FusionComplexTypeDefinition complexType
+                    && complexType.Sources.ContainsSchema(schemaName))
+                {
+                    foreach (var lookup in compositeSchema.GetPossibleLookups(complexType, schemaName))
+                    {
+                        var newSelectionSet = new SelectionSet(
+                            selectionSetIndexBuilder.GetId(finalSelectionSet),
+                            finalSelectionSet,
+                            complexType,
+                            SelectionPath.From(segments));
+
+                        // TODO: This also includes fragments, so not good
+                        var levelsMovedUp = selectionSet.Path.Segments.Length - segments.Length;
+
+                        var newWorkItem = workItem with { SelectionSet = newSelectionSet, Lookup = lookup };
+
+                        yield return (newWorkItem, levelsMovedUp, selectionSetIndexBuilder);
+                    }
+                }
+
+                if (!field.Sources.ContainsSchema(schemaName))
+                {
+                    yield break;
+                }
+
+                segments = segments.RemoveAt(segments.Length - 1);
+
+                finalSelectionSet = new SelectionSetNode(
+                    [fieldNode.WithSelectionSet(finalSelectionSet)]);
+
+                if (result.Selections.TryPeek(out var parentSelection))
+                {
+                    if (parentSelection is FieldNode parentField)
+                    {
+                        // TODO: Do this branching for all cases
+                        selectionSetIndexBuilder.Register(parentField.SelectionSet!, finalSelectionSet);
+                    }
+                }
+                else
+                {
+                    selectionSetIndexBuilder.Register(finalSelectionSet);
+                }
+            }
+            else if (selectionNode is InlineFragmentNode inlineFragmentNode)
+            {
+                if (inlineFragmentNode.TypeCondition?.Name.Value is { } typeConditionName)
+                {
+                    if (!compositeSchema.Types.TryGetType(typeConditionName, out var typeCondition))
+                    {
+                        yield break;
+                    }
+
+                    if (typeCondition is FusionComplexTypeDefinition complexTypeCondition
+                        && !complexTypeCondition.Sources.ContainsSchema(schemaName))
+                    {
+                        yield break;
+                    }
+
+                    segments = segments.RemoveAt(segments.Length - 1);
+                }
+
+                finalSelectionSet = new SelectionSetNode(
+                    [inlineFragmentNode.WithSelectionSet(finalSelectionSet)]);
+
+                selectionSetIndexBuilder.Register(finalSelectionSet);
+            }
+        }
+
+        // Even if we can get to the root on a non-Query operation,
+        // we want to bail here as we do not want two nodes with the same root fields.
+        if (planNodeTemplate.OperationDefinition.Operation != OperationType.Query)
+        {
+            yield break;
+        }
+
+        var newRootSelectionSet = new SelectionSet(
+            selectionSetIndexBuilder.GetId(finalSelectionSet),
+            finalSelectionSet,
+            compositeSchema.QueryType,
+            SelectionPath.Root);
+
+        var newRootWorkItem = workItem with { Kind = OperationWorkItemKind.Root, SelectionSet = newRootSelectionSet };
+
+        // TODO: This includes fragment segments and is therefore wrong
+        var levelsTillRoot = selectionSet.Path.Segments.Length;
+
+        yield return (newRootWorkItem, levelsTillRoot, selectionSetIndexBuilder);
+    }
+
+    private static TraverseSelectionPathResult? TraverseSelectionPath(
         OperationDefinitionNode operationDefinitionNode,
         SelectionPath path,
         FusionSchemaDefinition compositeSchema)
@@ -1738,132 +1859,11 @@ file static class Extensions
             }
         }
 
-        return new Bruh(selections, fields);
+        return new TraverseSelectionPathResult(selections, fields);
     }
 
     // TODO: Rename
-    private static IEnumerable<(OperationWorkItem WorkItem, double Cost, ISelectionSetIndex SelectionSetIndex)> Test2(
-        PlanNode planNodeTemplate,
-        OperationWorkItem workItem,
-        string schemaName,
-        FusionSchemaDefinition compositeSchema)
-    {
-        var selectionSet = workItem.SelectionSet;
-
-        if (selectionSet.Path.IsRoot)
-        {
-            yield break;
-        }
-
-        var result = Test(
-            planNodeTemplate.InternalOperationDefinition,
-            selectionSet.Path,
-            compositeSchema);
-
-        if (result is null)
-        {
-            yield break;
-        }
-
-        var selectionSetIndexBuilder = planNodeTemplate.SelectionSetIndex.ToBuilder();
-        var finalSelectionSet = selectionSet.Node;
-        var segments = selectionSet.Path.Segments;
-
-        while (result.Selections.TryPop(out var selectionNode))
-        {
-            if (selectionNode is FieldNode fieldNode)
-            {
-                var field = result.Fields.Pop();
-                var fieldType = field.Type.NamedType();
-
-                if (fieldType is FusionComplexTypeDefinition complexType
-                    && complexType.Sources.ContainsSchema(schemaName))
-                {
-                    foreach (var lookup in compositeSchema.GetPossibleLookups(complexType, schemaName))
-                    {
-                        var newSelectionSet = new SelectionSet(
-                            selectionSetIndexBuilder.GetId(finalSelectionSet),
-                            finalSelectionSet,
-                            complexType,
-                            SelectionPath.From(segments));
-
-                        // TODO: This also includes fragments, so not good
-                        var levelsMovedUp = selectionSet.Path.Segments.Length - segments.Length;
-
-                        var newWorkItem = workItem with { SelectionSet = newSelectionSet, Lookup = lookup };
-
-                        yield return (newWorkItem, levelsMovedUp, selectionSetIndexBuilder);
-                    }
-                }
-
-                if (!field.Sources.ContainsSchema(schemaName))
-                {
-                    yield break;
-                }
-
-                segments = segments.RemoveAt(segments.Length - 1);
-
-                finalSelectionSet = new SelectionSetNode(
-                    [fieldNode.WithSelectionSet(finalSelectionSet)]);
-
-                // TODO: Wtf and expand to other locations
-                if (result.Selections.TryPeek(out var parentSelection))
-                {
-                    if (parentSelection is FieldNode parentField)
-                    {
-                        selectionSetIndexBuilder.Register(parentField.SelectionSet!, finalSelectionSet);
-                    }
-                }
-                else
-                {
-                    selectionSetIndexBuilder.Register(finalSelectionSet);
-                }
-            }
-            else if (selectionNode is InlineFragmentNode inlineFragmentNode)
-            {
-                if (inlineFragmentNode.TypeCondition?.Name.Value is { } typeConditionName)
-                {
-                    if (!compositeSchema.Types.TryGetType(typeConditionName, out var typeCondition))
-                    {
-                        yield break;
-                    }
-
-                    if (typeCondition is FusionComplexTypeDefinition complexTypeCondition
-                        && !complexTypeCondition.Sources.ContainsSchema(schemaName))
-                    {
-                        yield break;
-                    }
-
-                    segments = segments.RemoveAt(segments.Length - 1);
-                }
-
-                finalSelectionSet = new SelectionSetNode(
-                    [inlineFragmentNode.WithSelectionSet(finalSelectionSet)]);
-
-                selectionSetIndexBuilder.Register(finalSelectionSet);
-            }
-        }
-
-        // Even if we can get to the root on a non-Query operation,
-        // we want to bail here as we do not want two nodes with the same root fields.
-        if (planNodeTemplate.OperationDefinition.Operation != OperationType.Query)
-        {
-            yield break;
-        }
-
-        var newRootSelectionSet = new SelectionSet(
-            selectionSetIndexBuilder.GetId(finalSelectionSet),
-            finalSelectionSet,
-            compositeSchema.QueryType,
-            SelectionPath.Root);
-
-        var newRootWorkItem = workItem with { Kind = OperationWorkItemKind.Root, SelectionSet = newRootSelectionSet };
-
-        // TODO: This includes fragment segments and is therefore wrong
-        var levelsTillRoot = selectionSet.Path.Segments.Length;
-
-        yield return (newRootWorkItem, levelsTillRoot, selectionSetIndexBuilder);
-    }
+    private record TraverseSelectionPathResult(Stack<ISelectionNode> Selections, Stack<FusionOutputFieldDefinition> Fields);
 
     private static void EnqueueNodeLookupPlanNodes(
         this PriorityQueue<PlanNode, double> possiblePlans,
