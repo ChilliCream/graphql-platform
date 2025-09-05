@@ -61,8 +61,13 @@ internal sealed class ValueCompletion
             return BuildErrorResult(objectResult, responseNames, error, objectResult.Path);
         }
 
-        foreach (var selection in selectionSet.Selections)
+        foreach (var property in data.EnumerateObject())
         {
+            if (!selectionSet.TryGetSelection(property.Name, out var selection))
+            {
+                continue;
+            }
+
             if (!selection.IsIncluded(_includeFlags))
             {
                 continue;
@@ -70,23 +75,20 @@ internal sealed class ValueCompletion
 
             var fieldResult = objectResult[selection.ResponseName];
 
-            if (data.TryGetProperty(selection.ResponseName, out var element))
+            ErrorTrie? errorTrieForResponseName = null;
+            errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
+
+            if (!TryCompleteValue(selection, selection.Type, property.Value, errorTrieForResponseName, 0, fieldResult))
             {
-                ErrorTrie? errorTrieForResponseName = null;
-                errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
-
-                if (!TryCompleteValue(selection, selection.Type, element, errorTrieForResponseName, 0, fieldResult))
+                if (_errorHandling is ErrorHandlingMode.Propagate)
                 {
-                    if (_errorHandling is ErrorHandlingMode.Propagate)
-                    {
-                        var didPropagateToRoot = PropagateNullValues(objectResult);
+                    var didPropagateToRoot = PropagateNullValues(objectResult);
 
-                        return !didPropagateToRoot;
-                    }
-                    else if (_errorHandling is ErrorHandlingMode.Halt)
-                    {
-                        return false;
-                    }
+                    return !didPropagateToRoot;
+                }
+                else if (_errorHandling is ErrorHandlingMode.Halt)
+                {
+                    return false;
                 }
             }
         }

@@ -45,6 +45,11 @@ public sealed class SelectionSet : ISelectionSet
 
     IEnumerable<ISelection> ISelectionSet.GetSelections() => _selections;
 
+    public bool TryGetSelection(string responseName, out Selection selection)
+    {
+
+    }
+
     /// <summary>
     /// Gets the declaring operation.
     /// </summary>

@@ -4,12 +4,12 @@ using System.Text.Json;
 
 namespace HotChocolate.Text.Json;
 
-public struct CompositeJsonElement
+public struct CompositeResultElement
 {
     private readonly CompositeJsonDocument _parent;
     private readonly int _index;
 
-    internal CompositeJsonElement(CompositeJsonDocument parent, int index)
+    internal CompositeResultElement(CompositeJsonDocument parent, int index)
     {
         // parent is usually not null, but the Current property
         // on the enumerators (when initialized as `default`) can
