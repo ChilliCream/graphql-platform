@@ -253,6 +253,11 @@ public static class ErrorCodes
         /// The specified directive argument does not exist.
         /// </summary>
         public const string UnknownDirectiveArgument = "HC0072";
+
+        /// <summary>
+        /// A mutation field must return a value.
+        /// </summary>
+        public const string MutationMustReturnValue = "HC0089";
     }
 
     public static class Scalars
