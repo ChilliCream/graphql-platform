@@ -857,11 +857,13 @@ public sealed partial class OperationPlanner
         backlog = backlog.Push(unresolvable, current);
         backlog = backlog.Push(fieldsWithRequirements, stepId);
 
-        var selectionSetNode = resolvable
-            .WithSelections([
-                new FieldNode(IntrospectionFieldNames.TypeName),
-                ..resolvable.Selections
-            ]);
+        var resolvableSelections = resolvable.Selections;
+        if (!resolvableSelections.Any(IsTypeNameSelection))
+        {
+            resolvableSelections = [new FieldNode(IntrospectionFieldNames.TypeName), ..resolvableSelections];
+        }
+
+        var selectionSetNode = resolvable.WithSelections(resolvableSelections);
 
         var indexBuilder = index.ToBuilder();
         indexBuilder.Register(workItem.SelectionSet.Id, selectionSetNode);
@@ -956,11 +958,13 @@ public sealed partial class OperationPlanner
 
         (var sharedSelectionSet, var selectionSetsByType, index) = _selectionSetByTypePartitioner.Partition(input);
 
-        var nodeFieldSelectionSet =
-            new SelectionSetNode([
-                new FieldNode(IntrospectionFieldNames.TypeName),
-                ..sharedSelectionSet?.Selections ?? []
-            ]);
+        var sharedSelections = sharedSelectionSet?.Selections ?? [];
+        if (sharedSelections.Count < 1 || !sharedSelections.Any(IsTypeNameSelection))
+        {
+            sharedSelections = [new FieldNode(IntrospectionFieldNames.TypeName), ..sharedSelections];
+        }
+
+        var nodeFieldSelectionSet = new SelectionSetNode(sharedSelections);
         var nodeFieldWithSelectionSet = nodeField.WithSelectionSet(nodeFieldSelectionSet);
         var fallbackQuerySelectionSet = new SelectionSetNode([nodeFieldWithSelectionSet]);
 
@@ -1376,14 +1380,14 @@ public sealed partial class OperationPlanner
         var rewriter = SyntaxRewriter.Create<Stack<ITypeDefinition>>(
             (node, path) =>
             {
-                if (node is not FieldNode fieldNode || fieldNode.SelectionSet is null)
+                if (node is not FieldNode { SelectionSet: {} selectionSet } fieldNode)
                 {
                     return node;
                 }
 
                 var type = path.Peek();
 
-                if (type.IsAbstractType())
+                if (type.IsAbstractType() && !selectionSet.Selections.Any(IsTypeNameSelection))
                 {
                     // we add the __typename field to all selection sets that have
                     // an abstract type context as we need the type context for
@@ -1393,8 +1397,9 @@ public sealed partial class OperationPlanner
                     // required __typename and a runtime required type information.
                     var typenameNode = new FieldNode(IntrospectionFieldNames.TypeName)
                         .WithDirectives([new DirectiveNode("fusion__requirement")]);
+
                     return fieldNode.WithSelectionSet(new SelectionSetNode([
-                        typenameNode, ..fieldNode.SelectionSet.Selections
+                        typenameNode, ..selectionSet.Selections
                     ]));
                 }
 
@@ -1428,6 +1433,17 @@ public sealed partial class OperationPlanner
         context.Push(rootType);
 
         return (OperationDefinitionNode)rewriter.Rewrite(operation, context)!;
+    }
+
+    private static bool IsTypeNameSelection(ISelectionNode selection)
+    {
+        if (selection is FieldNode field)
+        {
+            return field.Name.Value.Equals(IntrospectionFieldNames.TypeName)
+                && field.Alias is null;
+        }
+
+        return false;
     }
 
     private readonly record struct PlanResult(
