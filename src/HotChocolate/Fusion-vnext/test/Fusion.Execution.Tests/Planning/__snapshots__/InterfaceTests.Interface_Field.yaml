@@ -16,6 +16,7 @@ nodes:
     operation: >-
       query testQuery_123456789101112_1 {
         votable {
+          __typename
           viewerCanVote
         }
       }

@@ -102,13 +102,22 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         context.Nodes.Pop();
 
-        if (resolvableSelections is null && unresolvableSelections is null)
+        var isAbstractType = type.NamedType().IsAbstractType();
+
+        if (resolvableSelections is null && unresolvableSelections is null && !isAbstractType)
         {
             return (selectionSetNode, null);
         }
 
         if (unresolvableSelections is not null)
         {
+            if (isAbstractType && !unresolvableSelections.Any(IsTypeNameSelection))
+            {
+                unresolvableSelections = [
+                    new FieldNode(IntrospectionFieldNames.TypeName),
+                    ..unresolvableSelections];
+            }
+
             var unresolvableSelectionSet = new SelectionSetNode(unresolvableSelections);
             context.Register(selectionSetNode, unresolvableSelectionSet);
 
@@ -121,17 +130,19 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             unresolvableSelections = null;
         }
 
-        var resolvableSelections2 = resolvableSelections ?? selectionSetNode.Selections;
+        resolvableSelections ??= [..selectionSetNode.Selections];
 
-        if (type.NamedType().IsAbstractType())
+        if (isAbstractType && !resolvableSelections.Any(IsTypeNameSelection))
         {
-            resolvableSelections2 = [new FieldNode(IntrospectionFieldNames.TypeName), ..resolvableSelections2];
+            resolvableSelections = [
+                new FieldNode(IntrospectionFieldNames.TypeName),
+                ..resolvableSelections];
         }
 
         var result =
         (
             Resolvable:
-                selectionSetNode.WithSelections(resolvableSelections2),
+                selectionSetNode.WithSelections(resolvableSelections),
             Unresolvable: unresolvableSelections is not null
                 ? selectionSetNode.WithSelections(unresolvableSelections)
                 : null
@@ -191,6 +202,17 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         {
             // todo match correct inline fragment
             return providedSelectionSetNode;
+        }
+
+        static bool IsTypeNameSelection(ISelectionNode selection)
+        {
+            if (selection is FieldNode field)
+            {
+                return field.Name.Value.Equals(IntrospectionFieldNames.TypeName)
+                    && field.Alias is null;
+            }
+
+            return false;
         }
     }
 
