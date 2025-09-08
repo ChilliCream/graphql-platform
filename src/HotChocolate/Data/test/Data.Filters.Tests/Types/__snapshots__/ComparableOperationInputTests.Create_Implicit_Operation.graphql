@@ -22,18 +22,18 @@ input ComparableByteOperationFilterInput {
 }
 
 input ComparableDateOnlyOperationFilterInput {
-  eq: Date
-  neq: Date
-  in: [Date!]
-  nin: [Date!]
-  gt: Date
-  ngt: Date
-  gte: Date
-  ngte: Date
-  lt: Date
-  nlt: Date
-  lte: Date
-  nlte: Date
+  eq: LocalDate
+  neq: LocalDate
+  in: [LocalDate!]
+  nin: [LocalDate!]
+  gt: LocalDate
+  ngt: LocalDate
+  gte: LocalDate
+  ngte: LocalDate
+  lt: LocalDate
+  nlt: LocalDate
+  lte: LocalDate
+  nlte: LocalDate
 }
 
 input ComparableDecimalOperationFilterInput {
@@ -127,18 +127,18 @@ input ComparableNullableOfByteOperationFilterInput {
 }
 
 input ComparableNullableOfDateOnlyOperationFilterInput {
-  eq: Date
-  neq: Date
-  in: [Date]
-  nin: [Date]
-  gt: Date
-  ngt: Date
-  gte: Date
-  ngte: Date
-  lt: Date
-  nlt: Date
-  lte: Date
-  nlte: Date
+  eq: LocalDate
+  neq: LocalDate
+  in: [LocalDate]
+  nin: [LocalDate]
+  gt: LocalDate
+  ngt: LocalDate
+  gte: LocalDate
+  ngte: LocalDate
+  lt: LocalDate
+  nlt: LocalDate
+  lte: LocalDate
+  nlte: LocalDate
 }
 
 input ComparableNullableOfDecimalOperationFilterInput {
@@ -232,18 +232,18 @@ input ComparableNullableOfSingleOperationFilterInput {
 }
 
 input ComparableNullableOfTimeOnlyOperationFilterInput {
-  eq: TimeSpan
-  neq: TimeSpan
-  in: [TimeSpan]
-  nin: [TimeSpan]
-  gt: TimeSpan
-  ngt: TimeSpan
-  gte: TimeSpan
-  ngte: TimeSpan
-  lt: TimeSpan
-  nlt: TimeSpan
-  lte: TimeSpan
-  nlte: TimeSpan
+  eq: LocalTime
+  neq: LocalTime
+  in: [LocalTime]
+  nin: [LocalTime]
+  gt: LocalTime
+  ngt: LocalTime
+  gte: LocalTime
+  ngte: LocalTime
+  lt: LocalTime
+  nlt: LocalTime
+  lte: LocalTime
+  nlte: LocalTime
 }
 
 input ComparableSingleOperationFilterInput {
@@ -262,18 +262,18 @@ input ComparableSingleOperationFilterInput {
 }
 
 input ComparableTimeOnlyOperationFilterInput {
-  eq: TimeSpan
-  neq: TimeSpan
-  in: [TimeSpan!]
-  nin: [TimeSpan!]
-  gt: TimeSpan
-  ngt: TimeSpan
-  gte: TimeSpan
-  ngte: TimeSpan
-  lt: TimeSpan
-  nlt: TimeSpan
-  lte: TimeSpan
-  nlte: TimeSpan
+  eq: LocalTime
+  neq: LocalTime
+  in: [LocalTime!]
+  nin: [LocalTime!]
+  gt: LocalTime
+  ngt: LocalTime
+  gte: LocalTime
+  ngte: LocalTime
+  lt: LocalTime
+  nlt: LocalTime
+  lte: LocalTime
+  nlte: LocalTime
 }
 
 input ComparableUriOperationFilterInput {
@@ -335,19 +335,19 @@ directive @specifiedBy("The specifiedBy URL points to a human-readable specifica
 "The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255."
 scalar Byte
 
-"The `Date` scalar represents an ISO-8601 compliant date type."
-scalar Date
-
-"The built-in `Decimal` scalar type."
+"The `Decimal` scalar type represents a decimal floating-point number."
 scalar Decimal
+
+"The `LocalDate` scalar type represents an ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339"
+scalar LocalDate
+
+"The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss."
+scalar LocalTime
 
 "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
 scalar Long
 
 "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
 scalar Short
-
-"The `TimeSpan` scalar represents an ISO-8601 compliant duration type."
-scalar TimeSpan
 
 scalar URL @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc3986")

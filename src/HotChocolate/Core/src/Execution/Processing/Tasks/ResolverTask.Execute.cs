@@ -1,6 +1,4 @@
-#if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
-#endif
 using HotChocolate.Execution.Internal;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,12 +30,8 @@ internal sealed partial class ResolverTask
                         break;
 
                     default:
-#if NET6_0_OR_GREATER
                         _operationContext.Scheduler.Register(
                             CollectionsMarshal.AsSpan(_taskBuffer));
-#else
-                        _operationContext.Scheduler.Register(_taskBuffer);
-#endif
                         break;
                 }
             }
@@ -139,7 +133,7 @@ internal sealed partial class ResolverTask
             var serviceScope = _operationContext.Services.CreateAsyncScope();
             _context.Services = serviceScope.ServiceProvider;
             _context.RegisterForCleanup(serviceScope.DisposeAsync);
-            _operationContext.ServiceScopeInitializer.Initialize(_context.RequestServices, _context.Services);
+            _operationContext.ServiceScopeInitializer.Initialize(_context, _context.RequestServices, _context.Services);
         }
 
         await _context.ResolverPipeline!(_context).ConfigureAwait(false);

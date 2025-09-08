@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.ModelContextProtocol</AssemblyName>
+    <RootNamespace>HotChocolate.ModelContextProtocol</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.ModelContextProtocol.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CaseConverter" />
+    <PackageReference Include="ChilliCream.ModelContextProtocol.AspNetCore" />
+    <PackageReference Include="JsonSchema.Net" />
+    <PackageReference Include="System.Reactive" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\ModelContextProtocolResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ModelContextProtocolResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\ModelContextProtocolResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ModelContextProtocolResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

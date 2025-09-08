@@ -501,13 +501,13 @@ We aligned the naming of state related APIs:
 - `IResolverContext.SetLocalValue` --> `IResolverContext.SetLocalState`
 - `IResolverContext.RemoveLocalValue` --> `IResolverContext.RemoveLocalState`
 
-### OperationRequestBuilder
+### IQueryRequestBuilder
 
-- `OperationRequestBuilder.SetProperties` --> `OperationRequestBuilder.InitializeGlobalState`
-- `OperationRequestBuilder.SetProperty` --> `OperationRequestBuilder.SetGlobalState`
-- `OperationRequestBuilder.AddProperty` --> `OperationRequestBuilder.AddGlobalState`
-- `OperationRequestBuilder.TryAddProperty` --> `OperationRequestBuilder.TryAddGlobalState`
-- `OperationRequestBuilder.TryRemoveProperty` --> `OperationRequestBuilder.RemoveGlobalState`
+- `IQueryRequestBuilder.SetProperties` --> `IQueryRequestBuilder.InitializeGlobalState`
+- `IQueryRequestBuilder.SetProperty` --> `IQueryRequestBuilder.SetGlobalState`
+- `IQueryRequestBuilder.AddProperty` --> `IQueryRequestBuilder.AddGlobalState`
+- `IQueryRequestBuilder.TryAddProperty` --> `IQueryRequestBuilder.TryAddGlobalState`
+- `IQueryRequestBuilder.TryRemoveProperty` --> `IQueryRequestBuilder.RemoveGlobalState`
 
 <!--
 TODO: Link to new docs once done

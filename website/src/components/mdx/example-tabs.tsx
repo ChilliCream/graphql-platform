@@ -4,9 +4,9 @@ import { List, Panel, Tab, Tabs } from "./tabs";
 
 export const ExampleTabs: FC = ({ children }) => {
   return (
-    <Tabs defaultValue={"annotation"} groupId="code-style">
+    <Tabs defaultValue={"implementation"} groupId="code-style">
       <List>
-        <Tab value="annotation">Annotation-based</Tab>
+        <Tab value="implementation">Implementation-first</Tab>
         <Tab value="code">Code-first</Tab>
         <Tab value="schema">Schema-first</Tab>
       </List>
@@ -15,8 +15,8 @@ export const ExampleTabs: FC = ({ children }) => {
   );
 };
 
-export const Annotation: FC = ({ children }) => (
-  <Panel value="annotation">{children}</Panel>
+export const Implementation: FC = ({ children }) => (
+  <Panel value="implementation">{children}</Panel>
 );
 
 export const Code: FC = ({ children }) => (

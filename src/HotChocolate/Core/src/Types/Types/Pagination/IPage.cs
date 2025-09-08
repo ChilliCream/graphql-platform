@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Types.Pagination;
 
 /// <summary>
@@ -10,7 +8,7 @@ public interface IPage
     /// <summary>
     /// Gets the items of this page.
     /// </summary>
-    IReadOnlyCollection<object> Items { get; }
+    IReadOnlyList<object> Items { get; }
 
     /// <summary>
     /// Gets basic information about this page in the overall data set.
@@ -18,11 +16,10 @@ public interface IPage
     IPageInfo Info { get; }
 
     /// <summary>
-    /// Gets the total count of the data set.
+    /// Accepts a page observer and will in turn report the page.
     /// </summary>
-    /// <param name="cancellationToken">
-    /// The <see cref="CancellationToken" />
+    /// <param name="observer">
+    /// The page observer.
     /// </param>
-    /// <returns></returns>
-    ValueTask<int> GetTotalCountAsync(CancellationToken cancellationToken);
+    public void Accept(IPageObserver observer);
 }

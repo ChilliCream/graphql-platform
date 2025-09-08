@@ -16,6 +16,27 @@ public sealed class ScalarTypeDefinitionNode : NamedSyntaxNode, ITypeDefinitionN
     /// <summary>
     /// Initializes a new instance of <see cref="ScalarTypeDefinitionNode"/>.
     /// </summary>
+    /// <param name="name">
+    /// The name of the scalar.
+    /// </param>
+    /// <param name="description">
+    /// The description of the scalar.
+    /// </param>
+    /// <param name="directives">
+    /// The applied directives.
+    /// </param>
+    public ScalarTypeDefinitionNode(
+        NameNode name,
+        StringValueNode? description,
+        IReadOnlyList<DirectiveNode> directives)
+        : base(null, name, directives)
+    {
+        Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="ScalarTypeDefinitionNode"/>.
+    /// </summary>
     /// <param name="location">
     /// The location of the syntax node within the original source text.
     /// </param>

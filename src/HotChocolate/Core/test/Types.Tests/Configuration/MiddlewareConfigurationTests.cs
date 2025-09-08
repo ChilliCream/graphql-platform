@@ -1,6 +1,5 @@
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Configuration;
 

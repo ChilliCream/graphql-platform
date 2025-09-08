@@ -19,7 +19,7 @@ Learn more about enums [here](https://graphql.org/learn/schema/#enumeration-type
 We can define enums like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public enum UserRole
@@ -51,7 +51,7 @@ public enum UserRole
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

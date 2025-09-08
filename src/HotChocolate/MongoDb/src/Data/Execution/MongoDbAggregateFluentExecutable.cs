@@ -4,7 +4,7 @@ using MongoDB.Driver;
 namespace HotChocolate.Data.MongoDb;
 
 /// <summary>
-/// A executable that is based on <see cref="IAggregateFluent{TInput}"/>
+/// An executable that is based on <see cref="IAggregateFluent{TInput}"/>
 /// </summary>
 /// <typeparam name="T">The entity type</typeparam>
 public class MongoDbAggregateFluentExecutable<T>(IAggregateFluent<T> aggregate) : MongoDbExecutable<T>
@@ -37,6 +37,12 @@ public class MongoDbAggregateFluentExecutable<T>(IAggregateFluent<T> aggregate) 
     /// <inheritdoc />
     public override async ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
         => await BuildPipeline().SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+
+    public override async ValueTask<int> CountAsync(CancellationToken cancellationToken)
+    {
+        var item = await aggregate.Count().FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+        return (int)(item?.Count ?? 0);
+    }
 
     /// <inheritdoc />
     public override string Print() => BuildPipeline().ToString() ?? "";

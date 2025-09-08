@@ -2,7 +2,6 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 
@@ -75,20 +74,6 @@ internal static class ErrorHelper
                 convention.GetType().FullName ?? convention.GetType().Name)
             .SetExtension(nameof(convention), convention)
             .SetExtension(nameof(fieldHandler), fieldHandler)
-            .Build();
-
-    public static IError ProjectionProvider_CreateMoreThanOneError(IResolverContext context) =>
-        ErrorBuilder.New()
-            .SetMessage(DataResources.ProjectionProvider_CreateMoreThanOneError)
-            .SetCode(ErrorCodes.Data.MoreThanOneElement)
-            .SetPath(context.Path)
-            .AddLocation(context.Selection.SyntaxNode)
-            .Build();
-
-    public static IError ProjectionProvider_CreateMoreThanOneError() =>
-        ErrorBuilder.New()
-            .SetMessage(DataResources.ProjectionProvider_CreateMoreThanOneError)
-            .SetCode(ErrorCodes.Data.MoreThanOneElement)
             .Build();
 
     public static IError ProjectionProvider_CouldNotProjectFiltering(IValueNode node) =>

@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Data/HotChocolate.Data.Spatial.csproj" />
+    <Project Path="src/Types/HotChocolate.Types.Spatial.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Data.Filters.SqlServer.Tests/HotChocolate.Spatial.Data.Filters.SqlServer.Tests.csproj" />
+    <Project Path="test/Data.Projections.SqlServer.Tests/HotChocolate.Data.Projections.Spatial.SqlServer.Tests.csproj" />
+    <Project Path="test/Data.Tests/HotChocolate.Data.Spatial.Tests.csproj" />
+    <Project Path="test/Types.Tests/HotChocolate.Types.Spatial.Tests.csproj" />
+  </Folder>
+</Solution>

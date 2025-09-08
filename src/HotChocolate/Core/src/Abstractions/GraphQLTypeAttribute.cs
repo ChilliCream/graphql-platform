@@ -7,9 +7,9 @@ namespace HotChocolate;
 /// Specifies the GraphQL type.
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Property |
-    AttributeTargets.Method |
-    AttributeTargets.Parameter)]
+    AttributeTargets.Property
+    | AttributeTargets.Method
+    | AttributeTargets.Parameter)]
 public class GraphQLTypeAttribute : Attribute
 {
     /// <summary>
@@ -33,10 +33,7 @@ public class GraphQLTypeAttribute : Attribute
     /// </exception>
     public GraphQLTypeAttribute(string typeSyntax)
     {
-        if (typeSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(typeSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(typeSyntax);
 
         TypeSyntax = Utf8GraphQLParser.Syntax.ParseTypeReference(typeSyntax);
     }
@@ -52,18 +49,16 @@ public class GraphQLTypeAttribute : Attribute
     public ITypeNode? TypeSyntax { get; }
 }
 
-#if NET6_0_OR_GREATER
 /// <summary>
 /// Specifies the GraphQL type.
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Property |
-    AttributeTargets.Method |
-    AttributeTargets.Parameter)]
+    AttributeTargets.Property
+    | AttributeTargets.Method
+    | AttributeTargets.Parameter)]
 public sealed class GraphQLTypeAttribute<T> : GraphQLTypeAttribute where T : IType
 {
     public GraphQLTypeAttribute() : base(typeof(T))
     {
     }
 }
-#endif

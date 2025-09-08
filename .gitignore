@@ -324,3 +324,5 @@ conferences.db-wal
 .nuke/
 .mono/
 packages.lock.json
+
+Directory.Build.props.user

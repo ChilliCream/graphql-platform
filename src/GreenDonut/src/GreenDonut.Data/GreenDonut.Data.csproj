@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>GreenDonut.Data</PackageId>
+    <AssemblyName>GreenDonut.Data</AssemblyName>
+    <RootNamespace>GreenDonut.Data</RootNamespace>
+    <Description>This package provides data integrations like pagination, projections, filtering and sorting.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="GreenDonut.Data.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GreenDonut.Data.Abstractions\GreenDonut.Data.Abstractions.csproj" />
+    <ProjectReference Include="..\GreenDonut\GreenDonut.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -3,10 +3,10 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Authorization.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Authorization</RootNamespace>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Authorization\HotChocolate.Authorization.csproj" />
   </ItemGroup>
 

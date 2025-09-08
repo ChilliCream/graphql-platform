@@ -4,6 +4,8 @@ public sealed class TypeInfo(string name) : SyntaxInfo
 {
     public string Name { get; } = name;
 
+    public override string OrderByKey => Name;
+
     public override bool Equals(object? obj)
         => obj is TypeInfo other && Equals(other);
 

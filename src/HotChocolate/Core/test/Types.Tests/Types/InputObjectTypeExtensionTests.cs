@@ -16,7 +16,7 @@ public class InputObjectTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("FooInput");
+        var type = schema.Types.GetType<InputObjectType>("FooInput");
         Assert.True(type.Fields.ContainsField("test"));
     }
 
@@ -31,12 +31,12 @@ public class InputObjectTypeExtensionTests
             .AddType(new InputObjectTypeExtension(d => d
                 .Name("FooInput")
                 .Extend()
-                .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .OnBeforeCreate(c => c.Features.Set(new CustomFeature()))))
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("FooInput");
-        Assert.True(type.ContextData.ContainsKey("foo"));
+        var type = schema.Types.GetType<InputObjectType>("FooInput");
+        Assert.NotNull(type.Features.Get<CustomFeature>());
     }
 
     [Fact]
@@ -51,13 +51,12 @@ public class InputObjectTypeExtensionTests
                 .Name("FooInput")
                 .Field("description")
                 .Extend()
-                .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .OnBeforeCreate(c => c.Features.Set(new CustomFeature()))))
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("FooInput");
-        Assert.True(type.Fields["description"]
-            .ContextData.ContainsKey("foo"));
+        var type = schema.Types.GetType<InputObjectType>("FooInput");
+        Assert.NotNull(type.Fields["description"].Features.Get<CustomFeature>());
     }
 
     [Fact]
@@ -75,7 +74,7 @@ public class InputObjectTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("FooInput");
+        var type = schema.Types.GetType<InputObjectType>("FooInput");
         Assert.True(type.Directives.ContainsDirective("dummy"));
     }
 
@@ -95,9 +94,8 @@ public class InputObjectTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("FooInput");
-        Assert.True(type.Fields["name"]
-            .Directives.ContainsDirective("dummy"));
+        var type = schema.Types.GetType<InputObjectType>("FooInput");
+        Assert.True(type.Fields["name"].Directives.ContainsDirective("dummy"));
     }
 
     [Fact]
@@ -116,9 +114,8 @@ public class InputObjectTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("FooInput");
-        var value = type.Directives["dummy_arg"]
-            .First().GetArgumentValue<string>("a");
+        var type = schema.Types.GetType<InputObjectType>("FooInput");
+        var value = type.Directives["dummy_arg"].First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 
@@ -140,9 +137,8 @@ public class InputObjectTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("FooInput");
-        var value = type.Fields["description"].Directives["dummy_arg"]
-            .First().GetArgumentValue<string>("a");
+        var type = schema.Types.GetType<InputObjectType>("FooInput");
+        var value = type.Fields["description"].Directives["dummy_arg"].First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 
@@ -162,7 +158,7 @@ public class InputObjectTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("FooInput");
+        var type = schema.Types.GetType<InputObjectType>("FooInput");
         var count = type.Directives["dummy_rep"].Count();
         Assert.Equal(2, count);
     }
@@ -185,9 +181,8 @@ public class InputObjectTypeExtensionTests
             .Create();
 
         // assert
-        var type = schema.GetType<InputObjectType>("FooInput");
-        var count = type.Fields["description"]
-            .Directives["dummy_rep"].Count();
+        var type = schema.Types.GetType<InputObjectType>("FooInput");
+        var count = type.Fields["description"].Directives["dummy_rep"].Count();
         Assert.Equal(2, count);
     }
 
@@ -277,4 +272,6 @@ public class InputObjectTypeExtensionTests
             descriptor.Location(DirectiveLocation.InputFieldDefinition);
         }
     }
+
+    public sealed class CustomFeature;
 }

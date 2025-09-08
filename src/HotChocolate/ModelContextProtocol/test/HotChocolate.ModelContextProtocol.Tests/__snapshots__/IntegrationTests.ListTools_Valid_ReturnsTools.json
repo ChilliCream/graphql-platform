@@ -1,0 +1,12 @@
+[
+  {
+    "Name": "get_with_non_nullable_variables",
+    "Title": "Get With Non Nullable Variables",
+    "Description": "GetWithNonNullableVariables description"
+  },
+  {
+    "Name": "get_with_nullable_variables",
+    "Title": "Get With Nullable Variables",
+    "Description": "GetWithNullableVariables description"
+  }
+]

@@ -7,8 +7,8 @@
     <Description>Contains internal helper classes and utilities used by the Hot Chocolate GraphQL type system and the GraphQL query execution engine.</Description>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' != 'NETSTANDARD2.0'">
-    <EnableTrimAnalyzer Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</EnableTrimAnalyzer>
+  <PropertyGroup>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,13 +32,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <ProjectReference Include="..\Utilities.Buffers\HotChocolate.Utilities.Buffers.csproj" />
+    <ProjectReference Include="..\Utilities.Tasks\HotChocolate.Utilities.Tasks.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'NETSTANDARD2.0'">
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
-    <PackageReference Include="System.Memory" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
 
   <ItemGroup>

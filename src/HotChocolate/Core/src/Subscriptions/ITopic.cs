@@ -11,7 +11,7 @@ public interface ITopic : IDisposable
     public Type MessageType { get; }
 
     /// <summary>
-    /// Allows to complete a topic.
+    /// Allows completing a topic.
     /// </summary>
     void Complete();
 }

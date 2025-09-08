@@ -9,13 +9,13 @@ public sealed class AttributeTests
     public void Cost_ArgumentAttribute_AppliesDirective()
     {
         // arrange & act
-        var query = CreateSchema().GetType<ObjectType>(OperationTypeNames.Query);
+        var query = CreateSchema().Types.GetType<ObjectType>(OperationTypeNames.Query);
 
         var costDirective = query.Fields["examples"]
             .Arguments["_"]
             .Directives
             .Single(d => d.Type.Name == "cost")
-            .AsValue<CostDirective>();
+            .ToValue<CostDirective>();
 
         // assert
         Assert.Equal(8.0, costDirective.Weight);
@@ -25,12 +25,12 @@ public sealed class AttributeTests
     public void Cost_EnumTypeAttribute_AppliesDirective()
     {
         // arrange & act
-        var exampleEnum = CreateSchema().GetType<EnumType>(nameof(ExampleEnum));
+        var exampleEnum = CreateSchema().Types.GetType<EnumType>(nameof(ExampleEnum));
 
         var costDirective = exampleEnum
             .Directives
             .Single(d => d.Type.Name == "cost")
-            .AsValue<CostDirective>();
+            .ToValue<CostDirective>();
 
         // assert
         Assert.Equal(0.0, costDirective.Weight);
@@ -40,12 +40,12 @@ public sealed class AttributeTests
     public void Cost_InputFieldAttribute_AppliesDirective()
     {
         // arrange & act
-        var exampleInput = CreateSchema().GetType<InputObjectType>(nameof(ExampleInput));
+        var exampleInput = CreateSchema().Types.GetType<InputObjectType>(nameof(ExampleInput));
 
         var costDirective = exampleInput.Fields["field"]
             .Directives
             .Single(d => d.Type.Name == "cost")
-            .AsValue<CostDirective>();
+            .ToValue<CostDirective>();
 
         // assert
         Assert.Equal(-3.0, costDirective.Weight);
@@ -55,12 +55,12 @@ public sealed class AttributeTests
     public void Cost_ObjectFieldAttribute_AppliesDirective()
     {
         // arrange & act
-        var query = CreateSchema().GetType<ObjectType>(OperationTypeNames.Query);
+        var query = CreateSchema().Types.GetType<ObjectType>(OperationTypeNames.Query);
 
         var costDirective = query.Fields["examples"]
             .Directives
             .Single(d => d.Type.Name == "cost")
-            .AsValue<CostDirective>();
+            .ToValue<CostDirective>();
 
         // assert
         Assert.Equal(5.0, costDirective.Weight);
@@ -70,11 +70,11 @@ public sealed class AttributeTests
     public void Cost_ObjectTypeAttribute_AppliesDirective()
     {
         // arrange & act
-        var example = CreateSchema().GetType<ObjectType>(nameof(Example));
+        var example = CreateSchema().Types.GetType<ObjectType>(nameof(Example));
 
         var costDirective = example.Directives
             .Single(d => d.Type.Name == "cost")
-            .AsValue<CostDirective>();
+            .ToValue<CostDirective>();
 
         // assert
         Assert.Equal(10.0, costDirective.Weight);
@@ -84,11 +84,11 @@ public sealed class AttributeTests
     public void Cost_ScalarTypeAttribute_AppliesDirective()
     {
         // arrange & act
-        var exampleScalar = CreateSchema().GetType<ExampleScalar>(nameof(ExampleScalar));
+        var exampleScalar = CreateSchema().Types.GetType<ExampleScalar>(nameof(ExampleScalar));
 
         var costDirective = exampleScalar.Directives
             .Single(d => d.Type.Name == "cost")
-            .AsValue<CostDirective>();
+            .ToValue<CostDirective>();
 
         // assert
         Assert.Equal(1.0, costDirective.Weight);
@@ -98,12 +98,12 @@ public sealed class AttributeTests
     public void ListSize_ObjectFieldAttribute_AppliesDirective()
     {
         // arrange & act
-        var query = CreateSchema().GetType<ObjectType>(OperationTypeNames.Query);
+        var query = CreateSchema().Types.GetType<ObjectType>(OperationTypeNames.Query);
 
         var costDirective = query.Fields["examples"]
             .Directives
             .Single(d => d.Type.Name == "listSize")
-            .AsValue<ListSizeDirective>();
+            .ToValue<ListSizeDirective>();
 
         // assert
         Assert.Equal(10, costDirective.AssumedSize);
@@ -112,7 +112,7 @@ public sealed class AttributeTests
         Assert.False(costDirective.RequireOneSlicingArgument);
     }
 
-    private static ISchema CreateSchema()
+    private static Schema CreateSchema()
     {
         return SchemaBuilder.New()
             .AddQueryType(new ObjectType(d => d.Name(OperationTypeNames.Query)))

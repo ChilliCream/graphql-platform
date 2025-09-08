@@ -14,6 +14,7 @@ namespace HotChocolate.ApolloFederation.Types;
 /// and even nested selection sets "id organization { id }".
 /// </summary>
 [Package(FederationVersionUrls.Federation20)]
+[FieldSetTypeLegacySupport]
 public sealed class FieldSetType : ScalarType<SelectionSetNode, StringValueNode>
 {
     /// <summary>
@@ -134,6 +135,6 @@ public sealed class FieldSetType : ScalarType<SelectionSetNode, StringValueNode>
     private static string SerializeSelectionSet(SelectionSetNode selectionSet)
     {
         var s = selectionSet.ToString(false);
-        return s.AsSpan()[1 .. ^1].Trim().ToString();
+        return s.AsSpan()[1..^1].Trim().ToString();
     }
 }

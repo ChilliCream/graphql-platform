@@ -26,10 +26,7 @@ public static class MongoDbProjectionProviderDescriptorExtensions
     public static IProjectionProviderDescriptor RegisterMongoDbHandlers(
         this IProjectionProviderDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.RegisterFieldHandler<MongoDbProjectionScalarHandler>();
         descriptor.RegisterFieldHandler<MongoDbProjectionFieldHandler>();

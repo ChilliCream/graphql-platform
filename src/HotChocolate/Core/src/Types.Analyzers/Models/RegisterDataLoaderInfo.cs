@@ -4,10 +4,12 @@ public sealed class RegisterDataLoaderInfo(string name) : SyntaxInfo
 {
     public string Name { get; } = name;
 
+    public override string OrderByKey => Name;
+
     public override bool Equals(object? obj)
         => obj is RegisterDataLoaderInfo other && Equals(other);
 
-    public override bool Equals(SyntaxInfo other)
+    public override bool Equals(SyntaxInfo? other)
         => other is RegisterDataLoaderInfo info && Equals(info);
 
     private bool Equals(RegisterDataLoaderInfo other)

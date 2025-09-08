@@ -1,6 +1,6 @@
 // https://github.com/FormidableLabs/prism-react-renderer/issues/53#issuecomment-546653848
 import Prism from "prismjs";
-import "prismjs/themes/prism-tomorrow.css";
+import "./src/style/prism-theme.css";
 
 (typeof global !== "undefined" ? global : window).Prism = Prism;
 require("prismjs/components/prism-csharp");

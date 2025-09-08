@@ -39,10 +39,7 @@ public static class RabbitMQPubSubExtensions
         ConnectionFactory? connectionFactory = null,
         SubscriptionOptions? options = null)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services
             .AddRabbitMQSubscriptionPublisher(connectionFactory, options)

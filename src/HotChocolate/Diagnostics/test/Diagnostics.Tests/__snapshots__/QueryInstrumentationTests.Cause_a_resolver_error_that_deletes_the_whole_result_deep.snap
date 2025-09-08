@@ -1,0 +1,88 @@
+﻿{
+  "activities": [
+    {
+      "OperationName": "ExecuteRequest",
+      "DisplayName": "Execute Request",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "graphql.document.id",
+          "Value": "803df9346db185e9dc0b22dd3909aa70"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "803df9346db185e9dc0b22dd3909aa70"
+        },
+        {
+          "Key": "graphql.document.body",
+          "Value": "query SayHelloOperation {\n  deep {\n    deeper {\n      deeps {\n        deeper {\n          causeFatalError\n        }\n      }\n    }\n  }\n}"
+        },
+        {
+          "Key": "otel.status_code",
+          "Value": "ERROR"
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "ParseDocument",
+          "DisplayName": "Parse Document",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "ValidateDocument",
+          "DisplayName": "Validate Document",
+          "Status": "Error",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "ERROR"
+            },
+            {
+              "Key": "graphql.document.id",
+              "Value": "803df9346db185e9dc0b22dd3909aa70"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "803df9346db185e9dc0b22dd3909aa70"
+            }
+          ],
+          "event": [
+            {
+              "Name": "exception",
+              "Tags": [
+                {
+                  "Key": "exception.message",
+                  "Value": "The field `causeFatalError` does not exist on the type `Deeper`."
+                },
+                {
+                  "Key": "exception.type",
+                  "Value": "GRAPHQL_ERROR"
+                },
+                {
+                  "Key": "graphql.error.path",
+                  "Value": "/deep/deeper/deeps/deeper"
+                },
+                {
+                  "Key": "graphql.error.location.column",
+                  "Value": 21
+                },
+                {
+                  "Key": "graphql.error.location.line",
+                  "Value": 6
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

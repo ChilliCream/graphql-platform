@@ -9,57 +9,26 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public static partial class SchemaRequestExecutorBuilderExtensions
 {
-    [Obsolete("Use ModifyOptions instead.")]
-    public static IRequestExecutorBuilder SetOptions(
-        this IRequestExecutorBuilder builder,
-        IReadOnlySchemaOptions options)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
-
-        return builder.ConfigureSchema(b => b.SetOptions(options));
-    }
-
+    /// <summary>
+    /// Modifies the GraphQL schema options.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="configure">
+    /// A delegate to configure the schema options.
+    /// </param>
+    /// <returns>
+    /// Returns the request executor builder to chain in further configuration.
+    /// </returns>
     public static IRequestExecutorBuilder ModifyOptions(
         this IRequestExecutorBuilder builder,
         Action<SchemaOptions> configure)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return builder.ConfigureSchema(b => b.ModifyOptions(configure));
-    }
-
-    public static IRequestExecutorBuilder SetContextData(
-        this IRequestExecutorBuilder builder,
-        string key,
-        object? value)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (key is null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
-
-        return builder.ConfigureSchema(b => b.SetContextData(key, value));
     }
 
     /// <summary>
@@ -76,6 +45,10 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder TrimTypes(
         this IRequestExecutorBuilder builder,
-        bool trim = true) =>
-        builder.ModifyOptions(o => o.RemoveUnreachableTypes = trim);
+        bool trim = true)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.ModifyOptions(o => o.RemoveUnreachableTypes = trim);
+    }
 }

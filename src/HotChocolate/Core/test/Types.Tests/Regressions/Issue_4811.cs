@@ -1,7 +1,4 @@
-#nullable enable
-
 using System.ComponentModel.DataAnnotations;
-using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -54,7 +51,7 @@ public class Issue_4811
 
     public class Book
     {
-        public string Title { get; set; } = default!;
+        public string Title { get; set; } = null!;
     }
 
     public class Query
@@ -62,7 +59,7 @@ public class Issue_4811
         public Book GetBook() =>
             new Book
             {
-                Title = "C# in depth.",
+                Title = "C# in depth."
             };
     }
 

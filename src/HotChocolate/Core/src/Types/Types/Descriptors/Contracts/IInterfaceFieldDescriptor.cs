@@ -1,10 +1,8 @@
-#nullable enable
-
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -12,7 +10,7 @@ namespace HotChocolate.Types;
 /// A fluent configuration API for GraphQL interface type fields.
 /// </summary>
 public interface IInterfaceFieldDescriptor
-    : IDescriptor<InterfaceFieldDefinition>
+    : IDescriptor<InterfaceFieldConfiguration>
     , IFluent
 {
     /// <summary>
@@ -182,7 +180,7 @@ public interface IInterfaceFieldDescriptor
     /// private sealed class Resolvers
     /// {
     ///    public ValueTask<string> GetFoo(
-    ///        [Service] IFooService service,
+    ///        IFooService service,
     ///        CancellationToken cancellationToken) =>
     ///        service.GetFooAsync(cancellationToken);
     /// }
@@ -215,7 +213,7 @@ public interface IInterfaceFieldDescriptor
     /// private sealed class Resolvers
     /// {
     ///    public ValueTask<string> GetFoo(
-    ///        [Service] IFooService service,
+    ///        IFooService service,
     ///        CancellationToken cancellationToken) =>
     ///        service.GetFooAsync(cancellationToken);
     /// }

@@ -3,6 +3,9 @@ using static HotChocolate.Caching.Properties.CacheControlResources;
 
 namespace HotChocolate.Caching;
 
+/// <summary>
+/// The scope of a cache hint.
+/// </summary>
 public sealed class CacheControlScopeType : EnumType<CacheControlScope>
 {
     protected override void Configure(

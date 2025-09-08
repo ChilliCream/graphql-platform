@@ -1,3 +1,5 @@
+#nullable disable
+
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
@@ -34,7 +36,7 @@ internal static class ExpressionHelper
     {
         if (contextData.TryGetValue(key, out var value))
         {
-            if (ReferenceEquals(value, null))
+            if (value is null)
             {
                 return default;
             }
@@ -85,8 +87,8 @@ internal static class ExpressionHelper
                 return default;
             }
 
-            if (value is TContextData v ||
-                context.Service<ITypeConverter>().TryConvert(value, out v))
+            if (value is TContextData v
+                || context.Service<ITypeConverter>().TryConvert(value, out v))
             {
                 return v;
             }

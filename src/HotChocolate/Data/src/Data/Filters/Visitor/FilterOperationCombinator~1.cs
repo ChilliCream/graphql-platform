@@ -31,14 +31,14 @@ public abstract class FilterOperationCombinator<TContext, T>
         FilterCombinator combinator,
         [NotNullWhen(true)] out TOperation combined)
     {
-        if (operations is Queue<T> operationsOfT &&
-            context is TContext contextOfT &&
-            TryCombineOperations(
+        if (operations is Queue<T> operationsOfT
+            && context is TContext contextOfT
+            && TryCombineOperations(
                 contextOfT,
                 operationsOfT,
                 combinator,
-                out var combinedOfT) &&
-            combinedOfT is TOperation combinedOperation)
+                out var combinedOfT)
+            && combinedOfT is TOperation combinedOperation)
         {
             combined = combinedOperation;
             return true;

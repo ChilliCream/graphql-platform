@@ -1,19 +1,16 @@
 {
   "errors": [
     {
-      "message": "Sequence contains more than one element.",
+      "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 3,
-          "column": 21
+          "line": 2,
+          "column": 5
         }
       ],
       "path": [
         "executable"
-      ],
-      "extensions": {
-        "code": "HC0022"
-      }
+      ]
     }
   ],
   "data": {

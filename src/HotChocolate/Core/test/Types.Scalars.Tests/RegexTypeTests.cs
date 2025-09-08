@@ -1,6 +1,4 @@
-using System.Text.RegularExpressions;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -188,7 +186,7 @@ public class RegexTypeTests : ScalarTypeTestBase
         /// <summary>
         /// Regex that validates the standard E.164 format
         /// </summary>
-        private const string _validationPattern = "^\\+[1-9]\\d{1,14}$";
+        private const string ValidationPattern = "^\\+[1-9][0-9]{2,14}$";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StubType"/>
@@ -196,9 +194,8 @@ public class RegexTypeTests : ScalarTypeTestBase
         public StubType()
             : base(
                 "StubType",
-                _validationPattern,
-                "This is just a stub type",
-                RegexOptions.Compiled | RegexOptions.IgnoreCase)
+                ValidationPattern,
+                "This is just a stub type")
         {
         }
     }

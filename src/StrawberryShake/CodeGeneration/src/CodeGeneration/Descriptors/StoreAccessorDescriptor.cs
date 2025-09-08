@@ -1,7 +1,7 @@
 namespace StrawberryShake.CodeGeneration.Descriptors;
 
 /// <summary>
-/// Describes the dependency injection requirements of a  GraphQL client
+/// Describes the dependency injection requirements of a GraphQL client
 /// </summary>
 public sealed class StoreAccessorDescriptor : ICodeDescriptor
 {

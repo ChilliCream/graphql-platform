@@ -19,10 +19,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="DataLoader_KeyParameterMissing" xml:space="preserve">
-    <value>A DataLoader must at least provides a key or keys parameter.</value>
+    <value>A DataLoader must at least provides a key or keys parameter</value>
   </data>
   <data name="DataLoader_InvalidAccessModifier" xml:space="preserve">
-    <value>The DataLoader access modifier must be public or internal.</value>
+    <value>The DataLoader access modifier must be public or internal</value>
   </data>
   <data name="InterceptsAttribute" xml:space="preserve">
     <value>#pragma warning disable CS9113 // Parameter is unread.

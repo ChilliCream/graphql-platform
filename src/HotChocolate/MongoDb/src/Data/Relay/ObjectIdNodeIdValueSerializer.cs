@@ -18,7 +18,7 @@ internal sealed class ObjectIdNodeIdValueSerializer(bool compress = true) : INod
         {
             if (compress)
             {
-                if(buffer.Length < 12)
+                if (buffer.Length < 12)
                 {
                     written = 0;
                     return NodeIdFormatterResult.BufferTooSmall;
@@ -26,13 +26,13 @@ internal sealed class ObjectIdNodeIdValueSerializer(bool compress = true) : INod
 
                 var rawBytes = ArrayPool<byte>.Shared.Rent(12);
                 o.ToByteArray(rawBytes, 0);
-                rawBytes.AsSpan().Slice(0, 12).CopyTo(buffer);
+                rawBytes.AsSpan()[..12].CopyTo(buffer);
                 ArrayPool<byte>.Shared.Return(rawBytes);
                 written = 12;
                 return NodeIdFormatterResult.Success;
             }
 
-            if(buffer.Length < 24)
+            if (buffer.Length < 24)
             {
                 written = 0;
                 return NodeIdFormatterResult.BufferTooSmall;
@@ -63,9 +63,9 @@ internal sealed class ObjectIdNodeIdValueSerializer(bool compress = true) : INod
         buffer[7] = ToHexChar(a & 0x0f);
         buffer[8] = ToHexChar((b >> 28) & 0x0f);
         buffer[9] = ToHexChar((b >> 24) & 0x0f);
-        buffer[10] =ToHexChar((b >> 20) & 0x0f);
-        buffer[11] =ToHexChar((b >> 16) & 0x0f);
-        buffer[12] =ToHexChar((b >> 12) & 0x0f);
+        buffer[10] = ToHexChar((b >> 20) & 0x0f);
+        buffer[11] = ToHexChar((b >> 16) & 0x0f);
+        buffer[12] = ToHexChar((b >> 12) & 0x0f);
         buffer[13] = ToHexChar((b >> 8) & 0x0f);
         buffer[14] = ToHexChar((b >> 4) & 0x0f);
         buffer[15] = ToHexChar(b & 0x0f);
@@ -112,7 +112,7 @@ internal sealed class ObjectIdNodeIdValueSerializer(bool compress = true) : INod
             return true;
         }
 
-        if(buffer.Length != 24)
+        if (buffer.Length != 24)
         {
             value = null;
             return false;
@@ -132,7 +132,7 @@ internal sealed class ObjectIdNodeIdValueSerializer(bool compress = true) : INod
 
     private static bool TryParseHexString(ReadOnlySpan<byte> formattedId, byte[] rawBytes)
     {
-        if (formattedId == null)
+        if (formattedId.IsEmpty)
         {
             return false;
         }

@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Tests;
@@ -11,7 +10,7 @@ namespace HotChocolate.Subscriptions;
 
 public abstract class SubscriptionIntegrationTestBase
 {
-    private static readonly int _timeout = Debugger.IsAttached ? 1000000 : 5000;
+    protected static readonly int Timeout = Debugger.IsAttached ? 1000000 : 5000;
     private readonly ITestOutputHelper _output;
 
     protected SubscriptionIntegrationTestBase(ITestOutputHelper output)
@@ -23,7 +22,7 @@ public abstract class SubscriptionIntegrationTestBase
     public virtual async Task Subscribe_Infer_Topic()
     {
         // arrange
-        using var cts = new CancellationTokenSource(_timeout);
+        using var cts = new CancellationTokenSource(Timeout);
         await using var services = CreateServer<Subscription>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
@@ -59,7 +58,7 @@ public abstract class SubscriptionIntegrationTestBase
     public virtual async Task Subscribe_Static_Topic()
     {
         // arrange
-        using var cts = new CancellationTokenSource(_timeout);
+        using var cts = new CancellationTokenSource(Timeout);
         await using var services = CreateServer<Subscription2>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
@@ -73,7 +72,7 @@ public abstract class SubscriptionIntegrationTestBase
         var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
 
         // assert
-        await sender.SendAsync("OnMessage", new Foo { Bar = "Hello", }, cts.Token);
+        await sender.SendAsync("OnMessage", new Foo { Bar = "Hello" }, cts.Token);
         await sender.CompleteAsync("OnMessage");
 
         var snapshot = new Snapshot();
@@ -97,7 +96,7 @@ public abstract class SubscriptionIntegrationTestBase
     public virtual async Task Subscribe_Topic_With_Arguments()
     {
         // arrange
-        using var cts = new CancellationTokenSource(_timeout);
+        using var cts = new CancellationTokenSource(Timeout);
         await using var services = CreateServer<Subscription3>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
@@ -133,7 +132,7 @@ public abstract class SubscriptionIntegrationTestBase
     public virtual async Task Subscribe_Topic_With_Arguments_2_Subscriber()
     {
         // arrange
-        using var cts = new CancellationTokenSource(_timeout);
+        using var cts = new CancellationTokenSource(Timeout);
         await using var services = CreateServer<Subscription3>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
@@ -194,7 +193,7 @@ public abstract class SubscriptionIntegrationTestBase
     public virtual async Task Subscribe_Topic_With_Arguments_2_Topics()
     {
         // arrange
-        using var cts = new CancellationTokenSource(_timeout);
+        using var cts = new CancellationTokenSource(Timeout);
         await using var services = CreateServer<Subscription3>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
@@ -258,7 +257,7 @@ public abstract class SubscriptionIntegrationTestBase
     public virtual async Task Subscribe_Topic_With_2_Arguments()
     {
         // arrange
-        using var cts = new CancellationTokenSource(_timeout);
+        using var cts = new CancellationTokenSource(Timeout);
         await using var services = CreateServer<Subscription3>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
@@ -294,7 +293,7 @@ public abstract class SubscriptionIntegrationTestBase
     public virtual async Task Subscribe_And_Complete_Topic()
     {
         // arrange
-        using var cts = new CancellationTokenSource(_timeout);
+        using var cts = new CancellationTokenSource(Timeout);
         await using var services = CreateServer<Subscription2>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
@@ -311,7 +310,7 @@ public abstract class SubscriptionIntegrationTestBase
         await Task.Delay(2000, cts.Token);
         await sender.CompleteAsync("OnMessage");
 
-        await foreach (var unused in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var _ in results.WithCancellation(cts.Token).ConfigureAwait(false))
         {
             Assert.Fail("Should not have any messages.");
         }
@@ -321,7 +320,7 @@ public abstract class SubscriptionIntegrationTestBase
     public virtual async Task Subscribe_And_Complete_Topic_With_ValueTypeMessage()
     {
         // arrange
-        using var cts = new CancellationTokenSource(_timeout);
+        using var cts = new CancellationTokenSource(Timeout);
         await using var services = CreateServer<Subscription3>();
         var sender = services.GetRequiredService<ITopicEventSender>();
 
@@ -338,7 +337,7 @@ public abstract class SubscriptionIntegrationTestBase
         await Task.Delay(2000, cts.Token);
         await sender.CompleteAsync("OnMessage3");
 
-        await foreach (var unused in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var _ in results.WithCancellation(cts.Token).ConfigureAwait(false))
         {
             Assert.Fail("Should not have any messages.");
         }
@@ -405,6 +404,6 @@ public abstract class SubscriptionIntegrationTestBase
 
     public enum FooEnum
     {
-        Bar,
+        Bar
     }
 }

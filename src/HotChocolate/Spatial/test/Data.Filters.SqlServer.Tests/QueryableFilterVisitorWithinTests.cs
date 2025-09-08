@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
@@ -9,30 +8,30 @@ namespace HotChocolate.Data.Spatial.Filters;
 [Collection("Postgres")]
 public class QueryableFilterVisitorWithinTests : SchemaCache
 {
-    private static readonly Polygon _truePolygon =
+    private static readonly Polygon s_truePolygon =
         new(new LinearRing(
         [
             new Coordinate(20, 20),
             new Coordinate(20, 100),
             new Coordinate(120, 100),
             new Coordinate(140, 20),
-            new Coordinate(20, 20),
+            new Coordinate(20, 20)
         ]));
 
-    private static readonly Polygon _falsePolygon =
+    private static readonly Polygon s_falsePolygon =
         new(new LinearRing(
         [
             new Coordinate(1000, 1000),
             new Coordinate(100000, 1000),
             new Coordinate(100000, 100000),
             new Coordinate(1000, 100000),
-            new Coordinate(1000, 1000),
+            new Coordinate(1000, 1000)
         ]));
 
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Id = 1, Bar = _truePolygon, },
-        new() { Id = 2, Bar = _falsePolygon, },
+        new() { Id = 1, Bar = s_truePolygon },
+        new() { Id = 2, Bar = s_falsePolygon }
     ];
 
     public QueryableFilterVisitorWithinTests(PostgreSqlResource<PostgisConfig> resource)
@@ -44,7 +43,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
     public async Task Create_Within_Query()
     {
         // arrange
-        var tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
+        var tester = await CreateSchemaAsync<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -102,10 +101,13 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "true"), res2, "false")
+        await Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
             .MatchAsync();
     }
 
@@ -116,7 +118,5 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
         public Polygon Bar { get; set; } = null!;
     }
 
-    public class FooFilterType : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterType : FilterInputType<Foo>;
 }

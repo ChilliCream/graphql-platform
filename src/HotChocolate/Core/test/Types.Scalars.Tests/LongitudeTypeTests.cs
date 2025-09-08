@@ -1,7 +1,7 @@
+using CookieCrumble.Xunit.Attributes;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using static HotChocolate.Language.SyntaxComparer;
 
 namespace HotChocolate.Types;
@@ -35,7 +35,7 @@ public class LongitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         var scalar = CreateType<LongitudeType>();
-        StringValueNode valueSyntax = new("179° 0' 0.000\" E")!;
+        StringValueNode valueSyntax = new("179° 0' 0.000\" E");
 
         // act
         var result = scalar.IsInstanceOfType(valueSyntax);
@@ -105,7 +105,7 @@ public class LongitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LongitudeType();
-        const string valueSyntax = "-181° 0' 0.000\" W"!;
+        const string valueSyntax = "-181° 0' 0.000\" W";
 
         // act
         var result = Record.Exception(() => scalar.ParseResult(valueSyntax));
@@ -185,6 +185,7 @@ public class LongitudeTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
+    [UseCulture("en-US")]
     [InlineData("176° 19' 26.576\" E", 176.3, 1)]
     [InlineData("62° 12' 48.831\" W", -62.2, 1)]
     [InlineData("4° 46' 6.456\" W", -4.77, 2)]
@@ -260,6 +261,7 @@ public class LongitudeTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
+    [UseCulture("en-US")]
     [InlineData(179d, "179° 0' 0\" E")]
     [InlineData(-179d, "179° 0' 0\" W")]
     [InlineData(174.3, "174° 18' 0\" E")]
@@ -340,7 +342,7 @@ public class LongitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LongitudeType();
-        const string valueSyntax = "-181° 0' 0.000\" W"!;
+        const string valueSyntax = "-181° 0' 0.000\" W";
 
         // act
 
@@ -356,7 +358,7 @@ public class LongitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LongitudeType();
-        const string? valueSyntax = "182° 0' 0.000\" E"!;
+        const string? valueSyntax = "182° 0' 0.000\" E";
 
         // act
         var result = Record.Exception(() => scalar.Deserialize(valueSyntax));

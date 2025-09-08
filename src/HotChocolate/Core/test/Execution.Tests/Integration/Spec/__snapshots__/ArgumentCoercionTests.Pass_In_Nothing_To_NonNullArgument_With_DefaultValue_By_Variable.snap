@@ -1,7 +1,7 @@
-﻿{
+{
   "errors": [
     {
-      "message": "Variable \u0060a\u0060 is required.",
+      "message": "Variable `a` is required.",
       "locations": [
         {
           "line": 1,

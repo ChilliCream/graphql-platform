@@ -1,7 +1,9 @@
+using GreenDonut.Data;
+
 namespace HotChocolate.Data.Sorting;
 
 /// <summary>
-/// Encapsulates all sorting specific information
+/// Encapsulates all sorting-specific information
 /// </summary>
 public interface ISortingContext
 {
@@ -19,6 +21,17 @@ public interface ISortingContext
     bool IsDefined { get; }
 
     /// <summary>
+    /// Specifies a delegate that is applied after sorting has been applied.
+    /// </summary>
+    /// <param name="action">
+    /// The delegate that is applied after sorting has been applied.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the entity.
+    /// </typeparam>
+    void OnAfterSortingApplied<T>(PostSortingAction<T> action);
+
+    /// <summary>
     /// Serializes the input object to a dictionary
     /// </summary>
     IList<IDictionary<string, object?>> ToList();
@@ -27,4 +40,15 @@ public interface ISortingContext
     /// Returns a collection of sorting operations in the order that they are requested
     /// </summary>
     IReadOnlyList<IReadOnlyList<ISortingFieldInfo>> GetFields();
+
+    /// <summary>
+    /// Returns a sort definition that can be used to sort a query.
+    /// </summary>
+    /// <typeparam name="T">
+    /// The type of the entity.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a sort definition that can be used to sort a query.
+    /// </returns>
+    SortDefinition<T>? AsSortDefinition<T>();
 }

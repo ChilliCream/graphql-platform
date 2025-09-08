@@ -1,7 +1,7 @@
-﻿{
+{
   "errors": [
     {
-      "message": "Could not resolve the actual object type from \u0060System.String\u0060 for the abstract type \u0060foo\u0060.",
+      "message": "Could not resolve the actual object type from `System.String` for the abstract type `foo`.",
       "locations": [
         {
           "line": 1,

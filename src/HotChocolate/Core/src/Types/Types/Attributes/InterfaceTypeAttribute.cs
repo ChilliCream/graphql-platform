@@ -1,13 +1,11 @@
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Interface)]
+    AttributeTargets.Class
+    | AttributeTargets.Interface)]
 public sealed class InterfaceTypeAttribute(string? name = null)
     : InterfaceTypeDescriptorAttribute
     , ITypeAttribute
@@ -36,7 +34,7 @@ public sealed class InterfaceTypeAttribute(string? name = null)
             descriptor.Name(Name);
         }
 
-        descriptor.Extend().Definition.Fields.BindingBehavior = BindingBehavior.Implicit;
+        descriptor.Extend().Configuration.Fields.BindingBehavior = BindingBehavior.Implicit;
     }
 }
 

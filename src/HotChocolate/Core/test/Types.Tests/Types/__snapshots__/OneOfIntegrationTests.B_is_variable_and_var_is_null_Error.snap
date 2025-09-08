@@ -1,0 +1,37 @@
+{
+  "errors": [
+    {
+      "message": "The variable `$b` assigned to the field `b` of the OneOf Input Object `ExampleInput` must be non-null.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 33
+        }
+      ],
+      "path": [
+        "example"
+      ],
+      "extensions": {
+        "fieldCoordinate": "ExampleInput.b",
+        "specifiedBy": "https://spec.graphql.org/draft/#sec-All-Variable-Usages-Are-Allowed",
+        "rfc": "https://github.com/graphql/graphql-spec/pull/825"
+      }
+    },
+    {
+      "message": "The variable `b` is not compatible with the type of the current one-of location.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 38
+        }
+      ],
+      "path": [
+        "example"
+      ],
+      "extensions": {
+        "variable": "b",
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Usages-are-Allowed"
+      }
+    }
+  ]
+}

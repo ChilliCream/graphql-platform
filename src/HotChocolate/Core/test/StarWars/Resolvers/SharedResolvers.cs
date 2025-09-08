@@ -19,7 +19,7 @@ public class SharedResolvers
         }
     }
 
-    public Human GetOtherHuman(
+    public Human? GetOtherHuman(
         [Parent] ICharacter character,
         [Service] CharacterRepository repository)
     {
@@ -28,7 +28,7 @@ public class SharedResolvers
             return null;
         }
         return character.Friends
-            .Select(t => repository.GetCharacter(t))
+            .Select(repository.GetCharacter)
             .OfType<Human>()
             .FirstOrDefault();
     }

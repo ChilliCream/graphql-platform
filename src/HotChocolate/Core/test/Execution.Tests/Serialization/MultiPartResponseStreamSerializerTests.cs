@@ -1,7 +1,7 @@
 using HotChocolate.StarWars;
+using HotChocolate.Transport.Formatters;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution.Serialization;
 

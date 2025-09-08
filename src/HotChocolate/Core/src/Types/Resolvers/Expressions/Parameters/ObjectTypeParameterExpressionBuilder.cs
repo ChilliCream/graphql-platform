@@ -3,20 +3,18 @@ using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class ObjectTypeParameterExpressionBuilder()
-    : LambdaParameterExpressionBuilder<IObjectType>(ctx => ctx.ObjectType, isPure: true)
+    : LambdaParameterExpressionBuilder<IObjectTypeDefinition>(ctx => ctx.ObjectType, isPure: true)
     , IParameterBindingFactory
     , IParameterBinding
 {
     public override ArgumentKind Kind => ArgumentKind.ObjectType;
 
     public override bool CanHandle(ParameterInfo parameter)
-        => typeof(ObjectType) == parameter.ParameterType ||
-           typeof(IObjectType) == parameter.ParameterType;
+        => typeof(ObjectType) == parameter.ParameterType
+            || typeof(IObjectTypeDefinition) == parameter.ParameterType;
 
     public override Expression Build(ParameterExpressionBuilderContext context)
     {
@@ -31,5 +29,5 @@ internal sealed class ObjectTypeParameterExpressionBuilder()
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)context.ObjectType;
+        => (T)(object)context.ObjectType;
 }

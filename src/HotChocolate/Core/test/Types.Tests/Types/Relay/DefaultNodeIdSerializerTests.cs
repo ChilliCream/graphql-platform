@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using CookieCrumble;
 using Moq;
 
 namespace HotChocolate.Types.Relay;
@@ -28,10 +27,228 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
+    public void Format_Small_StringId_Legacy_Format()
+    {
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer(), outputNewIdFormat: false);
+
+        var id = serializer.Format("Foo", "abc");
+
+        Assert.Equal("Rm9vCmRhYmM=", id);
+    }
+
+    [Fact]
+    public void Format_Small_StringId_UrlSafe()
+    {
+        var serializer = CreateSerializer(
+            new StringNodeIdValueSerializer(),
+            outputNewIdFormat: false,
+            useUrlSafeBase64: true);
+
+        var value = Encoding.UTF8.GetString(Convert.FromBase64String("Rm9vOkberW9vVHlwZe+/vSs="));
+        var id = serializer.Format("Foo", value);
+
+        Assert.Equal("Rm9vCmRGb286Rt6tb29UeXBl77-9Kw==", id);
+    }
+
+    [Fact]
+    public void Parse_Small_StringId_UrlSafe()
+    {
+        var serializer = CreateSerializer(
+            new StringNodeIdValueSerializer(),
+            outputNewIdFormat: false,
+            useUrlSafeBase64: true);
+
+        var id = serializer.Parse("Rm9vCmRGb286Rt6tb29UeXBl77-9Kw==", typeof(string));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("Foo:F\u07adooType\ufffd+", id.InternalId);
+    }
+
+    [Fact]
+    public void Format_480_Byte_Long_StringId()
+    {
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", new string('a', 480));
+
+        Assert.Equal(
+            "Rm9vOmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYQ==",
+            id);
+    }
+
+    [Fact]
+    public void Format_480_Byte_Long_StringId_Legacy_Format()
+    {
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer(), outputNewIdFormat: false);
+
+        var id = serializer.Format("Foo", new string('a', 480));
+
+        Assert.Equal(
+            "Rm9vCmRhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWE=",
+            id);
+    }
+
+    [Fact]
+    public void Format_Int16Id()
+    {
+        var serializer = CreateSerializer(new Int16NodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", (short)6);
+
+        Assert.Equal("Rm9vOjY=", id);
+    }
+
+    [Fact]
+    public void Format_Int16Id_Legacy_Format()
+    {
+        var serializer = CreateSerializer(new Int16NodeIdValueSerializer(), outputNewIdFormat: false);
+
+        var id = serializer.Format("Foo", (short)6);
+
+        Assert.Equal("Rm9vCnM2", id);
+    }
+
+    [Fact]
+    public void Format_Int32Id()
+    {
+        var serializer = CreateSerializer(new Int32NodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", 32);
+
+        Assert.Equal("Rm9vOjMy", id);
+    }
+
+    [Fact]
+    public void Format_Int32Id_Legacy_Format()
+    {
+        var serializer = CreateSerializer(new Int32NodeIdValueSerializer(), outputNewIdFormat: false);
+
+        var id = serializer.Format("Foo", 32);
+
+        Assert.Equal("Rm9vCmkzMg==", id);
+    }
+
+    [Fact]
+    public void Format_Int64Id()
+    {
+        var serializer = CreateSerializer(new Int64NodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", (long)64);
+
+        Assert.Equal("Rm9vOjY0", id);
+    }
+
+    [Fact]
+    public void Format_Int64Id_Legacy_Format()
+    {
+        var serializer = CreateSerializer(new Int64NodeIdValueSerializer(), outputNewIdFormat: false);
+
+        var id = serializer.Format("Foo", (long)64);
+
+        Assert.Equal("Rm9vCmw2NA==", id);
+    }
+
+    [Fact]
+    public void Format_Empty_Guid()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(false));
+
+        var id = serializer.Format("Foo", Guid.Empty);
+
+        Assert.Equal("Rm9vOjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw", id);
+    }
+
+    [Fact]
+    public void Format_Empty_Guid_Compressed()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", Guid.Empty);
+
+        Assert.Equal("Rm9vOgAAAAAAAAAAAAAAAAAAAAA=", id);
+    }
+
+    [Fact]
+    public void Format_Normal_Guid()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(false));
+
+        var internalId = new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3");
+        var id = serializer.Format("Foo", internalId);
+
+        Assert.Equal("Rm9vOjFhZTI3YjE0OGNmNjQ0MGQ5YTQ2MDkwOTBhNGFmNmYz", id);
+    }
+
+    [Fact]
+    public void Format_Normal_Guid_Legacy_Format()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(false), outputNewIdFormat: false);
+
+        var internalId = new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3");
+        var id = serializer.Format("Foo", internalId);
+
+        Assert.Equal("Rm9vCmcxYWUyN2IxNDhjZjY0NDBkOWE0NjA5MDkwYTRhZjZmMw==", id);
+    }
+
+    [Fact]
+    public void Format_Normal_Guid_Compressed()
+    {
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3"));
+
+        Assert.Equal("Rm9vOhR74hr2jA1EmkYJCQpK9vM=", id);
+    }
+
+    [Fact]
+    public void Format_CompositeId()
+    {
+        var serializer = CreateSerializer(new CompositeIdNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", new CompositeId("foo", 42, Guid.Empty, true));
+
+        Assert.Equal("Rm9vOmZvbzo0MjoAAAAAAAAAAAAAAAAAAAAAOjE=", id);
+    }
+
+    [Fact]
+    public void Format_CompositeId_Legacy_Format()
+    {
+        var serializer = CreateSerializer(new CompositeIdNodeIdValueSerializer(), outputNewIdFormat: false);
+
+        var id = serializer.Format("Foo", new CompositeId("foo", 42, Guid.Empty, true));
+
+        Assert.Equal("Rm9vCmRmb286NDI6AAAAAAAAAAAAAAAAAAAAADox", id);
+    }
+
+    [Fact]
     public void Parse_Small_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(default(Type));
 
         var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
@@ -39,6 +256,100 @@ public class DefaultNodeIdSerializerTests
 
         Assert.Equal("Foo", id.TypeName);
         Assert.Equal("abc", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_480_Byte_Long_StringId()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(default(Type));
+
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse(
+            "Rm9vOmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+            + "YWFhYWFhYWFhYWFhYWFhYQ==",
+            lookup.Object);
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(new string('a', 480), id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Int16Id()
+    {
+        var serializer = CreateSerializer(new Int16NodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vOjEyMw==", typeof(short));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal((short)123, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Legacy_Int16Id()
+    {
+        var serializer = CreateSerializer(new Int16NodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vCnMxMjM=", typeof(short));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal((short)123, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Int32Id()
+    {
+        var serializer = CreateSerializer(new Int32NodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vOjEyMw==", typeof(int));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(123, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Legacy_Int32Id()
+    {
+        var serializer = CreateSerializer(new Int32NodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vCmkxMjM=", typeof(int));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(123, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Int64Id()
+    {
+        var serializer = CreateSerializer(new Int64NodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vOjEyMw==", typeof(long));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal((long)123, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Legacy_Int64Id()
+    {
+        var serializer = CreateSerializer(new Int64NodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vCmwxMjM=", typeof(long));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal((long)123, id.InternalId);
     }
 
     [Fact]
@@ -100,7 +411,7 @@ public class DefaultNodeIdSerializerTests
     public void Parse_Empty_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(default(Type));
 
         var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
@@ -136,7 +447,7 @@ public class DefaultNodeIdSerializerTests
     public void Parse_Small_Legacy_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(default(Type));
 
         var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
@@ -169,139 +480,6 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
-    public void Format_480_Byte_Long_StringId()
-    {
-        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
-
-        var id = serializer.Format("Foo", new string('a', 480));
-
-        Assert.Equal(
-            "Rm9vOmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYQ==",
-            id);
-    }
-
-    [Fact]
-    public void Parse_480_Byte_Long_StringId()
-    {
-        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
-
-        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
-
-        var id = serializer.Parse(
-            "Rm9vOmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYQ==",
-            lookup.Object);
-
-        Assert.Equal("Foo", id.TypeName);
-        Assert.Equal(new string('a', 480), id.InternalId);
-    }
-
-    [Fact]
-    public void Serialize_Int16Id()
-    {
-        var serializer = CreateSerializer(new Int16NodeIdValueSerializer());
-
-        var id = serializer.Format("Foo", (short)6);
-
-        Assert.Equal("Rm9vOjY=", id);
-    }
-
-    [Fact]
-    public void Serialize_Int32Id()
-    {
-        var serializer = CreateSerializer(new Int32NodeIdValueSerializer());
-
-        var id = serializer.Format("Foo", 32);
-
-        Assert.Equal("Rm9vOjMy", id);
-    }
-
-    [Fact]
-    public void Serialize_Int64Id()
-    {
-        var serializer = CreateSerializer(new Int64NodeIdValueSerializer());
-
-        var id = serializer.Format("Foo", (long)64);
-
-        Assert.Equal("Rm9vOjY0", id);
-    }
-
-    [Fact]
-    public void Serialize_Empty_Guid()
-    {
-        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(false));
-
-        var id = serializer.Format("Foo", Guid.Empty);
-
-        Assert.Equal("Rm9vOjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw", id);
-    }
-
-    [Fact]
-    public void Serialize_Empty_Guid_Compressed()
-    {
-        var serializer = CreateSerializer(new GuidNodeIdValueSerializer());
-
-        var id = serializer.Format("Foo", Guid.Empty);
-
-        Assert.Equal("Rm9vOgAAAAAAAAAAAAAAAAAAAAA=", id);
-    }
-
-    [Fact]
-    public void Serialize_Normal_Guid()
-    {
-        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(false));
-
-        var internalId = new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3");
-        var id = serializer.Format("Foo", internalId);
-
-        Assert.Equal("Rm9vOjFhZTI3YjE0OGNmNjQ0MGQ5YTQ2MDkwOTBhNGFmNmYz", id);
-    }
-
-    [Fact]
-    public void Serialize_Normal_Guid_Compressed()
-    {
-        var serializer = CreateSerializer(new GuidNodeIdValueSerializer());
-
-        var id = serializer.Format("Foo", new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3"));
-
-        Assert.Equal("Rm9vOhR74hr2jA1EmkYJCQpK9vM=", id);
-    }
-
-    [Fact]
-    public void Format_CompositeId()
-    {
-        var serializer = CreateSerializer(new CompositeIdNodeIdValueSerializer());
-
-        var id = serializer.Format("Foo", new CompositeId("foo", 42, Guid.Empty, true));
-
-        Assert.Equal("Rm9vOmZvbzo0MjoAAAAAAAAAAAAAAAAAAAAAOjE=", id);
-    }
-
-    [Fact]
     public void Parse_CompositeId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
@@ -329,6 +507,24 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
+    public void Parse_CompositeId_With_Escaping()
+    {
+        var compositeId =
+            new CompositeId(
+                ":foo:bar:",
+                42,
+                // The bytes of this GUID contain a part separator (colon).
+                new Guid("3bc83a67-b494-4c0c-a31a-d1921b077a32"),
+                true);
+        var serializer = CreateSerializer(new CompositeIdNodeIdValueSerializer());
+        var id = serializer.Format("Foo", compositeId);
+
+        var parsed = serializer.Parse(id, typeof(CompositeId));
+
+        Assert.Equal(compositeId, parsed.InternalId);
+    }
+
+    [Fact]
     public void Parse_Legacy_StronglyTypedId()
     {
         var stronglyTypedId = new StronglyTypedId(123, 456);
@@ -341,63 +537,103 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
+    public void Parse_Throws_NodeIdInvalidFormatException_On_InvalidBase64Input()
+    {
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
+
+        Assert.Throws<NodeIdInvalidFormatException>(
+            () => serializer.Parse("!", typeof(string)));
+    }
+
+    [Fact]
+    public void ParseOnRuntimeLookup_Throws_NodeIdInvalidFormatException_On_InvalidBase64Input()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(default(Type));
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
+
+        Assert.Throws<NodeIdInvalidFormatException>(
+            () => serializer.Parse("!", lookup.Object));
+    }
+
+    [Theory]
+    [InlineData("RW50aXR5OjE")]      // No padding (length: 11).
+    [InlineData("RW50aXR5OjE=")]     // Correct padding (length: 12).
+    [InlineData("RW50aXR5OjE==")]    // Excess padding (length: 13).
+    [InlineData("RW50aXR5OjE===")]   // Excess padding (length: 14).
+    [InlineData("RW50aXR5OjE====")]  // Excess padding (length: 15).
+    [InlineData("RW50aXR5OjE=====")] // Excess padding (length: 16).
+    public void Parse_Ensures_Correct_Padding(string id)
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType("Entity")).Returns(typeof(int));
+        var serializer = CreateSerializer(new Int32NodeIdValueSerializer());
+
+        void Act1() => serializer.Parse(id, typeof(int));
+        void Act2() => serializer.Parse(id, lookup.Object);
+
+        Assert.Null(Record.Exception(Act1));
+        Assert.Null(Record.Exception(Act2));
+    }
+
+    [Fact]
     public void Ensure_Lookup_Works_With_HashCollision()
     {
         // arrange
         const string namesString =
-            "Error,Node,Attribute,AttributeNotFoundError,AttributeProduct,AttributeProductValue," +
-            "AttributeValue,AttributesConnection,AttributesEdge,CategoriesConnection,CategoriesEdge," +
-            "Category,CategoryNotFoundError,Channel,ChannelNotFoundError,ChannelsConnection,ChannelsEdge," +
-            "Collection,CreateAttributePayload,CreateCategoryPayload,CreateChannelPayload,CreateProductPayload," +
-            "CreateVariantPayload,CreateVariantPricePayload,Currency,CurrencyChannel,DeleteAttributePayload," +
-            "DeleteCategoryPayload,DeleteChannelPayload,DeleteProductPayload,DeleteVariantPayload," +
-            "DeleteVariantPricePayload,EntitySaveError,InventoryEntry,Media,MediasConnection," +
-            "MediasEdge,MetadataBooleanValue,MetadataCollection,MetadataCollectionsConnection," +
-            "MetadataCollectionsEdge,MetadataDateValue,MetadataDefinition,MetadataNumberValue," +
-            "MetadataTextValue,MetadataValue,Mutation,PageInfo,Product,ProductCategorySortOrder," +
-            "ProductChannel,ProductCollection,ProductNotFoundError,ProductType,ProductTypesConnection," +
-            "ProductTypesEdge,ProductVendor,ProductVendorsConnection,ProductVendorsEdge,ProductsConnection," +
-            "ProductsEdge,Query,StorageProviderPayload,SubCategoriesConnection,SubCategoriesEdge,Tag," +
-            "TagsConnection,TagsEdge,UpdateAttributePayload,UpdateCategoryPayload,UpdateChannelPayload," +
-            "UpdateProductChannelAvailabilityPayload,UpdateProductPayload,UpdateVariantChannelAvailabilityPayload," +
-            "UpdateVariantPayload,UpdateVariantPricePayload,UploadMediaPayload,Variant,VariantChannel,VariantMedia," +
-            "VariantPrice,VariantsConnection,VariantsEdge,Warehouse,WarehouseChannel,CreateAttributeError," +
-            "CreateCategoryError,CreateChannelError,CreateProductError,CreateVariantError,CreateVariantPriceError," +
-            "DeleteAttributeError,DeleteCategoryError,DeleteChannelError,DeleteProductError,DeleteVariantError," +
-            "DeleteVariantPriceError,MetadataTypedValue,StorageProviderError,UpdateAttributeError," +
-            "UpdateCategoryError,UpdateChannelError,UpdateProductChannelAvailabilityError,UpdateProductError," +
-            "UpdateVariantChannelAvailabilityError,UpdateVariantError,UpdateVariantPriceError,UploadMediaError," +
-            "AttributeFilterInput,AttributeProductInput,AttributeProductValueUpdateInput,AttributeSortInput," +
-            "AttributeValueFilterInput,BooleanOperationFilterInput,CategoryFilterInput,CategorySortInput," +
-            "ChannelFilterInput,ChannelSortInput,CollectionFilterInput,CreateAttributeInput,CreateCategoryInput," +
-            "CreateChannelInput,CreateProductInput,CreateVariantInput,CreateVariantPriceInput," +
-            "CurrencyChannelFilterInput,CurrencyFilterInput,DateTimeOperationFilterInput,DeleteAttributeInput," +
-            "DeleteCategoryInput,DeleteChannelInput,DeleteProductInput,DeleteVariantInput,DeleteVariantPriceInput," +
-            "GeneralMetadataInput,IMetadataTypedValueFilterInput,IdOperationFilterInput,IntOperationFilterInput," +
-            "InventoryEntryFilterInput,ListAttributeFilterInputWithSearchFilterInput," +
-            "ListFilterInputTypeOfAttributeValueFilterInput,ListFilterInputTypeOfCurrencyChannelFilterInput," +
-            "ListFilterInputTypeOfInventoryEntryFilterInput,ListFilterInputTypeOfMetadataDefinitionFilterInput," +
-            "ListFilterInputTypeOfMetadataValueFilterInput,ListFilterInputTypeOfProductCategorySortOrderFilterInput," +
-            "ListFilterInputTypeOfProductChannelFilterInput,ListFilterInputTypeOfProductCollectionFilterInput," +
-            "ListFilterInputTypeOfVariantChannelFilterInput,ListFilterInputTypeOfVariantMediaFilterInput," +
-            "ListFilterInputTypeOfVariantPriceFilterInput,ListFilterInputTypeOfWarehouseChannelFilterInput," +
-            "ListProductFilterInputWithSearchFilterInput,ListTagFilterInputWithSearchFilterInput," +
-            "ListVariantFilterInputWithSearchFilterInput,LongOperationFilterInput,MediaFilterInput," +
-            "MediaSortInput,MetadataCollectionFilterInput,MetadataCollectionSortInput,MetadataDefinitionFilterInput," +
-            "MetadataTypeOperationFilterInput,MetadataValueFilterInput,ProductCategorySortOrderFilterInput," +
-            "ProductChannelAvailabilityUpdateInput,ProductChannelFilterInput,ProductCollectionFilterInput," +
-            "ProductFilterInput,ProductSortInput,ProductTypeFilterInput,ProductTypeSortInput," +
-            "ProductVendorFilterInput,ProductVendorSortInput,StorageProviderInput,StringOperationFilterInput," +
-            "TagFilterInput,TagSortInput,UpdateAttributeInput,UpdateCategoryInput,UpdateChannelInput," +
-            "UpdateProductChannelAvailabilityInput,UpdateProductInput,UpdateVariantChannelAvailabilityInput," +
-            "UpdateVariantInput,UpdateVariantPriceInput,UploadMediaInput,UuidOperationFilterInput," +
-            "VariantChannelAvailabilityUpdateInput,VariantChannelFilterInput,VariantFilterInput," +
-            "VariantMediaFilterInput,VariantPriceFilterInput,VariantSortInput,WarehouseChannelFilterInput," +
-            "WarehouseFilterInput,ApplyPolicy,MediaStorageProvider,MetadataType,SortEnumType,DateTime,Long," +
-            "UUID,Upload";
+            "Error,Node,Attribute,AttributeNotFoundError,AttributeProduct,AttributeProductValue,"
+            + "AttributeValue,AttributesConnection,AttributesEdge,CategoriesConnection,CategoriesEdge,"
+            + "Category,CategoryNotFoundError,Channel,ChannelNotFoundError,ChannelsConnection,ChannelsEdge,"
+            + "Collection,CreateAttributePayload,CreateCategoryPayload,CreateChannelPayload,CreateProductPayload,"
+            + "CreateVariantPayload,CreateVariantPricePayload,Currency,CurrencyChannel,DeleteAttributePayload,"
+            + "DeleteCategoryPayload,DeleteChannelPayload,DeleteProductPayload,DeleteVariantPayload,"
+            + "DeleteVariantPricePayload,EntitySaveError,InventoryEntry,Media,MediasConnection,"
+            + "MediasEdge,MetadataBooleanValue,MetadataCollection,MetadataCollectionsConnection,"
+            + "MetadataCollectionsEdge,MetadataDateValue,MetadataDefinition,MetadataNumberValue,"
+            + "MetadataTextValue,MetadataValue,Mutation,PageInfo,Product,ProductCategorySortOrder,"
+            + "ProductChannel,ProductCollection,ProductNotFoundError,ProductType,ProductTypesConnection,"
+            + "ProductTypesEdge,ProductVendor,ProductVendorsConnection,ProductVendorsEdge,ProductsConnection,"
+            + "ProductsEdge,Query,StorageProviderPayload,SubCategoriesConnection,SubCategoriesEdge,Tag,"
+            + "TagsConnection,TagsEdge,UpdateAttributePayload,UpdateCategoryPayload,UpdateChannelPayload,"
+            + "UpdateProductChannelAvailabilityPayload,UpdateProductPayload,UpdateVariantChannelAvailabilityPayload,"
+            + "UpdateVariantPayload,UpdateVariantPricePayload,UploadMediaPayload,Variant,VariantChannel,VariantMedia,"
+            + "VariantPrice,VariantsConnection,VariantsEdge,Warehouse,WarehouseChannel,CreateAttributeError,"
+            + "CreateCategoryError,CreateChannelError,CreateProductError,CreateVariantError,CreateVariantPriceError,"
+            + "DeleteAttributeError,DeleteCategoryError,DeleteChannelError,DeleteProductError,DeleteVariantError,"
+            + "DeleteVariantPriceError,MetadataTypedValue,StorageProviderError,UpdateAttributeError,"
+            + "UpdateCategoryError,UpdateChannelError,UpdateProductChannelAvailabilityError,UpdateProductError,"
+            + "UpdateVariantChannelAvailabilityError,UpdateVariantError,UpdateVariantPriceError,UploadMediaError,"
+            + "AttributeFilterInput,AttributeProductInput,AttributeProductValueUpdateInput,AttributeSortInput,"
+            + "AttributeValueFilterInput,BooleanOperationFilterInput,CategoryFilterInput,CategorySortInput,"
+            + "ChannelFilterInput,ChannelSortInput,CollectionFilterInput,CreateAttributeInput,CreateCategoryInput,"
+            + "CreateChannelInput,CreateProductInput,CreateVariantInput,CreateVariantPriceInput,"
+            + "CurrencyChannelFilterInput,CurrencyFilterInput,DateTimeOperationFilterInput,DeleteAttributeInput,"
+            + "DeleteCategoryInput,DeleteChannelInput,DeleteProductInput,DeleteVariantInput,DeleteVariantPriceInput,"
+            + "GeneralMetadataInput,IMetadataTypedValueFilterInput,IdOperationFilterInput,IntOperationFilterInput,"
+            + "InventoryEntryFilterInput,ListAttributeFilterInputWithSearchFilterInput,"
+            + "ListFilterInputTypeOfAttributeValueFilterInput,ListFilterInputTypeOfCurrencyChannelFilterInput,"
+            + "ListFilterInputTypeOfInventoryEntryFilterInput,ListFilterInputTypeOfMetadataDefinitionFilterInput,"
+            + "ListFilterInputTypeOfMetadataValueFilterInput,ListFilterInputTypeOfProductCategorySortOrderFilterInput,"
+            + "ListFilterInputTypeOfProductChannelFilterInput,ListFilterInputTypeOfProductCollectionFilterInput,"
+            + "ListFilterInputTypeOfVariantChannelFilterInput,ListFilterInputTypeOfVariantMediaFilterInput,"
+            + "ListFilterInputTypeOfVariantPriceFilterInput,ListFilterInputTypeOfWarehouseChannelFilterInput,"
+            + "ListProductFilterInputWithSearchFilterInput,ListTagFilterInputWithSearchFilterInput,"
+            + "ListVariantFilterInputWithSearchFilterInput,LongOperationFilterInput,MediaFilterInput,"
+            + "MediaSortInput,MetadataCollectionFilterInput,MetadataCollectionSortInput,MetadataDefinitionFilterInput,"
+            + "MetadataTypeOperationFilterInput,MetadataValueFilterInput,ProductCategorySortOrderFilterInput,"
+            + "ProductChannelAvailabilityUpdateInput,ProductChannelFilterInput,ProductCollectionFilterInput,"
+            + "ProductFilterInput,ProductSortInput,ProductTypeFilterInput,ProductTypeSortInput,"
+            + "ProductVendorFilterInput,ProductVendorSortInput,StorageProviderInput,StringOperationFilterInput,"
+            + "TagFilterInput,TagSortInput,UpdateAttributeInput,UpdateCategoryInput,UpdateChannelInput,"
+            + "UpdateProductChannelAvailabilityInput,UpdateProductInput,UpdateVariantChannelAvailabilityInput,"
+            + "UpdateVariantInput,UpdateVariantPriceInput,UploadMediaInput,UuidOperationFilterInput,"
+            + "VariantChannelAvailabilityUpdateInput,VariantChannelFilterInput,VariantFilterInput,"
+            + "VariantMediaFilterInput,VariantPriceFilterInput,VariantSortInput,WarehouseChannelFilterInput,"
+            + "WarehouseFilterInput,ApplyPolicy,MediaStorageProvider,MetadataType,SortEnumType,DateTime,Long,"
+            + "UUID,Upload";
 
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(default(Type));
 
         var names = new HashSet<string>(namesString.Split(','));
         var stringValueSerializer = new StringNodeIdValueSerializer();
@@ -429,20 +665,25 @@ public class DefaultNodeIdSerializerTests
         snapshot.MatchMarkdownSnapshot();
     }
 
-    private static DefaultNodeIdSerializer CreateSerializer(INodeIdValueSerializer serializer)
+    private static DefaultNodeIdSerializer CreateSerializer(
+        INodeIdValueSerializer serializer,
+        bool outputNewIdFormat = true,
+        bool useUrlSafeBase64 = false)
     {
         return new DefaultNodeIdSerializer(
-            serializers: [serializer]);
+            serializers: [serializer],
+            outputNewIdFormat: outputNewIdFormat,
+            urlSafeBase64: useUrlSafeBase64);
     }
 
     private sealed class CompositeIdNodeIdValueSerializer : CompositeNodeIdValueSerializer<CompositeId>
     {
         protected override NodeIdFormatterResult Format(Span<byte> buffer, CompositeId value, out int written)
         {
-            if (TryFormatIdPart(buffer, value.A, out var a) &&
-                TryFormatIdPart(buffer.Slice(a), value.B, out var b) &&
-                TryFormatIdPart(buffer.Slice(a + b), value.C, out var c) &&
-                TryFormatIdPart(buffer.Slice(a + b + c), value.D, out var d))
+            if (TryFormatIdPart(buffer, value.A, out var a)
+                && TryFormatIdPart(buffer[a..], value.B, out var b)
+                && TryFormatIdPart(buffer[(a + b)..], value.C, out var c)
+                && TryFormatIdPart(buffer[(a + b + c)..], value.D, out var d))
             {
                 written = a + b + c + d;
                 return NodeIdFormatterResult.Success;
@@ -454,10 +695,10 @@ public class DefaultNodeIdSerializerTests
 
         protected override bool TryParse(ReadOnlySpan<byte> buffer, out CompositeId value)
         {
-            if(TryParseIdPart(buffer, out string a, out var ac) &&
-                TryParseIdPart(buffer.Slice(ac), out int b, out var bc) &&
-                TryParseIdPart(buffer.Slice(ac + bc), out Guid c, out var cc) &&
-                TryParseIdPart(buffer.Slice(ac + bc + cc), out bool d, out _))
+            if (TryParseIdPart(buffer, out string? a, out var ac)
+                && TryParseIdPart(buffer[ac..], out int b, out var bc)
+                && TryParseIdPart(buffer[(ac + bc)..], out Guid c, out var cc)
+                && TryParseIdPart(buffer[(ac + bc + cc)..], out bool d, out _))
             {
                 value = new CompositeId(a, b, c, d);
                 return true;

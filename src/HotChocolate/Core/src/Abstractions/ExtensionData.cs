@@ -20,16 +20,7 @@ public sealed class ExtensionData
 
     public ExtensionData(IReadOnlyDictionary<string, object?> extensionData)
     {
-#if NET6_0_OR_GREATER
         _dict = new Dictionary<string, object?>(extensionData);
-#else
-        _dict = new Dictionary<string, object?>();
-
-        foreach (var item in extensionData)
-        {
-            _dict.Add(item.Key, item.Value);
-        }
-#endif
     }
 
     public object? this[string key]
@@ -103,8 +94,8 @@ public sealed class ExtensionData
     }
 
     public bool Contains(KeyValuePair<string, object?> item)
-        => (_dict?.TryGetValue(item.Key, out var value) ?? false) &&
-            Equals(item.Value, value);
+        => (_dict?.TryGetValue(item.Key, out var value) ?? false)
+            && Equals(item.Value, value);
 
     public bool ContainsKey(string key)
         => _dict?.ContainsKey(key) ?? false;
@@ -133,7 +124,7 @@ public sealed class ExtensionData
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Dictionary<string, object?> Dict()
-        => _dict ??= new Dictionary<string, object?>();
+        => _dict ??= [];
 
     internal bool TryGetInnerDictionary(
         [NotNullWhen(true)] out Dictionary<string, object?>? dictionary)

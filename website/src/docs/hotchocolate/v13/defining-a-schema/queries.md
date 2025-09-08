@@ -32,7 +32,7 @@ Queries are expected to be side-effect free and are therefore parallelized by th
 A query type can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -54,7 +54,7 @@ public class Startup
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

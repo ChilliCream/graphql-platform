@@ -39,9 +39,9 @@ public class UpdateCommandHandler : CommandHandler<UpdateCommandArguments>
             accessToken?.Token,
             accessToken?.Scheme,
             CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values),
-            arguments.TypeDepth.HasValue() &&
-            int.TryParse(arguments.TypeDepth.Value(), out var typeDepth) &&
-            typeDepth >= 3 ? typeDepth : 6);
+            arguments.TypeDepth.HasValue()
+            && int.TryParse(arguments.TypeDepth.Value(), out var typeDepth)
+            && typeDepth >= 3 ? typeDepth : 6);
 
         return context.Path is null
             ? await FindAndUpdateSchemasAsync(context, cancellationToken)
@@ -62,12 +62,10 @@ public class UpdateCommandHandler : CommandHandler<UpdateCommandArguments>
                         context, path, cancellationToken)
                     .ConfigureAwait(false);
             }
-#pragma warning disable CA1031 // Do not catch general exception types
             catch
             {
                 return 1;
             }
-#pragma warning restore CA1031 // Do not catch general exception types
         }
         return 0;
     }

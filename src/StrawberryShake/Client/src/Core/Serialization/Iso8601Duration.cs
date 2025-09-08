@@ -16,7 +16,7 @@ internal struct Iso8601Duration
         HasDays = 8,
         HasHours = 16,
         HasMinutes = 32,
-        HasSeconds = 64,
+        HasSeconds = 64
     }
 
     /// <summary>
@@ -105,19 +105,19 @@ internal struct Iso8601Duration
 
     internal static bool TryParse(string s, out TimeSpan? result)
     {
-        int years = default;
-        int months = default;
-        int weeks = default;
-        int days = default;
-        int hours = default;
-        int minutes = default;
-        int seconds = default;
-        uint nanoseconds = default;
+        var years = 0;
+        var months = 0;
+        var weeks = 0;
+        var days = 0;
+        var hours = 0;
+        var minutes = 0;
+        var seconds = 0;
+        uint nanoseconds = 0;
         var isNegative = false;
 
         var parts = Parts.HasNone;
 
-        result = default;
+        result = null;
 
         s = s.Trim();
         var length = s.Length;
@@ -224,7 +224,7 @@ internal struct Iso8601Duration
             days = value;
             if (++pos <= length)
             {
-                if (!TryParseDigits(s, ref pos, false, out value, out numDigits))
+                if (!TryParseDigits(s, ref pos, false, out _, out numDigits))
                 {
                     return false;
                 }
@@ -276,8 +276,8 @@ internal struct Iso8601Duration
 
                 parts |= Parts.HasMinutes;
                 minutes = value;
-                if (++pos <= length &&
-                    !TryParseDigits(s, ref pos, false, out value, out numDigits))
+                if (++pos <= length
+                    && !TryParseDigits(s, ref pos, false, out value, out numDigits))
                 {
                     return false;
                 }

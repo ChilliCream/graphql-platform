@@ -1,0 +1,12 @@
+﻿{
+  "data": {
+    "extendedTypeRefNested": {
+      "items": [
+        [
+          "one",
+          "two"
+        ]
+      ]
+    }
+  }
+}

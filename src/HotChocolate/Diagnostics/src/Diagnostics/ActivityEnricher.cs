@@ -12,6 +12,8 @@ using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using OpenTelemetry.Trace;
+using static HotChocolate.Diagnostics.SemanticConventions;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Diagnostics;
@@ -24,7 +26,7 @@ namespace HotChocolate.Diagnostics;
 public class ActivityEnricher
 {
     private readonly InstrumentationOptions _options;
-    private readonly ConditionalWeakTable<ISyntaxNode, string> _queryCache = new();
+    private readonly ConditionalWeakTable<ISyntaxNode, string> _queryCache = [];
 
     /// <summary>
     /// Initializes a new instance of <see cref="ActivityEnricher"/>.
@@ -73,10 +75,10 @@ public class ActivityEnricher
         activity.SetTag("graphql.http.kind", kind);
 
         var isDefault = false;
-        if (!(context.Items.TryGetValue(SchemaName, out var value) &&
-            value is string schemaName))
+        if (!(context.Items.TryGetValue(SchemaName, out var value)
+            && value is string schemaName))
         {
-            schemaName = Schema.DefaultName;
+            schemaName = ISchemaDefinition.DefaultName;
             isDefault = true;
         }
 
@@ -91,44 +93,45 @@ public class ActivityEnricher
     {
         activity.SetTag("graphql.http.request.type", "single");
 
-        if (request.QueryId is not null &&
-            (_options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
+        if (request.DocumentId is not null
+            && (_options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
         {
-            activity.SetTag("graphql.http.request.query.id", request.QueryId);
+            activity.SetTag("graphql.http.request.query.id", request.DocumentId.Value);
         }
 
-        if (request.QueryHash is not null &&
-            (_options.RequestDetails & RequestDetails.Hash) == RequestDetails.Hash)
+        if (request.DocumentHash is not null
+            && (_options.RequestDetails & RequestDetails.Hash) == RequestDetails.Hash)
         {
-            activity.SetTag("graphql.http.request.query.hash", request.QueryHash);
+            activity.SetTag("graphql.http.request.query.hash", request.DocumentHash.Value);
         }
 
-        if (request.Query is not null &&
-            (_options.RequestDetails & RequestDetails.Query) == RequestDetails.Query)
+        if (request.Document is not null
+            && (_options.RequestDetails & RequestDetails.Query) == RequestDetails.Query)
         {
-            if (!_queryCache.TryGetValue(request.Query, out var query))
+            if (!_queryCache.TryGetValue(request.Document, out var query))
             {
-                query = request.Query.Print();
-                _queryCache.Add(request.Query, query);
+                query = request.Document.Print();
+                _queryCache.Add(request.Document, query);
             }
 
             activity.SetTag("graphql.http.request.query.body", query);
         }
 
-        if (request.OperationName is not null &&
-            (_options.RequestDetails & RequestDetails.Operation) == RequestDetails.Operation)
+        if (request.OperationName is not null
+            && (_options.RequestDetails & RequestDetails.Operation) == RequestDetails.Operation)
         {
             activity.SetTag("graphql.http.request.operation", request.OperationName);
         }
 
-        if (request.Variables is not null &&
-            (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
+        if (request.Variables is not null
+            && (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
         {
-            EnrichRequestVariables(context, request, CreateVariablesNode(request.Variables), activity);
+            var node = CreateVariablesNode(request.Variables);
+            EnrichRequestVariables(context, request, node, activity);
         }
 
-        if (request.Extensions is not null &&
-            (_options.RequestDetails & RequestDetails.Extensions) == RequestDetails.Extensions)
+        if (request.Extensions is not null
+            && (_options.RequestDetails & RequestDetails.Extensions) == RequestDetails.Extensions)
         {
             EnrichRequestExtensions(context, request, request.Extensions, activity);
         }
@@ -145,38 +148,39 @@ public class ActivityEnricher
         {
             var request = batch[i];
 
-            if (request.QueryId is not null &&
-            (_options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
+            if (request.DocumentId is not null
+                && (_options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
             {
-                activity.SetTag($"graphql.http.request[{i}].query.id", request.QueryId);
+                activity.SetTag($"graphql.http.request[{i}].query.id", request.DocumentId.Value);
             }
 
-            if (request.QueryHash is not null &&
-                (_options.RequestDetails & RequestDetails.Hash) == RequestDetails.Hash)
+            if (request.DocumentHash is not null
+                && (_options.RequestDetails & RequestDetails.Hash) == RequestDetails.Hash)
             {
-                activity.SetTag($"graphql.http.request[{i}].query.hash", request.QueryHash);
+                activity.SetTag($"graphql.http.request[{i}].query.hash", request.DocumentHash.Value);
             }
 
-            if (request.Query is not null &&
-                (_options.RequestDetails & RequestDetails.Query) == RequestDetails.Query)
+            if (request.Document is not null
+                && (_options.RequestDetails & RequestDetails.Query) == RequestDetails.Query)
             {
-                activity.SetTag($"graphql.http.request[{i}].query.body", request.Query.Print());
+                activity.SetTag($"graphql.http.request[{i}].query.body", request.Document.Print());
             }
 
-            if (request.OperationName is not null &&
-                (_options.RequestDetails & RequestDetails.Operation) == RequestDetails.Operation)
+            if (request.OperationName is not null
+                && (_options.RequestDetails & RequestDetails.Operation) == RequestDetails.Operation)
             {
                 activity.SetTag($"graphql.http.request[{i}].operation", request.OperationName);
             }
 
-            if (request.Variables is not null &&
-                (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
+            if (request.Variables is not null
+                && (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
             {
-                EnrichBatchVariables(context, request, CreateVariablesNode(request.Variables), i, activity);
+                var node = CreateVariablesNode(request.Variables);
+                EnrichBatchVariables(context, request, node, i, activity);
             }
 
-            if (request.Extensions is not null &&
-                (_options.RequestDetails & RequestDetails.Extensions) == RequestDetails.Extensions)
+            if (request.Extensions is not null
+                && (_options.RequestDetails & RequestDetails.Extensions) == RequestDetails.Extensions)
             {
                 EnrichBatchExtensions(context, request, request.Extensions, i, activity);
             }
@@ -191,38 +195,39 @@ public class ActivityEnricher
     {
         activity.SetTag("graphql.http.request.type", "operationBatch");
 
-        if (request.QueryId is not null &&
-            (_options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
+        if (request.DocumentId is not null
+            && (_options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
         {
-            activity.SetTag("graphql.http.request.query.id", request.QueryId);
+            activity.SetTag("graphql.http.request.query.id", request.DocumentId.Value);
         }
 
-        if (request.QueryHash is not null &&
-            (_options.RequestDetails & RequestDetails.Hash) == RequestDetails.Hash)
+        if (request.DocumentHash is not null
+            && (_options.RequestDetails & RequestDetails.Hash) == RequestDetails.Hash)
         {
-            activity.SetTag("graphql.http.request.query.hash", request.QueryHash);
+            activity.SetTag("graphql.http.request.query.hash", request.DocumentHash.Value);
         }
 
-        if (request.Query is not null &&
-            (_options.RequestDetails & RequestDetails.Query) == RequestDetails.Query)
+        if (request.Document is not null
+            && (_options.RequestDetails & RequestDetails.Query) == RequestDetails.Query)
         {
-            activity.SetTag("graphql.http.request.query.body", request.Query.Print());
+            activity.SetTag("graphql.http.request.query.body", request.Document.Print());
         }
 
-        if (request.OperationName is not null &&
-            (_options.RequestDetails & RequestDetails.Operation) == RequestDetails.Operation)
+        if (request.OperationName is not null
+            && (_options.RequestDetails & RequestDetails.Operation) == RequestDetails.Operation)
         {
             activity.SetTag("graphql.http.request.operations", string.Join(" -> ", operations));
         }
 
-        if (request.Variables is not null &&
-            (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
+        if (request.Variables is not null
+            && (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
         {
-            EnrichRequestVariables(context, request, CreateVariablesNode(request.Variables), activity);
+            var node = CreateVariablesNode(request.Variables);
+            EnrichRequestVariables(context, request, node, activity);
         }
 
-        if (request.Extensions is not null &&
-            (_options.RequestDetails & RequestDetails.Extensions) == RequestDetails.Extensions)
+        if (request.Extensions is not null
+            && (_options.RequestDetails & RequestDetails.Extensions) == RequestDetails.Extensions)
         {
             EnrichRequestExtensions(context, request, request.Extensions, activity);
         }
@@ -315,9 +320,11 @@ public class ActivityEnricher
         activity.DisplayName = "Format HTTP Response";
     }
 
-    public virtual void EnrichExecuteRequest(IRequestContext context, Activity activity)
+    public virtual void EnrichExecuteRequest(RequestContext context, Activity activity)
     {
-        var operationDisplayName = CreateOperationDisplayName(context);
+        context.TryGetOperation(out var operation);
+        var documentInfo = context.OperationDocumentInfo;
+        var operationDisplayName = CreateOperationDisplayName(context, operation);
 
         if (_options.RenameRootActivity && operationDisplayName is not null)
         {
@@ -325,16 +332,16 @@ public class ActivityEnricher
         }
 
         activity.DisplayName = operationDisplayName ?? "Execute Request";
-        activity.SetTag("graphql.document.id", context.DocumentId?.Value);
-        activity.SetTag("graphql.document.hash", context.DocumentHash);
-        activity.SetTag("graphql.document.valid", context.IsValidDocument);
-        activity.SetTag("graphql.operation.id", context.OperationId);
-        activity.SetTag("graphql.operation.kind", context.Operation?.Type);
-        activity.SetTag("graphql.operation.name", context.Operation?.Name);
+        activity.SetTag("graphql.document.id", documentInfo.Id.Value);
+        activity.SetTag("graphql.document.hash", documentInfo.Hash.Value);
+        activity.SetTag("graphql.document.valid", documentInfo.IsValidated);
+        activity.SetTag("graphql.operation.id", operation?.Id);
+        activity.SetTag("graphql.operation.kind", operation?.Type);
+        activity.SetTag("graphql.operation.name", operation?.Name);
 
-        if (_options.IncludeDocument && context.Document is not null)
+        if (_options.IncludeDocument && documentInfo.Document is not null)
         {
-            activity.SetTag("graphql.document.body", context.Document.Print());
+            activity.SetTag("graphql.document.body", documentInfo.Document.Print());
         }
 
         if (context.Result is IOperationResult result)
@@ -344,58 +351,58 @@ public class ActivityEnricher
         }
     }
 
-    protected virtual string? CreateOperationDisplayName(IRequestContext context)
+    protected virtual string? CreateOperationDisplayName(RequestContext context, IOperation? operation)
     {
-        if (context.Operation is { } operation)
+        if (operation is null)
         {
-            var displayName = StringBuilderPool.Get();
-
-            try
-            {
-                var rootSelectionSet = operation.RootSelectionSet;
-
-                displayName.Append('{');
-                displayName.Append(' ');
-
-                foreach (var selection in rootSelectionSet.Selections.Take(3))
-                {
-                    if (displayName.Length > 2)
-                    {
-                        displayName.Append(' ');
-                    }
-
-                    displayName.Append(selection.ResponseName);
-                }
-
-                if (rootSelectionSet.Selections.Count > 3)
-                {
-                    displayName.Append(' ');
-                    displayName.Append('.');
-                    displayName.Append('.');
-                    displayName.Append('.');
-                }
-
-                displayName.Append(' ');
-                displayName.Append('}');
-
-                if (operation.Name is { } name)
-                {
-                    displayName.Insert(0, ' ');
-                    displayName.Insert(0, name);
-                }
-
-                displayName.Insert(0, ' ');
-                displayName.Insert(0, operation.Definition.Operation.ToString().ToLowerInvariant());
-
-                return displayName.ToString();
-            }
-            finally
-            {
-                StringBuilderPool.Return(displayName);
-            }
+            return null;
         }
 
-        return null;
+        var displayName = StringBuilderPool.Get();
+
+        try
+        {
+            var rootSelectionSet = operation.RootSelectionSet;
+
+            displayName.Append('{');
+            displayName.Append(' ');
+
+            foreach (var selection in rootSelectionSet.Selections.Take(3))
+            {
+                if (displayName.Length > 2)
+                {
+                    displayName.Append(' ');
+                }
+
+                displayName.Append(selection.ResponseName);
+            }
+
+            if (rootSelectionSet.Selections.Count > 3)
+            {
+                displayName.Append(' ');
+                displayName.Append('.');
+                displayName.Append('.');
+                displayName.Append('.');
+            }
+
+            displayName.Append(' ');
+            displayName.Append('}');
+
+            if (operation.Name is { } name)
+            {
+                displayName.Insert(0, ' ');
+                displayName.Insert(0, name);
+            }
+
+            displayName.Insert(0, ' ');
+            displayName.Insert(0, operation.Definition.Operation.ToString().ToLowerInvariant());
+
+            return displayName.ToString();
+        }
+        finally
+        {
+            StringBuilderPool.Return(displayName);
+        }
     }
 
     private void UpdateRootActivityName(Activity activity, string displayName)
@@ -429,7 +436,7 @@ public class ActivityEnricher
         return $"{rootDisplayName}: {displayName}";
     }
 
-    public virtual void EnrichParseDocument(IRequestContext context, Activity activity)
+    public virtual void EnrichParseDocument(RequestContext context, Activity activity)
     {
         activity.DisplayName = "Parse Document";
 
@@ -439,13 +446,19 @@ public class ActivityEnricher
         }
     }
 
-    public virtual void EnrichSyntaxError(
-        IRequestContext context,
+    public virtual void EnrichRequestError(
+        RequestContext context,
+        Activity activity,
+        Exception error)
+        => EnrichError(ErrorBuilder.FromException(error).Build(), activity);
+
+    public virtual void EnrichRequestError(
+        RequestContext context,
         Activity activity,
         IError error)
         => EnrichError(error, activity);
 
-    public virtual void EnrichValidateDocument(IRequestContext context, Activity activity)
+    public virtual void EnrichValidateDocument(RequestContext context, Activity activity)
     {
         activity.DisplayName = "Validate Document";
 
@@ -454,35 +467,37 @@ public class ActivityEnricher
             UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
         }
 
-        activity.SetTag("graphql.document.id", context.DocumentId?.Value);
-        activity.SetTag("graphql.document.hash", context.DocumentHash);
+        var documentInfo = context.OperationDocumentInfo;
+        activity.SetTag("graphql.document.id", documentInfo.Id.Value);
+        activity.SetTag("graphql.document.hash", documentInfo.Hash.Value);
     }
 
     public virtual void EnrichValidationError(
-        IRequestContext context,
+        RequestContext context,
         Activity activity,
         IError error)
         => EnrichError(error, activity);
 
-    public virtual void EnrichAnalyzeOperationComplexity(IRequestContext context, Activity activity)
+    public virtual void EnrichAnalyzeOperationComplexity(RequestContext context, Activity activity)
     {
         activity.DisplayName = "Analyze Operation Complexity";
     }
 
-    public virtual void EnrichCoerceVariables(IRequestContext context, Activity activity)
+    public virtual void EnrichCoerceVariables(RequestContext context, Activity activity)
     {
         activity.DisplayName = "Coerce Variable";
     }
 
-    public virtual void EnrichCompileOperation(IRequestContext context, Activity activity)
+    public virtual void EnrichCompileOperation(RequestContext context, Activity activity)
     {
         activity.DisplayName = "Compile Operation";
     }
 
-    public virtual void EnrichExecuteOperation(IRequestContext context, Activity activity)
+    public virtual void EnrichExecuteOperation(RequestContext context, Activity activity)
     {
+        context.TryGetOperation(out var operation);
         activity.DisplayName =
-            context.Operation?.Name is { } op
+            operation?.Name is { } op
                 ? $"Execute Operation {op}"
                 : "Execute Operation";
     }
@@ -552,14 +567,13 @@ public class ActivityEnricher
     }
 
     public virtual void EnrichResolverError(
-        IMiddlewareContext context,
+        RequestContext context,
         IError error,
         Activity activity)
         => EnrichError(error, activity);
 
     public virtual void EnrichResolverError(
-        IRequestContext context,
-        ISelection selection,
+        IMiddlewareContext middlewareContext,
         IError error,
         Activity activity)
         => EnrichError(error, activity);
@@ -582,35 +596,35 @@ public class ActivityEnricher
 
     protected virtual void EnrichError(IError error, Activity activity)
     {
-        var tags = new List<KeyValuePair<string, object?>>
+        if (error.Exception is { } exception)
         {
-            new("graphql.error.message", error.Message),
-            new("graphql.error.code", error.Code),
-        };
-
-        if (error.Locations is { Count: > 0, })
-        {
-            if (error.Locations.Count == 1)
-            {
-                tags.Add(new("graphql.error.location.column", error.Locations[0].Column));
-                tags.Add(new("graphql.error.location.line", error.Locations[0].Line));
-            }
-            else
-            {
-                for (var i = 0; i < error.Locations.Count; i++)
-                {
-                    tags.Add(new($"graphql.error.location[{i}].column", error.Locations[i].Column));
-                    tags.Add(new($"graphql.error.location[{i}].line", error.Locations[i].Line));
-                }
-            }
+            activity.RecordException(exception);
         }
 
-        activity.AddEvent(new("Error", tags: new(tags)));
+        var tags = new ActivityTagsCollection
+        {
+            new(AttributeExceptionMessage, error.Message),
+            new(AttributeExceptionType, error.Code ?? "GRAPHQL_ERROR")
+        };
+
+        if (error.Path is not null)
+        {
+            tags["graphql.error.path"] = error.Path.ToString();
+        }
+
+        if (error.Locations is { Count: > 0 })
+        {
+            tags["graphql.error.location.column"] = error.Locations[0].Column;
+            tags["graphql.error.location.line"] = error.Locations[0].Line;
+        }
+
+        activity.AddEvent(new ActivityEvent(AttributeExceptionEventName, default, tags));
     }
 
-    private static ISyntaxNode CreateVariablesNode(IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet)
+    private static ISyntaxNode CreateVariablesNode(
+        IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet)
     {
-        if (variableSet is null or { Count: 0, })
+        if (variableSet is null or { Count: 0 })
         {
             return NullValueNode.Default;
         }
@@ -624,7 +638,7 @@ public class ActivityEnricher
 
             foreach (var (name, value) in variables)
             {
-                // since we are in the HTTP context here we know that it will always be a IValueNode.
+                // since we are in the HTTP context here we know that it will always be an IValueNode.
                 var valueNode = value is null ? NullValueNode.Default : (IValueNode)value;
                 fields[index++] = new ObjectFieldNode(name, valueNode);
             }
@@ -637,7 +651,7 @@ public class ActivityEnricher
             var variableSetCount = variableSet.Count;
             var items = new IValueNode[variableSetCount];
 
-            for(var i = 0; i < variableSetCount; i++)
+            for (var i = 0; i < variableSetCount; i++)
             {
                 var variables = variableSet[i];
                 var variablesCount = variables.Count;
@@ -646,7 +660,7 @@ public class ActivityEnricher
 
                 foreach (var (name, value) in variables)
                 {
-                    // since we are in the HTTP context here we know that it will always be a IValueNode.
+                    // since we are in the HTTP context here we know that it will always be an IValueNode.
                     var valueNode = value is null ? NullValueNode.Default : (IValueNode)value;
                     fields[index++] = new ObjectFieldNode(name, valueNode);
                 }
@@ -657,4 +671,11 @@ public class ActivityEnricher
 
         throw new InvalidOperationException();
     }
+}
+
+file static class SemanticConventions
+{
+    public const string AttributeExceptionEventName = "exception";
+    public const string AttributeExceptionType = "exception.type";
+    public const string AttributeExceptionMessage = "exception.message";
 }

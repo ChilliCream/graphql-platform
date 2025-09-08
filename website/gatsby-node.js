@@ -31,6 +31,9 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
           fields {
             slug
           }
+          frontmatter {
+            tags
+          }
         }
         tags: group(field: frontmatter___tags) {
           fieldValue
@@ -68,9 +71,9 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
     return;
   }
 
-  createBasicPages(createPage, result.data.basic);
+  createDefaultArticles(createPage, result.data.basic);
   createBlogArticles(createPage, result.data.blog);
-  createDocPages(createPage, result.data.docs);
+  createDocArticles(createPage, result.data.docs);
 
   const products = result.data.productsConfig.products;
   const latestHcVersion = products?.find(
@@ -164,8 +167,8 @@ exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
   });
 };
 
-function createBasicPages(createPage, data) {
-  const component = path.resolve(`src/templates/basic-page-template.tsx`);
+function createDefaultArticles(createPage, data) {
+  const component = path.resolve(`src/templates/default-article-template.tsx`);
 
   data.pages.forEach((page) => {
     createPage({
@@ -180,48 +183,59 @@ function createBasicPages(createPage, data) {
 
 function createBlogArticles(createPage, data) {
   // Create Single Pages
-  let component = path.resolve(`src/templates/blog-article-template.tsx`);
-
   data.posts.forEach((post) => {
     createPage({
       path: post.fields.slug,
-      component,
+      component: path.resolve(`src/templates/blog-article-template.tsx`),
       context: {},
     });
   });
 
-  // Create List Pages
-  const postsPerPage = 20;
-  const numPages = Math.ceil(data.posts.length / postsPerPage);
+  const postsPerPage = 21;
 
-  Array.from({ length: numPages }).forEach((_, i) => {
+  // Create List Pages
+  const numPagesAllPosts = Math.ceil(data.posts.length / postsPerPage);
+
+  Array.from({ length: numPagesAllPosts }).forEach((_, i) => {
     createPage({
       path: i === 0 ? `/blog` : `/blog/${i + 1}`,
       component: path.resolve(`src/templates/blog-articles-template.tsx`),
       context: {
         limit: postsPerPage,
         skip: i * postsPerPage,
-        numPages,
+        numPages: numPagesAllPosts,
         currentPage: i + 1,
       },
     });
   });
 
   // Create Tag Pages
-  component = path.resolve(`src/templates/blog-tag-template.tsx`);
-  data.tags.forEach((tag) => {
-    createPage({
-      path: `/blog/tags/${tag.fieldValue}`,
-      component,
-      context: {
-        tag: tag.fieldValue,
-      },
+  data.tags.forEach(({ fieldValue: tag }) => {
+    const numPagesPostsByTags = Math.ceil(
+      data.posts.filter(({ frontmatter: { tags } }) => tags.includes(tag))
+        .length / postsPerPage
+    );
+
+    Array.from({ length: numPagesPostsByTags }).forEach((_, i) => {
+      createPage({
+        path: i === 0 ? `/blog/tags/${tag}` : `/blog/tags/${tag}/${i + 1}`,
+        component: path.resolve(
+          `src/templates/blog-articles-by-tag-template.tsx`
+        ),
+        context: {
+          tag,
+          limit: postsPerPage,
+          skip: i * postsPerPage,
+          numPages: numPagesPostsByTags,
+          currentPage: i + 1,
+        },
+      });
     });
   });
 }
 
-function createDocPages(createPage, data) {
-  const component = path.resolve(`src/templates/doc-page-template.tsx`);
+function createDocArticles(createPage, data) {
+  const component = path.resolve(`src/templates/doc-article-template.tsx`);
 
   // Create Single Pages
   data.pages.forEach((page) => {

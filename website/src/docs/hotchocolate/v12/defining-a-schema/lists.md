@@ -30,7 +30,7 @@ Learn more about lists [here](https://graphql.org/learn/schema/#lists-and-non-nu
 Lists can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 If our field resolver returns a list type, e.g. `IEnumerable<T>` or `IQueryable<T>`, it will automatically be treated as a list type in the schema.
 
@@ -44,7 +44,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 If our field resolver returns a list type, e.g. `IEnumerable<T>` or `IQueryable<T>`, it will automatically be treated as a list type in the schema.

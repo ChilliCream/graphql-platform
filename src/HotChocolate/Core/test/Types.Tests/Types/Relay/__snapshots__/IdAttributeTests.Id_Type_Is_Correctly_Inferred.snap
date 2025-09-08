@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query
 }
 
@@ -23,26 +23,26 @@ type FooPayload implements IFooPayload {
 }
 
 type Query {
-  intId(id: ID!): String!
-  intIdList(id: [ID!]!): String!
-  nullableIntId(id: ID): String!
-  nullableIntIdList(id: [ID]!): String!
-  optionalIntId(id: ID = "UXVlcnk6MA=="): String!
-  optionalIntIdList(id: [ID!] = [  ]): String!
+  intId(id: ID!): Int!
+  intIdList(ids: [ID!]!): [Int!]!
+  nullableIntId(id: ID): Int
+  nullableIntIdList(ids: [ID]!): [Int]!
+  optionalIntId(id: ID = "UXVlcnk6MA=="): Int
+  optionalIntIdList(ids: [ID!] = [  ]): [Int!]
   stringId(id: ID!): String!
-  stringIdList(id: [ID!]!): String!
-  nullableStringId(id: ID): String!
-  nullableStringIdList(id: [ID]!): String!
-  optionalStringId(id: ID = "UXVlcnk6"): String!
-  optionalStringIdList(id: [ID] = [  ]): String!
-  guidId(id: ID!): String!
-  guidIdList(id: [ID!]!): String!
-  nullableGuidId(id: ID): String!
-  nullableGuidIdList(id: [ID]!): String!
-  optionalGuidId(id: ID = "UXVlcnk6AAAAAAAAAAAAAAAAAAAAAA=="): String!
-  optionalGuidIdList(id: [ID] = [  ]): String!
-  interceptedId(id: ID!): String!
-  interceptedIds(id: [ID!]!): String!
+  stringIdList(ids: [ID!]!): [String!]!
+  nullableStringId(id: ID): String
+  nullableStringIdList(ids: [ID]!): [String]!
+  optionalStringId(id: ID = "UXVlcnk6"): String
+  optionalStringIdList(ids: [ID] = [  ]): [String!]
+  guidId(id: ID!): UUID!
+  guidIdList(ids: [ID!]!): [UUID!]!
+  nullableGuidId(id: ID): UUID
+  nullableGuidIdList(ids: [ID]!): [UUID]!
+  optionalGuidId(id: ID = "UXVlcnk6AAAAAAAAAAAAAAAAAAAAAA=="): UUID
+  optionalGuidIdList(ids: [ID] = [  ]): [UUID!]
+  interceptedId(id: ID!): Int!
+  interceptedIds(ids: [ID!]!): [Int!]!
   customId(id: ID!): String!
   nullableCustomId(id: ID): String!
   customIds(ids: [ID!]!): String!
@@ -60,3 +60,8 @@ input FooInput {
   interceptedId: ID
   interceptedIds: [ID!]
 }
+
+"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
+directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
+
+scalar UUID @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc4122")

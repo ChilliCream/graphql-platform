@@ -3,12 +3,7 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Scalars.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.ComponentModel.Annotations" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Execution\HotChocolate.Execution.csproj" />

@@ -22,9 +22,9 @@ Learn more about object types [here](https://graphql.org/learn/schema/#object-ty
 Object types can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
-In the Annotation-based approach we are essentially just creating regular C# classes.
+In the implementation-first approach we are essentially just creating regular C# classes.
 
 ```csharp
 public class Author
@@ -33,10 +33,10 @@ public class Author
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
-In the Code-first approach we create a new class inheriting from `ObjectType<T>` to map our POCO `Author` to an object type.
+In the code-first approach we create a new class inheriting from `ObjectType<T>` to map our POCO `Author` to an object type.
 
 ```csharp
 public class Author
@@ -65,7 +65,7 @@ The `descriptor` gives us the ability to configure the object type. We will cove
 
 Since there could be multiple types inheriting from `ObjectType<Author>`, but differing in their name and fields, it is not certain which of these types should be used when we return an `Author` CLR type from one of our resolvers.
 
-**Therefore it's important to note that Code-first object types are not automatically inferred. They need to be explicitly specified or registered.**
+**Therefore it's important to note that code-first object types are not automatically inferred. They need to be explicitly specified or registered.**
 
 We can either [explicitly specify the type on a per-resolver basis](#explicit-types) or we can register the type once globally:
 
@@ -127,9 +127,9 @@ public class Startup
 
 # Binding behavior
 
-In the Annotation-based approach all public properties and methods are implicitly mapped to fields of the schema object type.
+In the implementation-first approach all public properties and methods are implicitly mapped to fields of the schema object type.
 
-In the Code-first approach we have a little more control over this behavior. By default all public properties and methods of our POCO are mapped to fields of the schema object type. This behavior is called implicit binding. There is also an explicit binding behavior, where we have to opt-in properties we want to include.
+In the code-first approach we have a little more control over this behavior. By default all public properties and methods of our POCO are mapped to fields of the schema object type. This behavior is called implicit binding. There is also an explicit binding behavior, where we have to opt-in properties we want to include.
 
 We can configure our preferred binding behavior globally like the following.
 
@@ -161,9 +161,9 @@ public class BookType : ObjectType<Book>
 ## Ignoring fields
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
-In the Annotation-based approach we can ignore fields using the `[GraphQLIgnore]` attribute.
+In the implementation-first approach we can ignore fields using the `[GraphQLIgnore]` attribute.
 
 ```csharp
 public class Book
@@ -175,10 +175,10 @@ public class Book
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
-In the Code-first approach we can ignore certain properties of our POCO using the `Ignore` method on the `descriptor`. This is only necessary, if the binding behavior of the object type is implicit.
+In the code-first approach we can ignore certain properties of our POCO using the `Ignore` method on the `descriptor`. This is only necessary, if the binding behavior of the object type is implicit.
 
 ```csharp
 public class BookType : ObjectType<Book>
@@ -193,14 +193,14 @@ public class BookType : ObjectType<Book>
 </Code>
 <Schema>
 
-We do not have to ignore fields in the Schema-first approach.
+We do not have to ignore fields in the schema-first approach.
 
 </Schema>
 </ExampleTabs>
 
 ## Including fields
 
-In the Code-first approach we can explicitly include certain properties of our POCO using the `Field` method on the `descriptor`. This is only necessary, if the binding behavior of the object type is explicit.
+In the code-first approach we can explicitly include certain properties of our POCO using the `Field` method on the `descriptor`. This is only necessary, if the binding behavior of the object type is explicit.
 
 ```csharp
 public class BookType : ObjectType<Book>
@@ -216,7 +216,7 @@ public class BookType : ObjectType<Book>
 
 # Naming
 
-Unless specified explicitly, Hot Chocolate automatically infers the names of object types and their fields. Per default the name of the class becomes the name of the object type. When using `ObjectType<T>` in Code-first, the name of `T` is chosen as the name for the object type. The names of methods and properties on the respective class are chosen as names of the fields of the object type.
+Unless specified explicitly, Hot Chocolate automatically infers the names of object types and their fields. Per default the name of the class becomes the name of the object type. When using `ObjectType<T>` in code-first, the name of `T` is chosen as the name for the object type. The names of methods and properties on the respective class are chosen as names of the fields of the object type.
 
 The following conventions are applied when transforming C# method and property names into GraphQL fields:
 
@@ -234,7 +234,7 @@ PLZ --> plz
 Of course, we can also explicitly specify the names in the resulting GraphQL schema:
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 The `[GraphQLName]` attribute allows us to specify an explicit name.
 
@@ -247,7 +247,7 @@ public class Author
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 The `Name` method on the `IObjectTypeDescriptor` / `IObjectFieldDescriptor` allows us to specify an explicit name.
@@ -294,12 +294,12 @@ If only one of our clients requires specific names, it is better to use [aliases
 
 # Explicit types
 
-Hot Chocolate will, most of the time, correctly infer the schema types of our fields. Sometimes we might have to be explicit about it though. For example when we are working with custom scalars or Code-first types in general.
+Hot Chocolate will, most of the time, correctly infer the schema types of our fields. Sometimes we might have to be explicit about it though. For example when we are working with custom scalars or code-first types in general.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
-In the annotation-based approach we can use the `[GraphQLType]` attribute.
+In the implementation-first approach we can use the `[GraphQLType]` attribute.
 
 ```csharp
 public class Author
@@ -309,10 +309,10 @@ public class Author
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
-In the Code-first approach we can use the `Type<T>` method on the `IObjectFieldDescriptor`.
+In the code-first approach we can use the `Type<T>` method on the `IObjectFieldDescriptor`.
 
 ```csharp
 public class AuthorType : ObjectType<Author>
@@ -339,7 +339,7 @@ Simply change the field type in the schema.
 We can add additional (dynamic) fields to our schema types, without adding new properties to our backing class.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Author
@@ -353,10 +353,10 @@ public class Author
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
-In the Code-first approach we can use the `Resolve` method on the `IObjectFieldDescriptor`.
+In the code-first approach we can use the `Resolve` method on the `IObjectFieldDescriptor`.
 
 ```csharp
 public class AuthorType : ObjectType<Author>
@@ -414,7 +414,7 @@ What we have just created is a resolver. Hot Chocolate automatically creates res
 
 > Note: Read about [interfaces](/docs/hotchocolate/v11/defining-a-schema/interfaces) and [unions](/docs/hotchocolate/v11/defining-a-schema/unions) before resorting to generic object types.
 
-In the Code-first approach we can define generic object types.
+In the code-first approach we can define generic object types.
 
 ```csharp
 public class Response

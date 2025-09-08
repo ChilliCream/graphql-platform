@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Tests.Utilities;
-using Snapshooter;
-using Snapshooter.Xunit;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Diagnostics;
@@ -31,15 +29,11 @@ public class ServerInstrumentationTests : ServerTestBase
                     hero {
                         name
                     }
-                }",
+                }"
             });
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -60,15 +54,11 @@ public class ServerInstrumentationTests : ServerTestBase
                     hero {
                         name
                     }
-                }",
+                }"
             });
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -89,15 +79,11 @@ public class ServerInstrumentationTests : ServerTestBase
                     hero {
                         name
                     }
-                }",
+                }"
             });
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -119,15 +105,11 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
             });
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -153,15 +135,11 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
             });
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -187,15 +165,11 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
             });
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -217,16 +191,12 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
-                Extensions = new Dictionary<string, object?> { { "test", "abc" }, },
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
+                Extensions = new Dictionary<string, object?> { { "test", "abc" } }
             });
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -247,11 +217,7 @@ public class ServerInstrumentationTests : ServerTestBase
             await response.Content.ReadAsStringAsync();
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -276,15 +242,11 @@ public class ServerInstrumentationTests : ServerTestBase
                             id
                         }
                     }
-                }",
+                }"
             });
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -315,15 +277,11 @@ public class ServerInstrumentationTests : ServerTestBase
                             }
                         }
                     }
-                }",
+                }"
             });
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -354,15 +312,11 @@ public class ServerInstrumentationTests : ServerTestBase
                             }
                         }
                     }
-                }",
+                }"
             });
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -385,15 +339,11 @@ public class ServerInstrumentationTests : ServerTestBase
                 Query = @"
                 {
                     1
-                }",
+                }"
             });
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -416,20 +366,16 @@ public class ServerInstrumentationTests : ServerTestBase
                 Query = @"
                 {
                     abc
-                }",
+                }"
             });
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
     private TestServer CreateInstrumentedServer(
-        Action<InstrumentationOptions>? options = default)
+        Action<InstrumentationOptions>? options = null)
         => CreateStarWarsServer(
                 configureServices: services =>
                     services

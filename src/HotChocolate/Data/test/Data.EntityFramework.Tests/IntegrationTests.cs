@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
@@ -32,18 +31,18 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 x => x
                     .Name("Query")
                     .Field("executable")
-                    .Resolve(_authors.AsExecutable()))
+                    .Resolve(_authors))
             .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
-                }
-                ");
+            """
+            {
+              executable {
+                name
+              }
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -63,19 +62,19 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.Take(1).AsExecutable())
+                    .Resolve(_authors.Take(1))
                     .UseSingleOrDefault())
             .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -95,7 +94,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.AsExecutable())
+                    .Resolve(_authors)
                     .UseSingleOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -130,7 +129,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.Take(0).AsExecutable())
+                    .Resolve(_authors.Take(0))
                     .UseSingleOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -139,13 +138,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -165,19 +164,19 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.AsExecutable())
+                    .Resolve(_authors)
                     .UseFirstOrDefault())
             .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -197,7 +196,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<ZeroAuthor>>()
-                    .Resolve(_zeroAuthors.Take(0).AsExecutable())
+                    .Resolve(_zeroAuthors.Take(0))
                     .UseFirstOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -206,13 +205,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -235,7 +234,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // assert
         var result = await executor.ExecuteAsync(
-            @"query Test {
+            """
+            query Test {
                 authorOffsetPagingExecutable {
                     items {
                         name
@@ -245,7 +245,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                         hasPreviousPage
                     }
                 }
-            }");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -272,13 +273,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -307,13 +308,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -342,13 +343,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -377,13 +378,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -412,13 +413,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -447,13 +448,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();

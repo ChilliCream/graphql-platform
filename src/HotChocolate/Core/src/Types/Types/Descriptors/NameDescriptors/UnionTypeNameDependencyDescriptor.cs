@@ -1,16 +1,17 @@
 using HotChocolate.Types.Helpers;
 
+// ReSharper disable once CheckNamespace
 namespace HotChocolate.Types.Descriptors;
 
-internal class UnionTypeNameDependencyDescriptor
+internal sealed class UnionTypeNameDependencyDescriptor
     : IUnionTypeNameDependencyDescriptor
 {
     private readonly IUnionTypeDescriptor _descriptor;
-    private readonly Func<INamedType, string> _createName;
+    private readonly Func<ITypeDefinition, string> _createName;
 
     public UnionTypeNameDependencyDescriptor(
         IUnionTypeDescriptor descriptor,
-        Func<INamedType, string> createName)
+        Func<ITypeDefinition, string> createName)
     {
         _descriptor = descriptor
             ?? throw new ArgumentNullException(nameof(descriptor));
@@ -28,6 +29,12 @@ internal class UnionTypeNameDependencyDescriptor
     public IUnionTypeDescriptor DependsOn(Type schemaType)
     {
         TypeNameHelper.AddNameFunction(_descriptor, _createName, schemaType);
+        return _descriptor;
+    }
+
+    public IUnionTypeDescriptor DependsOn(TypeReference typeReference)
+    {
+        TypeNameHelper.AddNameFunction(_descriptor, _createName, typeReference);
         return _descriptor;
     }
 }

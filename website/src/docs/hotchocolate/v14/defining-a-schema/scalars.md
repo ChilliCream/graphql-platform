@@ -18,7 +18,7 @@ type Product {
 }
 ```
 
-This scalar represents an UTF-8 character sequence.
+This scalar represents a UTF-8 character sequence.
 
 It is automatically inferred from the usage of the .NET [string type](https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/reference-types#the-string-type).
 
@@ -75,7 +75,7 @@ It is **not** automatically inferred and the `IdType` needs to be [explicitly sp
 `ID` values are always represented as a [String](#string) in client-server communication, but can be coerced to their expected type on the server.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Product
@@ -93,7 +93,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -140,31 +140,27 @@ public class Product
 {
     public int Id { get; set; }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+          product(id: ID): Product
+        }
+
+        type Product {
+          id: ID
+        }
+    ")
+    .BindRuntimeType<Product>()
+    .AddResolver("Query", "product", context =>
     {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-               type Query {
-                 product(id: ID): Product
-               }
+        var id = context.ArgumentValue<int>("id");
 
-               type Product {
-                 id: ID
-               }
-            ")
-            .BindRuntimeType<Product>()
-            .AddResolver("Query", "product", context =>
-            {
-                var id = context.ArgumentValue<int>("id");
-
-                // Omitted code for brevity
-            });
-    }
-}
+        // Omitted code for brevity
+    });
 ```
 
 </Schema>
@@ -184,11 +180,13 @@ scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
 
 A custom GraphQL scalar which represents an exact point in time. This point in time is specified by having an offset to UTC and does not use time zone.
 
-The DateTime scalar is based RFC3339.
+The DateTime scalar is based on [RFC 3339](https://datatracker.ietf.org/doc/html/rfc3339).
 
 ```sdl
 scalar DateTime @specifiedBy(url: "https://www.graphql-scalars.com/date-time/")
 ```
+
+> Note: The Hot Chocolate implementation diverges slightly from the DateTime Scalar specification, and allows fractional seconds of 0-7 digits, as opposed to exactly 3.
 
 <Video videoId="gO3bNKBmXZM" />
 
@@ -226,7 +224,7 @@ The `UuidType` will always return the value in the specified format. In case it 
 To change the default format we have to register the `UuidType` with the specifier on the schema:
 
 ```csharp
-services
+builder.Services
    .AddGraphQLServer()
    .AddType(new UuidType('D'));
 ```
@@ -384,17 +382,13 @@ public class Query
 {
     public Duration GetDuration() => Duration.FromMinutes(3);
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .AddType<DurationType>();
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddType<DurationType>();
 ```
 
 This package was originally developed by [@shoooe](https://github.com/shoooe).
@@ -407,7 +401,7 @@ A `System.String` is for example automatically mapped to a `StringType` in the s
 We can override these mappings by explicitly specifying type bindings.
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .BindRuntimeType<string, StringType>();
 ```
@@ -415,7 +409,7 @@ services
 Furthermore, we can also bind scalars to arrays or type structures:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .BindRuntimeType<byte[], ByteArrayType>();
 ```
@@ -436,21 +430,17 @@ public class Query
         return offsetDateTime;
     }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .BindRuntimeType<OffsetDateTime, DateTimeType>()
-            .AddTypeConverter<OffsetDateTime, DateTimeOffset>(
-                x => x.ToDateTimeOffset())
-            .AddTypeConverter<DateTimeOffset, OffsetDateTime>(
-                x => OffsetDateTime.FromDateTimeOffset(x));
-    }
-}
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .BindRuntimeType<OffsetDateTime, DateTimeType>()
+    .AddTypeConverter<OffsetDateTime, DateTimeOffset>(
+        x => x.ToDateTimeOffset())
+    .AddTypeConverter<DateTimeOffset, OffsetDateTime>(
+        x => OffsetDateTime.FromDateTimeOffset(x));
 ```
 
 # Scalar Options
@@ -460,9 +450,9 @@ Some scalars like `TimeSpan` or `Uuid` have options like their serialization for
 We can specify these options by registering the scalar explicitly.
 
 ```csharp
-services
-   .AddGraphQLServer()
-   .AddType(new UuidType('D'));
+builder.Services
+    .AddGraphQLServer()
+    .AddType(new UuidType('D'));
 ```
 
 # Custom Scalars
@@ -556,10 +546,7 @@ public class CreditCardNumberType : ScalarType
     // define which value nodes this type can be parsed from
     public override bool IsInstanceOfType(IValueNode valueSyntax)
     {
-        if (valueSyntax == null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         return valueSyntax is StringValueNode stringValueNode &&
             _validator.ValidateCreditCard(stringValueNode.Value);

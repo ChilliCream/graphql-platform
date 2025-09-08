@@ -1,6 +1,6 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -10,7 +10,7 @@ public class MongoDbFilterVisitorObjectTests
     : SchemaCache
     , IClassFixture<MongoResource>
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new()
         {
@@ -20,11 +20,8 @@ public class MongoDbFilterVisitorObjectTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<Bar>
-                {
-                    new() { Foo = new Foo { BarShort = 12, BarString = "a", }, },
-                },
-            },
+                ObjectArray = [new() { Foo = new Foo { BarShort = 12, BarString = "a" } }]
+            }
         },
         new()
         {
@@ -34,11 +31,8 @@ public class MongoDbFilterVisitorObjectTests
                 BarBool = true,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                ObjectArray = new List<Bar>
-                {
-                    new() { Foo = new Foo { BarShort = 14, BarString = "d", }, },
-                },
-            },
+                ObjectArray = [new() { Foo = new Foo { BarShort = 14, BarString = "d" } }]
+            }
         },
         new()
         {
@@ -49,12 +43,12 @@ public class MongoDbFilterVisitorObjectTests
                 BarEnum = BarEnum.FOO,
                 BarString = "testctest",
                 //ScalarArray = null,
-                ObjectArray = null,
-            },
-        },
+                ObjectArray = null
+            }
+        }
     ];
 
-    private static readonly BarNullable[] _barNullableEntities =
+    private static readonly BarNullable[] s_barNullableEntities =
     [
         new()
         {
@@ -64,11 +58,8 @@ public class MongoDbFilterVisitorObjectTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<BarNullable>
-                {
-                    new() { Foo = new FooNullable { BarShort = 12, }, },
-                },
-            },
+                ObjectArray = [new() { Foo = new FooNullable { BarShort = 12 } }]
+            }
         },
         new()
         {
@@ -78,11 +69,8 @@ public class MongoDbFilterVisitorObjectTests
                 BarBool = null,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                ObjectArray = new List<BarNullable>
-                {
-                    new() { Foo = new FooNullable { BarShort = null, }, },
-                },
-            },
+                ObjectArray = [new() { Foo = new FooNullable { BarShort = null } }]
+            }
         },
         new()
         {
@@ -92,11 +80,8 @@ public class MongoDbFilterVisitorObjectTests
                 BarBool = false,
                 BarEnum = BarEnum.QUX,
                 BarString = "testctest",
-                ObjectArray = new List<BarNullable>
-                {
-                    new() { Foo = new FooNullable { BarShort = 14, }, },
-                },
-            },
+                ObjectArray = [new() { Foo = new FooNullable { BarShort = 14 } }]
+            }
         },
         new()
         {
@@ -106,9 +91,9 @@ public class MongoDbFilterVisitorObjectTests
                 BarBool = false,
                 BarEnum = BarEnum.FOO,
                 BarString = "testdtest",
-                ObjectArray = null,
-            },
-        },
+                ObjectArray = null
+            }
+        }
     ];
 
     public MongoDbFilterVisitorObjectTests(MongoResource resource)
@@ -120,36 +105,36 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectShortEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { eq: 12}}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(where: { foo: { barShort: { eq: 12}}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { eq: 13}}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(where: { foo: { barShort: { eq: 13}}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { eq: null}}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(where: { foo: { barShort: { eq: null}}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12"), res2, "13"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -157,36 +142,36 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectShortIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ null, 14 ]}}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(where: { foo: { barShort: { in: [ null, 14 ]}}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12and13"), res2, "13and14"), res3, "nullAnd14")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12and13")
+            .AddResult(res2, "13and14")
+            .AddResult(res3, "nullAnd14")
             .MatchAsync();
     }
 
@@ -194,36 +179,36 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectNullableShortEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
+        var tester = CreateSchema<BarNullable, BarNullableFilterType>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { eq: 12}}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(where: { foo: { barShort: { eq: 12}}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { eq: 13}}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(where: { foo: { barShort: { eq: 13}}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { eq: null}}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(where: { foo: { barShort: { eq: null}}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12"), res2, "13"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -231,36 +216,36 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectNullableShortIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
+        var tester = CreateSchema<BarNullable, BarNullableFilterType>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barShort: { in: [ 13, null ]}}}) " +
-                    "{ foo{ barShort}}}")
+                    "{ root(where: { foo: { barShort: { in: [ 13, null ]}}}) "
+                    + "{ foo{ barShort}}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12and13"), res2, "13and14"), res3, "13andNull")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12and13")
+            .AddResult(res2, "13and14")
+            .AddResult(res3, "13andNull")
             .MatchAsync();
     }
 
@@ -268,28 +253,28 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectBooleanEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barBool: { eq: true}}}) " +
-                    "{ foo{ barBool}}}")
+                    "{ root(where: { foo: { barBool: { eq: true}}}) "
+                    + "{ foo{ barBool}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barBool: { eq: false}}}) " +
-                    "{ foo{ barBool}}}")
+                    "{ root(where: { foo: { barBool: { eq: false}}}) "
+                    + "{ foo{ barBool}}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "true"), res2, "false")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
             .MatchAsync();
     }
 
@@ -298,37 +283,37 @@ public class MongoDbFilterVisitorObjectTests
     {
         // arrange
         var tester = CreateSchema<BarNullable, BarNullableFilterType>(
-            _barNullableEntities);
+            s_barNullableEntities);
 
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barBool: { eq: true}}}) " +
-                    "{ foo{ barBool}}}")
+                    "{ root(where: { foo: { barBool: { eq: true}}}) "
+                    + "{ foo{ barBool}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barBool: { eq: false}}}) " +
-                    "{ foo{ barBool}}}")
+                    "{ root(where: { foo: { barBool: { eq: false}}}) "
+                    + "{ foo{ barBool}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barBool: { eq: null}}}) " +
-                    "{ foo{ barBool}}}")
+                    "{ root(where: { foo: { barBool: { eq: null}}}) "
+                    + "{ foo{ barBool}}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "true"), res2, "false"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -336,36 +321,36 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectEnumEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { eq: BAR}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { eq: BAR}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { eq: FOO}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { eq: FOO}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { eq: null}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { eq: null}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BAR")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -373,36 +358,36 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectEnumIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BarAndFoo")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -410,36 +395,36 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectNullableEnumEqual_Expression()
     {
         // assert
-        var tester = CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
+        var tester = CreateSchema<BarNullable, BarNullableFilterType>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { eq: BAR}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { eq: BAR}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { eq: FOO}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { eq: FOO}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { eq: null}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { eq: null}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BAR")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -447,36 +432,36 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectNullableEnumIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
+        var tester = CreateSchema<BarNullable, BarNullableFilterType>(s_barNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) " +
-                    "{ foo{ barEnum}}}")
+                    "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) "
+                    + "{ foo{ barEnum}}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BarAndFoo")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -484,21 +469,21 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectStringEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barString: { eq: \"testatest\"}}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(where: { foo: { barString: { eq: \"testatest\"}}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barString: { eq: \"testbtest\"}}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(where: { foo: { barString: { eq: \"testbtest\"}}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
@@ -508,11 +493,11 @@ public class MongoDbFilterVisitorObjectTests
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "testatest"), res2, "testbtest"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testatest")
+            .AddResult(res2, "testbtest")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -520,37 +505,37 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ObjectStringIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barString: { in: " +
-                    "[ \"testatest\"  \"testbtest\" ]}}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(where: { foo: { barString: { in: "
+                    + "[ \"testatest\"  \"testbtest\" ]}}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barString: { in: [\"testbtest\" null]}}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(where: { foo: { barString: { in: [\"testbtest\" null]}}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { barString: { in: [ \"testatest\" ]}}}) " +
-                    "{ foo{ barString}}}")
+                    "{ root(where: { foo: { barString: { in: [ \"testatest\" ]}}}) "
+                    + "{ foo{ barString}}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "testatestAndtestb"), res2, "testbtestAndNull"), res3, "testatest")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "testatestAndtestb")
+            .AddResult(res2, "testbtestAndNull")
+            .AddResult(res3, "testatest")
             .MatchAsync();
     }
 
@@ -558,39 +543,39 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ArrayObjectNestedArraySomeStringEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo:{ objectArray: { " +
-                    "some: { foo: { barString: { eq: \"a\"}}}}}}) " +
-                    "{ foo { objectArray { foo { barString}}}}}")
+                    "{ root(where: { foo:{ objectArray: { "
+                    + "some: { foo: { barString: { eq: \"a\"}}}}}}) "
+                    + "{ foo { objectArray { foo { barString}}}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo:{ objectArray: { " +
-                    "some: { foo: { barString: { eq: \"d\"}}}}}}) " +
-                    "{ foo { objectArray { foo { barString}}}}}")
+                    "{ root(where: { foo:{ objectArray: { "
+                    + "some: { foo: { barString: { eq: \"d\"}}}}}}) "
+                    + "{ foo { objectArray { foo { barString}}}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo:{ objectArray: { " +
-                    "some: { foo: { barString: { eq: null}}}}}}) " +
-                    "{ foo { objectArray { foo {barString}}}}}")
+                    "{ root(where: { foo:{ objectArray: { "
+                    + "some: { foo: { barString: { eq: null}}}}}}) "
+                    + "{ foo { objectArray { foo {barString}}}}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "a"), res2, "d"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "a")
+            .AddResult(res2, "d")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -598,42 +583,43 @@ public class MongoDbFilterVisitorObjectTests
     public async Task Create_ArrayObjectNestedArrayAnyStringEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Bar, BarFilterType>(_barEntities);
+        var tester = CreateSchema<Bar, BarFilterType>(s_barEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { objectArray: { any: false}}}) " +
-                    "{ foo { objectArray  { foo { barString }}}}}")
+                    "{ root(where: { foo: { objectArray: { any: false}}}) "
+                    + "{ foo { objectArray  { foo { barString }}}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { objectArray: { any: true}}}) " +
-                    "{ foo { objectArray  { foo { barString }}}}}")
+                    "{ root(where: { foo: { objectArray: { any: true}}}) "
+                    + "{ foo { objectArray  { foo { barString }}}}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(where: { foo: { objectArray: { any: null}}}) " +
-                    "{ foo { objectArray  { foo { barString }}}}}")
+                    "{ root(where: { foo: { objectArray: { any: null}}}) "
+                    + "{ foo { objectArray  { foo { barString }}}}}")
                 .Build());
 
         // arrange
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "false"), res2, "true"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "false")
+            .AddResult(res2, "true")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public short BarShort { get; set; }
@@ -644,12 +630,13 @@ public class MongoDbFilterVisitorObjectTests
 
         public bool BarBool { get; set; }
 
-        public List<Bar>? ObjectArray { get; set; } = null!;
+        public List<Bar>? ObjectArray { get; set; }
     }
 
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public short? BarShort { get; set; }
@@ -666,6 +653,7 @@ public class MongoDbFilterVisitorObjectTests
     public class Bar
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public Foo Foo { get; set; } = null!;
@@ -674,26 +662,23 @@ public class MongoDbFilterVisitorObjectTests
     public class BarNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooNullable? Foo { get; set; }
     }
 
     public class BarFilterType
-        : FilterInputType<Bar>
-    {
-    }
+        : FilterInputType<Bar>;
 
     public class BarNullableFilterType
-        : FilterInputType<BarNullable>
-    {
-    }
+        : FilterInputType<BarNullable>;
 
     public enum BarEnum
     {
         FOO,
         BAR,
         BAZ,
-        QUX,
+        QUX
     }
 }

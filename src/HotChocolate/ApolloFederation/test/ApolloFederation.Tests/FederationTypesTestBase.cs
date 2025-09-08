@@ -5,7 +5,7 @@ namespace HotChocolate.ApolloFederation;
 
 public abstract class FederationTypesTestBase
 {
-    protected ISchema CreateSchema(Action<ISchemaBuilder> configure)
+    protected Schema CreateSchema(Action<ISchemaBuilder> configure)
     {
         var builder =
             SchemaBuilder.New()
@@ -29,7 +29,7 @@ public abstract class FederationTypesTestBase
             t =>
             {
                 Assert.Equal("fields", t.Name);
-                Assert.IsType<FieldSetType>(Assert.IsType<NonNullType>(t.Type).Type);
+                Assert.IsType<FieldSetType>(Assert.IsType<NonNullType>(t.Type).NullableType);
             }
         );
     }

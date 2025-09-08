@@ -86,6 +86,6 @@ In-depth look at implementing real-time functionalities via GraphQL subscription
 
 An open session where attendees can ask questions or clarify doubts about the topics covered, facilitating deeper understanding and practical implementations.
 
-## We Want to Hear From You
+# We Want to Hear From You
 
 Your insights are invaluable to us. If you have questions, need more information, or just want to talk to use, don’t hesitate to reach out on <contact@chillicream.com> or on [slack.chillicream.com](https://slack.chillicream.com/blog/2024/04/01/fullstack-workshop)

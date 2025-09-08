@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Buffers;
 
 namespace HotChocolate.Types.Relay;

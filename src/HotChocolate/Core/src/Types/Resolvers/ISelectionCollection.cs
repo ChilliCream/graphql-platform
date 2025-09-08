@@ -1,4 +1,3 @@
-#nullable enable
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 
@@ -47,7 +46,7 @@ public interface ISelectionCollection : IReadOnlyList<ISelection>
     /// Returns a <see cref="ISelectionCollection"/> containing
     /// the selections where the typeContext is assignable from the field`s declaring type.
     /// </returns>
-    ISelectionCollection Select(INamedType typeContext);
+    ISelectionCollection Select(ITypeDefinition typeContext);
 
     /// <summary>
     /// Specifies if a child field with the given field name is selected.

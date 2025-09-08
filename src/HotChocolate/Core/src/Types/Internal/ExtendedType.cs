@@ -1,7 +1,5 @@
 using System.Reflection;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 internal sealed partial class ExtendedType : IExtendedType
@@ -149,7 +147,7 @@ internal sealed partial class ExtendedType : IExtendedType
         {
             if (Definition is not null)
             {
-                typeName = Definition.Name.Substring(0, Definition.Name.Length - 2);
+                typeName = Definition.Name[..^2];
                 typeName = $"{typeName}<{string.Join(", ", TypeArguments)}>";
             }
             else
@@ -163,15 +161,8 @@ internal sealed partial class ExtendedType : IExtendedType
 
     public static ExtendedType FromType(Type type, TypeCache cache)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (cache is null)
-        {
-            throw new ArgumentNullException(nameof(cache));
-        }
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(cache);
 
         if (cache.TryGetType(type, out var extendedType))
         {
@@ -188,15 +179,8 @@ internal sealed partial class ExtendedType : IExtendedType
 
     public static ExtendedType FromMember(MemberInfo member, TypeCache cache)
     {
-        if (member is null)
-        {
-            throw new ArgumentNullException(nameof(member));
-        }
-
-        if (cache is null)
-        {
-            throw new ArgumentNullException(nameof(cache));
-        }
+        ArgumentNullException.ThrowIfNull(member);
+        ArgumentNullException.ThrowIfNull(cache);
 
         if (member is Type type)
         {
@@ -208,15 +192,8 @@ internal sealed partial class ExtendedType : IExtendedType
 
     public static ExtendedMethodInfo FromMethod(MethodInfo method, TypeCache cache)
     {
-        if (method is null)
-        {
-            throw new ArgumentNullException(nameof(method));
-        }
-
-        if (cache is null)
-        {
-            throw new ArgumentNullException(nameof(cache));
-        }
+        ArgumentNullException.ThrowIfNull(method);
+        ArgumentNullException.ThrowIfNull(cache);
 
         return Members.FromMethod(method, cache);
     }

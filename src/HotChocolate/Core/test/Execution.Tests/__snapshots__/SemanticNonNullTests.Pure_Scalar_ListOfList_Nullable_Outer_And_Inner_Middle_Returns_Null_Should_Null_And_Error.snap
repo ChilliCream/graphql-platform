@@ -1,0 +1,35 @@
+{
+  "errors": [
+    {
+      "message": "Cannot return null for semantic non-null field.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 3
+        }
+      ],
+      "path": [
+        "nestedScalarArrayNullableOuterItems",
+        1
+      ],
+      "extensions": {
+        "code": "HC0088"
+      }
+    }
+  ],
+  "data": {
+    "nestedScalarArrayNullableOuterItems": [
+      [
+        "a1",
+        null,
+        "c1"
+      ],
+      null,
+      [
+        "a2",
+        null,
+        "c2"
+      ]
+    ]
+  }
+}

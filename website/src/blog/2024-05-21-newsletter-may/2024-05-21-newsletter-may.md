@@ -3,7 +3,8 @@ path: "/blog/2024/05/21/newsletter-may"
 date: "2024-05-21"
 title: "Recent Highlights"
 description: "We just released the Operation Builder, Telemetry, and a new Full Stack GraphQL Workshop. Checkout the blog post to learn more!"
-tags: ["bananacakepop", "graphql", "hotchocolate", "workshops", "cloud", "release"]
+tags:
+  ["bananacakepop", "graphql", "hotchocolate", "workshops", "cloud", "release"]
 featuredImage: "header.png"
 author: Pascal Senn
 authorUrl: https://github.com/pascalsenn
@@ -12,7 +13,7 @@ authorImageUrl: https://avatars.githubusercontent.com/u/14233220?v=4
 
 We’re excited to bring you some significant updates from ChiliCream that can genuinely make a difference in your day-to-day development. This isn't just about new features—it's about making your workflow more effective and your projects more successful.
 
-# 🛠️ Operation Builder
+# Operation Builder
 
 We’re proud to introduce the Operation Builder in Banana Cake Pop, a tool designed to make creating and managing your GraphQL operations a breeze.
 
@@ -26,7 +27,7 @@ Try out the Operation Builder today and transform the way you work with GraphQL!
 
 **[Check out the video here](https://link.chillicream.com/2024/05/21/ops-builder-video)**
 
-# 📊 Telemetry
+# Telemetry
 
 ![Telemetry](img2.png)
 We’re want to put a spotlight on our Telemetry integration. Why did we build this? The answer is simple. Understanding your application’s performance shouldn't be a guessing game and GraphQL Telemetry is difficult. With our telemetry integration, you can have complete visibility into your GraphQL server.
@@ -48,7 +49,7 @@ _Create, Collaborate, Conquer! Get Started with Banana Cake Pop Pro. Use the pro
 
 or read the docs: [Open Telemetry Documentation](https://link.chillicream.com/2024/05/21/otel-docs)
 
-# 🛠️ Announcing Our New Full Stack GraphQL Workshop
+# Announcing Our New Full Stack GraphQL Workshop
 
 In today's rapidly evolving technology landscape, staying ahead requires not only understanding the latest technologies but also knowing how to implement them effectively. Our brand-new Full Stack GraphQL Workshop is a two-day, hands-on journey designed to demystify advanced concepts.
 
@@ -62,6 +63,6 @@ Learn more about the workshop here: [learn.chillicream.com](https://link.chillic
 
 Your insights are invaluable to us. If you have questions, need more information, or want to discuss how our tools can fit into your projects, don’t hesitate to reach out on <contact@chillicream.com> or on [slack.chillicream.com](https://link.chillicream.com/2024/05/21/slack)
 
-## ❤️️ Thank You
+## Thank You
 
 We appreciate your engagement and are thrilled to support your projects with our evolving GraphQL solutions. Keep an eye out for HotChocolate 14, and let us help you take your projects to the next level.

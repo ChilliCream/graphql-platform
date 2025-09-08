@@ -1,8 +1,5 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Tests;
-
-#nullable enable
 
 namespace HotChocolate.Execution;
 
@@ -23,7 +20,7 @@ public class ScalarExecutionErrorTests
             "{ stringToName(name: \"  \") }");
 
         // assert
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -41,7 +38,7 @@ public class ScalarExecutionErrorTests
             "{ stringToFoo(name: \"  \") }");
 
         // assert
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -59,7 +56,7 @@ public class ScalarExecutionErrorTests
             "{ nameToString(name: \"  \") }");
 
         // assert
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -77,11 +74,11 @@ public class ScalarExecutionErrorTests
             "query a($a: Foo) { fooToString(name: $a) }",
             new Dictionary<string, object?>
             {
-                {"a", " "},
+                {"a", " "}
             });
 
         // assert
-        await result.MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     public class Query
@@ -100,19 +97,19 @@ public class ScalarExecutionErrorTests
         protected override void Configure(
             IObjectTypeDescriptor<Query> descriptor)
         {
-            descriptor.Field(t => t.StringToName(default!))
+            descriptor.Field(t => t.StringToName(null!))
                 .Argument("name", a => a.Type<StringType>())
                 .Type<NameType>();
 
-            descriptor.Field(t => t.NameToString(default!))
+            descriptor.Field(t => t.NameToString(null!))
                 .Argument("name", a => a.Type<NameType>())
                 .Type<StringType>();
 
-            descriptor.Field(t => t.StringToFoo(default!))
+            descriptor.Field(t => t.StringToFoo(null!))
                 .Argument("name", a => a.Type<StringType>())
                 .Type<FooType>();
 
-            descriptor.Field(t => t.FooToString(default!))
+            descriptor.Field(t => t.FooToString(null!))
                 .Argument("name", a => a.Type<FooType>())
                 .Type<StringType>();
         }
@@ -128,17 +125,14 @@ public class ScalarExecutionErrorTests
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
-            if (literal is null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
+            ArgumentNullException.ThrowIfNull(literal);
 
             if (literal is NullValueNode)
             {
                 return true;
             }
 
-            return literal is StringValueNode { Value: "a", };
+            return literal is StringValueNode { Value: "a" };
         }
 
         public override bool IsInstanceOfType(object? value)
@@ -153,17 +147,14 @@ public class ScalarExecutionErrorTests
 
         public override object? ParseLiteral(IValueNode literal)
         {
-            if (literal is null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
+            ArgumentNullException.ThrowIfNull(literal);
 
             if (literal is NullValueNode)
             {
                 return null;
             }
 
-            if (literal is StringValueNode { Value: "a", })
+            if (literal is StringValueNode { Value: "a" })
             {
                 return "a";
             }
@@ -211,7 +202,7 @@ public class ScalarExecutionErrorTests
 
         public override bool TryDeserialize(
             object? resultValue,
-            out object?runtimeValue)
+            out object? runtimeValue)
         {
             if (resultValue is null)
             {

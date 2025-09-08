@@ -2,22 +2,15 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Sorting;
 
-public class SortOperation
+public class SortOperation(int id, string name, string? description)
 {
-    public SortOperation(int id, string name, string? description)
-    {
-        Id = id;
-        Name = name;
-        Description = description;
-    }
+    public int Id { get; } = id;
 
-    public int Id { get; }
+    public string Name { get; } = name;
 
-    public string Name { get; }
+    public string? Description { get; } = description;
 
-    public string? Description { get; }
-
-    internal static SortOperation FromDefinition(
-        SortOperationConventionDefinition definition)
-        => new(definition.Id, definition.Name.EnsureGraphQLName(), definition.Description);
+    internal static SortOperation FromConfiguration(
+        SortOperationConventionConfiguration configuration)
+        => new(configuration.Id, configuration.Name.EnsureGraphQLName(), configuration.Description);
 }

@@ -2,8 +2,6 @@ using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class FieldSyntaxParameterExpressionBuilder()
@@ -21,5 +19,5 @@ internal sealed class FieldSyntaxParameterExpressionBuilder()
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)context.Selection.Field;
+        => (T)(object)context.Selection.Field;
 }

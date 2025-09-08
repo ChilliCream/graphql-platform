@@ -44,7 +44,7 @@ public class ProjectionVisitorTestBase : IAsyncLifetime
         ProjectionProvider? provider = null,
         bool usePaging = false,
         bool useOffsetPaging = false,
-        INamedType? objectType = null,
+        ITypeDefinition? objectType = null,
         Action<IRequestExecutorBuilder>? configure = null,
         Type? schemaType = null)
         where TEntity : class
@@ -105,7 +105,7 @@ public class ProjectionVisitorTestBase : IAsyncLifetime
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("sql", queryString)
                                 .Build();
                     }

@@ -20,5 +20,8 @@ public enum ResolverParameterKind
     GetLocalState,
     SetLocalState,
     Service,
-    Argument
+    Argument,
+    QueryContext,
+    PagingArguments,
+    ConnectionFlags
 }

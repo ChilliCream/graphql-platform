@@ -1,8 +1,4 @@
-using ChilliCream.Testing;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
-
-#nullable enable
 
 namespace HotChocolate;
 
@@ -251,7 +247,7 @@ public class SchemaCoordinateTests
         var member = schema.GetMember("Abc.DEF");
 
         // assert
-        Assert.Equal("DEF", Assert.IsType<EnumValue>(member).Name);
+        Assert.Equal("DEF", Assert.IsType<DefaultEnumValue>(member).Name);
     }
 
     [Fact]
@@ -401,7 +397,7 @@ public class SchemaCoordinateTests
         var schema = CreateSchema();
 
         // act
-        var success = schema.TryGetMember("Baz.foo", out var member);
+        var success = schema.TryGetMember("Baz.foo", out _);
 
         // assert
         Assert.False(success);
@@ -414,7 +410,7 @@ public class SchemaCoordinateTests
         var schema = CreateSchema();
 
         // act
-        var success = schema.TryGetMember("Baz.name(bar:)", out var member);
+        var success = schema.TryGetMember("Baz.name(bar:)", out _);
 
         // assert
         Assert.False(success);
@@ -474,7 +470,7 @@ public class SchemaCoordinateTests
         var schema = CreateSchema();
 
         // act
-        var success = schema.TryGetMember("Baz.xyz", out var member);
+        var success = schema.TryGetMember("Baz.xyz", out _);
 
         // assert
         Assert.False(success);
@@ -487,7 +483,7 @@ public class SchemaCoordinateTests
         var schema = CreateSchema();
 
         // act
-        var success = schema.TryGetMember("Bar.name(bar:)", out var member);
+        var success = schema.TryGetMember("Bar.name(bar:)", out _);
 
         // assert
         Assert.False(success);
@@ -500,7 +496,7 @@ public class SchemaCoordinateTests
         var schema = CreateSchema();
 
         // act
-        var success = schema.TryGetMember("FooOrBaz", out var member);
+        var success = schema.TryGetMember("FooOrBaz", out _);
 
         // assert
         Assert.True(success);
@@ -513,7 +509,7 @@ public class SchemaCoordinateTests
         var schema = CreateSchema();
 
         // act
-        var success = schema.TryGetMember("FooOrBaz.Foo", out var member);
+        var success = schema.TryGetMember("FooOrBaz.Foo", out _);
 
         // assert
         Assert.False(success);
@@ -556,7 +552,7 @@ public class SchemaCoordinateTests
         var schema = CreateSchema();
 
         // act
-        var success = schema.TryGetMember("BazInput.abc", out var member);
+        var success = schema.TryGetMember("BazInput.abc", out _);
 
         // assert
         Assert.False(success);
@@ -569,7 +565,7 @@ public class SchemaCoordinateTests
         var schema = CreateSchema();
 
         // act
-        var success = schema.TryGetMember("BazInput.name(a:)", out var member);
+        var success = schema.TryGetMember("BazInput.name(a:)", out _);
 
         // assert
         Assert.False(success);
@@ -600,7 +596,7 @@ public class SchemaCoordinateTests
 
         // assert
         Assert.True(success);
-        Assert.Equal("DEF", Assert.IsType<EnumValue>(member).Name);
+        Assert.Equal("DEF", Assert.IsType<DefaultEnumValue>(member).Name);
     }
 
     [Fact]
@@ -610,7 +606,7 @@ public class SchemaCoordinateTests
         var schema = CreateSchema();
 
         // act
-        var success = schema.TryGetMember("Abc.XYZ", out var member);
+        var success = schema.TryGetMember("Abc.XYZ", out _);
 
         // assert
         Assert.False(success);
@@ -667,7 +663,7 @@ public class SchemaCoordinateTests
         var schema = CreateSchema();
 
         // act
-        var success = schema.TryGetMember("@qux(b:)", out var member);
+        var success = schema.TryGetMember("@qux(b:)", out _);
 
         // assert
         Assert.False(success);
@@ -680,7 +676,7 @@ public class SchemaCoordinateTests
         var schema = CreateSchema();
 
         // act
-        var success = schema.TryGetMember("Abc123", out var member);
+        var success = schema.TryGetMember("Abc123", out _);
 
         // assert
         Assert.False(success);
@@ -693,13 +689,13 @@ public class SchemaCoordinateTests
         var schema = CreateSchema();
 
         // act
-        var success = schema.TryGetMember("@abc", out var member);
+        var success = schema.TryGetMember("@abc", out _);
 
         // assert
         Assert.False(success);
     }
 
-    private ISchema CreateSchema()
+    private Schema CreateSchema()
     {
         return SchemaBuilder.New()
             .AddDocumentFromString(FileResource.Open("schema_coordinates.graphql"))

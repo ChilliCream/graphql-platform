@@ -1,6 +1,5 @@
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution;
 
@@ -18,12 +17,12 @@ public class SourceObjectConversionTests
             .AddTypeConverter<Foo, Baz>(input =>
             {
                 conversionTriggered = true;
-                return new Baz { Qux = input.Bar, };
+                return new Baz(qux: input.Bar);
             })
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync();
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync("{ foo { qux } }");
@@ -62,7 +61,7 @@ public class SourceObjectConversionTests
 
     public class Query
     {
-        public Foo Foo { get; } = new Foo { Bar = "bar", };
+        public Foo Foo { get; } = new(bar: "bar");
     }
 
     public class QueryType : ObjectType<Query>
@@ -74,17 +73,15 @@ public class SourceObjectConversionTests
         }
     }
 
-    public class Foo
+    public class Foo(string bar)
     {
-        public string Bar { get; set; }
+        public string Bar { get; set; } = bar;
     }
 
-    public class Baz
+    public class Baz(string qux)
     {
-        public string Qux { get; set; }
+        public string Qux { get; set; } = qux;
     }
 
-    public class BazType : ObjectType<Baz>
-    {
-    }
+    public class BazType : ObjectType<Baz>;
 }

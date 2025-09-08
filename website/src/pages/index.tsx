@@ -1,324 +1,241 @@
-import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
-import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 
-import { BananaCakePop } from "@/components/images/banana-cake-pop";
-import { BlogPostBananaCakePopApis } from "@/components/images/blog-post-banana-cake-pop-apis";
-import { BlogPostGraphQLFusion } from "@/components/images/blog-post-graphql-fusion";
-import { BlogPostHotChocolate13 } from "@/components/images/blog-post-hot-chocolate-13";
-import { NewsletterMay2024 } from "@/components/images/newsletter-may-2024";
-import { Layout } from "@/components/layout";
-import { Link } from "@/components/misc/link";
+import { SiteLayout } from "@/components/layout";
 import {
-  ContentContainer,
-  EnvelopeIcon,
-  ImageContainer,
-  Section,
-  SectionRow,
-  SectionTitle,
-  SlackIcon,
-} from "@/components/misc/marketing-elements";
-import { Hero, Intro } from "@/components/misc/page-elements";
-import { SEO } from "@/components/misc/seo";
-import { Artwork } from "@/components/sprites";
+  ContentSection,
+  Hero,
+  HeroLink,
+  HeroTeaser,
+  HeroTitleFirst,
+  HeroTitleSecond,
+  NextStepsContentSection,
+  SEO,
+} from "@/components/misc";
 import {
+  CommunitySection,
   CompaniesSection,
+  DeploymentOptionsSection,
   MostRecentBlogPostsSection,
+  NewsletterSection,
 } from "@/components/widgets";
-import { GetIndexPageDataQuery } from "@/graphql-types";
-import { THEME_COLORS } from "@/shared-style";
+import { FADE_IN, ZOOM_IN } from "@/style";
 
-// Artwork
-import { FullstackWorkshop } from "@/components/images/fullstack-workshop";
-import { SrOnly } from "@/components/misc/sr-only";
-import ContactUsSvg from "@/images/artwork/contact-us.svg";
-import DashboardSvg from "@/images/artwork/dashboard.svg";
-import GetStartedSvg from "@/images/artwork/get-started.svg";
+// Images
+import FusionSvg from "@/images/startpage/fusion.svg";
+import {
+  COLLABORATE_IMAGE_WIDTH,
+  CollaborateImage,
+  EVOLVE_IMAGE_WIDTH,
+  EvolveImage,
+  MOVE_FASTER_IMAGE_WIDTH,
+  MoveFasterImage,
+  OBSERVE_IMAGE_WIDTH,
+  ObserveImage,
+  SHIP_WITH_CONFIDENCE_IMAGE_WIDTH,
+  ShipWithConfidenceImage,
+} from "../components/images";
 
 const IndexPage: FC = () => {
-  const data = useStaticQuery<GetIndexPageDataQuery>(graphql`
-    query getIndexPageData {
-      site {
-        siteMetadata {
-          tools {
-            slack
-          }
-        }
-      }
-      docNav: file(
-        sourceInstanceName: { eq: "docs" }
-        relativePath: { eq: "docs.json" }
-      ) {
-        products: childrenDocsJson {
-          path
-          latestStableVersion
-        }
-      }
-    }
-  `);
-  const latestHcVersion = data.docNav?.products?.find(
-    (product) => product?.path === "hotchocolate"
-  )?.latestStableVersion;
-
   return (
-    <Layout>
+    <SiteLayout>
       <SEO title="Home" />
-      <Intro>
-        <Hero>The Ultimate GraphQL Platform</Hero>
-        <Slideshow
-          autoPlay
-          infiniteLoop
-          swipeable
-          emulateTouch
-          interval={15000}
-          showArrows={false}
-          showStatus={false}
-          showThumbs={false}
-        >
-          <Slide>
-            <Link to="/blog/2024/05/21/newsletter-may">
-              <NewsletterMay2024 />
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/blog/2024/04/01/fullstack-workshop">
-              <FullstackWorkshop />
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/blog/2023/08/15/graphql-fusion">
-              <BlogPostGraphQLFusion />
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/blog/2023/02/08/new-in-hot-chocolate-13">
-              <BlogPostHotChocolate13 />
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/blog/2023/03/15/banana-cake-pop-graphql-apis">
-              <BlogPostBananaCakePopApis />
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/products/bananacakepop">
-              <BananaCakePop shadow />
-              <SlideContent>
-                <SlideTitle>Banana Cake Pop</SlideTitle>
-                <SlideDescription>
-                  Our GraphQL IDE to explore schemas, execute operations and get
-                  deep performance insights.
-                </SlideDescription>
-              </SlideContent>
-            </Link>
-          </Slide>
-        </Slideshow>
-      </Intro>
-      <Section>
-        <SectionRow>
-          <ImageContainer>
-            <Artwork {...DashboardSvg} />
-          </ImageContainer>
-          <ContentContainer>
-            <SectionTitle>
-              What Is the ChilliCream GraphQL Platform?
-            </SectionTitle>
-            <p>
-              It's a new way of defining modern APIs which are strongly typed
-              from server to client. Fetch once with no more under- or
-              over-fetching, just the right amount.
-            </p>
-            <Link to="/platform">
-              Learn more<SrOnly> about the ChilliCream GraphQL platform</SrOnly>
-            </Link>
-          </ContentContainer>
-        </SectionRow>
-      </Section>
-      <Section>
-        <SectionRow>
-          <ImageContainer>
-            <Artwork {...GetStartedSvg} />
-          </ImageContainer>
-          <ContentContainer>
-            <SectionTitle>Get Started</SectionTitle>
-            <p>
-              Creating a GraphQL .NET API with Hot Chocolate is very easy. Check
-              out our startup guide and see how simple it is to create your
-              first API.
-            </p>
-            <Link to={`/docs/hotchocolate/${latestHcVersion}`}>
-              Learn more<SrOnly> on how to build GraphQL .NET APIs</SrOnly>
-            </Link>
-          </ContentContainer>
-        </SectionRow>
-      </Section>
+      <BackgroundContainer>
+        <Fusion />
+      </BackgroundContainer>
+      <IndexPageHero>
+        <HeroTitleFirst>Unleash the Power</HeroTitleFirst>
+        <HeroTitleSecond>of Unified Services</HeroTitleSecond>
+        <HeroTeaser>
+          Unify all your APIs into a comprehensive company graph, streamlining
+          data accessibility and enhancing integration. Transform the way you
+          manage and interact with your data.
+        </HeroTeaser>
+        <HeroLink to="/docs/nitro/apis/fusion">Get Started</HeroLink>
+      </IndexPageHero>
       <CompaniesSection />
-      <Section>
-        <SectionRow>
-          <ImageContainer>
-            <Artwork {...ContactUsSvg} />
-          </ImageContainer>
-          <ContentContainer>
-            <SectionTitle>What’s Your Story?</SectionTitle>
-            <p>
-              {
-                "We would be thrilled to hear your customer success story with Hot Chocolate! Write us an "
-              }
-              <a href="mailto:contact@chillicream.com">
-                <EnvelopeIcon />
-              </a>
-              {" or chat with us on "}
-              <Link to={data.site!.siteMetadata!.tools!.slack!}>
-                <SlackIcon />
-              </Link>
-              {" to get in touch with us!"}
-            </p>
-          </ContentContainer>
-        </SectionRow>
-      </Section>
+      <ContentSection
+        title="Move Faster"
+        text="
+          Minimize the effort required to integrate, orchestrate, and compose APIs, enabling teams
+          to collaborate seamlessly. By introducing a unified and composable platform, backend teams
+          can avoid building isolated backends-for-frontend or single purpose APIs. Instead, they
+          contribute to a cohesive system where the domain and business rules are defined once, even
+          if distributed across different teams or services. This approach ensures consistency and
+          reduces the workload, allowing applications to come to life faster and more efficiently.
+        "
+        image={<MoveFasterImage />}
+        imageWidth={MOVE_FASTER_IMAGE_WIDTH}
+      />
+      <ContentSection
+        title="Ship With Confidence"
+        text="
+          Deploy APIs with confidence, knowing each update integrates
+          flawlessly. Ensure that every change is safe, allowing you to ship
+          your systems without disruption. You can deploy without breaking your
+          api or causing downtime, and understand the impact of each change
+          before it happens. Leverage the precision of GraphQL's strong
+          typing for deployments you can trust, and gain insights into which
+          features are being used to make informed decisions.
+        "
+        image={<ShipWithConfidenceImage />}
+        imageWidth={SHIP_WITH_CONFIDENCE_IMAGE_WIDTH}
+      >
+        <p className="text-2"></p>
+      </ContentSection>
+      <ContentSection
+        title="Observe"
+        text="
+          Unlock real-time GraphQL insights and elevate your system's
+          performance. Gain a unified view of your API data, see the health of
+          your entire application, and understand the impact of client load.
+          Delve deep into traces with detailed error analysis and latency
+          insights.
+        "
+        image={<ObserveImage />}
+        imageWidth={OBSERVE_IMAGE_WIDTH}
+      />
+      <ContentSection
+        title="Collaborate"
+        text="
+          A central hub for team-based API management, designed to bring
+          together request documents, testing, authorization settings, and more.
+          Manage APIs, gateways, and testing from a single point to enhance team
+          alignment and efficiency.
+        "
+        image={<CollaborateImage />}
+        imageWidth={COLLABORATE_IMAGE_WIDTH}
+      />
+      {false && (
+        <ContentSection
+          title="Evolve"
+          text="
+            In a world where change is the only constant, this solution empowers
+            teams to adapt APIs with ease. Propose and test API changes
+            collaboratively, providing immediate mocking for a smooth, unified
+            development process.
+          "
+          image={<EvolveImage />}
+          imageWidth={EVOLVE_IMAGE_WIDTH}
+        />
+      )}
+      <DeploymentOptionsSection />
+      <NextStepsContentSection
+        title="Discover the Difference"
+        text="
+          Ready to explore how our platform can transform your API management?
+          Book a demo to see it in action, or dive right in and start now.
+          We're here to help you revolutionize your API strategy.
+        "
+        primaryLink="mailto:contact@chillicream.com?subject=Demo"
+        primaryLinkText="Book a Demo"
+        secondaryLink="https://nitro.chillicream.com"
+        secondaryLinkText="Launch"
+      />
+      <CommunitySection />
+      <NewsletterSection />
       <MostRecentBlogPostsSection />
-    </Layout>
+    </SiteLayout>
   );
 };
 
 export default IndexPage;
 
-const Slideshow = styled(Carousel)`
-  ul,
-  li {
-    margin: 0;
-    padding: 0;
-  }
-
-  > .carousel {
-    position: relative;
-
-    .control-dots {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      list-style: none;
-
-      > .dot {
-        flex: 0 0 26px;
-        margin: 0 5px;
-        border-radius: 2px;
-        height: 6px;
-        background-color: ${THEME_COLORS.textContrast};
-        opacity: 0.5;
-        cursor: pointer;
-        transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
-
-        &.selected {
-          background-color: ${THEME_COLORS.textContrast};
-          opacity: 1;
-
-          &:hover {
-            opacity: 1;
-          }
-        }
-
-        &:hover {
-          opacity: 0.85;
-        }
-      }
-    }
-
-    .slider {
-      position: relative;
-      display: flex;
-      list-style: none;
-      margin-bottom: 25px;
-
-      > .slide {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 100%;
-      }
-    }
-  }
+const Fusion = styled(FusionSvg)`
+  animation: 0.5s ease-in-out ${FADE_IN} forwards,
+    0.5s ease-in-out ${ZOOM_IN} forwards;
+  opacity: 0;
+  transform: translateZ(-1px);
 `;
 
-const Slide = styled.div`
-  margin: 0 auto;
-  width: 100%;
-
-  .gatsby-image-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  @media only screen and (min-width: 992px) {
-    width: 800px;
-  }
-
-  @media only screen and (min-width: 1200px) {
-    width: 1000px;
-  }
-`;
-
-const SlideContent = styled.div`
+const BackgroundContainer = styled.div`
+  position: absolute;
+  z-index: -1;
+  top: 480px;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  perspective: 1px;
 
-  @media only screen and (min-width: 768px) {
-    position: absolute;
-    right: 20%;
-    bottom: 20%;
-    left: 20%;
-    display: flex;
-    flex-direction: column;
-    border-radius: var(--border-radius);
-    padding: 20px;
-    background-color: rgba(0, 0, 0, 0.6);
+  > ${Fusion} {
+    width: 500px;
+    height: unset;
+  }
+
+  @media only screen and (min-width: 238px) {
+    top: 440px;
+  }
+
+  @media only screen and (min-width: 270px) {
+    top: 420px;
+  }
+
+  @media only screen and (min-width: 305px) {
+    top: 400px;
+  }
+
+  @media only screen and (min-width: 317px) {
+    top: 360px;
+  }
+
+  @media only screen and (min-width: 383px) {
+    top: 330px;
+  }
+
+  @media only screen and (min-width: 385px) {
+    top: 290px;
+  }
+
+  @media only screen and (min-width: 447px) {
+    top: 115px;
+
+    > ${Fusion} {
+      width: 800px;
+      height: unset;
+    }
+  }
+
+  @media only screen and (min-width: 565px) {
+    top: 40px;
+
+    > ${Fusion} {
+      width: 1000px;
+    }
+  }
+
+  @media only screen and (min-width: 600px) {
+    top: -28px;
+
+    > ${Fusion} {
+      width: 1246px;
+    }
+  }
+
+  @media only screen and (min-width: 835px) {
+    top: -50px;
   }
 
   @media only screen and (min-width: 992px) {
-    right: 25%;
-    left: 25%;
-    margin: 0 auto;
-    max-width: 600px;
-  }
-
-  @media only screen and (min-width: 1200px) {
-    right: 30%;
-    left: 30%;
-    margin: 0 auto;
-    max-width: 800px;
+    top: 216px;
+    max-width: 1246px;
   }
 `;
 
-const SlideTitle = styled.h2`
-  flex: 0 0 auto;
-  margin-top: 10px;
-  font-size: 1em;
-  text-align: center;
+const IndexPageHero = styled(Hero)`
+  padding-bottom: 180px;
 
-  @media only screen and (min-width: 768px) {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 1.667em;
-    text-align: initial;
-    color: ${THEME_COLORS.textContrast};
+  @media only screen and (min-width: 447px) {
+    padding-bottom: 260px;
   }
-`;
 
-const SlideDescription = styled.p`
-  display: none;
-  flex: 0 0 auto;
-  margin-bottom: 0;
-  font-size: 1.111em;
-  color: ${THEME_COLORS.textContrast};
+  @media only screen and (min-width: 565px) {
+    padding-bottom: 360px;
+  }
 
-  @media only screen and (min-width: 768px) {
-    display: initial;
+  @media only screen and (min-width: 600px) {
+    padding-bottom: 440px;
+  }
+
+  @media only screen and (min-width: 992px) {
+    padding-bottom: 380px;
   }
 `;

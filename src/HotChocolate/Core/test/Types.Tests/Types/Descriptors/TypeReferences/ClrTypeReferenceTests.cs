@@ -1,5 +1,3 @@
-using HotChocolate.Internal;
-
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types.Descriptors;
 
@@ -16,7 +14,7 @@ public class ClrTypeReferenceTests
     public void TypeReference_Create(
         Type clrType,
         TypeContext context,
-        string scope)
+        string? scope)
     {
         // arrange
         // act
@@ -69,7 +67,7 @@ public class ClrTypeReferenceTests
             _typeInspector.GetType(typeof(string)));
 
         // act
-        var result = x.Equals((ExtendedTypeReference)null);
+        var result = x.Equals(null);
 
         // assert
         Assert.False(result);
@@ -83,7 +81,7 @@ public class ClrTypeReferenceTests
             _typeInspector.GetType(typeof(string)));
 
         // act
-        var xx = x.Equals((ExtendedTypeReference)x);
+        var xx = x.Equals(x);
 
         // assert
         Assert.True(xx);
@@ -152,7 +150,7 @@ public class ClrTypeReferenceTests
             _typeInspector.GetType(typeof(string)));
 
         // act
-        var result = x.Equals((TypeReference)null);
+        var result = x.Equals((TypeReference?)null);
 
         // assert
         Assert.False(result);
@@ -249,7 +247,7 @@ public class ClrTypeReferenceTests
             _typeInspector.GetType(typeof(string)));
 
         // act
-        var result = x.Equals((object)null);
+        var result = x.Equals((object?)null);
 
         // assert
         Assert.False(result);
@@ -382,7 +380,7 @@ public class ClrTypeReferenceTests
             scope: "foo");
 
         // act
-        Action action = () => typeReference1.WithType(default(IExtendedType)!);
+        Action action = () => typeReference1.WithType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

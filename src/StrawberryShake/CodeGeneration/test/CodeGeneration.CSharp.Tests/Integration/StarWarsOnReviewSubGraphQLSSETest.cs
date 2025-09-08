@@ -35,7 +35,7 @@ public class StarWarsOnReviewSubGraphQLSSETest : ServerTestBase
 
         // act
         var topicEventSender = host.Services.GetRequiredService<ITopicEventSender>();
-        var topic = Episode.NewHope;
+        const Episode topic = Episode.NewHope;
 
         var connectCompletionSource = new TaskCompletionSource();
         var subscribeCompletionSource = new TaskCompletionSource();
@@ -49,7 +49,7 @@ public class StarWarsOnReviewSubGraphQLSSETest : ServerTestBase
         {
             await topicEventSender.SendAsync(
                 $"{OnReview}_{topic}",
-                new Review { Stars = 1, Commentary = "Commentary", },
+                new Review(stars: 1, commentary: "Commentary"),
                 ct);
             await Task.Delay(1_000, ct);
         }

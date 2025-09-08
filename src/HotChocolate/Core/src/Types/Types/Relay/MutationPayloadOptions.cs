@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Types.Relay;
 
 /// <summary>
@@ -16,6 +14,6 @@ public class MutationPayloadOptions
     /// A predicate that defines if the query field shall be added to
     /// the specified payload type.
     /// </summary>
-    public Func<INamedType, bool> MutationPayloadPredicate { get; set; } =
+    public Func<ITypeDefinition, bool> MutationPayloadPredicate { get; set; } =
         type => type.Name.EndsWith("Payload", StringComparison.Ordinal);
 }

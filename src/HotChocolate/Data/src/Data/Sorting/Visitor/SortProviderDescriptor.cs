@@ -8,15 +8,14 @@ public class SortProviderDescriptor<TContext>
     {
     }
 
-    protected SortProviderDefinition Definition { get; } =
-        new SortProviderDefinition();
+    protected SortProviderConfiguration Configuration { get; } = new();
 
-    public SortProviderDefinition CreateDefinition() => Definition;
+    public SortProviderConfiguration CreateConfiguration() => Configuration;
 
     public ISortProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>()
         where TFieldHandler : ISortFieldHandler<TContext>
     {
-        Definition.Handlers.Add((typeof(TFieldHandler), null));
+        Configuration.Handlers.Add((typeof(TFieldHandler), null));
         return this;
     }
 
@@ -24,14 +23,14 @@ public class SortProviderDescriptor<TContext>
         TFieldHandler fieldHandler)
         where TFieldHandler : ISortFieldHandler<TContext>
     {
-        Definition.Handlers.Add((typeof(TFieldHandler), fieldHandler));
+        Configuration.Handlers.Add((typeof(TFieldHandler), fieldHandler));
         return this;
     }
 
     public ISortProviderDescriptor<TContext> AddOperationHandler<TOperationHandler>()
         where TOperationHandler : ISortOperationHandler<TContext>
     {
-        Definition.OperationHandlers.Add((typeof(TOperationHandler), null));
+        Configuration.OperationHandlers.Add((typeof(TOperationHandler), null));
         return this;
     }
 
@@ -39,11 +38,10 @@ public class SortProviderDescriptor<TContext>
         TOperationHandler operationHandler)
         where TOperationHandler : ISortOperationHandler<TContext>
     {
-        Definition.OperationHandlers.Add((typeof(TOperationHandler), operationHandler));
+        Configuration.OperationHandlers.Add((typeof(TOperationHandler), operationHandler));
         return this;
     }
-#pragma warning disable CA1000 // Do not declare static members on generic types
+
     public static SortProviderDescriptor<TContext> New() =>
         new SortProviderDescriptor<TContext>();
-#pragma warning restore CA1000 // Do not declare static members on generic types
 }

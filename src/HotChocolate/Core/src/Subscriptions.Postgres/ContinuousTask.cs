@@ -1,21 +1,24 @@
+using HotChocolate.Utilities;
+
 namespace HotChocolate.Subscriptions.Postgres;
 
 internal sealed class ContinuousTask : IAsyncDisposable
 {
-    private const int _waitOnFailureInMs = 1000;
+    private readonly TimeSpan _waitOnFailure = TimeSpan.FromSeconds(1);
 
     private readonly CancellationTokenSource _completion = new();
     private readonly Func<CancellationToken, Task> _handler;
-    private readonly Task _task;
+    private readonly TimeProvider _timeProvider;
     private bool _disposed;
 
-    public ContinuousTask(Func<CancellationToken, Task> handler)
+    public ContinuousTask(Func<CancellationToken, Task> handler, TimeProvider timeProvider)
     {
         _handler = handler;
+        _timeProvider = timeProvider;
 
         // We do not use Task.Factory.StartNew here because RunContinuously is an async method and
         // the LongRunning flag only works until the first await.
-        _task = RunContinuously();
+        RunContinuously().FireAndForget();
     }
 
     public CancellationToken Completion => _completion.Token;
@@ -38,7 +41,7 @@ internal sealed class ContinuousTask : IAsyncDisposable
             {
                 if (!_completion.IsCancellationRequested)
                 {
-                    await Task.Delay(_waitOnFailureInMs, _completion.Token);
+                    await Task.Delay(_waitOnFailure, _timeProvider, _completion.Token);
                 }
             }
         }
@@ -47,18 +50,14 @@ internal sealed class ContinuousTask : IAsyncDisposable
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        if(_disposed)
+        if (_disposed)
         {
             return;
         }
 
-        if(!_completion.IsCancellationRequested)
+        if (!_completion.IsCancellationRequested)
         {
-#if NET8_0_OR_GREATER
             await _completion.CancelAsync();
-#else
-            _completion.Cancel();
-#endif
         }
 
         _completion.Dispose();

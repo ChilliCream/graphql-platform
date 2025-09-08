@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Types.Mutable.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Mutable</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
+  </ItemGroup>
+
+</Project>

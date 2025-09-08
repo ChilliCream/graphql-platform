@@ -26,10 +26,7 @@ public static class Executable
         IQueryable<T> source,
         Func<IQueryable<T>, string>? queryPrinter = null)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
         return new DefaultQueryableExecutable<T>(source, queryPrinter);
     }
@@ -45,10 +42,7 @@ public static class Executable
     /// </returns>
     public static IExecutable From(IEnumerable source)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
         return new DefaultEnumerableExecutable(source);
     }
@@ -67,10 +61,7 @@ public static class Executable
     /// </returns>
     public static IExecutable<T> From<T>(IAsyncEnumerable<T> source)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
+        ArgumentNullException.ThrowIfNull(source);
 
         return new DefaultAsyncEnumerableExecutable<T>(source);
     }

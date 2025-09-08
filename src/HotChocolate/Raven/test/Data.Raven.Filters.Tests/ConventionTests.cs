@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Data.Filters;
 
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
@@ -18,24 +16,17 @@ public class ConventionTests
         var tester =
             _cache.CreateSchema<TypeWithList, FilterInputType<TypeWithList>>(TypeWithList.Data);
 
-#if NET7_0_OR_GREATER
         await Snapshot
             .Create()
-            .Add(tester.Schema.Print(), "schema")
+            .Add(tester.Schema.ToString(), "schema")
             .MatchAsync();
-#else
-        await Snapshot
-            .Create("NET6")
-            .Add(tester.Schema.Print(), "schema")
-            .MatchAsync();
-#endif
     }
 
     public class TypeWithList
     {
         public static TypeWithList[] Data =
         [
-            new() { List = new List<ListItem>() { new() { Foo = "Foo", }, new() { Foo = "Bar", }, }, },
+            new() { List = [new() { Foo = "Foo" }, new() { Foo = "Bar" }] }
         ];
 
         public string? Id { get; set; }

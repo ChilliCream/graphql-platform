@@ -17,7 +17,7 @@ internal enum CostAnalyzerMode
     Analyze = 1,
 
     /// <summary>
-    /// Enforces the defined cost limits but does not report any metrics in the response.
+    /// Includes the operation cost metrics in the response.
     /// </summary>
     Report = 2,
 
@@ -29,5 +29,5 @@ internal enum CostAnalyzerMode
     /// <summary>
     /// Execute the request after analyzing the operation cost.
     /// </summary>
-    Execute = 8,
+    Execute = 8
 }

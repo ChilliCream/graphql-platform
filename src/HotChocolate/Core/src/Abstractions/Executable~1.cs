@@ -33,6 +33,9 @@ public abstract class Executable<T> : IExecutable<T>
         => await ToListAsync(cancellationToken);
 
     /// <inheritdoc />
+    public abstract ValueTask<int> CountAsync(CancellationToken cancellationToken = default);
+
+    /// <inheritdoc />
     public virtual string Print() => Source.ToString() ?? Source.GetType().FullName ?? Source.GetType().Name;
 
     /// <inheritdoc />

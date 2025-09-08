@@ -1,12 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
-
-#nullable enable
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -14,7 +13,7 @@ namespace HotChocolate.Types.Descriptors;
 /// The descriptor context is passed around during the schema creation and
 /// allows access to conventions and context data.
 /// </summary>
-public interface IDescriptorContext : IHasContextData, IDisposable
+public interface IDescriptorContext : IFeatureProvider, IDisposable
 {
     /// <summary>
     /// Gets the schema options.
@@ -77,6 +76,11 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     IParameterBindingResolver ParameterBindingResolver { get; }
 
     /// <summary>
+    /// Gets the type configuration container.
+    /// </summary>
+    TypeConfigurationContainer TypeConfiguration { get; }
+
+    /// <summary>
     /// Gets the registered type discovery handlers.
     /// </summary>
     ReadOnlySpan<TypeDiscoveryHandler> GetTypeDiscoveryHandlers();
@@ -104,5 +108,5 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     /// <summary>
     /// Allows to subscribe to schema completed events.
     /// </summary>
-    void OnSchemaCreated(Action<ISchema> callback);
+    void OnSchemaCreated(Action<Schema> callback);
 }

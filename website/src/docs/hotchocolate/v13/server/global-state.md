@@ -6,7 +6,7 @@ Global State allows us to define properties on a per-request basis to be made av
 
 # Initializing Global State
 
-We can add Global State using the `SetProperty` method on the `OperationRequestBuilder`. This method takes a `key` and a `value` as an argument. While the `key` needs to be a `string` the value can be of any type.
+We can add Global State using the `SetProperty` method on the `IQueryRequestBuilder`. This method takes a `key` and a `value` as an argument. While the `key` needs to be a `string` the value can be of any type.
 
 Using an interceptor allows us to initialize the Global State before the request is being executed.
 
@@ -14,7 +14,7 @@ Using an interceptor allows us to initialize the Global State before the request
 public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 {
     public override ValueTask OnCreateAsync(HttpContext context,
-        IRequestExecutor requestExecutor, OperationRequestBuilder requestBuilder,
+        IRequestExecutor requestExecutor, IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         string userId =
@@ -37,7 +37,7 @@ public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 We can access the Global State in our resolvers like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -76,7 +76,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -118,7 +118,7 @@ descriptor
 </Code>
 <Schema>
 
-Take a look at the Annotation-based or Code-first example.
+Take a look at the implementation-first or code-first example.
 
 </Schema>
 </ExampleTabs>

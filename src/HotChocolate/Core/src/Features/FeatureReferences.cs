@@ -56,7 +56,7 @@ public struct FeatureReferences<TCache>
 
     // cache is a public field because the code calling Fetch must
     // be able to pass ref values that "dot through" the TCache struct memory,
-    // if it was a Property then that getter would return a copy of the memory
+    // if it was a property, then that getter would return a copy of the memory
     // preventing the use of "ref"
     /// <summary>
     /// This API is part of ASP.NET Core's infrastructure and should not be referenced by application code.
@@ -103,7 +103,7 @@ public struct FeatureReferences<TCache>
             flush = true;
         }
 
-        return cached ?? UpdateCached(ref cached!, state, factory, revision, flush);
+        return cached ?? UpdateCached(ref cached, state, factory, revision, flush);
     }
 
     // Update and cache clearing logic, when the fast-path in Fetch isn't applicable

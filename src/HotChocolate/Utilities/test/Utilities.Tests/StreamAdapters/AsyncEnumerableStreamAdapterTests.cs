@@ -1,12 +1,8 @@
-using Xunit;
-
-#nullable enable
-
 namespace HotChocolate.Utilities.StreamAdapters;
 
 public class AsyncEnumerableStreamAdapterTests
 {
-    private readonly string[] _strings = ["a", "b", "c", "d", "e",];
+    private readonly string[] _strings = ["a", "b", "c", "d", "e"];
 
     [Fact]
     public async Task ArrayToStream()

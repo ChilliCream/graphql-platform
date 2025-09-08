@@ -8,6 +8,8 @@ public sealed class TypeExtensionInfo(string name, bool isStatic, OperationType 
 
     public OperationType Type { get; } = type;
 
+    public override string OrderByKey => Name;
+
     public override bool Equals(object? obj)
         => obj is TypeExtensionInfo other && Equals(other);
 

@@ -3,7 +3,9 @@
 ## Operation
 
 ```graphql
-query($where: BookFilterInput) {
+query(
+  $where: BookFilterInput
+) {
   books(where: $where) {
     nodes {
       title
@@ -17,7 +19,7 @@ query($where: BookFilterInput) {
 ```json
 {
   "fieldCost": 10,
-  "typeCost": 52
+  "typeCost": 12
 }
 ```
 
@@ -33,7 +35,7 @@ query($where: BookFilterInput) {
   "extensions": {
     "operationCost": {
       "fieldCost": 901,
-      "typeCost": 52
+      "typeCost": 12
     }
   }
 }

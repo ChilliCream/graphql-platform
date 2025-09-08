@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,7 +5,7 @@ namespace HotChocolate.Data.Projections;
 
 public class QueryableFirstOrDefaultTests
 {
-    private static readonly Bar[] _barEntities =
+    private static readonly Bar[] s_barEntities =
     [
         new()
         {
@@ -16,13 +15,9 @@ public class QueryableFirstOrDefaultTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                NestedObject =
-                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
-                ObjectArray = new List<BarDeep>
-                {
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
-                },
-            },
+                NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                ObjectArray = [new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }]
+            }
         },
         new()
         {
@@ -32,17 +27,13 @@ public class QueryableFirstOrDefaultTests
                 BarBool = true,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                NestedObject =
-                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d", }, },
-                ObjectArray = new List<BarDeep>
-                {
-                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d", }, },
-                },
-            },
-        },
+                NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
+                ObjectArray = [new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }]
+            }
+        }
     ];
 
-    private static readonly BarNullable[] _barNullableEntities =
+    private static readonly BarNullable[] s_barNullableEntities =
     [
         new()
         {
@@ -52,11 +43,8 @@ public class QueryableFirstOrDefaultTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<BarNullableDeep?>
-                {
-                    new() { Foo = new FooDeep { BarShort = 12, }, },
-                },
-            },
+                ObjectArray = [new() { Foo = new FooDeep { BarShort = 12 } }]
+            }
         },
         new()
         {
@@ -66,11 +54,8 @@ public class QueryableFirstOrDefaultTests
                 BarBool = null,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                ObjectArray = new List<BarNullableDeep?>
-                {
-                    new() { Foo = new FooDeep { BarShort = 9, }, },
-                },
-            },
+                ObjectArray = [new() { Foo = new FooDeep { BarShort = 9 } }]
+            }
         },
         new()
         {
@@ -80,11 +65,8 @@ public class QueryableFirstOrDefaultTests
                 BarBool = false,
                 BarEnum = BarEnum.QUX,
                 BarString = "testctest",
-                ObjectArray = new List<BarNullableDeep?>
-                {
-                    new() { Foo = new FooDeep { BarShort = 14, }, },
-                },
-            },
+                ObjectArray = [new() { Foo = new FooDeep { BarShort = 14 } }]
+            }
         },
         new()
         {
@@ -94,9 +76,9 @@ public class QueryableFirstOrDefaultTests
                 BarBool = false,
                 BarEnum = BarEnum.FOO,
                 BarString = "testdtest",
-                ObjectArray = null,
-            },
-        },
+                ObjectArray = null
+            }
+        }
     ];
 
     private readonly SchemaCache _cache = new();
@@ -105,7 +87,7 @@ public class QueryableFirstOrDefaultTests
     public async Task Create_DeepFilterObjectTwoProjections()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(s_barEntities, OnModelCreating);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -136,7 +118,7 @@ public class QueryableFirstOrDefaultTests
     public async Task Create_ListObjectDifferentLevelProjection()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(s_barEntities, OnModelCreating);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -168,7 +150,7 @@ public class QueryableFirstOrDefaultTests
     public async Task Create_DeepFilterObjectTwoProjections_Nullable()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(s_barNullableEntities, OnModelCreating);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -199,7 +181,7 @@ public class QueryableFirstOrDefaultTests
     public async Task Create_ListObjectDifferentLevelProjection_Nullable()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(s_barNullableEntities, OnModelCreating);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -231,7 +213,7 @@ public class QueryableFirstOrDefaultTests
     public async Task Create_DeepFilterObjectTwoProjections_Executable()
     {
         // arrange
-        var tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+        var tester = _cache.CreateSchema(s_barEntities, OnModelCreating);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -343,6 +325,6 @@ public class QueryableFirstOrDefaultTests
         FOO,
         BAR,
         BAZ,
-        QUX,
+        QUX
     }
 }

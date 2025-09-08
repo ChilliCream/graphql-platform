@@ -21,28 +21,22 @@ Setting up authentication is largely the same as in any other ASP.NET Core appli
 2. Register the JWT authentication scheme
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        var signingKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes("MySuperSecretKey"));
+var signingKey = new SymmetricSecurityKey(
+    Encoding.UTF8.GetBytes("MySuperSecretKey"));
 
-        services
-            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters =
+            new TokenValidationParameters
             {
-                options.TokenValidationParameters =
-                    new TokenValidationParameters
-                    {
-                        ValidIssuer = "https://auth.chillicream.com",
-                        ValidAudience = "https://graphql.chillicream.com",
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = signingKey
-                    };
-            });
-    }
-}
+                ValidIssuer = "https://auth.chillicream.com",
+                ValidAudience = "https://graphql.chillicream.com",
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = signingKey
+            };
+    });
 ```
 
 > Warning: This is an example configuration that's not intended for use in a real world application.
@@ -50,20 +44,14 @@ public class Startup
 3. Register the ASP.NET Core authentication middleware with the request pipeline by calling `UseAuthentication`
 
 ```csharp
-public class Startup
+app.UseRouting();
+
+app.UseAuthentication();
+
+app.UseEndpoints(endpoints =>
 {
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        app.UseRouting();
-
-        app.UseAuthentication();
-
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapGraphQL();
-        });
-    }
-}
+    endpoints.MapGraphQL();
+});
 ```
 
 The above takes care of parsing and validating an incoming HTTP request.
@@ -77,7 +65,7 @@ In order to make the authentication result available to our resolvers, we need t
 2. Call `AddAuthorization()` on the `IRequestExecutorBuilder`
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddAuthorization()
     .AddQueryType<Query>();
@@ -92,7 +80,7 @@ All of this does not yet lock out unauthenticated users. It only exposes the ide
 The [ClaimsPrincipal](https://docs.microsoft.com/dotnet/api/system.security.claims.claimsprincipal) of an authenticated user can be accessed in our resolvers like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -104,7 +92,7 @@ public class Query
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -128,7 +116,7 @@ public class QueryType : ObjectType
 <Schema>
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddDocumentFromString(@"
         type Query {

@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -24,7 +22,7 @@ public interface ISelection : IOptionalSelection
     /// <summary>
     /// Gets the field that was selected.
     /// </summary>
-    IObjectField Field { get; }
+    ObjectField Field { get; }
 
     /// <summary>
     /// Gets the type of the selection.
@@ -44,12 +42,17 @@ public interface ISelection : IOptionalSelection
     /// <summary>
     /// Gets the type that declares the field that is selected by this selection.
     /// </summary>
-    IObjectType DeclaringType { get; }
+    ObjectType DeclaringType { get; }
 
     /// <summary>
     /// Gets the selectionSet that declares this selection.
     /// </summary>
     ISelectionSet DeclaringSelectionSet { get; }
+
+    /// <summary>
+    /// Gets the operation that declares this selection.
+    /// </summary>
+    IOperation DeclaringOperation { get; }
 
     /// <summary>
     /// Gets the merged field selection syntax node.

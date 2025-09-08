@@ -55,7 +55,7 @@ query StoryComments {
 
 The key to do this is our `@export` directive which is able to export results as variables for the next queries in the batch. Each query can add to the variables collection.
 
-Batching combined with `@export` becomes really interesting if you think about mutations. With this you can create a sequence of mutations that should run on your server and each result of a mutation can become a input for the next mutation in the chain. This allows you to efficiently write flows that run asynchronously on the server.
+Batching combined with `@export` becomes really interesting if you think about mutations. With this you can create a sequence of mutations that should run on your server and each result of a mutation can become an input for the next mutation in the chain. This allows you to efficiently write flows that run asynchronously on the server.
 
 # Operation Batching
 

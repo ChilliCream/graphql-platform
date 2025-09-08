@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Data.Sorting;
 
 public delegate void ConfigureSortInputType(ISortInputTypeDescriptor descriptor);

@@ -33,16 +33,13 @@ public class ClientDescriptorMapperTests
             }");
 
         // act
-        var clientName = "FooClient";
+        const string clientName = "FooClient";
         var context = new MapperContext(
             "Foo.Bar",
             clientName,
             new Sha1DocumentHashProvider(),
             RequestStrategyGen.Default,
-            new[]
-            {
-                TransportProfile.Default,
-            });
+            [TransportProfile.Default]);
         TypeDescriptorMapper.Map(clientModel, context);
         OperationDescriptorMapper.Map(clientModel, context);
         ClientDescriptorMapper.Map(context);

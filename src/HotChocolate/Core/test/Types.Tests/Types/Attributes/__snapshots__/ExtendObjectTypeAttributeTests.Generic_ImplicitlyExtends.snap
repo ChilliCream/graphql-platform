@@ -1,0 +1,9 @@
+schema {
+  query: Foo
+}
+
+type Foo {
+  id: Int!
+  name: String!
+  bar: String!
+}

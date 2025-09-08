@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HotChocolate.OpenApi/HotChocolate.OpenApi.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/HotChocolate.OpenApi.Tests/HotChocolate.OpenApi.Tests.csproj" />
+  </Folder>
+</Solution>

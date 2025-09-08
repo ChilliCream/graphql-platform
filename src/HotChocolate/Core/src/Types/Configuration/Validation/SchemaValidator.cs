@@ -4,7 +4,7 @@ namespace HotChocolate.Configuration.Validation;
 
 internal static class SchemaValidator
 {
-    private static readonly ISchemaValidationRule[] _rules =
+    private static readonly ISchemaValidationRule[] s_rules =
     [
         new ObjectTypeValidationRule(),
         new InterfaceTypeValidationRule(),
@@ -12,25 +12,19 @@ internal static class SchemaValidator
         new DirectiveValidationRule(),
         new InterfaceHasAtLeastOneImplementationRule(),
         new IsSelectedPatternValidation(),
+        new EnsureFieldResultsDeclareErrorsRule()
     ];
 
     public static IReadOnlyList<ISchemaError> Validate(
         IDescriptorContext context,
-        ISchema schema)
+        ISchemaDefinition schema)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (schema == null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(schema);
 
         var errors = new List<ISchemaError>();
 
-        foreach (var rule in _rules)
+        foreach (var rule in s_rules)
         {
             rule.Validate(context, schema, errors);
         }

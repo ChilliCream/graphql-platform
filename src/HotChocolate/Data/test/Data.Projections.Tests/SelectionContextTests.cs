@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Projections.Context;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -331,8 +330,8 @@ public class SelectionContextTests
                     visitedFields.Push(field.Field.Name);
 
                     list.Add(
-                        $"{string.Join(".", visitedFields.Reverse())}" +
-                        $":{field.IsSelected(selectedField)}");
+                        $"{string.Join(".", visitedFields.Reverse())}"
+                        + $":{field.IsSelected(selectedField)}");
 
                     foreach (var subField in field.GetFields())
                     {

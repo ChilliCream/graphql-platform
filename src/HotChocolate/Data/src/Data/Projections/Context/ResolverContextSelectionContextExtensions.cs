@@ -1,4 +1,3 @@
-using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Projections.Context;
@@ -14,5 +13,5 @@ public static class ResolverContextSelectionExtensions
     /// <param name="context">The resolver context</param>
     /// Returns the <see cref="ISelectedField"/> of the current resolver.
     public static ISelectedField GetSelectedField(this IResolverContext context)
-        => new SelectedField(context, (ISelection)context.Selection);
+        => new SelectedField(context, context.Selection);
 }

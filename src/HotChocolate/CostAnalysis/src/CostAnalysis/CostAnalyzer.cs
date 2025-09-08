@@ -1,41 +1,33 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.CostAnalysis.Types;
 using HotChocolate.CostAnalysis.Utilities;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
 
 namespace HotChocolate.CostAnalysis;
 
-internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorVisitor
+internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentValidatorVisitor
 {
-    private readonly Dictionary<SelectionSetNode, CostSummary> _selectionSetCost = new();
-    private readonly HashSet<string> _processed = new();
-    private readonly InputCostVisitor _inputCostVisitor = new();
-    private InputCostVisitorContext? _inputCostVisitorContext;
-
-    public CostMetrics Analyze(OperationDefinitionNode operation, IDocumentValidatorContext context)
+    public CostMetrics Analyze(OperationDefinitionNode operation, DocumentValidatorContext context)
     {
+        var feature = context.Features.GetOrSet<CostContext>();
+
         Visit(operation, context);
 
-        var summary = _selectionSetCost[operation.SelectionSet];
-
-        _selectionSetCost.Clear();
-        _processed.Clear();
-        _inputCostVisitorContext = null;
+        var summary = feature.SelectionSetCost[operation.SelectionSet];
 
         return new CostMetrics { TypeCost = summary.TypeCost, FieldCost = summary.FieldCost };
     }
 
     protected override ISyntaxVisitorAction Enter(
         OperationDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        context.FieldSets.Clear();
+        context.GetFieldSets().Clear();
         context.SelectionSets.Clear();
 
         return base.Enter(node, context);
@@ -43,12 +35,13 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
 
     protected override ISyntaxVisitorAction Leave(
         OperationDefinitionNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         // add operation cost
+        var costContext = context.GetCostContext();
         var type = context.Types.Peek();
         var cost = type.GetTypeWeight();
-        var summary = _selectionSetCost[node.SelectionSet];
+        var summary = costContext.SelectionSetCost[node.SelectionSet];
         summary.TypeCost += cost;
 
         return base.Leave(node, context);
@@ -56,23 +49,23 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
 
     protected override ISyntaxVisitorAction Enter(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         var selectionSet = context.SelectionSets.Peek();
 
-        if (!context.FieldSets.TryGetValue(selectionSet, out var fields))
+        if (!context.GetFieldSets().TryGetValue(selectionSet, out var fields))
         {
             fields = context.RentFieldInfoList();
-            context.FieldSets.Add(selectionSet, fields);
+            context.GetFieldSets().Add(selectionSet, fields);
         }
 
-        if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
+        if (IntrospectionFieldNames.TypeName.EqualsOrdinal(node.Name.Value))
         {
-            fields.Add(new FieldInfo(context.Types.Peek(), context.NonNullString, node));
+            fields.Add(new FieldInfo(context.Types.Peek(), context.NullStringType(), node));
             return Skip;
         }
 
-        if (context.Types.TryPeek(out var type) && type.NamedType() is IComplexOutputType ct)
+        if (context.Types.TryPeek(out var type) && type.NamedType() is IComplexTypeDefinition ct)
         {
             if (ct.Fields.TryGetField(node.Name.Value, out var of))
             {
@@ -107,7 +100,7 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
 
     protected override ISyntaxVisitorAction Leave(
         FieldNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         context.OutputFields.Pop();
         context.Types.Pop();
@@ -116,7 +109,7 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
 
     protected override ISyntaxVisitorAction Enter(
         SelectionSetNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (context.Types.TryPeek(out var type)
             && type.NamedType() is { Kind: TypeKind.Union }
@@ -136,7 +129,7 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
 
     protected override ISyntaxVisitorAction Leave(
         SelectionSetNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
         if (!context.Path.TryPeek(out var parent))
         {
@@ -147,15 +140,16 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
         {
             context.SelectionSets.Pop();
 
-            if (!context.FieldSets.TryGetValue(node, out var fields))
+            if (!context.GetFieldSets().TryGetValue(node, out var fields))
             {
                 return Continue;
             }
 
-            if (!_selectionSetCost.TryGetValue(node, out var costSummary))
+            var costContext = context.GetCostContext();
+            if (!costContext.SelectionSetCost.TryGetValue(node, out var costSummary))
             {
                 costSummary = new CostSummary();
-                _selectionSetCost.Add(node, costSummary);
+                costContext.SelectionSetCost.Add(node, costSummary);
             }
 
             var type = context.Types.Peek().NamedType();
@@ -174,10 +168,7 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
             {
                 foreach (var possibleType in context.Schema.GetPossibleTypes(type))
                 {
-                    var result = CalculateSelectionSetCost(
-                        possibleType,
-                        fields,
-                        context);
+                    var result = CalculateSelectionSetCost(possibleType, fields, context);
 
                     if (costSummary.TypeCost < result.TypeCost)
                     {
@@ -197,13 +188,12 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
 
     protected override ISyntaxVisitorAction VisitChildren(
         FragmentSpreadNode node,
-        IDocumentValidatorContext context)
+        DocumentValidatorContext context)
     {
-        if (context.Fragments.TryGetValue(node.Name.Value, out var fragment)
-            && context.VisitedFragments.Add(fragment.Name.Value))
+        if (context.Fragments.TryEnter(node, out var fragment))
         {
             var result = Visit(fragment, node, context);
-            context.VisitedFragments.Remove(fragment.Name.Value);
+            context.Fragments.Leave(fragment);
 
             if (result.IsBreak())
             {
@@ -231,15 +221,14 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
         return false;
     }
 
-    private CostSummary GetSelectionSetCost(SelectionSetNode selectionSetNode)
-        => _selectionSetCost[selectionSetNode];
-
     private (double TypeCost, double FieldCost) CalculateSelectionSetCost(
-        ObjectType possibleType,
-        IList<FieldInfo> fields,
-        IDocumentValidatorContext context)
+        IObjectTypeDefinition possibleType,
+        List<FieldInfo> fields,
+        DocumentValidatorContext context)
     {
-        _processed.Clear();
+        var costContext = context.GetCostContext();
+        var processed = costContext.Processed;
+        var inputCostVisitor = costContext.InputCostVisitor;
 
         var typeCostSum = 0.0;
         var fieldCostSum = 0.0;
@@ -249,7 +238,7 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
             var fieldInfo = fields[i];
             var fieldNode = fieldInfo.SyntaxNode;
 
-            if (_processed.Add(fieldInfo.ResponseName)
+            if (processed.Add(fieldInfo.ResponseName)
                 && fieldInfo.DeclaringType.NamedType().IsAssignableFrom(possibleType)
                 && possibleType.Fields.TryGetField(fieldNode.Name.Value, out var field))
             {
@@ -261,9 +250,7 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
                 var typeCost = field.GetTypeWeight();
                 var fieldCost = field.GetFieldWeight();
                 var selectionSetCost = 0.0;
-                var listSizeDirective = field.Directives
-                    .FirstOrDefault<ListSizeDirective>()
-                    ?.AsValue<ListSizeDirective>();
+                var listSizeDirective = field.Directives.FirstOrDefaultValue<ListSizeDirective>();
 
                 listSizeDirective.ValidateRequireOneSlicingArgument(fieldNode, context.Path);
 
@@ -274,15 +261,14 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
                         if (field.Arguments.TryGetField(argumentNode.Name.Value, out var argument))
                         {
                             var argumentCost = argument.GetFieldWeight();
-                            _inputCostVisitorContext ??= new InputCostVisitorContext();
-                            _inputCostVisitor.CalculateCost(argument, argumentNode, _inputCostVisitorContext);
-                            argumentCost += _inputCostVisitorContext.Cost;
+                            inputCostVisitor.CalculateCost(argument, argumentNode, costContext.InputCostVisitorContext);
+                            argumentCost += costContext.InputCostVisitorContext.Cost;
 
                             if ((argument.Flags & FieldFlags.FilterArgument) == FieldFlags.FilterArgument
                                 && argumentNode.Value.Kind == SyntaxKind.Variable
-                                && options.Filtering.VariableMultiplier.HasValue)
+                                && options.FilterVariableMultiplier.HasValue)
                             {
-                                argumentCost *= options.Filtering.VariableMultiplier.Value;
+                                argumentCost *= options.FilterVariableMultiplier.Value;
                             }
 
                             fieldCost += argumentCost;
@@ -292,7 +278,7 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
 
                 if (field.Type.NamedType().IsCompositeType() && fieldNode.SelectionSet is not null)
                 {
-                    var selectionSetCostSummary = GetSelectionSetCost(fieldNode.SelectionSet);
+                    var selectionSetCostSummary = context.GetSelectionSetCost(fieldNode.SelectionSet);
                     selectionSetCost += selectionSetCostSummary.FieldCost;
                     typeCost += selectionSetCostSummary.TypeCost;
                 }
@@ -304,9 +290,7 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
 
                     if (listSizeDirective is null && parentField is not null)
                     {
-                        var parentListSizeDirective = parentField.Directives
-                            .FirstOrDefault<ListSizeDirective>()
-                            ?.AsValue<ListSizeDirective>();
+                        var parentListSizeDirective = parentField.Directives.FirstOrDefaultValue<ListSizeDirective>();
 
                         if (parentListSizeDirective?.SizedFields.Contains(field.Name) ?? false)
                         {
@@ -315,9 +299,9 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
                         }
                     }
 
-                    // if the field is a list type we are multiplying the cost
+                    // if the field is a list type, we are multiplying the cost
                     // by the estimated list size.
-                    var listSize = field.GetListSize(arguments, listSizeDirective, context.Variables);
+                    var listSize = field.GetListSize(arguments, listSizeDirective);
                     typeCost *= listSize;
                     selectionSetCost *= listSize;
                 }
@@ -327,7 +311,7 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
                 // https://ibm.github.io/graphql-specs/cost-spec.html#sec-Field-Cost
                 // https://ibm.github.io/graphql-specs/cost-spec.html#sel-IALJJHPDABAB4Biqc
                 // Second, if this sum is negative then round it up to zero
-                if(fieldCost < 0)
+                if (fieldCost < 0)
                 {
                     fieldCost = 0;
                 }
@@ -343,11 +327,91 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsTypeNameField(string fieldName)
-        => fieldName.EqualsOrdinal(IntrospectionFields.TypeName);
+        => fieldName.EqualsOrdinal(IntrospectionFieldNames.TypeName);
+}
 
-    private sealed class CostSummary
+file sealed class CostContext : ValidatorFeature
+{
+    private static readonly FieldInfoListBufferPool s_fieldInfoPool = new();
+    private readonly List<FieldInfoListBuffer> _buffers = [new()];
+
+    public IType NonNullString { get; private set; } = null!;
+
+    public Dictionary<SelectionSetNode, List<FieldInfo>> FieldSets { get; } = [];
+
+    public readonly Dictionary<SelectionSetNode, CostSummary> SelectionSetCost = [];
+
+    public readonly HashSet<string> Processed = [];
+
+    public readonly InputCostVisitor InputCostVisitor = new();
+
+    public InputCostVisitorContext InputCostVisitorContext { get; } = new();
+
+    public List<FieldInfo> RentFieldInfoList()
     {
-        public double TypeCost { get; set; }
-        public double FieldCost { get; set; }
+        var buffer = _buffers.Peek();
+        List<FieldInfo>? list;
+
+        while (!buffer.TryPop(out list))
+        {
+            buffer = s_fieldInfoPool.Get();
+            _buffers.Push(buffer);
+        }
+
+        return list;
     }
+
+    protected internal override void Initialize(DocumentValidatorContext context)
+        => NonNullString = new NonNullType(context.Schema.Types.GetType<IScalarTypeDefinition>("String"));
+
+    protected internal override void Reset()
+    {
+        NonNullString = null!;
+        FieldSets.Clear();
+
+        if (_buffers.Count > 1)
+        {
+            var buffer = _buffers.Pop();
+            buffer.Clear();
+
+            for (var i = 0; i < _buffers.Count; i++)
+            {
+                s_fieldInfoPool.Return(_buffers[i]);
+            }
+
+            _buffers.Push(buffer);
+        }
+        else
+        {
+            _buffers[0].Clear();
+        }
+
+        InputCostVisitorContext.Clear();
+    }
+}
+
+file static class DocumentValidatorContextExtensions
+{
+    public static IType NullStringType(this DocumentValidatorContext context)
+        => context.Features.GetRequired<CostContext>().NonNullString;
+
+    public static Dictionary<SelectionSetNode, List<FieldInfo>> GetFieldSets(this DocumentValidatorContext context)
+        => context.Features.GetRequired<CostContext>().FieldSets;
+
+    public static List<FieldInfo> RentFieldInfoList(this DocumentValidatorContext context)
+        => context.Features.GetRequired<CostContext>().RentFieldInfoList();
+
+    public static CostContext GetCostContext(this DocumentValidatorContext context)
+        => context.Features.GetRequired<CostContext>();
+
+    public static CostSummary GetSelectionSetCost(
+        this DocumentValidatorContext context,
+        SelectionSetNode selectionSetNode)
+        => context.GetCostContext().SelectionSetCost[selectionSetNode];
+}
+
+file sealed class CostSummary
+{
+    public double TypeCost { get; set; }
+    public double FieldCost { get; set; }
 }

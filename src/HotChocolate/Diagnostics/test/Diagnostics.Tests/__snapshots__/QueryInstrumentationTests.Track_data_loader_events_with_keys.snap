@@ -43,7 +43,7 @@
         },
         {
           "Key": "graphql.selection.type",
-          "Value": "String!"
+          "Value": "String"
         },
         {
           "Key": "graphql.selection.path",

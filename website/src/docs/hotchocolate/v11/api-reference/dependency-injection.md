@@ -120,7 +120,7 @@ public class CustomHttpRequestInterceptor : DefaultHttpRequestInterceptor
     public async override ValueTask OnCreateAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
-        OperationRequestBuilder requestBuilder,
+        IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         await base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
@@ -144,7 +144,7 @@ public class CustomSocketSessionInterceptor : DefaultSocketSessionInterceptor
 {
     public async override ValueTask OnRequestAsync(
         ISocketConnection connection,
-        OperationRequestBuilder requestBuilder,
+        IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         await OnRequestAsync(connection, requestBuilder, cancellationToken);

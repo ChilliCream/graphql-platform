@@ -1,8 +1,9 @@
+import React, { FC } from "react";
+
 import {
   ArticleContentVideoContainer,
   ArticleVideo,
-} from "@/components/articles/article-elements";
-import React, { FC } from "react";
+} from "@/components/article-elements";
 
 export interface VideoProps {
   readonly videoId: string;

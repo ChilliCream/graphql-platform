@@ -5,13 +5,13 @@ namespace StrawberryShake.Persistence.SQLite;
 
 internal sealed class DatabaseHelper
 {
-    private const string _entitiesTable = @"
+    private const string EntitiesTable = @"
             CREATE TABLE IF NOT EXISTS strawberryShake_Entities(
                 Id TEXT PRIMARY KEY,
                 Value TEXT NOT NULL,
                 Type TEXT NOT NULL)";
 
-    private const string _operationsTable = @"
+    private const string OperationsTable = @"
             CREATE TABLE IF NOT EXISTS strawberryShake_Operations(
                 id TEXT PRIMARY KEY,
                 Variables TEXT NULL,
@@ -35,14 +35,14 @@ internal sealed class DatabaseHelper
     private static async Task CreateEntitiesTableAsync(SqliteConnection connection)
     {
         using var command = connection.CreateCommand();
-        command.CommandText = _entitiesTable;
+        command.CommandText = EntitiesTable;
         await command.ExecuteNonQueryAsync().ConfigureAwait(false);
     }
 
     private static async Task CreateOperationsTableAsync(SqliteConnection connection)
     {
         using var command = connection.CreateCommand();
-        command.CommandText = _operationsTable;
+        command.CommandText = OperationsTable;
         await command.ExecuteNonQueryAsync().ConfigureAwait(false);
     }
 
@@ -87,7 +87,7 @@ internal sealed class DatabaseHelper
             {
                 Id = reader.GetString(0),
                 Value = reader.GetString(1),
-                Type = reader.GetString(2),
+                Type = reader.GetString(2)
             };
         }
     }
@@ -135,7 +135,7 @@ internal sealed class DatabaseHelper
                 Id = reader.GetString(0),
                 Variables = reader.GetString(1),
                 ResultType = reader.GetString(2),
-                DataInfo = reader.GetString(3),
+                DataInfo = reader.GetString(3)
             };
         }
     }
@@ -208,20 +208,20 @@ internal sealed class DatabaseHelper
 
 internal class EntityDto
 {
-    public string Id { get; set; } = default!;
+    public string Id { get; set; } = null!;
 
-    public string Value { get; set; } = default!;
+    public string Value { get; set; } = null!;
 
-    public string Type { get; set; } = default!;
+    public string Type { get; set; } = null!;
 }
 
 internal class OperationDto
 {
-    public string Id { get; set; } = default!;
+    public string Id { get; set; } = null!;
 
     public string? Variables { get; set; }
 
-    public string ResultType { get; set; } = default!;
+    public string ResultType { get; set; } = null!;
 
-    public string DataInfo { get; set; } = default!;
+    public string DataInfo { get; set; } = null!;
 }

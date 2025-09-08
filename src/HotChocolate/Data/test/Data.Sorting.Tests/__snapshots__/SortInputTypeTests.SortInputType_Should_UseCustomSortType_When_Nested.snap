@@ -1,0 +1,19 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo(order: [UserSortInput!]): [Query]
+  id: Int!
+  name: String!
+  friends: [Query!]!
+}
+
+input UserSortInput {
+  name: SortEnumType
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}

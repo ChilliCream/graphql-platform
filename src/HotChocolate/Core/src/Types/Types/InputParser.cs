@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Buffers;
 using System.Collections;
 using HotChocolate.Language;
@@ -10,7 +8,7 @@ namespace HotChocolate.Types;
 
 public sealed class InputParser
 {
-    private static readonly Path _root = Path.Root.Append("root");
+    private static readonly Path s_root = Path.Root.Append("root");
     private readonly ITypeConverter _converter;
     private readonly DictionaryToObjectConverter _dictToObjConverter;
     private readonly bool _ignoreAdditionalInputFields;
@@ -31,17 +29,10 @@ public sealed class InputParser
         _ignoreAdditionalInputFields = options.IgnoreAdditionalInputFields;
     }
 
-    public object? ParseLiteral(IValueNode value, IInputFieldInfo field, Type? targetType = null)
+    public object? ParseLiteral(IValueNode value, IInputValueInfo field, Type? targetType = null)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
-
-        if (field is null)
-        {
-            throw new ArgumentNullException(nameof(field));
-        }
+        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(field);
 
         var path = Path.Root.Append(field.Name);
         var runtimeValue = ParseLiteralInternal(value, field.Type, path, 0, true, field);
@@ -60,17 +51,10 @@ public sealed class InputParser
 
     public object? ParseLiteral(IValueNode value, IType type, Path? path = null)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(type);
 
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        return ParseLiteralInternal(value, type, path ?? _root, 0, true, null);
+        return ParseLiteralInternal(value, type, path ?? s_root, 0, true, null);
     }
 
     private object? ParseLiteralInternal(
@@ -79,7 +63,7 @@ public sealed class InputParser
         Path path,
         int stack,
         bool defaults,
-        IInputFieldInfo? field)
+        IInputValueInfo? field)
     {
         if (value.Kind == SyntaxKind.NullValue)
         {
@@ -96,7 +80,7 @@ public sealed class InputParser
             case TypeKind.NonNull:
                 return ParseLiteralInternal(
                     value,
-                    ((NonNullType)type).Type,
+                    ((NonNullType)type).NullableType,
                     path,
                     stack,
                     defaults,
@@ -123,7 +107,7 @@ public sealed class InputParser
         Path path,
         int stack,
         bool defaults,
-        IInputFieldInfo? field)
+        IInputValueInfo? field)
     {
         if (resultValue.Kind == SyntaxKind.ListValue)
         {
@@ -153,7 +137,8 @@ public sealed class InputParser
                     var item = items[i];
                     var itemPath = path.Append(i);
 
-                    if (item.Kind != SyntaxKind.ListValue)
+                    if (item.Kind != SyntaxKind.ListValue
+                        && item.Kind != SyntaxKind.NullValue)
                     {
                         throw ParseNestedList_InvalidSyntaxKind(type, item.Kind, itemPath);
                     }
@@ -217,7 +202,7 @@ public sealed class InputParser
             try
             {
                 var fields = ((ObjectValueNode)resultValue).Fields;
-                var oneOf = type.Directives.ContainsDirective(WellKnownDirectives.OneOf);
+                var oneOf = type.IsOneOf;
 
                 if (oneOf && fields.Count is 0)
                 {
@@ -312,7 +297,7 @@ public sealed class InputParser
         IValueNode resultValue,
         ILeafType type,
         Path path,
-        IInputFieldInfo? field)
+        IInputValueInfo? field)
     {
         try
         {
@@ -340,15 +325,8 @@ public sealed class InputParser
         DirectiveType type,
         Path? path = null)
     {
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(node);
+        ArgumentNullException.ThrowIfNull(type);
 
         return ParseDirective(node, type, path ?? Path.Root, 0, true);
     }
@@ -392,8 +370,8 @@ public sealed class InputParser
                     var literal = fieldValue.Value;
                     var fieldPath = path.Append(field.Name);
 
-                    if (literal.Kind is SyntaxKind.NullValue &&
-                        field.Type.Kind is TypeKind.NonNull)
+                    if (literal.Kind is SyntaxKind.NullValue
+                        && field.Type.Kind is TypeKind.NonNull)
                     {
                         throw NonNullInputViolation(type, fieldPath, field);
                     }
@@ -455,15 +433,12 @@ public sealed class InputParser
 
     public object? ParseResult(object? resultValue, IType type, Path? path = null)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
-        return Deserialize(resultValue, type, path ?? _root, null);
+        return Deserialize(resultValue, type, path ?? s_root, null);
     }
 
-    private object? Deserialize(object? resultValue, IType type, Path path, IInputField? field)
+    private object? Deserialize(object? resultValue, IType type, Path path, InputField? field)
     {
         if (resultValue is null or NullValueNode)
         {
@@ -477,7 +452,7 @@ public sealed class InputParser
 
         if (type.Kind == TypeKind.NonNull)
         {
-            type = ((NonNullType)type).Type;
+            type = ((NonNullType)type).NullableType;
         }
 
         switch (type.Kind)
@@ -504,7 +479,7 @@ public sealed class InputParser
         object resultValue,
         ListType type,
         Path path,
-        IInputField? field)
+        InputField? field)
     {
         if (resultValue is IList serializedList)
         {
@@ -531,7 +506,7 @@ public sealed class InputParser
     {
         if (resultValue is IReadOnlyDictionary<string, object?> map)
         {
-            var oneOf = type.Directives.ContainsDirective(WellKnownDirectives.OneOf);
+            var oneOf = type.IsOneOf;
 
             if (oneOf && map.Count is 0)
             {
@@ -604,8 +579,8 @@ public sealed class InputParser
             return type.CreateInstance(fieldValues);
         }
 
-        if (type.RuntimeType != typeof(object) &&
-            type.RuntimeType.IsInstanceOfType(resultValue))
+        if (type.RuntimeType != typeof(object)
+            && type.RuntimeType.IsInstanceOfType(resultValue))
         {
             return resultValue;
         }
@@ -622,7 +597,7 @@ public sealed class InputParser
         object resultValue,
         ILeafType type,
         Path path,
-        IInputField? field)
+        InputField? field)
     {
         if (resultValue is IValueNode node)
         {
@@ -746,7 +721,7 @@ public sealed class InputParser
             : value;
     }
 
-    private static object? FormatValue(IInputFieldInfo field, object? value)
+    private static object? FormatValue(IInputValueInfo field, object? value)
         => value is null || field.Formatter is null
             ? value
             : field.Formatter.Format(value);
@@ -768,8 +743,8 @@ public sealed class InputParser
             return converted;
         }
 
-        // create from this the required argument value.
-        // This however comes with a performance impact of traversing the dictionary structure
+        // Create from this the required argument value.
+        // This, however, comes with a performance impact of traversing the dictionary structure
         // and creating from this the object.
         if (value is IReadOnlyDictionary<string, object> or IReadOnlyList<object>)
         {

@@ -16,10 +16,7 @@
     "*.drawio",
     "**/bin/",
     "**/obj/",
-    "packages.lock.json",
-
-    // TODO: Remove
-    "**/test/"
+    "packages.lock.json"
   ],
   "ignoreRegExpList": [
     "featuredVideoId:(.*)", // video hash

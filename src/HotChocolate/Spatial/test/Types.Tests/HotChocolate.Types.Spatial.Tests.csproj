@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Spatial.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types.Spatial</RootNamespace>
-    <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

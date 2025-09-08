@@ -23,6 +23,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Types\Directives\PolicyAttribute.cs">
+      <DependentUpon>PolicyDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\PolicyDescriptorExtensions.cs">
+      <DependentUpon>PolicyDirective.cs</DependentUpon>
+    </Compile>
     <Compile Update="Types\Directives\ProvidesAttribute.cs">
       <DependentUpon>ProvidesDirective.cs</DependentUpon>
     </Compile>
@@ -74,9 +80,6 @@
     <Compile Update="Types\Directives\InterfaceObjectDescriptorExtensions.cs">
       <DependentUpon>InterfaceObjectDirective.cs</DependentUpon>
     </Compile>
-    <Compile Update="Types\Directives\KeyLegacySupportAttribute.cs">
-      <DependentUpon>KeyDirective.cs</DependentUpon>
-    </Compile>
     <Compile Update="Types\Directives\LinkDescriptorExtensions.cs">
       <DependentUpon>LinkDirective.cs</DependentUpon>
     </Compile>
@@ -92,9 +95,6 @@
     <Compile Update="Types\Directives\ComposeDirectiveDescriptorExtensions.cs">
       <DependentUpon>ComposeDirective.cs</DependentUpon>
     </Compile>
-    <Compile Update="Types\FieldSetAttribute.cs">
-      <DependentUpon>FieldSetType.cs</DependentUpon>
-    </Compile>
     <Compile Update="Types\Directives\AuthenticatedDescriptionExtensions.cs">
       <DependentUpon>AuthenticatedDirective.cs</DependentUpon>
     </Compile>
@@ -103,6 +103,9 @@
     </Compile>
     <Compile Update="Types\Directives\RequiresScopesDescriptorExtensions.cs">
       <DependentUpon>RequiresScopesDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\FieldSetAttribute.cs">
+      <DependentUpon>FieldSetType.cs</DependentUpon>
     </Compile>
     <Compile Update="Properties\FederationResources.Designer.cs">
       <DesignTime>True</DesignTime>

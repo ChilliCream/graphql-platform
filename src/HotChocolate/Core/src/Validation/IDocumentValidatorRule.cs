@@ -8,6 +8,11 @@ namespace HotChocolate.Validation;
 public interface IDocumentValidatorRule
 {
     /// <summary>
+    /// Gets the priority of this rule. Rules with a lower priority are executed first.
+    /// </summary>
+    ushort Priority { get; }
+
+    /// <summary>
     /// Defines if the result of this rule can be cached and reused on consecutive
     /// validations of the same GraphQL request document.
     /// </summary>
@@ -22,5 +27,5 @@ public interface IDocumentValidatorRule
     /// <param name="document">
     /// The GraphQL document that shall be inspected.
     /// </param>
-    void Validate(IDocumentValidatorContext context, DocumentNode document);
+    void Validate(DocumentValidatorContext context, DocumentNode document);
 }

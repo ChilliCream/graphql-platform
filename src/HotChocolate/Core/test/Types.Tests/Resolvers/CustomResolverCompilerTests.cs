@@ -3,9 +3,6 @@ using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Tests;
-using Snapshooter.Xunit;
-
-#nullable enable
 
 namespace HotChocolate.Resolvers;
 
@@ -14,8 +11,6 @@ public class CustomResolverCompilerTests
     [Fact]
     public async Task AddWellKnownState_New()
     {
-        Snapshot.FullName();
-
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryWellKnownState>()

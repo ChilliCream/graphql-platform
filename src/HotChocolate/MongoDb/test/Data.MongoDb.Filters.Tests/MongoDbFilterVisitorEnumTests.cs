@@ -1,6 +1,6 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 
@@ -10,21 +10,21 @@ public class MongoDbFilterVisitorEnumTests
     : SchemaCache
     , IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { BarEnum = FooEnum.BAR, },
-        new() { BarEnum = FooEnum.BAZ, },
-        new() { BarEnum = FooEnum.FOO, },
-        new() { BarEnum = FooEnum.QUX, },
+        new() { BarEnum = FooEnum.BAR },
+        new() { BarEnum = FooEnum.BAZ },
+        new() { BarEnum = FooEnum.FOO },
+        new() { BarEnum = FooEnum.QUX }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { BarEnum = FooEnum.BAR, },
-        new() { BarEnum = FooEnum.BAZ, },
-        new() { BarEnum = FooEnum.FOO, },
-        new() { BarEnum = null, },
-        new() { BarEnum = FooEnum.QUX, },
+        new() { BarEnum = FooEnum.BAR },
+        new() { BarEnum = FooEnum.BAZ },
+        new() { BarEnum = FooEnum.FOO },
+        new() { BarEnum = null },
+        new() { BarEnum = FooEnum.QUX }
     ];
 
     public MongoDbFilterVisitorEnumTests(MongoResource resource)
@@ -36,7 +36,7 @@ public class MongoDbFilterVisitorEnumTests
     public async Task Create_EnumEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -55,11 +55,11 @@ public class MongoDbFilterVisitorEnumTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BAR")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -67,7 +67,7 @@ public class MongoDbFilterVisitorEnumTests
     public async Task Create_EnumNotEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -86,11 +86,11 @@ public class MongoDbFilterVisitorEnumTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BAR")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -98,7 +98,7 @@ public class MongoDbFilterVisitorEnumTests
     public async Task Create_EnumIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -117,11 +117,11 @@ public class MongoDbFilterVisitorEnumTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BarAndFoo")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -129,7 +129,7 @@ public class MongoDbFilterVisitorEnumTests
     public async Task Create_EnumNotIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -148,11 +148,11 @@ public class MongoDbFilterVisitorEnumTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BarAndFoo")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -160,7 +160,7 @@ public class MongoDbFilterVisitorEnumTests
     public async Task Create_NullableEnumEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -179,11 +179,11 @@ public class MongoDbFilterVisitorEnumTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BAR")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -191,7 +191,7 @@ public class MongoDbFilterVisitorEnumTests
     public async Task Create_NullableEnumNotEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -210,11 +210,11 @@ public class MongoDbFilterVisitorEnumTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BAR"), res2, "FOO"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BAR")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -222,7 +222,7 @@ public class MongoDbFilterVisitorEnumTests
     public async Task Create_NullableEnumIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -241,11 +241,11 @@ public class MongoDbFilterVisitorEnumTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BarAndFoo")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "nullAndFoo")
             .MatchAsync();
     }
 
@@ -253,7 +253,7 @@ public class MongoDbFilterVisitorEnumTests
     public async Task Create_NullableEnumNotIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -272,17 +272,18 @@ public class MongoDbFilterVisitorEnumTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "BarAndFoo"), res2, "FOO"), res3, "nullAndFoo")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "BarAndFoo")
+            .AddResult(res2, "FOO")
+            .AddResult(res3, "nullAndFoo")
             .MatchAsync();
     }
 
     public class Foo
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooEnum BarEnum { get; set; }
@@ -291,6 +292,7 @@ public class MongoDbFilterVisitorEnumTests
     public class FooNullable
     {
         [BsonId]
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public FooEnum? BarEnum { get; set; }
@@ -301,14 +303,10 @@ public class MongoDbFilterVisitorEnumTests
         FOO,
         BAR,
         BAZ,
-        QUX,
+        QUX
     }
 
-    public class FooFilterType : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterType : FilterInputType<Foo>;
 
-    public class FooNullableFilterType : FilterInputType<FooNullable>
-    {
-    }
+    public class FooNullableFilterType : FilterInputType<FooNullable>;
 }

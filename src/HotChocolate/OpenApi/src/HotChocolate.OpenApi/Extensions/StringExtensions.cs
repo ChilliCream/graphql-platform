@@ -4,7 +4,7 @@ internal static class StringExtensions
 {
     public static string FirstCharacterToLower(this string value)
     {
-        ArgumentNullException.ThrowIfNull(nameof(value));
+        ArgumentNullException.ThrowIfNull(value);
 
         if (value.Length is 0)
         {
@@ -19,7 +19,7 @@ internal static class StringExtensions
 
     public static string FirstCharacterToUpper(this string value)
     {
-        ArgumentNullException.ThrowIfNull(nameof(value));
+        ArgumentNullException.ThrowIfNull(value);
 
         if (value.Length is 0)
         {

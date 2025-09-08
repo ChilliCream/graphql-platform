@@ -205,7 +205,7 @@ enum FooBar {
   BAR
 }
 
-"The built-in `Decimal` scalar type."
+"The `Decimal` scalar type represents a decimal floating-point number."
 scalar Decimal
 
 "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."

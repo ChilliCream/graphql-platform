@@ -1,4 +1,3 @@
-#nullable enable
 namespace HotChocolate.Types.Relay;
 
 /// <summary>
@@ -47,9 +46,4 @@ public interface INodeIdSerializer
     /// Returns the parsed internal id.
     /// </returns>
     NodeId Parse(string formattedId, Type runtimeType);
-}
-
-public interface INodeIdRuntimeTypeLookup
-{
-    Type? GetNodeIdRuntimeType(string typeName);
 }

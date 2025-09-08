@@ -1,12 +1,12 @@
-﻿[
+[
   {
     "Message": "The specified value type of variable `search` does not match the variable type.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 2,
-        "Column": 71
+        "Line": 1,
+        "Column": 55
       }
     ],
     "Extensions": {

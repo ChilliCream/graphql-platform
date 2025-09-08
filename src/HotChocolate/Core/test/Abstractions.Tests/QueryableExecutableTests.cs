@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Linq.Expressions;
-using CookieCrumble;
 
 namespace HotChocolate;
 
@@ -9,7 +8,7 @@ public static class QueryableExecutableTests
     [Fact]
     public static void Queryable_Is_Null_Throws_ArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => Executable.From(((IQueryable<string>)null)!));
+        Assert.Throws<ArgumentNullException>(() => Executable.From(((IQueryable<string>?)null)!));
     }
 
     [Fact]
@@ -65,7 +64,7 @@ public static class QueryableExecutableTests
 
         // act
         // ReSharper disable once RedundantCast
-        var source = ((IQueryableExecutable<string>)executable).Source;
+        var source = executable.Source;
 
         // assert
         Assert.Equal(query, source);
@@ -173,7 +172,7 @@ public static class QueryableExecutableTests
         async Task Error() => await Executable.From(query).SingleOrDefaultAsync();
 
         // assert
-        await Assert.ThrowsAsync<GraphQLException>(Error);
+        await Assert.ThrowsAsync<InvalidOperationException>(Error);
     }
 
     [Fact]
@@ -212,7 +211,7 @@ public static class QueryableExecutableTests
         async Task Error() => await Executable.From(query).SingleOrDefaultAsync();
 
         // assert
-        await Assert.ThrowsAsync<GraphQLException>(Error);
+        await Assert.ThrowsAsync<InvalidOperationException>(Error);
     }
 
     [Fact]

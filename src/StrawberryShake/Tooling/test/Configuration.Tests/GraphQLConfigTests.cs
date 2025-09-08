@@ -1,27 +1,24 @@
-using Snapshooter.Xunit;
-using Xunit;
+namespace StrawberryShake.Tools.Configuration;
 
-namespace StrawberryShake.Tools.Configuration
+public class GraphQLConfigTests
 {
-    public class GraphQLConfigTests
+    [Fact]
+    public void Save_Default_Config()
     {
-        [Fact]
-        public void Save_Default_Config()
-        {
-            new GraphQLConfig()
-                .ToString()
-                .MatchSnapshot();
-        }
+        new GraphQLConfig()
+            .ToString()
+            .MatchSnapshot();
+    }
 
-        [Fact]
-        public void Load_Json_Is_Null() =>
-            Assert.Throws<ArgumentException>(
-                () => GraphQLConfig.FromJson(null!));
+    [Fact]
+    public void Load_Json_Is_Null() =>
+        Assert.Throws<ArgumentNullException>(
+            () => GraphQLConfig.FromJson(null!));
 
-        [Fact]
-        public void Load_Json()
-        {
-            GraphQLConfig.FromJson(@"{
+    [Fact]
+    public void Load_Json()
+    {
+        GraphQLConfig.FromJson(@"{
                 ""schema"": ""schema.graphql"",
                 ""documents"": ""**/*.graphql"",
                 ""extensions"": {
@@ -49,12 +46,12 @@ namespace StrawberryShake.Tools.Configuration
                     }
                 }
                 ").MatchSnapshot();
-        }
+    }
 
-        [Fact]
-        public void Load_Json_With_Transport_Profiles()
-        {
-            GraphQLConfig.FromJson(@"{
+    [Fact]
+    public void Load_Json_With_Transport_Profiles()
+    {
+        GraphQLConfig.FromJson(@"{
                 ""schema"": ""schema.graphql"",
                 ""documents"": ""**/*.graphql"",
                 ""extensions"": {
@@ -84,12 +81,12 @@ namespace StrawberryShake.Tools.Configuration
                     }
                 }
                 ").MatchSnapshot();
-        }
+    }
 
-        [Fact]
-        public void Load_Json_With_Records()
-        {
-            GraphQLConfig.FromJson(@"{
+    [Fact]
+    public void Load_Json_With_Records()
+    {
+        GraphQLConfig.FromJson(@"{
                 ""schema"": ""schema.graphql"",
                 ""documents"": ""**/*.graphql"",
                 ""extensions"": {
@@ -117,12 +114,12 @@ namespace StrawberryShake.Tools.Configuration
                     }
                 }
                 ").MatchSnapshot();
-        }
+    }
 
-        [Fact]
-        public void Load_Json_With_Documents_Array()
-        {
-            GraphQLConfig.FromJson(@"{
+    [Fact]
+    public void Load_Json_With_Documents_Array()
+    {
+        GraphQLConfig.FromJson(@"{
                 ""schema"": ""schema.graphql"",
                 ""documents"": [""**/*.graphql"", ""**/*.graphqls""],
                 ""extensions"": {
@@ -150,6 +147,5 @@ namespace StrawberryShake.Tools.Configuration
                     }
                 }
                 ").MatchSnapshot();
-        }
     }
 }

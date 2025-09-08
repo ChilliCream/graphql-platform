@@ -5,30 +5,119 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Basic.Reference.Assemblies;
-using CookieCrumble;
+using GreenDonut;
+using GreenDonut.Data;
+using HotChocolate.Data.Filters;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
+using HotChocolate.Language;
 using HotChocolate.Types.Analyzers;
+using HotChocolate.Types.Pagination;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
 internal static partial class TestHelper
 {
+    private static readonly HashSet<string> s_ignoreCodes = ["CS8652", "CS8632", "CS5001", "CS8019"];
+
     public static Snapshot GetGeneratedSourceSnapshot([StringSyntax("csharp")] string sourceText)
     {
-        // Parse the provided string into a C# syntax tree.
-        var syntaxTree = CSharpSyntaxTree.ParseText(sourceText);
+        return GetGeneratedSourceSnapshot([sourceText]);
+    }
 
-        IEnumerable<PortableExecutableReference> references = new[]
-        {
-            MetadataReference.CreateFromFile(typeof(DataLoaderAttribute).Assembly.Location)
-        };
+    public static Snapshot GetGeneratedSourceSnapshot(
+        string[] sourceTexts,
+        string? assemblyName = "Tests",
+        bool enableInterceptors = false)
+    {
+        IEnumerable<PortableExecutableReference> references =
+        [
+#if NET8_0
+            .. Net80.References.All,
+#elif NET9_0
+            .. Net90.References.All,
+#elif NET10_0
+            .. Net100.References.All,
+#endif
+            // HotChocolate.Primitives
+            MetadataReference.CreateFromFile(typeof(ITypeSystemMember).Assembly.Location),
+
+            // HotChocolate.Execution
+            MetadataReference.CreateFromFile(typeof(RequestDelegate).Assembly.Location),
+
+            // HotChocolate.Execution.Abstractions
+            MetadataReference.CreateFromFile(typeof(RequestContext).Assembly.Location),
+
+            // HotChocolate.Execution.Processing
+            MetadataReference.CreateFromFile(typeof(HotChocolateExecutionSelectionExtensions).Assembly.Location),
+
+            // HotChocolate.Execution.Abstractions
+            MetadataReference.CreateFromFile(typeof(IRequestExecutorBuilder).Assembly.Location),
+
+            // HotChocolate.Execution.DependencyInjection
+            MetadataReference.CreateFromFile(typeof(RequestExecutorBuilderExtensions).Assembly.Location),
+
+            // HotChocolate.Types
+            MetadataReference.CreateFromFile(typeof(ObjectTypeAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Connection).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(PageConnection<>).Assembly.Location),
+
+            // HotChocolate.Types.Abstractions
+            MetadataReference.CreateFromFile(typeof(ISchemaDefinition).Assembly.Location),
+
+            // HotChocolate.Features
+            MetadataReference.CreateFromFile(typeof(IFeatureProvider).Assembly.Location),
+
+            // HotChocolate.Language
+            MetadataReference.CreateFromFile(typeof(OperationType).Assembly.Location),
+
+            // HotChocolate.Abstractions
+            MetadataReference.CreateFromFile(typeof(ParentAttribute).Assembly.Location),
+
+            // HotChocolate.AspNetCore
+            MetadataReference.CreateFromFile(
+                typeof(HotChocolateAspNetCoreServiceCollectionExtensions).Assembly.Location),
+
+            // GreenDonut
+            MetadataReference.CreateFromFile(typeof(DataLoaderBase<,>).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IDataLoader).Assembly.Location),
+
+            // GreenDonut.Data
+            MetadataReference.CreateFromFile(typeof(PagingArguments).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IPredicateBuilder).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(DefaultPredicateBuilder).Assembly.Location),
+
+            // HotChocolate.Data
+            MetadataReference.CreateFromFile(typeof(IFilterContext).Assembly.Location),
+
+            // Microsoft.AspNetCore
+            MetadataReference.CreateFromFile(typeof(WebApplication).Assembly.Location),
+
+            // Microsoft.Extensions.DependencyInjection.Abstractions
+            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location)
+        ];
 
         // Create a Roslyn compilation for the syntax tree.
+        var parseOptions = !enableInterceptors
+            ? CSharpParseOptions.Default
+            : CSharpParseOptions.Default
+                .WithPreprocessorSymbols("InterceptorsPreviewFeature")
+                .WithFeatures(new Dictionary<string, string>
+                {
+                    ["InterceptorsNamespaces"] = "HotChocolate.Execution.Generated"
+                });
+
         var compilation = CSharpCompilation.Create(
-            assemblyName: "Tests",
-            syntaxTrees: new[] { syntaxTree },
-            ReferenceAssemblies.Net80.Concat(references));
+            assemblyName: assemblyName,
+            syntaxTrees: sourceTexts.Select(s => CSharpSyntaxTree.ParseText(s, parseOptions)),
+            references);
 
         // Create an instance of our GraphQLServerGenerator incremental source generator.
         var generator = new GraphQLServerGenerator();
@@ -40,10 +129,28 @@ internal static partial class TestHelper
         driver = driver.RunGenerators(compilation);
 
         // Create a snapshot.
-        return CreateSnapshot(driver);
+        var snapshot = CreateSnapshot(compilation, driver);
+
+        // Finally, compile the entire assembly (original code + generated code) to check
+        // if the sample is valid as a whole
+        var updatedCompilation = compilation.AddSyntaxTrees(
+            driver.GetRunResult()
+                .Results
+                .SelectMany(r => r.GeneratedSources)
+                .Select(gs => CSharpSyntaxTree.ParseText(gs.SourceText, parseOptions, path: gs.HintName))
+        );
+
+        using var dllStream = new MemoryStream();
+        var emitResult = updatedCompilation.Emit(dllStream);
+        if (!emitResult.Success || emitResult.Diagnostics.Any())
+        {
+            AddDiagnosticsToSnapshot(snapshot, emitResult.Diagnostics, "Assembly Emit Diagnostics");
+        }
+
+        return snapshot;
     }
 
-    private static Snapshot CreateSnapshot(GeneratorDriver driver)
+    private static Snapshot CreateSnapshot(CSharpCompilation compilation, GeneratorDriver driver)
     {
         var snapshot = new Snapshot();
 
@@ -68,9 +175,15 @@ internal static partial class TestHelper
             }
 
             // Add diagnostics.
+            var diagnostics = compilation.GetDiagnostics();
+            if (diagnostics.Length > 0)
+            {
+                AddDiagnosticsToSnapshot(snapshot, diagnostics, "Compilation Diagnostics");
+            }
+
             if (result.Diagnostics.Any())
             {
-                AddDiagnosticsToSnapshot(snapshot, result.Diagnostics);
+                AddDiagnosticsToSnapshot(snapshot, result.Diagnostics, "Generator Diagnostics");
             }
         }
 
@@ -79,8 +192,11 @@ internal static partial class TestHelper
 
     private static void AddDiagnosticsToSnapshot(
         Snapshot snapshot,
-        ImmutableArray<Diagnostic> diagnostics)
+        ImmutableArray<Diagnostic> diagnostics,
+        string title)
     {
+        var hasDiagnostics = false;
+
         using var stream = new MemoryStream();
         using var jsonWriter = new Utf8JsonWriter(
             stream,
@@ -94,6 +210,13 @@ internal static partial class TestHelper
 
         foreach (var diagnostic in diagnostics)
         {
+            if (s_ignoreCodes.Contains(diagnostic.Id))
+            {
+                continue;
+            }
+
+            hasDiagnostics = true;
+
             jsonWriter.WriteStartObject();
             jsonWriter.WriteString(nameof(diagnostic.Id), diagnostic.Id);
 
@@ -143,7 +266,10 @@ internal static partial class TestHelper
         jsonWriter.WriteEndArray();
         jsonWriter.Flush();
 
-        snapshot.Add(Encoding.UTF8.GetString(stream.ToArray()), "Diagnostics", MarkdownLanguages.Json);
+        if (hasDiagnostics)
+        {
+            snapshot.Add(Encoding.UTF8.GetString(stream.ToArray()), title, MarkdownLanguages.Json);
+        }
     }
 
     [GeneratedRegex("MiddlewareFactories([a-z0-9]{32})")]

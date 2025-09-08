@@ -56,7 +56,7 @@ public class ByteArrayTypeTests
         var guid = Guid.NewGuid();
 
         // act
-        Action action = () => byteArrayType.IsInstanceOfType(null);
+        Action action = () => byteArrayType.IsInstanceOfType(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -97,7 +97,7 @@ public class ByteArrayTypeTests
     {
         // arrange
         var byteArrayType = new ByteArrayType();
-        var value = 123;
+        const int value = 123;
 
         // act
         Action action = () => byteArrayType.Serialize(value);
@@ -172,7 +172,7 @@ public class ByteArrayTypeTests
     {
         // arrange
         var byteArrayType = new ByteArrayType();
-        var value = 123;
+        const int value = 123;
 
         // act
         var success = byteArrayType.TryDeserialize(value, out _);
@@ -190,7 +190,7 @@ public class ByteArrayTypeTests
         var literal = new StringValueNode(Convert.ToBase64String(expected));
 
         // act
-        var actual = (byte[])byteArrayType
+        var actual = (byte[]?)byteArrayType
             .ParseLiteral(literal);
 
         // assert
@@ -232,7 +232,7 @@ public class ByteArrayTypeTests
         var byteArrayType = new ByteArrayType();
 
         // act
-        Action action = () => byteArrayType.ParseLiteral(null);
+        Action action = () => byteArrayType.ParseLiteral(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -275,7 +275,7 @@ public class ByteArrayTypeTests
     {
         // arrange
         var byteArrayType = new ByteArrayType();
-        var value = 123;
+        const int value = 123;
 
         // act
         Action action = () => byteArrayType.ParseValue(value);

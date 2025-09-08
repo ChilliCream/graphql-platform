@@ -4,12 +4,12 @@ namespace HotChocolate.Data.Sorting.Expressions;
 
 public static class SortExpressionBuilder
 {
-    private static readonly ConstantExpression _null =
+    private static readonly ConstantExpression s_null =
         Expression.Constant(null, typeof(object));
 
     public static Expression IsNull(Expression expression)
     {
-        return Expression.Equal(expression, _null);
+        return Expression.Equal(expression, s_null);
     }
 
     public static Expression IfNullThenDefault(

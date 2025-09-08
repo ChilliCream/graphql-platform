@@ -20,10 +20,7 @@ public sealed class SingleValueExtensionData : IReadOnlyDictionary<string, objec
     /// <param name="value">The value.</param>
     public SingleValueExtensionData(string key, object? value)
     {
-        if (string.IsNullOrEmpty(key))
-        {
-            throw new ArgumentException(SingleValueExtensionData_KeyIsEmpty, nameof(key));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(key);
 
         _key = key;
         _value = value;

@@ -11,7 +11,7 @@ public sealed class EnumValueModel
     public EnumValueModel(
         string name,
         string? description,
-        IEnumValue value,
+        EnumValue value,
         string? underlyingValue)
     {
         Name = name.EnsureGraphQLName();
@@ -27,7 +27,7 @@ public sealed class EnumValueModel
 
     public string? Description { get; }
 
-    public IEnumValue Value { get; }
+    public EnumValue Value { get; }
 
     public string? UnderlyingValue { get; }
 }

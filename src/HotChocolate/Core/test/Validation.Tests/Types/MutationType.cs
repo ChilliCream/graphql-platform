@@ -14,8 +14,13 @@ public class MutationType
             .Resolve(() => "foo");
 
         descriptor.Field("addPet")
-            .Argument("pet", a => a.Type<PetInputType>())
+            .Argument("pet", a => a.Type<NonNullType<PetInputType>>())
             .Type<PetType>()
+            .Resolve(() => "foo");
+
+        descriptor.Field("addPets")
+            .Argument("pets", a => a.Type<NonNullType<ListType<NonNullType<PetInputType>>>>())
+            .Type<ListType<PetType>>()
             .Resolve(() => "foo");
     }
 }

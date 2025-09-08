@@ -18,10 +18,10 @@ internal static class ThrowHelper
                 .SetCode("")
                 .Build());
 
-    public static ISchemaError MutationPayloadMustBeObject(INamedType type)
+    public static ISchemaError MutationPayloadMustBeObject(ITypeDefinition type)
         => SchemaErrorBuilder.New()
             .SetMessage(ThrowHelper_MutationPayloadMustBeObject, type.Name)
-            .SetTypeSystemObject((ITypeSystemObject)type)
+            .SetTypeSystemObject((TypeSystemObject)type)
             .SetCode(ErrorCodes.Schema.MutationPayloadMustBeObject)
             .Build();
 

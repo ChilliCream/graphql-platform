@@ -4,9 +4,9 @@ internal sealed partial class ResultBuilder
 {
     private readonly ResultPool _resultPool;
     private readonly object _objectSync = new();
-    private ResultBucket<ObjectResult> _objectBucket = default!;
+    private ResultBucket<ObjectResult> _objectBucket = null!;
     private readonly object _listSync = new();
-    private ResultBucket<ListResult> _listBucket = default!;
+    private ResultBucket<ListResult> _listBucket = null!;
 
     public ObjectResult RentObject(int capacity)
     {

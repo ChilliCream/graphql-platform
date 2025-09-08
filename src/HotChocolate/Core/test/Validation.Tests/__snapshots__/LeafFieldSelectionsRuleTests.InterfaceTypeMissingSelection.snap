@@ -1,6 +1,6 @@
-﻿[
+[
   {
-    "Message": "`pets` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
+    "Message": "Field \"pets\" of type \"[Pet]\" must have a selection of subfields. Did you mean \"pets { ... }\"?",
     "Code": null,
     "Path": {
       "Name": "human",
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 29
+        "Line": 2,
+        "Column": 11
       }
     ],
     "Extensions": {

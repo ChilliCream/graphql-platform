@@ -1,7 +1,5 @@
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 internal sealed partial class ExtendedType
@@ -40,12 +38,12 @@ internal sealed partial class ExtendedType
                             return new ExtendedType(
                                 type,
                                 ExtendedTypeKind.Schema,
-                                typeArguments: new[] { elementType, },
+                                typeArguments: new[] { elementType },
                                 source: source,
                                 definition: typeof(ListType<>),
-                                isNullable: nullable,
+                                elementType: elementType,
                                 isList: true,
-                                elementType: elementType);
+                                isNullable: nullable);
                         });
                 }
             }
@@ -64,8 +62,8 @@ internal sealed partial class ExtendedType
                         typeArguments: SystemType.GetGenericArguments(type, cache),
                         source: source,
                         definition: definition,
-                        isNullable: nullable,
-                        isNamedType: true);
+                        isNamedType: true,
+                        isNullable: nullable);
                 });
         }
     }

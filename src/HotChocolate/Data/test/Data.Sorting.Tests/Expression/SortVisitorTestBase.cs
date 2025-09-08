@@ -28,7 +28,7 @@ public class SortVisitorTestBase
         return new ExecutorBuilder(type);
     }
 
-    protected ISchema CreateSchema<T>(T type)
+    protected Schema CreateSchema<T>(T type)
         where T : ISortInputType
     {
         var convention = new SortConvention(x => x.AddDefaults());

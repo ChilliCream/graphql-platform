@@ -6,7 +6,10 @@ namespace HotChocolate.CostAnalysis.Utilities;
 
 internal sealed class InputCostVisitor : SyntaxWalker<InputCostVisitorContext>
 {
-    public double CalculateCost(IInputField argument, ArgumentNode argumentNode, InputCostVisitorContext context)
+    public double CalculateCost(
+        IInputValueDefinition argument,
+        ArgumentNode argumentNode,
+        InputCostVisitorContext context)
     {
         context.Reset();
 

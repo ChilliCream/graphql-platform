@@ -1,4 +1,4 @@
-﻿{
+{
   "activities": [
     {
       "OperationName": "ExecuteRequest",
@@ -15,19 +15,10 @@
         },
         {
           "Key": "graphql.operation.id",
-          "Value": "_Default-1-0-452ea802c4d1bf2a81a7411b0b361d9f"
+          "Value": "_Default-1-452ea802c4d1bf2a81a7411b0b361d9f"
         }
       ],
-      "event": [
-        {
-          "Name": "AddedOperationToCache",
-          "Tags": {}
-        },
-        {
-          "Name": "AddedDocumentToCache",
-          "Tags": {}
-        }
-      ],
+      "event": [],
       "activities": [
         {
           "OperationName": "ParseDocument",

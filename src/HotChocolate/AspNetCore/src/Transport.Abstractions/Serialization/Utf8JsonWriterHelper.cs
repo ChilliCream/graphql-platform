@@ -24,7 +24,7 @@ internal static class Utf8JsonWriterHelper
                     break;
 
                 case VariableBatchRequest variableBatchRequest:
-                    WriteOperationRequest(writer, variableBatchRequest);
+                    WriteVariableBatchRequest(writer, variableBatchRequest);
                     break;
 
                 default:
@@ -40,19 +40,26 @@ internal static class Utf8JsonWriterHelper
     {
         writer.WriteStartObject();
 
-        if (request.Id is not null)
+        if (!string.IsNullOrWhiteSpace(request.Id))
         {
             writer.WriteString(Utf8GraphQLRequestProperties.IdProp, request.Id);
         }
 
-        if (request.Query is not null)
+        if (!string.IsNullOrWhiteSpace(request.Query))
         {
             writer.WriteString(Utf8GraphQLRequestProperties.QueryProp, request.Query);
         }
 
-        if (request.OperationName is not null)
+        if (!string.IsNullOrWhiteSpace(request.OperationName))
         {
             writer.WriteString(Utf8GraphQLRequestProperties.OperationNameProp, request.OperationName);
+        }
+
+        if (request.OnError is {} errorHandlingMode)
+        {
+            writer.WriteString(
+                Utf8GraphQLRequestProperties.OnErrorProp,
+                GetErrorHandlingModeAsString(errorHandlingMode));
         }
 
         if (request.ExtensionsNode is not null)
@@ -80,23 +87,30 @@ internal static class Utf8JsonWriterHelper
         writer.WriteEndObject();
     }
 
-    public static void WriteOperationRequest(Utf8JsonWriter writer, VariableBatchRequest request)
+    public static void WriteVariableBatchRequest(Utf8JsonWriter writer, VariableBatchRequest request)
     {
         writer.WriteStartObject();
 
-        if (request.Id is not null)
+        if (!string.IsNullOrWhiteSpace(request.Id))
         {
             writer.WriteString(Utf8GraphQLRequestProperties.IdProp, request.Id);
         }
 
-        if (request.Query is not null)
+        if (!string.IsNullOrWhiteSpace(request.Query))
         {
             writer.WriteString(Utf8GraphQLRequestProperties.QueryProp, request.Query);
         }
 
-        if (request.OperationName is not null)
+        if (!string.IsNullOrWhiteSpace(request.OperationName))
         {
             writer.WriteString(Utf8GraphQLRequestProperties.OperationNameProp, request.OperationName);
+        }
+
+        if (request.OnError is {} errorHandlingMode)
+        {
+            writer.WriteString(
+                Utf8GraphQLRequestProperties.OnErrorProp,
+                GetErrorHandlingModeAsString(errorHandlingMode));
         }
 
         if (request.ExtensionsNode is not null)
@@ -345,6 +359,17 @@ internal static class Utf8JsonWriterHelper
         return fileInfos;
     }
 
+    private static string GetErrorHandlingModeAsString(ErrorHandlingMode mode)
+    {
+        return mode switch
+        {
+            ErrorHandlingMode.Propagate => "PROPAGATE",
+            ErrorHandlingMode.Null => "NULL",
+            ErrorHandlingMode.Halt => "HALT",
+            _ => throw new ArgumentOutOfRangeException(nameof(mode))
+        };
+    }
+
     private static void CollectFiles(IRequestBody requestBody, ref Dictionary<FileReference, FilePath[]>? files)
     {
         switch (requestBody)
@@ -505,7 +530,7 @@ internal static class Utf8JsonWriterHelper
         FilePath path,
         ref Dictionary<FileReference, FilePath[]>? files)
     {
-        files ??= new Dictionary<FileReference, FilePath[]>();
+        files ??= [];
 
         if (files.TryGetValue(file, out var list))
         {
@@ -514,7 +539,7 @@ internal static class Utf8JsonWriterHelper
         }
         else
         {
-            list = [path,];
+            list = [path];
             files.Add(file, list);
         }
     }
@@ -577,28 +602,17 @@ internal static class Utf8JsonWriterHelper
         }
     }
 
-    private sealed class RootFilePath : FilePath
+    private sealed class RootFilePath() : FilePath(null);
+
+    private sealed class NameFilePath(FilePath? parent, string name)
+        : FilePath(parent)
     {
-        public RootFilePath() : base(null) { }
+        public string Name { get; } = name;
     }
 
-    private sealed class NameFilePath : FilePath
+    private sealed class IndexFilePath(FilePath? parent, int index)
+        : FilePath(parent)
     {
-        public NameFilePath(FilePath? parent, string name) : base(parent)
-        {
-            Name = name;
-        }
-
-        public string Name { get; }
-    }
-
-    private sealed class IndexFilePath : FilePath
-    {
-        public IndexFilePath(FilePath? parent, int index) : base(parent)
-        {
-            Index = index;
-        }
-
-        public int Index { get; }
+        public int Index { get; } = index;
     }
 }

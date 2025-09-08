@@ -1,4 +1,4 @@
-﻿{
+{
   "Message": "The field `nickname` does not exist on the type `Pet`.",
   "Code": null,
   "Path": {
@@ -13,8 +13,8 @@
   },
   "Locations": [
     {
-      "Line": 9,
-      "Column": 21
+      "Line": 8,
+      "Column": 5
     }
   ],
   "Extensions": {

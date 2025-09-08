@@ -2,7 +2,6 @@ using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives;
 
@@ -12,8 +11,6 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
     public async Task AnnotateKeyToObjectTypeCodeFirst()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -51,7 +48,7 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var testType = schema.GetType<ObjectType>("TestType");
+        var testType = schema.Types.GetType<ObjectType>("TestType");
 
         // assert
         Assert.Collection(
@@ -59,22 +56,20 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             item =>
             {
                 Assert.Equal(FederationTypeNames.KeyDirective_Name, item.Type.Name);
-                var syntaxNode = item.AsSyntaxNode();
+                var syntaxNode = item.ToSyntaxNode();
                 Assert.Equal("fields", syntaxNode.Arguments[0].Name.ToString());
                 Assert.Equal("\"id\"", syntaxNode.Arguments[0].Value.ToString());
                 Assert.Equal("resolvable", syntaxNode.Arguments[1].Name.ToString());
                 Assert.Equal("false", syntaxNode.Arguments[1].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task AnnotateKeyToObjectTypeAnnotationBased()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -82,29 +77,27 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var testType = schema.GetType<ObjectType>("TestTypeClassDirective");
+        var testType = schema.Types.GetType<ObjectType>("TestTypeClassDirective");
 
         // assert
         Assert.Collection(testType.Directives,
             item =>
             {
                 Assert.Equal(FederationTypeNames.KeyDirective_Name, item.Type.Name);
-                var syntaxNode = item.AsSyntaxNode();
+                var syntaxNode = item.ToSyntaxNode();
                 Assert.Equal("fields", syntaxNode.Arguments[0].Name.ToString());
                 Assert.Equal("\"id\"", syntaxNode.Arguments[0].Value.ToString());
                 Assert.Equal("resolvable", syntaxNode.Arguments[1].Name.ToString());
                 Assert.Equal("false", syntaxNode.Arguments[1].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task AnnotateKeyToClassAttributeAnnotationBased()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -112,29 +105,27 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var testType = schema.GetType<ObjectType>("TestTypePropertyDirective");
+        var testType = schema.Types.GetType<ObjectType>("TestTypePropertyDirective");
 
         // assert
         Assert.Collection(testType.Directives,
             item =>
             {
                 Assert.Equal(FederationTypeNames.KeyDirective_Name, item.Type.Name);
-                var syntaxNode = item.AsSyntaxNode();
+                var syntaxNode = item.ToSyntaxNode();
                 Assert.Equal("fields", syntaxNode.Arguments[0].Name.ToString());
                 Assert.Equal("\"id\"", syntaxNode.Arguments[0].Value.ToString());
                 Assert.Equal("resolvable", syntaxNode.Arguments[1].Name.ToString());
                 Assert.Equal("false", syntaxNode.Arguments[1].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task AnnotateKeyToClassAttributesAnnotationBased()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -142,21 +133,21 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var testType = schema.GetType<ObjectType>("TestTypePropertyDirectives");
+        var testType = schema.Types.GetType<ObjectType>("TestTypePropertyDirectives");
 
         // assert
         Assert.Collection(testType.Directives,
             item =>
             {
                 Assert.Equal(FederationTypeNames.KeyDirective_Name, item.Type.Name);
-                var syntaxNode = item.AsSyntaxNode();
+                var syntaxNode = item.ToSyntaxNode();
                 Assert.Equal("fields", syntaxNode.Arguments[0].Name.ToString());
                 Assert.Equal("\"id name\"", syntaxNode.Arguments[0].Value.ToString());
                 Assert.Equal("resolvable", syntaxNode.Arguments[1].Name.ToString());
                 Assert.Equal("false", syntaxNode.Arguments[1].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -181,8 +172,6 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
     public async Task AnnotateKeyToInterfaceAttributesAnnotationBased()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -191,29 +180,27 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var testType = schema.GetType<InterfaceType>("ITestTypeInterfaceDirective");
+        var testType = schema.Types.GetType<InterfaceType>("ITestTypeInterfaceDirective");
 
         // assert
         Assert.Collection(testType.Directives,
             item =>
             {
                 Assert.Equal(FederationTypeNames.KeyDirective_Name, item.Type.Name);
-                var syntaxNode = item.AsSyntaxNode();
+                var syntaxNode = item.ToSyntaxNode();
                 Assert.Equal("fields", syntaxNode.Arguments[0].Name.ToString());
                 Assert.Equal("\"id\"", syntaxNode.Arguments[0].Value.ToString());
                 Assert.Equal("resolvable", syntaxNode.Arguments[1].Name.ToString());
                 Assert.Equal("false", syntaxNode.Arguments[1].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task AnnotateKeyToInterfaceTypeCodeFirst()
     {
         // arrange
-        Snapshot.FullName();
-
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
@@ -263,7 +250,7 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             .BuildSchemaAsync();
 
         // act
-        var testType = schema.GetType<InterfaceType>("ITestType");
+        var testType = schema.Types.GetType<InterfaceType>("ITestType");
 
         // assert
         Assert.Collection(
@@ -271,14 +258,14 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             item =>
             {
                 Assert.Equal(FederationTypeNames.KeyDirective_Name, item.Type.Name);
-                var syntaxNode = item.AsSyntaxNode();
+                var syntaxNode = item.ToSyntaxNode();
                 Assert.Equal("fields", syntaxNode.Arguments[0].Name.ToString());
                 Assert.Equal("\"id\"", syntaxNode.Arguments[0].Value.ToString());
                 Assert.Equal("resolvable", syntaxNode.Arguments[1].Name.ToString());
                 Assert.Equal("false", syntaxNode.Arguments[1].Value.ToString());
             });
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     public class Query<T>
@@ -310,7 +297,7 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
         [Key(null!, resolvable: false)]
         public int Id { get; set; }
         [Key(null!, resolvable: false)]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 
     public class TestTypeInconsistentResolvablePropertyDirectives
@@ -318,6 +305,6 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
         [Key(null!, resolvable: false)]
         public int Id { get; set; }
         [Key]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 }

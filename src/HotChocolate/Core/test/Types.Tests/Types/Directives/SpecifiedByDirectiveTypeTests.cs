@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,13 +29,13 @@ public static class SpecifiedByDirectiveTypeTests
 
         Assert.Contains(
             schema.DirectiveTypes,
-            t => t.Name.EqualsOrdinal(SpecifiedByDirectiveType.Names.SpecifiedBy));
+            t => t.Name.EqualsOrdinal(DirectiveNames.SpecifiedBy.Name));
 
         Assert.Empty(
-            schema.GetType<ScalarType>("DateTime").Directives);
+            schema.Types.GetType<ScalarType>("DateTime").Directives);
 
         Assert.NotNull(
-            schema.GetType<ScalarType>("DateTime").SpecifiedBy);
+            schema.Types.GetType<ScalarType>("DateTime").SpecifiedBy);
     }
 
     [Fact]
@@ -66,13 +65,13 @@ public static class SpecifiedByDirectiveTypeTests
 
         Assert.Contains(
             schema.DirectiveTypes,
-            t => t.Name.EqualsOrdinal(SpecifiedByDirectiveType.Names.SpecifiedBy));
+            t => t.Name.EqualsOrdinal(DirectiveNames.SpecifiedBy.Name));
 
         Assert.Empty(
-            schema.GetType<ScalarType>("DateTime").Directives);
+            schema.Types.GetType<ScalarType>("DateTime").Directives);
 
         Assert.NotNull(
-            schema.GetType<ScalarType>("DateTime").SpecifiedBy);
+            schema.Types.GetType<ScalarType>("DateTime").SpecifiedBy);
     }
 
     [Fact]
@@ -99,13 +98,13 @@ public static class SpecifiedByDirectiveTypeTests
 
         Assert.Contains(
             schema.DirectiveTypes,
-            t => t.Name.EqualsOrdinal(SpecifiedByDirectiveType.Names.SpecifiedBy));
+            t => t.Name.EqualsOrdinal(DirectiveNames.SpecifiedBy.Name));
 
         Assert.Empty(
-            schema.GetType<ScalarType>("DateTime").Directives);
+            schema.Types.GetType<ScalarType>("DateTime").Directives);
 
         Assert.NotNull(
-            schema.GetType<ScalarType>("DateTime").SpecifiedBy);
+            schema.Types.GetType<ScalarType>("DateTime").SpecifiedBy);
     }
 
     public class Query1

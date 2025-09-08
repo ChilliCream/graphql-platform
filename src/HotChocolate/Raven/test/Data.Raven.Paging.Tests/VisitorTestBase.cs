@@ -41,7 +41,7 @@ public abstract class VisitorTestBase : IAsyncLifetime
         var resolver = BuildResolver(documentStore, entities);
 
         var builder = new ServiceCollection()
-            .AddSingleton<IDocumentStore>(documentStore)
+            .AddSingleton(documentStore)
             .AddGraphQLServer()
             .AddRavenFiltering()
             .AddRavenPagingProviders()
@@ -68,7 +68,7 @@ public abstract class VisitorTestBase : IAsyncLifetime
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("sql", queryString)
                                 .Build();
                     }

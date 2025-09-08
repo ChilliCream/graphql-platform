@@ -20,10 +20,9 @@ export const ArticleContentFooter: FC<ArticleContentFooterProps> = ({
   );
 };
 
-const Small = styled.small`
-  font-style: italic;
-  font-size: 0.7em;
-`;
+const Small = styled.small.attrs({
+  className: "text-3",
+})``;
 
 const Footer = styled.div`
   text-align: right;

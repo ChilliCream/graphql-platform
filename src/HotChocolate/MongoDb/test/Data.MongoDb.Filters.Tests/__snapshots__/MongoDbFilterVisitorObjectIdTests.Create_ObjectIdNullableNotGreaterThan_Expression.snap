@@ -1,0 +1,99 @@
+a Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "objectId": "6124e80f3f5fc839830c1f69"
+      },
+      {
+        "objectId": null
+      }
+    ]
+  }
+}
+---------------
+
+a Query:
+---------------
+find({ "ObjectId" : { "$not" : { "$gt" : { "$oid" : "6124e80f3f5fc839830c1f69" } } } })
+---------------
+
+6124e80f3f5fc839830c1f6a Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "objectId": "6124e80f3f5fc839830c1f69"
+      },
+      {
+        "objectId": null
+      },
+      {
+        "objectId": "6124e80f3f5fc839830c1f6a"
+      }
+    ]
+  }
+}
+---------------
+
+6124e80f3f5fc839830c1f6a Query:
+---------------
+find({ "ObjectId" : { "$not" : { "$gt" : { "$oid" : "6124e80f3f5fc839830c1f6a" } } } })
+---------------
+
+6124e80f3f5fc839830c1f6b Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "objectId": "6124e80f3f5fc839830c1f69"
+      },
+      {
+        "objectId": null
+      },
+      {
+        "objectId": "6124e80f3f5fc839830c1f6a"
+      },
+      {
+        "objectId": "6124e80f3f5fc839830c1f6b"
+      }
+    ]
+  }
+}
+---------------
+
+6124e80f3f5fc839830c1f6b Query:
+---------------
+find({ "ObjectId" : { "$not" : { "$gt" : { "$oid" : "6124e80f3f5fc839830c1f6b" } } } })
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `ngt` of type ObjectIdOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 34
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "ObjectId!",
+        "filterType": "ObjectIdOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

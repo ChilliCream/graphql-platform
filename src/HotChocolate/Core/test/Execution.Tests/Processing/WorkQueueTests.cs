@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Execution.Processing;
 
 public class WorkQueueTests
@@ -67,8 +65,8 @@ public class WorkQueueTests
         queue.Push(task2);
 
         // act
-        queue.TryTake(out var task);
-        var success = queue.TryTake(out task);
+        queue.TryTake(out _);
+        var success = queue.TryTake(out var task);
 
         // assert
         Assert.Same(task1, task);
@@ -88,9 +86,9 @@ public class WorkQueueTests
         queue.Push(task2);
 
         // act
-        queue.TryTake(out var task);
+        queue.TryTake(out _);
         queue.Complete();
-        queue.TryTake(out task);
+        queue.TryTake(out var task);
         queue.Complete();
 
         // assert
@@ -127,6 +125,7 @@ public class WorkQueueTests
 
     public class MockExecutionTask : IExecutionTask
     {
+        public uint Id { get; set; }
         public ExecutionTaskKind Kind { get; }
         public ExecutionTaskStatus Status { get; }
         public IExecutionTask? Next { get; set; }

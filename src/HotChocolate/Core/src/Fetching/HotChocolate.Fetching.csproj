@@ -1,13 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>HotChocolate.Fetching</PackageId>
     <AssemblyName>HotChocolate.Fetching</AssemblyName>
     <RootNamespace>HotChocolate.Fetching</RootNamespace>
+    <NoWarn>HC8001;$(NoWarn)</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\GreenDonut\src\Core\GreenDonut.csproj" />
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut\GreenDonut.csproj" />
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 
@@ -31,6 +28,12 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>FetchingResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="BatchDispatcher.IBatchScheduler.cs">
+      <DependentUpon>BatchDispatcher.cs</DependentUpon>
+    </Compile>
+    <Compile Update="BatchDispatcher.ExecutorSession.cs">
+      <DependentUpon>BatchDispatcher.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

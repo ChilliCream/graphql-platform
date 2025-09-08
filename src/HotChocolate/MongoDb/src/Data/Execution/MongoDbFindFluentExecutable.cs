@@ -4,7 +4,7 @@ using MongoDB.Driver;
 namespace HotChocolate.Data.MongoDb;
 
 /// <summary>
-/// A executable that is based on <see cref="IFindFluent{TInput,TResult}"/>
+/// An executable that is based on <see cref="IFindFluent{TInput,TResult}"/>
 /// </summary>
 /// <typeparam name="T">The entity type</typeparam>
 public class MongoDbFindFluentExecutable<T>(IFindFluent<T, T> findFluent) : MongoDbExecutable<T>
@@ -45,6 +45,10 @@ public class MongoDbFindFluentExecutable<T>(IFindFluent<T, T> findFluent) : Mong
         await BuildPipeline()
             .SingleOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
+
+    public override async ValueTask<int> CountAsync(
+        CancellationToken cancellationToken) =>
+        (int)await findFluent.CountDocumentsAsync(cancellationToken);
 
     /// <inheritdoc />
     public override string Print() => BuildPipeline().ToString() ?? "";

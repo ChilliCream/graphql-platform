@@ -2,12 +2,23 @@
 
 ## Supported Versions
 
-We will provide security updates to the latest major version.
+We will provide bug fixes and updates to the latest major version.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 12.x   | :white_check_mark: |
-| < 12.0   | :x:                |
+| 14.x   | :white_check_mark:  |
+| < 13.0   | :x:               |
+
+## Security Updates
+
+We will provide security relevant fixes to the following versions:
+
+| Version | Supported          |
+| ------- | ------------------ |
+| 14.x   | :white_check_mark:  |
+| 13.x   | :white_check_mark:  |
+| 12.x   | :white_check_mark:  |
+| < 12.0   | :x:               |
 
 ## Reporting a Vulnerability
 

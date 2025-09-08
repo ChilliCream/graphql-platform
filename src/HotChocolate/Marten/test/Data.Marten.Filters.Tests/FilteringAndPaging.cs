@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 
@@ -7,23 +6,23 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class FilteringAndPaging(SchemaCache cache)
 {
-    private static readonly Foo[] _fooEntities = [new() { Bar = true, }, new() { Bar = false, },];
+    private static readonly Foo[] s_fooEntities = [new() { Bar = true }, new() { Bar = false }];
 
     [Fact]
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        var tester = cache.CreateSchema<Foo, FooFilterInput>(_fooEntities, true);
+        var tester = await cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities, true);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { eq: true}}){ nodes { bar } }}")
+                .SetDocument("{ root(where: { bar: { eq: true } }){ nodes { bar } } }")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { bar: { eq: false}}){ nodes { bar }}}")
+                .SetDocument("{ root(where: { bar: { eq: false } }){ nodes { bar } } }")
                 .Build());
 
         // assert
@@ -31,6 +30,25 @@ public class FilteringAndPaging(SchemaCache cache)
             .Create()
             .Add(res1, "true")
             .Add(res2, "false")
+            .MatchAsync();
+    }
+
+    [Fact]
+    public async Task Paging_With_TotalCount()
+    {
+        // arrange
+        var tester = await cache.CreateSchemaAsync<Foo, FooFilterInput>(s_fooEntities, true);
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { bar: { eq: true } }) { nodes { bar } totalCount } }")
+                .Build());
+
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "Result with TotalCount")
             .MatchAsync();
     }
 

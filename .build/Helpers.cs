@@ -1,4 +1,3 @@
-using System.Net;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,18 +19,19 @@ static class Helpers
         Path.Combine("HotChocolate", "Caching"),
         Path.Combine("HotChocolate", "Diagnostics"),
         Path.Combine("HotChocolate", "Language"),
-        Path.Combine("HotChocolate", "PersistedQueries"),
+        Path.Combine("HotChocolate", "PersistedOperations"),
         Path.Combine("HotChocolate", "Utilities"),
         Path.Combine("HotChocolate", "Data"),
         Path.Combine("HotChocolate", "Marten"),
         Path.Combine("HotChocolate", "MongoDb"),
-        Path.Combine("HotChocolate", "OpenApi"),
-        Path.Combine("HotChocolate", "Pagination"),
+        Path.Combine("HotChocolate", "ModelContextProtocol"),
+        // Path.Combine("HotChocolate", "OpenApi"),
         Path.Combine("HotChocolate", "Primitives"),
         Path.Combine("HotChocolate", "Raven"),
-        Path.Combine("HotChocolate", "Skimmed"),
-        Path.Combine("HotChocolate", "Fusion"),
+        Path.Combine("HotChocolate", "Mutable"),
+        Path.Combine("HotChocolate", "Fusion-vnext"),
         Path.Combine("HotChocolate", "Spatial"),
+        Path.Combine("Nitro", "CommandLine"),
         Path.Combine("StrawberryShake", "Client"),
         Path.Combine("StrawberryShake", "CodeGeneration"),
         Path.Combine("StrawberryShake", "MetaPackages"),

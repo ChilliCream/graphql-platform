@@ -1,5 +1,4 @@
 using System.Reflection;
-using CookieCrumble;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -11,10 +10,10 @@ namespace HotChocolate.Data.Filters;
 
 public class QueryableFilteringExtensionsTests
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, Baz = "a", },
-        new() { Bar = false, Baz = "b", },
+        new() { Bar = true, Baz = "a" },
+        new() { Bar = false, Baz = "b" }
     ];
 
     [Fact]
@@ -85,9 +84,9 @@ public class QueryableFilteringExtensionsTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -109,9 +108,9 @@ public class QueryableFilteringExtensionsTests
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 
@@ -120,7 +119,7 @@ public class QueryableFilteringExtensionsTests
         [UseFiltering]
         public IEnumerable<Foo> ShouldWork(IResolverContext context)
         {
-            return _fooEntities.Filter(context);
+            return s_fooEntities.Filter(context);
         }
 
         [CatchErrorMiddleware]
@@ -128,13 +127,13 @@ public class QueryableFilteringExtensionsTests
         [AddTypeMismatchMiddleware]
         public IEnumerable<Foo> TypeMismatch(IResolverContext context)
         {
-            return _fooEntities.Filter(context);
+            return s_fooEntities.Filter(context);
         }
 
         [CatchErrorMiddleware]
         public IEnumerable<Foo> MissingMiddleware(IResolverContext context)
         {
-            return _fooEntities.Filter(context);
+            return s_fooEntities.Filter(context);
         }
     }
 
@@ -158,14 +157,14 @@ public class QueryableFilteringExtensionsTests
             IObjectFieldDescriptor descriptor,
             MemberInfo member)
         {
-            descriptor.Use(next => context =>
+            descriptor.Use(next => ctx =>
             {
-                context.LocalContextData =
-                    context.LocalContextData.SetItem(
+                ctx.LocalContextData =
+                    ctx.LocalContextData.SetItem(
                         QueryableFilterProvider.ContextApplyFilteringKey,
                         CreateApplicatorAsync<Foo>());
 
-                return next(context);
+                return next(ctx);
             });
         }
 

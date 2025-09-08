@@ -1,25 +1,17 @@
 using HotChocolate.Configuration;
-using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
+using HotChocolate.Types.Descriptors.Configurations;
+using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 
 namespace HotChocolate.Internal;
 
 public static class TypeDependencyHelper
 {
     public static void CollectDependencies(
-        InterfaceTypeDefinition definition,
+        InterfaceTypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
-
-        if (dependencies is null)
-        {
-            throw new ArgumentNullException(nameof(dependencies));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(dependencies);
 
         if (definition.HasDependencies)
         {
@@ -42,18 +34,11 @@ public static class TypeDependencyHelper
     }
 
     public static void CollectDependencies(
-        ObjectTypeDefinition definition,
+        ObjectTypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
-
-        if (dependencies is null)
-        {
-            throw new ArgumentNullException(nameof(dependencies));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(dependencies);
 
         if (definition.HasDependencies)
         {
@@ -76,18 +61,11 @@ public static class TypeDependencyHelper
     }
 
     public static void CollectDependencies(
-        InputObjectTypeDefinition definition,
+        InputObjectTypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
-
-        if (dependencies is null)
-        {
-            throw new ArgumentNullException(nameof(dependencies));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(dependencies);
 
         if (definition.HasDependencies)
         {
@@ -109,7 +87,7 @@ public static class TypeDependencyHelper
 
             if (field.Type is not null)
             {
-                dependencies.Add(new(field.Type, GetDefaultValueDependencyKind(field)));
+                dependencies.Add(new(field.Type));
             }
 
             CollectDirectiveDependencies(field, dependencies);
@@ -119,18 +97,11 @@ public static class TypeDependencyHelper
     }
 
     public static void CollectDependencies(
-        EnumTypeDefinition definition,
+        EnumTypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
-
-        if (dependencies is null)
-        {
-            throw new ArgumentNullException(nameof(dependencies));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(dependencies);
 
         if (definition.HasDependencies)
         {
@@ -157,7 +128,7 @@ public static class TypeDependencyHelper
     }
 
     public static void CollectDependencies(
-        DirectiveTypeDefinition definition,
+        DirectiveTypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
         if (definition.HasDependencies)
@@ -182,16 +153,14 @@ public static class TypeDependencyHelper
 
                 if (argument.Type is not null)
                 {
-                    dependencies.Add(new(
-                        argument.Type,
-                        GetDefaultValueDependencyKind(argument)));
+                    dependencies.Add(new(argument.Type));
                 }
             }
         }
     }
 
     internal static void CollectDirectiveDependencies(
-        TypeDefinitionBase definition,
+        TypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
         if (definition.HasDirectives)
@@ -204,7 +173,7 @@ public static class TypeDependencyHelper
     }
 
     private static void CollectDirectiveDependencies(
-        FieldDefinitionBase definition,
+        FieldConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
         if (definition.HasDirectives)
@@ -217,7 +186,7 @@ public static class TypeDependencyHelper
     }
 
     private static void CollectFieldDependencies(
-        IReadOnlyList<OutputFieldDefinitionBase> fields,
+        IReadOnlyList<OutputFieldConfiguration> fields,
         ICollection<TypeDependency> dependencies)
     {
         foreach (var field in fields)
@@ -245,7 +214,7 @@ public static class TypeDependencyHelper
     }
 
     private static void CollectArgumentDependencies(
-        IReadOnlyList<ArgumentDefinition> fields,
+        IReadOnlyList<ArgumentConfiguration> fields,
         ICollection<TypeDependency> dependencies)
     {
         foreach (var field in fields)
@@ -269,81 +238,41 @@ public static class TypeDependencyHelper
 
     public static void RegisterDependencies(
         this ITypeDiscoveryContext context,
-        ObjectTypeDefinition definition)
+        ObjectTypeConfiguration definition)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(definition);
 
         CollectDependencies(definition, context.Dependencies);
     }
 
     public static void RegisterDependencies(
         this ITypeDiscoveryContext context,
-        InterfaceTypeDefinition definition)
+        InterfaceTypeConfiguration definition)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(definition);
 
         CollectDependencies(definition, context.Dependencies);
     }
 
     public static void RegisterDependencies(
         this ITypeDiscoveryContext context,
-        EnumTypeDefinition definition)
+        EnumTypeConfiguration definition)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(definition);
 
         CollectDependencies(definition, context.Dependencies);
     }
 
     public static void RegisterDependencies(
         this ITypeDiscoveryContext context,
-        InputObjectTypeDefinition definition)
+        InputObjectTypeConfiguration definition)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(definition);
 
         CollectDependencies(definition, context.Dependencies);
-    }
-
-    private static TypeDependencyFulfilled GetDefaultValueDependencyKind(
-        ArgumentDefinition argumentDefinition)
-    {
-        var hasDefaultValue =
-            argumentDefinition.DefaultValue is not null and not NullValueNode ||
-            argumentDefinition.RuntimeDefaultValue is not null;
-
-        return hasDefaultValue
-            ? Completed
-            : Default;
     }
 }

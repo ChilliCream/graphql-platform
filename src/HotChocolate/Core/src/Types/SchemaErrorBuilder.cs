@@ -1,5 +1,6 @@
+#nullable disable
+
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate;
@@ -10,12 +11,7 @@ public partial class SchemaErrorBuilder
 
     public SchemaErrorBuilder SetMessage(string message)
     {
-        if (string.IsNullOrEmpty(message))
-        {
-            throw new ArgumentException(
-                TypeResources.SchemaErrorBuilder_MessageIsNull,
-                nameof(message));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(message);
 
         _error.Message = message;
         return this;
@@ -40,7 +36,7 @@ public partial class SchemaErrorBuilder
     }
 
     public SchemaErrorBuilder SetTypeSystemObject(
-       ITypeSystemObject typeSystemObject)
+       TypeSystemObject typeSystemObject)
     {
         _error.TypeSystemObject = typeSystemObject;
         return this;
@@ -64,10 +60,7 @@ public partial class SchemaErrorBuilder
     public SchemaErrorBuilder SetException(Exception exception)
     {
         _error.Exception = exception;
-        if (_error.Message is null)
-        {
-            _error.Message = exception.Message;
-        }
+        _error.Message ??= exception.Message;
         return this;
     }
 

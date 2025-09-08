@@ -42,7 +42,7 @@ public sealed class OpenApiParameterSerializerTests
                 new OpenApiParameter()
                 {
                     Name = "color",
-                    Style = ParameterStyle.Matrix,
+                    Style = ParameterStyle.Matrix
                 },
                 "blue",
                 ";color=blue"
@@ -51,7 +51,7 @@ public sealed class OpenApiParameterSerializerTests
                 new OpenApiParameter()
                 {
                     Name = "color",
-                    Style = ParameterStyle.Label,
+                    Style = ParameterStyle.Label
                 },
                 "blue",
                 ".blue"
@@ -60,7 +60,7 @@ public sealed class OpenApiParameterSerializerTests
                 new OpenApiParameter()
                 {
                     Name = "color",
-                    Style = ParameterStyle.Form,
+                    Style = ParameterStyle.Form
                 },
                 "blue",
                 "color=blue"
@@ -69,7 +69,7 @@ public sealed class OpenApiParameterSerializerTests
                 new OpenApiParameter()
                 {
                     Name = "color",
-                    Style = ParameterStyle.Simple,
+                    Style = ParameterStyle.Simple
                 },
                 "blue",
                 "blue"
@@ -79,7 +79,7 @@ public sealed class OpenApiParameterSerializerTests
                 new OpenApiParameter()
                 {
                     Name = "color",
-                    Style = ParameterStyle.Matrix,
+                    Style = ParameterStyle.Matrix
                 },
                 null,
                 ";color"
@@ -88,7 +88,7 @@ public sealed class OpenApiParameterSerializerTests
                 new OpenApiParameter()
                 {
                     Name = "color",
-                    Style = ParameterStyle.Label,
+                    Style = ParameterStyle.Label
                 },
                 null,
                 "."
@@ -97,7 +97,7 @@ public sealed class OpenApiParameterSerializerTests
                 new OpenApiParameter()
                 {
                     Name = "color",
-                    Style = ParameterStyle.Form,
+                    Style = ParameterStyle.Form
                 },
                 null,
                 "color="
@@ -106,11 +106,11 @@ public sealed class OpenApiParameterSerializerTests
                 new OpenApiParameter()
                 {
                     Name = "color",
-                    Style = ParameterStyle.Simple,
+                    Style = ParameterStyle.Simple
                 },
                 null,
                 ""
-            },
+            }
         };
     }
 
@@ -123,7 +123,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.Matrix,
+                    Style = ParameterStyle.Matrix
                 },
                 ["blue", "black", "brown"],
                 ";color=blue,black,brown"
@@ -133,7 +133,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.Matrix,
+                    Style = ParameterStyle.Matrix
                 },
                 ["blue", "black", "brown"],
                 ";color=blue;color=black;color=brown"
@@ -143,7 +143,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.Label,
+                    Style = ParameterStyle.Label
                 },
                 ["blue", "black", "brown"],
                 ".blue.black.brown"
@@ -153,7 +153,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.Label,
+                    Style = ParameterStyle.Label
                 },
                 ["blue", "black", "brown"],
                 ".blue.black.brown"
@@ -163,7 +163,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.Form,
+                    Style = ParameterStyle.Form
                 },
                 ["blue", "black", "brown"],
                 "color=blue,black,brown"
@@ -173,7 +173,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.Form,
+                    Style = ParameterStyle.Form
                 },
                 ["blue", "black", "brown"],
                 "color=blue&color=black&color=brown"
@@ -183,7 +183,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.Simple,
+                    Style = ParameterStyle.Simple
                 },
                 ["blue", "black", "brown"],
                 "blue,black,brown"
@@ -193,7 +193,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.Simple,
+                    Style = ParameterStyle.Simple
                 },
                 ["blue", "black", "brown"],
                 "blue,black,brown"
@@ -203,7 +203,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.SpaceDelimited,
+                    Style = ParameterStyle.SpaceDelimited
                 },
                 ["blue", "black", "brown"],
                 "blue%20black%20brown"
@@ -213,7 +213,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.PipeDelimited,
+                    Style = ParameterStyle.PipeDelimited
                 },
                 ["blue", "black", "brown"],
                 "blue|black|brown"
@@ -224,7 +224,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.Matrix,
+                    Style = ParameterStyle.Matrix
                 },
                 ["blue", null, "brown"],
                 ";color=blue,,brown"
@@ -234,7 +234,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.Matrix,
+                    Style = ParameterStyle.Matrix
                 },
                 ["blue", null, "brown"],
                 ";color=blue;color;color=brown"
@@ -244,7 +244,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.Label,
+                    Style = ParameterStyle.Label
                 },
                 ["blue", null, "brown"],
                 ".blue..brown"
@@ -254,7 +254,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.Label,
+                    Style = ParameterStyle.Label
                 },
                 ["blue", null, "brown"],
                 ".blue..brown"
@@ -264,7 +264,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.Form,
+                    Style = ParameterStyle.Form
                 },
                 ["blue", null, "brown"],
                 "color=blue,,brown"
@@ -274,7 +274,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.Form,
+                    Style = ParameterStyle.Form
                 },
                 ["blue", null, "brown"],
                 "color=blue&color=&color=brown"
@@ -284,7 +284,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.Simple,
+                    Style = ParameterStyle.Simple
                 },
                 ["blue", null, "brown"],
                 "blue,,brown"
@@ -294,7 +294,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.Simple,
+                    Style = ParameterStyle.Simple
                 },
                 ["blue", null, "brown"],
                 "blue,,brown"
@@ -304,7 +304,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.SpaceDelimited,
+                    Style = ParameterStyle.SpaceDelimited
                 },
                 ["blue", null, "brown"],
                 "blue%20%20brown"
@@ -314,11 +314,11 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.PipeDelimited,
+                    Style = ParameterStyle.PipeDelimited
                 },
                 ["blue", null, "brown"],
                 "blue||brown"
-            },
+            }
         };
     }
 
@@ -331,7 +331,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.Matrix,
+                    Style = ParameterStyle.Matrix
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", 200 }, { "B", 150 } },
                 ";color=R,100,G,200,B,150"
@@ -341,7 +341,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.Matrix,
+                    Style = ParameterStyle.Matrix
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", 200 }, { "B", 150 } },
                 ";R=100;G=200;B=150"
@@ -351,7 +351,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.Label,
+                    Style = ParameterStyle.Label
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", 200 }, { "B", 150 } },
                 ".R.100.G.200.B.150"
@@ -361,7 +361,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.Label,
+                    Style = ParameterStyle.Label
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", 200 }, { "B", 150 } },
                 ".R=100.G=200.B=150"
@@ -371,7 +371,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.Form,
+                    Style = ParameterStyle.Form
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", 200 }, { "B", 150 } },
                 "color=R,100,G,200,B,150"
@@ -381,7 +381,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.Form,
+                    Style = ParameterStyle.Form
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", 200 }, { "B", 150 } },
                 "R=100&G=200&B=150"
@@ -391,7 +391,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.Simple,
+                    Style = ParameterStyle.Simple
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", 200 }, { "B", 150 } },
                 "R,100,G,200,B,150"
@@ -401,7 +401,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.Simple,
+                    Style = ParameterStyle.Simple
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", 200 }, { "B", 150 } },
                 "R=100,G=200,B=150"
@@ -411,7 +411,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.SpaceDelimited,
+                    Style = ParameterStyle.SpaceDelimited
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", 200 }, { "B", 150 } },
                 "R%20100%20G%20200%20B%20150"
@@ -421,7 +421,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.PipeDelimited,
+                    Style = ParameterStyle.PipeDelimited
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", 200 }, { "B", 150 } },
                 "R|100|G|200|B|150"
@@ -431,7 +431,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.DeepObject,
+                    Style = ParameterStyle.DeepObject
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", 200 }, { "B", 150 } },
                 "color[R]=100&color[G]=200&color[B]=150"
@@ -442,7 +442,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.Matrix,
+                    Style = ParameterStyle.Matrix
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", null }, { "B", 150 } },
                 ";color=R,100,G,,B,150"
@@ -452,7 +452,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.Matrix,
+                    Style = ParameterStyle.Matrix
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", null }, { "B", 150 } },
                 ";R=100;G;B=150"
@@ -462,7 +462,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.Label,
+                    Style = ParameterStyle.Label
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", null }, { "B", 150 } },
                 ".R.100.G..B.150"
@@ -472,7 +472,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.Label,
+                    Style = ParameterStyle.Label
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", null }, { "B", 150 } },
                 ".R=100.G=.B=150"
@@ -482,7 +482,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.Form,
+                    Style = ParameterStyle.Form
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", null }, { "B", 150 } },
                 "color=R,100,G,,B,150"
@@ -492,7 +492,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.Form,
+                    Style = ParameterStyle.Form
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", null }, { "B", 150 } },
                 "R=100&G=&B=150"
@@ -502,7 +502,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.Simple,
+                    Style = ParameterStyle.Simple
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", null }, { "B", 150 } },
                 "R,100,G,,B,150"
@@ -512,7 +512,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.Simple,
+                    Style = ParameterStyle.Simple
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", null }, { "B", 150 } },
                 "R=100,G=,B=150"
@@ -522,7 +522,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.SpaceDelimited,
+                    Style = ParameterStyle.SpaceDelimited
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", null }, { "B", 150 } },
                 "R%20100%20G%20%20B%20150"
@@ -532,7 +532,7 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = false,
-                    Style = ParameterStyle.PipeDelimited,
+                    Style = ParameterStyle.PipeDelimited
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", null }, { "B", 150 } },
                 "R|100|G||B|150"
@@ -542,11 +542,11 @@ public sealed class OpenApiParameterSerializerTests
                 {
                     Name = "color",
                     Explode = true,
-                    Style = ParameterStyle.DeepObject,
+                    Style = ParameterStyle.DeepObject
                 },
                 new Dictionary<string, object?>() { { "R", 100 }, { "G", null }, { "B", 150 } },
                 "color[R]=100&color[G]=&color[B]=150"
-            },
+            }
         };
     }
 }

@@ -1,0 +1,13 @@
+{
+  "data": {
+    "pureNullableObjectListItemReturningNull": [
+      {
+        "property": "a"
+      },
+      null,
+      {
+        "property": "c"
+      }
+    ]
+  }
+}

@@ -93,9 +93,7 @@ public class CodeWriter : TextWriter
         WriteLeftBrace();
         WriteLine();
 
-#pragma warning disable CA2000
         var indent = IncreaseIndent();
-#pragma warning restore CA2000
 
         return new Block(() =>
         {

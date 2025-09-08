@@ -1,7 +1,6 @@
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Authorization;
 
@@ -9,10 +8,10 @@ namespace HotChocolate.Authorization;
 /// Applies the authorization directive to object types or object fields.
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Struct |
-    AttributeTargets.Property |
-    AttributeTargets.Method,
+    AttributeTargets.Class
+    | AttributeTargets.Struct
+    | AttributeTargets.Property
+    | AttributeTargets.Method,
     AllowMultiple = true)]
 public class AuthorizeAttribute : DescriptorAttribute
 {
@@ -79,7 +78,7 @@ public class AuthorizeAttribute : DescriptorAttribute
         {
             if (Apply is ApplyPolicy.Validation)
             {
-                field.Extend().Context.ContextData[AuthorizationRequestPolicy] = true;
+                field.Extend().Context.ModifyAuthorizationFieldOptions(o => o with { AuthorizeAtRequestLevel = true });
             }
 
             field.Directive(CreateDirective());
@@ -88,16 +87,6 @@ public class AuthorizeAttribute : DescriptorAttribute
 
     private AuthorizeDirective CreateDirective()
     {
-        if (Policy is not null)
-        {
-            return new AuthorizeDirective(Policy, apply: Apply);
-        }
-
-        if (Roles is not null)
-        {
-            return new AuthorizeDirective(Roles, apply: Apply);
-        }
-
-        return new AuthorizeDirective(apply: Apply);
+        return new AuthorizeDirective(Policy, Roles, Apply);
     }
 }

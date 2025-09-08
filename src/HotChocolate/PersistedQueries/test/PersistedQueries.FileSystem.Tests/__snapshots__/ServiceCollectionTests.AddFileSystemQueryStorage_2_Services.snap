@@ -1,4 +1,0 @@
-﻿{
-  "HotChocolate.Execution.IOperationDocumentStorage": "HotChocolate.PersistedQueries.FileSystem.FileSystemQueryStorage",
-  "HotChocolate.PersistedQueries.FileSystem.IQueryFileMap": null
-}

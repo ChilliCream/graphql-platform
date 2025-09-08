@@ -47,7 +47,7 @@ We strongly encourage the use of nullable reference types.
 We can also be explicit about the nullability of our fields.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -68,7 +68,7 @@ public class Book
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -113,7 +113,7 @@ type Book {
 The inner type of a list can be made non-null like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Book
@@ -123,7 +123,7 @@ public class Book
 }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp

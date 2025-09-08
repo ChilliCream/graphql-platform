@@ -19,14 +19,14 @@ namespace HotChocolate.Types;
 /// </code>
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Struct |
-    AttributeTargets.Interface |
-    AttributeTargets.Enum |
-    AttributeTargets.Property |
-    AttributeTargets.Method |
-    AttributeTargets.Field |
-    AttributeTargets.Parameter,
+    AttributeTargets.Class
+    | AttributeTargets.Struct
+    | AttributeTargets.Interface
+    | AttributeTargets.Enum
+    | AttributeTargets.Property
+    | AttributeTargets.Method
+    | AttributeTargets.Field
+    | AttributeTargets.Parameter,
     AllowMultiple = true)]
 public sealed class TagAttribute : DescriptorAttribute
 {

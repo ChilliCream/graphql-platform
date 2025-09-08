@@ -3,7 +3,7 @@ using HotChocolate.Execution;
 namespace StrawberryShake.Transport.InMemory;
 
 /// <summary>
-/// Represents a interceptor for <see cref="OperationRequest"/> of a
+/// Represents an interceptor for <see cref="OperationRequest"/> of a
 /// <see cref="IInMemoryClient"/>
 /// </summary>
 public interface IInMemoryRequestInterceptor

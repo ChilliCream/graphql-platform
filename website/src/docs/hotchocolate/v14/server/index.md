@@ -6,7 +6,7 @@ In this section, you will learn how you can configure your GraphQL server and we
 
 # Endpoints
 
-Hot Chocolate comes with ASP.NET Core endpoint middleware for accepting HTTP / WebSocket GraphQL requests, downloading the GraphQL schema, or serving the [Banana Cake Pop](/products/bananacakepop) GraphQL IDE.
+Hot Chocolate comes with ASP.NET Core endpoint middleware for accepting HTTP / WebSocket GraphQL requests, downloading the GraphQL schema, or serving the [Nitro](/products/nitro) GraphQL IDE.
 
 [Learn more about endpoints](/docs/hotchocolate/v14/server/endpoints)
 
@@ -50,7 +50,7 @@ Though not considered one of the responsibilities of a GraphQL server, for conve
 
 # Instrumentation
 
-Hot Chocolate allows you to gather instrumentation data about your GraphQL server, by hooking into various events in the execution process of a GraphQL request. You will also learn how to setup our OpenTelemetry integration and how to utilize _Apollo Tracing_.
+Hot Chocolate allows you to gather instrumentation data about your GraphQL server, by hooking into various events in the execution process of a GraphQL request. You will also learn how to set up our OpenTelemetry integration.
 
 [Learn more about instrumentation](/docs/hotchocolate/v14/server/instrumentation)
 

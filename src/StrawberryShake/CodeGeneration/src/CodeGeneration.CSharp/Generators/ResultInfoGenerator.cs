@@ -9,10 +9,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
 {
-    private const string _entityIds = nameof(_entityIds);
-    private const string entityIds = nameof(entityIds);
-    private const string _version = nameof(_version);
-    private const string version = nameof(version);
+    private const string UnderscoreEntityIds = "_entityIds";
+    private const string EntityIds = "entityIds";
+    private const string UnderscoreVersion = "_version";
+    private const string Version = "version";
 
     protected override bool CanHandle(ITypeDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings)
@@ -72,7 +72,7 @@ public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
             .AddProperty("EntityIds")
             .SetType(TypeNames.IReadOnlyCollection.WithGeneric(TypeNames.EntityId))
             .AsLambda(settings.IsStoreEnabled()
-                ? CodeInlineBuilder.From(_entityIds)
+                ? CodeInlineBuilder.From(UnderscoreEntityIds)
                 : MethodCallBuilder.Inline()
                     .SetMethodName(TypeNames.Array, "Empty")
                     .AddGeneric(TypeNames.EntityId));
@@ -80,21 +80,21 @@ public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
         classBuilder
             .AddProperty("Version")
             .SetType(TypeNames.UInt64)
-            .AsLambda(settings.IsStoreEnabled() ? _version : "0");
+            .AsLambda(settings.IsStoreEnabled() ? UnderscoreVersion : "0");
 
         if (settings.IsStoreEnabled())
         {
             AddConstructorAssignedField(
                 TypeNames.IReadOnlyCollection.WithGeneric(TypeNames.EntityId),
-                _entityIds,
-                entityIds,
+                UnderscoreEntityIds,
+                EntityIds,
                 classBuilder,
                 constructorBuilder);
 
             AddConstructorAssignedField(
                 TypeNames.UInt64,
-                _version,
-                version,
+                UnderscoreVersion,
+                Version,
                 classBuilder,
                 constructorBuilder,
                 true);
@@ -105,7 +105,7 @@ public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
             .AddMethod("WithVersion")
             .SetAccessModifier(AccessModifier.Public)
             .SetReturnType(TypeNames.IOperationResultDataInfo)
-            .AddParameter(version, x => x.SetType(TypeNames.UInt64))
+            .AddParameter(Version, x => x.SetType(TypeNames.UInt64))
             .AddCode(MethodCallBuilder
                 .New()
                 .SetReturn()
@@ -114,7 +114,7 @@ public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
                 .AddArgumentRange(
                     complexTypeDescriptor.Properties.Select(x => x.Name))
                 .If(settings.IsStoreEnabled(),
-                    x => x.AddArgument(_entityIds).AddArgument(version)));
+                    x => x.AddArgument(UnderscoreEntityIds).AddArgument(Version)));
 
         classBuilder.Build(writer);
     }

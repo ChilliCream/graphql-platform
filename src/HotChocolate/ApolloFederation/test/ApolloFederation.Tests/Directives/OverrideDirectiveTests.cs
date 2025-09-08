@@ -4,7 +4,6 @@ using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives;
 
@@ -21,12 +20,12 @@ public class OverrideDirectiveTests
             .AddType<Foo>()
             .BuildSchemaAsync();
 
-        var entityType = schema.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
+        var entityType = schema.Types.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
 
         // act
         var value = await sdlResolver(TestHelper.CreateResolverContext(schema));
-        value!.ToString().MatchSnapshot();
+        value!.MatchSnapshot();
     }
 
     [Fact]
@@ -40,12 +39,12 @@ public class OverrideDirectiveTests
             .AddType<Foo>()
             .BuildSchemaAsync();
 
-        var entityType = schema.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
+        var entityType = schema.Types.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
 
         // act
         var value = await sdlResolver(TestHelper.CreateResolverContext(schema));
-        value!.ToString().MatchSnapshot();
+        value!.MatchSnapshot();
     }
 
     [Key("id")]

@@ -1,0 +1,24 @@
+{
+  "errors": [
+    {
+      "message": "ERROR",
+      "locations": [
+        {
+          "line": 1,
+          "column": 41
+        }
+      ],
+      "path": [
+        "foo",
+        "nullable_list_nonnull_element",
+        0,
+        "c"
+      ]
+    }
+  ],
+  "data": {
+    "foo": {
+      "nullable_list_nonnull_element": null
+    }
+  }
+}

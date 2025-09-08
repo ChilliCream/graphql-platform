@@ -1,0 +1,90 @@
+a Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "objectId": null
+      },
+      {
+        "objectId": "6124e80f3f5fc839830c1f6a"
+      },
+      {
+        "objectId": "6124e80f3f5fc839830c1f6b"
+      }
+    ]
+  }
+}
+---------------
+
+a Query:
+---------------
+find({ "ObjectId" : { "$not" : { "$lte" : { "$oid" : "6124e80f3f5fc839830c1f69" } } } })
+---------------
+
+6124e80f3f5fc839830c1f6a Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "objectId": null
+      },
+      {
+        "objectId": "6124e80f3f5fc839830c1f6b"
+      }
+    ]
+  }
+}
+---------------
+
+6124e80f3f5fc839830c1f6a Query:
+---------------
+find({ "ObjectId" : { "$not" : { "$lte" : { "$oid" : "6124e80f3f5fc839830c1f6a" } } } })
+---------------
+
+6124e80f3f5fc839830c1f6b Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "objectId": null
+      }
+    ]
+  }
+}
+---------------
+
+6124e80f3f5fc839830c1f6b Query:
+---------------
+find({ "ObjectId" : { "$not" : { "$lte" : { "$oid" : "6124e80f3f5fc839830c1f6b" } } } })
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `nlte` of type ObjectIdOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 35
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "ObjectId!",
+        "filterType": "ObjectIdOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

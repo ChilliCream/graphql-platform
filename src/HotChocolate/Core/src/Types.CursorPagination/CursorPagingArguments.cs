@@ -4,11 +4,7 @@ namespace HotChocolate.Types.Pagination;
 /// The cursor paging arguments are used to specify the
 /// paging behavior of the cursor based paging handler.
 /// </summary>
-#if NET6_0_OR_GREATER
 public readonly record struct CursorPagingArguments
-#else
-public readonly struct CursorPagingArguments
-#endif
 {
     /// <summary>
     /// Initializes a new instance of <see cref="CursorPagingArguments"/>.

@@ -1,0 +1,17 @@
+{
+  "data": {
+    "nullableScalarConnection": {
+      "edges": [
+        {
+          "node": "a"
+        },
+        {
+          "node": null
+        },
+        {
+          "node": "c"
+        }
+      ]
+    }
+  }
+}

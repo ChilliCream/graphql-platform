@@ -3,17 +3,8 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Nullable.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <Product>Strawberry Shake</Product>
     <PackageIcon>strawberryshake-signet.png</PackageIcon>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <LibraryTargetFrameworks>net8.0; net7.0; net6.0; netstandard2.1; netstandard2.0</LibraryTargetFrameworks>
-    <ToolingTargetFrameworks>net8.0; net7.0; net6.0</ToolingTargetFrameworks>
   </PropertyGroup>
 
 </Project>

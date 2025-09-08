@@ -65,10 +65,8 @@ public sealed class CachingTests
             .AddGraphQLServer()
             .UseField(next => next);
 
-        requestExecutorBuilder.Services.Replace(
-            new ServiceDescriptor(
-                typeof(ICostMetricsCache),
-                new FakeCostMetricsCache()));
+        requestExecutorBuilder.ConfigureSchemaServices(
+            static s => s.Replace(new ServiceDescriptor(typeof(ICostMetricsCache), new FakeCostMetricsCache())));
 
         return requestExecutorBuilder;
     }

@@ -1,20 +1,36 @@
-using HotChocolate.Execution;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Validation.Properties;
 
 namespace HotChocolate.Validation;
 
-public sealed class DocumentValidatorContext : IDocumentValidatorContext
+/// <summary>
+/// This interface represents the document validation context that can
+/// be used by validation visitors to build up state.
+/// </summary>
+public sealed class DocumentValidatorContext : IFeatureProvider
 {
-    private static readonly FieldInfoListBufferPool _fieldInfoPool = new();
-    private readonly List<FieldInfoListBuffer> _buffers = [new FieldInfoListBuffer(),];
     private readonly List<IError> _errors = [];
+    private readonly PooledFeatureCollection _features;
+    private ISchemaDefinition? _schema;
+    private int _maxAllowedErrors;
 
-    private ISchema? _schema;
-    private IOutputType? _nonNullString;
+    /// <summary>
+    /// Initializes a new instance of <see cref="DocumentValidatorContext"/>.
+    /// </summary>
+    public DocumentValidatorContext()
+    {
+        _features = new PooledFeatureCollection(this);
+        _features.Set(this);
+    }
 
-    public ISchema Schema
+    /// <summary>
+    /// Gets the schema on which the validation is executed.
+    /// </summary>
+    public ISchemaDefinition Schema
     {
         get
         {
@@ -25,172 +41,243 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
             }
             return _schema;
         }
-        set
-        {
-            _schema = value;
-            NonNullString = new NonNullType(_schema.GetType<StringType>("String"));
-        }
     }
 
-    public OperationDocumentId DocumentId { get; set; }
+    /// <summary>
+    /// Gets the unique document identifier.
+    /// </summary>
+    public OperationDocumentId DocumentId { get; private set; }
 
-    public OperationType? OperationType { get; set; }
+    /// <summary>
+    /// Gets the document that is being validated.
+    /// </summary>
+    public DocumentNode Document { get; private set; } = null!;
 
-    public IOutputType NonNullString
-    {
-        get
-        {
-            if (_nonNullString is null)
-            {
-                throw new InvalidOperationException(
-                    Resources.DocumentValidatorContext_Context_Invalid_State);
-            }
-            return _nonNullString;
-        }
-        private set => _nonNullString = value;
-    }
+    /// <summary>
+    /// The current visitation path of syntax nodes.
+    /// </summary>
+    public List<ISyntaxNode> Path { get; } = [];
 
-    public int MaxAllowedErrors { get; set; }
+    /// <summary>
+    /// The current visitation path of selection sets.
+    /// </summary>
+    public List<SelectionSetNode> SelectionSets { get; } = [];
 
-    public IList<ISyntaxNode> Path { get; } = new List<ISyntaxNode>();
+    /// <summary>
+    /// Gets the fragment context used to track the fragments that are visited
+    /// during the visitation of a document.
+    /// </summary>
+    public FragmentContext Fragments { get; } = new();
 
-    public IList<SelectionSetNode> SelectionSets { get; } = new List<SelectionSetNode>();
+    /// <summary>
+    /// Gets a map exposing the variable definitions by name.
+    /// </summary>
+    public Dictionary<string, VariableDefinitionNode> Variables { get; } = [];
 
-    public IDictionary<SelectionSetNode, IList<FieldInfo>> FieldSets { get; } =
-        new Dictionary<SelectionSetNode, IList<FieldInfo>>();
+    /// <summary>
+    /// The current visitation path of types.
+    /// </summary>
+    public List<IType> Types { get; } = [];
 
-    public ISet<(FieldNode, FieldNode)> FieldTuples { get; } =
-        new HashSet<(FieldNode, FieldNode)>();
+    /// <summary>
+    /// The current visitation path of directive types.
+    /// </summary>
+    public List<IDirectiveDefinition> Directives { get; } = [];
 
-    public ISet<string> VisitedFragments { get; } = new HashSet<string>();
+    /// <summary>
+    /// The current visitation path of output fields.
+    /// </summary>
+    public List<IOutputFieldDefinition> OutputFields { get; } = [];
 
-    public IVariableValueCollection? VariableValues { get; set; }
+    /// <summary>
+    /// The current visitation path of selections.
+    /// </summary>
+    public List<FieldNode> Fields { get; } = [];
 
-    public IDictionary<string, VariableDefinitionNode> Variables { get; } =
-        new Dictionary<string, VariableDefinitionNode>();
+    /// <summary>
+    /// The current visitation path of input fields.
+    /// </summary>
+    public List<IInputValueDefinition> InputFields { get; } = [];
 
-    public IDictionary<string, FragmentDefinitionNode> Fragments { get; } =
-        new Dictionary<string, FragmentDefinitionNode>();
+    /// <summary>
+    /// The feature collection that is used to execute the validation.
+    /// </summary>
+    public IFeatureCollection Features => _features;
 
-    public ISet<string> Used { get; } = new HashSet<string>();
+    /// <summary>
+    /// A dictionary to store arbitrary visitor data.
+    /// </summary>
+    public Dictionary<string, object?> ContextData { get; } = [];
 
-    public ISet<string> Unused { get; } = new HashSet<string>();
+    /// <summary>
+    /// A list to track validation errors that occurred during the visitation.
+    /// </summary>
+    public IReadOnlyList<IError> Errors => _errors;
 
-    public ISet<string> Declared { get; } = new HashSet<string>();
-
-    public ISet<string> Names { get; } = new HashSet<string>();
-
-    public IList<IType> Types { get; } = new List<IType>();
-
-    public IList<DirectiveType> Directives { get; } = new List<DirectiveType>();
-
-    public IList<IOutputField> OutputFields { get; } = new List<IOutputField>();
-
-    public IList<FieldNode> Fields { get; } = new List<FieldNode>();
-
-    public IList<IInputField> InputFields { get; } = new List<IInputField>();
-
-    public IReadOnlyCollection<IError> Errors => _errors;
-
-    public IList<object?> List { get; } = new List<object?>();
-
+    /// <summary>
+    /// Defines that a visitation has found an unexpected error
+    /// that is no concern of the current validation rule.
+    /// If no other error is found by any validation, this will
+    /// lead to an unexpected validation error.
+    /// </summary>
     public bool UnexpectedErrorsDetected { get; set; }
 
-    public int Count { get; set; }
+    /// <summary>
+    /// Defines that a fatal error was detected and that the analyzer will be aborted.
+    /// </summary>
+    public bool FatalErrorDetected { get; set; }
 
-    public int Max { get; set; }
-
-    public int Allowed { get; set; }
-
-    public IDictionary<string, object?> ContextData { get; set; } = default!;
-
-    public List<FieldInfoPair> CurrentFieldPairs { get; } = [];
-
-    public List<FieldInfoPair> NextFieldPairs { get; } = [];
-
-    public HashSet<FieldInfoPair> ProcessedFieldPairs { get; } = [];
-
-    public IList<FieldInfo> RentFieldInfoList()
+    public void Initialize(
+        ISchemaDefinition schema,
+        OperationDocumentId documentId,
+        DocumentNode document,
+        int maxAllowedErrors,
+        IFeatureCollection? features)
     {
-        var buffer = _buffers.Peek();
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxAllowedErrors, 1);
 
-        if (!buffer.TryPop(out var list))
+        _schema = schema;
+        DocumentId = documentId;
+        Document = document;
+        _maxAllowedErrors = maxAllowedErrors;
+
+        _features.Initialize(features);
+
+        foreach (var definitionNode in document.Definitions)
         {
-            buffer = _fieldInfoPool.Get();
-            _buffers.Push(buffer);
-            list = buffer.Pop();
+            if (definitionNode.Kind is SyntaxKind.FragmentDefinition)
+            {
+                var fragmentDefinition = Unsafe.As<FragmentDefinitionNode>(definitionNode);
+                Fragments[fragmentDefinition.Name.Value] = fragmentDefinition;
+            }
         }
-
-        return list;
     }
 
+    /// <summary>
+    /// Reports an error.
+    /// </summary>
+    /// <param name="error">
+    /// The validation error that shall be reported.
+    /// </param>
     public void ReportError(IError error)
     {
-        var errors = _errors.Count;
+        ArgumentNullException.ThrowIfNull(error);
 
-        if (errors > 0 && errors == MaxAllowedErrors)
+        _errors.Add(error);
+
+        if (_errors.Count >= _maxAllowedErrors)
         {
             throw new MaxValidationErrorsException();
         }
-
-        _errors.Add(error);
     }
 
-    public void Clear()
+    /// <summary>
+    /// Resets the context between document visitations.
+    /// We keep the Schema, DocumentId, and the Fragment lookups.
+    /// </summary>
+    internal void Reset()
     {
-        ClearBuffers();
-
-        _schema = null;
-        _nonNullString = null;
-        VariableValues = null;
-        ContextData = default!;
-        DocumentId = default!;
         Path.Clear();
         SelectionSets.Clear();
-        FieldSets.Clear();
-        FieldTuples.Clear();
-        VisitedFragments.Clear();
-        Variables.Clear();
-        Fragments.Clear();
-        Used.Clear();
-        Unused.Clear();
-        Declared.Clear();
-        Names.Clear();
+        Fragments.Reset();
         Types.Clear();
         Directives.Clear();
         OutputFields.Clear();
         Fields.Clear();
         InputFields.Clear();
-        _errors.Clear();
-        List.Clear();
-        CurrentFieldPairs.Clear();
-        NextFieldPairs.Clear();
-        ProcessedFieldPairs.Clear();
-        UnexpectedErrorsDetected = false;
-        Count = 0;
-        Max = 0;
-        Allowed = 0;
-        MaxAllowedErrors = 0;
+
+        // we just make sure that all features are reset but we do not want
+        // to fully reset the feature collection.
+        foreach (var feature in Features)
+        {
+            if (feature.Value is ValidatorFeature validatorFeature)
+            {
+                validatorFeature.Reset();
+            }
+        }
     }
 
-    private void ClearBuffers()
+    /// <summary>
+    /// Clears the context fully after a full validation run is completed,
+    /// and this context is returned to the pool.
+    /// </summary>
+    internal void Clear()
     {
-        if (_buffers.Count > 1)
-        {
-            var buffer = _buffers.Pop();
-            buffer.Clear();
+        _schema = null;
+        Document = null!;
+        UnexpectedErrorsDetected = false;
+        FatalErrorDetected = false;
+        _features.Reset();
 
-            for (var i = 0; i < _buffers.Count; i++)
+        Path.Clear();
+        SelectionSets.Clear();
+        Fragments.Clear();
+        Variables.Clear();
+        Types.Clear();
+        Directives.Clear();
+        OutputFields.Clear();
+        Fields.Clear();
+        InputFields.Clear();
+        ContextData.Clear();
+        _errors.Clear();
+    }
+
+    /// <summary>
+    /// This context is used to track the fragments that are visited
+    /// during the visitation of a document.
+    /// </summary>
+    public sealed class FragmentContext
+    {
+        private readonly HashSet<string> _visited = [];
+        private readonly Dictionary<string, FragmentDefinitionNode> _fragments = new(StringComparer.Ordinal);
+
+        public IEnumerable<string> Names => _fragments.Keys;
+
+        public FragmentDefinitionNode this[string name]
+        {
+            get
             {
-                _fieldInfoPool.Return(_buffers[i]);
+                return _fragments[name];
+            }
+            internal set
+            {
+                _fragments[name] = value;
+            }
+        }
+
+        public bool TryGet(FragmentSpreadNode spread, [NotNullWhen(true)] out FragmentDefinitionNode? fragment)
+            => _fragments.TryGetValue(spread.Name.Value, out fragment);
+
+        public bool TryEnter(FragmentSpreadNode spread, [NotNullWhen(true)] out FragmentDefinitionNode? fragment)
+        {
+            if (_visited.Add(spread.Name.Value)
+                && _fragments.TryGetValue(spread.Name.Value, out fragment))
+            {
+                return true;
             }
 
-            _buffers.Clear();
-            _buffers.Add(buffer);
+            fragment = null;
+            return false;
         }
-        else
+
+        public void Leave(FragmentSpreadNode spread)
+            => _visited.Remove(spread.Name.Value);
+
+        public void Leave(FragmentDefinitionNode fragment)
+            => _visited.Remove(fragment.Name.Value);
+
+        public bool Exists(FragmentSpreadNode spread)
+            => _fragments.ContainsKey(spread.Name.Value);
+
+        internal void Reset()
+            => _visited.Clear();
+
+        internal void Clear()
         {
-            _buffers[0].Clear();
+            _visited.Clear();
+            _fragments.Clear();
         }
     }
 }

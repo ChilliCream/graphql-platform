@@ -12,7 +12,6 @@ public static class TestServerExtensions
         this TestServer testServer,
         ClientQueryRequest request,
         string path = "/graphql",
-        bool enableApolloTracing = false,
         bool includeQueryPlan = false)
     {
         var response =
@@ -20,12 +19,11 @@ public static class TestServerExtensions
                 testServer,
                 JsonConvert.SerializeObject(request),
                 path,
-                enableApolloTracing,
                 includeQueryPlan);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound, };
+            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
         }
 
         var json = await response.Content.ReadAsStringAsync();
@@ -48,7 +46,7 @@ public static class TestServerExtensions
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new[] { new ClientQueryResult { StatusCode = HttpStatusCode.NotFound, }, };
+            return new[] { new ClientQueryResult { StatusCode = HttpStatusCode.NotFound } };
         }
 
         var stream = await response.Content.ReadAsStreamAsync();
@@ -96,7 +94,7 @@ public static class TestServerExtensions
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new[] { new ClientQueryResult { StatusCode = HttpStatusCode.NotFound, }, };
+            return new[] { new ClientQueryResult { StatusCode = HttpStatusCode.NotFound } };
         }
 
         var json = await response.Content.ReadAsStringAsync();
@@ -136,7 +134,7 @@ public static class TestServerExtensions
             var result = JsonConvert.DeserializeObject<ClientQueryResult>(json)!;
             result.StatusCode = response.StatusCode;
             result.ContentType = response.Content.Headers.ContentType?.ToString();
-            return new[] { result, };
+            return new[] { result };
         }
     }
 
@@ -153,7 +151,7 @@ public static class TestServerExtensions
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound, };
+            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
         }
 
         var json = await response.Content.ReadAsStringAsync();
@@ -176,7 +174,7 @@ public static class TestServerExtensions
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound, };
+            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
         }
 
         var json = await response.Content.ReadAsStringAsync();
@@ -189,41 +187,37 @@ public static class TestServerExtensions
     public static async Task<ClientRawResult> PostRawAsync(
         this TestServer testServer,
         ClientQueryRequest request,
-        string path = "/graphql",
-        bool enableApolloTracing = false)
+        string path = "/graphql")
     {
         var response =
             await SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(request),
-                path,
-                enableApolloTracing: enableApolloTracing);
+                path);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new ClientRawResult { StatusCode = HttpStatusCode.NotFound, };
+            return new ClientRawResult { StatusCode = HttpStatusCode.NotFound };
         }
 
         return new ClientRawResult
         {
             StatusCode = response.StatusCode,
             ContentType = response.Content.Headers.ContentType!.ToString(),
-            Content = await response.Content.ReadAsStringAsync(),
+            Content = await response.Content.ReadAsStringAsync()
         };
     }
 
     public static async Task<HttpResponseMessage> PostHttpAsync(
         this TestServer testServer,
         ClientQueryRequest request,
-        string path = "/graphql",
-        bool enableApolloTracing = false)
+        string path = "/graphql")
     {
         var response =
             await SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(request),
-                path,
-                enableApolloTracing: enableApolloTracing);
+                path);
 
         return response;
     }
@@ -237,7 +231,7 @@ public static class TestServerExtensions
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound, };
+            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
         }
 
         var json = await response.Content.ReadAsStringAsync();
@@ -261,7 +255,7 @@ public static class TestServerExtensions
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound, };
+            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
         }
 
         var json = await response.Content.ReadAsStringAsync();
@@ -281,14 +275,14 @@ public static class TestServerExtensions
         var response =
             await SendGetRequestAsync(
                 testServer,
-                $"query={query}&" +
-                "extensions={\"persistedQuery\":{\"version\":1," +
-                $"\"{hashName}\":\"{hash}\"}}}}",
+                $"query={query}&"
+                + "extensions={\"persistedQuery\":{\"version\":1,"
+                + $"\"{hashName}\":\"{hash}\"}}}}",
                 path);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound, };
+            return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
         }
 
         var json = await response.Content.ReadAsStringAsync();
@@ -310,27 +304,23 @@ public static class TestServerExtensions
         this TestServer testServer,
         TObject requestBody,
         string path = "/graphql",
-        bool enableApolloTracing = false,
         bool includeQueryPlan = false) =>
         SendPostRequestAsync(
             testServer,
             JsonConvert.SerializeObject(requestBody),
             path,
-            enableApolloTracing,
             includeQueryPlan);
 
     public static Task<HttpResponseMessage> SendPostRequestAsync(
         this TestServer testServer,
         string requestBody,
         string? path = null,
-        bool enableApolloTracing = false,
         bool includeQueryPlan = false) =>
         SendPostRequestAsync(
             testServer,
             requestBody,
             "application/json",
             path,
-            enableApolloTracing,
             includeQueryPlan);
 
     public static Task<HttpResponseMessage> SendPostRequestAsync(
@@ -338,19 +328,13 @@ public static class TestServerExtensions
         string requestBody,
         string contentType,
         string? path,
-        bool enableApolloTracing = false,
         bool includeQueryPlan = false)
     {
         var content = new StringContent(requestBody, Encoding.UTF8, contentType);
 
-        if (enableApolloTracing)
-        {
-            content.Headers.Add(HttpHeaderKeys.Tracing, HttpHeaderValues.TracingEnabled);
-        }
-
         if (includeQueryPlan)
         {
-            content.Headers.Add(HttpHeaderKeys.QueryPlan, HttpHeaderValues.IncludeQueryPlan);
+            content.Headers.Add(HttpHeaderKeys.OperationPlan, HttpHeaderValues.IncludeOperationPlan);
         }
 
         return testServer.CreateClient().PostAsync(CreateUrl(path), content);

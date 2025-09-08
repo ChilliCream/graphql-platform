@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -13,7 +12,7 @@ public class GeoJsonPointInputTests
         new IntValueNode(30),
         new IntValueNode(10));
 
-    private ISchema CreateSchema() => SchemaBuilder.New()
+    private Schema CreateSchema() => SchemaBuilder.New()
         .AddConvention<INamingConventions, MockNamingConvention>()
         .AddType<MockObjectType>()
         .AddQueryType(
@@ -27,13 +26,13 @@ public class GeoJsonPointInputTests
     private InputObjectType CreateInputType()
     {
         var schema = CreateSchema();
-        return schema.GetType<InputObjectType>("GeoJSONPointInput");
+        return schema.Types.GetType<InputObjectType>("GeoJSONPointInput");
     }
 
     private GeometryType CreateScalarType()
     {
         var schema = CreateSchema();
-        return schema.GetType<GeometryType>("Geometry");
+        return schema.Types.GetType<GeometryType>("Geometry");
     }
 
     [Fact]

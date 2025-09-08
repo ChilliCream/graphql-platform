@@ -1,4 +1,3 @@
-#nullable enable
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;

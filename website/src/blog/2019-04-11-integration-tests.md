@@ -96,7 +96,7 @@ public async Task SayHello_HelloIsReturned()
     .MakeExecutable();
 
     IReadOnlyQueryRequest request =
-        OperationRequestBuilder.New()
+        QueryRequestBuilder.New()
             .SetQuery("{ sayHello }")
             .SetServices(serviceProvider)
             .AddProperty("Key", "value")
@@ -139,7 +139,7 @@ public async Task SayHello_HelloIsReturned()
     .MakeExecutable();
 
     IReadOnlyQueryRequest request =
-        OperationRequestBuilder.New()
+        QueryRequestBuilder.New()
             .SetQuery("{ sayHello }")
             .SetServices(serviceProvider)
             .AddProperty("Key", "value")

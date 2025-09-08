@@ -3,8 +3,7 @@ using System.Collections;
 namespace HotChocolate;
 
 /// <summary>
-/// Represents a abstract executable that is well known in the framework. If the execution
-/// engine encounters a <see cref="IExecutable"/>, it will call execute it
+/// Represents a query that can be executed against a data source.
 /// </summary>
 public interface IExecutable
 {
@@ -19,7 +18,7 @@ public interface IExecutable
     /// <param name="cancellationToken">
     /// A cancellation token that can be used to cancel the execution.
     /// </param>
-    /// <returns>Returns a arbitrary list</returns>
+    /// <returns>Returns an arbitrary list</returns>
     ValueTask<IList> ToListAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -50,8 +49,19 @@ public interface IExecutable
     ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Prints the executable in its current state
+    /// Returns the number of elements in the sequence.
     /// </summary>
-    /// <returns>A string that represents the executables state</returns>
+    /// <param name="cancellationToken">
+    /// A cancellation token that can be used to cancel the execution.
+    /// </param>
+    /// <returns>
+    /// The number of elements in the sequence.
+    /// </returns>
+    ValueTask<int> CountAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Prints the underlying query.
+    /// </summary>
+    /// <returns>A string that represents the underlying query.</returns>
     string Print();
 }

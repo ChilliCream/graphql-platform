@@ -1,5 +1,5 @@
 using HotChocolate.AspNetCore.Extensions;
-using HotChocolate.Execution;
+using HotChocolate.PersistedOperations;
 using HotChocolate.StarWars;
 using HotChocolate.Tests;
 using HotChocolate.Types;
@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Moq;
 using Xunit.Abstractions;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
@@ -15,36 +17,42 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
 {
     protected TestServerFactory ServerFactory { get; } = serverFactory;
 
+    protected Uri Url { get; } = new("http://localhost:5000/graphql");
+
     protected virtual TestServer CreateStarWarsServer(
         string pattern = "/graphql",
-        Action<IServiceCollection>? configureServices = default,
-        Action<GraphQLEndpointConventionBuilder>? configureConventions = default,
-        ITestOutputHelper? output = null)
+        Action<IServiceCollection>? configureServices = null,
+        Action<GraphQLEndpointConventionBuilder>? configureConventions = null,
+        ITestOutputHelper? output = null,
+        bool requireOperationName = false,
+        string? environment = null)
     {
+        var mockHostEnvironment = new Mock<IHostEnvironment>();
+        mockHostEnvironment.Setup(env => env.EnvironmentName).Returns(environment ?? Environments.Development);
+
         return ServerFactory.Create(
             services =>
             {
                 services
+                    .AddSingleton(mockHostEnvironment.Object)
                     .AddRouting()
-                    .AddHttpResponseFormatter()
                     .AddGraphQLServer()
+                    .AddHttpResponseFormatter()
                     .AddStarWarsTypes()
                     .AddTypeExtension<QueryExtension>()
                     .AddTypeExtension<SubscriptionsExtensions>()
+                    .AddType<Foo>()
                     .AddStarWarsRepositories()
                     .AddInMemorySubscriptions()
                     .UseInstrumentation()
                     .UseExceptions()
                     .UseTimeout()
                     .UseDocumentCache()
-                    .UseReadPersistedQuery()
-                    .UseAutomaticPersistedQueryNotFound()
-                    .UseWritePersistedQuery()
+                    .UseReadPersistedOperation()
+                    .UseAutomaticPersistedOperationNotFound()
+                    .UseWritePersistedOperation()
                     .UseDocumentParser()
                     .UseDocumentValidation()
-#if NET7_0_OR_GREATER
-                    .UseCostAnalyzer()
-#endif
                     .UseOperationCache()
                     .UseOperationResolver()
                     .UseOperationVariableCoercion()
@@ -98,7 +106,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                         c.Name("Query");
                         c.Field("error")
                             .Type<NonNullType<StringType>>()
-                            .Resolve(_ => Task.FromResult<object?>(null!));
+                            .Resolve(_ => Task.FromResult<object?>(null));
                     });
 
                 configureServices?.Invoke(services);
@@ -109,16 +117,14 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                 .UseEndpoints(
                     endpoints =>
                     {
-#if NET8_0_OR_GREATER
-                        endpoints.MapGraphQLPersistedOperations();
-#endif
+                        endpoints.MapGraphQLPersistedOperations(requireOperationName: requireOperationName);
 
                         var builder = endpoints.MapGraphQL(pattern)
                             .WithOptions(new GraphQLServerOptions
                             {
                                 EnableBatching = true,
                                 AllowedGetOperations =
-                                    AllowedGetOperations.Query | AllowedGetOperations.Subscription,
+                                    AllowedGetOperations.Query | AllowedGetOperations.Subscription
                             });
 
                         configureConventions?.Invoke(builder);
@@ -128,22 +134,23 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                         endpoints.MapGraphQL("/upload", "upload");
                         endpoints.MapGraphQL("/starwars", "StarWars");
                         endpoints.MapGraphQL("/test", "test");
-                        endpoints.MapGraphQL("/batching").WithOptions(new GraphQLServerOptions
-                        {
-                            // with defaults
-                            // EnableBatching = false
-                        });
+                        endpoints.MapGraphQL("/batching").WithOptions(
+                            new GraphQLServerOptions
+                            {
+                                // with defaults
+                                // EnableBatching = false
+                            });
                     }));
     }
 
     protected virtual TestServer CreateServer(
-        Action<IEndpointRouteBuilder>? configureConventions = default)
+        Action<IEndpointRouteBuilder>? configureConventions = null)
     {
         return ServerFactory.Create(
             services => services
                 .AddRouting()
-                .AddHttpResponseFormatter()
                 .AddGraphQLServer()
+                .AddHttpResponseFormatter()
                 .AddStarWarsTypes()
                 .AddTypeExtension<QueryExtension>()
                 .AddTypeExtension<SubscriptionsExtensions>()
@@ -158,5 +165,11 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                 .UseWebSockets()
                 .UseRouting()
                 .UseEndpoints(endpoints => configureConventions?.Invoke(endpoints)));
+    }
+
+    [DirectiveType(DirectiveLocation.Subscription)]
+    public class Foo
+    {
+        public required int Bar { get; set; }
     }
 }

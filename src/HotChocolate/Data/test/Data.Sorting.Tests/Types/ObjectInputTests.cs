@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting;
@@ -57,11 +56,11 @@ public class ObjectInputTests
 
     public class Bar
     {
-        public Foo Foo { get; set; } = default!;
+        public Foo Foo { get; set; } = null!;
 
         public Foo? FooNullable { get; set; }
 
-        public List<Foo> FooList { get; set; } = default!;
+        public List<Foo> FooList { get; set; } = null!;
     }
 
     public class Foo

@@ -16,21 +16,21 @@ public sealed class GeoJsonPolygonType
             .BindFieldsExplicitly();
 
         descriptor
-            .Field<Resolvers>(x => x.GetCoordinates(default!))
+            .Field<Resolvers>(x => x.GetCoordinates(null!))
             .Name(WellKnownFields.CoordinatesFieldName)
             .Description(GeoJson_Field_Coordinates_Description_Polygon)
             .Type<ListType<ListType<GeoJsonPositionType>>>();
 
         descriptor
-            .Field<GeoJsonResolvers>(x => x.GetType(default!))
+            .Field<GeoJsonResolvers>(x => x.GetType(null!))
             .Description(GeoJson_Field_Type_Description);
 
         descriptor
-            .Field<GeoJsonResolvers>(x => x.GetBbox(default!))
+            .Field<GeoJsonResolvers>(x => x.GetBbox(null!))
             .Description(GeoJson_Field_Bbox_Description);
 
         descriptor
-            .Field<GeoJsonResolvers>(x => x.GetCrs(default!))
+            .Field<GeoJsonResolvers>(x => x.GetCrs(null!))
             .Description(GeoJson_Field_Crs_Description);
     }
 

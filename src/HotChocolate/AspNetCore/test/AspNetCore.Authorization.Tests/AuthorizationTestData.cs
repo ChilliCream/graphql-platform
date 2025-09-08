@@ -7,12 +7,13 @@ namespace HotChocolate.AspNetCore.Authorization;
 
 public class AuthorizationTestData : IEnumerable<object[]>
 {
-    private readonly string SchemaCode = @"
+    private readonly string _schemaCode = @"
         type Query {
             default: String @authorize(apply: BEFORE_RESOLVER)
             age: String @authorize(policy: ""HasAgeDefined"" apply: BEFORE_RESOLVER)
             roles: String @authorize(roles: [""a""] apply: BEFORE_RESOLVER)
             roles_ab: String @authorize(roles: [""a"" ""b""] apply: BEFORE_RESOLVER)
+            rolesAndPolicy: String @authorize(roles: [""a"" ""b""] policy: ""HasAgeDefined"" apply: BEFORE_RESOLVER)
             piped: String
                 @authorize(policy: ""a"" apply: BEFORE_RESOLVER)
                 @authorize(policy: ""b"" apply: BEFORE_RESOLVER)
@@ -28,20 +29,20 @@ public class AuthorizationTestData : IEnumerable<object[]>
 
     private Action<IRequestExecutorBuilder> CreateSchema() =>
         sb => sb
-            .AddDocumentFromString(SchemaCode)
+            .AddDocumentFromString(_schemaCode)
             .AddAuthorization()
             .UseField(_schemaMiddleware);
 
     private Action<IRequestExecutorBuilder> CreateSchemaWithBuilder() =>
         sb => sb
-            .AddDocumentFromString(SchemaCode)
+            .AddDocumentFromString(_schemaCode)
             .AddAuthorization()
             .UseField(_schemaMiddleware);
 
     public IEnumerator<object[]> GetEnumerator()
     {
-        yield return [CreateSchema(),];
-        yield return [CreateSchemaWithBuilder(),];
+        yield return [CreateSchema()];
+        yield return [CreateSchemaWithBuilder()];
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

@@ -17,30 +17,32 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
 
     public HashFormat Format { get; }
 
-    public string ComputeHash(ReadOnlySpan<byte> document)
+    public OperationDocumentHash ComputeHash(ReadOnlySpan<byte> document)
     {
-#if NET6_0_OR_GREATER
-        return ComputeHash(document, Format);
-#else
+#if NETSTANDARD2_0
         var rented = ArrayPool<byte>.Shared.Rent(document.Length);
         document.CopyTo(rented);
 
         try
         {
             var hash = ComputeHash(rented, document.Length);
-            return FormatHash(hash, Format);
+            var formattedHash = FormatHash(hash, Format);
+            return new OperationDocumentHash(formattedHash, Name, Format);
         }
         finally
         {
             ArrayPool<byte>.Shared.Return(rented);
         }
+#else
+        var hash = ComputeHash(document, Format);
+        return new OperationDocumentHash(hash, Name, Format);
 #endif
     }
 
-#if NET6_0_OR_GREATER
-    protected abstract string ComputeHash(ReadOnlySpan<byte> document, HashFormat format);
-#else
+#if NETSTANDARD2_0
     protected abstract byte[] ComputeHash(byte[] document, int length);
+#else
+    protected abstract string ComputeHash(ReadOnlySpan<byte> document, HashFormat format);
 #endif
 
     protected static string FormatHash(ReadOnlySpan<byte> hash, HashFormat format)
@@ -48,7 +50,7 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
         {
             HashFormat.Base64 => ToBase64UrlSafeString(hash),
             HashFormat.Hex => ToHexString(hash),
-            _ => throw new NotSupportedException(ComputeHash_FormatNotSupported),
+            _ => throw new NotSupportedException(ComputeHash_FormatNotSupported)
         };
 
     protected static string ToHexString(ReadOnlySpan<byte> hash)

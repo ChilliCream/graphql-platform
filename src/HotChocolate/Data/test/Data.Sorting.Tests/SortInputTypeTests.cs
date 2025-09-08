@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
@@ -6,7 +5,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Tests;
 
-public class SortInputTypeTest : SortTestBase
+public class SortInputTypeTests : SortTestBase
 {
     [Fact]
     public void SortInputType_DynamicName()
@@ -162,7 +161,7 @@ public class SortInputTypeTest : SortTestBase
 
         // act
         // assert
-        var exception = Assert.Throws<SchemaException>(() => builder.Create());
+        var exception = Assert.Throws<SchemaException>(builder.Create);
         exception.Message.MatchSnapshot();
     }
 
@@ -180,7 +179,7 @@ public class SortInputTypeTest : SortTestBase
 
         // act
         // assert
-        var exception = Assert.Throws<SchemaException>(() => builder.Create());
+        var exception = Assert.Throws<SchemaException>(builder.Create);
         exception.Message.MatchSnapshot();
     }
 
@@ -194,7 +193,7 @@ public class SortInputTypeTest : SortTestBase
 
         // act
         // assert
-        builder.Create().Print().MatchSnapshot();
+        builder.Create().ToString().MatchSnapshot();
     }
 
     [Fact]
@@ -235,14 +234,14 @@ public class SortInputTypeTest : SortTestBase
 
         // assert
         schema.MatchSnapshot();
-        schema.Print().MatchSnapshot();
+        schema.ToString().MatchSnapshot();
     }
 
     public class IgnoreTest
     {
         public int Id { get; set; }
 
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 
     public class ShouldNotBeVisible : SortInputType;
@@ -267,7 +266,7 @@ public class SortInputTypeTest : SortTestBase
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     public class Query
@@ -278,17 +277,17 @@ public class SortInputTypeTest : SortTestBase
 
     public class Book
     {
-        public int Id { get; set; } = default!;
+        public int Id { get; set; }
 
         [GraphQLNonNullType]
-        public string Title { get; set; } = default!;
+        public string Title { get; set; } = null!;
 
-        public int Pages { get; set; } = default!;
+        public int Pages { get; set; }
 
-        public int Chapters { get; set; } = default!;
+        public int Chapters { get; set; }
 
         [GraphQLNonNullType]
-        public Author Author { get; set; } = default!;
+        public Author Author { get; set; } = null!;
     }
 
     public class Author
@@ -297,7 +296,7 @@ public class SortInputTypeTest : SortTestBase
         public int Id { get; set; }
 
         [GraphQLNonNullType]
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
 
         public User? Account { get; set; }
     }
@@ -306,9 +305,9 @@ public class SortInputTypeTest : SortTestBase
     {
         public int Id { get; set; }
 
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
 
-        public List<User> Friends { get; set; } = default!;
+        public List<User> Friends { get; set; } = null!;
     }
 
     public interface ITest

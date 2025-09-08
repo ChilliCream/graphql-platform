@@ -19,9 +19,8 @@ To use the Apollo Federation tools, you need to first install v12.6 or later of 
 After installing the necessary package, you'll need to register the Apollo Federation services with the GraphQL server.
 
 ```csharp
-IServiceCollection services;
-
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddApolloFederation();
 ```
 
@@ -30,7 +29,7 @@ services.AddGraphQLServer()
 Now that the API is ready to support Apollo Federation, we'll need to define an **entity**&mdash;an object type that can resolve its fields across multiple subgraphs. We'll work with a `Product` entity to provide an example of how to do this.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Product
@@ -44,7 +43,7 @@ public class Product
 }
 ```
 
-</Annotation>
+</Implementation>
 
 <Code>
 
@@ -82,9 +81,9 @@ Once we have an object type to work with, we'll [define a key](https://www.apoll
 
 <ExampleTabs>
 
-<Annotation>
+<Implementation>
 
-In an annotation-based approach, we'll use the `[Key]` attribute on any property or properties that can be referenced as a key by another subgraph.
+In an implementation-first approach, we'll use the `[Key]` attribute on any property or properties that can be referenced as a key by another subgraph.
 
 ```csharp
 public class Product
@@ -99,7 +98,7 @@ public class Product
 }
 ```
 
-</Annotation>
+</Implementation>
 
 <Code>
 
@@ -143,9 +142,9 @@ Next, we'll need to define an [entity reference resolver](https://www.apollograp
 
 <ExampleTabs>
 
-<Annotation>
+<Implementation>
 
-In an annotation-based implementation, a reference resolver will work just like a [regular resolver](/docs/hotchocolate/v14/fetching-data/resolvers) with some key differences:
+In an implementation-first approach, a reference resolver will work just like a [regular resolver](/docs/hotchocolate/v14/fetching-data/resolvers) with some key differences:
 
 1. It must be annotated with the `[ReferenceResolver]` attribute
 1. It must be a `public static` method _within_ the type it is resolving
@@ -204,7 +203,7 @@ public class Product
 }
 ```
 
-</Annotation>
+</Implementation>
 
 <Code>
 
@@ -292,22 +291,24 @@ _Entity type registration_
 
 <ExampleTabs>
 
-<Annotation>
+<Implementation>
 
 ```csharp
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddApolloFederation()
     .AddType<Product>()
     // other registrations...
     ;
 ```
 
-</Annotation>
+</Implementation>
 
 <Code>
 
 ```csharp
-services.AddGraphQLServer()
+builder.Services
+    .AddGraphQLServer()
     .AddApolloFederation()
     .AddType<ProductType>()
     // other registrations...
@@ -381,7 +382,7 @@ In our new subgraph API we'll need to start by creating the `Product`. When crea
 
 <ExampleTabs>
 
-<Annotation>
+<Implementation>
 
 ```csharp
 [ExtendServiceType]
@@ -392,13 +393,14 @@ public class Product
     public string Id { get; set; }
 }
 
-// In your Startup or Program
-services.AddGraphQLServer()
+// In your Program
+builder.Services
+    .AddGraphQLServer()
     .AddApolloFederation()
     .AddType<Product>();
 ```
 
-</Annotation>
+</Implementation>
 
 <Code>
 
@@ -419,8 +421,9 @@ public class ProductType : ObjectType<Product>
     }
 }
 
-// In your Startup or Program
-services.AddGraphQLServer()
+// In your Program
+builder.Services
+    .AddGraphQLServer()
     .AddApolloFederation()
     .AddType<ProductType>();
 ```
@@ -439,7 +442,7 @@ Next, we'll create our `Review` type that has a reference to the `Product` entit
 
 <ExampleTabs>
 
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Review
@@ -462,14 +465,15 @@ public class Review
     }
 }
 
-// In your Startup or Program
-services.AddGraphQLServer()
+// In your Program
+builder.Services
+    .AddGraphQLServer()
     .AddApolloFederation()
     .AddType<Product>()
     .AddType<Review>();
 ```
 
-</Annotation>
+</Implementation>
 
 <Code>
 
@@ -501,8 +505,9 @@ public class ReviewType : ObjectType<Review>
     }
 }
 
-// In your Startup or Program
-services.AddGraphQLServer()
+// In your Program
+builder.Services
+    .AddGraphQLServer()
     .AddApolloFederation()
     .AddType<ProductType>()
     .AddType<ReviewType>();
@@ -551,7 +556,7 @@ For now, we'll focus on giving our supergraph the ability to retrieve all review
 
 <ExampleTabs>
 
-<Annotation>
+<Implementation>
 
 ```csharp
 [ExtendServiceType]
@@ -562,7 +567,7 @@ public class Product
     public string Id { get; set; }
 
     public async Task<IEnumerable<Review>> GetReviews(
-        [Service] ReviewRepository repo // example of how you might resolve this data
+        ReviewRepository repo // example of how you might resolve this data
     )
     {
         return await repo.GetReviewsByProductIdAsync(Id);
@@ -570,7 +575,7 @@ public class Product
 }
 ```
 
-</Annotation>
+</Implementation>
 
 <Code>
 
@@ -580,7 +585,7 @@ public class Product
     public string Id { get; set; }
 
     public async Task<IEnumerable<Review>> GetReviews(
-        [Service] ReviewRepository repo // example of how you might resolve this data
+        ReviewRepository repo // example of how you might resolve this data
     )
     {
         return await repo.GetReviewsByProductIdAsync(Id);
@@ -615,7 +620,7 @@ As mentioned above, since this subgraph does not "own" the data for a `Product`,
 
 <ExampleTabs>
 
-<Annotation>
+<Implementation>
 
 ```csharp
 [ExtendServiceType]
@@ -626,7 +631,7 @@ public class Product
     public string Id { get; set; }
 
     public async Task<IEnumerable<Review>> GetReviews(
-        [Service] ReviewRepository repo // example of how you might resolve this data
+        ReviewRepository repo // example of how you might resolve this data
     )
     {
         return await repo.GetReviewsByProductIdAsync(Id);
@@ -637,7 +642,7 @@ public class Product
 }
 ```
 
-</Annotation>
+</Implementation>
 
 <Code>
 
@@ -647,7 +652,7 @@ public class Product
     public string Id { get; set; }
 
     public async Task<IEnumerable<Review>> GetReviews(
-        [Service] ReviewRepository repo // example of how you might resolve this data
+        ReviewRepository repo // example of how you might resolve this data
     )
     {
         return await repo.GetReviewsByProductIdAsync(Id);

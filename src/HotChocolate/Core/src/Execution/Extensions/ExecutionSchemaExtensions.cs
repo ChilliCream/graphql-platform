@@ -1,84 +1,61 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.Options;
-using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate;
 
+/// <summary>
+/// Provides extension methods for the <see cref="Schema"/> class.
+/// </summary>
 public static class ExecutionSchemaExtensions
 {
+    /// <summary>
+    /// Creates an executor from the schema.
+    /// </summary>
+    /// <param name="schema">
+    /// The schema.
+    /// </param>
+    /// <returns>
+    /// Returns an executor from the schema.
+    /// </returns>
+    /// <remarks>
+    /// This helper is only meant for testing purposes.
+    /// </remarks>
     public static IRequestExecutor MakeExecutable(
-        this ISchema schema)
+        this Schema schema)
+        => MakeExecutable(schema, _ => { });
+
+    /// <summary>
+    /// Creates an executor from the schema.
+    /// </summary>
+    /// <param name="schema">
+    /// The schema.
+    /// </param>
+    /// <param name="configure">
+    /// The configure action.
+    /// </param>
+    /// <returns>
+    /// Returns an executor from the schema.
+    /// </returns>
+    /// <remarks>
+    /// This helper is only meant for testing purposes.
+    /// </remarks>
+    public static IRequestExecutor MakeExecutable(
+        this Schema schema,
+        Action<RequestExecutorOptions> configure)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(configure);
 
         return new ServiceCollection()
             .AddGraphQL()
             .Configure(o => o.Schema = schema)
+            .ModifyRequestOptions(configure)
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync()
             .Result;
-    }
-
-    public static IRequestExecutor MakeExecutable(
-        this ISchema schema,
-        RequestExecutorOptions options)
-    {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
-
-        return new ServiceCollection()
-            .AddGraphQL()
-            .Configure(o => o.Schema = schema)
-            .SetRequestOptions(() => options)
-            .Services
-            .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
-            .Result;
-    }
-
-    public static bool IsRootType(this ISchema schema, IType type)
-    {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (type.IsObjectType())
-        {
-            return IsType(schema.QueryType, type)
-                || IsType(schema.MutationType, type)
-                || IsType(schema.SubscriptionType, type);
-        }
-        return false;
-    }
-
-    private static bool IsType(ObjectType? left, IType right)
-    {
-        if (left is null)
-        {
-            return false;
-        }
-
-        return ReferenceEquals(left, right);
     }
 }

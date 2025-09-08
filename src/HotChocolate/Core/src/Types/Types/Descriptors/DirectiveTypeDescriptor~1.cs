@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 
@@ -16,30 +16,30 @@ public class DirectiveTypeDescriptor<T>
     protected internal DirectiveTypeDescriptor(IDescriptorContext context)
         : base(context, typeof(T))
     {
-        Definition.Arguments.BindingBehavior = context.Options.DefaultBindingBehavior;
+        Configuration.Arguments.BindingBehavior = context.Options.DefaultBindingBehavior;
     }
 
     protected internal DirectiveTypeDescriptor(
         IDescriptorContext context,
-        DirectiveTypeDefinition definition)
+        DirectiveTypeConfiguration definition)
         : base(context, definition)
     {
-        Definition = definition;
+        Configuration = definition;
     }
 
-    Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
+    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCompleteArguments(
-        IDictionary<string, DirectiveArgumentDefinition> arguments,
+        IDictionary<string, DirectiveArgumentConfiguration> arguments,
         ISet<PropertyInfo> handledProperties)
     {
-        if (Definition.Arguments.IsImplicitBinding())
+        if (Configuration.Arguments.IsImplicitBinding())
         {
             FieldDescriptorUtilities.AddImplicitFields(
                 this,
                 p => DirectiveArgumentDescriptor
                     .New(Context, p)
-                    .CreateDefinition(),
+                    .CreateConfiguration(),
                 arguments,
                 handledProperties);
         }
@@ -62,7 +62,7 @@ public class DirectiveTypeDescriptor<T>
     public IDirectiveTypeDescriptor<T> BindArguments(
         BindingBehavior behavior)
     {
-        Definition.Arguments.BindingBehavior = behavior;
+        Configuration.Arguments.BindingBehavior = behavior;
         return this;
     }
 
@@ -75,15 +75,12 @@ public class DirectiveTypeDescriptor<T>
     public IDirectiveArgumentDescriptor Argument(
         Expression<Func<T, object>> property)
     {
-        if (property is null)
-        {
-            throw new ArgumentNullException(nameof(property));
-        }
+        ArgumentNullException.ThrowIfNull(property);
 
         if (property.ExtractMember() is PropertyInfo p)
         {
             var descriptor =
-            Arguments.FirstOrDefault(t => t.Definition.Property == p);
+            Arguments.FirstOrDefault(t => t.Configuration.Property == p);
             if (descriptor is { })
             {
                 return descriptor;

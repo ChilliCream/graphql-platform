@@ -28,8 +28,8 @@ public static class SyntaxNodeExtensions
             return true;
         }
 
-        if (type.Kind is SyntaxKind.NonNullType &&
-            ((NonNullTypeNode)type).Type.Kind is SyntaxKind.ListType)
+        if (type.Kind is SyntaxKind.NonNullType
+            && ((NonNullTypeNode)type).Type.Kind is SyntaxKind.ListType)
         {
             return true;
         }
@@ -90,7 +90,7 @@ public static class SyntaxNodeExtensions
             return (NamedTypeNode)innerType;
         }
 
-        for(var i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++)
         {
             innerType = innerType.InnerType();
 
@@ -102,9 +102,6 @@ public static class SyntaxNodeExtensions
 
         throw new NotSupportedException();
     }
-
-    public static string Name(this ITypeNode type)
-        => type.NamedType().Name.Value;
 
     public static bool Equals(
         this ISyntaxNode node,

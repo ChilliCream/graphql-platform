@@ -1,5 +1,5 @@
 # StopOperationAsync_SocketCloses_ThrowException
 
 ```text
-The session was not open. Operations can only be started or stopped on a open session
+The session was not open. Operations can only be started or stopped on an open session
 ```

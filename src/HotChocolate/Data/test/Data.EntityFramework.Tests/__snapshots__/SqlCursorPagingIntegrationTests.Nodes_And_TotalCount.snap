@@ -1,0 +1,21 @@
+{
+  "data": {
+    "root": {
+      "nodes": [
+        {
+          "foo": "A"
+        },
+        {
+          "foo": "B"
+        },
+        {
+          "foo": "C"
+        },
+        {
+          "foo": "D"
+        }
+      ],
+      "totalCount": 4
+    }
+  }
+}

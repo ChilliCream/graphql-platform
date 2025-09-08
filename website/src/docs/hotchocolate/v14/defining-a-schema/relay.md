@@ -29,7 +29,7 @@ Id fields can be opted in to the global identifier behavior using the `ID` middl
 Hot Chocolate automatically combines the value of fields annotated as `ID` with another value to form a global identifier. Per default, this additional value is the name of the type the Id belongs to. Since type names are unique within a schema, this ensures that we are returning a unique Id within the schema. If our GraphQL server serves multiple schemas, the schema name is also included in this combined Id. The resulting Id is then Base64 encoded to make it opaque.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Product
@@ -48,7 +48,7 @@ The `[ID]` attribute can be used on primary key fields and on fields that act as
 public int FooId { get; set; }
 ```
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -77,7 +77,7 @@ descriptor.Field(f => f.FooId).ID("Foo");
 </Code>
 <Schema>
 
-The approach of either Annotation-based or Code-first can be used in conjunction with Schema-first.
+The approach of either implementation-first or code-first can be used in conjunction with schema-first.
 
 </Schema>
 </ExampleTabs>
@@ -92,7 +92,7 @@ If our `Product` output type returns a serialized Id, all arguments and fields o
 Therefore we also need to define them as `ID`, in order to deserialize the serialized Id to the actual Id.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 ```csharp
 public class Query
@@ -122,7 +122,7 @@ public Product GetProduct([ID(nameof(Product))] int id)
 
 This will result in an error if an Id, serialized using a different type name than `Product`, is used as input.
 
-</Annotation>
+</Implementation>
 <Code>
 
 ```csharp
@@ -160,7 +160,7 @@ This will result in an error if an Id, serialized using a different type name th
 </Code>
 <Schema>
 
-The approach of either Annotation-based or Code-first can be used in conjunction with Schema-first.
+The approach of either implementation-first or code-first can be used in conjunction with schema-first.
 
 </Schema>
 </ExampleTabs>
@@ -172,7 +172,7 @@ Unique (or global) Ids are generated using the `IIdSerializer`. We can access it
 ```csharp
 public class Query
 {
-    public string Example([Service] IIdSerializer serializer)
+    public string Example(IIdSerializer serializer)
     {
         string serializedId = serializer.Serialize(null, "Product", "123");
 
@@ -298,16 +298,10 @@ type Query {
 In Hot Chocolate we can enable Global Object Identification, by calling `AddGlobalObjectIdentification()` on the `IRequestExecutorBuilder`.
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddGlobalObjectIdentification()
-            .AddQueryType<Query>();
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddGlobalObjectIdentification()
+    .AddQueryType<Query>();
 ```
 
 This registers the `Node` interface type and adds the `node(id: ID!): Node` and the `nodes(ids: [ID!]!): [Node]!` field to our query type. At least one type in our schema needs to implement the `Node` interface or an exception is raised.
@@ -321,7 +315,7 @@ Next we need to extend our object types with the `Global Object Identification` 
 3. A method responsible for refetching an object based on its `id` needs to be defined.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 To declare an object type as a re-fetchable, we need to annotate it using the `[Node]` attribute. This in turn causes the type to implement the `Node` interface and if present automatically turns the `id` field into a [global identifier](#global-identifiers).
 
@@ -340,8 +334,7 @@ public class Product
 {
     public string Id { get; set; }
 
-    public static async Task<Product> Get(string id,
-        [Service] ProductService service)
+    public static async Task<Product> Get(string id, ProductService service)
     {
         Product product = await service.GetByIdAsync(id);
 
@@ -414,10 +407,10 @@ public class ProductExtensions
 
 [Learn more about extending types](/docs/hotchocolate/v14/defining-a-schema/extending-types)
 
-</Annotation>
+</Implementation>
 <Code>
 
-In the Code-first approach, we have multiple APIs on the `IObjectTypeDescriptor` to fulfill these criteria:
+In the code-first approach, we have multiple APIs on the `IObjectTypeDescriptor` to fulfill these criteria:
 
 - `ImplementsNode`: Implements the `Node` interface.
 - `IdField`: Selects the property that represents the unique identifier of the object.
@@ -499,7 +492,7 @@ public class ProductNodeResolver
 </Code>
 <Schema>
 
-The approach of either Annotation-based or Code-first can be used in conjunction with Schema-first.
+The approach of either implementation-first or code-first can be used in conjunction with schema-first.
 
 </Schema>
 </ExampleTabs>
@@ -587,15 +580,9 @@ mutation {
 Hot Chocolate allows us to automatically add this `query` field to all of our mutation payload types:
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryFieldToMutationPayloads();
-    }
-}
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryFieldToMutationPayloads();
 ```
 
 By default, this will add a field of type `Query` called `query` to each top-level mutation field type, whose name ends in `Payload`.
@@ -603,7 +590,7 @@ By default, this will add a field of type `Query` called `query` to each top-lev
 Of course these defaults can be tweaked:
 
 ```csharp
-services
+builder.Services
     .AddGraphQLServer()
     .AddQueryFieldToMutationPayloads(options =>
     {

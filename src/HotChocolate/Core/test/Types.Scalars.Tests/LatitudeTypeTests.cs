@@ -1,7 +1,7 @@
+using CookieCrumble.Xunit.Attributes;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -23,7 +23,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         // act
-        LatitudeType type = new()!;
+        LatitudeType type = new();
 
         // assert
         Assert.Equal(TypeKind.Scalar, type.Kind);
@@ -104,7 +104,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        var valueSyntax = "92° 0' 0.000\" S";
+        const string valueSyntax = "92° 0' 0.000\" S";
 
         // act
         var result = Record.Exception(() => scalar.ParseResult(valueSyntax));
@@ -184,6 +184,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
+    [UseCulture("en-US")]
     [InlineData("38° 36' 0.000\" S", -38.6, 1)]
     [InlineData("66° 54' 0.000\" S", -66.9, 1)]
     [InlineData("39° 51' 21.600\" N", 39.86, 2)]
@@ -259,6 +260,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
+    [UseCulture("en-US")]
     [InlineData(-38.6, "38° 36' 0\" S")]
     [InlineData(-66.9, "66° 54' 0\" S")]
     [InlineData(52.33, "52° 19' 48\" N")]
@@ -336,7 +338,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const string valueSyntax = "91° 0' 0.000\" S"!;
+        const string valueSyntax = "91° 0' 0.000\" S";
 
         // act
 
@@ -352,7 +354,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const string? valueSyntax = "92° 0' 0.000\" N"!;
+        const string? valueSyntax = "92° 0' 0.000\" N";
 
         // act
         var result = Record.Exception(() => scalar.Deserialize(valueSyntax));

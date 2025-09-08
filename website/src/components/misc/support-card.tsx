@@ -1,7 +1,7 @@
 import React, { FC } from "react";
 import styled from "styled-components";
 
-import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
+import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/style";
 
 export interface SupportCardProps {
   readonly name: string;
@@ -124,6 +124,7 @@ const PerkLayout = styled.li`
   display: grid;
   grid-template-columns: 20px 1fr;
   grid-template-rows: auto;
+  margin-bottom: 0;
 `;
 
 const PerkContainer = styled.div`

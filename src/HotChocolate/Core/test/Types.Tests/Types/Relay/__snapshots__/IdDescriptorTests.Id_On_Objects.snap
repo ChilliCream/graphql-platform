@@ -1,4 +1,5 @@
-﻿{
-  "result": "{\n  \"data\": {\n    \"foo\": {\n      \"someId\": \"QmFyOjE=\"\n    }\n  }\n}",
-  "someId": "U29tZTox"
+{
+  "result": "{\n  \"data\": {\n    \"foo\": {\n      \"someId\": \"QmFyOjE=\",\n      \"anotherId\": \"QW5vdGhlcjox\"\n    }\n  }\n}",
+  "someId": "U29tZTox",
+  "anotherId": "QW5vdGhlcjox"
 }

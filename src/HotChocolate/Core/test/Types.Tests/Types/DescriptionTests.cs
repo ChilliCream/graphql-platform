@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Language.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -209,7 +208,7 @@ public class DescriptionTests
                                               """");
     }
 
-    private static async Task<ISchema> GetSchemaWithAllPossibleDescriptionsAsync()
+    private static async Task<Schema> GetSchemaWithAllPossibleDescriptionsAsync()
     {
         return await new ServiceCollection()
             .AddGraphQL()
@@ -242,20 +241,20 @@ public class DescriptionTests
     public class Query
     {
         [GraphQLDescription("Single line comment")]
-        public string OutputFieldSingle() => default;
+        public string? OutputFieldSingle() => null;
 
         [GraphQLDescription("""
                             Multi line
                             comment
                             """)]
-        public string OutputFieldMulti() => default;
+        public string? OutputFieldMulti() => null;
 
-        public string OutputFieldWithArgs(
+        public string? OutputFieldWithArgs(
             [GraphQLDescription("Single line comment")] SomeInput arg1,
             [GraphQLDescription("""
                                 Multi line
                                 comment
-                                """)] OtherInput arg2) => default;
+                                """)] OtherInput arg2) => null;
     }
 
     [InputObjectType]
@@ -266,13 +265,13 @@ public class DescriptionTests
     public class SomeInput
     {
         [GraphQLDescription("Single line comment")]
-        public string Field { get; set; }
+        public required string Field { get; set; }
 
         [GraphQLDescription("""
                             Multi line
                             comment
                             """)]
-        public string FieldMulti { get; set; }
+        public required string FieldMulti { get; set; }
     }
 
     [InputObjectType]
@@ -280,13 +279,13 @@ public class DescriptionTests
     public class OtherInput
     {
         [GraphQLDescription("Single line comment")]
-        public string Field { get; set; }
+        public required string Field { get; set; }
 
         [GraphQLDescription("""
                             Multi line
                             comment
                             """)]
-        public string FieldMulti { get; set; }
+        public required string FieldMulti { get; set; }
     }
 
     [UnionType("SomeUnion")]
@@ -294,15 +293,11 @@ public class DescriptionTests
                         Multi line
                         comment
                         """)]
-    public interface ISomeUnion
-    {
-    }
+    public interface ISomeUnion;
 
     [UnionType("OtherUnion")]
     [GraphQLDescription("Single line comment")]
-    public interface IOtherUnion
-    {
-    }
+    public interface IOtherUnion;
 
     [InterfaceType("SomeInterface")]
     [GraphQLDescription("""
@@ -312,15 +307,15 @@ public class DescriptionTests
     public interface ISomeInterface
     {
         [GraphQLDescription("Single line comment")]
-        string Field();
+        string? Field();
 
         [GraphQLDescription("""
                             Multi line
                             comment
                             """)]
-        string FieldMulti();
+        string? FieldMulti();
 
-        string FieldWithArgs(
+        string? FieldWithArgs(
             [GraphQLDescription("Single line comment")] string arg1,
             [GraphQLDescription("""
                                 Multi line
@@ -332,7 +327,7 @@ public class DescriptionTests
     [GraphQLDescription("Single line comment")]
     public interface IOtherInterface
     {
-        string Field();
+        string? Field();
     }
 
     [GraphQLDescription("""
@@ -341,10 +336,10 @@ public class DescriptionTests
                         """)]
     public class OtherObjectType : ISomeUnion, IOtherUnion, ISomeInterface, IOtherInterface
     {
-        public string Field() => default;
+        public string? Field() => null;
 
-        public string FieldMulti() => default;
-        public string FieldWithArgs(string arg1, string arg2) => default;
+        public string? FieldMulti() => null;
+        public string? FieldWithArgs(string arg1, string arg2) => null;
     }
 
     public class SomeDirective : DirectiveType

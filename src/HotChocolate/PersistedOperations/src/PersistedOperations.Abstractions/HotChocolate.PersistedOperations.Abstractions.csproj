@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.PersistedOperations.Abstractions</PackageId>
+    <AssemblyName>HotChocolate.PersistedOperations.Abstractions</AssemblyName>
+    <RootNamespace>HotChocolate.PersistedOperations</RootNamespace>
+    <Description>Abstractions for Hot Chocolate persisted operations.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

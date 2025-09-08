@@ -1,0 +1,15 @@
+{
+  "errors": [
+    {
+      "message": "GenderEnum cannot parse the given literal of type `EnumValueNode`.",
+      "path": [
+        "user",
+        "gender"
+      ],
+      "extensions": {
+        "fieldCoordinate": "UserInput.gender",
+        "fieldType": "GenderEnum"
+      }
+    }
+  ]
+}

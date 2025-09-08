@@ -94,7 +94,7 @@ enum __DirectiveLocation {
   ARGUMENT_DEFINITION
   "Indicates the directive is valid on an interface SDL definition."
   INTERFACE
-  "Indicates the directive is valid on an union SDL definition."
+  "Indicates the directive is valid on a union SDL definition."
   UNION
   "Indicates the directive is valid on an enum SDL definition."
   ENUM

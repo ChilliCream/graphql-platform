@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using static HotChocolate.ExecutableErrorHelper;
 
 namespace HotChocolate;
 
@@ -17,6 +16,9 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
 
     public IQueryableExecutable<T> WithSource(IQueryable<T> src)
         => new DefaultQueryableExecutable<T>(src);
+
+    public IQueryableExecutable<TQuery> WithSource<TQuery>(IQueryable<TQuery> src)
+        => new DefaultQueryableExecutable<TQuery>(src);
 
     public override ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken = default)
     {
@@ -36,11 +38,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
             return await enumerator.MoveNextAsync().ConfigureAwait(false) ? enumerator.Current : default;
         }
 
-#if NET6_0_OR_GREATER
-        return await Task.Run(() => source.FirstOrDefault<T>(), cancellationToken).WaitAsync(cancellationToken);
-#else
-        return await Task.Run(() => source.FirstOrDefault<T>(), cancellationToken);
-#endif
+        return await Task.Run(source.FirstOrDefault, cancellationToken).WaitAsync(cancellationToken);
     }
 
     public override ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken = default)
@@ -64,7 +62,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
 
                 if (await enumerator.MoveNextAsync().ConfigureAwait(false))
                 {
-                    throw new GraphQLException(SequenceContainsMoreThanOneElement());
+                    throw new InvalidOperationException("Sequence contains more than one element.");
                 }
 
                 return result;
@@ -73,11 +71,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
             return default;
         }
 
-#if NET6_0_OR_GREATER
         return await Task.Run(() => SingleOrDefaultSync(source), cancellationToken).WaitAsync(cancellationToken);
-#else
-        return await Task.Run(() => SingleOrDefaultSync(source), cancellationToken);
-#endif
     }
 
     private static T? SingleOrDefaultSync(IQueryable<T> query)
@@ -90,9 +84,9 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
             {
                 var obj = enumerator.Current;
 
-                if(enumerator.MoveNext())
+                if (enumerator.MoveNext())
                 {
-                    throw new GraphQLException(SequenceContainsMoreThanOneElement());
+                    throw new InvalidOperationException("Sequence contains more than one element.");
                 }
 
                 return obj;
@@ -102,7 +96,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
         }
         finally
         {
-            if(enumerator is IDisposable disposable)
+            if (enumerator is IDisposable disposable)
             {
                 disposable.Dispose();
             }
@@ -133,11 +127,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
             return result;
         }
 
-#if NET6_0_OR_GREATER
-        return await Task.Run(() => source.ToList(), cancellationToken).WaitAsync(cancellationToken);
-#else
-        return await Task.Run(() => source.ToList(), cancellationToken);
-#endif
+        return await Task.Run(source.ToList, cancellationToken).WaitAsync(cancellationToken);
     }
 
     public override async IAsyncEnumerable<T> ToAsyncEnumerable(
@@ -159,17 +149,28 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
         }
         else
         {
-#if NET6_0_OR_GREATER
             var list = await Task.Run(() => source.ToList(), cancellationToken).WaitAsync(cancellationToken);
-#else
-            var list = await Task.Run(() => source.ToList(), cancellationToken);
-#endif
 
             foreach (var element in list)
             {
                 yield return element;
             }
         }
+    }
+
+    public override ValueTask<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        if (source is EnumerableQuery)
+        {
+            return new ValueTask<int>(source.Count());
+        }
+
+        return CountFromDataSourceAsync(cancellationToken);
+    }
+
+    private async ValueTask<int> CountFromDataSourceAsync(CancellationToken cancellationToken = default)
+    {
+        return await Task.Run(source.Count, cancellationToken).WaitAsync(cancellationToken);
     }
 
     public override string Print() => _printer(source);

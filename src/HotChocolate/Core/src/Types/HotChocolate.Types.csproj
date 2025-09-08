@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>HC8001;$(NoWarn)</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -34,6 +35,8 @@
     <InternalsVisibleTo Include="HotChocolate.Data" />
     <InternalsVisibleTo Include="HotChocolate.Execution.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Projections" />
+    <InternalsVisibleTo Include="HotChocolate.Fetching" />
     <InternalsVisibleTo Include="HotChocolate.Fusion" />
     <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination" />
     <InternalsVisibleTo Include="HotChocolate.Types.Errors" />
@@ -53,15 +56,13 @@
     <PackageReference Include="Microsoft.Extensions.ObjectPool" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.ComponentModel.Annotations" />
-    <PackageReference Include="System.Text.Json" />
-  </ItemGroup>
-
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut\GreenDonut.csproj" />
+    <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Language\HotChocolate.Fusion.Language.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\Features\HotChocolate.Features.csproj" />
+    <ProjectReference Include="..\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
     <ProjectReference Include="..\Types.Shared\HotChocolate.Types.Shared.csproj" />
   </ItemGroup>
 

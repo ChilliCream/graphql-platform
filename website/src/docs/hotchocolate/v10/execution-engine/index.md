@@ -163,7 +163,7 @@ So, when should we put a field middleware on the schema level and when on the ex
 We should put anything on the schema level that is needed to make the schema work properly. Everything, that changes the way the query engine works or infrastructure components should go on the executor level since those are exchangeable. This is especially true when you combine a query middleware with a field middleware.
 
 > As a side note, the `IMiddlewareContext` implements also `IResolverContext` so in a middleware you have access to all the context information that the resolver context has.
-> You can even access all the results that the previous resolver in your path have produced by accessing the `Source` property which is exposed as a immutable stack of results.
+> You can even access all the results that the previous resolver in your path have produced by accessing the `Source` property which is exposed as an immutable stack of results.
 
 # Directive Middleware
 

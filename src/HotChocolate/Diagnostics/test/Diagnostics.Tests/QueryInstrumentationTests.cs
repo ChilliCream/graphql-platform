@@ -1,8 +1,6 @@
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
-using Snapshooter;
-using Snapshooter.Xunit;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Diagnostics;
@@ -23,11 +21,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -44,11 +38,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ dataLoader(key: \"abc\") }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -65,11 +55,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ dataLoader(key: \"abc\") }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -132,7 +118,8 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ abc123 }");
 
             // assert
-            Assert.Equal("CaptureActivities: Begin Validate Document", Activity.Current!.DisplayName);
+            Assert.Equal("CaptureActivities: Begin Validate Document",
+                Activity.Current!.DisplayName);
         }
     }
 
@@ -153,11 +140,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ a: sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -178,11 +161,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("query GetA { a: sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -203,11 +182,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ a: sayHello b: sayHello c: sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -228,11 +203,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ a: sayHello b: sayHello c: sayHello d: sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -249,11 +220,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -270,11 +237,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("query SayHelloOperation { sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -295,11 +258,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("query SayHelloOperation { sayHello }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -320,11 +279,7 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("query SayHelloOperation { sayHello_ }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
         }
     }
 
@@ -345,11 +300,41 @@ public partial class QueryInstrumentationTests
                 .ExecuteRequestAsync("query SayHelloOperation { causeFatalError }");
 
             // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
             activities.MatchSnapshot();
-#endif
+        }
+    }
+
+    [Fact]
+    public async Task Cause_a_resolver_error_that_deletes_the_whole_result_deep()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o =>
+                {
+                    o.Scopes = ActivityScopes.All;
+                    o.IncludeDocument = true;
+                })
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync(
+                    """
+                    query SayHelloOperation {
+                        deep {
+                            deeper {
+                                deeps {
+                                    deeper {
+                                        causeFatalError
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    """);
+
+            // assert
+            activities.MatchSnapshot();
         }
     }
 
@@ -359,7 +344,21 @@ public partial class QueryInstrumentationTests
 
         public string CauseFatalError() => throw new GraphQLException("fail");
 
-        public Task<string> DataLoader(CustomDataLoader dataLoader, string key)
+        public Deep Deep() => new();
+
+        public Task<string?> DataLoader(CustomDataLoader dataLoader, string key)
             => dataLoader.LoadAsync(key);
+    }
+
+    public class Deep
+    {
+        public Deeper Deeper() => new();
+
+        public string CauseFatalError() => throw new GraphQLException("fail");
+    }
+
+    public class Deeper
+    {
+        public Deep[] Deeps() => [new Deep()];
     }
 }

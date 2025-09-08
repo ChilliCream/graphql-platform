@@ -38,5 +38,13 @@ public class QueryType : ObjectType<Query>
         descriptor.Field("nonNull")
             .Argument("a", a => a.Type<NonNullType<StringType>>().DefaultValue("abc"))
             .Resolve("foo");
+
+        descriptor.Field("listOfScalars")
+            .Type<ListType<StringType>>()
+            .Resolve<string[]>(_ => []);
+
+        descriptor.Field("listOfListOfScalars")
+            .Type<ListType<ListType<StringType>>>()
+            .Resolve<string[][]>(_ => []);
     }
 }

@@ -2,7 +2,7 @@ using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -111,10 +111,7 @@ public static class PagingObjectFieldDescriptorExtensions
         string? connectionName = null,
         PagingOptions? options = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         resolvePagingProvider ??= ResolvePagingProvider;
 
@@ -130,8 +127,8 @@ public static class PagingObjectFieldDescriptorExtensions
             {
                 var pagingOptions = c.GetPagingOptions(options);
                 var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
-                d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
-                d.Flags |= FieldFlags.Connection;
+                d.Features.Set(pagingOptions);
+                d.Flags |= CoreFieldFlags.Connection;
 
                 CreatePagingArguments(d.Arguments, backward);
 
@@ -148,24 +145,23 @@ public static class PagingObjectFieldDescriptorExtensions
                     ? c.TypeInspector.GetTypeRef(nodeType)
                     : null;
 
-                if (typeRef is null &&
-                    d.Type is SyntaxTypeReference syntaxTypeRef &&
-                    syntaxTypeRef.Type.IsListType())
+                if (typeRef is null
+                    && d.Type is SyntaxTypeReference syntaxTypeRef
+                    && syntaxTypeRef.Type.IsListType())
                 {
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
 
-                if (typeRef is null &&
-                    d.Type is ExtendedTypeReference extendedTypeRef &&
-                    c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo) &&
-                    GetElementType(typeInfo) is { } elementType)
+                if (typeRef is null
+                    && d.Type is ExtendedTypeReference extendedTypeRef
+                    && c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo)
+                    && GetElementType(typeInfo) is { } elementType)
                 {
                     typeRef = TypeReference.Create(elementType, TypeContext.Output);
                 }
 
                 var resolverMember = d.ResolverMember ?? d.Member;
                 d.Type = CreateConnectionTypeRef(c, resolverMember, connectionName, typeRef, options);
-                d.CustomSettings.Add(typeof(Connection));
             });
 
         return descriptor;
@@ -206,10 +202,7 @@ public static class PagingObjectFieldDescriptorExtensions
         string? connectionName = null,
         PagingOptions? options = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor
             .Extend()
@@ -217,8 +210,8 @@ public static class PagingObjectFieldDescriptorExtensions
             {
                 var pagingOptions = c.GetPagingOptions(options);
                 var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
-                d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
-                d.Flags |= FieldFlags.Connection;
+                d.Features.Set(pagingOptions);
+                d.Flags |= CoreFieldFlags.Connection;
 
                 CreatePagingArguments(d.Arguments, backward);
 
@@ -235,9 +228,9 @@ public static class PagingObjectFieldDescriptorExtensions
                     ? c.TypeInspector.GetTypeRef(nodeType)
                     : null;
 
-                if (typeRef is null &&
-                    d.Type is SyntaxTypeReference syntaxTypeRef &&
-                    syntaxTypeRef.Type.IsListType())
+                if (typeRef is null
+                    && d.Type is SyntaxTypeReference syntaxTypeRef
+                    && syntaxTypeRef.Type.IsListType())
                 {
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
@@ -256,13 +249,10 @@ public static class PagingObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         bool allowBackwardPagination)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         CreatePagingArguments(
-            descriptor.Extend().Definition.Arguments,
+            descriptor.Extend().Configuration.Arguments,
             allowBackwardPagination);
 
         return descriptor;
@@ -276,20 +266,17 @@ public static class PagingObjectFieldDescriptorExtensions
         this IInterfaceFieldDescriptor descriptor,
         bool allowBackwardPagination)
     {
-        if (descriptor == null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         CreatePagingArguments(
-            descriptor.Extend().Definition.Arguments,
+            descriptor.Extend().Configuration.Arguments,
             allowBackwardPagination);
 
         return descriptor;
     }
 
     private static void CreatePagingArguments(
-        IList<ArgumentDefinition> arguments,
+        IList<ArgumentConfiguration> arguments,
         bool allowBackwardPagination)
     {
         var intType = TypeReference.Parse(ScalarNames.Int);
@@ -306,7 +293,7 @@ public static class PagingObjectFieldDescriptorExtensions
     }
 
     private static void AddOrUpdate(
-        this IList<ArgumentDefinition> arguments,
+        this IList<ArgumentConfiguration> arguments,
         string name,
         string description,
         TypeReference type)
@@ -332,19 +319,16 @@ public static class PagingObjectFieldDescriptorExtensions
     {
         var typeInspector = context.TypeInspector;
 
-        if (nodeType is null)
-        {
-            // if there is no explicit node type provided we will try and
-            // infer the schema type from the resolver member.
-            nodeType = TypeReference.Create(
-                PagingHelper.GetSchemaType(context, resolverMember),
-                TypeContext.Output);
-        }
+        // if there is no explicit node type provided we will try and
+        // infer the schema type from the resolver member.
+        nodeType ??= TypeReference.Create(
+            PagingHelper.GetSchemaType(context, resolverMember),
+            TypeContext.Output);
 
         // if the node type is a syntax type reference we will try to preserve the actual
         // runtime type for later usage.
-        if (nodeType.Kind == TypeReferenceKind.Syntax &&
-            PagingHelper.TryGetNamedType(typeInspector, resolverMember, out var namedType))
+        if (nodeType.Kind == TypeReferenceKind.Syntax
+            && PagingHelper.TryGetNamedType(typeInspector, resolverMember, out var namedType))
         {
             context.TryBindRuntimeType(
                 ((SyntaxTypeReference)nodeType).Type.NamedType().Name.Value,
@@ -358,7 +342,8 @@ public static class PagingObjectFieldDescriptorExtensions
         return CreateConnectionType(
             connectionName,
             nodeType,
-            options.IncludeTotalCount ?? false);
+            options.IncludeTotalCount ?? false,
+            options.IncludeNodesField ?? IncludeNodesField);
     }
 
     private static CursorPagingProvider ResolvePagingProvider(
@@ -375,7 +360,7 @@ public static class PagingObjectFieldDescriptorExtensions
             PagingProviderEntry? defaultEntry = null;
 
             // if we find an application service provider we will prefer that one.
-            var applicationServices = services.GetService<IApplicationServiceProvider>();
+            var applicationServices = services.GetService<IRootServiceProviderAccessor>()?.ServiceProvider;
 
             if (applicationServices is not null)
             {
@@ -420,13 +405,14 @@ public static class PagingObjectFieldDescriptorExtensions
     private static TypeReference CreateConnectionType(
         string? connectionName,
         TypeReference nodeType,
-        bool withTotalCount)
+        bool includeTotalCount,
+        bool includeNodesField)
     {
         return connectionName is null
             ? TypeReference.Create(
                 "HotChocolate_Types_Connection",
                 nodeType,
-                _ => new ConnectionType(nodeType, withTotalCount),
+                _ => new ConnectionType(nodeType, includeTotalCount, includeNodesField),
                 TypeContext.Output)
             : TypeReference.Create(
                 connectionName + "Connection",
@@ -434,11 +420,12 @@ public static class PagingObjectFieldDescriptorExtensions
                 factory: _ => new ConnectionType(
                     connectionName,
                     nodeType,
-                    withTotalCount));
+                    includeTotalCount,
+                    includeNodesField));
     }
 
     private static string EnsureConnectionNameCasing(string connectionName)
         => char.IsUpper(connectionName[0])
             ? connectionName
-            : string.Concat(char.ToUpperInvariant(connectionName[0]), connectionName.Substring(1));
+            : string.Concat(char.ToUpperInvariant(connectionName[0]), connectionName[1..]);
 }

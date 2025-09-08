@@ -1,10 +1,7 @@
-namespace HotChocolate.Types.Descriptors
+namespace HotChocolate.Types.Descriptors;
+
+public class WithGenericTagsInXmlDoc(string foo)
 {
-#pragma warning disable 1591
-    public class WithGenericTagsInXmlDoc
-    {
-        /// <summary>These <c>are</c> <strong>some</strong> tags.</summary>
-        public string Foo { get; set; }
-    }
-#pragma warning restore 1591
+    /// <summary>These <c>are</c> <strong>some</strong> tags.</summary>
+    public string Foo { get; set; } = foo;
 }

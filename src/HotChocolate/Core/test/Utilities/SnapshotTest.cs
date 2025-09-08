@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Tests;
 
 public sealed class SnapshotTest

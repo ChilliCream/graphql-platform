@@ -30,7 +30,6 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
 
         _json ??= JsonObject.Create(_response.Body.RootElement);
 
-#if NET5_0_OR_GREATER
         if (_extensions is null && _response.Extensions is not null)
         {
             _extensions = new(_response.Extensions);
@@ -40,23 +39,12 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
         {
             _contextData = new(_response.ContextData);
         }
-#else
-        if (_extensions is null && _response.Extensions is not null)
-        {
-            _extensions = _response.Extensions.ToDictionary(t => t.Key, t => t.Value);
-        }
-
-        if (_contextData is null && _response.ContextData is not null)
-        {
-            _contextData = _response.ContextData.ToDictionary(t => t.Key, t => t.Value);
-        }
-#endif
 
         var current = _json![Data]!;
 
-        if (response.Body is not null &&
-            response.Body.RootElement.TryGetProperty(ResultFields.Path, out var pathProp) &&
-            response.Body.RootElement.TryGetProperty(Data, out var dataProp))
+        if (response.Body is not null
+            && response.Body.RootElement.TryGetProperty(ResultFields.Path, out var pathProp)
+            && response.Body.RootElement.TryGetProperty(Data, out var dataProp))
         {
             var path = pathProp.EnumerateArray().ToArray();
 
@@ -71,35 +59,23 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
                         JsonValueKind.String => current[path[i].GetString()!]!,
                         JsonValueKind.Number => current[path[i].GetInt32()]!,
                         _ => throw new NotSupportedException(
-                            JsonResultPatcher_PathSegmentMustBeStringOrInt),
+                            JsonResultPatcher_PathSegmentMustBeStringOrInt)
                     };
                 }
             }
 
-#if NET5_0_OR_GREATER
             var last = path[^1];
-#else
-            var last = path[path.Length - 1];
-#endif
 
             if (last.ValueKind is JsonValueKind.String)
             {
                 current = current[last.GetString()!]!;
                 var patchData = JsonObject.Create(dataProp)!;
 
-#if NET5_0_OR_GREATER
                 foreach ((var key, var value) in patchData.ToArray())
                 {
                     patchData.Remove(key);
                     current[key] = value;
                 }
-#else
-                foreach (var prop in patchData.ToArray())
-                {
-                    patchData.Remove(prop.Key);
-                    current[prop.Key] = prop.Value;
-                }
-#endif
             }
             else if (last.ValueKind is JsonValueKind.Number)
             {
@@ -113,19 +89,11 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
                 }
                 else
                 {
-#if NET5_0_OR_GREATER
                     foreach ((var key, var value) in patchData.ToArray())
                     {
                         patchData.Remove(key);
                         element[key] = value;
                     }
-#else
-                    foreach (var prop in patchData.ToArray())
-                    {
-                        patchData.Remove(prop.Key);
-                        element[prop.Key] = prop.Value;
-                    }
-#endif
                 }
             }
             else
@@ -166,24 +134,13 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
 
         if (target is null)
         {
-#if NET5_0_OR_GREATER
             return new(source);
-#else
-            return source.ToDictionary(t => t.Key, t => t.Value);
-#endif
         }
 
-#if NET5_0_OR_GREATER
         foreach (var (key, value) in source)
         {
             target[key] = value;
         }
-#else
-        foreach (var prop in source)
-        {
-            target[prop.Key] = prop.Value;
-        }
-#endif
 
         return target;
     }

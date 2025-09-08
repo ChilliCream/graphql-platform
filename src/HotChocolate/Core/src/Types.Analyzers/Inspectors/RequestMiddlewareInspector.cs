@@ -4,13 +4,16 @@ using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
 internal sealed class RequestMiddlewareInspector : ISyntaxInspector
 {
-    public IReadOnlyList<ISyntaxFilter> Filters => [MiddlewareMethod.Instance];
+    public ImmutableArray<ISyntaxFilter> Filters { get; } = [MiddlewareMethod.Instance];
+
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = [SyntaxKind.InvocationExpression];
 
     public bool TryHandle(GeneratorSyntaxContext context, [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
@@ -21,17 +24,17 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                     Name: GenericNameSyntax
                     {
                         Identifier.ValueText: "UseRequest",
-                        TypeArgumentList: { Arguments.Count: 1, } args,
-                    },
-                },
+                        TypeArgumentList: { Arguments.Count: 1 } args
+                    }
+                }
             } node)
         {
             var semanticModel = context.SemanticModel;
-            var middlewareType = semanticModel.GetTypeInfo(args.Arguments[0]).Type;
+            var middlewareType = ModelExtensions.GetTypeInfo(semanticModel, args.Arguments[0]).Type;
 
             if (middlewareType is null)
             {
-                syntaxInfo = default;
+                syntaxInfo = null;
                 return false;
             }
 
@@ -44,17 +47,17 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                     Kind: SymbolKind.Method,
                     IsStatic: false,
                     IsAbstract: false,
-                    DeclaredAccessibility: Accessibility.Public,
-                } ||
-                ctor is not
+                    DeclaredAccessibility: Accessibility.Public
+                }
+                || ctor is not
                 {
                     Kind: SymbolKind.Method,
                     IsStatic: false,
                     IsAbstract: false,
-                    DeclaredAccessibility: Accessibility.Public,
+                    DeclaredAccessibility: Accessibility.Public
                 })
             {
-                syntaxInfo = default;
+                syntaxInfo = null;
                 return false;
             }
 
@@ -66,8 +69,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                 RequestMiddlewareParameterKind kind;
                 var parameterTypeName = parameter.Type.ToFullyQualified();
 
-                if (parameterTypeName.Equals("global::HotChocolate.Schema") ||
-                    parameterTypeName.Equals("global::HotChocolate.!Schema"))
+                if (parameterTypeName.Equals("global::HotChocolate.ISchemaDefinition"))
                 {
                     kind = RequestMiddlewareParameterKind.Schema;
                 }
@@ -84,7 +86,11 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                     kind = RequestMiddlewareParameterKind.Service;
                 }
 
-                ctorParameters.Add(new RequestMiddlewareParameterInfo(kind, parameterTypeName));
+                ctorParameters.Add(
+                    new RequestMiddlewareParameterInfo(
+                        kind,
+                        parameterTypeName,
+                        isNullable: !parameter.IsNonNullable()));
             }
 
             foreach (var parameter in invokeMethod.Parameters)
@@ -92,8 +98,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                 RequestMiddlewareParameterKind kind;
                 var parameterTypeName = parameter.Type.ToFullyQualified();
 
-                if (parameterTypeName.Equals("global::HotChocolate.Schema") ||
-                    parameterTypeName.Equals("global::HotChocolate.ISchema"))
+                if (parameterTypeName.Equals("global::HotChocolate.ISchemaDefinition"))
                 {
                     kind = RequestMiddlewareParameterKind.Schema;
                 }
@@ -101,7 +106,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                 {
                     kind = RequestMiddlewareParameterKind.Next;
                 }
-                else if (parameterTypeName.Equals("global::HotChocolate.Execution.IRequestContext"))
+                else if (parameterTypeName.Equals("global::HotChocolate.Execution.RequestContext"))
                 {
                     kind = RequestMiddlewareParameterKind.Context;
                 }
@@ -110,7 +115,11 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                     kind = RequestMiddlewareParameterKind.Service;
                 }
 
-                invokeParameters.Add(new RequestMiddlewareParameterInfo(kind, parameterTypeName));
+                invokeParameters.Add(
+                    new RequestMiddlewareParameterInfo(
+                        kind,
+                        parameterTypeName,
+                        isNullable: !parameter.IsNonNullable()));
             }
 
             syntaxInfo = new RequestMiddlewareInfo(
@@ -123,7 +132,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
             return true;
         }
 
-        syntaxInfo = default;
+        syntaxInfo = null;
         return false;
     }
 

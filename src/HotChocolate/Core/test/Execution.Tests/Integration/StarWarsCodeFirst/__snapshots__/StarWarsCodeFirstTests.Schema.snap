@@ -72,11 +72,11 @@ type PageInfo {
 type Query {
   hero(episode: Episode! = NEW_HOPE): Character
   heroByTraits(traits: JSON!): Character
-  heroes(episodes: [Episode!]): [Character!]
-  character(characterIds: [String]): [Character!]!
-  search(text: String): [SearchResult]
-  human(id: String): Human
-  droid(id: String): Droid
+  heroes(episodes: [Episode!]!): [Character!]
+  character(characterIds: [String!]!): [Character!]!
+  search(text: String!): [SearchResult]
+  human(id: String!): Human
+  droid(id: String!): Droid
 }
 
 type Review {

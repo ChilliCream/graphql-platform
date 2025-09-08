@@ -1,6 +1,6 @@
 import { Meta, Story } from "@storybook/react";
 import React from "react";
-import { Annotation, Code, ExampleTabs, Schema } from "./example-tabs";
+import { Code, ExampleTabs, Implementation, Schema } from "./example-tabs";
 
 export default {
   title: "Components/ExampleTabs",
@@ -9,9 +9,9 @@ export default {
 
 const Template: Story = () => (
   <ExampleTabs>
-    <Annotation>
-      <p>Annotation</p>
-    </Annotation>
+    <Implementation>
+      <p>Implementation</p>
+    </Implementation>
     <Code>
       <p>Code</p>
     </Code>

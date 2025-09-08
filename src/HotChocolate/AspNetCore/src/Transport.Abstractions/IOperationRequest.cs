@@ -5,7 +5,7 @@ namespace HotChocolate.Transport;
 public interface IOperationRequest : IRequestBody
 {
     /// <summary>
-    /// Gets the ID of a previously persisted query that should be executed.
+    /// Gets the ID of a previously persisted operation that should be executed.
     /// </summary>
     string? Id { get; }
 
@@ -18,6 +18,11 @@ public interface IOperationRequest : IRequestBody
     /// Gets the name of the operation to execute.
     /// </summary>
     string? OperationName { get; }
+
+    /// <summary>
+    /// Gets the requested error handling mode.
+    /// </summary>
+    ErrorHandlingMode? OnError { get; }
 
     /// <summary>
     /// Gets a dictionary containing extension values to include with the operation.

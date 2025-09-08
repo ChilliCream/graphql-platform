@@ -1,5 +1,6 @@
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Net.Http.Headers;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Caching;
@@ -17,7 +18,7 @@ internal sealed class QueryCacheMiddleware
         _options = optionsAccessor.CacheControl;
     }
 
-    public async ValueTask InvokeAsync(IRequestContext context)
+    public async ValueTask InvokeAsync(RequestContext context)
     {
         await _next(context).ConfigureAwait(false);
 
@@ -28,42 +29,43 @@ internal sealed class QueryCacheMiddleware
             return;
         }
 
-        if (context.Operation?.ContextData is null ||
-            !context.Operation.ContextData.TryGetValue(CacheControlHeaderValue, out var value) ||
-            value is not string cacheControlHeaderValue)
+        if (!context.TryGetOperation(out var operation)
+            || !operation.ContextData.TryGetValue(ExecutionContextData.CacheControlHeaderValue, out var value)
+            || value is not CacheControlHeaderValue cacheControlHeaderValue)
         {
             return;
         }
 
-        var queryResult = context.Result?.ExpectQueryResult();
+        // only single operation results can be cached.
+        var operationResult = context.Result?.ExpectOperationResult();
 
-        if (queryResult is { Errors: null })
+        if (operationResult is { Errors: null })
         {
             var contextData =
-                queryResult.ContextData is not null
-                    ? new ExtensionData(queryResult.ContextData)
-                    : new ExtensionData();
+                operationResult.ContextData is not null
+                    ? new ExtensionData(operationResult.ContextData)
+                    : [];
 
-            contextData.Add(CacheControlHeaderValue, cacheControlHeaderValue);
+            contextData.Add(ExecutionContextData.CacheControlHeaderValue, cacheControlHeaderValue);
 
-            context.Result = new OperationResult(
-                queryResult.Data,
-                queryResult.Errors,
-                queryResult.Extensions,
-                contextData,
-                queryResult.Items,
-                queryResult.Incremental,
-                queryResult.Label,
-                queryResult.Path,
-                queryResult.HasNext);
+            if (operation.ContextData.TryGetValue(ExecutionContextData.VaryHeaderValue, out var varyValue)
+                && varyValue is string varyHeaderValue
+                && !string.IsNullOrEmpty(varyHeaderValue))
+            {
+                contextData.Add(ExecutionContextData.VaryHeaderValue, varyHeaderValue);
+            }
+
+            context.Result = operationResult.WithContextData(contextData);
         }
     }
 
-    internal static RequestCoreMiddleware Create()
-        => (core, next) =>
-        {
-            var options = core.SchemaServices.GetRequiredService<ICacheControlOptionsAccessor>();
-            var middleware = new QueryCacheMiddleware(next, options);
-            return context => middleware.InvokeAsync(context);
-        };
+    internal static RequestMiddlewareConfiguration Create()
+        => new RequestMiddlewareConfiguration(
+            (core, next) =>
+            {
+                var options = core.SchemaServices.GetRequiredService<ICacheControlOptionsAccessor>();
+                var middleware = new QueryCacheMiddleware(next, options);
+                return context => middleware.InvokeAsync(context);
+            },
+            nameof(QueryCacheMiddleware));
 }

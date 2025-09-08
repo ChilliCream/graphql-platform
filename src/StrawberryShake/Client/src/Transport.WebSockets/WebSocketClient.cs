@@ -11,11 +11,11 @@ namespace StrawberryShake.Transport.WebSockets;
 /// </summary>
 public sealed class WebSocketClient : IWebSocketClient
 {
-    private const int _maxMessageSize = 1024 * 4;
+    private const int MaxMessageSize = 1024 * 4;
     private readonly IReadOnlyList<ISocketProtocolFactory> _protocolFactories;
     private readonly ClientWebSocket _socket;
     private ISocketProtocol? _activeProtocol;
-    private bool _receiveFinishEventTriggered = false;
+    private bool _receiveFinishEventTriggered;
     private bool _disposed;
 
     /// <summary>
@@ -75,10 +75,7 @@ public sealed class WebSocketClient : IWebSocketClient
     /// <inheritdoc />
     public async Task<ISocketProtocol> OpenAsync(CancellationToken cancellationToken = default)
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(WebSocketClient));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (Uri is null)
         {
@@ -190,7 +187,7 @@ public sealed class WebSocketClient : IWebSocketClient
             WebSocketReceiveResult? socketResult = null;
             do
             {
-                var memory = writer.GetMemory(_maxMessageSize);
+                var memory = writer.GetMemory(MaxMessageSize);
                 try
                 {
                     if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer))
@@ -220,7 +217,7 @@ public sealed class WebSocketClient : IWebSocketClient
                 {
                     break;
                 }
-            } while (socketResult is not { EndOfMessage: true, });
+            } while (socketResult is not { EndOfMessage: true });
         }
         catch (ObjectDisposedException)
         {
@@ -240,7 +237,7 @@ public sealed class WebSocketClient : IWebSocketClient
             SocketCloseStatus.NormalClosure => WebSocketCloseStatus.NormalClosure,
             SocketCloseStatus.PolicyViolation => WebSocketCloseStatus.PolicyViolation,
             SocketCloseStatus.ProtocolError => WebSocketCloseStatus.ProtocolError,
-            _ => WebSocketCloseStatus.Empty,
+            _ => WebSocketCloseStatus.Empty
         };
 
     /// <inheritdoc />

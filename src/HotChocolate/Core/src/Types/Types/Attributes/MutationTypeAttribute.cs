@@ -31,7 +31,7 @@ public sealed class MutationTypeAttribute
     {
         descriptor.Name(OperationTypeNames.Mutation);
 
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
         definition.Fields.BindingBehavior = BindingBehavior.Implicit;
 
         if (IncludeStaticMembers)

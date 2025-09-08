@@ -29,29 +29,22 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
 {
     /// <summary>
     /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
-    /// that defines the name of the argument for sorting
-    /// </summary>
-    public const string ContextArgumentNameKey = "SortArgumentName";
-
-    /// <summary>
-    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
-    /// that holds the delegate which does the visitation of the sorting argument.
-    /// <see cref="VisitSortArgument"/>
-    /// </summary>
-    public const string ContextVisitSortArgumentKey = nameof(VisitSortArgument);
-
-    /// <summary>
-    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
     /// that holds the delegate which applies the sorting to input
     /// <see cref="ApplySorting"/>
     /// </summary>
     public const string ContextApplySortingKey = nameof(ApplySorting);
 
     /// <summary>
-    /// The key for <see cref="IHasContextData.ContextData"/> on <see cref="IResolverContext"/>
+    /// The key for <see cref="IResolverContext.LocalContextData"/> on <see cref="IResolverContext"/>
     /// that defines if sorting is already applied and should be skipped
     /// </summary>
     public const string SkipSortingKey = "SkipSorting";
+
+    /// <summary>
+    /// The key for <see cref="IResolverContext.LocalContextData"/> on <see cref="IResolverContext"/>
+    /// that holds the post sorting action.
+    /// </summary>
+    public const string PostSortingActionKey = "PostSortingAction";
 
     /// <summary>
     /// Creates a new instance
@@ -92,7 +85,7 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
     /// </returns>
     protected virtual bool IsInMemoryQuery<TEntityType>(object? input)
     {
-        if (input is IQueryableExecutable<TEntityType> { IsInMemory: var inMemory, })
+        if (input is IQueryableExecutable<TEntityType> { IsInMemory: var inMemory })
         {
             return inMemory;
         }
@@ -118,31 +111,30 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
             return visitorContext;
         }
 
-        var contextData = descriptor.Extend().Definition.ContextData;
-        var argumentKey = (VisitSortArgument)VisitSortArgumentExecutor;
-        contextData[ContextVisitSortArgumentKey] = argumentKey;
-        contextData[ContextArgumentNameKey] = argumentName;
+        var configuration = descriptor.Extend().Configuration;
+        var feature = new SortingFeature(argumentName, VisitSortArgumentExecutor);
+        configuration.Features.Set(feature);
     }
 
     /// <inheritdoc />
     public override ISortMetadata? CreateMetaData(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition)
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration)
     {
-        if (fieldDefinition.Expression is not null)
+        if (fieldConfiguration.Expression is not null)
         {
-            if (fieldDefinition.Expression is not LambdaExpression lambda ||
-                lambda.Parameters.Count != 1 ||
-                lambda.Parameters[0].Type != typeDefinition.EntityType)
+            if (fieldConfiguration.Expression is not LambdaExpression lambda
+                || lambda.Parameters.Count != 1
+                || lambda.Parameters[0].Type != typeConfiguration.EntityType)
             {
                 throw ThrowHelper.QueryableSortProvider_ExpressionParameterInvalid(
                     context.Type,
-                    typeDefinition,
-                    fieldDefinition);
+                    typeConfiguration,
+                    fieldConfiguration);
             }
 
-            return new ExpressionSortMetadata(fieldDefinition.Expression);
+            return new ExpressionSortMetadata(fieldConfiguration.Expression);
         }
 
         return null;
@@ -163,7 +155,19 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
             IQueryable<TEntityType> q => sort(q),
             IEnumerable<TEntityType> q => sort(q.AsQueryable()),
             IQueryableExecutable<TEntityType> q => q.WithSource(sort(q.Source)),
-            _ => input,
+            _ => input
+        };
+
+    private object? ApplyPostActionToResult<TEntityType>(
+        object? input,
+        bool sortingApplied,
+        PostSortingAction<IQueryable<TEntityType>> postAction)
+        => input switch
+        {
+            IQueryable<TEntityType> q => postAction(sortingApplied, q),
+            IEnumerable<TEntityType> q => postAction(sortingApplied, q.AsQueryable()),
+            IQueryableExecutable<TEntityType> q => q.WithSource(postAction(sortingApplied, q.Source)),
+            _ => input
         };
 
     private ApplySorting CreateApplicatorAsync<TEntityType>(string argumentName)
@@ -175,29 +179,33 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
 
             // if no sort is defined we can stop here and yield back control.
             var skipSorting = context.GetLocalStateOrDefault<bool>(SkipSortingKey);
+            var postSortingAction = context.GetLocalStateOrDefault<PostSortingAction<IQueryable<TEntityType>>?>(PostSortingActionKey);
 
             // ensure sorting is only applied once
             context.SetLocalState(SkipSortingKey, true);
 
             if (sort.IsNull() || skipSorting)
             {
-                return input;
+                return postSortingAction is not null
+                    ? ApplyPostActionToResult(input, false, postSortingAction)
+                    : input;
             }
 
-            if (argument.Type is ListType lt &&
-                lt.ElementType is NonNullType nn &&
-                nn.NamedType() is ISortInputType sortInput &&
-                context.Selection.Field.ContextData.TryGetValue(ContextVisitSortArgumentKey, out var executorObj) &&
-                executorObj is VisitSortArgument executor)
+            var sortingIsDefined = false;
+            if (argument.Type is ListType lt
+                && lt.ElementType is NonNullType nn
+                && nn.NamedType() is ISortInputType sortInput
+                && context.Selection.Field.Features.TryGet(out SortingFeature? feature))
             {
                 var inMemory = IsInMemoryQuery<TEntityType>(input);
 
-                var visitorContext = executor(sort, sortInput, inMemory);
+                var visitorContext = feature.ArgumentVisitor.Invoke(sort, sortInput, inMemory);
 
                 // compile expression tree
                 if (visitorContext.Errors.Count == 0)
                 {
                     input = ApplyToResult<TEntityType>(input, q => visitorContext.Sort(q));
+                    sortingIsDefined = true;
                 }
                 else
                 {
@@ -210,6 +218,11 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
 
                     throw new AggregateException(exceptions);
                 }
+            }
+
+            if (postSortingAction is not null)
+            {
+                input = ApplyPostActionToResult(input, sortingIsDefined, postSortingAction);
             }
 
             return input;

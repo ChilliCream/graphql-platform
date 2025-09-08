@@ -1,5 +1,3 @@
-using CookieCrumble;
-
 namespace HotChocolate.Data;
 
 public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
@@ -12,7 +10,7 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
     {
         // arrange
         // act
-        var executable = _context.Authors.AsExecutable();
+        var executable = _context.Authors.AsDbContextExecutable();
 
         // assert
         Assert.True(executable is IQueryableExecutable<Author>);
@@ -27,7 +25,7 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
         var executable = _context
             .Authors
             .AsQueryable()
-            .AsEntityFrameworkExecutable();
+            .AsDbContextExecutable();
 
         // assert
         Assert.True(executable is IQueryableExecutable<Author>);
@@ -40,38 +38,41 @@ public class EntityFrameworkExecutableTests(AuthorFixture authorFixture)
         // arrange
         var executable = _context
             .Authors
-            .AsExecutable();
+            .AsDbContextExecutable();
 
         // act
-        object result = await executable.ToListAsync(default);
+        object result = await executable.ToListAsync(CancellationToken.None);
 
         // assert
-        new { result, executable = executable.Print(), }.MatchSnapshot();
+        new { result, executable = executable.Print() }.MatchSnapshot();
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_OnlyOneItem_When_SingleOrDefault()
     {
         // arrange
-        IExecutable executable = _context.Authors.Take(1).AsEntityFrameworkExecutable();
+        IExecutable executable = _context.Authors.Take(1).AsDbContextExecutable();
 
         // act
-        var result = await executable.SingleOrDefaultAsync(default);
+        var result = await executable.SingleOrDefaultAsync(CancellationToken.None);
 
         // assert
-        new { result, executable = executable.Print(), }.MatchSnapshot();
+        new { result, executable = executable.Print() }.MatchSnapshot(
+            postFix: TestEnvironment.TargetFramework == "NET10_0"
+                ? TestEnvironment.TargetFramework
+                : null);
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_OnlyOneItem_When_FirstOrDefault()
     {
         // arrange
-        IExecutable executable = _context.Authors.AsExecutable();
+        IExecutable executable = _context.Authors.AsDbContextExecutable();
 
         // act
-        var result = await executable.FirstOrDefaultAsync(default);
+        var result = await executable.FirstOrDefaultAsync(CancellationToken.None);
 
         // assert
-        new { result, executable = executable.Print(), }.MatchSnapshot();
+        new { result, executable = executable.Print() }.MatchSnapshot();
     }
 }

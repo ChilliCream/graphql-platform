@@ -1,0 +1,19 @@
+﻿{
+  "Headers": [
+    {
+      "Key": "Cache-Control",
+      "Value": [
+        "s-maxage=2000"
+      ]
+    }
+  ],
+  "ContentHeaders": [
+    {
+      "Key": "Content-Type",
+      "Value": [
+        "application/graphql-response+json; charset=utf-8"
+      ]
+    }
+  ],
+  "Body": "{\"data\":{\"field\":\"\"}}"
+}

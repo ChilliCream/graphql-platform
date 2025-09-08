@@ -39,7 +39,7 @@ Learn more about unions [here](https://graphql.org/learn/schema/#union-types).
 Unions can be defined like the following.
 
 <ExampleTabs>
-<Annotation>
+<Implementation>
 
 We can use a marker interface (or an abstract class) to define object types as part of a union.
 
@@ -68,21 +68,17 @@ public class Query
         // Omitted code for brevity
     }
 }
-
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .AddType<TextContent>()
-            .AddType<ImageContent>();
-    }
-}
 ```
 
-</Annotation>
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddType<TextContent>()
+    .AddType<ImageContent>();
+```
+
+</Implementation>
 <Code>
 
 ```csharp
@@ -137,9 +133,9 @@ public class QueryType : ObjectType<Query>
 }
 ```
 
-Since the types are already registered within the union, we do not have to register them again in our `Startup` class.
+Since the types are already registered within the union, we do not have to register them again in our `Program` class.
 
-We can use a marker interface, as in the annotation-based approach, to type our union definition: `UnionType<IMarkerInterface>`
+We can use a marker interface, as in the implementation-first approach, to type our union definition: `UnionType<IMarkerInterface>`
 
 </Code>
 <Schema>
@@ -156,37 +152,33 @@ public class ImageContent
 
     public int Height { get; set; }
 }
+```
 
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+          content: PostContent
+        }
+
+        type TextContent {
+          text: String!
+        }
+
+        type ImageContent {
+          imageUrl: String!
+          height: Int!
+        }
+
+        union PostContent = TextContent | ImageContent
+    ")
+    .BindRuntimeType<TextContent>()
+    .BindRuntimeType<ImageContent>()
+    .AddResolver("Query", "content", (context) =>
     {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Query {
-                  content: PostContent
-                }
-
-                type TextContent {
-                  text: String!
-                }
-
-                type ImageContent {
-                  imageUrl: String!
-                  height: Int!
-                }
-
-                union PostContent = TextContent | ImageContent
-            ")
-            .BindRuntimeType<TextContent>()
-            .BindRuntimeType<ImageContent>()
-            .AddResolver("Query", "content", (context) =>
-            {
-                // Omitted code for brevity
-            });
-    }
-}
+        // Omitted code for brevity
+    });
 ```
 
 </Schema>

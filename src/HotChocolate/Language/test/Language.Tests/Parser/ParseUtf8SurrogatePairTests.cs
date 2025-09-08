@@ -1,6 +1,5 @@
 using System.Text;
 using Newtonsoft.Json;
-using Xunit;
 
 namespace HotChocolate.Language;
 

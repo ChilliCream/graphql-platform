@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>CookieCrumble.HotChocolate.Language</AssemblyName>
+    <RootNamespace>CookieCrumble.HotChocolate.Language</RootNamespace>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CookieCrumble\CookieCrumble.csproj" />
+    <ProjectReference Include="..\..\..\HotChocolate\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+  </ItemGroup>
+
+</Project>

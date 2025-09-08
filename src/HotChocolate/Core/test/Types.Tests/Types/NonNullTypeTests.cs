@@ -12,7 +12,7 @@ public class NonNullTypeTests
         var type = new NonNullType(innerType);
 
         // assert
-        Assert.Equal(innerType, type.Type);
+        Assert.Equal(innerType, type.NullableType);
     }
 
     [Fact]
@@ -22,7 +22,7 @@ public class NonNullTypeTests
         var type = new NonNullType(new StringType());
 
         // assert
-        Assert.Equal(typeof(string), type.RuntimeType);
+        Assert.Equal(typeof(string), type.ToRuntimeType());
     }
 
     [Fact]

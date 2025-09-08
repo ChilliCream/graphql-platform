@@ -51,7 +51,7 @@ type Mutation {
   deleteIncome(input: DeleteIncomeInput): DeleteIncomePayload
 }
 
-"The built-in `Decimal` scalar type."
+"The `Decimal` scalar type represents a decimal floating-point number."
 scalar Decimal
 
 enum ExpenseCategory {

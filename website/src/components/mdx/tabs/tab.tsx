@@ -1,7 +1,7 @@
 import React, { FC } from "react";
 import styled from "styled-components";
 
-import { THEME_COLORS } from "@/shared-style";
+import { THEME_COLORS } from "@/style";
 import { useTabs } from "./tabs";
 
 export interface TabProps {

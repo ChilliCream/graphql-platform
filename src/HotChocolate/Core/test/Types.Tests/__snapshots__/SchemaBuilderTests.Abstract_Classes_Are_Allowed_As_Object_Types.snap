@@ -1,12 +1,12 @@
-﻿schema {
+schema {
   query: AbstractQuery
 }
 
 type AbstractChild {
-  foo: String
+  foo: String!
 }
 
 type AbstractQuery {
-  foo: String
-  object: AbstractChild
+  foo: String!
+  object: AbstractChild!
 }

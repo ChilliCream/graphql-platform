@@ -97,7 +97,7 @@ We can allow introspection on a per-request basis, while keeping it disabled for
 public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
 {
     public override ValueTask OnCreateAsync(HttpContext context,
-        IRequestExecutor requestExecutor, OperationRequestBuilder requestBuilder,
+        IRequestExecutor requestExecutor, IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         if (context.Request.Headers.ContainsKey("X-Allow-Introspection"))
@@ -155,7 +155,7 @@ If we need to customize the error message, we can do so in our request intercept
 public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
 {
     public override ValueTask OnCreateAsync(HttpContext context,
-        IRequestExecutor requestExecutor, OperationRequestBuilder requestBuilder,
+        IRequestExecutor requestExecutor, IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         if (context.Request.Headers.ContainsKey("X-Allow-Introspection"))

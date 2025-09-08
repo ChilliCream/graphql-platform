@@ -1,9 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
-    <Nullable>enable</Nullable>
-
     <IsPackable>false</IsPackable>
 
     <AssemblyName>CookieCrumble.Tests</AssemblyName>
@@ -11,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.msbuild">
+    <PackageReference Include="coverlet.collector">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -24,7 +21,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\CookieCrumble\CookieCrumble.csproj" />
+    <ProjectReference Include="..\..\src\CookieCrumble.Analyzers\CookieCrumble.Analyzers.csproj" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\..\src\CookieCrumble.Xunit\CookieCrumble.Xunit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
   </ItemGroup>
 
 </Project>

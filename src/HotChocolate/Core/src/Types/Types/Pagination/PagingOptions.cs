@@ -1,4 +1,4 @@
-#nullable enable
+using System.Collections.Immutable;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -18,8 +18,9 @@ public class PagingOptions
     public int? MaxPageSize { get; set; }
 
     /// <summary>
-    /// Defines if the total count of the paged data set
-    /// shall be included into the paging result type.
+    /// Defines whether a <c>totalCount</c> field shall be
+    /// exposed on the Connection type, returning the total
+    /// count of items in the paginated data set.
     /// </summary>
     public bool? IncludeTotalCount { get; set; }
 
@@ -52,6 +53,38 @@ public class PagingOptions
     public string? ProviderName { get; set; }
 
     /// <summary>
+    /// Defines whether a <c>nodes</c> field shall be
+    /// exposed on the Connection type, returning the
+    /// flattened nodes of the <c>edges</c> field.
+    /// </summary>
+    public bool? IncludeNodesField { get; set; }
+
+    /// <summary>
+    /// Defines whether relative cursors are allowed.
+    /// </summary>
+    public bool? EnableRelativeCursors { get; set; }
+
+    /// <summary>
+    /// Gets or sets the fields that represent relative cursors.
+    /// </summary>
+    public ImmutableHashSet<string> RelativeCursorFields { get; set; } =
+        [
+            "pageInfo { forwardCursors }",
+            "pageInfo { backwardCursors }"
+        ];
+
+    /// <summary>
+    /// Gets or sets the fields that represent page infos like hasNextPage or startCursor.
+    /// </summary>
+    public ImmutableHashSet<string> PageInfoFields { get; set; } =
+        [
+            "pageInfo { startCursor }",
+            "pageInfo { endCursor }" ,
+            "pageInfo { hasNextPage }" ,
+            "pageInfo { hasPreviousPage }"
+        ];
+
+    /// <summary>
     /// Merges the <paramref name="other"/> options into this options instance wherever
     /// a property is not set.
     /// </summary>
@@ -68,6 +101,10 @@ public class PagingOptions
         InferConnectionNameFromField ??= other.InferConnectionNameFromField;
         InferCollectionSegmentNameFromField ??= other.InferCollectionSegmentNameFromField;
         ProviderName ??= other.ProviderName;
+        IncludeNodesField ??= other.IncludeNodesField;
+        EnableRelativeCursors ??= other.EnableRelativeCursors;
+        RelativeCursorFields = RelativeCursorFields.Union(other.RelativeCursorFields);
+        PageInfoFields = PageInfoFields.Union(other.PageInfoFields);
     }
 
     /// <summary>
@@ -83,6 +120,10 @@ public class PagingOptions
             RequirePagingBoundaries = RequirePagingBoundaries,
             InferConnectionNameFromField = InferConnectionNameFromField,
             InferCollectionSegmentNameFromField = InferCollectionSegmentNameFromField,
-            ProviderName = ProviderName
+            ProviderName = ProviderName,
+            IncludeNodesField = IncludeNodesField,
+            EnableRelativeCursors = EnableRelativeCursors,
+            RelativeCursorFields = RelativeCursorFields,
+            PageInfoFields = PageInfoFields
         };
 }

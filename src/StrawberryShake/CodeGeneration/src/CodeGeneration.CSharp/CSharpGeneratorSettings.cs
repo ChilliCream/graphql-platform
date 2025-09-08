@@ -60,7 +60,7 @@ public class CSharpGeneratorSettings
         RequestStrategy.Default;
 
     /// <summary>
-    /// The <see cref="IDocumentHashProvider"/> that shall be used for persisted queries.
+    /// The <see cref="IDocumentHashProvider"/> that shall be used for persisted operations.
     /// </summary>
     public IDocumentHashProvider HashProvider { get; set; } =
         new Sha1DocumentHashProvider(HashFormat.Hex);
@@ -73,7 +73,7 @@ public class CSharpGeneratorSettings
         new TransportProfile(
             TransportProfile.DefaultProfileName,
             TransportType.Http,
-            subscription: TransportType.WebSocket),
+            subscription: TransportType.WebSocket)
 
     ];
 }

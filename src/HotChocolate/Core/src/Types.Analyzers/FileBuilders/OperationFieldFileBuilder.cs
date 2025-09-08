@@ -14,7 +14,7 @@ public sealed class OperationFieldFileBuilder : IDisposable
 
     public OperationFieldFileBuilder()
     {
-        _sb = StringBuilderPool.Get();
+        _sb = PooledObjects.GetStringBuilder();
         _writer = new CodeWriter(_sb);
     }
 
@@ -109,7 +109,7 @@ public sealed class OperationFieldFileBuilder : IDisposable
             OperationType.Query => "global::HotChocolate.Types.OperationTypeNames.Query",
             OperationType.Mutation => "global::HotChocolate.Types.OperationTypeNames.Mutation",
             OperationType.Subscription => "global::HotChocolate.Types.OperationTypeNames.Subscription",
-            _ => throw new InvalidOperationException(),
+            _ => throw new InvalidOperationException()
         };
 
     public override string ToString()
@@ -125,9 +125,9 @@ public sealed class OperationFieldFileBuilder : IDisposable
             return;
         }
 
-        StringBuilderPool.Return(_sb);
-        _sb = default!;
-        _writer = default!;
+        PooledObjects.Return(_sb);
+        _sb = null!;
+        _writer = null!;
         _disposed = true;
     }
 }

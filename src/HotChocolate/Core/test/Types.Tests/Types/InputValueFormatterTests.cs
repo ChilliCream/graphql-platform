@@ -1,6 +1,5 @@
 using HotChocolate.Execution;
 using HotChocolate.Tests;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -9,8 +8,6 @@ public class InputValueFormatterTests
     [Fact]
     public async Task Add_Input_Formatter_To_Argument()
     {
-        Snapshot.FullName();
-
         await SchemaBuilder.New()
             .AddQueryType<QueryType>()
             .Create()
@@ -22,8 +19,6 @@ public class InputValueFormatterTests
     [Fact]
     public async Task Add_Chained_Input_Formatter_To_Argument()
     {
-        Snapshot.FullName();
-
         await SchemaBuilder.New()
             .AddQueryType<QueryType>()
             .Create()
@@ -35,8 +30,6 @@ public class InputValueFormatterTests
     [Fact]
     public async Task Add_Input_Formatter_To_Field()
     {
-        Snapshot.FullName();
-
         await SchemaBuilder.New()
             .AddQueryType<QueryType>()
             .Create()
@@ -48,8 +41,6 @@ public class InputValueFormatterTests
     [Fact]
     public async Task Add_Chained_Input_Formatter_To_Field()
     {
-        Snapshot.FullName();
-
         await SchemaBuilder.New()
             .AddQueryType<QueryType>()
             .Create()
@@ -114,14 +105,14 @@ public class InputValueFormatterTests
 
     public class Foo
     {
-        public string Bar { get; set; }
+        public string? Bar { get; set; }
 
-        public string Baz { get; set; }
+        public string? Baz { get; set; }
     }
 
     public class UpperCaseInputValueFormatter : IInputValueFormatter
     {
-        public object Format(object originalValue)
+        public object? Format(object? originalValue)
         {
             return originalValue is string s ? s.ToUpperInvariant() : originalValue;
         }
@@ -129,7 +120,7 @@ public class InputValueFormatterTests
 
     public class AddTwoInputValueFormatter : IInputValueFormatter
     {
-        public object Format(object originalValue)
+        public object? Format(object? originalValue)
         {
             return originalValue is string s ? s + "2" : originalValue;
         }

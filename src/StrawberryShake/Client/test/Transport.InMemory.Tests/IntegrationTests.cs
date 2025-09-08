@@ -1,14 +1,10 @@
 using System.Text;
 using System.Text.Json;
-using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.StarWars;
-using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets.Protocols;
-
-#pragma warning disable CS0618
 
 namespace StrawberryShake.Transport.InMemory;
 
@@ -113,7 +109,7 @@ public class IntegrationTests : ServerTestBase
         var ct = new CancellationTokenSource(20_000).Token;
         var serviceCollection = new ServiceCollection();
 
-        string? result = null!;
+        string? result = null;
         serviceCollection
             .AddGraphQLServer()
             .AddStarWarsTypes()
@@ -158,51 +154,6 @@ public class IntegrationTests : ServerTestBase
         results.MatchSnapshot();
     }
 
-    [Fact]
-    public async Task Subscription_Result()
-    {
-        // arrange
-        var ct = new CancellationTokenSource(20_000).Token;
-        var serviceCollection = new ServiceCollection();
-
-        serviceCollection
-            .AddGraphQLServer()
-            .AddStarWarsTypes()
-            .AddTypeExtension<StringSubscriptionExtensions>()
-            .AddStarWarsRepositories()
-            .AddInMemorySubscriptions();
-
-        serviceCollection
-            .AddProtocol<GraphQLWebSocketProtocolFactory>()
-            .AddInMemoryClient("Foo");
-
-        IServiceProvider services =
-            serviceCollection.BuildServiceProvider();
-
-        List<string> results = [];
-        MockDocument document = new("subscription Test { onTest(id:1) }");
-        OperationRequest request = new("Test", document);
-
-        var factory = services
-            .GetRequiredService<IInMemoryClientFactory>();
-
-        // act
-        var connection = new InMemoryConnection(
-            async abort => await factory.CreateAsync("Foo", abort));
-
-        await foreach (var response in
-            connection.ExecuteAsync(request).WithCancellation(ct))
-        {
-            if (response.Body is not null)
-            {
-                results.Add(response.Body.RootElement.ToString());
-            }
-        }
-
-        // assert
-        results.MatchSnapshot();
-    }
-
     private sealed class MockDocument : IDocument
     {
         private readonly byte[] _query;
@@ -229,30 +180,6 @@ public class IntegrationTests : ServerTestBase
         {
             requestBuilder.AddGlobalState("Foo", "bar");
             return default;
-        }
-    }
-
-    [ExtendObjectType("Subscription")]
-    public class StringSubscriptionExtensions
-    {
-        [SubscribeAndResolve]
-        public async IAsyncEnumerable<string> OnTest(int? id)
-        {
-            for (var i = 0; i < 10; i++)
-            {
-                await Task.Delay(1);
-                yield return $"{id}num{i}";
-            }
-        }
-
-        [SubscribeAndResolve]
-        public async IAsyncEnumerable<int> CountUp()
-        {
-            for (var i = 0; i < 100; i++)
-            {
-                await Task.Delay(1);
-                yield return i;
-            }
         }
     }
 }

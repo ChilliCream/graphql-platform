@@ -4,7 +4,8 @@ public sealed class DataLoaderDefaultsInfo(
     bool? scoped,
     bool? isPublic,
     bool? isInterfacePublic,
-    bool registerServices)
+    bool registerServices,
+    bool generateInterfaces)
     : SyntaxInfo
 {
     public bool? Scoped { get; } = scoped;
@@ -15,18 +16,23 @@ public sealed class DataLoaderDefaultsInfo(
 
     public bool RegisterServices { get; } = registerServices;
 
+    public bool GenerateInterfaces { get; } = generateInterfaces;
+
+    public override string OrderByKey => string.Empty;
+
     public override bool Equals(object? obj)
         => obj is DataLoaderDefaultsInfo other && Equals(other);
 
-    public override bool Equals(SyntaxInfo other)
+    public override bool Equals(SyntaxInfo? other)
         => other is DataLoaderDefaultsInfo info && Equals(info);
 
     private bool Equals(DataLoaderDefaultsInfo other)
         => Scoped.Equals(other.Scoped)
             && IsPublic.Equals(other.IsPublic)
             && IsInterfacePublic.Equals(other.IsInterfacePublic)
-            && RegisterServices.Equals(other.RegisterServices);
+            && RegisterServices.Equals(other.RegisterServices)
+            && GenerateInterfaces.Equals(other.GenerateInterfaces);
 
     public override int GetHashCode()
-        => HashCode.Combine(Scoped, IsPublic, IsInterfacePublic, RegisterServices);
+        => HashCode.Combine(Scoped, IsPublic, IsInterfacePublic, RegisterServices, GenerateInterfaces);
 }

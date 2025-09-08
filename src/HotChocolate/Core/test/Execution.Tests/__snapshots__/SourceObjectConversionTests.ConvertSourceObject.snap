@@ -1,19 +1,7 @@
-﻿{
-  "Kind": "SingleResult",
-  "RequestIndex": null,
-  "VariableIndex": null,
-  "Label": null,
-  "Path": null,
-  "Data": {
+{
+  "data": {
     "foo": {
       "qux": "bar"
     }
-  },
-  "Items": null,
-  "Errors": null,
-  "Extensions": null,
-  "Incremental": null,
-  "ContextData": null,
-  "HasNext": null,
-  "IsDataSet": true
+  }
 }

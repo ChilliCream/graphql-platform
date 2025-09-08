@@ -23,10 +23,7 @@ public static class WebSocketClientPoolServiceCollectionExtensions
     /// </exception>
     public static IServiceCollection AddWebSocketClientPool(this IServiceCollection services)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         services.TryAddSingleton<ISessionPool, SessionPool>();
         return services;

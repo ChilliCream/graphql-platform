@@ -1,7 +1,7 @@
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
-/// Represents the value of a operation in filtering
+/// Represents the value of an operation in filtering
 /// </summary>
 public class FilterOperationInfo : IFilterOperationInfo
 {

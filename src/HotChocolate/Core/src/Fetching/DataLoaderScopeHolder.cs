@@ -1,6 +1,3 @@
-#if NET8_0_OR_GREATER
-using System.Collections.Frozen;
-#endif
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,37 +9,11 @@ namespace HotChocolate.Fetching;
 /// </summary>
 public sealed class DataLoaderScopeHolder
 {
-    private static readonly AsyncLocal<InstanceHolder> _currentScope = new();
-#if NET8_0_OR_GREATER
-    private readonly FrozenDictionary<Type, DataLoaderRegistration> _registrations;
-#else
-    private readonly Dictionary<Type, DataLoaderRegistration> _registrations;
-#endif
+    private static readonly AsyncLocal<InstanceHolder> s_currentScope = new();
+    private readonly IReadOnlyDictionary<Type, DataLoaderRegistration> _registrations;
 
-    public DataLoaderScopeHolder(IEnumerable<DataLoaderRegistration> registrations)
-    {
-#if NET8_0_OR_GREATER
-        _registrations = CreateRegistrations().ToFrozenDictionary(t => t.Item1, t => t.Item2);
-#else
-        _registrations = CreateRegistrations().ToDictionary(t => t.Item1, t => t.Item2);
-#endif
-
-        IEnumerable<(Type, DataLoaderRegistration)> CreateRegistrations()
-        {
-            foreach (var reg in registrations)
-            {
-                if (reg.ServiceType == reg.InstanceType)
-                {
-                    yield return (reg.ServiceType, reg);
-                }
-                else
-                {
-                    yield return (reg.ServiceType, reg);
-                    yield return (reg.InstanceType, reg);
-                }
-            }
-        }
-    }
+    public DataLoaderScopeHolder(DataLoaderRegistrar registrar)
+        => _registrations = registrar.Registrations;
 
     /// <summary>
     /// Creates and pins a new <see cref="IDataLoaderScope"/>.
@@ -55,7 +26,7 @@ public sealed class DataLoaderScopeHolder
 
     public IDataLoaderScope GetOrCreateScope(IServiceProvider scopedServiceProvider, IBatchScheduler? scheduler = null)
     {
-        if(_currentScope.Value?.Scope is null)
+        if (s_currentScope.Value?.Scope is null)
         {
             CurrentScope = PinNewScope(scopedServiceProvider, scheduler);
         }
@@ -70,16 +41,16 @@ public sealed class DataLoaderScopeHolder
     /// </exception>
     public IDataLoaderScope CurrentScope
     {
-        get => _currentScope.Value?.Scope ??
+        get => s_currentScope.Value?.Scope ??
             throw new InvalidOperationException("No DataLoader scope exists.");
         set
         {
-            var holder = _currentScope.Value;
+            var holder = s_currentScope.Value;
 
             if (holder is null)
             {
                 holder = new InstanceHolder();
-                _currentScope.Value = holder;
+                s_currentScope.Value = holder;
             }
 
             holder.Scope = value;
@@ -88,6 +59,6 @@ public sealed class DataLoaderScopeHolder
 
     private sealed class InstanceHolder
     {
-        public IDataLoaderScope Scope = default!;
+        public IDataLoaderScope Scope = null!;
     }
 }

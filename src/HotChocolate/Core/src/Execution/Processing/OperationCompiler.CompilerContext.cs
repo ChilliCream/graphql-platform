@@ -7,15 +7,15 @@ namespace HotChocolate.Execution.Processing;
 
 public sealed partial class OperationCompiler
 {
-    internal sealed class CompilerContext(ISchema schema, DocumentNode document, bool enableNullBubbling)
+    internal sealed class CompilerContext(Schema schema, DocumentNode document)
     {
-        public ISchema Schema { get; } = schema;
+        public Schema Schema { get; } = schema;
 
         public DocumentNode Document { get; } = document;
 
-        public ObjectType Type { get; private set; } = default!;
+        public ObjectType Type { get; private set; } = null!;
 
-        public SelectionSetInfo[] SelectionInfos { get; private set; } = default!;
+        public SelectionSetInfo[] SelectionInfos { get; private set; } = null!;
 
         public SelectionPath Path { get; private set; } = SelectionPath.Root;
 
@@ -23,11 +23,9 @@ public sealed partial class OperationCompiler
 
         public List<Fragment> Fragments { get; } = [];
 
-        public SelectionVariants SelectionVariants { get; private set; } = default!;
+        public SelectionVariants SelectionVariants { get; private set; } = null!;
 
         public ImmutableArray<ISelectionSetOptimizer> Optimizers { get; private set; }
-
-        public bool EnableNullBubbling { get; } = enableNullBubbling;
 
         public void Initialize(
             ObjectType type,
@@ -40,7 +38,7 @@ public sealed partial class OperationCompiler
             SelectionVariants = selectionVariants;
             SelectionInfos = selectionInfos;
             Path = path;
-            Optimizers = optimizers ?? ImmutableArray<ISelectionSetOptimizer>.Empty;
+            Optimizers = optimizers ?? [];
             Fields.Clear();
             Fragments.Clear();
         }

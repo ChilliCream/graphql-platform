@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 internal sealed class SelectionSet : ISelectionSet
 {
-    private static readonly Fragment[] _empty = [];
+    private static readonly Fragment[] s_empty = [];
     private readonly Selection[] _selections;
     private readonly Fragment[] _fragments;
     private Flags _flags;
@@ -40,7 +40,7 @@ internal sealed class SelectionSet : ISelectionSet
     {
         Id = id;
         _selections = selections;
-        _fragments = fragments ?? _empty;
+        _fragments = fragments ?? s_empty;
         _flags = isConditional ? Flags.Conditional : Flags.None;
     }
 
@@ -56,27 +56,34 @@ internal sealed class SelectionSet : ISelectionSet
     /// <inheritdoc />
     public IReadOnlyList<IFragment> Fragments => _fragments;
 
+    /// <inheritdoc />
+    public IOperation DeclaringOperation { get; private set; } = null!;
+
     /// <summary>
     /// Completes the selection set without sealing it.
     /// </summary>
-    internal void Complete()
+    internal void Complete(IOperation declaringOperation)
     {
         if ((_flags & Flags.Sealed) != Flags.Sealed)
         {
+            DeclaringOperation = declaringOperation;
+
             for (var i = 0; i < _selections.Length; i++)
             {
-                _selections[i].Complete(this);
+                _selections[i].Complete(declaringOperation, this);
             }
         }
     }
 
-    internal void Seal()
+    internal void Seal(IOperation declaringOperation)
     {
         if ((_flags & Flags.Sealed) != Flags.Sealed)
         {
+            DeclaringOperation = declaringOperation;
+
             for (var i = 0; i < _selections.Length; i++)
             {
-                _selections[i].Seal(this);
+                _selections[i].Seal(declaringOperation, this);
             }
 
             _flags |= Flags.Sealed;
@@ -98,7 +105,7 @@ internal sealed class SelectionSet : ISelectionSet
     {
         None = 0,
         Conditional = 1,
-        Sealed = 2,
+        Sealed = 2
     }
 
     public override string ToString()

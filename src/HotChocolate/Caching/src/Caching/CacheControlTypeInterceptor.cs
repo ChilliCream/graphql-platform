@@ -3,32 +3,29 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Caching;
 
-internal sealed class CacheControlTypeInterceptor : TypeInterceptor
+internal sealed class CacheControlTypeInterceptor(
+    ICacheControlOptionsAccessor accessor)
+    : TypeInterceptor
 {
-    private readonly List<(RegisteredType Type, ObjectTypeDefinition TypeDef)> _types = [];
-    private readonly ICacheControlOptions _cacheControlOptions;
+    private readonly List<(RegisteredType Type, ObjectTypeConfiguration TypeDef)> _types = [];
+    private readonly ICacheControlOptions _cacheControlOptions = accessor.CacheControl;
     private TypeDependency? _cacheControlDependency;
-
-    public CacheControlTypeInterceptor(ICacheControlOptionsAccessor accessor)
-    {
-        _cacheControlOptions = accessor.CacheControl;
-    }
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
         if (!_cacheControlOptions.Enable || !_cacheControlOptions.ApplyDefaults)
         {
             return;
         }
 
-        if (completionContext.Type is ObjectType && definition is ObjectTypeDefinition typeDef)
+        if (completionContext.Type is ObjectType && configuration is ObjectTypeConfiguration typeDef)
         {
             _types.Add(((RegisteredType)completionContext, typeDef));
         }
@@ -42,16 +39,16 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         }
     }
 
-    private void TryApplyDefaults(RegisteredType type, ObjectTypeDefinition objectDef)
+    private void TryApplyDefaults(RegisteredType type, ObjectTypeConfiguration objectDef)
     {
         if (!_cacheControlOptions.Enable || !_cacheControlOptions.ApplyDefaults)
         {
             return;
         }
 
-        if (type.IsIntrospectionType ||
-            type.IsSubscriptionType == true ||
-            type.IsMutationType == true)
+        if (type.IsIntrospectionType
+            || type.IsSubscriptionType == true
+            || type.IsMutationType == true)
         {
             return;
         }
@@ -65,11 +62,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         var length = objectDef.Fields.Count;
         var appliedDefaults = false;
 
-#if NET6_0_OR_GREATER
-        var fields = ((BindableList<ObjectFieldDefinition>)objectDef.Fields).AsSpan();
-#else
-        var fields = (BindableList<ObjectFieldDefinition>)objectDef.Fields;
-#endif
+        var fields = ((BindableList<ObjectFieldConfiguration>)objectDef.Fields).AsSpan();
 
         for (var i = 0; i < length; i++)
         {
@@ -104,7 +97,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
     }
 
     private void ApplyCacheControlWithDefaults(
-        OutputFieldDefinitionBase field)
+        OutputFieldConfiguration field)
     {
         var isNotDefaultScope = _cacheControlOptions.DefaultScope != CacheControlDefaults.Scope;
 
@@ -121,25 +114,25 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         }
 
         field.Directives.Add(
-            new DirectiveDefinition(
+            new DirectiveConfiguration(
                 new DirectiveNode(
                     CacheControlDirectiveType.Names.DirectiveName,
                     arguments)));
     }
 
-    private static bool HasCacheControlDirective(ObjectFieldDefinition field)
+    private static bool HasCacheControlDirective(ObjectFieldConfiguration field)
         => field.Directives.Any(static d => IsCacheControlDirective(d));
 
-    private static bool IsCacheControlDirective(DirectiveDefinition directive)
+    private static bool IsCacheControlDirective(DirectiveConfiguration directive)
     {
-        if (directive.Type is NameDirectiveReference directiveReference &&
-            directiveReference.Name.EqualsOrdinal(CacheControlDirectiveType.Names.DirectiveName))
+        if (directive.Type is NameDirectiveReference directiveReference
+            && directiveReference.Name.EqualsOrdinal(CacheControlDirectiveType.Names.DirectiveName))
         {
             return true;
         }
 
-        if (directive.Type is ExtendedTypeDirectiveReference { Type.Type: { } type, } &&
-            type == typeof(CacheControlDirective))
+        if (directive.Type is ExtendedTypeDirectiveReference { Type.Type: { } type }
+            && type == typeof(CacheControlDirective))
         {
             return true;
         }
@@ -150,9 +143,9 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
     /// <summary>
     /// Defines if a resolver is possible fetching data and causing higher impact on the system.
     /// </summary>
-    internal static bool IsDataResolver(ObjectFieldDefinition field)
+    internal static bool IsDataResolver(ObjectFieldConfiguration field)
     {
-        if (field.PureResolver is not null && field.MiddlewareDefinitions.Count == 0)
+        if (field.PureResolver is not null && field.MiddlewareConfigurations.Count == 0)
         {
             return false;
         }
@@ -166,15 +159,15 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
 
         if (resolver is MethodInfo method)
         {
-            if (typeof(Task).IsAssignableFrom(method.ReturnType) ||
-                typeof(IQueryable).IsAssignableFrom(method.ReturnType) ||
-                typeof(IExecutable).IsAssignableFrom(method.ReturnType))
+            if (typeof(Task).IsAssignableFrom(method.ReturnType)
+                || typeof(IQueryable).IsAssignableFrom(method.ReturnType)
+                || typeof(IExecutable).IsAssignableFrom(method.ReturnType))
             {
                 return true;
             }
 
-            if (method.ReturnType.IsGenericType &&
-                method.ReturnType.GetGenericTypeDefinition() == typeof(ValueTask<>))
+            if (method.ReturnType.IsGenericType
+                && method.ReturnType.GetGenericTypeDefinition() == typeof(ValueTask<>))
             {
                 return true;
             }

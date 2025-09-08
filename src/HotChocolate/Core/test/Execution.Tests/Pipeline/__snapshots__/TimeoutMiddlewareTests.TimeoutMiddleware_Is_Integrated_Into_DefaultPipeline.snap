@@ -1,7 +1,7 @@
-﻿{
+{
   "errors": [
     {
-      "message": "The request exceeded the configured timeout of \u006000:00:00.1000000\u0060.",
+      "message": "The request exceeded the configured timeout of `00:00:00.1000000`.",
       "extensions": {
         "code": "HC0045"
       }

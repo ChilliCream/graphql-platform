@@ -29,13 +29,33 @@
   </data>
   <data name="DateTimeZoneType_Description" xml:space="preserve">
     <value>Represents a time zone - a mapping between UTC and local time.
-A time zone maps UTC instants to local times - or, equivalently, to the offset from UTC at any particular instant.</value>
+A time zone maps UTC instants to local times - or, equivalently, to the offset from UTC at any particular instant.
+
+Example: `Europe/Zurich`</value>
   </data>
   <data name="DurationType_Description" xml:space="preserve">
     <value>Represents a fixed (and calendar-independent) length of time.</value>
   </data>
+  <data name="DurationType_Description_Extended" xml:space="preserve">
+    <value>Represents a fixed (and calendar-independent) length of time.
+
+Allowed patterns:
+{0}
+
+Examples:
+{1}</value>
+  </data>
   <data name="InstantType_Description" xml:space="preserve">
     <value>Represents an instant on the global timeline, with nanosecond resolution.</value>
+  </data>
+  <data name="InstantType_Description_Extended" xml:space="preserve">
+    <value>Represents an instant on the global timeline, with nanosecond resolution.
+
+Allowed patterns:
+{0}
+
+Examples:
+{1}</value>
   </data>
   <data name="IsoDayOfWeekType_Description" xml:space="preserve">
     <value>Equates the days of the week with their numerical value according to ISO-8601.
@@ -44,31 +64,108 @@ A time zone maps UTC instants to local times - or, equivalently, to the offset f
   <data name="LocalDateTimeType_Description" xml:space="preserve">
     <value>A date and time in a particular calendar system.</value>
   </data>
+  <data name="LocalDateTimeType_Description_Extended" xml:space="preserve">
+    <value>A date and time in a particular calendar system.
+
+Allowed patterns:
+{0}
+
+Examples:
+{1}</value>
+  </data>
   <data name="LocalDateType_Description" xml:space="preserve">
-    <value>LocalDate is an immutable struct representing a date within the calendar, with no reference to a particular time zone or time of day.</value>
+    <value>LocalDate represents a date within the calendar, with no reference to a particular time zone or time of day.</value>
+  </data>
+  <data name="LocalDateType_Description_Extended" xml:space="preserve">
+    <value>LocalDate represents a date within the calendar, with no reference to a particular time zone or time of day.
+
+Allowed patterns:
+{0}
+
+Examples:
+{1}</value>
   </data>
   <data name="LocalTimeType_Description" xml:space="preserve">
-    <value>LocalTime is an immutable struct representing a time of day, with no reference to a particular calendar, time zone or date.</value>
+    <value>LocalTime represents a time of day, with no reference to a particular calendar, time zone, or date.</value>
+  </data>
+  <data name="LocalTimeType_Description_Extended" xml:space="preserve">
+    <value>LocalTime represents a time of day, with no reference to a particular calendar, time zone, or date.
+
+Allowed patterns:
+{0}
+
+Examples:
+{1}</value>
   </data>
   <data name="OffsetDateTimeType_Description" xml:space="preserve">
     <value>A local date and time in a particular calendar system, combined with an offset from UTC.</value>
   </data>
+  <data name="OffsetDateTimeType_Description_Extended" xml:space="preserve">
+    <value>A local date and time in a particular calendar system, combined with an offset from UTC.
+
+Allowed patterns:
+{0}
+
+Examples:
+{1}</value>
+  </data>
   <data name="OffsetDateType_Description" xml:space="preserve">
     <value>A combination of a LocalDate and an Offset, to represent a date at a specific offset from UTC but without any time-of-day information.</value>
   </data>
+  <data name="OffsetDateType_Description_Extended" xml:space="preserve">
+    <value>A combination of a LocalDate and an Offset, to represent a date at a specific offset from UTC but without any time-of-day information.
+
+Allowed patterns:
+{0}
+
+Examples:
+{1}</value>
+  </data>
   <data name="OffsetTimeType_Description" xml:space="preserve">
     <value>A combination of a LocalTime and an Offset, to represent a time-of-day at a specific offset from UTC but without any date information.</value>
+  </data>
+  <data name="OffsetTimeType_Description_Extended" xml:space="preserve">
+    <value>A combination of a LocalTime and an Offset, to represent a time-of-day at a specific offset from UTC but without any date information.
+
+Allowed patterns:
+{0}
+
+Examples:
+{1}</value>
   </data>
   <data name="OffsetType_Description" xml:space="preserve">
     <value>An offset from UTC in seconds.
  A positive value means that the local time is ahead of UTC (e.g. for Europe); a negative value means that the local time is behind UTC (e.g. for America).</value>
   </data>
+  <data name="OffsetType_Description_Extended" xml:space="preserve">
+    <value>An offset from UTC in seconds.
+ A positive value means that the local time is ahead of UTC (e.g. for Europe); a negative value means that the local time is behind UTC (e.g. for America).
+
+Allowed patterns:
+{0}
+
+Examples:
+{1}</value>
+  </data>
   <data name="PeriodType_Description" xml:space="preserve">
-    <value>Represents a period of time expressed in human chronological terms: hours, days, weeks, months and so on.</value>
+    <value>Represents a period of time expressed in human chronological terms: hours, days, weeks, months and so on.
+
+Pattern: `PnYnMnDTnHnMnS`
+Example: `P3Y6M4DT12H30M5S`</value>
   </data>
   <data name="ZonedDateTimeType_Description" xml:space="preserve">
     <value>A LocalDateTime in a specific time zone and with a particular offset to distinguish between otherwise-ambiguous instants.
 A ZonedDateTime is global, in that it maps to a single Instant.</value>
+  </data>
+  <data name="ZonedDateTimeType_Description_Extended" xml:space="preserve">
+    <value>A LocalDateTime in a specific time zone and with a particular offset to distinguish between otherwise-ambiguous instants.
+A ZonedDateTime is global, in that it maps to a single Instant.
+
+Allowed patterns:
+{0}
+
+Examples:
+{1}</value>
   </data>
   <data name="NodaTime_NoPatternProvided" xml:space="preserve">
     <value>The provided patterns are empty. You must provide at least one pattern for type {0}.</value>

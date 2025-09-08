@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Helpers;
@@ -8,21 +8,18 @@ namespace HotChocolate.Types.Helpers;
 public static class DirectiveUtils
 {
     public static void AddDirective<T>(
-        this IHasDirectiveDefinition directivesContainer,
+        this IDirectiveConfigurationProvider directivesContainer,
         T directive,
         ITypeInspector typeInspector)
         where T : class
     {
-        if (directive is null)
-        {
-            throw new ArgumentNullException(nameof(directive));
-        }
+        ArgumentNullException.ThrowIfNull(directive);
 
         switch (directive)
         {
             case DirectiveNode node:
                 directivesContainer.Directives.Add(
-                    new DirectiveDefinition(node));
+                    new DirectiveConfiguration(node));
                 break;
 
             case string directiveName:
@@ -34,7 +31,7 @@ public static class DirectiveUtils
 
             default:
                 directivesContainer.Directives.Add(
-                    new DirectiveDefinition(
+                    new DirectiveConfiguration(
                         directive,
                         TypeReference.CreateDirective(typeInspector.GetType(directive.GetType()))));
                 break;
@@ -42,14 +39,14 @@ public static class DirectiveUtils
     }
 
     public static void AddDirective(
-        this IHasDirectiveDefinition directivesContainer,
+        this IDirectiveConfigurationProvider directivesContainer,
         string name,
         IEnumerable<ArgumentNode> arguments)
     {
         directivesContainer.Directives.Add(
-            new DirectiveDefinition(
+            new DirectiveConfiguration(
                 new DirectiveNode(
                     name.EnsureGraphQLName(),
-                    arguments.ToArray())));
+                    [.. arguments])));
     }
 }

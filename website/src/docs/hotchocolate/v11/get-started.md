@@ -129,11 +129,11 @@ dotnet run --project ./Demo
 
 2. Open your browser and head over to `http://localhost:5000/graphql` to open our built-in GraphQL IDE [Banana Cake Pop](/products/bananacakepop).
 
-![GraphQL IDE](../../images/get-started-bcp.png)
+![GraphQL IDE](../../../images/get-started-bcp.png)
 
 3. Next, click on the `Book` icon in the left-hand navigation bar to explore the server's GraphQL schema. If this is the first time you are running the demo, you will need to enter `http://localhost:5000/graphql` as the schema endpoint URI. In the schema explorer, we can see that we have one query root field exposed. By clicking on the field, we can drill into the schema structure.
 
-![GraphQL IDE Schema Explorer](../../images/get-started-bcp-schema-explorer.png)
+![GraphQL IDE Schema Explorer](../../../images/get-started-bcp-schema-explorer.png)
 
 4. Head back to the query tab and execute your first GraphQL query by clicking the play button.
 
@@ -148,7 +148,7 @@ dotnet run --project ./Demo
 }
 ```
 
-![GraphQL IDE Execute Query](../../images/get-started-bcp-query.png)
+![GraphQL IDE Execute Query](../../../images/get-started-bcp-query.png)
 
 # Summary
 

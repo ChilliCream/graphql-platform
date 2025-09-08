@@ -363,7 +363,7 @@ public class RequestInterceptor : DefaultHttpRequestInterceptor
     public ValueTask OnCreateAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
-        OperationRequestBuilder requestBuilder,
+        IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         string userId = context.GetLoggedInUserId();

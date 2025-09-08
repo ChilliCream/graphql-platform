@@ -19,7 +19,7 @@ type Query {
 }
 
 type User {
-  name: String
+  name: String!
 }
 
 "A connection to a list of items."
@@ -29,7 +29,7 @@ type UsersConnection {
   "A list of edges."
   edges: [UsersEdge!]
   "A flattened list of the nodes."
-  nodes: [User]
+  nodes: [User!]
 }
 
 "An edge in a connection."
@@ -37,6 +37,6 @@ type UsersEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
-  node: User
-  test: String
+  node: User!
+  test: String!
 }

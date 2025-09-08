@@ -144,9 +144,9 @@ internal sealed class DeferredWorkState
 
                     // if the deferred result can still be patched into the result set from which
                     // it was being spawned of we will add it to the result batch.
-                    if ((deliverable.ContextData?.TryGetValue(PatchId, out var value) ?? false) &&
-                        value is uint patchId &&
-                        !_notPatchable.Contains(patchId))
+                    if ((deliverable.ContextData?.TryGetValue(PatchId, out var value) ?? false)
+                        && value is uint patchId
+                        && !_notPatchable.Contains(patchId))
                     {
                         AddRemovedResultSetsToNotPatchable(deliverable, _notPatchable);
                         result[consumed++] = deliverable;
@@ -175,8 +175,8 @@ internal sealed class DeferredWorkState
             IOperationResult result,
             HashSet<uint> notPatchable)
         {
-            if ((result.ContextData?.TryGetValue(RemovedResults, out var value) ?? false) &&
-                value is IEnumerable<uint> patchIds)
+            if ((result.ContextData?.TryGetValue(RemovedResults, out var value) ?? false)
+                && value is IEnumerable<uint> patchIds)
             {
                 foreach (var patchId in patchIds)
                 {
@@ -189,8 +189,8 @@ internal sealed class DeferredWorkState
             IOperationResult result,
             HashSet<uint> notPatchable)
         {
-            if ((result.ContextData?.TryGetValue(ExpectedPatches, out var value) ?? false) &&
-                value is IEnumerable<uint> patchIds)
+            if ((result.ContextData?.TryGetValue(ExpectedPatches, out var value) ?? false)
+                && value is IEnumerable<uint> patchIds)
             {
                 foreach (var patchId in patchIds)
                 {

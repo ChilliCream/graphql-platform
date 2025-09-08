@@ -14,15 +14,12 @@ internal sealed class AsyncTaskDispatcher : IAsyncDisposable
     public AsyncTaskDispatcher(Func<CancellationToken, Task> handler)
     {
         _handler = handler;
-        _eventProcessorTask = new ContinuousTask(EventHandler);
+        _eventProcessorTask = new ContinuousTask(EventHandler, TimeProvider.System);
     }
 
     public async Task Initialize(CancellationToken cancellationToken)
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(AsyncTaskDispatcher));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_initialized)
         {
@@ -31,10 +28,7 @@ internal sealed class AsyncTaskDispatcher : IAsyncDisposable
 
         await _sync.WaitAsync(cancellationToken);
 
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(AsyncTaskDispatcher));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_initialized)
         {
@@ -58,10 +52,7 @@ internal sealed class AsyncTaskDispatcher : IAsyncDisposable
 
     public void Dispatch()
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(AsyncTaskDispatcher));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         _event.Set();
     }

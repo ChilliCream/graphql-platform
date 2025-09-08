@@ -1,5 +1,3 @@
-using Snapshooter.Xunit;
-
 namespace HotChocolate.Execution;
 
 public class ScopedContextDataTests
@@ -25,8 +23,8 @@ public class ScopedContextDataTests
                     }")
             .Use(_ => context =>
             {
-                if (context.ScopedContextData.TryGetValue("field", out var o) &&
-                    o is string s)
+                if (context.ScopedContextData.TryGetValue("field", out var o)
+                    && o is string s)
                 {
                     s += "/" + context.Selection.Field.Name;
                 }

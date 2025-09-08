@@ -10,6 +10,6 @@ public class PostgisConfig : PostgreSqlDefaultOptions
             .Name("postgis")
             .Image("postgis/postgis:latest")
             .Username("postgis")
-            .Password(Guid.NewGuid().ToString("N").Substring(12))
+            .Password(Guid.NewGuid().ToString("N")[12..])
             .InternalPort(5432);
 }

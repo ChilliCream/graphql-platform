@@ -3,7 +3,7 @@
     {
       "Key": "Cache-Control",
       "Value": [
-        "public, max-age=0"
+        "max-age=0"
       ]
     }
   ],
@@ -15,5 +15,5 @@
       ]
     }
   ],
-  "Body": "{}"
+  "Body": "{\"data\":{\"field\":\"\"}}"
 }

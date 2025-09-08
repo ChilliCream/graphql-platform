@@ -1,8 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate.Internal;
 
 internal sealed partial class TypeInfo
@@ -63,7 +61,7 @@ internal sealed partial class TypeInfo
                         ? current
                         : ExtendedType.Tools.ChangeNullability(
                             current,
-                            [true,],
+                            [true],
                             cache);
 
                     list.Add((TypeComponentKind.List, rewritten));
@@ -75,7 +73,7 @@ internal sealed partial class TypeInfo
                         ? current
                         : ExtendedType.Tools.ChangeNullability(
                             current,
-                            [true,],
+                            [true],
                             cache);
 
                     list.Add((TypeComponentKind.Named, rewritten));
@@ -92,11 +90,10 @@ internal sealed partial class TypeInfo
             short i = 0;
             var current = type;
 
-            while (IsWrapperType(current) ||
-                IsTaskType(current) ||
-                IsOptional(current) ||
-                IsOption(current) ||
-                IsFieldResult(current))
+            while (IsWrapperType(current)
+                || IsTaskType(current)
+                || IsOptional(current)
+                || IsFieldResult(current))
             {
                 current = type.TypeArguments[0];
 
@@ -111,20 +108,17 @@ internal sealed partial class TypeInfo
         }
 
         private static bool IsWrapperType(IExtendedType type) =>
-            type.IsGeneric &&
-            typeof(NativeType<>) == type.Definition;
+            type.IsGeneric
+            && typeof(NativeType<>) == type.Definition;
 
         private static bool IsTaskType(IExtendedType type) =>
-            type.IsGeneric &&
-            (typeof(Task<>) == type.Definition ||
-                typeof(ValueTask<>) == type.Definition);
+            type.IsGeneric
+            && (typeof(Task<>) == type.Definition
+            || typeof(ValueTask<>) == type.Definition);
 
         private static bool IsOptional(IExtendedType type) =>
-            type.IsGeneric &&
-            typeof(Optional<>) == type.Definition;
-
-        private static bool IsOption(IExtendedType type) =>
-            type is { IsGeneric: true, Definition.Name: "FSharpOption`1", };
+            type.IsGeneric
+            && typeof(Optional<>) == type.Definition;
 
         private static bool IsFieldResult(IExtendedType type) =>
             type.IsGeneric && typeof(IFieldResult).IsAssignableFrom(type);

@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -89,6 +88,6 @@ public class EnumFlagsTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4,
+        Baz = 4
     }
 }

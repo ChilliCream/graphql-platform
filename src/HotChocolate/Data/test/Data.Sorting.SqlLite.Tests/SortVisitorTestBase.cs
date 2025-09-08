@@ -65,18 +65,18 @@ public class SortVisitorTestBase
 
         return new ServiceCollection()
             .Configure<RequestExecutorSetup>(
-                Schema.DefaultName,
+                ISchemaDefinition.DefaultName,
                 o => o.Schema = schema)
             .AddGraphQL()
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
                         context.Result =
                             OperationResultBuilder
-                                .FromResult(context.Result!.ExpectQueryResult())
+                                .FromResult(context.Result!.ExpectOperationResult())
                                 .SetContextData("sql", queryString)
                                 .Build();
                     }
@@ -84,8 +84,8 @@ public class SortVisitorTestBase
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync()
             .Result;
     }
 

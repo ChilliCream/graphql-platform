@@ -66,6 +66,7 @@ public static class OffsetPagingQueryableExtensions
         => QueryableOffsetPagination<TEntity>.Instance.ApplyPaginationAsync(
             query,
             arguments,
+            false,
             cancellationToken);
 
     /// <summary>
@@ -83,6 +84,7 @@ public static class OffsetPagingQueryableExtensions
     /// <param name="totalCount">
     /// The total count if already known.
     /// </param>
+    /// <param name="requireTotalCount">Specifies if the total count is needed.</param>
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
@@ -98,17 +100,11 @@ public static class OffsetPagingQueryableExtensions
         IResolverContext context,
         int? defaultPageSize = null,
         int? totalCount = null,
+        bool requireTotalCount = false,
         CancellationToken cancellationToken = default)
     {
-        if (query is null)
-        {
-            throw new ArgumentNullException(nameof(query));
-        }
-
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(query);
+        ArgumentNullException.ThrowIfNull(context);
 
         var skip = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Skip);
         var take = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Take) ?? defaultPageSize;
@@ -123,6 +119,7 @@ public static class OffsetPagingQueryableExtensions
             query,
             arguments,
             totalCount,
+            requireTotalCount,
             cancellationToken);
     }
 }

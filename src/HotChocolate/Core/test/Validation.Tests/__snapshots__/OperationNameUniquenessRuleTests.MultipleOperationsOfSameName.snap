@@ -1,12 +1,12 @@
-﻿[
+[
   {
     "Message": "The operation name `Foo` is not unique.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 6,
-        "Column": 17
+        "Line": 5,
+        "Column": 1
       }
     ],
     "Extensions": {

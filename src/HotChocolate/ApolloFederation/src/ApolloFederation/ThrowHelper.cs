@@ -47,8 +47,8 @@ internal static class ThrowHelper
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "The specified external attribute was applied to " +
-                    "the member `{0}` of `{1}`, which is not a property.",
+                    "The specified external attribute was applied to "
+                    + "the member `{0}` of `{1}`, which is not a property.",
                     member?.Name,
                     type.FullName ?? type.Name)
                 .Build());
@@ -135,8 +135,8 @@ internal static class ThrowHelper
         return new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "The specified key attributes must share the same resolvable " +
-                    "values when annotated on multiple fields.")
+                    "The specified key attributes must share the same resolvable "
+                    + "values when annotated on multiple fields.")
                 .SetExtension("type", type.FullName ?? type.Name)
                 .SetExtension("member", member.Name)
                 // .SetCode(ErrorCodes.ApolloFederation.KeyFieldSetNullOrEmpty)

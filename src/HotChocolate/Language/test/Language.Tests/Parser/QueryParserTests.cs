@@ -1,6 +1,4 @@
 using System.Text;
-using CookieCrumble;
-using Xunit;
 using static CookieCrumble.Formatters.SnapshotValueFormatters;
 
 namespace HotChocolate.Language;
@@ -9,7 +7,7 @@ public class QueryParserTests
 {
     [Fact]
     public void Reject_Queries_With_More_Than_2048_Fields()
-    {;
+    {
         Assert
             .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(FileResource.Open("aliases.graphql")))
             .Message

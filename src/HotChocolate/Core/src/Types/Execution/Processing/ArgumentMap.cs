@@ -2,8 +2,6 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Resolvers;
 
-#nullable enable
-
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>
@@ -42,7 +40,7 @@ public sealed class ArgumentMap
     /// <summary>
     /// Gets an empty argument map.
     /// </summary>
-    public static ArgumentMap Empty { get; } = new(new Dictionary<string, ArgumentValue>());
+    public static ArgumentMap Empty { get; } = new([]);
 
     /// <summary>
     /// This indexer allows to access the <see cref="ArgumentValue"/>

@@ -6,8 +6,6 @@ using HotChocolate.Properties;
 using static System.Linq.Expressions.Expression;
 using static HotChocolate.Utilities.NullableHelper;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class ClaimsPrincipalParameterExpressionBuilder
@@ -39,8 +37,8 @@ internal sealed class ClaimsPrincipalParameterExpressionBuilder
         IResolverContext context,
         bool nullable)
     {
-        if (context.ContextData.TryGetValue(nameof(ClaimsPrincipal), out var value) &&
-            value is ClaimsPrincipal user)
+        if (context.ContextData.TryGetValue(nameof(ClaimsPrincipal), out var value)
+            && value is ClaimsPrincipal user)
         {
             return user;
         }

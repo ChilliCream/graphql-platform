@@ -1,7 +1,5 @@
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using Snapshooter;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Resolvers;
 
@@ -16,7 +14,7 @@ public class ResolverTaskNullTests
     [InlineData("case4", "abc")]
     [InlineData("case4", null)]
     [Theory]
-    public async Task HandleNullResolverTask(string field, string argument)
+    public async Task HandleNullResolverTask(string field, string? argument)
     {
         // arrange
         var executor = SchemaBuilder.New()
@@ -30,8 +28,7 @@ public class ResolverTaskNullTests
             $"{{ {field}(name: {arg}) }}");
 
         // assert
-        result.ToJson().MatchSnapshot(SnapshotNameExtension.Create(
-            field, argument ?? "null"));
+        result.ToJson().MatchSnapshot(postFix: $"{field}_{argument ?? "null"}");
     }
 
     public class QueryType : ObjectType<Query>
@@ -39,16 +36,16 @@ public class ResolverTaskNullTests
         protected override void Configure(
             IObjectTypeDescriptor<Query> descriptor)
         {
-            descriptor.Field<QueryResolver>(t => t.Case2(default));
+            descriptor.Field<QueryResolver>(t => t.Case2(null));
             descriptor.Field("case3")
                 .Argument("name", a => a.Type<StringType>())
                 .Type<StringType>()
                 .Resolve(ctx =>
                 {
-                    var name = ctx.ArgumentValue<string>("name");
+                    var name = ctx.ArgumentValue<string?>("name");
                     return name is null
-                        ? new ValueTask<object>(default(object))
-                        : new ValueTask<object>(name);
+                        ? new ValueTask<object?>(default(object))
+                        : new ValueTask<object?>(name);
                 });
 
             descriptor.Field("case4")
@@ -56,7 +53,7 @@ public class ResolverTaskNullTests
                 .Type<StringType>()
                 .Resolve(ctx =>
                 {
-                    var name = ctx.ArgumentValue<string>("name");
+                    var name = ctx.ArgumentValue<string?>("name");
                     return name is null ? null : Task.FromResult(name);
                 });
         }
@@ -64,25 +61,25 @@ public class ResolverTaskNullTests
 
     public class Query
     {
-        public Task<string> Case1(string name)
+        public Task<string?> Case1(string? name)
         {
             if (name is null)
             {
-                return null!;
+                return Task.FromResult<string?>(null);
             }
-            return Task.FromResult(name);
+            return Task.FromResult<string?>(name);
         }
     }
 
     public class QueryResolver
     {
-        public Task<string> Case2(string name)
+        public Task<string?> Case2(string? name)
         {
             if (name is null)
             {
-                return null!;
+                return Task.FromResult<string?>(null);
             }
-            return Task.FromResult(name);
+            return Task.FromResult<string?>(name);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query
 }
 
@@ -21,6 +21,9 @@ type NestedType {
   valueTaskFieldWithCacheControl: String! @cacheControl(maxAge: 200)
   executableFieldWithCacheControl: [String!]! @cacheControl(maxAge: 200)
   queryableFieldWithCacheControl: [String!]! @cacheControl(maxAge: 200)
+  queryableFieldWithCacheControlSharedMaxAge: [String!]! @cacheControl(sharedMaxAge: 200)
+  queryableFieldWithCacheControlMaxAgeAndSharedMaxAge: [String!]! @cacheControl(maxAge: 500, sharedMaxAge: 200)
+  queryableFieldWithCacheControlMaxAgeAndSharedMaxAgeAndVary: [String!]! @cacheControl(maxAge: 500, sharedMaxAge: 200, vary: [ "accept-language", "x-timezoneoffset" ])
   queryableFieldWithConnectionWithCacheControl("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): QueryableFieldWithConnectionWithCacheControlConnection @cacheControl(maxAge: 200)
   queryableFieldWithCollectionSegmentWithCacheControl(skip: Int take: Int): QueryableFieldWithCollectionSegmentWithCacheControlCollectionSegment @cacheControl(maxAge: 200)
   pureField: String!
@@ -54,6 +57,9 @@ type Query {
   valueTaskFieldWithCacheControl: String! @cacheControl(maxAge: 200)
   executableFieldWithCacheControl: [String!]! @cacheControl(maxAge: 200)
   queryableFieldWithCacheControl: [String!]! @cacheControl(maxAge: 200)
+  queryableFieldWithCacheControlSharedMaxAge: [String!]! @cacheControl(sharedMaxAge: 200)
+  queryableFieldWithCacheControlMaxAgeAndSharedMaxAge: [String!]! @cacheControl(maxAge: 500, sharedMaxAge: 200)
+  queryableFieldWithCacheControlMaxAgeAndSharedMaxAgeAndVary: [String!]! @cacheControl(maxAge: 500, sharedMaxAge: 200, vary: [ "accept-language", "x-timezoneoffset" ])
   queryableFieldWithConnectionWithCacheControl("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): QueryableFieldWithConnectionWithCacheControlConnection @cacheControl(maxAge: 200)
   queryableFieldWithCollectionSegmentWithCacheControl(skip: Int take: Int): QueryableFieldWithCollectionSegmentWithCacheControlCollectionSegment @cacheControl(maxAge: 200)
   nested: NestedType! @cacheControl(maxAge: 100)
@@ -123,4 +129,4 @@ enum CacheControlScope {
 }
 
 "The `@cacheControl` directive may be provided for individual fields or entire object, interface or union types to provide caching hints to the executor."
-directive @cacheControl("The maximum amount of time this field's cached value is valid, in seconds." maxAge: Int "If `PRIVATE`, the field's value is specific to a single user. The default value is `PUBLIC`, which means the field's value is not tied to a single user." scope: CacheControlScope "If `true`, the field inherits the `maxAge` of its parent field." inheritMaxAge: Boolean) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
+directive @cacheControl("The maximum amount of time this field's cached value is valid, in seconds." maxAge: Int "The maximum amount of time this field's cached value is valid in shared caches like CDNs, in seconds." sharedMaxAge: Int "If `true`, the field inherits the `maxAge` of its parent field." inheritMaxAge: Boolean "If `PRIVATE`, the field's value is specific to a single user. The default value is `PUBLIC`, which means the field's value is not tied to a single user." scope: CacheControlScope "The Vary HTTP response header describes the parts of the request message aside from the method and URL that influenced the content of the response it occurs in. Most often, this is used to create a cache key when content negotiation is in use." vary: [String]) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION

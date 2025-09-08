@@ -3,9 +3,7 @@ using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Utilities.Properties;
-#if NET6_0_OR_GREATER
 using static System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
-#endif
 
 namespace HotChocolate.Utilities;
 
@@ -28,13 +26,9 @@ internal delegate IEnumerable<IParameterHandler> CreateDelegateHandlers(
 /// <summary>
 /// This helper compiles classes to middleware delegates.
 /// </summary>
-#if NET6_0_OR_GREATER
 internal static class MiddlewareCompiler<[DynamicallyAccessedMembers(PublicConstructors | PublicMethods)] TMiddleware>
-#else
-internal static class MiddlewareCompiler<TMiddleware>
-#endif
 {
-    private static readonly MethodInfo _awaitHelper =
+    private static readonly MethodInfo s_awaitHelper =
         typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitTaskHelper))!;
 
     internal static MiddlewareFactory<TMiddleware, TContext, TNext> CompileFactory<TContext, TNext>(
@@ -44,8 +38,11 @@ internal static class MiddlewareCompiler<TMiddleware>
         var context = Expression.Parameter(typeof(TContext), "context");
         var next = Expression.Parameter(typeof(TNext), "next");
 
-        var handlers = new List<IParameterHandler>();
-        handlers.Add(new TypeParameterHandler(typeof(TNext), next));
+        var handlers = new List<IParameterHandler>
+        {
+            new TypeParameterHandler(typeof(TNext), next)
+        };
+
         if (createParameters is not null)
         {
             handlers.AddRange(createParameters(context, next));
@@ -74,8 +71,11 @@ internal static class MiddlewareCompiler<TMiddleware>
         var context = Expression.Parameter(typeof(TContext));
         var middleware = Expression.Parameter(middlewareType);
 
-        var handlers = new List<IParameterHandler>();
-        handlers.Add(new TypeParameterHandler(typeof(TContext), context));
+        var handlers = new List<IParameterHandler>
+        {
+            new TypeParameterHandler(typeof(TContext), context)
+        };
+
         if (createParameters is { })
         {
             handlers.AddRange(createParameters(context, middleware));
@@ -96,7 +96,7 @@ internal static class MiddlewareCompiler<TMiddleware>
     {
         if (method.ReturnType == typeof(Task))
         {
-            return Expression.Call(_awaitHelper,
+            return Expression.Call(s_awaitHelper,
                 Expression.Call(middleware, method, arguments));
         }
 
@@ -109,15 +109,9 @@ internal static class MiddlewareCompiler<TMiddleware>
             UtilityResources.MiddlewareCompiler_ReturnTypeNotSupported);
     }
 
-#if NET6_0_OR_GREATER
     private static NewExpression CreateMiddleware(
         [DynamicallyAccessedMembers(PublicConstructors)] Type middleware,
         IReadOnlyList<IParameterHandler> parameterHandlers)
-#else
-    private static NewExpression CreateMiddleware(
-        Type middleware,
-        IReadOnlyList<IParameterHandler> parameterHandlers)
-#endif
     {
         var constructor = CreateConstructor(middleware);
         var arguments = CreateParameters(
@@ -125,13 +119,8 @@ internal static class MiddlewareCompiler<TMiddleware>
         return Expression.New(constructor, arguments);
     }
 
-#if NET6_0_OR_GREATER
     private static ConstructorInfo CreateConstructor(
         [DynamicallyAccessedMembers(PublicConstructors)] Type middleware)
-#else
-    private static ConstructorInfo CreateConstructor(
-        Type middleware)
-#endif
     {
         var constructor =
             middleware.GetConstructors().SingleOrDefault(t => t.IsPublic);
@@ -170,13 +159,8 @@ internal static class MiddlewareCompiler<TMiddleware>
         return arguments;
     }
 
-#if NET6_0_OR_GREATER
     private static MethodInfo? GetInvokeMethod(
         [DynamicallyAccessedMembers(PublicMethods)] Type middlewareType)
-#else
-    private static MethodInfo? GetInvokeMethod(
-        Type middlewareType)
-#endif
         => middlewareType.GetMethod("InvokeAsync") ?? middlewareType.GetMethod("Invoke");
 
     private static class ExpressionHelper

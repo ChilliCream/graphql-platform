@@ -1,6 +1,4 @@
-using CookieCrumble;
 using HotChocolate.Language.Utilities;
-using Xunit;
 
 namespace HotChocolate.Utilities.Introspection;
 
@@ -27,7 +25,7 @@ public class IntrospectionQueryBuilderTests
         var options = new IntrospectionOptions();
         var features = new ServerCapabilities
         {
-            HasArgumentDeprecation = true,
+            HasArgumentDeprecation = true
         };
 
         // act
@@ -44,7 +42,7 @@ public class IntrospectionQueryBuilderTests
         var options = new IntrospectionOptions();
         var features = new ServerCapabilities
         {
-            HasDirectiveLocations = true,
+            HasDirectiveLocations = true
         };
 
         // act
@@ -61,7 +59,7 @@ public class IntrospectionQueryBuilderTests
         var options = new IntrospectionOptions();
         var features = new ServerCapabilities
         {
-            HasRepeatableDirectives = true,
+            HasRepeatableDirectives = true
         };
 
         // act
@@ -78,7 +76,7 @@ public class IntrospectionQueryBuilderTests
         var options = new IntrospectionOptions();
         var features = new ServerCapabilities
         {
-            HasSchemaDescription = true,
+            HasSchemaDescription = true
         };
 
         // act
@@ -95,7 +93,7 @@ public class IntrospectionQueryBuilderTests
         var options = new IntrospectionOptions();
         var features = new ServerCapabilities
         {
-            HasSubscriptionSupport = true,
+            HasSubscriptionSupport = true
         };
 
         // act

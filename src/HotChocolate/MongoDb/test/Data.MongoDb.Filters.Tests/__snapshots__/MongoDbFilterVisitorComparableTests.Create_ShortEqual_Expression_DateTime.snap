@@ -1,0 +1,63 @@
+12 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barDateTime": "2000-01-12T00:00:00.000Z"
+      }
+    ]
+  }
+}
+---------------
+
+12 Query:
+---------------
+find({ "BarDateTime" : { "$eq" : { "$date" : "2000-01-12T00:00:00Z" } } })
+---------------
+
+13 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "barDateTime": "2000-01-12T00:00:00.000Z"
+      }
+    ]
+  }
+}
+---------------
+
+13 Query:
+---------------
+find({ "BarDateTime" : { "$eq" : { "$date" : "2000-01-12T00:00:00Z" } } })
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `eq` of type DateTimeOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 36
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "DateTime!",
+        "filterType": "DateTimeOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------
