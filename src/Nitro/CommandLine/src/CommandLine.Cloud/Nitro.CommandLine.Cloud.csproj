@@ -23,6 +23,7 @@
     <PackageReference Include="System.Commandline" />
     <PackageReference Include="System.Linq.Async" />
     <PackageReference Include="System.Reactive" />
+    <PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" />
   </ItemGroup>
 
   <ItemGroup>

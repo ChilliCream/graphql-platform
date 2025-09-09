@@ -97,6 +97,7 @@
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="10.0.0-preview.7.25380.108" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.0-preview.7.25380.108" />
     <PackageVersion Include="Microsoft.Net.Http.Headers" Version="10.0.0-preview.7.25380.108" />
+    <PackageVersion Include="Microsoft.AspNetCore.HeaderPropagation" Version="10.0.0-preview.7.25380.108" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0-preview.7" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0-preview.7" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="10.0.0-preview.7" />
@@ -122,6 +123,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.2" />
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="9.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="9.0.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.HeaderPropagation" Version="9.0.4" />
     <PackageVersion Include="Microsoft.Net.Http.Headers" Version="9.0.2" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="9.0.3" />
@@ -148,6 +150,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.HeaderPropagation" Version="8.0.19" />
     <PackageVersion Include="Microsoft.Net.Http.Headers" Version="8.0.4" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.10" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="8.0.10" />
