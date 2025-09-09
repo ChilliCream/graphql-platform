@@ -1,9 +1,5 @@
-using HotChocolate.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types.Composite;
-using HotChocolate.Types.Descriptors.Configurations;
-using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -313,7 +309,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         public class Query
         {
             [Lookup]
-            public Discussion? GetDiscussionById([Is("id")] [ID] int discussionId)
+            public Discussion? GetDiscussionById([Is("id")][ID] int discussionId)
                 => new Discussion(discussionId, "Discussion " + discussionId);
         }
 

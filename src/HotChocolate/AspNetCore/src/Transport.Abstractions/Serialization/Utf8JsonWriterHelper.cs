@@ -55,7 +55,7 @@ internal static class Utf8JsonWriterHelper
             writer.WriteString(Utf8GraphQLRequestProperties.OperationNameProp, request.OperationName);
         }
 
-        if (request.OnError is {} errorHandlingMode)
+        if (request.OnError is { } errorHandlingMode)
         {
             writer.WriteString(
                 Utf8GraphQLRequestProperties.OnErrorProp,
@@ -106,7 +106,7 @@ internal static class Utf8JsonWriterHelper
             writer.WriteString(Utf8GraphQLRequestProperties.OperationNameProp, request.OperationName);
         }
 
-        if (request.OnError is {} errorHandlingMode)
+        if (request.OnError is { } errorHandlingMode)
         {
             writer.WriteString(
                 Utf8GraphQLRequestProperties.OnErrorProp,
