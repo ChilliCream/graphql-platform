@@ -359,6 +359,7 @@ public sealed class DefaultNodeIdSerializer(
         return null;
     }
 
+    // ReSharper disable once UseUtf8StringLiteral
     private static readonly byte[] s_delimiters = [Delimiter, LegacyDelimiter];
     private static readonly SearchValues<byte> s_delimiterSearchValues =
         SearchValues.Create(s_delimiters);

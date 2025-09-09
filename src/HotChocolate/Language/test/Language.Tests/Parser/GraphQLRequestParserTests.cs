@@ -773,7 +773,7 @@ public class GraphQLRequestParserTests
             () =>
             {
                 // arrange
-                var source = Encoding.UTF8.GetBytes(" ");
+                var source = " "u8.ToArray();
                 var parserOptions = new ParserOptions();
                 var requestParser = new Utf8GraphQLRequestParser(
                     source,
