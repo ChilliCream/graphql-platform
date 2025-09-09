@@ -278,6 +278,8 @@ dotnet_diagnostic.RCS1251.severity = warning
 # Add/remove trailing comma.
 dotnet_diagnostic.RCS1260.severity = warning
 roslynator_trailing_comma_style = omit
+# Resource can be disposed asynchronously.
+dotnet_diagnostic.RCS1261.severity = warning
 # Unnecessary conditional access.
 dotnet_diagnostic.RCS9003.severity = warning
 
