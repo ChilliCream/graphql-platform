@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -10,16 +11,18 @@ namespace HotChocolate.Fusion.Execution.Results;
 internal sealed class ValueCompletion
 {
     private readonly ISchemaDefinition _schema;
+    private readonly IErrorHandler _errorHandler;
     private readonly ResultPoolSession _resultPoolSession;
-    private readonly ErrorHandlingMode _errorHandling;
+    private readonly ErrorHandlingMode _errorHandlingMode;
     private readonly int _maxDepth;
     private readonly ulong _includeFlags;
     private readonly List<IError> _errors;
 
     public ValueCompletion(
         ISchemaDefinition schema,
+        IErrorHandler errorHandler,
         ResultPoolSession resultPoolSession,
-        ErrorHandlingMode errorHandling,
+        ErrorHandlingMode errorHandlingMode,
         int maxDepth,
         ulong includeFlags,
         List<IError> errors)
@@ -29,8 +32,9 @@ internal sealed class ValueCompletion
         ArgumentNullException.ThrowIfNull(errors);
 
         _schema = schema;
+        _errorHandler = errorHandler;
         _resultPoolSession = resultPoolSession;
-        _errorHandling = errorHandling;
+        _errorHandlingMode = errorHandlingMode;
         _maxDepth = maxDepth;
         _includeFlags = includeFlags;
         _errors = errors;
@@ -80,7 +84,7 @@ internal sealed class ValueCompletion
 
             if (!TryCompleteValue(selection, selection.Type, property.Value, errorTrieForResponseName, 0, fieldResult))
             {
-                switch (_errorHandling)
+                switch (_errorHandlingMode)
                 {
                     case ErrorHandlingMode.Propagate:
                         var didPropagateToRoot = PropagateNullValues(objectResult);
@@ -122,15 +126,16 @@ internal sealed class ValueCompletion
                 .SetPath(path.Append(responseName))
                 .AddLocation(fieldResult.Selection.SyntaxNodes[0].Node)
                 .Build();
+            errorWithPath = _errorHandler.Handle(errorWithPath);
 
             _errors.Add(errorWithPath);
 
-            if (_errorHandling is ErrorHandlingMode.Halt)
+            if (_errorHandlingMode is ErrorHandlingMode.Halt)
             {
                 return false;
             }
 
-            if (_errorHandling is ErrorHandlingMode.Propagate && fieldResult.Selection.Type.IsNonNullType())
+            if (_errorHandlingMode is ErrorHandlingMode.Propagate && fieldResult.Selection.Type.IsNonNullType())
             {
                 var didPropagateToRoot = PropagateNullValues(objectResult);
 
@@ -189,9 +194,10 @@ internal sealed class ValueCompletion
                 .SetPath(parent.Path)
                 .AddLocation(selection.SyntaxNodes[0].Node)
                 .Build();
+            errorWithPath = _errorHandler.Handle(errorWithPath);
             _errors.Add(errorWithPath);
 
-            if (_errorHandling is ErrorHandlingMode.Halt)
+            if (_errorHandlingMode is ErrorHandlingMode.Halt)
             {
                 return false;
             }
@@ -207,10 +213,11 @@ internal sealed class ValueCompletion
                     .SetPath(parent.Path)
                     .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
+                nonNullViolationError = _errorHandler.Handle(nonNullViolationError);
 
                 _errors.Add(nonNullViolationError);
 
-                if (_errorHandling is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                if (_errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
                 {
                     return false;
                 }
@@ -284,9 +291,10 @@ internal sealed class ValueCompletion
                     .SetPath(parent.Path.Append(i))
                     .AddLocation(selection.SyntaxNodes[0].Node)
                     .Build();
+                errorWithPath = _errorHandler.Handle(errorWithPath);
                 _errors.Add(errorWithPath);
 
-                if (_errorHandling is ErrorHandlingMode.Halt)
+                if (_errorHandlingMode is ErrorHandlingMode.Halt)
                 {
                     return false;
                 }
@@ -294,7 +302,7 @@ internal sealed class ValueCompletion
 
             if (item.IsNullOrUndefined())
             {
-                if (!isNullable && _errorHandling is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                if (!isNullable && _errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
                 {
                     return false;
                 }

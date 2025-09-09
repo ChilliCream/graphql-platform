@@ -302,9 +302,13 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton(static sp => sp.GetRequiredService<RequestExecutorAccessor>().RequestExecutor);
         services.AddSingleton<IRequestExecutor>(sp => sp.GetRequiredService<FusionRequestExecutor>());
         services.AddSingleton(static sp => sp.GetRequiredService<ISchemaDefinition>().GetRequestOptions());
-        services.AddSingleton<IErrorHandler>(static sp => new DefaultErrorHandler(sp.GetServices<IErrorFilter>()));
-        services.AddSingleton<IErrorFilter>(static _ => new AddDebugInformationErrorFilter());
         services.TryAddSingleton<INodeIdParser, DefaultNodeIdParser>();
+        services.AddSingleton<IErrorHandler>(static sp => new DefaultErrorHandler(sp.GetServices<IErrorFilter>()));
+
+        if (requestOptions.IncludeExceptionDetails)
+        {
+            services.AddSingleton<IErrorFilter>(static _ => new AddDebugInformationErrorFilter());
+        }
 
         services.AddSingleton(static _ => new SchemaDefinitionAccessor());
         services.AddSingleton(static sp => sp.GetRequiredService<SchemaDefinitionAccessor>().Schema);
