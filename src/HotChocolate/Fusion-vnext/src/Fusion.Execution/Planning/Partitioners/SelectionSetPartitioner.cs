@@ -130,7 +130,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             unresolvableSelections = null;
         }
 
-        resolvableSelections ??= [..selectionSetNode.Selections];
+        resolvableSelections ??= [.. selectionSetNode.Selections];
 
         if (isAbstractType && !resolvableSelections.Any(IsTypeNameSelection))
         {

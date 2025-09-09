@@ -196,7 +196,7 @@ internal sealed class FetchResultStore : IDisposable
                     return false;
                 }
 
-                AddErrors_Next:
+AddErrors_Next:
                 path = ref Unsafe.Add(ref path, 1)!;
             }
         }
@@ -254,7 +254,7 @@ internal sealed class FetchResultStore : IDisposable
                     return false;
                 }
 
-                SaveSafe_Next:
+SaveSafe_Next:
                 result = ref Unsafe.Add(ref result, 1)!;
                 data = ref Unsafe.Add(ref data, 1);
                 errorTrie = ref Unsafe.Add(ref errorTrie, 1)!;

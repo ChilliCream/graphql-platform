@@ -517,7 +517,7 @@ internal sealed class ComposeCommand : Command
         var metadata = new ArchiveMetadata
         {
             SupportedGatewayFormats = [new Version(2, 0, 0)],
-            SourceSchemas = [..sourceSchemas.Keys]
+            SourceSchemas = [.. sourceSchemas.Keys]
         };
 
         await archive.SetArchiveMetadataAsync(metadata, cancellationToken);

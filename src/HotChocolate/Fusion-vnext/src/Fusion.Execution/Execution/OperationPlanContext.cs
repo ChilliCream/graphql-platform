@@ -93,7 +93,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     public IFeatureCollection Features => RequestContext.Features;
 
     public ImmutableDictionary<int, ExecutionNodeTrace> Traces { get; internal set; } =
+#if NET10_0_OR_GREATER
+        [];
+#else
         ImmutableDictionary<int, ExecutionNodeTrace>.Empty;
+#endif
 
     public IFusionExecutionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 
