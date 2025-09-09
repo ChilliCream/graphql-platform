@@ -36,7 +36,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds an interceptor for GraphQL over HTTP  requests to the GraphQL configuration.
+    /// Adds an interceptor for GraphQL over HTTP requests to the GraphQL configuration.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
