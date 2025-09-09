@@ -9,7 +9,6 @@ using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
-using HotChocolate.Fusion.Properties;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CommandLineResources;

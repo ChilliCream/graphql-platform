@@ -1,4 +1,3 @@
-using System.Collections.Frozen;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
