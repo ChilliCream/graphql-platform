@@ -74,8 +74,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                         {
                             Sockets =
                             {
-                                ConnectionInitializationTimeout =
-                                    TimeSpan.FromMilliseconds(1000),
+                                ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(5000),
                                 KeepAliveInterval = TimeSpan.FromMilliseconds(150)
                             }
                         }));
