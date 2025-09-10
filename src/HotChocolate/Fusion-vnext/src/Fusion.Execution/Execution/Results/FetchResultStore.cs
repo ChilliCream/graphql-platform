@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
@@ -18,8 +19,9 @@ internal sealed class FetchResultStore : IDisposable
 {
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
     private readonly ISchemaDefinition _schema;
+    private readonly IErrorHandler _errorHandler;
     private readonly Operation _operation;
-    private readonly ErrorHandlingMode _errorHandling;
+    private readonly ErrorHandlingMode _errorHandlingMode;
     private readonly ulong _includeFlags;
     private readonly ConcurrentStack<IDisposable> _memory = [];
     private ObjectResult _root = null!;
@@ -29,9 +31,10 @@ internal sealed class FetchResultStore : IDisposable
 
     public FetchResultStore(
         ISchemaDefinition schema,
+        IErrorHandler errorHandler,
         ResultPoolSession resultPoolSession,
         Operation operation,
-        ErrorHandlingMode errorHandling,
+        ErrorHandlingMode errorHandlingMode,
         ulong includeFlags)
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -39,8 +42,9 @@ internal sealed class FetchResultStore : IDisposable
         ArgumentNullException.ThrowIfNull(operation);
 
         _schema = schema;
+        _errorHandler = errorHandler;
         _operation = operation;
-        _errorHandling = errorHandling;
+        _errorHandlingMode = errorHandlingMode;
         _includeFlags = includeFlags;
 
         Reset(resultPoolSession);
@@ -55,8 +59,9 @@ internal sealed class FetchResultStore : IDisposable
 
         _valueCompletion = new ValueCompletion(
             _schema,
+            _errorHandler,
             resultPoolSession,
-            _errorHandling,
+            _errorHandlingMode,
             32,
             _includeFlags,
             _errors);
