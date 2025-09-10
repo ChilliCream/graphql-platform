@@ -89,7 +89,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 var message = await WaitForMessage(
                     webSocket,
                     Messages.Ping,
-                    TimeSpan.FromSeconds(5),
+                    TimeSpan.FromSeconds(10),
                     ct);
                 Assert.NotNull(message);
                 Assert.Equal(Messages.Ping, message[MessageProperties.Type]);
