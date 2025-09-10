@@ -13,15 +13,14 @@ public class TestServerFactory : IDisposable
         Action<IServiceCollection> configureServices,
         Action<IApplicationBuilder> configureApplication)
     {
-        var builder = new WebHostBuilder()
-            .Configure(configureApplication)
-            .ConfigureServices(services =>
-            {
-                services.AddHttpContextAccessor();
-                configureServices(services);
-            });
+        var builder = WebApplication.CreateBuilder();
+        builder.Services.AddHttpContextAccessor();
+        configureServices(builder.Services);
 
-        var server = new TestServer(builder);
+        var app = builder.Build();
+        configureApplication(app);
+
+        var server = new TestServer(app.Services);
         _instances.Add(server);
         return server;
     }
