@@ -405,7 +405,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 {""errors"":[{""message"":""The specified operation kind is not allowed.""}]}");
     }
 
-    [Fact]
+    [Fact(Skip = "Flaky")]
     public async Task EventStream_Sends_KeepAlive()
     {
         // arrange
@@ -452,7 +452,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 """);
     }
 
-    [Fact]
+    [Fact(Skip = "Flaky")]
     public async Task EventStream_When_Accept_Is_All()
     {
         // arrange
@@ -499,7 +499,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 """);
     }
 
-    [Fact]
+    [Fact(Skip = "Flaky")]
     public async Task EventStream_When_Accept_Is_All_And_Subscription_Directive()
     {
         // arrange

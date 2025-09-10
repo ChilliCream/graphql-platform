@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using ModelContextProtocol.AspNetCore;
 using ModelContextProtocol.Client;
@@ -65,19 +66,24 @@ public sealed class IntegrationTests
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetSingleField.graphql")));
         var typeModule = new TestTypeModule();
-        var builder = new WebHostBuilder()
-            .ConfigureServices(
-                services => services
-                    .AddRouting()
-                    .AddGraphQL()
-                    .AddTypeModule(_ => typeModule)
-                    .AddMcp()
-                    .AddMcpToolStorage(storage))
-            .Configure(
-                app => app
-                    .UseRouting()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
-        var server = new TestServer(builder);
+        var host = new HostBuilder()
+            .ConfigureWebHost(webHost =>
+            {
+                webHost
+                    .ConfigureServices(services => services
+                        .AddRouting()
+                        .AddGraphQL()
+                        .AddTypeModule(_ => typeModule)
+                        .AddMcp()
+                        .AddMcpToolStorage(storage))
+                    .Configure(app => app
+                        .UseRouting()
+                        .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()))
+                    .UseTestServer();
+            })
+            .Build();
+        await host.StartAsync();
+        var server = host.GetTestServer();
         var mcpClient1 = await CreateMcpClientAsync(server.CreateClient());
         var mcpClient2 = await CreateMcpClientAsync(server.CreateClient());
         var listChangedResetEvent1 = new ManualResetEventSlim(false);
@@ -138,19 +144,24 @@ public sealed class IntegrationTests
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetSingleField.graphql")));
         var typeModule = new TestTypeModule();
-        var builder = new WebHostBuilder()
-            .ConfigureServices(
-                services => services
-                    .AddRouting()
-                    .AddGraphQL()
-                    .AddTypeModule(_ => typeModule)
-                    .AddMcp()
-                    .AddMcpToolStorage(storage))
-            .Configure(
-                app => app
-                    .UseRouting()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
-        var server = new TestServer(builder);
+        var host = new HostBuilder()
+            .ConfigureWebHost(webHost =>
+            {
+                webHost
+                    .ConfigureServices(services => services
+                        .AddRouting()
+                        .AddGraphQL()
+                        .AddTypeModule(_ => typeModule)
+                        .AddMcp()
+                        .AddMcpToolStorage(storage))
+                    .Configure(app => app
+                        .UseRouting()
+                        .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()))
+                    .UseTestServer();
+            })
+            .Build();
+        await host.StartAsync();
+        var server = host.GetTestServer();
         var mcpClient1 = await CreateMcpClientAsync(server.CreateClient());
         var listChangedResetEvent = new ManualResetEventSlim(false);
         mcpClient1.RegisterNotificationHandler(
@@ -540,44 +551,49 @@ public sealed class IntegrationTests
         Action<McpServerOptions>? configureMcpServerOptions = null,
         Action<IMcpServerBuilder>? configureMcpServer = null)
     {
-        var builder = new WebHostBuilder()
-            .ConfigureServices(
-                services =>
-                {
-                    services
-                        .AddAuthentication()
-                        .AddJwtBearer(
-                            o => o.TokenValidationParameters =
-                                new TokenValidationParameters
-                                {
-                                    ValidIssuer = TokenIssuer,
-                                    ValidAudience = TokenAudience,
-                                    IssuerSigningKey = s_tokenKey
-                                });
-
-                    var executor =
+        var host = new HostBuilder()
+            .ConfigureWebHost(webHost =>
+            {
+                webHost
+                    .ConfigureServices(services =>
+                    {
                         services
-                            .AddLogging()
-                            .AddRouting()
-                            .AddGraphQL()
-                            .AddAuthorization()
-                            .AddMcp(configureMcpServerOptions, configureMcpServer)
-                            .AddQueryType<TestSchema.Query>()
-                            .AddMutationType<TestSchema.Mutation>()
-                            .AddInterfaceType<TestSchema.IPet>()
-                            .AddUnionType<TestSchema.IPet>()
-                            .AddObjectType<TestSchema.Cat>()
-                            .AddObjectType<TestSchema.Dog>();
+                            .AddAuthentication()
+                            .AddJwtBearer(
+                                o => o.TokenValidationParameters =
+                                    new TokenValidationParameters
+                                    {
+                                        ValidIssuer = TokenIssuer,
+                                        ValidAudience = TokenAudience,
+                                        IssuerSigningKey = s_tokenKey
+                                    });
 
-                    configureRequestExecutor?.Invoke(executor);
-                })
-            .Configure(
-                app => app
-                    .UseRouting()
-                    .UseAuthentication()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
+                        var executor =
+                            services
+                                .AddLogging()
+                                .AddRouting()
+                                .AddGraphQL()
+                                .AddAuthorization()
+                                .AddMcp(configureMcpServerOptions, configureMcpServer)
+                                .AddQueryType<TestSchema.Query>()
+                                .AddMutationType<TestSchema.Mutation>()
+                                .AddInterfaceType<TestSchema.IPet>()
+                                .AddUnionType<TestSchema.IPet>()
+                                .AddObjectType<TestSchema.Cat>()
+                                .AddObjectType<TestSchema.Dog>();
 
-        return new TestServer(builder);
+                        configureRequestExecutor?.Invoke(executor);
+                    })
+                    .Configure(app => app
+                        .UseRouting()
+                        .UseAuthentication()
+                        .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()))
+                    .UseTestServer();
+            })
+            .Build();
+
+        host.Start();
+        return host.GetTestServer();
     }
 
     private static async Task<IMcpClient> CreateMcpClientAsync(HttpClient httpClient, string? token = null)
