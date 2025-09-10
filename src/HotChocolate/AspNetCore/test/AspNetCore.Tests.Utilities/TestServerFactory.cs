@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 
@@ -13,15 +14,22 @@ public class TestServerFactory : IDisposable
         Action<IServiceCollection> configureServices,
         Action<IApplicationBuilder> configureApplication)
     {
-        var builder = new WebHostBuilder()
-            .Configure(configureApplication)
-            .ConfigureServices(services =>
+        var host = new HostBuilder()
+            .ConfigureWebHost(webHost =>
             {
-                services.AddHttpContextAccessor();
-                configureServices(services);
-            });
+                webHost
+                    .ConfigureServices(services =>
+                    {
+                        services.AddHttpContextAccessor();
+                        configureServices(services);
+                    })
+                    .Configure(configureApplication)
+                    .UseTestServer();
+            })
+            .Build();
 
-        var server = new TestServer(builder);
+        host.Start();
+        var server = host.GetTestServer();
         _instances.Add(server);
         return server;
     }
