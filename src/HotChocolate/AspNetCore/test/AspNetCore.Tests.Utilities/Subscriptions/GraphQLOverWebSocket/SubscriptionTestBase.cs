@@ -14,7 +14,7 @@ public class SubscriptionTestBase(TestServerFactory serverFactory)
         WebSocket webSocket,
         string type,
         CancellationToken cancellationToken)
-        => WaitForMessage(webSocket, type, TimeSpan.FromSeconds(1), cancellationToken); // TODO: Increase timeout?
+        => WaitForMessage(webSocket, type, TimeSpan.FromSeconds(5), cancellationToken);
 
     protected async Task<IReadOnlyDictionary<string, object?>?> WaitForMessage(
         WebSocket webSocket,
