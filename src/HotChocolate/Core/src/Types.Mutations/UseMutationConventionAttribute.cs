@@ -92,6 +92,13 @@ public class UseMutationConventionAttribute : ObjectFieldDescriptorAttribute
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
     {
+        var returnType = member.GetReturnType();
+
+        if (returnType == typeof(void) || returnType == typeof(Task) || returnType == typeof(ValueTask))
+        {
+            throw ThrowHelper.MutationMustReturnValue(member.Name);
+        }
+
         descriptor.Extend().OnBeforeNaming(
             (c, d) => c.GetMutationFields().Add(
                 new MutationContextData(d,
