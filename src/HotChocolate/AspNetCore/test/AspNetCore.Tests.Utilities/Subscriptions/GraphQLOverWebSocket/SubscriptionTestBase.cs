@@ -14,7 +14,7 @@ public class SubscriptionTestBase(TestServerFactory serverFactory)
         WebSocket webSocket,
         string type,
         CancellationToken cancellationToken)
-        => WaitForMessage(webSocket, type, TimeSpan.FromSeconds(5), cancellationToken);
+        => WaitForMessage(webSocket, type, TimeSpan.FromSeconds(1), cancellationToken);
 
     protected async Task<IReadOnlyDictionary<string, object?>?> WaitForMessage(
         WebSocket webSocket,
@@ -105,7 +105,7 @@ public class SubscriptionTestBase(TestServerFactory serverFactory)
     protected static async Task TryTest(Func<CancellationToken, Task> action)
     {
         // we will try four times ...
-        using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 30_000);
+        using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 15_000);
         var ct = cts.Token;
         var count = 0;
         var wait = 50;

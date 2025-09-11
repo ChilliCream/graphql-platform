@@ -74,7 +74,8 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                         {
                             Sockets =
                             {
-                                ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(5000),
+                                ConnectionInitializationTimeout =
+                                    TimeSpan.FromMilliseconds(1000),
                                 KeepAliveInterval = TimeSpan.FromMilliseconds(150)
                             }
                         }));
@@ -89,7 +90,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 var message = await WaitForMessage(
                     webSocket,
                     Messages.Ping,
-                    TimeSpan.FromSeconds(10),
+                    TimeSpan.FromSeconds(5),
                     ct);
                 Assert.NotNull(message);
                 Assert.Equal(Messages.Ping, message[MessageProperties.Type]);
