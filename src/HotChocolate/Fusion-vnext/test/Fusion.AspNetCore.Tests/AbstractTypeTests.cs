@@ -60,13 +60,12 @@ public class AbstractTypeTests : FusionTestBase
                 .AddQueryType<SourceSchema1.Query>()
                 .AddType<SourceSchema1.Discussion>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         using var result = await client.PostAsync(
@@ -86,7 +85,7 @@ public class AbstractTypeTests : FusionTestBase
             """,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
         response.MatchSnapshot();
     }
@@ -109,14 +108,13 @@ public class AbstractTypeTests : FusionTestBase
                 .AddQueryType<SourceSchema2.Query>()
                 .AddType<SourceSchema2.Author>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         using var result = await client.PostAsync(
@@ -133,7 +131,7 @@ public class AbstractTypeTests : FusionTestBase
             """,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
         response.MatchSnapshot();
     }
@@ -156,14 +154,13 @@ public class AbstractTypeTests : FusionTestBase
                 .AddQueryType<SourceSchema2.Query>()
                 .AddType<SourceSchema2.Author>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         using var result = await client.PostAsync(
@@ -180,7 +177,7 @@ public class AbstractTypeTests : FusionTestBase
             """,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
         response.MatchSnapshot();
     }
@@ -203,14 +200,13 @@ public class AbstractTypeTests : FusionTestBase
                 .AddQueryType<SourceSchema2.Query>()
                 .AddType<SourceSchema2.Author>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1),
             ("B", server2)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         using var result = await client.PostAsync(
@@ -224,7 +220,7 @@ public class AbstractTypeTests : FusionTestBase
             """,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
         response.MatchSnapshot();
     }
@@ -241,13 +237,12 @@ public class AbstractTypeTests : FusionTestBase
                 .AddType<SourceSchema1.Author>()
                 .AddType<SourceSchema1.Product>());
 
-        // act
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("A", server1)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         using var result = await client.PostAsync(
@@ -266,7 +261,7 @@ public class AbstractTypeTests : FusionTestBase
             """,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
         response.MatchSnapshot();
     }
