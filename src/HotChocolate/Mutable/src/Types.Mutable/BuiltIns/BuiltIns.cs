@@ -105,6 +105,16 @@ public static class BuiltIns
         }
     }
 
+    public static class OneOf
+    {
+        public const string Name = "oneOf";
+
+        public static OneOfMutableDirectiveDefinition Create()
+        {
+            return new OneOfMutableDirectiveDefinition();
+        }
+    }
+
     public static bool IsBuiltInScalar(string name)
         => name switch
         {
@@ -123,6 +133,7 @@ public static class BuiltIns
             Skip.Name => true,
             Deprecated.Name => true,
             SpecifiedBy.Name => true,
+            OneOf.Name => true,
             _ => false
         };
 }
