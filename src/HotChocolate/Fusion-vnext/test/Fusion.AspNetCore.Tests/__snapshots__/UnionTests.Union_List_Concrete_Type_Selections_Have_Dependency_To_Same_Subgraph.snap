@@ -1,0 +1,112 @@
+{
+  "data": {
+    "posts": [
+      {
+        "product": {
+          "subgraph2": "string"
+        }
+      },
+      {
+        "product": {
+          "subgraph2": "string"
+        }
+      },
+      {
+        "product": {
+          "subgraph2": "string"
+        }
+      }
+    ]
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "8b1d957467d5c6afc062199f3269d847458d68062a9bdd15cec92c60427b5823",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery {\n  posts {\n    __typename @fusion__requirement\n    ... on Photo {\n      product {\n        subgraph2\n        id @fusion__requirement\n      }\n    }\n    ... on Discussion {\n      author {\n        subgraph2\n        id @fusion__requirement\n      }\n    }\n  }\n}",
+          "id": "5f4670e8910662aebec5f35dcb7ea523",
+          "hash": "5f4670e8910662aebec5f35dcb7ea523",
+          "shortHash": "5f4670e8"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_5f4670e8_1",
+              "kind": "Query",
+              "document": "query testQuery_5f4670e8_1 {\n  posts {\n    __typename\n    ... on Photo {\n      product {\n        id\n      }\n    }\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}",
+              "hash": "cafed0574f970ee4a69b51b88c6d0ad35b42f7b53f53e084aa519458282cf9f3",
+              "shortHash": "cafed057"
+            },
+            "responseNames": [
+              "posts"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "testQuery_5f4670e8_2",
+              "kind": "Query",
+              "document": "query testQuery_5f4670e8_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    subgraph2\n  }\n}",
+              "hash": "4fae66469e578fe456e8e3382c31f7156eaa2935cb37ee2da13fe43aafd49855",
+              "shortHash": "4fae6646"
+            },
+            "responseNames": [
+              "subgraph2"
+            ],
+            "source": "$.authorById",
+            "target": "$.posts<Discussion>.author",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "ID!",
+                "path": "$.posts<Discussion>.author",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "testQuery_5f4670e8_3",
+              "kind": "Query",
+              "document": "query testQuery_5f4670e8_3(\n  $__fusion_2_id: ID!\n) {\n  productById(id: $__fusion_2_id) {\n    subgraph2\n  }\n}",
+              "hash": "7a5ff940d2ca1f2835278b6facbea6cd31b3df55c4ca42037a76f3974c78b0bd",
+              "shortHash": "7a5ff940"
+            },
+            "responseNames": [
+              "subgraph2"
+            ],
+            "source": "$.productById",
+            "target": "$.posts<Photo>.product",
+            "requirements": [
+              {
+                "name": "__fusion_2_id",
+                "type": "ID!",
+                "path": "$.posts<Photo>.product",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

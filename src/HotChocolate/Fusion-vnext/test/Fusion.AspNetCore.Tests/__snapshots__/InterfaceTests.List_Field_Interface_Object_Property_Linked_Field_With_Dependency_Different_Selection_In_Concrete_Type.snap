@@ -1,0 +1,121 @@
+{
+  "data": {
+    "wrappers": [
+      {
+        "authorable": {
+          "author": {
+            "displayName": "string",
+            "email": "string"
+          }
+        }
+      },
+      {
+        "authorable": {
+          "author": {
+            "displayName": "string",
+            "email": "string"
+          }
+        }
+      },
+      {
+        "authorable": {
+          "author": {
+            "displayName": "string",
+            "email": "string"
+          }
+        }
+      }
+    ]
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "2da2bfc98fa4b6dfa3d436be960f2981376e2a02f7a63267f497d6946cf7d3e3",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery {\n  wrappers {\n    authorable {\n      __typename @fusion__requirement\n      author {\n        displayName\n        id @fusion__requirement\n      }\n      ... on Discussion {\n        author {\n          email\n          id @fusion__requirement\n        }\n      }\n    }\n  }\n}",
+          "id": "a7ffad6524e32b71feed6541aa4acfb2",
+          "hash": "a7ffad6524e32b71feed6541aa4acfb2",
+          "shortHash": "a7ffad65"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_a7ffad65_1",
+              "kind": "Query",
+              "document": "query testQuery_a7ffad65_1 {\n  wrappers {\n    authorable {\n      __typename\n      author {\n        id\n      }\n      ... on Discussion {\n        author {\n          id\n        }\n      }\n    }\n  }\n}",
+              "hash": "ffc23af9fb5fb9331645117b457fd5055a80abe62c75f56e41fc4b6f61edcb29",
+              "shortHash": "ffc23af9"
+            },
+            "responseNames": [
+              "wrappers"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "testQuery_a7ffad65_2",
+              "kind": "Query",
+              "document": "query testQuery_a7ffad65_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    email\n  }\n}",
+              "hash": "b1cc243e6e76566cbfd133f52fc079eba71ea560e566beaf67a2345b9b133834",
+              "shortHash": "b1cc243e"
+            },
+            "responseNames": [
+              "email"
+            ],
+            "source": "$.authorById",
+            "target": "$.wrappers.authorable<Discussion>.author",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "ID!",
+                "path": "$.wrappers.authorable<Discussion>.author",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "testQuery_a7ffad65_3",
+              "kind": "Query",
+              "document": "query testQuery_a7ffad65_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    displayName\n  }\n}",
+              "hash": "65b8687d322662242578e5d9135f66393eaaebe4f7ae6d3c27077a8a693b3804",
+              "shortHash": "65b8687d"
+            },
+            "responseNames": [
+              "displayName"
+            ],
+            "source": "$.authorById",
+            "target": "$.wrappers.authorable.author",
+            "requirements": [
+              {
+                "name": "__fusion_2_id",
+                "type": "ID!",
+                "path": "$.wrappers.authorable.author",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

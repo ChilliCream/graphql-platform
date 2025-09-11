@@ -1,0 +1,92 @@
+{
+  "data": {
+    "wrappers": [
+      {
+        "votable": {
+          "viewerCanVote": true,
+          "author": {
+            "displayName": "string"
+          }
+        }
+      },
+      {
+        "votable": {
+          "viewerCanVote": true,
+          "author": {
+            "displayName": "string"
+          }
+        }
+      },
+      {
+        "votable": {
+          "viewerCanVote": true,
+          "author": {
+            "displayName": "string"
+          }
+        }
+      }
+    ]
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "e549dd1034d4d15a654b79922644492f09b4ca5b3fd11b8009ceb63a60f23ae7",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery {\n  wrappers {\n    votable {\n      __typename @fusion__requirement\n      viewerCanVote\n      ... on Discussion {\n        author {\n          displayName\n          id @fusion__requirement\n        }\n      }\n    }\n  }\n}",
+          "id": "8c4ceb7d5d586957711457c466f93384",
+          "hash": "8c4ceb7d5d586957711457c466f93384",
+          "shortHash": "8c4ceb7d"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_8c4ceb7d_1",
+              "kind": "Query",
+              "document": "query testQuery_8c4ceb7d_1 {\n  wrappers {\n    votable {\n      __typename\n      viewerCanVote\n      ... on Discussion {\n        author {\n          id\n        }\n      }\n    }\n  }\n}",
+              "hash": "10936cf4e821af6479bb2954e37661e35c30ba5928ae140a12d2580d26079ab6",
+              "shortHash": "10936cf4"
+            },
+            "responseNames": [
+              "wrappers"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "testQuery_8c4ceb7d_2",
+              "kind": "Query",
+              "document": "query testQuery_8c4ceb7d_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}",
+              "hash": "48a01116b645c38e5fbb6cc5e5eef69b814fdde6ebc70a049ccc63ee7c14245a",
+              "shortHash": "48a01116"
+            },
+            "responseNames": [
+              "displayName"
+            ],
+            "source": "$.authorById",
+            "target": "$.wrappers.votable<Discussion>.author",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "ID!",
+                "path": "$.wrappers.votable<Discussion>.author",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
