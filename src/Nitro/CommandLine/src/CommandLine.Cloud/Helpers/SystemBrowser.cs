@@ -7,7 +7,6 @@ using Duende.IdentityModel.OidcClient.Browser;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting;
 using static ChilliCream.Nitro.CommandLine.Cloud.OidcConfiguration;
 
 namespace ChilliCream.Nitro.CommandLine.Cloud.Helpers;
@@ -99,19 +98,15 @@ file sealed class LoopbackHttpListener : IAsyncDisposable
 {
     private const int DefaultTimeout = 60 * 5; // 5 mins (in seconds)
 
-    private readonly IHost _host;
+    private readonly IWebHost _host;
     private readonly TaskCompletionSource<string> _source = new();
 
     public LoopbackHttpListener(int port, string? path = null)
     {
-        _host = Host.CreateDefaultBuilder()
-            .ConfigureWebHostDefaults(webHost =>
-            {
-                webHost
-                    .UseKestrel()
-                    .UseUrls(new UriBuilder("http", "localhost", port, path).ToString())
-                    .Configure(app => app.Run(Execute));
-            })
+        _host = new WebHostBuilder()
+            .UseKestrel()
+            .UseUrls(new UriBuilder("http", "localhost", port, path).ToString())
+            .Configure(app => app.Run(Execute))
             .Build();
 
         _host.Start();
