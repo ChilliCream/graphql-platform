@@ -11,8 +11,8 @@ public ref partial struct Utf8GraphQLParser
     private NameNode ParseName()
     {
         var start = Start();
-        var name = ExpectName();
         var location = CreateLocation(in start);
+        var name = ExpectName();
 
         return new NameNode
         (
