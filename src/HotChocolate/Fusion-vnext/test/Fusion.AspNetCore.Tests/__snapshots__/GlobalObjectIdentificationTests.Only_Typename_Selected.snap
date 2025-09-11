@@ -1,0 +1,50 @@
+{
+  "data": {
+    "node": {
+      "__typename": "Discussion"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "97692b7c58c7518d77f31706c68082c3bbba5ee8a86cc7f5b727714651be120f",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n  }\n}",
+          "id": "539ebaa030bba518e0df8205ab40b139",
+          "hash": "539ebaa030bba518e0df8205ab40b139",
+          "shortHash": "539ebaa0"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Node",
+            "idValue": "$id",
+            "responseName": "node",
+            "branches": {},
+            "fallback": 2
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "operation": {
+              "name": "testQuery_539ebaa0_2",
+              "kind": "Query",
+              "document": "query testQuery_539ebaa0_2(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n  }\n}",
+              "hash": "f171005ed388dc8f24525e072beda2808c58309b465dc7912bcf69fb0b789206",
+              "shortHash": "f171005e"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "data": {
+    "node": {
+      "id": "RGlzY3Vzc2lvbjox",
+      "__typename": "Discussion"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "4036cb917f90fdd217d35c54949907c1573164266becdce8dd88ccce79280e0d",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    id\n    __typename\n  }\n}",
+          "id": "e41649ee31cd981b466ba95313d9c143",
+          "hash": "e41649ee31cd981b466ba95313d9c143",
+          "shortHash": "e41649ee"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Node",
+            "idValue": "\"RGlzY3Vzc2lvbjox\"",
+            "responseName": "node",
+            "branches": {},
+            "fallback": 2
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "operation": {
+              "name": "Op_e41649ee_2",
+              "kind": "Query",
+              "document": "query Op_e41649ee_2 {\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    id\n    __typename\n  }\n}",
+              "hash": "70dc685ba0a2528ae15d3222f064c7aad04e3f0e90b0ce49b0f091f93d96f3b2",
+              "shortHash": "70dc685b"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
