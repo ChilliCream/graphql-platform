@@ -11,24 +11,53 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     public async Task Concrete_Type_Branch_Requested()
     {
         // arrange
-        using var server1 = CreateSourceSchema(
+        using var serverA = CreateSourceSchema(
             "A",
-            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
-                .AddQueryType<SourceSchema1.Query>());
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+            }
 
-        using var server2 = CreateSourceSchema(
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              title: String!
+            }
+            """);
+        using var serverB = CreateSourceSchema(
             "B",
-            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
-                .AddQueryType<SourceSchema2.Query>());
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              discussionById(id: ID!): Discussion @lookup @internal
+            }
 
-        // act
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              commentCount: Int!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """);
+
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
-            ("B", server2)
+            ("A", serverA),
+            ("B", serverB)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         using var result = await client.PostAsync(
@@ -45,7 +74,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
         response.MatchSnapshot();
     }
@@ -54,25 +83,53 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     public async Task Concrete_Type_Branch_Requested_Abstract_Lookup()
     {
         // arrange
-        using var server1 = CreateSourceSchema(
+        using var serverA = CreateSourceSchema(
             "A",
-            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
-                .AddQueryType<SourceSchema1.Query>());
+            """
+             type Query {
+               node(id: ID!): Node @lookup
+               discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+             }
 
-        using var server2 = CreateSourceSchema(
+             interface Node {
+               id: ID!
+             }
+
+             type Discussion implements Node {
+               id: ID!
+               title: String!
+             }
+             """);
+        using var serverB = CreateSourceSchema(
             "B",
-            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
-                .AddQueryType<SourceSchema2.Query>()
-                .AddType<SourceSchema2.Product>());
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              discussionById(id: ID!): Discussion @lookup @internal
+            }
 
-        // act
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              commentCount: Int!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """);
+
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
-            ("B", server2)
+            ("A", serverA),
+            ("B", serverB)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         using var result = await client.PostAsync(
@@ -89,7 +146,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
         response.MatchSnapshot();
     }
@@ -98,24 +155,53 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     public async Task Invalid_Id_Requested()
     {
         // arrange
-        using var server1 = CreateSourceSchema(
+        using var serverA = CreateSourceSchema(
             "A",
-            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
-                .AddQueryType<SourceSchema1.Query>());
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+            }
 
-        using var server2 = CreateSourceSchema(
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              title: String!
+            }
+            """);
+        using var serverB = CreateSourceSchema(
             "B",
-            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
-                .AddQueryType<SourceSchema2.Query>());
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              discussionById(id: ID!): Discussion @lookup @internal
+            }
 
-        // act
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              commentCount: Int!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """);
+
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
-            ("B", server2)
+            ("A", serverA),
+            ("B", serverB)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         using var result = await client.PostAsync(
@@ -130,7 +216,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
         response.MatchSnapshot();
     }
@@ -139,24 +225,53 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     public async Task Id_Of_Unknown_Type_Requested()
     {
         // arrange
-        using var server1 = CreateSourceSchema(
+        using var serverA = CreateSourceSchema(
             "A",
-            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
-                .AddQueryType<SourceSchema1.Query>());
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+            }
 
-        using var server2 = CreateSourceSchema(
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              title: String!
+            }
+            """);
+        using var serverB = CreateSourceSchema(
             "B",
-            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
-                .AddQueryType<SourceSchema2.Query>());
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              discussionById(id: ID!): Discussion @lookup @internal
+            }
 
-        // act
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              commentCount: Int!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """);
+
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
-            ("B", server2)
+            ("A", serverA),
+            ("B", serverB)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         using var result = await client.PostAsync(
@@ -172,34 +287,63 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
         response.MatchSnapshot();
     }
 
     [Fact]
+    // TODO: This should return a product
     public async Task Id_Of_Type_Different_From_Concrete_Type_Selections_Requested()
     {
         // arrange
-        using var server1 = CreateSourceSchema(
+        using var serverA = CreateSourceSchema(
             "A",
-            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
-                .AddQueryType<SourceSchema1.Query>());
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+            }
 
-        using var server2 = CreateSourceSchema(
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              title: String!
+            }
+            """);
+        using var serverB = CreateSourceSchema(
             "B",
-            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
-                .AddQueryType<SourceSchema2.Query>()
-                .AddType<SourceSchema2.Product>());
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              discussionById(id: ID!): Discussion @lookup @internal
+            }
 
-        // act
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              commentCount: Int!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """);
+
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
-            ("B", server2)
+            ("A", serverA),
+            ("B", serverB)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         using var result = await client.PostAsync(
@@ -216,7 +360,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
         response.MatchSnapshot();
     }
@@ -225,24 +369,53 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     public async Task Only_TypeName_Selected_On_Concrete_Type()
     {
         // arrange
-        using var server1 = CreateSourceSchema(
+        using var serverA = CreateSourceSchema(
             "A",
-            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
-                .AddQueryType<SourceSchema1.Query>());
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+            }
 
-        using var server2 = CreateSourceSchema(
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              title: String!
+            }
+            """);
+        using var serverB = CreateSourceSchema(
             "B",
-            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
-                .AddQueryType<SourceSchema2.Query>());
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              discussionById(id: ID!): Discussion @lookup @internal
+            }
 
-        // act
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              commentCount: Int!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """);
+
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
-            ("B", server2)
+            ("A", serverA),
+            ("B", serverB)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         using var result = await client.PostAsync(
@@ -258,7 +431,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
         response.MatchSnapshot();
     }
@@ -267,23 +440,44 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     public async Task No_By_Id_Lookup_On_Best_Matching_Source_Schema()
     {
         // arrange
-        using var server1 = CreateSourceSchema(
+        using var serverA = CreateSourceSchema(
             "A",
-            b => b.AddQueryType<SourceSchema3.Query>());
+            """
+            type Query {
+              discussionByName(title: String! @is(field: "title")): Discussion @lookup
+            }
 
-        using var server2 = CreateSourceSchema(
+            type Discussion {
+              id: ID!
+              title: String!
+              commentCount: Int!
+            }
+            """);
+        using var serverB = CreateSourceSchema(
             "B",
-            b => b.AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
-                .AddQueryType<SourceSchema1.Query>());
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+            }
 
-        // act
+            interface Node {
+              id: ID!
+            }
+
+            type Discussion implements Node {
+              id: ID!
+              title: String!
+            }
+            """);
+
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("A", server1),
-            ("B", server2)
+            ("A", serverA),
+            ("B", serverB)
         ]);
 
-        // assert
+        // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
         using var result = await client.PostAsync(
@@ -299,71 +493,8 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """,
             new Uri("http://localhost:5000/graphql"));
 
-        // act
+        // assert
         using var response = await result.ReadAsResultAsync();
         response.MatchSnapshot();
-    }
-
-    public static class SourceSchema1
-    {
-        public class Query
-        {
-            [Lookup]
-            public Discussion? GetDiscussionById([Is("id")][ID] int discussionId)
-                => new Discussion(discussionId, "Discussion " + discussionId);
-        }
-
-        [Node]
-        public record Discussion(int Id, string Title)
-        {
-            [NodeResolver]
-            public static Discussion Get(int id)
-                => new Discussion(id, "Discussion " + id);
-        }
-    }
-
-    public static class SourceSchema2
-    {
-        public class Query
-        {
-            [Lookup]
-            [Internal]
-            public Discussion? GetDiscussionById([ID] int id)
-                => new Discussion(id, id * 3);
-        }
-
-        [Node]
-        public record Discussion(int Id, int CommentCount)
-        {
-            [NodeResolver]
-            public static Discussion Get(int id)
-                => new Discussion(id, id * 3);
-        }
-
-        [Node]
-        public record Product(int Id)
-        {
-            [NodeResolver]
-            public static Product Get(int id)
-                => new Product(id);
-
-            public string Name => "Product " + Id;
-        }
-    }
-
-    public static class SourceSchema3
-    {
-        public class Query
-        {
-            [Lookup]
-            public Discussion? GetDiscussionByName([Is("title")] string title)
-            {
-                var id = int.Parse(title["Discussion ".Length..]);
-
-                return new Discussion(id, title, id * 3);
-            }
-        }
-
-        public record Discussion([property: ID] int Id, string Title, int CommentCount);
     }
 }
