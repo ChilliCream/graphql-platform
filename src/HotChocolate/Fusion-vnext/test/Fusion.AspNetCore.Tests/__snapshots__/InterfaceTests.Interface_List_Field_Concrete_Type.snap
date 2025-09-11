@@ -1,0 +1,51 @@
+{
+  "data": {
+    "votables": [
+      {
+        "viewerCanVote": true,
+        "title": "string"
+      },
+      {
+        "viewerCanVote": true,
+        "title": "string"
+      },
+      {
+        "viewerCanVote": true,
+        "title": "string"
+      }
+    ]
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "c7554a32ca5948f63b939fb78519af66b0190f6f7f4b5b9c9d22dfc939ad7c0a",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery {\n  votables {\n    __typename @fusion__requirement\n    viewerCanVote\n    ... on Discussion {\n      title\n    }\n  }\n}",
+          "id": "00fdde4e326e6921b2781d072a80cb83",
+          "hash": "00fdde4e326e6921b2781d072a80cb83",
+          "shortHash": "00fdde4e"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_00fdde4e_1",
+              "kind": "Query",
+              "document": "query testQuery_00fdde4e_1 {\n  votables {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      title\n    }\n  }\n}",
+              "hash": "1a56882228b962f60ed7a92a63b56b02c4d90bb9b05ea5bfa48693cc4f9ca18d",
+              "shortHash": "1a568822"
+            },
+            "responseNames": [
+              "votables"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

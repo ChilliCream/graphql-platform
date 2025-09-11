@@ -1,0 +1,72 @@
+{
+  "data": {
+    "votable": {
+      "viewerCanVote": true,
+      "author": {
+        "displayName": "string"
+      }
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "84f7a2e0303cd7e01608fcc66e0838bd4227d2ea350f5cdb8788d97737b42bbc",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery {\n  votable {\n    __typename @fusion__requirement\n    viewerCanVote\n    ... on Discussion {\n      author {\n        displayName\n        id @fusion__requirement\n      }\n    }\n  }\n}",
+          "id": "b4cd91a7bd7792cc9829f051b0968852",
+          "hash": "b4cd91a7bd7792cc9829f051b0968852",
+          "shortHash": "b4cd91a7"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_b4cd91a7_1",
+              "kind": "Query",
+              "document": "query testQuery_b4cd91a7_1 {\n  votable {\n    __typename\n    viewerCanVote\n    ... on Discussion {\n      author {\n        id\n      }\n    }\n  }\n}",
+              "hash": "4ff4b39b1a3194329d0ca7308fde73dcdfd598d8efc4154da9e98b2295cd3b2b",
+              "shortHash": "4ff4b39b"
+            },
+            "responseNames": [
+              "votable"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "testQuery_b4cd91a7_2",
+              "kind": "Query",
+              "document": "query testQuery_b4cd91a7_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    displayName\n  }\n}",
+              "hash": "6b62ad6bb5232efd4abf3910760474a3fb88e2bafb8810c68da93342d066be91",
+              "shortHash": "6b62ad6b"
+            },
+            "responseNames": [
+              "displayName"
+            ],
+            "source": "$.authorById",
+            "target": "$.votable<Discussion>.author",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "ID!",
+                "path": "$.votable<Discussion>.author",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
