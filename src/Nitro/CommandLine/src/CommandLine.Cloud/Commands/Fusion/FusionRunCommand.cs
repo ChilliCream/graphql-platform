@@ -53,42 +53,38 @@ public class FusionRunCommand : Command
 
         port ??= GetRandomUnusedPort();
 
-        var host = Host.CreateDefaultBuilder()
-            .ConfigureWebHostDefaults(webHost =>
+        var host = new WebHostBuilder()
+            .UseKestrel()
+            .UseUrls(new UriBuilder("http", "localhost", port.Value).ToString())
+            .ConfigureServices(services =>
             {
-                webHost
-                    .UseKestrel()
-                    .UseUrls(new UriBuilder("http", "localhost", port.Value).ToString())
-                    .ConfigureServices(services =>
+                services
+                    .AddCors()
+                    .AddHeaderPropagation(c =>
                     {
-                        services
-                            .AddCors()
-                            .AddHeaderPropagation(c =>
-                            {
-                                c.Headers.Add("GraphQL-Preflight");
-                                c.Headers.Add("Authorization");
-                            });
-
-                        services
-                            .AddHttpClient("fusion")
-                            .AddHeaderPropagation();
-
-                        services.AddRouting()
-                            .AddGraphQLGatewayServer()
-                            .AddFileSystemConfiguration(archiveFile.FullName)
-                            .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true);
-                    })
-                    .Configure(app =>
-                    {
-                        app.UseRouting();
-                        app.UseHeaderPropagation();
-                        app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
-                        app.UseEndpoints(e => e.MapGraphQL()
-                            .WithOptions(new HotChocolate.AspNetCore.GraphQLServerOptions
-                            {
-                                Tool = { ServeMode = HotChocolate.AspNetCore.GraphQLToolServeMode.Insider }
-                            }));
+                        c.Headers.Add("GraphQL-Preflight");
+                        c.Headers.Add("Authorization");
                     });
+
+                services
+                    .AddHttpClient("fusion")
+                    .AddHeaderPropagation();
+
+                services.AddRouting()
+                    .AddGraphQLGatewayServer()
+                    .AddFileSystemConfiguration(archiveFile.FullName)
+                    .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true);
+            })
+            .Configure(app =>
+            {
+                app.UseRouting();
+                app.UseHeaderPropagation();
+                app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+                app.UseEndpoints(e => e.MapGraphQL()
+                    .WithOptions(new HotChocolate.AspNetCore.GraphQLServerOptions
+                    {
+                        Tool = { ServeMode = HotChocolate.AspNetCore.GraphQLToolServeMode.Insider }
+                    }));
             })
             .Build();
 
