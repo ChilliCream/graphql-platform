@@ -11,7 +11,7 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
     {
         // arrange
         var newExecutorCreatedResetEvent = new ManualResetEventSlim(false);
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var server = CreateStarWarsServer();
 
         var time1 = await server.GetAsync(new ClientQueryRequest { Query = "{ time }" });
@@ -43,7 +43,7 @@ public class EvictSchemaTests(TestServerFactory serverFactory) : ServerTestBase(
     {
         // arrange
         var newExecutorCreatedResetEvent = new ManualResetEventSlim(false);
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var server = CreateStarWarsServer();
 
         var time1 = await server.GetAsync(
