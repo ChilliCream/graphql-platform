@@ -1,0 +1,89 @@
+{
+  "data": {
+    "node": {
+      "viewerCanVote": true
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "e90290755d752faa0ab49349ac38fab1dd680763385d771952aebe8dfdae46b7",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename @fusion__requirement\n    ... on Votable {\n      viewerCanVote\n    }\n  }\n}",
+          "id": "63ca3aafa7eb59911553fe11e060f57b",
+          "hash": "63ca3aafa7eb59911553fe11e060f57b",
+          "shortHash": "63ca3aaf"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Node",
+            "idValue": "$id",
+            "responseName": "node",
+            "branches": {
+              "Comment": 4,
+              "Discussion": 3
+            },
+            "fallback": 2
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "operation": {
+              "name": "testQuery_63ca3aaf_2",
+              "kind": "Query",
+              "document": "query testQuery_63ca3aaf_2(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n  }\n}",
+              "hash": "5333aeb2d96e06b3eeed9b427a989e713d5d2cf5dfe987142c41bcd7f65109f4",
+              "shortHash": "5333aeb2"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_63ca3aaf_3",
+              "kind": "Query",
+              "document": "query testQuery_63ca3aaf_3(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Discussion {\n      __typename\n      viewerCanVote\n    }\n  }\n}",
+              "hash": "6bea74cc18f1228748be35e05b5d29d16557072fb444ac739ef61a93daa813bb",
+              "shortHash": "6bea74cc"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_63ca3aaf_4",
+              "kind": "Query",
+              "document": "query testQuery_63ca3aaf_4(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Comment {\n      __typename\n      viewerCanVote\n    }\n  }\n}",
+              "hash": "c0c96821074391ca8fb99de15177ba7661b13e02853c9f18789ea58ce01525c1",
+              "shortHash": "c0c96821"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "data": {
+    "viewer": {
+      "username": "string"
+    },
+    "node": {
+      "__typename": "Discussion",
+      "title": "string"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "aacdeb62344ee8b9fd4861865666224c84175b4ff77215a41761ac4314769782",
+        "operation": {
+          "name": "testQuery",
+          "kind": "Query",
+          "document": "query testQuery(\n  $id: ID!\n) {\n  viewer {\n    username\n  }\n  node(id: $id) {\n    __typename\n    ... on Discussion {\n      title\n    }\n  }\n}",
+          "id": "a938b4c52d1e2c08a24b7a7858fa95dd",
+          "hash": "a938b4c52d1e2c08a24b7a7858fa95dd",
+          "shortHash": "a938b4c5"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Node",
+            "idValue": "$id",
+            "responseName": "node",
+            "branches": {
+              "Discussion": 3
+            },
+            "fallback": 2
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "operation": {
+              "name": "testQuery_a938b4c5_2",
+              "kind": "Query",
+              "document": "query testQuery_a938b4c5_2(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n  }\n}",
+              "hash": "e7d6dbff074ebb3031826fa33dde87e4d4a70beeaa19537adebb9a96af9c12f1",
+              "shortHash": "e7d6dbff"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_a938b4c5_3",
+              "kind": "Query",
+              "document": "query testQuery_a938b4c5_3(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on Discussion {\n      __typename\n      title\n    }\n  }\n}",
+              "hash": "4a141a822b44dee71ae9738825abf6cb1e37f742c926d873bcb5b0e32c2e13f2",
+              "shortHash": "4a141a82"
+            },
+            "responseNames": [
+              "node"
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "testQuery_a938b4c5_4",
+              "kind": "Query",
+              "document": "query testQuery_a938b4c5_4 {\n  viewer {\n    username\n  }\n}",
+              "hash": "866949d8f78ef54bb5cb14b5574a1395e867128dac434c04a193249b940b796d",
+              "shortHash": "866949d8"
+            },
+            "responseNames": [
+              "viewer"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
