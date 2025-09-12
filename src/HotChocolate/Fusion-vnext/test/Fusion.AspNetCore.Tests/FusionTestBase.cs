@@ -9,14 +9,11 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Configuration;
-using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Mutable;
-using HotChocolate.Types.Mutable.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
@@ -73,27 +70,15 @@ public abstract class FusionTestBase : IDisposable
         bool isOffline = false,
         bool isTimingOut = false)
     {
-        var schema = new MutableSchemaDefinition { Name = schemaName };
-        schema.AddBuiltInFusionTypes();
-        schema.AddBuiltInFusionDirectives();
-        SchemaParser.Parse(
-            schema,
-            schemaText,
-            new SchemaParserOptions
-            {
-                IgnoreExistingTypes = true,
-                IgnoreExistingDirectives = true
-            });
-
-        schemaText = SchemaFormatter.FormatAsString(schema);
-
         return _testServerSession.CreateServer(services =>
         {
             services.AddRouting();
 
             services.AddGraphQLServer(schemaName)
+                // .AddType<IdType>()
                 .AddType<FieldSelectionSetType>()
                 .AddType<FieldSelectionMapType>()
+                .TryAddTypeInterceptor<RegisterFusionDirectivesTypeInterceptor>()
                 .AddDocumentFromString(schemaText)
                 .AddResolverMocking()
                 .AddTestDirectives();
@@ -225,6 +210,27 @@ public abstract class FusionTestBase : IDisposable
         return services.AddSingleton(new TestServerRegistration(name, server, options));
     }
 
+    private sealed class RegisterFusionDirectivesTypeInterceptor : TypeInterceptor
+    {
+        private bool _registeredTypes;
+
+        public override IEnumerable<TypeReference> RegisterMoreTypes(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        {
+            if (!_registeredTypes)
+            {
+                var typeInspector = discoveryContexts.First().DescriptorContext.TypeInspector;
+
+                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Lookup));
+                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Internal));
+                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.EntityKey));
+                yield return typeInspector.GetTypeRef(typeof(HotChocolate.Types.Composite.Is));
+
+                _registeredTypes = true;
+            }
+        }
+    }
+
     private sealed class SourceSchemaOptions
     {
         public bool IsOffline { get; set; }
@@ -246,33 +252,6 @@ public abstract class FusionTestBase : IDisposable
             return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
         }
     }
-
-    // private sealed class TestInterceptor : TypeInterceptor
-    // {
-    //     private TypeReference _lookupRef = null!;
-    //     private bool _registeredTypes;
-    //
-    //     internal override void InitializeContext(
-    //         IDescriptorContext context,
-    //         TypeInitializer typeInitializer,
-    //         TypeRegistry typeRegistry,
-    //         TypeLookup typeLookup,
-    //         TypeReferenceResolver typeReferenceResolver)
-    //     {
-    //         _lookupRef = context.TypeInspector.GetTypeRef(typeof(Lookup));
-    //     }
-    //
-    //     public override IEnumerable<TypeReference> RegisterMoreTypes(
-    //         IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
-    //     {
-    //         if (!_registeredTypes)
-    //         {
-    //             yield return _lookupRef;
-    //
-    //             _registeredTypes = true;
-    //         }
-    //     }
-    // }
 
     private class Factory : IHttpClientFactory
     {

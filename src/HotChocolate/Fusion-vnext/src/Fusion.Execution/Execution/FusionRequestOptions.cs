@@ -173,6 +173,7 @@ public sealed class FusionRequestOptions : ICloneable
     /// errors in the GraphQL response.
     /// This should only be enabled for development purposes
     /// and not in production environments.
+    /// <c>false</c> by default.
     /// </summary>
     public bool IncludeExceptionDetails
     {

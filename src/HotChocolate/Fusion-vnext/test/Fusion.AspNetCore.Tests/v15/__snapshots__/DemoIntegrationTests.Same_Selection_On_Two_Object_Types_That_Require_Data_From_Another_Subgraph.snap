@@ -1,0 +1,107 @@
+{
+  "data": {
+    "item1": {
+      "product": {
+        "id": "2",
+        "name": "string"
+      }
+    },
+    "item2": {
+      "product": {
+        "id": "1",
+        "name": "string"
+      }
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "e291618d5d444043951047bd2450635cc467c0525c26798afcee682d4f6db479",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  item1 {\n    product {\n      id\n      id @fusion__requirement\n      name\n    }\n  }\n  item2 {\n    product {\n      id\n      id @fusion__requirement\n      name\n    }\n  }\n}",
+          "id": "e2224f1b985fbda85e8bf7b9b94be074",
+          "hash": "e2224f1b985fbda85e8bf7b9b94be074",
+          "shortHash": "e2224f1b"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_e2224f1b_1",
+              "kind": "Query",
+              "document": "query Op_e2224f1b_1 {\n  item1 {\n    product {\n      id\n    }\n  }\n  item2 {\n    product {\n      id\n    }\n  }\n}",
+              "hash": "71c892b81dcd61dd6e6642d4e4312fbff4e27ae374e4e99a4f9c73c988e18587",
+              "shortHash": "71c892b8"
+            },
+            "responseNames": [
+              "item2",
+              "item1"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_e2224f1b_2",
+              "kind": "Query",
+              "document": "query Op_e2224f1b_2(\n  $__fusion_1_id: ID!\n) {\n  node(id: $__fusion_1_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}",
+              "hash": "553a1b9c27bd1770b1d61bfff48a9e0745440f6fc1320af183b7f42e0aaefc6c",
+              "shortHash": "553a1b9c"
+            },
+            "responseNames": [
+              "name"
+            ],
+            "source": "$.node<Product>",
+            "target": "$.item2.product",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "ID!",
+                "path": "$.item2.product",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_e2224f1b_3",
+              "kind": "Query",
+              "document": "query Op_e2224f1b_3(\n  $__fusion_2_id: ID!\n) {\n  node(id: $__fusion_2_id) {\n    __typename\n    ... on Product {\n      name\n    }\n  }\n}",
+              "hash": "423a04fbb8424766f25285b3f2a6ee22d0c8761df4f104a7d9743d984aeea46c",
+              "shortHash": "423a04fb"
+            },
+            "responseNames": [
+              "name"
+            ],
+            "source": "$.node<Product>",
+            "target": "$.item1.product",
+            "requirements": [
+              {
+                "name": "__fusion_2_id",
+                "type": "ID!",
+                "path": "$.item1.product",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
