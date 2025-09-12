@@ -210,10 +210,23 @@ public sealed partial class OperationCompiler
                 && directiveType.Middleware is not null
                 && (directiveType.IsRepeatable || processed.Add(directiveType.Name)))
             {
-                var directive = new Directive(
-                    directiveType,
-                    directiveNode,
-                    directiveType.Parse(directiveNode));
+                Directive directive;
+                try
+                {
+                    directive = new Directive(
+                        directiveType,
+                        directiveNode,
+                        directiveType.Parse(directiveNode));
+                }
+                catch (SerializationException ex)
+                {
+                    var location = directiveNode.Location;
+                    throw new SerializationException(
+                        ErrorBuilder.FromError(ex.Errors[0]).AddLocation(location).Build(),
+                        ex.Type,
+                        ex.Errors[0].Path);
+                }
+
                 var directiveMiddleware = directiveType.Middleware;
                 pipelineComponents.Add(next => directiveMiddleware(next, directive));
             }
