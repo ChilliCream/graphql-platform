@@ -1,0 +1,103 @@
+{
+  "data": {
+    "productById": {
+      "subgraph1Only": {
+        "subgraph2Only": true,
+        "sharedLinked": {
+          "subgraph2Only": true,
+          "sharedScalar": "string"
+        }
+      }
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "a404db54502b8be55429bde138d859a5c0e49481af016499b725d79d66a6bbcb",
+        "operation": {
+          "kind": "Query",
+          "document": "query(\n  $productId: ID!\n) {\n  productById(id: $productId) {\n    subgraph1Only {\n      subgraph2Only\n      sharedLinked {\n        subgraph2Only\n        sharedScalar\n      }\n      id @fusion__requirement\n    }\n  }\n}",
+          "id": "90079d4b5c5cadf6c4ff7cd99819d1cd",
+          "hash": "90079d4b5c5cadf6c4ff7cd99819d1cd",
+          "shortHash": "90079d4b"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_90079d4b_1",
+              "kind": "Query",
+              "document": "query Op_90079d4b_1(\n  $productId: ID!\n) {\n  productById(id: $productId) {\n    subgraph1Only {\n      sharedLinked {\n        sharedScalar\n      }\n      id\n    }\n  }\n}",
+              "hash": "7e49d0b074ba7c94e8a8039badacaddb27cde96befd1b83ec0a60a76ac08713c",
+              "shortHash": "7e49d0b0"
+            },
+            "responseNames": [
+              "productById"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_90079d4b_2",
+              "kind": "Query",
+              "document": "query Op_90079d4b_2(\n  $__fusion_1_id: ID!\n) {\n  productAvailabilityById(id: $__fusion_1_id) {\n    subgraph2Only\n  }\n}",
+              "hash": "46ac77230db9c6750b314aa6f3421e6dc0b084b7a3b5c5ca0660e4c227eb9693",
+              "shortHash": "46ac7723"
+            },
+            "responseNames": [
+              "subgraph2Only"
+            ],
+            "source": "$.productAvailabilityById",
+            "target": "$.productById.subgraph1Only",
+            "requirements": [
+              {
+                "name": "__fusion_1_id",
+                "type": "ID!",
+                "path": "$.productById.subgraph1Only",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_90079d4b_3",
+              "kind": "Query",
+              "document": "query Op_90079d4b_3(\n  $__fusion_2_id: ID!\n) {\n  productAvailabilityById(id: $__fusion_2_id) {\n    sharedLinked {\n      subgraph2Only\n    }\n  }\n}",
+              "hash": "b587eb3bf66dc8a32f0a52fcdd4c5ced06d30e8d14b3901676dfa5a25ebab1c4",
+              "shortHash": "b587eb3b"
+            },
+            "responseNames": [
+              "sharedLinked"
+            ],
+            "source": "$.productAvailabilityById",
+            "target": "$.productById.subgraph1Only",
+            "requirements": [
+              {
+                "name": "__fusion_2_id",
+                "type": "ID!",
+                "path": "$.productById.subgraph1Only",
+                "selectionMap": "id"
+              }
+            ],
+            "forwardedVariables": [],
+            "dependencies": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
