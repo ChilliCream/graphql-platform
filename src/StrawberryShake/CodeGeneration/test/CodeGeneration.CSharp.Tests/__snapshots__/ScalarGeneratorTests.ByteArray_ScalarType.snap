@@ -1,4 +1,4 @@
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
 // ReSharper disable InconsistentNaming
@@ -105,42 +105,7 @@ namespace Foo.Bar
 
         public static GetAttachmentQueryDocument Instance { get; } = new GetAttachmentQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x71,
-            0x75,
-            0x65,
-            0x72,
-            0x79,
-            0x20,
-            0x47,
-            0x65,
-            0x74,
-            0x41,
-            0x74,
-            0x74,
-            0x61,
-            0x63,
-            0x68,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x7b,
-            0x20,
-            0x62,
-            0x79,
-            0x74,
-            0x65,
-            0x41,
-            0x72,
-            0x72,
-            0x61,
-            0x79,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetAttachment { byteArray }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "8705e9978f3ff458aeb2844ad87162d9028f0801");
 
         public override global::System.String ToString()

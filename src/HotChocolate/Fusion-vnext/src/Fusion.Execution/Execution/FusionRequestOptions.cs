@@ -16,6 +16,7 @@ public sealed class FusionRequestOptions : ICloneable
     private bool _allowErrorHandlingModeOverride;
     private PersistedOperationOptions _persistedOperationOptions = new();
     private bool _isReadOnly;
+    private bool _includeExceptionDetails;
 
     /// <summary>
     /// Gets or sets the execution timeout.
@@ -163,6 +164,26 @@ public sealed class FusionRequestOptions : ICloneable
             ArgumentNullException.ThrowIfNull(value);
 
             _persistedOperationOptions = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets whether exception details should be included for GraphQL
+    /// errors in the GraphQL response.
+    /// This should only be enabled for development purposes
+    /// and not in production environments.
+    /// </summary>
+    public bool IncludeExceptionDetails
+    {
+        get => _includeExceptionDetails;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new InvalidOperationException("The request options are read-only.");
+            }
+
+            _includeExceptionDetails = value;
         }
     }
 

@@ -6,7 +6,6 @@ public sealed record OperationWorkItem(
     OperationWorkItemKind Kind,
     SelectionSet SelectionSet,
     Lookup? Lookup = null,
-    string? RequirementKey = null,
     string? FromSchema = null)
     : WorkItem
 {

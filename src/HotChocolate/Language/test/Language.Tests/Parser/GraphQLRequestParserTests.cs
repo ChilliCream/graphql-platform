@@ -567,6 +567,26 @@ public class GraphQLRequestParserTests
     }
 
     [Fact]
+    public void Parse_Apollo_Client_v4_Query()
+    {
+        // arrange
+        var requestData = """
+            {
+                "id": "foo",
+                "query": "subscription OnEvent { fooChanged }",
+                "operationName": "OnEvent",
+                "operationType": "subscription"
+            }
+            """u8;
+
+        // act
+        var result = Utf8GraphQLRequestParser.Parse(requestData);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public void Parse_Apollo_AQP_SignatureQuery()
     {
         // arrange
@@ -773,7 +793,7 @@ public class GraphQLRequestParserTests
             () =>
             {
                 // arrange
-                var source = Encoding.UTF8.GetBytes(" ");
+                var source = " "u8.ToArray();
                 var parserOptions = new ParserOptions();
                 var requestParser = new Utf8GraphQLRequestParser(
                     source,

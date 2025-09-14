@@ -396,7 +396,7 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
             """);
     }
 
-        [Fact]
+    [Fact]
     public void Spread_On_Type_Of_SelectionSet_Is_Part_Of_Shared_Selections()
     {
         // arrange
@@ -685,7 +685,7 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
                 index.GetId(nodeField.SelectionSet!),
                 nodeField.SelectionSet!,
                 schema.Types["Node"],
-                Execution.Nodes.SelectionPath.Root),
+                SelectionPath.Root),
             SelectionSetIndex = index
         };
         var partitioner = new SelectionSetByTypePartitioner(schema);

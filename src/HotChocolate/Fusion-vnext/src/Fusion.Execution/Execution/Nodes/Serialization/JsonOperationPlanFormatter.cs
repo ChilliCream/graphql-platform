@@ -36,48 +36,9 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
         jsonWriter.WriteString("id", plan.Id);
 
         jsonWriter.WritePropertyName("operation");
-        WriteOperation(jsonWriter, plan.Operation, trace);
+        WriteOperation(jsonWriter, plan.Operation);
 
         jsonWriter.WriteNumber("searchSpace", plan.SearchSpace);
-
-        jsonWriter.WritePropertyName("nodes");
-        WriteNodes(jsonWriter, plan.AllNodes, trace);
-
-        jsonWriter.WriteEndObject();
-    }
-
-    internal void Format(IBufferWriter<byte> writer, Operation operation, ImmutableArray<ExecutionNode> allNodes)
-    {
-        using var jsonWriter = new Utf8JsonWriter(writer, _writerOptions);
-        jsonWriter.WriteStartObject();
-
-        jsonWriter.WritePropertyName("operation");
-        WriteOperation(jsonWriter, operation, null);
-
-        jsonWriter.WritePropertyName("nodes");
-        WriteNodes(jsonWriter, allNodes, null);
-
-        jsonWriter.WriteEndObject();
-    }
-
-    private static void WriteOperation(
-        Utf8JsonWriter jsonWriter,
-        Operation operation,
-        OperationPlanTrace? trace)
-    {
-        jsonWriter.WriteStartObject();
-
-        if (!string.IsNullOrEmpty(operation.Name))
-        {
-            jsonWriter.WriteString("name", operation.Name);
-        }
-
-        jsonWriter.WriteString("kind", operation.Definition.Operation.ToString());
-        jsonWriter.WriteString("document", operation.Definition.ToString(indented: true));
-
-        jsonWriter.WriteString("id", operation.Id);
-        jsonWriter.WriteString("hash", operation.Hash);
-        jsonWriter.WriteString("shortHash", operation.Hash[..8]);
 
         if (trace is not null)
         {
@@ -98,6 +59,44 @@ public sealed class JsonOperationPlanFormatter : OperationPlanFormatter
 
             jsonWriter.WriteNumber("duration", trace.Duration.TotalMilliseconds);
         }
+
+        jsonWriter.WritePropertyName("nodes");
+        WriteNodes(jsonWriter, plan.AllNodes, trace);
+
+        jsonWriter.WriteEndObject();
+    }
+
+    internal void Format(IBufferWriter<byte> writer, Operation operation, ImmutableArray<ExecutionNode> allNodes)
+    {
+        using var jsonWriter = new Utf8JsonWriter(writer, _writerOptions);
+        jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("operation");
+        WriteOperation(jsonWriter, operation);
+
+        jsonWriter.WritePropertyName("nodes");
+        WriteNodes(jsonWriter, allNodes, null);
+
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteOperation(
+        Utf8JsonWriter jsonWriter,
+        Operation operation)
+    {
+        jsonWriter.WriteStartObject();
+
+        if (!string.IsNullOrEmpty(operation.Name))
+        {
+            jsonWriter.WriteString("name", operation.Name);
+        }
+
+        jsonWriter.WriteString("kind", operation.Definition.Operation.ToString());
+        jsonWriter.WriteString("document", operation.Definition.ToString(indented: true));
+
+        jsonWriter.WriteString("id", operation.Id);
+        jsonWriter.WriteString("hash", operation.Hash);
+        jsonWriter.WriteString("shortHash", operation.Hash[..8]);
 
         jsonWriter.WriteEndObject();
     }

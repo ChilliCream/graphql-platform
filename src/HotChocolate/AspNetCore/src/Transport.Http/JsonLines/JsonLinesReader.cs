@@ -52,10 +52,8 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
                     // Skip empty lines
                     if (!IsEmptyLine(line))
                     {
-                        var jsonBuffer = CreateJsonBuffer(line);
-                        var document = JsonDocument.Parse(jsonBuffer.WrittenMemory);
-                        var documentOwner = new JsonDocumentOwner(document, jsonBuffer);
-                        yield return OperationResult.Parse(documentOwner);
+                        var document = ParseDocument(line);
+                        yield return OperationResult.Parse(document);
                     }
 
                     // Move past the processed line
@@ -75,28 +73,13 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
         }
     }
 
-    private static PooledArrayWriter CreateJsonBuffer(ReadOnlySequence<byte> lineBuffer)
+    private static JsonDocumentOwner ParseDocument(ReadOnlySequence<byte> lineBuffer)
     {
-        var jsonBuffer = new PooledArrayWriter(4096);
-
-        if (lineBuffer.IsSingleSegment)
-        {
-            var span = lineBuffer.First.Span;
-            span.CopyTo(jsonBuffer.GetSpan(span.Length));
-            jsonBuffer.Advance(span.Length);
-        }
-        else
-        {
-            var position = lineBuffer.Start;
-            while (lineBuffer.TryGet(ref position, out var memory))
-            {
-                var span = memory.Span;
-                span.CopyTo(jsonBuffer.GetSpan(span.Length));
-                jsonBuffer.Advance(span.Length);
-            }
-        }
-
-        return jsonBuffer;
+        var requiredSize = (int)lineBuffer.Length;
+        var buffer = new PooledArrayWriter(requiredSize);
+        lineBuffer.CopyTo(buffer.GetSpan(requiredSize));
+        buffer.Advance(requiredSize);
+        return new JsonDocumentOwner(JsonDocument.Parse(buffer.WrittenMemory), buffer);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

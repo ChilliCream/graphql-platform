@@ -161,7 +161,7 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
         /// Gets the selections by type.
         /// The key is the type name and the value the selections for that type.
         /// </summary>
-        public Dictionary<string, List<ISelectionNode>> SelectionsByType { get; } = new();
+        public Dictionary<string, List<ISelectionNode>> SelectionsByType { get; } = [];
 
         /// <summary>
         /// Gets the fragment path.

@@ -2,7 +2,6 @@ operation:
   - document: >-
       query testQuery {
         post {
-          __typename @fusion__requirement
           __typename
         }
       }

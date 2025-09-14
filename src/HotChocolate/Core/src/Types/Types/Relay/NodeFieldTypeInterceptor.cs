@@ -5,7 +5,6 @@ using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
-using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Relay.NodeConstants;
