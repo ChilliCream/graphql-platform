@@ -292,6 +292,7 @@
     <Project Path="HotChocolate/Utilities/src/Utilities.Introspection/HotChocolate.Utilities.Introspection.csproj" />
     <Project Path="HotChocolate/Utilities/src/Utilities.Tasks/HotChocolate.Utilities.Tasks.csproj" />
     <Project Path="HotChocolate/Utilities/src/Utilities/HotChocolate.Utilities.csproj" />
+    <Project Path="HotChocolate/Utilities/src/Utilities.Base36/HotChocolate.Utilities.Base36.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Utilities/test/">
     <Project Path="HotChocolate/Utilities/test/Utilities.Introspection.Tests/HotChocolate.Utilities.Introspection.Tests.csproj" />
