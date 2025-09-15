@@ -709,6 +709,10 @@ public static class SchemaParser
                 {
                     directiveType = BuiltIns.Deprecated.Create(schema);
                 }
+                else if (directiveNode.Name.Value == BuiltIns.OneOf.Name)
+                {
+                    directiveType = BuiltIns.OneOf.Create();
+                }
                 else if (directiveNode.Name.Value == BuiltIns.SpecifiedBy.Name)
                 {
                     directiveType = BuiltIns.SpecifiedBy.Create(schema);
