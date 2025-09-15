@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Relay;
+namespace HotChocolate.Execution.Relay;
 
 public sealed class NodeIdInvalidFormatException(object originalValue)
     : GraphQLException(ErrorBuilder.New()
