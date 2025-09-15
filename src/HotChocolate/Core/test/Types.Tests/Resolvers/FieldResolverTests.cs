@@ -28,7 +28,7 @@ public class FieldResolverTests
         var resolver = GetResolverA();
 
         // act
-        Action action = () => new FieldResolver(null, fieldName, resolver);
+        Action action = () => new FieldResolver(null!, fieldName, resolver);
 
         // assert
         Assert.Throws<ArgumentException>(action);
@@ -42,7 +42,7 @@ public class FieldResolverTests
         var resolver = GetResolverA();
 
         // act
-        Action action = () => new FieldResolver(typeName, null, resolver);
+        Action action = () => new FieldResolver(typeName, null!, resolver);
 
         // assert
         Assert.Throws<ArgumentException>(action);
@@ -56,7 +56,7 @@ public class FieldResolverTests
         var fieldName = TestUtils.CreateFieldName();
 
         // act
-        Action action = () => new FieldResolver(typeName, fieldName, null);
+        Action action = () => new FieldResolver(typeName, fieldName, null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -93,7 +93,7 @@ public class FieldResolverTests
             originalTypeName, fieldName, resolver);
 
         // act
-        Action action = () => fieldMember.WithTypeName(null);
+        Action action = () => fieldMember.WithTypeName(null!);
 
         // assert
         Assert.Throws<ArgumentException>(action);
@@ -130,7 +130,7 @@ public class FieldResolverTests
             typeName, originalFieldName, resolver);
 
         // act
-        Action action = () => fieldMember.WithFieldName(null);
+        Action action = () => fieldMember.WithFieldName(null!);
 
         // assert
         Assert.Throws<ArgumentException>(action);
@@ -167,7 +167,7 @@ public class FieldResolverTests
             typeName, fieldName, originalResolver);
 
         // act
-        Action action = () => fieldMember.WithResolver(null);
+        Action action = () => fieldMember.WithResolver(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -308,18 +308,18 @@ public class FieldResolverTests
     private FieldResolverDelegate GetResolverA()
     {
         return new FieldResolverDelegate(
-            a => new ValueTask<object>(null));
+            a => new ValueTask<object?>());
     }
 
     private FieldResolverDelegate GetResolverB()
     {
         return new FieldResolverDelegate(
-            a => new ValueTask<object>(null));
+            a => new ValueTask<object?>());
     }
 
-    private sealed class Foo
+    private sealed class Foo(string barA, string barB)
     {
-        public string BarA { get; }
-        public string BarB { get; }
+        public string BarA { get; } = barA;
+        public string BarB { get; } = barB;
     }
 }

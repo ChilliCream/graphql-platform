@@ -479,12 +479,14 @@ public class SchemaFirstTests
     {
         await new ServiceCollection()
             .AddGraphQL()
-            .AddDocumentFromString(@"
-                    type Query {
-                        book(input: Foo): String
-                    }
+            .AddDocumentFromString(
+                """
+                type Query {
+                    book(input: Foo): String
+                }
 
-                    input Foo { bar: String = ""baz"" }")
+                input Foo { bar: String = "baz" }
+                """)
             .AddResolver<QueryWithFooInput>("Query")
             .ExecuteRequestAsync("{ book(input: { bar: \"baz123\" }) }")
             .MatchSnapshotAsync();
@@ -544,7 +546,7 @@ public class SchemaFirstTests
 
     public class Person
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
     }
 
     public class CustomDescriptionDirective : ISchemaDirective
@@ -559,7 +561,7 @@ public class SchemaFirstTests
         {
             if (definition is ObjectFieldConfiguration objectField)
             {
-                objectField.Description = (string)directiveNode.Arguments.First().Value.Value;
+                objectField.Description = (string?)directiveNode.Arguments.First().Value.Value;
             }
         }
     }

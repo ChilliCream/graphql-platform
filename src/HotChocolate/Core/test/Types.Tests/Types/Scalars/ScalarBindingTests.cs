@@ -1,7 +1,5 @@
 using HotChocolate.Language;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class ScalarBindingTests

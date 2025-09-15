@@ -2,6 +2,7 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Types;

@@ -9,6 +9,7 @@ using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -60,9 +61,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         _clientScope = requestContext.CreateClientScope();
         _nodeIdParser = requestContext.Schema.Services.GetRequiredService<INodeIdParser>();
         _diagnosticEvents = requestContext.Schema.Services.GetRequiredService<IFusionExecutionDiagnosticEvents>();
+        var errorHandler = requestContext.Schema.Services.GetRequiredService<IErrorHandler>();
 
         _resultStore = new FetchResultStore(
             requestContext.Schema,
+            errorHandler,
             _resultPoolSessionHolder,
             operationPlan.Operation,
             requestContext.ErrorHandlingMode(),
@@ -92,7 +95,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     public IFeatureCollection Features => RequestContext.Features;
 
     public ImmutableDictionary<int, ExecutionNodeTrace> Traces { get; internal set; } =
+#if NET10_0_OR_GREATER
+        [];
+#else
         ImmutableDictionary<int, ExecutionNodeTrace>.Empty;
+#endif
 
     public IFusionExecutionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 
@@ -219,16 +226,23 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         ReadOnlySpan<SourceSchemaResult> results,
         ReadOnlySpan<string> responseNames)
     {
-       var canExecutionContinue = _resultStore.AddPartialResults(sourcePath, results, responseNames);
+        var canExecutionContinue = _resultStore.AddPartialResults(sourcePath, results, responseNames);
 
-       if (!canExecutionContinue)
-       {
-           ExecutionState.CancelProcessing();
-       }
+        if (!canExecutionContinue)
+        {
+            ExecutionState.CancelProcessing();
+        }
     }
 
     internal void AddPartialResults(ObjectResult result, ReadOnlySpan<Selection> selections)
-        => _resultStore.AddPartialResults(result, selections);
+    {
+        var canExecutionContinue = _resultStore.AddPartialResults(result, selections);
+
+        if (!canExecutionContinue)
+        {
+            ExecutionState.CancelProcessing();
+        }
+    }
 
     internal void AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
     {
@@ -277,6 +291,10 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             resultBuilder.SetExtension("fusion", new Dictionary<string, object?> { { "operationPlan", value } });
             resultBuilder.RegisterForCleanup(writer);
         }
+
+        Debug.Assert(
+            !_resultStore.Data.IsInvalidated || _resultStore.Errors.Count > 0,
+            "Expected to either valid data or errors");
 
         var result = resultBuilder
             .AddErrors(_resultStore.Errors)

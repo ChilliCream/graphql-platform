@@ -100,7 +100,12 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// Gets the options of this DataLoader.
     /// </summary>
     protected internal DataLoaderOptions Options
-        => new() { MaxBatchSize = _maxBatchSize, Cache = Cache, DiagnosticEvents = _diagnosticEvents };
+        => new()
+        {
+            MaxBatchSize = _maxBatchSize,
+            Cache = Cache,
+            DiagnosticEvents = _diagnosticEvents
+        };
 
     /// <inheritdoc />
     public Task<TValue?> LoadAsync(

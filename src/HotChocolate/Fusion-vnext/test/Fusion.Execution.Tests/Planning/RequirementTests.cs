@@ -8,7 +8,7 @@ public class RequirementTests : FusionTestBase
         // arrange
         var schema = ComposeSchema(
             """
-            schema @schemaName(value: "A") {
+            schema {
               query: Query
             }
 
@@ -22,7 +22,7 @@ public class RequirementTests : FusionTestBase
             }
             """,
             """
-            schema @schemaName(value: "B") {
+            schema {
               query: Query
             }
 
@@ -57,7 +57,7 @@ public class RequirementTests : FusionTestBase
         // arrange
         var schema = ComposeSchema(
             """"
-            schema @schemaName(value: "catalog") {
+            schema {
               query: Query
             }
 
@@ -77,7 +77,7 @@ public class RequirementTests : FusionTestBase
             }
             """",
             """"
-            schema @schemaName(value: "reviews") {
+            schema {
               query: Query
             }
 

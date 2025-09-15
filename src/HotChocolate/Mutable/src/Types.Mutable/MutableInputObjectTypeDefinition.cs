@@ -62,6 +62,9 @@ public class MutableInputObjectTypeDefinition
         => Fields;
 
     /// <inheritdoc />
+    public bool IsOneOf { get; set; }
+
+    /// <inheritdoc />
     [field: AllowNull, MaybeNull]
     public IFeatureCollection Features
         => field ??= new FeatureCollection();

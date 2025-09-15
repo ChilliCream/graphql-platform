@@ -87,6 +87,7 @@ public class TypeConverterTests
 
         // assert
         Assert.True(success);
+        Assert.NotNull(output);
         Assert.Equal(to, output.GetType());
         Assert.Equal(expectedOutput, output);
     }
@@ -249,7 +250,7 @@ public class TypeConverterTests
     [InlineData("foo", "foo")]
     [InlineData(true, "True")]
     [Theory]
-    public void Convert_Object_String(object input, object expectedOutput)
+    public void Convert_Object_String(object? input, object? expectedOutput)
     {
         // arrange
         // act

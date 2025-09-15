@@ -186,7 +186,7 @@ public abstract class FusionTestBase : IDisposable
         }
     }
 
-     private static IServiceCollection AddHttpClient(
+    private static IServiceCollection AddHttpClient(
         IServiceCollection services,
         string name,
         TestServer server,
