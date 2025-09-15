@@ -32,11 +32,13 @@ public class TypeFactoryTests : TypeTestBase
     public void ObjectFieldDeprecationReason()
     {
         // arrange
-        const string source = @"
-                type Simple {
-                    a: String @deprecated(reason: ""reason123"")
-                }
-                schema { query: Simple }";
+        const string source =
+            """
+            type Simple {
+                a: String @deprecated(reason: "reason123")
+            }
+            schema { query: Simple }
+            """;
 
         // act
         var schema = SchemaBuilder.New()
@@ -52,13 +54,15 @@ public class TypeFactoryTests : TypeTestBase
     public void CreateObjectTypeDescriptions()
     {
         // arrange
-        const string source = @"
-                ""SimpleDesc""
-                type Simple {
-                    ""ADesc""
-                    a(""ArgDesc""arg: String): String
-                }
-                schema { query: Simple }";
+        const string source =
+            """
+            "SimpleDesc"
+            type Simple {
+                "ADesc"
+                a("ArgDesc" arg: String): String
+            }
+            schema { query: Simple }
+            """;
 
         // act
         var schema = SchemaBuilder.New()
@@ -108,10 +112,12 @@ public class TypeFactoryTests : TypeTestBase
     public void InterfaceFieldDeprecationReason()
     {
         // arrange
-        const string source = @"
-                interface Simple {
-                    a: String @deprecated(reason: ""reason123"")
-                }";
+        const string source =
+            """
+            interface Simple {
+                a: String @deprecated(reason: "reason123")
+            }
+            """;
 
         // act
         var schema = SchemaBuilder.New()
@@ -217,12 +223,14 @@ public class TypeFactoryTests : TypeTestBase
     public void EnumValueDeprecationReason()
     {
         // arrange
-        const string source = @"
-                enum Abc {
-                    A
-                    B @deprecated(reason: ""reason123"")
-                    C
-                }";
+        const string source =
+            """
+            enum Abc {
+                A
+                B @deprecated(reason: "reason123")
+                C
+            }
+            """;
 
         // act
         var schema = SchemaBuilder.New()
@@ -243,11 +251,13 @@ public class TypeFactoryTests : TypeTestBase
     public void CreateInputObjectType()
     {
         // arrange
-        const string source = @"
-                input Simple {
-                    a: String @bind(to: ""Name"")
-                    b: [String] @bind(to: ""Friends"")
-                }";
+        const string source =
+            """
+            input Simple {
+                a: String @bind(to: "Name")
+                b: [String] @bind(to: "Friends")
+            }
+            """;
 
         // act
         var schema = SchemaBuilder.New()
