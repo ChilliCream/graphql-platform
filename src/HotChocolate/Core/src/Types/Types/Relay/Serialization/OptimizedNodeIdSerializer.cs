@@ -197,6 +197,14 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
 
             return ParseDecodedData(decodedIdSpan, formattedId, getType);
         }
+        catch (FormatException)
+        {
+            throw new NodeIdInvalidFormatException(formattedId);
+        }
+        catch (ArgumentException)
+        {
+            throw new NodeIdInvalidFormatException(formattedId);
+        }
         finally
         {
             Clear(rentedDecodeBuffer);

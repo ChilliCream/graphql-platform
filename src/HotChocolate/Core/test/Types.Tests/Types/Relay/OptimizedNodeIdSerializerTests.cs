@@ -899,6 +899,470 @@ public class OptimizedNodeIdSerializerTests
         Assert.Equal(42, parsedInt.InternalId);
     }
 
+    [Fact]
+    public void Format_UpperHex_Empty_StringId()
+    {
+        var serializer = CreateUpperHexSerializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", "");
+
+        // "Foo:" in upper hex
+        Assert.Equal("466F6F3A", id);
+
+        // Verify round trip
+        var parsed = serializer.Parse(id, typeof(string));
+        Assert.Equal("Foo", parsed.TypeName);
+        Assert.Equal("", parsed.InternalId);
+    }
+
+    [Fact]
+    public void Format_LowerHex_Empty_StringId()
+    {
+        var serializer = CreateLowerHexSerializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", "");
+
+        // "Foo:" in lower hex
+        Assert.Equal("466f6f3a", id);
+
+        // Verify round trip
+        var parsed = serializer.Parse(id, typeof(string));
+        Assert.Equal("Foo", parsed.TypeName);
+        Assert.Equal("", parsed.InternalId);
+    }
+
+    [Fact]
+    public void Format_UpperHex_Small_StringId()
+    {
+        var serializer = CreateUpperHexSerializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", "abc");
+
+        // "Foo:abc" in upper hex
+        Assert.Equal("466F6F3A616263", id);
+
+        // Verify round trip
+        var parsed = serializer.Parse(id, typeof(string));
+        Assert.Equal("Foo", parsed.TypeName);
+        Assert.Equal("abc", parsed.InternalId);
+    }
+
+    [Fact]
+    public void Format_LowerHex_Small_StringId()
+    {
+        var serializer = CreateLowerHexSerializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", "abc");
+
+        // "Foo:abc" in lower hex
+        Assert.Equal("466f6f3a616263", id);
+
+        // Verify round trip
+        var parsed = serializer.Parse(id, typeof(string));
+        Assert.Equal("Foo", parsed.TypeName);
+        Assert.Equal("abc", parsed.InternalId);
+    }
+
+    [Fact]
+    public void Format_UpperHex_Legacy_Format()
+    {
+        var serializer = CreateUpperHexSerializer("Foo", new StringNodeIdValueSerializer(), outputNewIdFormat: false);
+
+        var id = serializer.Format("Foo", "abc");
+
+        // Legacy format: "Foo\ndabc" in upper hex
+        var expectedBytes = "Foo\ndabc"u8.ToArray();
+        var expectedHex = Convert.ToHexString(expectedBytes);
+        Assert.Equal(expectedHex, id);
+    }
+
+    [Fact]
+    public void Format_LowerHex_Legacy_Format()
+    {
+        var serializer = CreateLowerHexSerializer("Foo", new StringNodeIdValueSerializer(), outputNewIdFormat: false);
+
+        var id = serializer.Format("Foo", "abc");
+
+        // Legacy format: "Foo\ndabc" in lower hex
+        var expectedBytes = "Foo\ndabc"u8.ToArray();
+        var expectedHex = Convert.ToHexString(expectedBytes).ToLowerInvariant();
+        Assert.Equal(expectedHex, id);
+    }
+
+    [Fact]
+    public void Format_UpperHex_Long_StringId()
+    {
+        var serializer = CreateUpperHexSerializer("Foo", new StringNodeIdValueSerializer());
+
+        var longString = new string('a', 100);
+        var id = serializer.Format("Foo", longString);
+
+        // Should be "Foo:" + 100 'a' characters in hex
+        var expectedBytes = Encoding.UTF8.GetBytes($"Foo:{longString}");
+        var expectedHex = Convert.ToHexString(expectedBytes);
+        Assert.Equal(expectedHex, id);
+    }
+
+    [Fact]
+    public void Format_UpperHex_Int16Id()
+    {
+        var serializer = CreateUpperHexSerializer("Foo", new Int16NodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", (short)6);
+
+        var expectedBytes = "Foo:6"u8.ToArray();
+        var expectedHex = Convert.ToHexString(expectedBytes);
+        Assert.Equal(expectedHex, id);
+    }
+
+    [Fact]
+    public void Format_UpperHex_Int32Id()
+    {
+        var serializer = CreateUpperHexSerializer("Foo", new Int32NodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", 32);
+
+        var expectedBytes = "Foo:32"u8.ToArray();
+        var expectedHex = Convert.ToHexString(expectedBytes);
+        Assert.Equal(expectedHex, id);
+    }
+
+    [Fact]
+    public void Format_UpperHex_Int64Id()
+    {
+        var serializer = CreateUpperHexSerializer("Foo", new Int64NodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", (long)64);
+
+        var expectedBytes = "Foo:64"u8.ToArray();
+        var expectedHex = Convert.ToHexString(expectedBytes);
+        Assert.Equal(expectedHex, id);
+    }
+
+    [Fact]
+    public void Format_UpperHex_Empty_Guid()
+    {
+        var serializer = CreateUpperHexSerializer("Foo", new GuidNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", Guid.Empty);
+
+        // "Foo:" + 16 zero bytes in hex
+        Assert.StartsWith("466F6F3A", id); // "Foo:"
+        Assert.EndsWith("00000000000000000000000000000000", id); // 16 zero bytes
+    }
+
+    [Fact]
+    public void Format_UpperHex_Normal_Guid()
+    {
+        var serializer = CreateUpperHexSerializer("Foo", new GuidNodeIdValueSerializer(false));
+
+        var internalId = new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3");
+        var id = serializer.Format("Foo", internalId);
+
+        // Should be valid hex and round-trip correctly
+        Assert.True(id.All(c => "0123456789ABCDEF".Contains(c)));
+        Assert.StartsWith("466F6F3A", id); // "Foo:"
+
+        // Verify round trip
+        var parsed = serializer.Parse(id, typeof(Guid));
+        Assert.Equal("Foo", parsed.TypeName);
+        Assert.Equal(internalId, parsed.InternalId);
+    }
+
+    [Fact]
+    public void Format_LowerHex_Normal_Guid()
+    {
+        var serializer = CreateLowerHexSerializer("Foo", new GuidNodeIdValueSerializer(false));
+
+        var internalId = new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3");
+        var id = serializer.Format("Foo", internalId);
+
+        // Should be valid lowercase hex
+        Assert.True(id.All(c => "0123456789abcdef".Contains(c)));
+        Assert.StartsWith("466f6f3a", id); // "Foo:" in lowercase
+
+        // Verify round trip
+        var parsed = serializer.Parse(id, typeof(Guid));
+        Assert.Equal("Foo", parsed.TypeName);
+        Assert.Equal(internalId, parsed.InternalId);
+    }
+
+    [Fact]
+    public void Parse_UpperHex_Small_StringId()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(typeof(string));
+
+        var serializer = CreateUpperHexSerializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("466F6F3A616263", lookup.Object); // "Foo:abc"
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("abc", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_LowerHex_Small_StringId()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(typeof(string));
+
+        var serializer = CreateLowerHexSerializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("466f6f3a616263", lookup.Object); // "Foo:abc"
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("abc", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_UpperHex_Empty_StringId()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(typeof(string));
+
+        var serializer = CreateUpperHexSerializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("466F6F3A", lookup.Object); // "Foo:"
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_LowerHex_Empty_StringId()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(typeof(string));
+
+        var serializer = CreateLowerHexSerializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("466f6f3a", lookup.Object); // "Foo:"
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_UpperHex_Int16Id()
+    {
+        var serializer = CreateUpperHexSerializer("Foo", new Int16NodeIdValueSerializer());
+
+        var testBytes = "Foo:123"u8.ToArray();
+        var hexId = Convert.ToHexString(testBytes);
+
+        var id = serializer.Parse(hexId, typeof(short));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal((short)123, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_LowerHex_Int32Id()
+    {
+        var serializer = CreateLowerHexSerializer("Foo", new Int32NodeIdValueSerializer());
+
+        var testBytes = "Foo:123"u8.ToArray();
+        var hexId = Convert.ToHexString(testBytes).ToLowerInvariant();
+
+        var id = serializer.Parse(hexId, typeof(int));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(123, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_UpperHex_Int64Id()
+    {
+        var serializer = CreateUpperHexSerializer("Foo", new Int64NodeIdValueSerializer());
+
+        var testBytes = "Foo:123"u8.ToArray();
+        var hexId = Convert.ToHexString(testBytes);
+
+        var id = serializer.Parse(hexId, typeof(long));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal((long)123, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Hex_Case_Mixed()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(typeof(string));
+
+        // Test that both upper and lower hex serializers can parse mixed case
+        var upperSerializer = CreateUpperHexSerializer("Foo", new StringNodeIdValueSerializer());
+        var lowerSerializer = CreateLowerHexSerializer("Foo", new StringNodeIdValueSerializer());
+
+        const string mixedCaseHex = "466F6f3A616263"; // Mixed case "Foo:abc"
+
+        var upperResult = upperSerializer.Parse(mixedCaseHex, lookup.Object);
+        var lowerResult = lowerSerializer.Parse(mixedCaseHex, lookup.Object);
+
+        Assert.Equal("Foo", upperResult.TypeName);
+        Assert.Equal("abc", upperResult.InternalId);
+        Assert.Equal("Foo", lowerResult.TypeName);
+        Assert.Equal("abc", lowerResult.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Hex_Throws_NodeIdInvalidFormatException_On_InvalidInput()
+    {
+        var serializer = CreateUpperHexSerializer("Foo", new StringNodeIdValueSerializer());
+
+        // Invalid hex character 'G'
+        Assert.Throws<NodeIdInvalidFormatException>(() => serializer.Parse("466F6F3G", typeof(string)));
+    }
+
+    [Fact]
+    public void Parse_Hex_Throws_NodeIdInvalidFormatException_On_OddLength()
+    {
+        var serializer = CreateUpperHexSerializer("Foo", new StringNodeIdValueSerializer());
+
+        // Odd length hex string (missing one character)
+        Assert.Throws<NodeIdInvalidFormatException>(() => serializer.Parse("466F6F3", typeof(string)));
+    }
+
+    [Fact]
+    public void Parse_Hex_OnRuntimeLookup_Throws_NodeIdInvalidFormatException_On_InvalidInput()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(typeof(string));
+
+        var serializer = CreateLowerHexSerializer("Foo", new StringNodeIdValueSerializer());
+
+        // Invalid hex character 'x'
+        Assert.Throws<NodeIdInvalidFormatException>(() => serializer.Parse("466f6f3x", lookup.Object));
+    }
+
+    [Fact]
+    public void Format_Hex_TrailingZeros_Preserved()
+    {
+        var serializer = CreateUpperHexSerializer("Foo", new StringNodeIdValueSerializer());
+
+        // Create string with null characters (trailing zeros)
+        const string testString = "test\0\0\0";
+        var id = serializer.Format("Foo", testString);
+
+        // Should be valid hex
+        Assert.True(id.All(c => "0123456789ABCDEF".Contains(c)));
+        Assert.EndsWith("000000", id); // Three null bytes as hex
+
+        // Verify round trip preserves the zeros
+        var parsed = serializer.Parse(id, typeof(string));
+        Assert.Equal("Foo", parsed.TypeName);
+        Assert.Equal(testString, parsed.InternalId);
+    }
+
+    [Fact]
+    public void Hex_Format_Performance_Large_Data()
+    {
+        var serializer = CreateUpperHexSerializer("LongTypeName", new StringNodeIdValueSerializer());
+
+        // Test with larger data
+        var largeString = new string('x', 500);
+        var id = serializer.Format("LongTypeName", largeString);
+
+        Assert.True(id.All(c => "0123456789ABCDEF".Contains(c)));
+
+        // Verify round trip works
+        var parsed = serializer.Parse(id, typeof(string));
+        Assert.Equal("LongTypeName", parsed.TypeName);
+        Assert.Equal(largeString, parsed.InternalId);
+    }
+
+    [Fact]
+    public void Hex_Lookup_Works_With_Multiple_Types()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType("Foo")).Returns(typeof(string));
+        lookup.Setup(t => t.GetNodeIdRuntimeType("Bar")).Returns(typeof(int));
+
+        var stringSerializer = new StringNodeIdValueSerializer();
+        var intSerializer = new Int32NodeIdValueSerializer();
+
+        var serializer = new OptimizedNodeIdSerializer(
+            [
+                new BoundNodeIdValueSerializer("Foo", stringSerializer),
+                new BoundNodeIdValueSerializer("Bar", intSerializer)
+            ],
+            [stringSerializer, intSerializer],
+            format: NodeIdSerializerFormat.UpperHex);
+
+        // Test string type
+        var stringId = serializer.Format("Foo", "hello");
+        var parsedString = serializer.Parse(stringId, lookup.Object);
+        Assert.Equal("Foo", parsedString.TypeName);
+        Assert.Equal("hello", parsedString.InternalId);
+
+        // Test int type
+        var intId = serializer.Format("Bar", 42);
+        var parsedInt = serializer.Parse(intId, lookup.Object);
+        Assert.Equal("Bar", parsedInt.TypeName);
+        Assert.Equal(42, parsedInt.InternalId);
+    }
+
+    [Fact]
+    public void Format_UpperHex_CompositeId()
+    {
+        var serializer = CreateUpperHexSerializer("Foo", new CompositeIdNodeIdValueSerializer());
+
+        var compositeId = new CompositeId("test", 42, Guid.Empty, true);
+        var id = serializer.Format("Foo", compositeId);
+
+        Assert.True(id.All(c => "0123456789ABCDEF".Contains(c)));
+        Assert.NotEmpty(id);
+
+        // Verify round trip
+        var parsed = serializer.Parse(id, typeof(CompositeId));
+        Assert.Equal("Foo", parsed.TypeName);
+        Assert.Equal(compositeId, parsed.InternalId);
+    }
+
+    [Fact]
+    public void Format_LowerHex_CompositeId()
+    {
+        var serializer = CreateLowerHexSerializer("Foo", new CompositeIdNodeIdValueSerializer());
+
+        var compositeId = new CompositeId("test", 42, Guid.Empty, true);
+        var id = serializer.Format("Foo", compositeId);
+
+        Assert.True(id.All(c => "0123456789abcdef".Contains(c)));
+        Assert.NotEmpty(id);
+
+        // Verify round trip
+        var parsed = serializer.Parse(id, typeof(CompositeId));
+        Assert.Equal("Foo", parsed.TypeName);
+        Assert.Equal(compositeId, parsed.InternalId);
+    }
+
+    private static OptimizedNodeIdSerializer CreateUpperHexSerializer(
+        string typeName,
+        INodeIdValueSerializer serializer,
+        bool outputNewIdFormat = true)
+    {
+        return new OptimizedNodeIdSerializer(
+            [new BoundNodeIdValueSerializer(typeName, serializer)],
+            [serializer],
+            maxIdLength: 2048,
+            outputNewIdFormat: outputNewIdFormat,
+            format: NodeIdSerializerFormat.UpperHex);
+    }
+
+    private static OptimizedNodeIdSerializer CreateLowerHexSerializer(
+        string typeName,
+        INodeIdValueSerializer serializer,
+        bool outputNewIdFormat = true)
+    {
+        return new OptimizedNodeIdSerializer(
+            [new BoundNodeIdValueSerializer(typeName, serializer)],
+            [serializer],
+            maxIdLength: 2048,
+            outputNewIdFormat: outputNewIdFormat,
+            format: NodeIdSerializerFormat.LowerHex);
+    }
+
     private static OptimizedNodeIdSerializer CreateBase36Serializer(
         string typeName,
         INodeIdValueSerializer serializer,
