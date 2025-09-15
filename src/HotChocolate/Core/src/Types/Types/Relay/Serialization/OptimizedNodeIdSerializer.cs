@@ -15,7 +15,9 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
     private const byte Delimiter = (byte)':';
     private const byte LegacyDelimiter = (byte)'\n';
     private const int StackallocThreshold = 256;
+
     private static readonly Encoding s_utf8 = Encoding.UTF8;
+    private static readonly Type s_objectType = typeof(object);
 
     private readonly FrozenDictionary<string, Serializer> _stringSerializerMap;
     private readonly SpanSerializerMap _spanSerializerMap;
@@ -241,12 +243,16 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             delimiterOffset = 2;
         }
 
+        Type? runtimeType = null;
+        INodeIdValueSerializer? valueSerializer = null;
+        string? typeNameString = null;
         var typeName = span[..delimiterIndex];
+
         if (!_spanSerializerMap.TryGetValue(typeName, out var serializer))
         {
-            var typeNameString = ToString(typeName);
-            var runtimeType = getType(typeNameString) ?? typeof(string);
-            var valueSerializer = TryResolveSerializer(runtimeType);
+            typeNameString = ToString(typeName);
+            runtimeType = getType(typeNameString) ?? typeof(string);
+            valueSerializer = TryResolveSerializer(runtimeType);
 
             if (valueSerializer is null)
             {
@@ -267,7 +273,40 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             }
         }
 
-        return serializer.Parse(span[(delimiterIndex + delimiterOffset)..]);
+        // if we did not resolve the runtime type yet, we do it now.
+        // this is important as there can be cases where we have multiple runtime types
+        // per type.
+        typeNameString ??= serializer.TypeName;
+        runtimeType ??= getType(serializer.TypeName) ?? typeof(object);
+
+        // with the runtime type in hand we check if the default serializer
+        // for this GraphQL type can handle the current runtime type.
+        if (runtimeType == s_objectType
+            || serializer.ValueSerializer.IsSupported(runtimeType))
+        {
+            valueSerializer = serializer.ValueSerializer;
+        }
+
+        // if it cannot handle the runtime type we try to find a different
+        // ad-hoc serializer that can handle the runtime type.
+        else
+        {
+            valueSerializer ??= TryResolveSerializer(runtimeType);
+        }
+
+        if (valueSerializer is null)
+        {
+            throw new NodeIdMissingSerializerException(serializer.TypeName);
+        }
+
+        var formattedValue = span[(delimiterIndex + delimiterOffset)..];
+
+        if (valueSerializer.TryParse(formattedValue, out var internalId))
+        {
+            return new NodeId(typeNameString, internalId);
+        }
+
+        throw new NodeIdInvalidFormatException(ToString(formattedValue));
     }
 
     private INodeIdValueSerializer? TryResolveSerializer(Type type)
@@ -286,19 +325,6 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         }
 
         return null;
-    }
-
-    private static NodeId ParseValue(
-        INodeIdValueSerializer valueSerializer,
-        string typeName,
-        ReadOnlySpan<byte> formattedValue)
-    {
-        if (valueSerializer.TryParse(formattedValue, out var internalId))
-        {
-            return new NodeId(typeName, internalId);
-        }
-
-        throw new NodeIdInvalidFormatException(ToString(formattedValue));
     }
 
     // ReSharper disable once UseUtf8StringLiteral
@@ -337,7 +363,11 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
     {
         private readonly byte[] _formattedTypeName = s_utf8.GetBytes(typeName);
 
+        public string TypeName => typeName;
+
         public byte[] FormattedTypeName => _formattedTypeName;
+
+        public INodeIdValueSerializer ValueSerializer => valueSerializer;
 
         public unsafe string Format(object value)
         {
@@ -460,9 +490,6 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
 
             return Base36.Encode(sourceData);
         }
-
-        public NodeId Parse(ReadOnlySpan<byte> formattedValue)
-            => ParseValue(valueSerializer, typeName, formattedValue);
 
         private static Span<byte> WriteIdHeader(
             Span<byte> span,

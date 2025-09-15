@@ -315,7 +315,7 @@ public sealed class DefaultNodeIdSerializer : INodeIdSerializer
                 => ParseHex(formattedId, _ => runtimeType),
             NodeIdSerializerFormat.Base36
                 => ParseBase36(formattedId, _ => runtimeType),
-            _ => throw new ArgumentOutOfRangeException(nameof(_format), _format, "Unsupported format.")
+            _ => throw new NotSupportedException("Unsupported format.")
         };
     }
 
@@ -389,7 +389,7 @@ public sealed class DefaultNodeIdSerializer : INodeIdSerializer
         var expectedDecodedSize = formattedId.Length / 2;
 
         var decodedIdSpan = expectedDecodedSize <= StackallocThreshold
-            ? stackalloc byte[expectedDecodedSize]
+            ? stackalloc byte[StackallocThreshold]
             : rentedDecodeBuffer = ArrayPool<byte>.Shared.Rent(expectedDecodedSize);
 
         try
@@ -404,9 +404,16 @@ public sealed class DefaultNodeIdSerializer : INodeIdSerializer
 
             decodedIdSpan = decodedIdSpan[..written];
 #else
-            var buffer = Convert.FromHexString(formattedId);
-            buffer.CopyTo(decodedIdSpan);
-            decodedIdSpan = decodedIdSpan[..buffer.Length];
+            try
+            {
+                var buffer = Convert.FromHexString(formattedId);
+                buffer.CopyTo(decodedIdSpan);
+                decodedIdSpan = decodedIdSpan[..buffer.Length];
+            }
+            catch (FormatException)
+            {
+                throw new NodeIdInvalidFormatException(formattedId);
+            }
 #endif
 
             return ParseDecodedData(decodedIdSpan, formattedId, getType);

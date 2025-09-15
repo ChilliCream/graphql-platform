@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Buffers.Text;
 using Moq;
 
 namespace HotChocolate.Types.Relay;
@@ -445,8 +446,7 @@ public class OptimizedNodeIdSerializerTests
     {
         var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
 
-        Assert.Throws<NodeIdInvalidFormatException>(
-            () => serializer.Parse("!", typeof(string)));
+        Assert.Throws<NodeIdInvalidFormatException>(() => serializer.Parse("!", typeof(string)));
     }
 
     [Fact]
@@ -457,16 +457,15 @@ public class OptimizedNodeIdSerializerTests
 
         var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
 
-        Assert.Throws<NodeIdInvalidFormatException>(
-            () => serializer.Parse("!", lookup.Object));
+        Assert.Throws<NodeIdInvalidFormatException>(() => serializer.Parse("!", lookup.Object));
     }
 
     [Theory]
-    [InlineData("RW50aXR5OjE")]      // No padding (length: 11).
-    [InlineData("RW50aXR5OjE=")]     // Correct padding (length: 12).
-    [InlineData("RW50aXR5OjE==")]    // Excess padding (length: 13).
-    [InlineData("RW50aXR5OjE===")]   // Excess padding (length: 14).
-    [InlineData("RW50aXR5OjE====")]  // Excess padding (length: 15).
+    [InlineData("RW50aXR5OjE")] // No padding (length: 11).
+    [InlineData("RW50aXR5OjE=")] // Correct padding (length: 12).
+    [InlineData("RW50aXR5OjE==")] // Excess padding (length: 13).
+    [InlineData("RW50aXR5OjE===")] // Excess padding (length: 14).
+    [InlineData("RW50aXR5OjE====")] // Excess padding (length: 15).
     [InlineData("RW50aXR5OjE=====")] // Excess padding (length: 16).
     public void Parse_Ensures_Correct_Padding(string id)
     {
@@ -568,6 +567,350 @@ public class OptimizedNodeIdSerializerTests
         Assert.Equal("VmFyaWFudHNFZGdlOmFiYw==", formattedId);
 
         snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public void Format_Base36_Empty_StringId()
+    {
+        var serializer = CreateBase36Serializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", "");
+
+        // "Foo:" in Base36
+        Assert.Equal("JJK3SQ", id);
+
+        // round trip
+        var nodeId = serializer.Parse(id, typeof(string));
+        Assert.Empty(Assert.IsType<string>(nodeId.InternalId));
+    }
+
+    [Fact]
+    public void Format_Base36_Small_StringId()
+    {
+        var serializer = CreateBase36Serializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", "abc");
+
+        Assert.Equal("5F7NDV7UA8Z", id); // "Foo:abc" in Base36
+    }
+
+    [Fact]
+    public void Format_Base36_Small_StringId_Legacy_Format()
+    {
+        var serializer = CreateBase36Serializer("Foo", new StringNodeIdValueSerializer(), outputNewIdFormat: false);
+
+        var id = serializer.Format("Foo", "abc");
+
+        // Legacy format includes type indicator byte
+        var expected = Base36.Encode("Foo\ndabc"u8);
+        Assert.Equal(expected, id);
+    }
+
+    [Fact]
+    public void Format_Base36_Long_StringId()
+    {
+        var serializer = CreateBase36Serializer("Foo", new StringNodeIdValueSerializer());
+
+        var longString = new string('a', 100);
+        var id = serializer.Format("Foo", longString);
+
+        // Should encode "Foo:" + 100 'a' characters
+        var expectedBytes = Encoding.UTF8.GetBytes($"Foo:{longString}");
+        var expectedBase36 = Base36.Encode(expectedBytes);
+        Assert.Equal(expectedBase36, id);
+    }
+
+    [Fact]
+    public void Format_Base36_Int16Id()
+    {
+        var serializer = CreateBase36Serializer("Foo", new Int16NodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", (short)6);
+
+        var expectedBytes = "Foo:6"u8.ToArray();
+        var expectedBase36 = Base36.Encode(expectedBytes);
+        Assert.Equal(expectedBase36, id);
+    }
+
+    [Fact]
+    public void Format_Base36_Int32Id()
+    {
+        var serializer = CreateBase36Serializer("Foo", new Int32NodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", 32);
+
+        var expectedBytes = "Foo:32"u8.ToArray();
+        var expectedBase36 = Base36.Encode(expectedBytes);
+        Assert.Equal(expectedBase36, id);
+    }
+
+    [Fact]
+    public void Format_Base36_Int64Id()
+    {
+        var serializer = CreateBase36Serializer("Foo", new Int64NodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", (long)64);
+
+        var expectedBytes = "Foo:64"u8.ToArray();
+        var expectedBase36 = Base36.Encode(expectedBytes);
+        Assert.Equal(expectedBase36, id);
+    }
+
+    [Fact]
+    public void Format_Base36_Empty_Guid()
+    {
+        var serializer = CreateBase36Serializer("Foo", new GuidNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", Guid.Empty);
+
+        // Should encode "Foo:" + 16 zero bytes
+        const string expectedResult = "887073HCMXIKMYVDGFXRCN6JFJPPVCW";
+        Assert.Equal(expectedResult, id);
+    }
+
+    [Fact]
+    public void Format_Base36_Normal_Guid()
+    {
+        var serializer = CreateBase36Serializer("Foo", new GuidNodeIdValueSerializer(false));
+
+        var internalId = new Guid("1ae27b14-8cf6-440d-9a46-09090a4af6f3");
+        var id = serializer.Format("Foo", internalId);
+
+        // Verify it's valid Base36 and round-trips correctly
+        Assert.True(id.All(c => "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains(c)));
+        Assert.NotEmpty(id);
+    }
+
+    [Fact]
+    public void Format_Base36_CompositeId()
+    {
+        var serializer = CreateBase36Serializer("Foo", new CompositeIdNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", new CompositeId("foo", 42, Guid.Empty, true));
+
+        Assert.True(id.All(c => "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains(c)));
+        Assert.NotEmpty(id);
+    }
+
+    [Fact]
+    public void Parse_Base36_Small_StringId()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(default(Type));
+
+        var serializer = CreateBase36Serializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("5F7NDV7UA8Z", lookup.Object); // "Foo:abc"
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("abc", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Base36_Empty_StringId()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(typeof(string));
+
+        var serializer = CreateBase36Serializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("JJK3SQ", lookup.Object); // "Foo:"
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Base36_Empty_StringId_WithRuntimeType()
+    {
+        var serializer = CreateBase36Serializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("JJK3SQ", typeof(string)); // "Foo:"
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Base36_Int16Id()
+    {
+        var serializer = CreateBase36Serializer("Foo", new Int16NodeIdValueSerializer());
+
+        // Create Base36 encoding of "Foo:123"
+        var testBytes = "Foo:123"u8.ToArray();
+        var base36Id = Base36.Encode(testBytes);
+
+        var id = serializer.Parse(base36Id, typeof(short));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal((short)123, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Base36_Int32Id()
+    {
+        var serializer = CreateBase36Serializer("Foo", new Int32NodeIdValueSerializer());
+
+        var testBytes = "Foo:123"u8.ToArray();
+        var base36Id = Base36.Encode(testBytes);
+
+        var id = serializer.Parse(base36Id, typeof(int));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(123, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Base36_Int64Id()
+    {
+        var serializer = CreateBase36Serializer("Foo", new Int64NodeIdValueSerializer());
+
+        var testBytes = "Foo:123"u8.ToArray();
+        var base36Id = Base36.Encode(testBytes);
+
+        var id = serializer.Parse(base36Id, typeof(long));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal((long)123, id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Base36_Case_Insensitive()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(default(Type));
+
+        var serializer = CreateBase36Serializer("Foo", new StringNodeIdValueSerializer());
+
+        // Test both upper and lower case versions
+        var upperCaseId = serializer.Parse("5F7NDV7UA8Z", lookup.Object);
+        var lowerCaseId = serializer.Parse("5f7ndv7ua8z", lookup.Object);
+
+        Assert.Equal("Foo", upperCaseId.TypeName);
+        Assert.Equal("abc", upperCaseId.InternalId);
+        Assert.Equal("Foo", lowerCaseId.TypeName);
+        Assert.Equal("abc", lowerCaseId.InternalId);
+        Assert.Equal(upperCaseId.InternalId, lowerCaseId.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Base36_CompositeId_RoundTrip()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(default(Type));
+
+        var compositeId = new CompositeId("test", 42, Guid.Empty, true);
+        var serializer = CreateBase36Serializer("Foo", new CompositeIdNodeIdValueSerializer());
+
+        var formatted = serializer.Format("Foo", compositeId);
+        var parsed = serializer.Parse(formatted, lookup.Object);
+
+        Assert.Equal("Foo", parsed.TypeName);
+        Assert.Equal(compositeId, parsed.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Base36_Throws_NodeIdInvalidFormatException_On_InvalidInput()
+    {
+        var serializer = CreateBase36Serializer("Foo", new StringNodeIdValueSerializer());
+
+        // Invalid Base36 character
+        Assert.Throws<NodeIdInvalidFormatException>(() => serializer.Parse("5F7NDV7U@", typeof(string)));
+    }
+
+    [Fact]
+    public void Parse_Base36_OnRuntimeLookup_Throws_NodeIdInvalidFormatException_On_InvalidInput()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(default(Type));
+
+        var serializer = CreateBase36Serializer("Foo", new StringNodeIdValueSerializer());
+
+        // Invalid Base36 character
+        Assert.Throws<NodeIdInvalidFormatException>(() => serializer.Parse("5F7NDV7U@", lookup.Object));
+    }
+
+    [Fact]
+    public void Format_Base36_TrailingZeros_Preserved()
+    {
+        var serializer = CreateBase36Serializer("Foo", new StringNodeIdValueSerializer());
+
+        // Create string with null characters (trailing zeros)
+        const string testString = "test\0\0\0";
+        var id = serializer.Format("Foo", testString);
+
+        // Verify it's valid Base36
+        Assert.True(id.All(c => "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains(c)));
+
+        // Verify round trip preserves the zeros
+        var parsed = serializer.Parse(id, typeof(string));
+        Assert.Equal("Foo", parsed.TypeName);
+        Assert.Equal(testString, parsed.InternalId);
+    }
+
+    [Fact]
+    public void Base36_Format_Performance_Large_Data()
+    {
+        var serializer = CreateBase36Serializer(
+            "LongTypeName",
+            new StringNodeIdValueSerializer(),
+            maxIdLength: 1568);
+
+        // Test with larger data to ensure no performance regression
+        var largeString = new string('x', 1000);
+        var id = serializer.Format("LongTypeName", largeString);
+
+        Assert.True(id.All(c => "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".Contains(c)));
+
+        // Verify round trip works
+        var parsed = serializer.Parse(id, typeof(string));
+        Assert.Equal("LongTypeName", parsed.TypeName);
+        Assert.Equal(largeString, parsed.InternalId);
+    }
+
+    [Fact]
+    public void Base36_Lookup_Works_With_Multiple_Types()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType("Foo")).Returns(typeof(string));
+        lookup.Setup(t => t.GetNodeIdRuntimeType("Bar")).Returns(typeof(int));
+
+        var stringSerializer = new StringNodeIdValueSerializer();
+        var intSerializer = new Int32NodeIdValueSerializer();
+
+        var serializer = new OptimizedNodeIdSerializer(
+            [
+                new BoundNodeIdValueSerializer("Foo", stringSerializer),
+                new BoundNodeIdValueSerializer("Bar", intSerializer)
+            ],
+            [stringSerializer, intSerializer],
+            format: NodeIdSerializerFormat.Base36);
+
+        // Test string type
+        var stringId = serializer.Format("Foo", "hello");
+        var parsedString = serializer.Parse(stringId, lookup.Object);
+        Assert.Equal("Foo", parsedString.TypeName);
+        Assert.Equal("hello", parsedString.InternalId);
+
+        // Test int type
+        var intId = serializer.Format("Bar", 42);
+        var parsedInt = serializer.Parse(intId, lookup.Object);
+        Assert.Equal("Bar", parsedInt.TypeName);
+        Assert.Equal(42, parsedInt.InternalId);
+    }
+
+    private static OptimizedNodeIdSerializer CreateBase36Serializer(
+        string typeName,
+        INodeIdValueSerializer serializer,
+        bool outputNewIdFormat = true,
+        int maxIdLength = 1024)
+    {
+        return new OptimizedNodeIdSerializer(
+            [new BoundNodeIdValueSerializer(typeName, serializer)],
+            [serializer],
+            maxIdLength: maxIdLength,
+            outputNewIdFormat: outputNewIdFormat,
+            format: NodeIdSerializerFormat.Base36);
     }
 
     private static OptimizedNodeIdSerializer CreateSerializer(
