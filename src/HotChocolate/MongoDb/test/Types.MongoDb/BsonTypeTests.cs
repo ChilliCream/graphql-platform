@@ -63,27 +63,23 @@ public class BsonTypeTests
 
         // act
         await executor.ExecuteAsync(
-            @"
-        {
-            in(val: {
-                  int32: 42,
-                  int64: 42,
-                  decimal: ""42.123456789123456789123456789"",
-                  double: 42.23,
-                  boolean: true,
-                  bsonArray: [
-                    false,
-                    true
-                  ],
-                  string: ""String"",
-                  null: null,
-                  nested: {
-                    int32: 42,
-                    int64: 42
-                  }
-                })
+            """
+            {
+                in(
+                    val: {
+                        int32: 42
+                        int64: 42
+                        decimal: "42.123456789123456789123456789"
+                        double: 42.23
+                        boolean: true
+                        bsonArray: [false, true]
+                        string: "String"
+                        null: null
+                        nested: { int32: 42, int64: 42 }
+                    }
+                )
             }
-        ");
+            """);
 
         // assert
         Assert.IsType<BsonDocument>(res).ToString().MatchSnapshot();

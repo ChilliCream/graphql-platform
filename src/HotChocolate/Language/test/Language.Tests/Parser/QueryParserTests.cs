@@ -193,15 +193,18 @@ public class QueryParserTests
     {
         // arrange
         var sourceText = Encoding.UTF8.GetBytes(
-            @"{
+            // lang=graphql
+            """
+            {
                 hero {
                     name
                     # Queries can have comments!
-                    friends(a:""foo"" b: 123456 c:null d:     true) {
+                    friends(a: "foo", b: 123456, c: null, d: true) {
                         name
                     }
                 }
-            }".NormalizeLineBreaks());
+            }
+            """.NormalizeLineBreaks());
 
         // act
         var parser = new Utf8GraphQLParser(
