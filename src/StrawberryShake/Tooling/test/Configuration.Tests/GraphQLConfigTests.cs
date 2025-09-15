@@ -18,134 +18,146 @@ public class GraphQLConfigTests
     [Fact]
     public void Load_Json()
     {
-        GraphQLConfig.FromJson(@"{
-                ""schema"": ""schema.graphql"",
-                ""documents"": ""**/*.graphql"",
-                ""extensions"": {
-                        ""strawberryShake"": {
-                        ""name"": ""Client"",
-                        ""accessModifier"": ""public"",
-                        ""dependencyInjection"": true,
-                        ""strictSchemaValidation"": true,
-                        ""hashAlgorithm"": ""md5"",
-                        ""useSingleFile"": true,
-                        ""requestStrategy"": ""Default"",
-                        ""outputDirectoryName"": ""Generated"",
-                        ""noStore"": false,
-                        ""emitGeneratedCode"": true,
-                        ""records"": {
-                            ""inputs"": false,
-                            ""entities"": false
+        GraphQLConfig.FromJson(
+            """
+            {
+                "schema": "schema.graphql",
+                "documents": "**/*.graphql",
+                "extensions": {
+                    "strawberryShake": {
+                        "name": "Client",
+                        "accessModifier": "public",
+                        "dependencyInjection": true,
+                        "strictSchemaValidation": true,
+                        "hashAlgorithm": "md5",
+                        "useSingleFile": true,
+                        "requestStrategy": "Default",
+                        "outputDirectoryName": "Generated",
+                        "noStore": false,
+                        "emitGeneratedCode": true,
+                        "records": {
+                            "inputs": false,
+                            "entities": false
                         },
-                        ""transportProfiles"": [
+                        "transportProfiles": [
                             {
-                            ""default"": ""Http"",
-                            ""subscription"": ""WebSocket""
-                            }]
-                        }
+                                "default": "Http",
+                                "subscription": "WebSocket"
+                            }
+                        ]
                     }
                 }
-                ").MatchSnapshot();
+            }
+            """).MatchSnapshot();
     }
 
     [Fact]
     public void Load_Json_With_Transport_Profiles()
     {
-        GraphQLConfig.FromJson(@"{
-                ""schema"": ""schema.graphql"",
-                ""documents"": ""**/*.graphql"",
-                ""extensions"": {
-                        ""strawberryShake"": {
-                        ""name"": ""Client"",
-                        ""accessModifier"": ""public"",
-                        ""dependencyInjection"": true,
-                        ""strictSchemaValidation"": true,
-                        ""hashAlgorithm"": ""md5"",
-                        ""useSingleFile"": true,
-                        ""requestStrategy"": ""Default"",
-                        ""outputDirectoryName"": ""Generated"",
-                        ""noStore"": false,
-                        ""emitGeneratedCode"": true,
-                        ""records"": {
-                            ""inputs"": false,
-                            ""entities"": false
+        GraphQLConfig.FromJson(
+            """
+            {
+                "schema": "schema.graphql",
+                "documents": "**/*.graphql",
+                "extensions": {
+                    "strawberryShake": {
+                        "name": "Client",
+                        "accessModifier": "public",
+                        "dependencyInjection": true,
+                        "strictSchemaValidation": true,
+                        "hashAlgorithm": "md5",
+                        "useSingleFile": true,
+                        "requestStrategy": "Default",
+                        "outputDirectoryName": "Generated",
+                        "noStore": false,
+                        "emitGeneratedCode": true,
+                        "records": {
+                            "inputs": false,
+                            "entities": false
                         },
-                        ""transportProfiles"": [
+                        "transportProfiles": [
                             {
-                                ""default"": ""Http"",
+                                "default": "Http"
                             },
                             {
-                                ""default"": ""WebSocket""
-                            }]
-                        }
+                                "default": "WebSocket"
+                            }
+                        ]
                     }
                 }
-                ").MatchSnapshot();
+            }
+            """).MatchSnapshot();
     }
 
     [Fact]
     public void Load_Json_With_Records()
     {
-        GraphQLConfig.FromJson(@"{
-                ""schema"": ""schema.graphql"",
-                ""documents"": ""**/*.graphql"",
-                ""extensions"": {
-                        ""strawberryShake"": {
-                        ""name"": ""Client"",
-                        ""accessModifier"": ""public"",
-                        ""dependencyInjection"": true,
-                        ""strictSchemaValidation"": true,
-                        ""hashAlgorithm"": ""md5"",
-                        ""useSingleFile"": true,
-                        ""requestStrategy"": ""Default"",
-                        ""outputDirectoryName"": ""Generated"",
-                        ""noStore"": false,
-                        ""emitGeneratedCode"": true,
-                        ""records"": {
-                            ""inputs"": true,
-                            ""entities"": true
+        GraphQLConfig.FromJson(
+            """
+            {
+                "schema": "schema.graphql",
+                "documents": "**/*.graphql",
+                "extensions": {
+                    "strawberryShake": {
+                        "name": "Client",
+                        "accessModifier": "public",
+                        "dependencyInjection": true,
+                        "strictSchemaValidation": true,
+                        "hashAlgorithm": "md5",
+                        "useSingleFile": true,
+                        "requestStrategy": "Default",
+                        "outputDirectoryName": "Generated",
+                        "noStore": false,
+                        "emitGeneratedCode": true,
+                        "records": {
+                            "inputs": true,
+                            "entities": true
                         },
-                        ""transportProfiles"": [
+                        "transportProfiles": [
                             {
-                            ""default"": ""Http"",
-                            ""subscription"": ""WebSocket""
-                            }]
-                        }
+                                "default": "Http",
+                                "subscription": "WebSocket"
+                            }
+                        ]
                     }
                 }
-                ").MatchSnapshot();
+            }
+            """).MatchSnapshot();
     }
 
     [Fact]
     public void Load_Json_With_Documents_Array()
     {
-        GraphQLConfig.FromJson(@"{
-                ""schema"": ""schema.graphql"",
-                ""documents"": [""**/*.graphql"", ""**/*.graphqls""],
-                ""extensions"": {
-                        ""strawberryShake"": {
-                        ""name"": ""Client"",
-                        ""accessModifier"": ""public"",
-                        ""dependencyInjection"": true,
-                        ""strictSchemaValidation"": true,
-                        ""hashAlgorithm"": ""md5"",
-                        ""useSingleFile"": true,
-                        ""requestStrategy"": ""Default"",
-                        ""outputDirectoryName"": ""Generated"",
-                        ""noStore"": false,
-                        ""emitGeneratedCode"": true,
-                        ""records"": {
-                            ""inputs"": true,
-                            ""entities"": true
+        GraphQLConfig.FromJson(
+            """
+            {
+                "schema": "schema.graphql",
+                "documents": ["**/*.graphql", "**/*.graphqls"],
+                "extensions": {
+                    "strawberryShake": {
+                        "name": "Client",
+                        "accessModifier": "public",
+                        "dependencyInjection": true,
+                        "strictSchemaValidation": true,
+                        "hashAlgorithm": "md5",
+                        "useSingleFile": true,
+                        "requestStrategy": "Default",
+                        "outputDirectoryName": "Generated",
+                        "noStore": false,
+                        "emitGeneratedCode": true,
+                        "records": {
+                            "inputs": true,
+                            "entities": true
                         },
-                        ""transportProfiles"": [
+                        "transportProfiles": [
                             {
-                            ""default"": ""Http"",
-                            ""subscription"": ""WebSocket""
-                            }]
-                        }
+                                "default": "Http",
+                                "subscription": "WebSocket"
+                            }
+                        ]
                     }
                 }
-                ").MatchSnapshot();
+            }
+            """).MatchSnapshot();
     }
 }

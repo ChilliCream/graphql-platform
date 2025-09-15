@@ -346,9 +346,10 @@ public class IntegrationTests
                 .GetRequestExecutorAsync();
 
         await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                """
                 {
-                    letters(first: 2 after: ""MQ=="") {
+                    letters(first: 2, after: "MQ==") {
                         edges {
                             node
                             cursor
@@ -361,7 +362,8 @@ public class IntegrationTests
                             endCursor
                         }
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -377,9 +379,10 @@ public class IntegrationTests
                 .GetRequestExecutorAsync();
 
         await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                """
                 {
-                    letters(first: 2 after: ""MQ=="") {
+                    letters(first: 2, after: "MQ==") {
                         edges {
                             node
                             cursor
@@ -392,7 +395,8 @@ public class IntegrationTests
                             endCursor
                         }
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
