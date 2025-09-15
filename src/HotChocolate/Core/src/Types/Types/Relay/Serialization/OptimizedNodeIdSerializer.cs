@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Buffers.Text;
+using HotChocolate.Execution.Relay;
 
 namespace HotChocolate.Types.Relay;
 

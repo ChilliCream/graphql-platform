@@ -1,6 +1,7 @@
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
+using HotChocolate.Execution.Relay;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection.Extensions;

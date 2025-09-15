@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using HotChocolate.Execution.Relay;
 using Moq;
 
 namespace HotChocolate.Types.Relay;

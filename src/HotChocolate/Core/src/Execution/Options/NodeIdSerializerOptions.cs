@@ -1,3 +1,4 @@
+using HotChocolate.Execution.Relay;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Execution.Options;

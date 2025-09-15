@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Relay;
+namespace HotChocolate.Execution.Relay;
 
 /// <summary>
 /// Specifies the encoding format used for GraphQL Global ID serialization.

@@ -1,5 +1,6 @@
 using System.Text;
 using HotChocolate.Buffers.Text;
+using HotChocolate.Execution.Relay;
 using Moq;
 
 namespace HotChocolate.Types.Relay;
