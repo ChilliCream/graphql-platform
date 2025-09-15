@@ -1018,7 +1018,7 @@ public sealed partial class OperationPlanner
                 index.GetId(selectionSetNode),
                 selectionSetNode,
                 type,
-                selectionPath);
+                selectionPath.AppendFragment(type.Name));
 
             var newWorkItem = new NodeLookupWorkItem(
                 Lookup: null,

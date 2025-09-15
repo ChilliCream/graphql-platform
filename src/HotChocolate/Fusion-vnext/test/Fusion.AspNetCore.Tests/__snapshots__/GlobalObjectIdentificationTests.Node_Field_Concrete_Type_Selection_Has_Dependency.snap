@@ -11,7 +11,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "11fd8fdc98ab0eb7bf39a629d69b5b98348ef424aff54b00732c1a2323904b83",
+        "id": "34f876326e0005b37246173765998fc122b55dae0c35546b41286fa26cc677a9",
         "operation": {
           "name": "testQuery",
           "kind": "Query",
@@ -82,12 +82,12 @@
               "name"
             ],
             "source": "$.node<Product>",
-            "target": "$.node.product",
+            "target": "$.node<Discussion>.product",
             "requirements": [
               {
                 "name": "__fusion_1_id",
                 "type": "ID!",
-                "path": "$.node.product",
+                "path": "$.node<Discussion>.product",
                 "selectionMap": "id"
               }
             ],

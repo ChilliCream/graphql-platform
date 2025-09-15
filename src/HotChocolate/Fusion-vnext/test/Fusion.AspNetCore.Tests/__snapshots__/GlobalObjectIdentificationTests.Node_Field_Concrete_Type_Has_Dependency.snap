@@ -8,7 +8,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "8e75929c5422a6c9ba331d3f5c90ab53c6c71decf2e30e04d6d2f6c0cde17b22",
+        "id": "79acc1abb13b6a960e9c888bc6d853f0095bccab960d0a0aa5b23ed47c0409cc",
         "operation": {
           "name": "testQuery",
           "kind": "Query",
@@ -79,12 +79,12 @@
               "commentCount"
             ],
             "source": "$.discussionById",
-            "target": "$.node",
+            "target": "$.node<Discussion>",
             "requirements": [
               {
                 "name": "__fusion_1_discussionId",
                 "type": "ID!",
-                "path": "$.node",
+                "path": "$.node<Discussion>",
                 "selectionMap": "id"
               }
             ],

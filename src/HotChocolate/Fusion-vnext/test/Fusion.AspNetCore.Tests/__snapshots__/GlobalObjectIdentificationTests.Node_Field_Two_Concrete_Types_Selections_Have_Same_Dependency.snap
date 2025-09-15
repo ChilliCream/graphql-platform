@@ -9,7 +9,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "68fa2badc0e753a73f4af26527f1bd71be3dfa74c958fd9edb241ef710cae529",
+        "id": "47754aa603eabe98b81725e7a15b3ea12ea9120efac896a2d26d0944eb1cc4eb",
         "operation": {
           "name": "testQuery",
           "kind": "Query",
@@ -81,12 +81,12 @@
               "name"
             ],
             "source": "$.node<Product>",
-            "target": "$.node.product",
+            "target": "$.node<Review>.product",
             "requirements": [
               {
                 "name": "__fusion_1_id",
                 "type": "ID!",
-                "path": "$.node.product",
+                "path": "$.node<Review>.product",
                 "selectionMap": "id"
               }
             ],
@@ -128,12 +128,12 @@
               "name"
             ],
             "source": "$.node<Product>",
-            "target": "$.node.product",
+            "target": "$.node<Discussion>.product",
             "requirements": [
               {
                 "name": "__fusion_2_id",
                 "type": "ID!",
-                "path": "$.node.product",
+                "path": "$.node<Discussion>.product",
                 "selectionMap": "id"
               }
             ],

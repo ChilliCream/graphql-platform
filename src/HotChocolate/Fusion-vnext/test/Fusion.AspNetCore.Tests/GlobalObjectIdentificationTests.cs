@@ -7,6 +7,7 @@ namespace HotChocolate.Fusion;
 
 // TODO:
 // - Conditional selections (on, on top of and below node field, also with conditional fragment)
+// - Selections on interface, all types of interfaces are on same subgraph and there's only node lookup
 public class GlobalObjectIdentificationTests : FusionTestBase
 {
     [Fact]
@@ -1188,7 +1189,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         response.MatchSnapshot();
     }
 
-    [Fact(Skip = "Does not work correctly")]
+    [Fact]
     public async Task Node_Field_Selections_On_Interface_And_Concrete_Type_Both_Have_Different_Dependencies()
     {
         // arrange
@@ -1277,7 +1278,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
         response.MatchSnapshot();
     }
 
-    [Fact(Skip = "Does not work correctly")]
+    [Fact]
     public async Task Node_Field_Selections_On_Interface_Selection_Has_Dependency()
     {
         // arrange

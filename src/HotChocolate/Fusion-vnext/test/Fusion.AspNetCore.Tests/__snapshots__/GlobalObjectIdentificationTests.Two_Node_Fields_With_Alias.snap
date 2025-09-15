@@ -11,7 +11,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "c97fdda7930d333523a04a054d2ac81fbcfdfbdcefb1217e5ef3519492a1cc2d",
+        "id": "c8b177adf7b13feb7008465b4c31001b2098b9d6e0491bd705a93336554e8b7d",
         "operation": {
           "kind": "Query",
           "document": "{\n  a: node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n    }\n  }\n  b: node(id: \"RGlzY3Vzc2lvbjoy\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      title\n      commentCount\n    }\n    id @fusion__requirement\n  }\n}",
@@ -81,12 +81,12 @@
               "commentCount"
             ],
             "source": "$.discussion",
-            "target": "$.b",
+            "target": "$.b<Discussion>",
             "requirements": [
               {
                 "name": "__fusion_1_id",
                 "type": "ID!",
-                "path": "$.b",
+                "path": "$.b<Discussion>",
                 "selectionMap": "id"
               }
             ],
