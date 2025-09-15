@@ -11,15 +11,16 @@ public class ArgumentNonNullValidatorTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddDocumentFromString(@"
-                    type Query {
-                        test(bar: Bar): String
-                    }
+            .AddDocumentFromString(
+                """
+                type Query {
+                    test(bar: Bar): String
+                }
 
-                    input Bar {
-                        a: String! = ""bar""
-                    }
-                ")
+                input Bar {
+                    a: String! = "bar"
+                }
+                """)
             .Use(_ => _ => default)
             .Create();
 

@@ -7,7 +7,7 @@
   "extensions": {
     "fusion": {
       "operationPlan": {
-        "id": "17f3bedec7fd1e8ea47f31347103804992c87b23a6005bde9286dcc52e88c060",
+        "id": "bcdc83b0403a3cc4a375d56494927687654063caf35a6fdfe03f6f4146b12b8a",
         "operation": {
           "kind": "Query",
           "document": "{\n  node(id: \"RGlzY3Vzc2lvbjox\") {\n    __typename @fusion__requirement\n    ... on Discussion {\n      __typename\n    }\n  }\n}",
@@ -51,9 +51,9 @@
             "operation": {
               "name": "Op_72167d7d_3",
               "kind": "Query",
-              "document": "query Op_72167d7d_3 {\n  node: discussionById(discussionId: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n    __typename\n  }\n}",
-              "hash": "1a577bbb61a345b7eb4307da4f0a5fe835b9b58331bc96c0685594381b0c31df",
-              "shortHash": "1a577bbb"
+              "document": "query Op_72167d7d_3 {\n  node: discussionById(discussionId: \"RGlzY3Vzc2lvbjox\") {\n    __typename\n  }\n}",
+              "hash": "cf9d08901253a456552f6be60517863eba31e024544cf744d8139eb93355ac5b",
+              "shortHash": "cf9d0890"
             },
             "responseNames": [
               "node"

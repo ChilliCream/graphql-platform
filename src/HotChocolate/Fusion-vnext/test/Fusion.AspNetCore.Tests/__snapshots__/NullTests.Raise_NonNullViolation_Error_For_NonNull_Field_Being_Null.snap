@@ -1,0 +1,45 @@
+{
+  "errors": [
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "path": [
+        "nonNullString"
+      ],
+      "extensions": {
+        "code": "HC0018"
+      }
+    }
+  ],
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "6ba3d3b385b1c659d7d132b0cc94efa40b86b44a2602c5cbb69126975b0e5700",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  nonNullString\n}",
+          "id": "ca4a09458484ec06221f9c74efd683d1",
+          "hash": "ca4a09458484ec06221f9c74efd683d1",
+          "shortHash": "ca4a0945"
+        },
+        "searchSpace": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_ca4a0945_1",
+              "kind": "Query",
+              "document": "query Op_ca4a0945_1 {\n  nonNullString\n}",
+              "hash": "fc9260d38242cecff71015f113b9bf174ca504fc6562d1eecac19d6413f4d5fd",
+              "shortHash": "fc9260d3"
+            },
+            "responseNames": [
+              "nonNullString"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

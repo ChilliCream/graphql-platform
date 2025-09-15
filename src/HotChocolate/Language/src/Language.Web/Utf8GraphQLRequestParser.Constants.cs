@@ -11,7 +11,6 @@ public ref partial struct Utf8GraphQLRequestParser
     private const byte I = (byte)'i';
     private const byte P = (byte)'p';
 
-    // This uses C# compiler's ability to refer to static data directly. For more information see https://vcsjones.dev/2019/02/01/csharp-readonly-span-bytes-static
     private static ReadOnlySpan<byte> OperationNameProperty => "operationName"u8;
 
     private static ReadOnlySpan<byte> QueryProperty => "query"u8;

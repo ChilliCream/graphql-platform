@@ -4,9 +4,8 @@ operation:
         $id: ID!
       ) {
         node(id: $id) {
-          __typename @fusion__requirement
-          __typename
           id
+          __typename
         }
       }
     name: testQuery
@@ -26,7 +25,6 @@ nodes:
         $id: ID!
       ) {
         node(id: $id) {
-          __typename
           id
           __typename
         }

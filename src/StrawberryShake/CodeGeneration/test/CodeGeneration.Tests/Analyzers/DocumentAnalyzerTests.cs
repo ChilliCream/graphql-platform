@@ -93,11 +93,12 @@ public class DocumentAnalyzerTests
                 ]);
 
         var document =
-            Utf8GraphQLParser.Parse(@"
+            Utf8GraphQLParser.Parse(
+                """
                 query GetHero {
                     hero(episode: NEW_HOPE) {
                         ... HeroName
-                        ... HeroAppearsIn @defer(label: ""HeroAppearsIn"")
+                        ... HeroAppearsIn @defer(label: "HeroAppearsIn")
                     }
                 }
 
@@ -107,7 +108,8 @@ public class DocumentAnalyzerTests
 
                 fragment HeroAppearsIn on Character {
                     appearsIn
-                }");
+                }
+                """);
 
         // act
         var clientModel =

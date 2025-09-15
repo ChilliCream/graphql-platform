@@ -4,7 +4,6 @@ operation:
         $id: ID!
       ) {
         node(id: $id) {
-          __typename @fusion__requirement
           __typename
         }
       }
@@ -25,7 +24,6 @@ nodes:
         $id: ID!
       ) {
         node(id: $id) {
-          __typename
           __typename
         }
       }

@@ -18,7 +18,7 @@ public static class IntrospectionFieldNames
     /// <summary>
     /// Gets the field name of the __schema introspection field.
     /// </summary>
-    public const string Schema =  "__schema";
+    public const string Schema = "__schema";
 
     /// <summary>
     /// Gets the field name of the __schema introspection field as a span of utf-8 bytes.

@@ -64,7 +64,10 @@ public sealed class Selection : ISelection
 
     IEnumerable<FieldNode> ISelection.GetSyntaxNodes()
     {
-        throw new NotImplementedException();
+        for (var i = 0; i < SyntaxNodes.Length; i++)
+        {
+            yield return SyntaxNodes[i].Node;
+        }
     }
 
     public bool IsIncluded(ulong includeFlags)

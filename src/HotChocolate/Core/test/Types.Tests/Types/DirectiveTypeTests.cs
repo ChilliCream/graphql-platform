@@ -667,8 +667,9 @@ public class DirectiveTypeTests : TypeTestBase
                     .Resolve("asd")
                     .Directive("Qux"))
             .AddDocumentFromString(
-                @"directive @Qux(bar: String @deprecated(reason: ""reason""))
-                    on FIELD_DEFINITION")
+                """
+                directive @Qux(bar: String @deprecated(reason: "reason")) on FIELD_DEFINITION
+                """)
             .BuildSchemaAsync();
 
         // assert
@@ -690,8 +691,9 @@ public class DirectiveTypeTests : TypeTestBase
                         .Resolve("asd")
                         .Directive("Qux", new ArgumentNode("bar", "abc")))
                 .AddDocumentFromString(
-                    @"directive @Qux(bar: String! @deprecated(reason: ""reason""))
-                        on FIELD_DEFINITION")
+                    """
+                    directive @Qux(bar: String! @deprecated(reason: "reason")) on FIELD_DEFINITION
+                    """)
                 .BuildSchemaAsync();
 
         // assert

@@ -1,0 +1,90 @@
+{
+  "data": {
+    "viewer": {
+      "schema1": "schema1",
+      "settings": {
+        "schema1": "schema1",
+        "schema2": "schema2"
+      },
+      "schema2": "schema2",
+      "schema3": "schema3"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "id": "ff2043ce67ed78a9e2e94623c666701f54d25ba0c241090c5f5aabefb61809c5",
+        "operation": {
+          "kind": "Query",
+          "document": "{\n  viewer {\n    schema1\n    settings {\n      schema1\n      schema2\n    }\n    schema2\n    schema3\n  }\n}",
+          "id": "2deb87e6f5d5d06a553c1cfedc981172",
+          "hash": "2deb87e6f5d5d06a553c1cfedc981172",
+          "shortHash": "2deb87e6"
+        },
+        "searchSpace": 5,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "C",
+            "operation": {
+              "name": "Op_2deb87e6_1",
+              "kind": "Query",
+              "document": "query Op_2deb87e6_1 {\n  viewer {\n    schema3\n  }\n}",
+              "hash": "ff308ab82fda26d99c47510cb1207c3a0c0b476da032d811ea4ed18ccb362e78",
+              "shortHash": "ff308ab8"
+            },
+            "responseNames": [
+              "viewer"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "Operation",
+            "schema": "B",
+            "operation": {
+              "name": "Op_2deb87e6_2",
+              "kind": "Query",
+              "document": "query Op_2deb87e6_2 {\n  viewer {\n    settings {\n      schema2\n    }\n    schema2\n  }\n}",
+              "hash": "e28aa64c9d05e1f366761b63a4980ed7d66e50a362820b9246d1bbc5e7147827",
+              "shortHash": "e28aa64c"
+            },
+            "responseNames": [
+              "viewer"
+            ]
+          },
+          {
+            "id": 3,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_2deb87e6_3",
+              "kind": "Query",
+              "document": "query Op_2deb87e6_3 {\n  viewer {\n    schema1\n  }\n}",
+              "hash": "e447219135b5cb676a097a36337b24d4d810f367d53fc2475d805ae4482950eb",
+              "shortHash": "e4472191"
+            },
+            "responseNames": [
+              "viewer"
+            ]
+          },
+          {
+            "id": 4,
+            "type": "Operation",
+            "schema": "A",
+            "operation": {
+              "name": "Op_2deb87e6_4",
+              "kind": "Query",
+              "document": "query Op_2deb87e6_4 {\n  viewer {\n    settings {\n      schema1\n    }\n  }\n}",
+              "hash": "d67844d37dc80c242603265be47ea368c5df819f773c649b742ec303ad0fdd94",
+              "shortHash": "d67844d3"
+            },
+            "responseNames": [
+              "viewer"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
