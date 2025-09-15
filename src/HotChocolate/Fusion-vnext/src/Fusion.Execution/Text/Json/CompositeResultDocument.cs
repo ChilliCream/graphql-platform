@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -10,10 +11,10 @@ using static HotChocolate.Text.Json.MetaDbConstants;
 
 namespace HotChocolate.Text.Json;
 
-
 public class SourceResultDocument
 {
     internal int Id;
+
 }
 
 public struct SourceResultElement
@@ -34,10 +35,10 @@ public sealed partial class CompositeResultDocument
     private MetaDb _metaDb;
     private byte[][] _dataChunks;
     private List<SourceResultDocument> _sources;
+    private Operation _operation;
     private bool _disposed;
 
     public CompositeResultElement RootElement { get; }
-
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -82,6 +83,20 @@ public sealed partial class CompositeResultDocument
         CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
 
         return row.NumberOfRows;
+    }
+
+    private ReadOnlySpan<byte> ReadRawValue(DbRow row)
+    {
+        if (row.TokenType == ElementTokenType.PropertyName)
+        {
+            return _operation.GetSelectionById(row.SelectionSetId).RawResponseName;
+        }
+
+        if (row.TokenType == ElementTokenType.Reference)
+        {
+        }
+
+        throw new NotImplementedException();
     }
 
     private CompositeResultElement CreateObject(int parentRow, SelectionSet selectionSet)

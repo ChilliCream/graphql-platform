@@ -200,4 +200,8 @@ public sealed class Operation : IOperation
 
         return includeFlags;
     }
+
+    internal Selection GetSelectionById(int id) => throw new NotImplementedException();
+
+    internal SelectionSet GetSelectionSetById(int id) => throw new NotImplementedException();
 }

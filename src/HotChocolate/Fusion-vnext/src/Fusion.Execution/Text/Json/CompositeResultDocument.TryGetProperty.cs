@@ -154,8 +154,8 @@ public sealed partial class CompositeResultDocument
                     Debug.Assert(idx >= 0);
 
                     // If everything up to where the property name has a backslash matches, keep going.
-                    if (propertyName.Length > idx &&
-                        currentPropertyName.Slice(0, idx).SequenceEqual(propertyName.Slice(0, idx)))
+                    if (propertyName.Length > idx
+                        && currentPropertyName.Slice(0, idx).SequenceEqual(propertyName.Slice(0, idx)))
                     {
                         var remaining = currentPropertyName.Length - idx;
                         var written = 0;

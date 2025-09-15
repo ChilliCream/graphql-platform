@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 
@@ -89,33 +90,36 @@ public struct CompositeResultElement
     }
 
     /// <summary>
-    ///   Gets a <see cref="JsonElement"/> representing the value of a required property identified
-    ///   by <paramref name="propertyName"/>.
+    /// Gets a <see cref="JsonElement"/> representing the value of a required property identified
+    /// by <paramref name="propertyName"/>.
     /// </summary>
     /// <remarks>
-    ///   Property name matching is performed as an ordinal, case-sensitive, comparison.
-    ///
-    ///   If a property is defined multiple times for the same object, the last such definition is
-    ///   what is matched.
+    /// <para>
+    /// Property name matching is performed as an ordinal, case-sensitive, comparison.
+    /// </para>
+    /// <para>
+    /// If a property is defined multiple times for the same object, the last such definition is
+    /// what is matched.
+    /// </para>
     /// </remarks>
     /// <param name="propertyName">Name of the property whose value to return.</param>
     /// <returns>
-    ///   A <see cref="JsonElement"/> representing the value of the requested property.
+    /// A <see cref="JsonElement"/> representing the value of the requested property.
     /// </returns>
     /// <seealso cref="EnumerateObject"/>
     /// <exception cref="InvalidOperationException">
-    ///   This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Object"/>.
+    /// This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Object"/>.
     /// </exception>
     /// <exception cref="KeyNotFoundException">
-    ///   No property was found with the requested name.
+    /// No property was found with the requested name.
     /// </exception>
     /// <exception cref="ArgumentNullException">
-    ///   <paramref name="propertyName"/> is <see langword="null"/>.
+    /// <paramref name="propertyName"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
+    /// The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public JsonElement GetProperty(string propertyName)
+    public CompositeResultElement GetProperty(string propertyName)
     {
         ArgumentNullException.ThrowIfNull(propertyName);
 
@@ -155,9 +159,9 @@ public struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public JsonElement GetProperty(ReadOnlySpan<char> propertyName)
+    public CompositeResultElement GetProperty(ReadOnlySpan<char> propertyName)
     {
-        if (TryGetProperty(propertyName, out JsonElement property))
+        if (TryGetProperty(propertyName, out var property))
         {
             return property;
         }
@@ -195,9 +199,9 @@ public struct CompositeResultElement
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
     /// <seealso cref="EnumerateObject"/>
-    public JsonElement GetProperty(ReadOnlySpan<byte> utf8PropertyName)
+    public CompositeResultElement GetProperty(ReadOnlySpan<byte> utf8PropertyName)
     {
-        if (TryGetProperty(utf8PropertyName, out JsonElement property))
+        if (TryGetProperty(utf8PropertyName, out var property))
         {
             return property;
         }
@@ -235,7 +239,7 @@ public struct CompositeResultElement
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
     /// <seealso cref="EnumerateObject"/>
-    public bool TryGetProperty(string propertyName, out JsonElement value)
+    public bool TryGetProperty(string propertyName, out CompositeResultElement value)
     {
         ArgumentNullException.ThrowIfNull(propertyName);
 
@@ -269,7 +273,7 @@ public struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public bool TryGetProperty(ReadOnlySpan<char> propertyName, out JsonElement value)
+    public bool TryGetProperty(ReadOnlySpan<char> propertyName, out CompositeResultElement value)
     {
         CheckValidInstance();
 
@@ -305,7 +309,7 @@ public struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public bool TryGetProperty(ReadOnlySpan<byte> utf8PropertyName, out JsonElement value)
+    public bool TryGetProperty(ReadOnlySpan<byte> utf8PropertyName, out CompositeResultElement value)
     {
         CheckValidInstance();
 
@@ -328,17 +332,19 @@ public struct CompositeResultElement
     /// </exception>
     public bool GetBoolean()
     {
-        // CheckValidInstance is redundant.  Asking for the type will
+        // CheckValidInstance is redundant. Asking for the type will
         // return None, which then throws the same exception in the return statement.
 
-        JsonTokenType type = TokenType;
+        var type = TokenType;
 
-        return
-            type == JsonTokenType.True ? true :
-            type == JsonTokenType.False ? false :
-            ThrowJsonElementWrongTypeException(type);
+        return type switch
+        {
+            ElementTokenType.True => true,
+            ElementTokenType.False => false,
+            _ => ThrowJsonElementWrongTypeException(type)
+        };
 
-        static bool ThrowJsonElementWrongTypeException(JsonTokenType actualType)
+        static bool ThrowJsonElementWrongTypeException(ElementTokenType actualType)
         {
             throw ThrowHelper.GetJsonElementWrongTypeException(nameof(Boolean), actualType.ToValueKind());
         }
@@ -406,15 +412,7 @@ public struct CompositeResultElement
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
     /// <seealso cref="ToString"/>
-    public byte[] GetBytesFromBase64()
-    {
-        if (!TryGetBytesFromBase64(out byte[]? value))
-        {
-            ThrowHelper.ThrowFormatException();
-        }
-
-        return value;
-    }
+    public byte[] GetBytesFromBase64() => TryGetBytesFromBase64(out var value) ? value : throw new FormatException();
 
     /// <summary>
     ///   Attempts to represent the current JSON number as an <see cref="sbyte"/>.
@@ -455,15 +453,7 @@ public struct CompositeResultElement
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
     [CLSCompliant(false)]
-    public sbyte GetSByte()
-    {
-        if (TryGetSByte(out sbyte value))
-        {
-            return value;
-        }
-
-        throw new FormatException();
-    }
+    public sbyte GetSByte() => TryGetSByte(out var value) ? value : throw new FormatException();
 
     /// <summary>
     ///   Attempts to represent the current JSON number as a <see cref="byte"/>.
@@ -1284,7 +1274,7 @@ public struct CompositeResultElement
                     return false;
                 }
 
-                ArrayEnumerator arrayEnumerator2 = element2.EnumerateArray();
+                JsonElement.ArrayEnumerator arrayEnumerator2 = element2.EnumerateArray();
                 foreach (JsonElement e1 in element1.EnumerateArray())
                 {
                     bool success = arrayEnumerator2.MoveNext();
@@ -1308,8 +1298,8 @@ public struct CompositeResultElement
                     return false;
                 }
 
-                ObjectEnumerator objectEnumerator1 = element1.EnumerateObject();
-                ObjectEnumerator objectEnumerator2 = element2.EnumerateObject();
+                JsonElement.ObjectEnumerator objectEnumerator1 = element1.EnumerateObject();
+                JsonElement.ObjectEnumerator objectEnumerator2 = element2.EnumerateObject();
 
                 // Two JSON objects are considered equal if they define the same set of properties.
                 // Start optimistically with pairwise comparison, but fall back to unordered
@@ -1340,7 +1330,8 @@ public struct CompositeResultElement
                 Debug.Assert(!objectEnumerator2.MoveNext());
                 return true;
 
-                static bool UnorderedObjectDeepEquals(ObjectEnumerator objectEnumerator1, ObjectEnumerator objectEnumerator2, int remainingProps)
+                static bool UnorderedObjectDeepEquals(JsonElement.ObjectEnumerator objectEnumerator1,
+                    JsonElement.ObjectEnumerator objectEnumerator2, int remainingProps)
                 {
                     // JsonElement objects allow duplicate property names, which is optional per the JSON RFC.
                     // Even though this implementation of equality does not take property ordering into account,
@@ -1349,12 +1340,14 @@ public struct CompositeResultElement
                     // or last occurrence of a repeated property name is used. It also simplifies the implementation
                     // and keeps it at O(n + m) complexity.
 
-                    Dictionary<string, ValueQueue<JsonElement>> properties2 = new(capacity: remainingProps, StringComparer.Ordinal);
+                    Dictionary<string, ValueQueue<JsonElement>> properties2 = new(capacity: remainingProps,
+                        StringComparer.Ordinal);
                     do
                     {
                         JsonProperty prop2 = objectEnumerator2.Current;
 #if NET
-                        ref ValueQueue<JsonElement> values = ref CollectionsMarshal.GetValueRefOrAddDefault(properties2, prop2.Name, out bool _);
+                        ref ValueQueue<JsonElement> values =
+                            ref CollectionsMarshal.GetValueRefOrAddDefault(properties2, prop2.Name, out bool _);
 #else
                             properties2.TryGetValue(prop2.Name, out ValueQueue<JsonElement> values);
 #endif
@@ -1362,14 +1355,14 @@ public struct CompositeResultElement
 #if !NET
                             properties2[prop2.Name] = values;
 #endif
-                    }
-                    while (objectEnumerator2.MoveNext());
+                    } while (objectEnumerator2.MoveNext());
 
                     do
                     {
                         JsonProperty prop = objectEnumerator1.Current;
 #if NET
-                        ref ValueQueue<JsonElement> values = ref CollectionsMarshal.GetValueRefOrAddDefault(properties2, prop.Name, out bool exists);
+                        ref ValueQueue<JsonElement> values =
+                            ref CollectionsMarshal.GetValueRefOrAddDefault(properties2, prop.Name, out bool exists);
 #else
                             bool exists = properties2.TryGetValue(prop.Name, out ValueQueue<JsonElement> values);
 #endif
@@ -1380,8 +1373,7 @@ public struct CompositeResultElement
 #if !NET
                             properties2[prop.Name] = values;
 #endif
-                    }
-                    while (objectEnumerator1.MoveNext());
+                    } while (objectEnumerator1.MoveNext());
 
                     return true;
                 }
@@ -1555,7 +1547,7 @@ public struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public ArrayEnumerator EnumerateArray()
+    public JsonElement.ArrayEnumerator EnumerateArray()
     {
         CheckValidInstance();
 
@@ -1566,7 +1558,7 @@ public struct CompositeResultElement
             ThrowHelper.ThrowJsonElementWrongTypeException(JsonTokenType.StartArray, tokenType);
         }
 
-        return new ArrayEnumerator(this);
+        return new JsonElement.ArrayEnumerator(this);
     }
 
     /// <summary>
@@ -1581,7 +1573,7 @@ public struct CompositeResultElement
     /// <exception cref="ObjectDisposedException">
     ///   The parent <see cref="JsonDocument"/> has been disposed.
     /// </exception>
-    public ObjectEnumerator EnumerateObject()
+    public JsonElement.ObjectEnumerator EnumerateObject()
     {
         CheckValidInstance();
 
@@ -1592,7 +1584,7 @@ public struct CompositeResultElement
             ThrowHelper.ThrowJsonElementWrongTypeException(JsonTokenType.StartObject, tokenType);
         }
 
-        return new ObjectEnumerator(this);
+        return new JsonElement.ObjectEnumerator(this);
     }
 
     /// <summary>
