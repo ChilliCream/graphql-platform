@@ -46,6 +46,11 @@ public class SortFieldDescriptor
         Configuration.Type = convention.GetFieldType(member);
         Configuration.Scope = scope;
         Configuration.Flags = CoreFieldFlags.SortOperationField;
+
+        if (context.Naming.IsDeprecated(member, out var reason))
+        {
+            Deprecated(reason);
+        }
     }
 
     protected internal SortFieldDescriptor(IDescriptorContext context, string? scope)
